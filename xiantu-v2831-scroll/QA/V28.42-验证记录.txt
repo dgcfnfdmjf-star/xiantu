@@ -1,0 +1,4 @@
+本次通过：洗练对比与选择、存档恢复、云函数校验、模拟 Jev 接入、异步结果过期处理、正文读取超时、现有剧情和仙阵魔劫回归。
+未调用真实 Jev；未发布腾讯云；未进行手机浏览器真机测试。
+重跑本轮测试：从压缩包解压根目录执行 XIANTU_TEST_ROOT=./xiantu-v2831-scroll node xiantu-v2831-scroll/QA/v2842-test-jev.cjs
+云函数目录需要与 xiantu-v2831-scroll 同级。测试上游是模拟响应，不消耗 API 费用。

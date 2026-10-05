@@ -1,0 +1,2450 @@
+[
+  {
+    "level": 0,
+    "phase": 0,
+    "tier": "normal",
+    "hp": 630,
+    "atk": 32,
+    "def": 14,
+    "stable": true
+  },
+  {
+    "level": 0,
+    "phase": 0,
+    "tier": "elite",
+    "hp": 1040,
+    "atk": 36,
+    "def": 17,
+    "stable": true
+  },
+  {
+    "level": 0,
+    "phase": 0,
+    "tier": "boss",
+    "hp": 2016,
+    "atk": 41,
+    "def": 18,
+    "stable": true
+  },
+  {
+    "level": 0,
+    "phase": 0,
+    "tier": "tribulation",
+    "hp": 2268,
+    "atk": 43,
+    "def": 19,
+    "stable": true
+  },
+  {
+    "level": 0,
+    "phase": 1,
+    "tier": "normal",
+    "hp": 643,
+    "atk": 32,
+    "def": 15,
+    "stable": true
+  },
+  {
+    "level": 0,
+    "phase": 1,
+    "tier": "elite",
+    "hp": 1060,
+    "atk": 37,
+    "def": 17,
+    "stable": true
+  },
+  {
+    "level": 0,
+    "phase": 1,
+    "tier": "boss",
+    "hp": 2056,
+    "atk": 42,
+    "def": 18,
+    "stable": true
+  },
+  {
+    "level": 0,
+    "phase": 1,
+    "tier": "tribulation",
+    "hp": 2313,
+    "atk": 43,
+    "def": 19,
+    "stable": true
+  },
+  {
+    "level": 0,
+    "phase": 2,
+    "tier": "normal",
+    "hp": 655,
+    "atk": 33,
+    "def": 15,
+    "stable": true
+  },
+  {
+    "level": 0,
+    "phase": 2,
+    "tier": "elite",
+    "hp": 1081,
+    "atk": 38,
+    "def": 17,
+    "stable": true
+  },
+  {
+    "level": 0,
+    "phase": 2,
+    "tier": "boss",
+    "hp": 2097,
+    "atk": 43,
+    "def": 19,
+    "stable": true
+  },
+  {
+    "level": 0,
+    "phase": 2,
+    "tier": "tribulation",
+    "hp": 2359,
+    "atk": 44,
+    "def": 19,
+    "stable": true
+  },
+  {
+    "level": 0,
+    "phase": 3,
+    "tier": "normal",
+    "hp": 668,
+    "atk": 33,
+    "def": 15,
+    "stable": true
+  },
+  {
+    "level": 0,
+    "phase": 3,
+    "tier": "elite",
+    "hp": 1102,
+    "atk": 38,
+    "def": 18,
+    "stable": true
+  },
+  {
+    "level": 0,
+    "phase": 3,
+    "tier": "boss",
+    "hp": 2137,
+    "atk": 43,
+    "def": 19,
+    "stable": true
+  },
+  {
+    "level": 0,
+    "phase": 3,
+    "tier": "tribulation",
+    "hp": 2404,
+    "atk": 45,
+    "def": 20,
+    "stable": true
+  },
+  {
+    "level": 1,
+    "phase": 0,
+    "tier": "normal",
+    "hp": 1080,
+    "atk": 45,
+    "def": 21,
+    "stable": true
+  },
+  {
+    "level": 1,
+    "phase": 0,
+    "tier": "elite",
+    "hp": 1782,
+    "atk": 52,
+    "def": 24,
+    "stable": true
+  },
+  {
+    "level": 1,
+    "phase": 0,
+    "tier": "boss",
+    "hp": 3456,
+    "atk": 59,
+    "def": 26,
+    "stable": true
+  },
+  {
+    "level": 1,
+    "phase": 0,
+    "tier": "tribulation",
+    "hp": 3888,
+    "atk": 61,
+    "def": 27,
+    "stable": true
+  },
+  {
+    "level": 1,
+    "phase": 1,
+    "tier": "normal",
+    "hp": 1102,
+    "atk": 46,
+    "def": 21,
+    "stable": true
+  },
+  {
+    "level": 1,
+    "phase": 1,
+    "tier": "elite",
+    "hp": 1818,
+    "atk": 53,
+    "def": 24,
+    "stable": true
+  },
+  {
+    "level": 1,
+    "phase": 1,
+    "tier": "boss",
+    "hp": 3525,
+    "atk": 60,
+    "def": 26,
+    "stable": true
+  },
+  {
+    "level": 1,
+    "phase": 1,
+    "tier": "tribulation",
+    "hp": 3966,
+    "atk": 62,
+    "def": 28,
+    "stable": true
+  },
+  {
+    "level": 1,
+    "phase": 2,
+    "tier": "normal",
+    "hp": 1123,
+    "atk": 47,
+    "def": 22,
+    "stable": true
+  },
+  {
+    "level": 1,
+    "phase": 2,
+    "tier": "elite",
+    "hp": 1853,
+    "atk": 54,
+    "def": 25,
+    "stable": true
+  },
+  {
+    "level": 1,
+    "phase": 2,
+    "tier": "boss",
+    "hp": 3594,
+    "atk": 61,
+    "def": 27,
+    "stable": true
+  },
+  {
+    "level": 1,
+    "phase": 2,
+    "tier": "tribulation",
+    "hp": 4044,
+    "atk": 63,
+    "def": 28,
+    "stable": true
+  },
+  {
+    "level": 1,
+    "phase": 3,
+    "tier": "normal",
+    "hp": 1145,
+    "atk": 48,
+    "def": 22,
+    "stable": true
+  },
+  {
+    "level": 1,
+    "phase": 3,
+    "tier": "elite",
+    "hp": 1889,
+    "atk": 55,
+    "def": 25,
+    "stable": true
+  },
+  {
+    "level": 1,
+    "phase": 3,
+    "tier": "boss",
+    "hp": 3663,
+    "atk": 62,
+    "def": 27,
+    "stable": true
+  },
+  {
+    "level": 1,
+    "phase": 3,
+    "tier": "tribulation",
+    "hp": 4121,
+    "atk": 64,
+    "def": 29,
+    "stable": true
+  },
+  {
+    "level": 2,
+    "phase": 0,
+    "tier": "normal",
+    "hp": 1980,
+    "atk": 72,
+    "def": 34,
+    "stable": true
+  },
+  {
+    "level": 2,
+    "phase": 0,
+    "tier": "elite",
+    "hp": 3267,
+    "atk": 83,
+    "def": 39,
+    "stable": true
+  },
+  {
+    "level": 2,
+    "phase": 0,
+    "tier": "boss",
+    "hp": 6336,
+    "atk": 94,
+    "def": 42,
+    "stable": true
+  },
+  {
+    "level": 2,
+    "phase": 0,
+    "tier": "tribulation",
+    "hp": 7128,
+    "atk": 97,
+    "def": 44,
+    "stable": true
+  },
+  {
+    "level": 2,
+    "phase": 1,
+    "tier": "normal",
+    "hp": 2020,
+    "atk": 73,
+    "def": 34,
+    "stable": true
+  },
+  {
+    "level": 2,
+    "phase": 1,
+    "tier": "elite",
+    "hp": 3332,
+    "atk": 84,
+    "def": 39,
+    "stable": true
+  },
+  {
+    "level": 2,
+    "phase": 1,
+    "tier": "boss",
+    "hp": 6463,
+    "atk": 95,
+    "def": 43,
+    "stable": true
+  },
+  {
+    "level": 2,
+    "phase": 1,
+    "tier": "tribulation",
+    "hp": 7271,
+    "atk": 99,
+    "def": 44,
+    "stable": true
+  },
+  {
+    "level": 2,
+    "phase": 2,
+    "tier": "normal",
+    "hp": 2059,
+    "atk": 75,
+    "def": 35,
+    "stable": true
+  },
+  {
+    "level": 2,
+    "phase": 2,
+    "tier": "elite",
+    "hp": 3398,
+    "atk": 86,
+    "def": 40,
+    "stable": true
+  },
+  {
+    "level": 2,
+    "phase": 2,
+    "tier": "boss",
+    "hp": 6589,
+    "atk": 97,
+    "def": 44,
+    "stable": true
+  },
+  {
+    "level": 2,
+    "phase": 2,
+    "tier": "tribulation",
+    "hp": 7413,
+    "atk": 101,
+    "def": 45,
+    "stable": true
+  },
+  {
+    "level": 2,
+    "phase": 3,
+    "tier": "normal",
+    "hp": 2099,
+    "atk": 76,
+    "def": 36,
+    "stable": true
+  },
+  {
+    "level": 2,
+    "phase": 3,
+    "tier": "elite",
+    "hp": 3463,
+    "atk": 88,
+    "def": 41,
+    "stable": true
+  },
+  {
+    "level": 2,
+    "phase": 3,
+    "tier": "boss",
+    "hp": 6716,
+    "atk": 99,
+    "def": 44,
+    "stable": true
+  },
+  {
+    "level": 2,
+    "phase": 3,
+    "tier": "tribulation",
+    "hp": 7556,
+    "atk": 103,
+    "def": 46,
+    "stable": true
+  },
+  {
+    "level": 3,
+    "phase": 0,
+    "tier": "normal",
+    "hp": 2880,
+    "atk": 99,
+    "def": 46,
+    "stable": true
+  },
+  {
+    "level": 3,
+    "phase": 0,
+    "tier": "elite",
+    "hp": 4752,
+    "atk": 114,
+    "def": 53,
+    "stable": true
+  },
+  {
+    "level": 3,
+    "phase": 0,
+    "tier": "boss",
+    "hp": 9216,
+    "atk": 129,
+    "def": 58,
+    "stable": true
+  },
+  {
+    "level": 3,
+    "phase": 0,
+    "tier": "tribulation",
+    "hp": 10368,
+    "atk": 134,
+    "def": 60,
+    "stable": true
+  },
+  {
+    "level": 3,
+    "phase": 1,
+    "tier": "normal",
+    "hp": 2938,
+    "atk": 101,
+    "def": 47,
+    "stable": true
+  },
+  {
+    "level": 3,
+    "phase": 1,
+    "tier": "elite",
+    "hp": 4847,
+    "atk": 116,
+    "def": 54,
+    "stable": true
+  },
+  {
+    "level": 3,
+    "phase": 1,
+    "tier": "boss",
+    "hp": 9400,
+    "atk": 131,
+    "def": 59,
+    "stable": true
+  },
+  {
+    "level": 3,
+    "phase": 1,
+    "tier": "tribulation",
+    "hp": 10575,
+    "atk": 136,
+    "def": 61,
+    "stable": true
+  },
+  {
+    "level": 3,
+    "phase": 2,
+    "tier": "normal",
+    "hp": 2995,
+    "atk": 103,
+    "def": 48,
+    "stable": true
+  },
+  {
+    "level": 3,
+    "phase": 2,
+    "tier": "elite",
+    "hp": 4942,
+    "atk": 118,
+    "def": 55,
+    "stable": true
+  },
+  {
+    "level": 3,
+    "phase": 2,
+    "tier": "boss",
+    "hp": 9585,
+    "atk": 134,
+    "def": 60,
+    "stable": true
+  },
+  {
+    "level": 3,
+    "phase": 2,
+    "tier": "tribulation",
+    "hp": 10783,
+    "atk": 139,
+    "def": 63,
+    "stable": true
+  },
+  {
+    "level": 3,
+    "phase": 3,
+    "tier": "normal",
+    "hp": 3053,
+    "atk": 105,
+    "def": 49,
+    "stable": true
+  },
+  {
+    "level": 3,
+    "phase": 3,
+    "tier": "elite",
+    "hp": 5037,
+    "atk": 121,
+    "def": 56,
+    "stable": true
+  },
+  {
+    "level": 3,
+    "phase": 3,
+    "tier": "boss",
+    "hp": 9769,
+    "atk": 136,
+    "def": 61,
+    "stable": true
+  },
+  {
+    "level": 3,
+    "phase": 3,
+    "tier": "tribulation",
+    "hp": 10990,
+    "atk": 142,
+    "def": 64,
+    "stable": true
+  },
+  {
+    "level": 4,
+    "phase": 0,
+    "tier": "normal",
+    "hp": 3780,
+    "atk": 126,
+    "def": 59,
+    "stable": true
+  },
+  {
+    "level": 4,
+    "phase": 0,
+    "tier": "elite",
+    "hp": 6237,
+    "atk": 145,
+    "def": 68,
+    "stable": true
+  },
+  {
+    "level": 4,
+    "phase": 0,
+    "tier": "boss",
+    "hp": 12096,
+    "atk": 164,
+    "def": 74,
+    "stable": true
+  },
+  {
+    "level": 4,
+    "phase": 0,
+    "tier": "tribulation",
+    "hp": 13608,
+    "atk": 170,
+    "def": 77,
+    "stable": true
+  },
+  {
+    "level": 4,
+    "phase": 1,
+    "tier": "normal",
+    "hp": 3856,
+    "atk": 129,
+    "def": 60,
+    "stable": true
+  },
+  {
+    "level": 4,
+    "phase": 1,
+    "tier": "elite",
+    "hp": 6362,
+    "atk": 148,
+    "def": 69,
+    "stable": true
+  },
+  {
+    "level": 4,
+    "phase": 1,
+    "tier": "boss",
+    "hp": 12338,
+    "atk": 167,
+    "def": 75,
+    "stable": true
+  },
+  {
+    "level": 4,
+    "phase": 1,
+    "tier": "tribulation",
+    "hp": 13880,
+    "atk": 174,
+    "def": 78,
+    "stable": true
+  },
+  {
+    "level": 4,
+    "phase": 2,
+    "tier": "normal",
+    "hp": 3931,
+    "atk": 131,
+    "def": 61,
+    "stable": true
+  },
+  {
+    "level": 4,
+    "phase": 2,
+    "tier": "elite",
+    "hp": 6486,
+    "atk": 151,
+    "def": 71,
+    "stable": true
+  },
+  {
+    "level": 4,
+    "phase": 2,
+    "tier": "boss",
+    "hp": 12580,
+    "atk": 170,
+    "def": 77,
+    "stable": true
+  },
+  {
+    "level": 4,
+    "phase": 2,
+    "tier": "tribulation",
+    "hp": 14152,
+    "atk": 177,
+    "def": 80,
+    "stable": true
+  },
+  {
+    "level": 4,
+    "phase": 3,
+    "tier": "normal",
+    "hp": 4007,
+    "atk": 134,
+    "def": 63,
+    "stable": true
+  },
+  {
+    "level": 4,
+    "phase": 3,
+    "tier": "elite",
+    "hp": 6611,
+    "atk": 154,
+    "def": 72,
+    "stable": true
+  },
+  {
+    "level": 4,
+    "phase": 3,
+    "tier": "boss",
+    "hp": 12822,
+    "atk": 174,
+    "def": 78,
+    "stable": true
+  },
+  {
+    "level": 4,
+    "phase": 3,
+    "tier": "tribulation",
+    "hp": 14424,
+    "atk": 180,
+    "def": 81,
+    "stable": true
+  },
+  {
+    "level": 5,
+    "phase": 0,
+    "tier": "normal",
+    "hp": 4680,
+    "atk": 153,
+    "def": 72,
+    "stable": true
+  },
+  {
+    "level": 5,
+    "phase": 0,
+    "tier": "elite",
+    "hp": 7722,
+    "atk": 176,
+    "def": 83,
+    "stable": true
+  },
+  {
+    "level": 5,
+    "phase": 0,
+    "tier": "boss",
+    "hp": 14976,
+    "atk": 199,
+    "def": 90,
+    "stable": true
+  },
+  {
+    "level": 5,
+    "phase": 0,
+    "tier": "tribulation",
+    "hp": 16848,
+    "atk": 207,
+    "def": 93,
+    "stable": true
+  },
+  {
+    "level": 5,
+    "phase": 1,
+    "tier": "normal",
+    "hp": 4774,
+    "atk": 156,
+    "def": 73,
+    "stable": true
+  },
+  {
+    "level": 5,
+    "phase": 1,
+    "tier": "elite",
+    "hp": 7876,
+    "atk": 179,
+    "def": 84,
+    "stable": true
+  },
+  {
+    "level": 5,
+    "phase": 1,
+    "tier": "boss",
+    "hp": 15276,
+    "atk": 203,
+    "def": 91,
+    "stable": true
+  },
+  {
+    "level": 5,
+    "phase": 1,
+    "tier": "tribulation",
+    "hp": 17185,
+    "atk": 211,
+    "def": 95,
+    "stable": true
+  },
+  {
+    "level": 5,
+    "phase": 2,
+    "tier": "normal",
+    "hp": 4867,
+    "atk": 159,
+    "def": 75,
+    "stable": true
+  },
+  {
+    "level": 5,
+    "phase": 2,
+    "tier": "elite",
+    "hp": 8031,
+    "atk": 183,
+    "def": 86,
+    "stable": true
+  },
+  {
+    "level": 5,
+    "phase": 2,
+    "tier": "boss",
+    "hp": 15575,
+    "atk": 207,
+    "def": 93,
+    "stable": true
+  },
+  {
+    "level": 5,
+    "phase": 2,
+    "tier": "tribulation",
+    "hp": 17522,
+    "atk": 215,
+    "def": 97,
+    "stable": true
+  },
+  {
+    "level": 5,
+    "phase": 3,
+    "tier": "normal",
+    "hp": 4961,
+    "atk": 162,
+    "def": 76,
+    "stable": true
+  },
+  {
+    "level": 5,
+    "phase": 3,
+    "tier": "elite",
+    "hp": 8185,
+    "atk": 187,
+    "def": 87,
+    "stable": true
+  },
+  {
+    "level": 5,
+    "phase": 3,
+    "tier": "boss",
+    "hp": 15875,
+    "atk": 211,
+    "def": 95,
+    "stable": true
+  },
+  {
+    "level": 5,
+    "phase": 3,
+    "tier": "tribulation",
+    "hp": 17859,
+    "atk": 219,
+    "def": 99,
+    "stable": true
+  },
+  {
+    "level": 6,
+    "phase": 0,
+    "tier": "normal",
+    "hp": 5580,
+    "atk": 180,
+    "def": 85,
+    "stable": true
+  },
+  {
+    "level": 6,
+    "phase": 0,
+    "tier": "elite",
+    "hp": 9207,
+    "atk": 207,
+    "def": 97,
+    "stable": true
+  },
+  {
+    "level": 6,
+    "phase": 0,
+    "tier": "boss",
+    "hp": 17856,
+    "atk": 234,
+    "def": 106,
+    "stable": true
+  },
+  {
+    "level": 6,
+    "phase": 0,
+    "tier": "tribulation",
+    "hp": 20088,
+    "atk": 243,
+    "def": 110,
+    "stable": true
+  },
+  {
+    "level": 6,
+    "phase": 1,
+    "tier": "normal",
+    "hp": 5692,
+    "atk": 184,
+    "def": 86,
+    "stable": true
+  },
+  {
+    "level": 6,
+    "phase": 1,
+    "tier": "elite",
+    "hp": 9391,
+    "atk": 211,
+    "def": 99,
+    "stable": true
+  },
+  {
+    "level": 6,
+    "phase": 1,
+    "tier": "boss",
+    "hp": 18213,
+    "atk": 239,
+    "def": 108,
+    "stable": true
+  },
+  {
+    "level": 6,
+    "phase": 1,
+    "tier": "tribulation",
+    "hp": 20490,
+    "atk": 248,
+    "def": 112,
+    "stable": true
+  },
+  {
+    "level": 6,
+    "phase": 2,
+    "tier": "normal",
+    "hp": 5803,
+    "atk": 187,
+    "def": 88,
+    "stable": true
+  },
+  {
+    "level": 6,
+    "phase": 2,
+    "tier": "elite",
+    "hp": 9575,
+    "atk": 215,
+    "def": 101,
+    "stable": true
+  },
+  {
+    "level": 6,
+    "phase": 2,
+    "tier": "boss",
+    "hp": 18570,
+    "atk": 243,
+    "def": 110,
+    "stable": true
+  },
+  {
+    "level": 6,
+    "phase": 2,
+    "tier": "tribulation",
+    "hp": 20892,
+    "atk": 253,
+    "def": 114,
+    "stable": true
+  },
+  {
+    "level": 6,
+    "phase": 3,
+    "tier": "normal",
+    "hp": 5915,
+    "atk": 191,
+    "def": 90,
+    "stable": true
+  },
+  {
+    "level": 6,
+    "phase": 3,
+    "tier": "elite",
+    "hp": 9759,
+    "atk": 219,
+    "def": 103,
+    "stable": true
+  },
+  {
+    "level": 6,
+    "phase": 3,
+    "tier": "boss",
+    "hp": 18927,
+    "atk": 248,
+    "def": 112,
+    "stable": true
+  },
+  {
+    "level": 6,
+    "phase": 3,
+    "tier": "tribulation",
+    "hp": 21293,
+    "atk": 258,
+    "def": 116,
+    "stable": true
+  },
+  {
+    "level": 7,
+    "phase": 0,
+    "tier": "normal",
+    "hp": 6480,
+    "atk": 207,
+    "def": 97,
+    "stable": true
+  },
+  {
+    "level": 7,
+    "phase": 0,
+    "tier": "elite",
+    "hp": 10692,
+    "atk": 238,
+    "def": 112,
+    "stable": true
+  },
+  {
+    "level": 7,
+    "phase": 0,
+    "tier": "boss",
+    "hp": 20736,
+    "atk": 269,
+    "def": 122,
+    "stable": true
+  },
+  {
+    "level": 7,
+    "phase": 0,
+    "tier": "tribulation",
+    "hp": 23328,
+    "atk": 279,
+    "def": 126,
+    "stable": true
+  },
+  {
+    "level": 7,
+    "phase": 1,
+    "tier": "normal",
+    "hp": 6610,
+    "atk": 211,
+    "def": 99,
+    "stable": true
+  },
+  {
+    "level": 7,
+    "phase": 1,
+    "tier": "elite",
+    "hp": 10906,
+    "atk": 243,
+    "def": 114,
+    "stable": true
+  },
+  {
+    "level": 7,
+    "phase": 1,
+    "tier": "boss",
+    "hp": 21151,
+    "atk": 274,
+    "def": 124,
+    "stable": true
+  },
+  {
+    "level": 7,
+    "phase": 1,
+    "tier": "tribulation",
+    "hp": 23795,
+    "atk": 285,
+    "def": 129,
+    "stable": true
+  },
+  {
+    "level": 7,
+    "phase": 2,
+    "tier": "normal",
+    "hp": 6739,
+    "atk": 215,
+    "def": 101,
+    "stable": true
+  },
+  {
+    "level": 7,
+    "phase": 2,
+    "tier": "elite",
+    "hp": 11120,
+    "atk": 248,
+    "def": 116,
+    "stable": true
+  },
+  {
+    "level": 7,
+    "phase": 2,
+    "tier": "boss",
+    "hp": 21565,
+    "atk": 280,
+    "def": 126,
+    "stable": true
+  },
+  {
+    "level": 7,
+    "phase": 2,
+    "tier": "tribulation",
+    "hp": 24261,
+    "atk": 291,
+    "def": 131,
+    "stable": true
+  },
+  {
+    "level": 7,
+    "phase": 3,
+    "tier": "normal",
+    "hp": 6869,
+    "atk": 219,
+    "def": 103,
+    "stable": true
+  },
+  {
+    "level": 7,
+    "phase": 3,
+    "tier": "elite",
+    "hp": 11334,
+    "atk": 252,
+    "def": 119,
+    "stable": true
+  },
+  {
+    "level": 7,
+    "phase": 3,
+    "tier": "boss",
+    "hp": 21980,
+    "atk": 285,
+    "def": 129,
+    "stable": true
+  },
+  {
+    "level": 7,
+    "phase": 3,
+    "tier": "tribulation",
+    "hp": 24728,
+    "atk": 296,
+    "def": 134,
+    "stable": true
+  },
+  {
+    "level": 8,
+    "phase": 0,
+    "tier": "normal",
+    "hp": 7380,
+    "atk": 234,
+    "def": 110,
+    "stable": true
+  },
+  {
+    "level": 8,
+    "phase": 0,
+    "tier": "elite",
+    "hp": 12177,
+    "atk": 269,
+    "def": 126,
+    "stable": true
+  },
+  {
+    "level": 8,
+    "phase": 0,
+    "tier": "boss",
+    "hp": 23616,
+    "atk": 304,
+    "def": 138,
+    "stable": true
+  },
+  {
+    "level": 8,
+    "phase": 0,
+    "tier": "tribulation",
+    "hp": 26568,
+    "atk": 316,
+    "def": 143,
+    "stable": true
+  },
+  {
+    "level": 8,
+    "phase": 1,
+    "tier": "normal",
+    "hp": 7528,
+    "atk": 239,
+    "def": 112,
+    "stable": true
+  },
+  {
+    "level": 8,
+    "phase": 1,
+    "tier": "elite",
+    "hp": 12421,
+    "atk": 274,
+    "def": 129,
+    "stable": true
+  },
+  {
+    "level": 8,
+    "phase": 1,
+    "tier": "boss",
+    "hp": 24088,
+    "atk": 310,
+    "def": 140,
+    "stable": true
+  },
+  {
+    "level": 8,
+    "phase": 1,
+    "tier": "tribulation",
+    "hp": 27099,
+    "atk": 322,
+    "def": 146,
+    "stable": true
+  },
+  {
+    "level": 8,
+    "phase": 2,
+    "tier": "normal",
+    "hp": 7675,
+    "atk": 243,
+    "def": 114,
+    "stable": true
+  },
+  {
+    "level": 8,
+    "phase": 2,
+    "tier": "elite",
+    "hp": 12664,
+    "atk": 280,
+    "def": 132,
+    "stable": true
+  },
+  {
+    "level": 8,
+    "phase": 2,
+    "tier": "boss",
+    "hp": 24561,
+    "atk": 316,
+    "def": 143,
+    "stable": true
+  },
+  {
+    "level": 8,
+    "phase": 2,
+    "tier": "tribulation",
+    "hp": 27631,
+    "atk": 329,
+    "def": 149,
+    "stable": true
+  },
+  {
+    "level": 8,
+    "phase": 3,
+    "tier": "normal",
+    "hp": 7823,
+    "atk": 248,
+    "def": 117,
+    "stable": true
+  },
+  {
+    "level": 8,
+    "phase": 3,
+    "tier": "elite",
+    "hp": 12908,
+    "atk": 285,
+    "def": 134,
+    "stable": true
+  },
+  {
+    "level": 8,
+    "phase": 3,
+    "tier": "boss",
+    "hp": 25033,
+    "atk": 322,
+    "def": 146,
+    "stable": true
+  },
+  {
+    "level": 8,
+    "phase": 3,
+    "tier": "tribulation",
+    "hp": 28162,
+    "atk": 335,
+    "def": 152,
+    "stable": true
+  },
+  {
+    "level": 9,
+    "phase": 0,
+    "tier": "normal",
+    "hp": 8280,
+    "atk": 261,
+    "def": 123,
+    "stable": true
+  },
+  {
+    "level": 9,
+    "phase": 0,
+    "tier": "elite",
+    "hp": 13662,
+    "atk": 300,
+    "def": 141,
+    "stable": true
+  },
+  {
+    "level": 9,
+    "phase": 0,
+    "tier": "boss",
+    "hp": 26496,
+    "atk": 339,
+    "def": 153,
+    "stable": true
+  },
+  {
+    "level": 9,
+    "phase": 0,
+    "tier": "tribulation",
+    "hp": 29808,
+    "atk": 352,
+    "def": 160,
+    "stable": true
+  },
+  {
+    "level": 9,
+    "phase": 1,
+    "tier": "normal",
+    "hp": 8446,
+    "atk": 266,
+    "def": 125,
+    "stable": true
+  },
+  {
+    "level": 9,
+    "phase": 1,
+    "tier": "elite",
+    "hp": 13935,
+    "atk": 306,
+    "def": 144,
+    "stable": true
+  },
+  {
+    "level": 9,
+    "phase": 1,
+    "tier": "boss",
+    "hp": 27026,
+    "atk": 346,
+    "def": 157,
+    "stable": true
+  },
+  {
+    "level": 9,
+    "phase": 1,
+    "tier": "tribulation",
+    "hp": 30404,
+    "atk": 359,
+    "def": 163,
+    "stable": true
+  },
+  {
+    "level": 9,
+    "phase": 2,
+    "tier": "normal",
+    "hp": 8611,
+    "atk": 271,
+    "def": 128,
+    "stable": true
+  },
+  {
+    "level": 9,
+    "phase": 2,
+    "tier": "elite",
+    "hp": 14208,
+    "atk": 312,
+    "def": 147,
+    "stable": true
+  },
+  {
+    "level": 9,
+    "phase": 2,
+    "tier": "boss",
+    "hp": 27556,
+    "atk": 353,
+    "def": 160,
+    "stable": true
+  },
+  {
+    "level": 9,
+    "phase": 2,
+    "tier": "tribulation",
+    "hp": 31000,
+    "atk": 366,
+    "def": 166,
+    "stable": true
+  },
+  {
+    "level": 9,
+    "phase": 3,
+    "tier": "normal",
+    "hp": 8777,
+    "atk": 277,
+    "def": 130,
+    "stable": true
+  },
+  {
+    "level": 9,
+    "phase": 3,
+    "tier": "elite",
+    "hp": 14482,
+    "atk": 318,
+    "def": 150,
+    "stable": true
+  },
+  {
+    "level": 9,
+    "phase": 3,
+    "tier": "boss",
+    "hp": 28086,
+    "atk": 360,
+    "def": 163,
+    "stable": true
+  },
+  {
+    "level": 9,
+    "phase": 3,
+    "tier": "tribulation",
+    "hp": 31596,
+    "atk": 373,
+    "def": 169,
+    "stable": true
+  },
+  {
+    "level": 10,
+    "phase": 0,
+    "tier": "normal",
+    "hp": 9180,
+    "atk": 288,
+    "def": 136,
+    "stable": true
+  },
+  {
+    "level": 10,
+    "phase": 0,
+    "tier": "elite",
+    "hp": 15147,
+    "atk": 331,
+    "def": 156,
+    "stable": true
+  },
+  {
+    "level": 10,
+    "phase": 0,
+    "tier": "boss",
+    "hp": 29376,
+    "atk": 374,
+    "def": 169,
+    "stable": true
+  },
+  {
+    "level": 10,
+    "phase": 0,
+    "tier": "tribulation",
+    "hp": 33048,
+    "atk": 389,
+    "def": 176,
+    "stable": true
+  },
+  {
+    "level": 10,
+    "phase": 1,
+    "tier": "normal",
+    "hp": 9364,
+    "atk": 294,
+    "def": 138,
+    "stable": true
+  },
+  {
+    "level": 10,
+    "phase": 1,
+    "tier": "elite",
+    "hp": 15450,
+    "atk": 338,
+    "def": 159,
+    "stable": true
+  },
+  {
+    "level": 10,
+    "phase": 1,
+    "tier": "boss",
+    "hp": 29964,
+    "atk": 382,
+    "def": 173,
+    "stable": true
+  },
+  {
+    "level": 10,
+    "phase": 1,
+    "tier": "tribulation",
+    "hp": 33709,
+    "atk": 397,
+    "def": 180,
+    "stable": true
+  },
+  {
+    "level": 10,
+    "phase": 2,
+    "tier": "normal",
+    "hp": 9547,
+    "atk": 300,
+    "def": 141,
+    "stable": true
+  },
+  {
+    "level": 10,
+    "phase": 2,
+    "tier": "elite",
+    "hp": 15753,
+    "atk": 344,
+    "def": 162,
+    "stable": true
+  },
+  {
+    "level": 10,
+    "phase": 2,
+    "tier": "boss",
+    "hp": 30551,
+    "atk": 389,
+    "def": 176,
+    "stable": true
+  },
+  {
+    "level": 10,
+    "phase": 2,
+    "tier": "tribulation",
+    "hp": 34370,
+    "atk": 404,
+    "def": 183,
+    "stable": true
+  },
+  {
+    "level": 10,
+    "phase": 3,
+    "tier": "normal",
+    "hp": 9731,
+    "atk": 305,
+    "def": 144,
+    "stable": true
+  },
+  {
+    "level": 10,
+    "phase": 3,
+    "tier": "elite",
+    "hp": 16056,
+    "atk": 351,
+    "def": 165,
+    "stable": true
+  },
+  {
+    "level": 10,
+    "phase": 3,
+    "tier": "boss",
+    "hp": 31139,
+    "atk": 397,
+    "def": 180,
+    "stable": true
+  },
+  {
+    "level": 10,
+    "phase": 3,
+    "tier": "tribulation",
+    "hp": 35031,
+    "atk": 412,
+    "def": 187,
+    "stable": true
+  },
+  {
+    "level": 11,
+    "phase": 0,
+    "tier": "normal",
+    "hp": 18180,
+    "atk": 558,
+    "def": 263,
+    "stable": true
+  },
+  {
+    "level": 11,
+    "phase": 0,
+    "tier": "elite",
+    "hp": 29997,
+    "atk": 642,
+    "def": 302,
+    "stable": true
+  },
+  {
+    "level": 11,
+    "phase": 0,
+    "tier": "boss",
+    "hp": 58176,
+    "atk": 725,
+    "def": 329,
+    "stable": true
+  },
+  {
+    "level": 11,
+    "phase": 0,
+    "tier": "tribulation",
+    "hp": 65448,
+    "atk": 753,
+    "def": 342,
+    "stable": true
+  },
+  {
+    "level": 11,
+    "phase": 1,
+    "tier": "normal",
+    "hp": 18544,
+    "atk": 569,
+    "def": 268,
+    "stable": true
+  },
+  {
+    "level": 11,
+    "phase": 1,
+    "tier": "elite",
+    "hp": 30597,
+    "atk": 655,
+    "def": 308,
+    "stable": true
+  },
+  {
+    "level": 11,
+    "phase": 1,
+    "tier": "boss",
+    "hp": 59340,
+    "atk": 740,
+    "def": 335,
+    "stable": true
+  },
+  {
+    "level": 11,
+    "phase": 1,
+    "tier": "tribulation",
+    "hp": 66757,
+    "atk": 768,
+    "def": 349,
+    "stable": true
+  },
+  {
+    "level": 11,
+    "phase": 2,
+    "tier": "normal",
+    "hp": 18907,
+    "atk": 580,
+    "def": 274,
+    "stable": true
+  },
+  {
+    "level": 11,
+    "phase": 2,
+    "tier": "elite",
+    "hp": 31197,
+    "atk": 667,
+    "def": 315,
+    "stable": true
+  },
+  {
+    "level": 11,
+    "phase": 2,
+    "tier": "boss",
+    "hp": 60503,
+    "atk": 754,
+    "def": 342,
+    "stable": true
+  },
+  {
+    "level": 11,
+    "phase": 2,
+    "tier": "tribulation",
+    "hp": 68066,
+    "atk": 783,
+    "def": 356,
+    "stable": true
+  },
+  {
+    "level": 11,
+    "phase": 3,
+    "tier": "normal",
+    "hp": 19271,
+    "atk": 591,
+    "def": 279,
+    "stable": true
+  },
+  {
+    "level": 11,
+    "phase": 3,
+    "tier": "elite",
+    "hp": 31797,
+    "atk": 680,
+    "def": 321,
+    "stable": true
+  },
+  {
+    "level": 11,
+    "phase": 3,
+    "tier": "boss",
+    "hp": 61667,
+    "atk": 769,
+    "def": 348,
+    "stable": true
+  },
+  {
+    "level": 11,
+    "phase": 3,
+    "tier": "tribulation",
+    "hp": 69375,
+    "atk": 798,
+    "def": 362,
+    "stable": true
+  },
+  {
+    "level": 12,
+    "phase": 0,
+    "tier": "normal",
+    "hp": 27180,
+    "atk": 828,
+    "def": 391,
+    "stable": true
+  },
+  {
+    "level": 12,
+    "phase": 0,
+    "tier": "elite",
+    "hp": 44847,
+    "atk": 952,
+    "def": 449,
+    "stable": true
+  },
+  {
+    "level": 12,
+    "phase": 0,
+    "tier": "boss",
+    "hp": 86976,
+    "atk": 1076,
+    "def": 488,
+    "stable": true
+  },
+  {
+    "level": 12,
+    "phase": 0,
+    "tier": "tribulation",
+    "hp": 97848,
+    "atk": 1118,
+    "def": 508,
+    "stable": true
+  },
+  {
+    "level": 12,
+    "phase": 1,
+    "tier": "normal",
+    "hp": 27724,
+    "atk": 845,
+    "def": 398,
+    "stable": true
+  },
+  {
+    "level": 12,
+    "phase": 1,
+    "tier": "elite",
+    "hp": 45744,
+    "atk": 971,
+    "def": 458,
+    "stable": true
+  },
+  {
+    "level": 12,
+    "phase": 1,
+    "tier": "boss",
+    "hp": 88716,
+    "atk": 1098,
+    "def": 498,
+    "stable": true
+  },
+  {
+    "level": 12,
+    "phase": 1,
+    "tier": "tribulation",
+    "hp": 99805,
+    "atk": 1140,
+    "def": 518,
+    "stable": true
+  },
+  {
+    "level": 12,
+    "phase": 2,
+    "tier": "normal",
+    "hp": 28267,
+    "atk": 861,
+    "def": 406,
+    "stable": true
+  },
+  {
+    "level": 12,
+    "phase": 2,
+    "tier": "elite",
+    "hp": 46641,
+    "atk": 990,
+    "def": 467,
+    "stable": true
+  },
+  {
+    "level": 12,
+    "phase": 2,
+    "tier": "boss",
+    "hp": 90455,
+    "atk": 1119,
+    "def": 508,
+    "stable": true
+  },
+  {
+    "level": 12,
+    "phase": 2,
+    "tier": "tribulation",
+    "hp": 101762,
+    "atk": 1163,
+    "def": 528,
+    "stable": true
+  },
+  {
+    "level": 12,
+    "phase": 3,
+    "tier": "normal",
+    "hp": 28811,
+    "atk": 878,
+    "def": 414,
+    "stable": true
+  },
+  {
+    "level": 12,
+    "phase": 3,
+    "tier": "elite",
+    "hp": 47538,
+    "atk": 1009,
+    "def": 476,
+    "stable": true
+  },
+  {
+    "level": 12,
+    "phase": 3,
+    "tier": "boss",
+    "hp": 92195,
+    "atk": 1141,
+    "def": 517,
+    "stable": true
+  },
+  {
+    "level": 12,
+    "phase": 3,
+    "tier": "tribulation",
+    "hp": 103719,
+    "atk": 1185,
+    "def": 538,
+    "stable": true
+  },
+  {
+    "level": 13,
+    "phase": 0,
+    "tier": "normal",
+    "hp": 36180,
+    "atk": 1098,
+    "def": 518,
+    "stable": true
+  },
+  {
+    "level": 13,
+    "phase": 0,
+    "tier": "elite",
+    "hp": 59697,
+    "atk": 1263,
+    "def": 596,
+    "stable": true
+  },
+  {
+    "level": 13,
+    "phase": 0,
+    "tier": "boss",
+    "hp": 115776,
+    "atk": 1427,
+    "def": 648,
+    "stable": true
+  },
+  {
+    "level": 13,
+    "phase": 0,
+    "tier": "tribulation",
+    "hp": 130248,
+    "atk": 1482,
+    "def": 673,
+    "stable": true
+  },
+  {
+    "level": 13,
+    "phase": 1,
+    "tier": "normal",
+    "hp": 36904,
+    "atk": 1120,
+    "def": 528,
+    "stable": true
+  },
+  {
+    "level": 13,
+    "phase": 1,
+    "tier": "elite",
+    "hp": 60891,
+    "atk": 1288,
+    "def": 608,
+    "stable": true
+  },
+  {
+    "level": 13,
+    "phase": 1,
+    "tier": "boss",
+    "hp": 118092,
+    "atk": 1456,
+    "def": 660,
+    "stable": true
+  },
+  {
+    "level": 13,
+    "phase": 1,
+    "tier": "tribulation",
+    "hp": 132853,
+    "atk": 1512,
+    "def": 687,
+    "stable": true
+  },
+  {
+    "level": 13,
+    "phase": 2,
+    "tier": "normal",
+    "hp": 37627,
+    "atk": 1142,
+    "def": 539,
+    "stable": true
+  },
+  {
+    "level": 13,
+    "phase": 2,
+    "tier": "elite",
+    "hp": 62085,
+    "atk": 1313,
+    "def": 620,
+    "stable": true
+  },
+  {
+    "level": 13,
+    "phase": 2,
+    "tier": "boss",
+    "hp": 120407,
+    "atk": 1484,
+    "def": 673,
+    "stable": true
+  },
+  {
+    "level": 13,
+    "phase": 2,
+    "tier": "tribulation",
+    "hp": 135458,
+    "atk": 1542,
+    "def": 700,
+    "stable": true
+  },
+  {
+    "level": 13,
+    "phase": 3,
+    "tier": "normal",
+    "hp": 38351,
+    "atk": 1164,
+    "def": 549,
+    "stable": true
+  },
+  {
+    "level": 13,
+    "phase": 3,
+    "tier": "elite",
+    "hp": 63279,
+    "atk": 1338,
+    "def": 631,
+    "stable": true
+  },
+  {
+    "level": 13,
+    "phase": 3,
+    "tier": "boss",
+    "hp": 122723,
+    "atk": 1513,
+    "def": 686,
+    "stable": true
+  },
+  {
+    "level": 13,
+    "phase": 3,
+    "tier": "tribulation",
+    "hp": 138063,
+    "atk": 1571,
+    "def": 714,
+    "stable": true
+  },
+  {
+    "level": 14,
+    "phase": 0,
+    "tier": "normal",
+    "hp": 40680,
+    "atk": 1233,
+    "def": 582,
+    "stable": true
+  },
+  {
+    "level": 14,
+    "phase": 0,
+    "tier": "elite",
+    "hp": 67122,
+    "atk": 1418,
+    "def": 669,
+    "stable": true
+  },
+  {
+    "level": 14,
+    "phase": 0,
+    "tier": "boss",
+    "hp": 130176,
+    "atk": 1603,
+    "def": 727,
+    "stable": true
+  },
+  {
+    "level": 14,
+    "phase": 0,
+    "tier": "tribulation",
+    "hp": 146448,
+    "atk": 1665,
+    "def": 756,
+    "stable": true
+  },
+  {
+    "level": 14,
+    "phase": 1,
+    "tier": "normal",
+    "hp": 41494,
+    "atk": 1258,
+    "def": 593,
+    "stable": true
+  },
+  {
+    "level": 14,
+    "phase": 1,
+    "tier": "elite",
+    "hp": 68464,
+    "atk": 1446,
+    "def": 682,
+    "stable": true
+  },
+  {
+    "level": 14,
+    "phase": 1,
+    "tier": "boss",
+    "hp": 132780,
+    "atk": 1635,
+    "def": 742,
+    "stable": true
+  },
+  {
+    "level": 14,
+    "phase": 1,
+    "tier": "tribulation",
+    "hp": 149377,
+    "atk": 1698,
+    "def": 771,
+    "stable": true
+  },
+  {
+    "level": 14,
+    "phase": 2,
+    "tier": "normal",
+    "hp": 42307,
+    "atk": 1282,
+    "def": 605,
+    "stable": true
+  },
+  {
+    "level": 14,
+    "phase": 2,
+    "tier": "elite",
+    "hp": 69807,
+    "atk": 1475,
+    "def": 696,
+    "stable": true
+  },
+  {
+    "level": 14,
+    "phase": 2,
+    "tier": "boss",
+    "hp": 135383,
+    "atk": 1667,
+    "def": 756,
+    "stable": true
+  },
+  {
+    "level": 14,
+    "phase": 2,
+    "tier": "tribulation",
+    "hp": 152306,
+    "atk": 1731,
+    "def": 787,
+    "stable": true
+  },
+  {
+    "level": 14,
+    "phase": 3,
+    "tier": "normal",
+    "hp": 43121,
+    "atk": 1307,
+    "def": 617,
+    "stable": true
+  },
+  {
+    "level": 14,
+    "phase": 3,
+    "tier": "elite",
+    "hp": 71149,
+    "atk": 1503,
+    "def": 709,
+    "stable": true
+  },
+  {
+    "level": 14,
+    "phase": 3,
+    "tier": "boss",
+    "hp": 137987,
+    "atk": 1699,
+    "def": 771,
+    "stable": true
+  },
+  {
+    "level": 14,
+    "phase": 3,
+    "tier": "tribulation",
+    "hp": 155235,
+    "atk": 1764,
+    "def": 802,
+    "stable": true
+  },
+  {
+    "level": 15,
+    "phase": 0,
+    "tier": "normal",
+    "hp": 45180,
+    "atk": 1368,
+    "def": 646,
+    "stable": true
+  },
+  {
+    "level": 15,
+    "phase": 0,
+    "tier": "elite",
+    "hp": 74547,
+    "atk": 1573,
+    "def": 742,
+    "stable": true
+  },
+  {
+    "level": 15,
+    "phase": 0,
+    "tier": "boss",
+    "hp": 144576,
+    "atk": 1778,
+    "def": 807,
+    "stable": true
+  },
+  {
+    "level": 15,
+    "phase": 0,
+    "tier": "tribulation",
+    "hp": 162648,
+    "atk": 1847,
+    "def": 839,
+    "stable": true
+  },
+  {
+    "level": 15,
+    "phase": 1,
+    "tier": "normal",
+    "hp": 46084,
+    "atk": 1395,
+    "def": 658,
+    "stable": true
+  },
+  {
+    "level": 15,
+    "phase": 1,
+    "tier": "elite",
+    "hp": 76038,
+    "atk": 1605,
+    "def": 757,
+    "stable": true
+  },
+  {
+    "level": 15,
+    "phase": 1,
+    "tier": "boss",
+    "hp": 147468,
+    "atk": 1814,
+    "def": 823,
+    "stable": true
+  },
+  {
+    "level": 15,
+    "phase": 1,
+    "tier": "tribulation",
+    "hp": 165901,
+    "atk": 1884,
+    "def": 856,
+    "stable": true
+  },
+  {
+    "level": 15,
+    "phase": 2,
+    "tier": "normal",
+    "hp": 46987,
+    "atk": 1423,
+    "def": 671,
+    "stable": true
+  },
+  {
+    "level": 15,
+    "phase": 2,
+    "tier": "elite",
+    "hp": 77529,
+    "atk": 1636,
+    "def": 772,
+    "stable": true
+  },
+  {
+    "level": 15,
+    "phase": 2,
+    "tier": "boss",
+    "hp": 150359,
+    "atk": 1850,
+    "def": 839,
+    "stable": true
+  },
+  {
+    "level": 15,
+    "phase": 2,
+    "tier": "tribulation",
+    "hp": 169154,
+    "atk": 1921,
+    "def": 873,
+    "stable": true
+  },
+  {
+    "level": 15,
+    "phase": 3,
+    "tier": "normal",
+    "hp": 47891,
+    "atk": 1450,
+    "def": 684,
+    "stable": true
+  },
+  {
+    "level": 15,
+    "phase": 3,
+    "tier": "elite",
+    "hp": 79020,
+    "atk": 1668,
+    "def": 787,
+    "stable": true
+  },
+  {
+    "level": 15,
+    "phase": 3,
+    "tier": "boss",
+    "hp": 153251,
+    "atk": 1885,
+    "def": 855,
+    "stable": true
+  },
+  {
+    "level": 15,
+    "phase": 3,
+    "tier": "tribulation",
+    "hp": 172407,
+    "atk": 1958,
+    "def": 889,
+    "stable": true
+  },
+  {
+    "level": 16,
+    "phase": 0,
+    "tier": "normal",
+    "hp": 90180,
+    "atk": 2718,
+    "def": 1283,
+    "stable": true
+  },
+  {
+    "level": 16,
+    "phase": 0,
+    "tier": "elite",
+    "hp": 148797,
+    "atk": 3126,
+    "def": 1475,
+    "stable": true
+  },
+  {
+    "level": 16,
+    "phase": 0,
+    "tier": "boss",
+    "hp": 288576,
+    "atk": 3533,
+    "def": 1604,
+    "stable": true
+  },
+  {
+    "level": 16,
+    "phase": 0,
+    "tier": "tribulation",
+    "hp": 324648,
+    "atk": 3669,
+    "def": 1668,
+    "stable": true
+  },
+  {
+    "level": 16,
+    "phase": 1,
+    "tier": "normal",
+    "hp": 91984,
+    "atk": 2772,
+    "def": 1309,
+    "stable": true
+  },
+  {
+    "level": 16,
+    "phase": 1,
+    "tier": "elite",
+    "hp": 151773,
+    "atk": 3188,
+    "def": 1505,
+    "stable": true
+  },
+  {
+    "level": 16,
+    "phase": 1,
+    "tier": "boss",
+    "hp": 294348,
+    "atk": 3604,
+    "def": 1636,
+    "stable": true
+  },
+  {
+    "level": 16,
+    "phase": 1,
+    "tier": "tribulation",
+    "hp": 331141,
+    "atk": 3743,
+    "def": 1701,
+    "stable": true
+  },
+  {
+    "level": 16,
+    "phase": 2,
+    "tier": "normal",
+    "hp": 93787,
+    "atk": 2827,
+    "def": 1334,
+    "stable": true
+  },
+  {
+    "level": 16,
+    "phase": 2,
+    "tier": "elite",
+    "hp": 154749,
+    "atk": 3251,
+    "def": 1534,
+    "stable": true
+  },
+  {
+    "level": 16,
+    "phase": 2,
+    "tier": "boss",
+    "hp": 300119,
+    "atk": 3675,
+    "def": 1668,
+    "stable": true
+  },
+  {
+    "level": 16,
+    "phase": 2,
+    "tier": "tribulation",
+    "hp": 337634,
+    "atk": 3816,
+    "def": 1735,
+    "stable": true
+  },
+  {
+    "level": 16,
+    "phase": 3,
+    "tier": "normal",
+    "hp": 95591,
+    "atk": 2881,
+    "def": 1360,
+    "stable": true
+  },
+  {
+    "level": 16,
+    "phase": 3,
+    "tier": "elite",
+    "hp": 157725,
+    "atk": 3313,
+    "def": 1564,
+    "stable": true
+  },
+  {
+    "level": 16,
+    "phase": 3,
+    "tier": "boss",
+    "hp": 305891,
+    "atk": 3745,
+    "def": 1700,
+    "stable": true
+  },
+  {
+    "level": 16,
+    "phase": 3,
+    "tier": "tribulation",
+    "hp": 344127,
+    "atk": 3889,
+    "def": 1768,
+    "stable": true
+  }
+]

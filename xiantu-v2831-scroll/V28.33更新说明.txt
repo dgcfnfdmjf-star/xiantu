@@ -1,0 +1,2 @@
+所有地域地图敌人统一水墨绘卷素材。按名字匹配妖狼、妖狐、妖兽、蛇蛟、蛛妖、山贼邪修、魔修、仙卫、幽魂、冰晶傀儡、树精、巨猿；未知敌人按地域使用默认外形。现有八个地域共用同一绘制入口。保留血量、精英、警戒、迷雾隐藏、碰撞、刷新和战斗属性。新增两张共享压缩图集，无逐怪图片对象、无新增动画计时器；加载失败回退原图标。沿用 xiantu-v2831-scroll 目录完整覆盖上传。尚未部署及手机真机测试。
+素材路径：ink-enemies-v2833.webp、ink-beasts-v2833.webp。内置 image_gen 模式；提示词：transparent Chinese blue-green shanshui ink painting map sprite atlas, wolf tiger serpent spider rogue demon guardian ghost / snow fox ice golem tree spirit ancient ape; no labels, no scenery, isolated cells.

@@ -1,0 +1,2 @@
+建筑随地域同步：北域覆雪青瓦、魔域紫黑赤纹、仙域金顶云宫。三类地域各有村落、商铺庭院、宗门殿宇、洞府四类素材；其他人族地域沿用青绿绘卷建筑。主地图和山河图使用相同映射。保留位置、互动、门槛与锁定提示；加载失败回退原绘卷建筑。沿用 xiantu-v2831-scroll 文件夹，完整覆盖上传。尚未部署或真机测试。
+新增素材：region-buildings-v2835.webp；内置 image_gen 生成；提示词：transparent 3-column 4-row Chinese shanshui architectural atlas; columns snow/demon/immortal; rows village/shop/palace/cave; no labels, roads, backgrounds, isolated cells.

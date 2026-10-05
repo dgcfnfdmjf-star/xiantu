@@ -1,0 +1,274 @@
+{
+  "sprites": [
+    {
+      "key": "wolf",
+      "index": 0,
+      "file": "monster-wolf-v2853.webp",
+      "bytes": 50874,
+      "source": "exec-726a90b0-09a7-4af1-a3cc-bceac860c2b2.png",
+      "crop": [
+        35,
+        66,
+        330,
+        461
+      ]
+    },
+    {
+      "key": "frost-wolf",
+      "index": 1,
+      "file": "monster-frost-wolf-v2853.webp",
+      "bytes": 56428,
+      "source": "exec-726a90b0-09a7-4af1-a3cc-bceac860c2b2.png",
+      "crop": [
+        381,
+        56,
+        339,
+        470
+      ]
+    },
+    {
+      "key": "fox",
+      "index": 2,
+      "file": "monster-fox-v2853.webp",
+      "bytes": 57128,
+      "source": "exec-726a90b0-09a7-4af1-a3cc-bceac860c2b2.png",
+      "crop": [
+        734,
+        22,
+        369,
+        501
+      ]
+    },
+    {
+      "key": "tiger",
+      "index": 3,
+      "file": "monster-tiger-v2853.webp",
+      "bytes": 54404,
+      "source": "exec-726a90b0-09a7-4af1-a3cc-bceac860c2b2.png",
+      "crop": [
+        1111,
+        34,
+        325,
+        472
+      ]
+    },
+    {
+      "key": "dragon",
+      "index": 4,
+      "file": "monster-dragon-v2853.webp",
+      "bytes": 70452,
+      "source": "exec-726a90b0-09a7-4af1-a3cc-bceac860c2b2.png",
+      "crop": [
+        11,
+        545,
+        347,
+        515
+      ]
+    },
+    {
+      "key": "ape",
+      "index": 5,
+      "file": "monster-ape-v2853.webp",
+      "bytes": 52952,
+      "source": "exec-726a90b0-09a7-4af1-a3cc-bceac860c2b2.png",
+      "crop": [
+        364,
+        562,
+        387,
+        482
+      ]
+    },
+    {
+      "key": "eagle",
+      "index": 6,
+      "file": "monster-eagle-v2853.webp",
+      "bytes": 50526,
+      "source": "exec-726a90b0-09a7-4af1-a3cc-bceac860c2b2.png",
+      "crop": [
+        734,
+        528,
+        348,
+        527
+      ]
+    },
+    {
+      "key": "phoenix",
+      "index": 7,
+      "file": "monster-phoenix-v2853.webp",
+      "bytes": 64692,
+      "source": "exec-726a90b0-09a7-4af1-a3cc-bceac860c2b2.png",
+      "crop": [
+        1098,
+        552,
+        344,
+        516
+      ]
+    },
+    {
+      "key": "serpent",
+      "index": 8,
+      "file": "monster-serpent-v2853.webp",
+      "bytes": 48572,
+      "source": "exec-f60de482-8e3d-4dfd-903a-b3fec72a02bf.png",
+      "crop": [
+        7,
+        65,
+        345,
+        447
+      ]
+    },
+    {
+      "key": "spider",
+      "index": 9,
+      "file": "monster-spider-v2853.webp",
+      "bytes": 44058,
+      "source": "exec-f60de482-8e3d-4dfd-903a-b3fec72a02bf.png",
+      "crop": [
+        365,
+        189,
+        362,
+        330
+      ]
+    },
+    {
+      "key": "treant",
+      "index": 10,
+      "file": "monster-treant-v2853.webp",
+      "bytes": 65376,
+      "source": "exec-f60de482-8e3d-4dfd-903a-b3fec72a02bf.png",
+      "crop": [
+        730,
+        5,
+        362,
+        528
+      ]
+    },
+    {
+      "key": "golem",
+      "index": 11,
+      "file": "monster-golem-v2853.webp",
+      "bytes": 49724,
+      "source": "exec-f60de482-8e3d-4dfd-903a-b3fec72a02bf.png",
+      "crop": [
+        1097,
+        56,
+        347,
+        468
+      ]
+    },
+    {
+      "key": "bandit",
+      "index": 12,
+      "file": "monster-bandit-v2853.webp",
+      "bytes": 47286,
+      "source": "exec-f60de482-8e3d-4dfd-903a-b3fec72a02bf.png",
+      "crop": [
+        6,
+        557,
+        375,
+        501
+      ]
+    },
+    {
+      "key": "cultivator",
+      "index": 13,
+      "file": "monster-cultivator-v2853.webp",
+      "bytes": 43802,
+      "source": "exec-f60de482-8e3d-4dfd-903a-b3fec72a02bf.png",
+      "crop": [
+        375,
+        550,
+        341,
+        509
+      ]
+    },
+    {
+      "key": "demon-general",
+      "index": 14,
+      "file": "monster-demon-general-v2853.webp",
+      "bytes": 47014,
+      "source": "exec-f60de482-8e3d-4dfd-903a-b3fec72a02bf.png",
+      "crop": [
+        726,
+        529,
+        405,
+        536
+      ]
+    },
+    {
+      "key": "ghost",
+      "index": 15,
+      "file": "monster-ghost-v2853.webp",
+      "bytes": 46384,
+      "source": "exec-f60de482-8e3d-4dfd-903a-b3fec72a02bf.png",
+      "crop": [
+        1111,
+        556,
+        332,
+        494
+      ]
+    },
+    {
+      "key": "celestial-guard",
+      "index": 16,
+      "file": "monster-celestial-guard-v2853.webp",
+      "bytes": 38194,
+      "source": "exec-e57f579b-ea26-4ebc-8ff2-87d7cf6946c7.png",
+      "crop": [
+        9,
+        13,
+        598,
+        608
+      ]
+    },
+    {
+      "key": "war-spirit",
+      "index": 17,
+      "file": "monster-war-spirit-v2853.webp",
+      "bytes": 38594,
+      "source": "exec-e57f579b-ea26-4ebc-8ff2-87d7cf6946c7.png",
+      "crop": [
+        649,
+        5,
+        596,
+        617
+      ]
+    },
+    {
+      "key": "mist-lord",
+      "index": 18,
+      "file": "monster-mist-lord-v2853.webp",
+      "bytes": 46486,
+      "source": "exec-e57f579b-ea26-4ebc-8ff2-87d7cf6946c7.png",
+      "crop": [
+        45,
+        635,
+        632,
+        606
+      ]
+    },
+    {
+      "key": "blood-elder",
+      "index": 19,
+      "file": "monster-blood-elder-v2853.webp",
+      "bytes": 53236,
+      "source": "exec-e57f579b-ea26-4ebc-8ff2-87d7cf6946c7.png",
+      "crop": [
+        744,
+        641,
+        499,
+        603
+      ]
+    }
+  ],
+  "map": {
+    "file": "monster-map-v2853.webp",
+    "width": 640,
+    "height": 640,
+    "columns": 5,
+    "cellWidth": 128,
+    "cellHeight": 160
+  },
+  "total_bytes": 1191738,
+  "pixel_cache_budget": 6062080
+}

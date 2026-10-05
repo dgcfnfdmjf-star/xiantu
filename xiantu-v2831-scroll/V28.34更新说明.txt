@@ -1,0 +1,2 @@
+八域地图统一绘卷画风，各有独立图集分区：南域田野、东域林海、西域荒山、北域雪山、人族群峰、人族花谷、魔域紫黑山境、仙域金色云海。主地图、山河图、小地图同步。沿用绘卷建筑和水墨敌人，保持地图坐标、交互、存档与寻路。地图背景不再叠加旧版地面点线纹理。图集只加载一次，不创建八张全尺寸地图缓存。沿用 xiantu-v2831-scroll 目录，完整覆盖后用 v=2835-region-buildings-20260917 打开。未部署、未真机测试。
+素材路径：scroll-regions-v2834.webp；内置 image_gen。提示词：eight independent blue-green shanshui parchment map backgrounds in 2-column 4-row atlas; southern fields, eastern forest, western ochre mountains, northern snow, human peaks, flowered valley, demon purple mountains, immortal golden clouds; empty playable center, no roads, labels or buildings.

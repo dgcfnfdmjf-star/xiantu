@@ -1,0 +1,13 @@
+仙途 V28.38 · 美术资产说明
+
+生成方式：内置 imagegen，单次生成一张透明角色图集。
+用途：手机地图上的白衣青蓝修士。正面、侧面、背面，各含待机与三帧步态；配合镜像和朝向选择，响应八个移动方向。
+这是绘制精灵帧动画，不是 Spine 骨骼模型，也不是可任意旋转的三维人物。
+人物空手，不会凭空生成未装备的兵器；装备与技能数值仍由原系统处理。本版不提供逐件换装外观。
+最终项目路径：/workspace/scratch/fd510d8b8bc7/release-v2838/xiantu-v2831-scroll/hero-walk-v2838.webp
+成品：768 × 768，透明 WebP，214492 字节。地图首次需要主角时加载；失败后使用原有几何角色，不循环重试。
+根据透明像素的实际边界取帧，并对齐脚底。显示沿用地图现有帧循环，没有新增角色专用计时器。
+预览路径：QA/actor-preview.png（原生 Canvas 合成，用于检查各方向与地域色调，不是手机截图）。
+
+最终生成提示词：
+Use case: stylized-concept. Asset type: production game sprite atlas for mobile Chinese xianxia RPG. Create ONE transparent-background sprite sheet, exactly 4 equal columns and 3 equal rows, total 12 full-body frames. SAME adult young male immortal cultivator in every frame: elegant blue-white layered hanfu robes, muted teal sash and long ribbons, tiny antique gold trim, high black ponytail with jade hair ornament, slim natural adult proportions, graceful reserved expression. Sophisticated Chinese gongbi and watercolor painted style matching ink-wash mountains and parchment maps. Isometric orthographic camera slightly above (about 20 degrees), NOT chibi, NOT voxel. Row 1 front facing downward toward viewer, row 2 facing screen right, row 3 facing away upward (back visible). Within EACH row: column 1 relaxed idle, column 2 walking with left foot leading, column 3 walking passing pose, column 4 walking right foot leading. Feet visibly alternate; arms gently counter-swing; robe hems and ponytail gently lag motion. Keep identity, clothing, scale, body height, lighting and framing consistent across all 12 cells. Heads aligned within each row, feet at same baseline, full body centered in each exact grid cell with generous transparent gutters. Genuine alpha transparency everywhere except characters; no paper background, no checker pattern, no scene, no shadows, no ground, no boxes, no text, no labels, no weapons or props. Hands empty. Pixel dimensions 1536x1536. The sheet will be sliced mathematically into equal grid cells.

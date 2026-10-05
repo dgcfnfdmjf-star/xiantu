@@ -1,0 +1,5 @@
+本次使用内置图像生成功能，参考项目既有青绿山水地图生成三张透明怪物图集。
+提示词见v2853-art-prompts.json；运行素材与映射见v2853-art-manifest.json。
+以ImageMagick进行图集分离、保留透明度、缩放和WebP编码；未使用外部模型API。
+20张独立立绘位于上一级 monster-*-v2853.webp；地图小图集为 monster-map-v2853.webp。
+生成原始图不作为游戏运行依赖。

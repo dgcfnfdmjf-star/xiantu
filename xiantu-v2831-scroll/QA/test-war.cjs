@@ -1,0 +1,53 @@
+const fs=require('fs'),a=require('assert'),fixture=require('./dom-fixture.cjs');
+const root=process.env.XIANTU_TEST_ROOT||'release-v2839/xiantu-v2831-scroll';
+function game(){const f=fixture(root);f.c.Math=Object.create(Math);f.c.Math.random=()=>.35;const h=fs.readFileSync(root+'/game-v2762.html','utf8');for(const file of JSON.parse(h.match(/var files=(\[[^;]+\]);/)[1]))f.load(file);f.run('startGame();closeWorldOverlay();player.level=2;player.phase=1;player.gold=10000;player.sectContribution=1000;player.hp=getMaxHp();player.mp=getMaxMp();');f.timers.clear();return f;}
+function prep(f){f.run('window.target=Object.keys(DEMON_FACTION_POWER)[0];player.warState.alliedSects=Object.keys(HUMAN_FACTION_POWER).filter(n=>n!==player.sect);');}
+function c(f){return JSON.parse(f.run('JSON.stringify(player.warState.campaignV2775||null)'));}
+function press(f,part){const e=f.ids.get('warPanelV2839');a(e,'war dialog');const match=[...e.innerHTML.matchAll(/<button\b[^>]*data-war-action="(\d+)"[^>]*>([^<]*)<\/button>/g)].find(x=>x[2].includes(part));a(match,'button '+part);e.onclick({target:e.querySelector(`[data-war-action="${match[1]}"]`)});}
+function idStep(f,fn){f.run(`{const c=warCampaignV2839();${fn}(c.id,c.step);}`)}
+const f=game();prep(f);f.run('showWarHubV2839()');a(f.ids.has('warPanelV2839'));a.equal(c(f),null);
+f.run('declareWar(target)');a.equal(c(f),null);const oldDialog=f.ids.get('warPanelV2839'),stale=oldDialog.querySelector('button');press(f,'确认出征');a(c(f));a.equal(c(f).step,0);a(c(f).roster.length>1);const ownBefore=c(f).our;f.run('player.baseAtk+=99999');a.equal(c(f).our,ownBefore,'snapshot does not grow after start');
+oldDialog.onclick({target:stale});a.equal(c(f).step,0);
+// Three personal wins use actual combat hooks; no per-duel gold/exp and a single final payout.
+for(let stage=0;stage<3;stage++){
+ f.run(`chooseWarTacticV2775(warCampaignV2839().reports[${stage}],${stage})`);const gold=f.run('player.gold'),exp=f.run('player.exp'),beforeSupply=c(f).supplies;
+ press(f,'亲自交锋');a.equal(f.run('gameState'),'combat');a.equal(c(f).supplies,beforeSupply-1);a(!f.ids.has('warPanelV2839'));a(c(f).pending);
+ f.run('currentEnemy.hp=1;combat("attack")');f.flush(150);a.equal(f.run('gameState'),'combat-ending');a.equal(c(f).step,stage+1);a.equal(c(f).pending,null);a.equal(f.run('player.gold'),gold);a.equal(f.run('player.exp'),exp);
+ f.run('finishWarDuelV2839(true)');a.equal(c(f).step,stage+1);f.run('completeCombatFinishV2764()');f.flush(380);a(f.ids.has('warPanelV2839'));
+}
+a.equal(c(f).personalWins,3);a.equal(f.run('player.warState.history.length'),0);press(f,'结算本场战役');a.equal(c(f),null);const receipt=JSON.parse(f.run('JSON.stringify(player.warState.history.at(-1))'));a(receipt.rewards.gold>0&&receipt.rewards.merit>=45);a.equal(receipt.records.length,3);
+const settledGold=f.run('player.gold'),merit=f.run('player.warState.meritV2839');f.run('settleWarV2775(target);showWarHistory();showWarReceiptV2839(player.warState.history.at(-1).id)');a.equal(f.run('player.gold'),settledGold);a.equal(f.run('player.warState.meritV2839'),merit);
+f.run('saveGame();loadAndStart()');a.equal(f.run('player.warState.history.length'),1);a.equal(f.run('player.warState.meritV2839'),merit);a.equal(f.errors.length,0,JSON.stringify(f.errors));
+console.log('PASS real personal battles -> one settlement; score, roster snapshot, read-only history, stale UI, save/load');
+// Mid-fight restore resumes the paid encounter with no duplicate supply cost.
+const r=game();prep(r);r.run('executeWar(target);chooseWarTacticV2775(0,0)');idStep(r,'startWarDuelV2839');r.run('saveGame()');const paid=c(r).supplies,pendingId=c(r).pending.id;r.run('loadAndStart();showWarCampaignV2775()');a.equal(c(r).pending.id,pendingId);press(r,'继续未结算交锋');a.equal(c(r).supplies,paid);a.equal(r.run('gameState'),'combat');
+// Real defeat leaves 1 HP, no wallet loss, unchanged stage; restoration has explicit cost and cap.
+r.run('player.hp=1;currentEnemy.atk=999999999;Math.random=()=>.9;enemyTurn()');const wallet=r.run('player.gold');r.flush(150);a.equal(r.run('gameState'),'combat-ending');a.equal(r.run('player.gold'),wallet);a.equal(r.run('player.hp'),1);a.equal(c(r).step,0);a.equal(c(r).morale,50);a.equal(c(r).pending,null);r.run('completeCombatFinishV2764()');r.flush(380);
+r.c.confirm=()=>false;idStep(r,'restWarV2839');a.equal(r.run('player.gold'),wallet);r.c.confirm=()=>true;idStep(r,'restWarV2839');a.equal(r.run('player.gold'),wallet-(80+2*30));a.equal(r.run('player.hp'),r.run('getMaxHp()'));a.equal(c(r).rests,1);
+r.run('saveGame();loadAndStart();showWarCampaignV2775()');a.equal(c(r).step,0);a.equal(c(r).rests,1);a.equal(c(r).morale,50);
+console.log('PASS interrupted encounter restore, defeat without double charge, retryable stage, paid rest cancel/cost/save');
+// Campaign-only loss keeps existing 8% cap, commander dice cannot be rerolled by save/load.
+const d=game();prep(d);d.run('executeWar(target);warCampaignV2839().our=warCampaignV2839().foe*.51;warCampaignV2839().morale=0;warCampaignV2839().rolls=[.99,.99,.99];saveGame()');const rolls=JSON.stringify(c(d).rolls);d.run('loadAndStart()');a.equal(JSON.stringify(c(d).rolls),rolls);
+for(let stage=0;stage<3;stage++){d.run(`chooseWarTacticV2775((warCampaignV2839().reports[${stage}]+1)%3,${stage})`);idStep(d,'commandWarStageV2839');}
+d.run('player.gold=10000;settleWarV2775(target)');a.equal(d.run('player.gold'),9500);a.equal(d.run('player.warState.history.at(-1).penalty'),500);a.equal(d.run('player.warState.history.at(-1).result'),'战败');a.equal(d.run('player.warState.meritV2839'),0);d.run('settleWarV2775(target)');a.equal(d.run('player.gold'),9500);
+console.log('PASS command resolution, persisted dice, 8%-max500 campaign penalty, single settlement');
+// Incoming raids queue instead of modifying resources and can be defended during cooldown.
+const i=game();i.run('Math.random=()=>0;player.demonInvasionLevel=3;player.worldTime.totalDays=0;player.warState.lastInvasionCheckV2775=-1;player.warState.warCooldown=30');const money=i.run('player.gold');i.run('checkDemonInvasion()');a(i.run('!!player.warState.incomingV2839'));const incoming=i.run('player.warState.incomingV2839.id');a.equal(i.run('player.gold'),money);i.run('checkDemonInvasion()');a.equal(i.run('player.warState.incomingV2839.id'),incoming);i.run('executeWar(player.warState.incomingV2839.enemy)');a.equal(c(i).mode,'defense');a.equal(i.run('player.warState.incomingV2839'),null);
+console.log('PASS no silent invasion loss, single dispatch, defense allowed during offensive cooldown');
+// Existing 1/3 war save migrates without resetting its power/score; bad snapshots fail safely.
+const l=game();prep(l);l.run('player.warState.campaignV2775={enemy:target,step:1,score:2,our:1111,foe:800,reports:[0,1,2],log:["旧阶段记录"],settled:false};player.warState.status=WAR_STATUS.BATTLE;saveGame();loadAndStart()');a.equal(c(l).step,1);a.equal(c(l).score,2);a.equal(c(l).our,1111);a.equal(c(l).foe,800);a(c(l).legacy);l.run('showWarCampaignV2775()');a(l.ids.has('warPanelV2839'));
+l.run('player.warState.campaignV2775={enemy:target,step:1,our:NaN};saveGame();loadAndStart()');a.equal(c(l),null);a.equal(l.run('player.gold'),10000);
+console.log('PASS old-war migration and malformed-war recovery without wallet mutation');
+// Exchange requires confirmation, rejects insufficient balance and battle state, preserves resources on cancel.
+const m=game();m.run('player.warState.meritV2839=40;showWarMeritV2839()');const count=m.run('player.inventory.length');m.c.confirm=()=>false;press(m,'兑换 · 20');a.equal(m.run('player.warState.meritV2839'),40);a.equal(m.run('player.inventory.length'),count);m.c.confirm=()=>true;press(m,'兑换 · 20');a.equal(m.run('player.warState.meritV2839'),20);a.equal(m.run('player.inventory.length'),count+6);m.run('exchangeWarMeritV2839(2)');a.equal(m.run('player.warState.meritV2839'),20);m.run('gameState="combat-ending";exchangeWarMeritV2839(0);executeWar(Object.keys(DEMON_FACTION_POWER)[0])');a.equal(m.run('player.warState.meritV2839'),20);a.equal(c(m),null);
+console.log('PASS merit confirmation, insufficient balance, battle guard');
+// Retreat cancellation, reward-free withdrawal, bounded history, and stale character UI.
+const x=game();prep(x);x.run('executeWar(target)');const xid=c(x).id;x.c.confirm=()=>false;x.run('retreatWarV2775()');a.equal(c(x).id,xid);x.c.confirm=()=>true;x.run('retreatWarV2775()');a.equal(c(x),null);a.equal(x.run('player.warState.warCooldown'),7);a.equal(x.run('player.warState.history.at(-1).rewards.gold'),0);a.equal(x.run('player.warState.alliedSects.length'),0);
+x.run('showWarMeritV2839()');const ui=x.ids.get('warPanelV2839'),btn=ui.querySelector('button');x.run('player={...player}');ui.onclick({target:btn});a.equal(x.run('player.warState.meritV2839'),0);
+for(const q of [f,r,d,i,l,m,x])a.equal(q.errors.length,0,JSON.stringify(q.errors));
+console.log('PASS retreat confirmation, no rewards, cleared allies, stale-character UI; all war scenarios passed');
+// Invitation and immortal aid are paid only after confirmation, with an explicit chosen sect.
+const aid=game();aid.run('window.target=Object.keys(DEMON_FACTION_POWER)[0];showWarAlliesV2839(target)');const contrib=aid.run('player.sectContribution'),ally=aid.run('Object.keys(HUMAN_FACTION_POWER).find(n=>n!==player.sect)');aid.c.confirm=()=>false;press(aid,ally);a.equal(aid.run('player.sectContribution'),contrib);aid.c.confirm=()=>true;press(aid,ally);a.equal(aid.run('player.sectContribution'),contrib-30);a(aid.run(`player.warState.alliedSects.includes(${JSON.stringify(ally)})`));
+aid.run('player.demonInvasionLevel=2;for(const f of IMMORTAL_SECTS_FULL)player.factionReputation[f.name]=100;requestWarImmortalV2839(target)');const beforeAid=aid.run('player.sectContribution'),immortal=aid.run('IMMORTAL_SECTS_FULL.find(f=>f.name!=="太岁书院"&&canRequestAid(f.name)).name');aid.c.confirm=()=>false;press(aid,'请求'+immortal+'支援');a.equal(aid.run('player.sectContribution'),beforeAid);aid.c.confirm=()=>true;aid.run('Math.random=()=>0');press(aid,'请求'+immortal+'支援');a.equal(aid.run('player.sectContribution'),beforeAid-150);a.equal(aid.run('player.warState.immortalAlly'),immortal);a(aid.run('getImmortalWarSupportV2807()')>0);
+aid.run('player.warState.immortalSupport=false;player.warState.immortalAlly=null;requestWarImmortalV2839(target);Math.random=()=>.99');const failBudget=aid.run('player.sectContribution');press(aid,'请求'+immortal+'支援');a.equal(aid.run('player.sectContribution'),failBudget-75);a(!aid.run('player.warState.immortalSupport'));a.equal(aid.errors.length,0,JSON.stringify(aid.errors));
+console.log('PASS ally confirmation and exact cost; named immortal aid success/failure prices and support strength');

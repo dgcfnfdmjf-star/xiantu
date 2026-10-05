@@ -1,0 +1,3 @@
+解压，将 xiantu-v2831-scroll 文件夹完整覆盖到腾讯云静态托管根目录，等待全部上传完成。
+游玩入口：https://xiantu-game-d9gy5heze4b039bf1-1255918878.tcloudbaseapp.com/xiantu-v2831-scroll/game-v2762.html?v=2836-mobile-map-20260921
+启动页应显示 V28.36。不要清除浏览器网站数据，以免丢失本机存档。

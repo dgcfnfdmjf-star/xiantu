@@ -1,0 +1,31 @@
+const fs=require('fs'),a=require('assert'),fixture=require('./dom-fixture.cjs');
+const root=process.env.XIANTU_TEST_ROOT||'release-v2840/xiantu-v2831-scroll';
+function game(){const f=fixture(root);f.c.Math=Object.create(Math);f.c.Math.random=()=>.35;for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);f.run('startGame();closeWorldOverlay();player.level=6;player.gold=10000;player.hp=getMaxHp();player.mp=getMaxMp();player.warState.alliedSects=Object.keys(HUMAN_FACTION_POWER).filter(n=>n!==player.sect);window.target=Object.keys(DEMON_FACTION_POWER)[0];');f.timers.clear();return f;}
+const f=game();f.run('syncWarMapV2840()');a.equal(f.run('WAR_MAP_V2840.scene'),null);a(!f.ids.has('warMapBarV2840'));
+f.run('executeWar(target)');a.equal(f.run('gameState'),'exploring');a(!f.ids.has('warPanelV2839'));a(f.ids.has('warMapBarV2840'));a(f.run('WAR_MAP_V2840.scene.local'));a.equal(f.run('FLAT_WORLD.pois.filter(p=>p.id===WAR_MAP_POI_V2840).length'),1);a(f.run('!FLAT_WORLD.colliders.some(o=>Math.hypot(FLAT_WORLD.player.x-o.x,FLAT_WORLD.player.y-o.y)<o.radius+17)'),'hero outside colliders');
+const site=f.run('JSON.stringify(warCampaignV2839().mapV2840)');f.run('saveGame();loadAndStart();syncWarMapV2840()');a.equal(f.run('JSON.stringify(warCampaignV2839().mapV2840)'),site);
+f.run('viewWarMapV2840();showScrollMapV2831()');a(f.ids.get('scrollFieldV2831').innerHTML.includes('军令台'));f.run('closeScrollMapV2837();FLAT_WORLD.nearby=FLAT_WORLD.pois.find(p=>p.id===WAR_MAP_POI_V2840);interactFlatWorld()');a(f.ids.has('warPanelV2839'));f.run('closeWarPanelV2839()');
+// Repeated frames have a fixed unit pool and cannot resolve/advance a campaign.
+const before=f.run('JSON.stringify({gold:player.gold,exp:player.exp,war:player.warState})');const pool=f.run('WAR_MAP_V2840.scene.units');
+f.c.items=[];f.c.view={minX:0,maxX:2000,minY:0,maxY:1600};for(let n=0;n<300;n++)f.run('items.length=0;syncWarMapV2840();appendWarUnitsV2840(items,1/30,view)');a.strictEqual(f.run('WAR_MAP_V2840.scene.units'),pool);a(f.c.items.length<=28);a.equal(f.run('JSON.stringify({gold:player.gold,exp:player.exp,war:player.warState})'),before);
+const clock=f.run('WAR_MAP_V2840.clock');f.c.view={minX:-1000,maxX:-900,minY:-1000,maxY:-900};f.run('items.length=0;appendWarUnitsV2840(items,1/30,view)');a.equal(f.c.items.length,0);a.equal(f.run('WAR_MAP_V2840.clock'),clock);
+f.c.view={minX:0,maxX:2000,minY:0,maxY:1600};f.run('WAR_MAP_V2840.reduced=true;appendWarUnitsV2840(items,1/30,view)');a.equal(f.run('WAR_MAP_V2840.clock'),clock);a(f.run('WAR_MAP_V2840.scene.units.every(u=>!u.attack&&u.frame===0)'));f.run('WAR_MAP_V2840.reduced=false');
+// Existing world loop guards also freeze the field under dialogs and hidden tabs.
+f.run('showWarCampaignV2775();flatWorldLoop(2000)');a.equal(f.run('WAR_MAP_V2840.clock'),clock);f.run('closeWarPanelV2839()');f.c.document.hidden=true;f.run('flatWorldLoop(3000)');a.equal(f.run('WAR_MAP_V2840.clock'),clock);f.c.document.hidden=false;
+// Changing regions removes the post/units from that map, never creates a second battle.
+f.run('applyWorldMapLayout("south",true);syncWarMapV2840()');a(!f.run('WAR_MAP_V2840.scene.local'));a.equal(f.run('FLAT_WORLD.pois.filter(p=>p.id===WAR_MAP_POI_V2840).length'),0);a.equal(f.run('WAR_MAP_V2840.scene.units.length'),0);f.run('viewWarMapV2840()');a(f.run('WAR_MAP_V2840.scene.local'));
+for(let stage=0;stage<3;stage++)f.run(`chooseWarTacticV2775(warCampaignV2839().reports[${stage}],${stage});commandWarStageV2839(warCampaignV2839().id,${stage});`);
+a.equal(f.run('WAR_MAP_V2840.scene.kind'),'victory');a.equal(f.run('player.warState.history.length'),0);f.run('settleWarV2775(target)');a.equal(f.run('WAR_MAP_V2840.scene'),null);a(!f.ids.has('warMapBarV2840'));a.equal(f.run('FLAT_WORLD.pois.filter(p=>p.id===WAR_MAP_POI_V2840).length'),0);a.equal(f.run('player.warState.history.length'),1);
+console.log('PASS automatic battlefield entry, safe placement, persistent site, minimap/scroll post, interaction; bounded pool, no render rewards, offscreen/reduced/hidden/modal pause, stage sync, settlement cleanup');
+// All region themes use the same renderer, while locations remain subject to unlock gates.
+const r=game();r.run('player.level=16;executeWar(target)');for(const region of r.run('Object.keys(WORLD_MAP_CONFIGS)')){
+ r.run(`warCampaignV2839().mapV2840={region:${JSON.stringify(region)},x:600,y:500};viewWarMapV2840();`);a.equal(r.run('currentRegion'),region);a(r.run('WAR_MAP_V2840.scene.local'));a.equal(r.run('FLAT_WORLD.pois.filter(p=>p.id===WAR_MAP_POI_V2840).length'),1);
+ r.run(`applyWorldMapLayout(${JSON.stringify(region)},true);syncWarMapV2840()`);a.equal(r.run('FLAT_WORLD.pois.filter(p=>p.id===WAR_MAP_POI_V2840).length'),1);
+}
+r.run('warCampaignV2839().mapV2840={region:"immortal_domain",x:600,y:500};player.level=0;applyWorldMapLayout("south",true);syncWarMapV2840();viewWarMapV2840()');a.equal(r.run('currentRegion'),'south');
+r.run('warCampaignV2839().mapV2840={region:"bad",x:NaN,y:Infinity};syncWarMapV2840()');a(r.run('validWarSiteV2840(warCampaignV2839().mapV2840)'));
+r.run('retreatWarV2775()');a.equal(r.run('WAR_MAP_V2840.scene'),null);a(!r.ids.has('warMapBarV2840'));
+console.log('PASS eight region transitions, same-map rebuild, realm gate, malformed site recovery, retreat cleanup');
+const i=game();i.run('player.warState.incomingV2839={id:"incoming-test",enemy:target,day:0};syncWarMapV2840();viewWarMapV2840()');a.equal(i.run('WAR_MAP_V2840.scene.kind'),'incoming');i.c.items=[];i.c.view={minX:0,maxX:2000,minY:0,maxY:1600};i.run('appendWarUnitsV2840(items,1/30,view)');a(i.run('WAR_MAP_V2840.scene.units.every(u=>!u.attack)'));
+const oldbar=i.ids.get('warMapBarV2840'),oldbtn=oldbar.querySelector('button');i.run('player=createDefaultPlayer();syncWarMapV2840()');oldbar.onclick({target:oldbtn});a.equal(i.run('WAR_MAP_V2840.scene'),null);a(!i.ids.has('warMapBarV2840'));a.equal(i.run('FLAT_WORLD.pois.filter(p=>p.id===WAR_MAP_POI_V2840).length'),0);
+for(const q of [f,r,i])a.equal(q.errors.length,0,JSON.stringify(q.errors));console.log('PASS incoming army waits, stale character actions rejected, character change removes state');

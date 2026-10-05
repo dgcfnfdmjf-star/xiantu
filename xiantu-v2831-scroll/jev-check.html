@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#07100b">
+  <title>仙途 · Jev 连接检测 V28.68</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#07100b;color:#eee;font:16px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}
+    main{max-width:580px;margin:0 auto;padding:24px 18px;padding-bottom:max(24px,env(safe-area-inset-bottom))}h1{font-size:25px;color:#efd48b;margin:4px 0 14px}
+    .version{font-size:13px;color:#a5b5a9;letter-spacing:1px}.card{padding:20px;background:#121c15;border:1px solid #766e4d;border-radius:18px;margin:16px 0}
+    p{margin:10px 0}.muted{font-size:14px;color:#b8c2b9}label{display:block;font-weight:650;margin-top:18px}input{display:block;width:100%;background:#07100b;color:#fff;border:1px solid #7e886d;border-radius:10px;padding:13px;font-size:16px;margin:8px 0}
+    button,.link{display:block;width:100%;min-height:48px;border-radius:12px;padding:12px;border:1px solid #d6bd77;background:#4c593d;color:#fff0c7;font-size:17px;font-weight:700;text-align:center;text-decoration:none}
+    button:disabled{opacity:.55}a{color:#efd48b}button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #efd48b;outline-offset:3px}
+    #result{white-space:pre-line;overflow-wrap:anywhere;min-height:70px;padding:14px;border-radius:12px;background:#243027}#result[data-state=success]{border:1px solid #74c391}#result[data-state=error]{border:1px solid #e29696;background:#382127}
+    details{font-size:14px;color:#b8c2b9}summary{cursor:pointer;padding:8px 0}code{overflow-wrap:anywhere}ol{padding-left:22px}li{margin:7px 0}
+  .jev-remember-v2845{display:flex;align-items:center;gap:9px;font-size:14px;min-height:44px}.jev-remember-v2845 input{width:20px;height:20px;flex:0 0 20px;accent-color:#9ab97b}.jev-device-status-v2845{font-size:13px;color:#b8c2b9}
+  </style>
+  <script defer src="./xiantu-v2842-jev-forge.js?v=2868-sect-stories-20260930"></script>
+  <script defer src="./xiantu-v2850-jev-friends.js?v=2868-sect-stories-20260930"></script>
+  <script defer src="./jev-check-v2843.js?v=2868-sect-stories-20260930"></script>
+</head>
+<body><main>
+  <div class="version">仙途 · V28.68</div>
+  <h1>Jev 连接检测</h1>
+  <p>检查游戏能否通过腾讯云取得 Jev 的洗练建议。</p>
+  <section class="card">
+    <p class="muted">使用固定示例词条，不读取存档、不消耗灵石。点击会请求一次云端判断，可能产生 API 用量。</p>
+    <form id="jevCheckForm" autocomplete="off">
+      <label for="checkTask">检测项目</label><select id="checkTask" style="width:100%;padding:12px;font-size:16px;background:#142219;color:#eee;border-radius:8px"><option value="forge">装备洗练</option><option value="monster">怪兽决策（需更新云函数）</option><option value="sect">宗门经营接口</option><option value="mapnpc">NPC 接口（兼容 V28.50 云函数）</option></select><label for="access">游戏访问口令</label>
+      <p class="muted" id="accessHint">填写云函数的 JEV_ACCESS_TOKEN，不是 JEV_API_KEY。勾选记住后，测试成功会保存；已有保存口令时可以留空。输入框不会显示已保存的口令。</p>
+      <input id="access" type="password" maxlength="128" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="accessHint" placeholder="已有设备记忆可留空">
+      <div id="jevDeviceControlsV2845"></div><button type="button" id="clearDeviceV2845" style="margin:8px 0">清除此设备口令</button><button id="testButton" type="submit" disabled>加载检测程序…</button>
+    </form>
+    <p id="result" role="status" aria-live="polite">正在加载检测程序。若长期没有变化，请完整上传 V28.68 文件夹并刷新。</p>
+    <noscript>请启用浏览器 JavaScript 后重试。</noscript>
+  </section>
+  <details class="card"><summary>查看连接信息与排查方法</summary>
+    <p>当前网页来源：<code id="pageOrigin">—</code></p>
+    <p>接口地址：<code id="apiEndpoint">—</code></p>
+    <ol><li>从腾讯云托管的网址打开本页，不要直接打开本地 HTML。</li><li>如果提示跨域或网络问题，核对 HTTP 访问服务的安全域名及云函数 JEV_ALLOWED_ORIGINS 是否允许游戏域名。</li><li>试玩版连接成功后直接进入游戏，朋友无需填写口令。</li></ol>
+    <p>刷新检测页不会清除游戏存档。</p>
+  </details>
+  <a class="link" href="./game-v2762.html?v=2868-sect-stories-20260930">进入游戏</a>
+</main></body></html>

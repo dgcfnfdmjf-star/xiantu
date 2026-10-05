@@ -1,0 +1,9 @@
+{
+  "name": "xiantu-jev-forge",
+  "version": "28.50.0",
+  "private": true,
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  }
+}

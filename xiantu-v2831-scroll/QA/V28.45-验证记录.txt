@@ -1,0 +1,3 @@
+已通过：30 脚本与样式版本一致；设备记忆跨页面恢复、关闭状态记忆、取消及清除、角色存档独立、异常存储回退、非法记忆拒绝、清除待决请求、连接页成功后共用；原有洗练与怪兽回合模拟接口测试。
+云函数/美术与 V28.44 一致；未代为发布、未做手机真机或新功能真实云端验证。
+测试：XIANTU_TEST_ROOT=./xiantu-v2831-scroll node xiantu-v2831-scroll/QA/v2845-test-device.cjs；其他测试同理 test-jev / test-monster / test-connection。

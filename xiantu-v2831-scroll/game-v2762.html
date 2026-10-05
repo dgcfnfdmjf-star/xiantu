@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="xiantu-safe-boot-v2762">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=overlays-content">
+  <meta name="theme-color" content="#08100b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="仙途">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <title>仙途 V28.68 · 开场动画版</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<style id="xiantu-v2762-loader-style">
+html,body{margin:0;min-height:100%;background:#07100b;color:#eee;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
+#xiantuSafeBoot{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:22px;background:radial-gradient(circle at 50% 25%,#1a2b20 0,#0a130e 40%,#040806 100%)}
+#xiantuSafeBoot .boot-card{width:min(440px,92vw);padding:28px 24px;border:1px solid rgba(231,200,119,.48);border-radius:22px;background:linear-gradient(155deg,rgba(30,41,32,.98),rgba(10,16,12,.99));box-shadow:0 22px 70px rgba(0,0,0,.58),inset 0 1px rgba(255,255,255,.05);text-align:center}
+#xiantuSafeBoot .boot-mark{font-size:46px;line-height:1;margin-bottom:12px}#xiantuSafeBoot h1{margin:0;color:#f0d58c;font-size:25px;letter-spacing:3px}#xiantuSafeBoot .boot-version{margin:7px 0 18px;color:#91a99a;font-size:12px}
+#xiantuSafeBoot .boot-copy{margin:0 auto 18px;max-width:340px;color:#c9d0c8;font-size:14px;line-height:1.75}#xiantuSafeBoot button{width:100%;min-height:54px;border:1px solid #d7bd75;border-radius:14px;background:linear-gradient(145deg,#6d7954,#39432e);color:#fff2ca;font-size:17px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.32);touch-action:manipulation}
+#xiantuSafeBoot button:disabled{opacity:.72}#xiantuSafeBoot .boot-progress{margin-top:15px;color:#b9c5bb;font-size:12px;line-height:1.6;min-height:20px}#xiantuSafeBoot .boot-error{display:none;margin-top:13px;padding:10px;border-radius:10px;background:#39191d;color:#ffd9dd;font-size:12px;line-height:1.55;text-align:left;white-space:pre-wrap}
+#xiantuSafeBoot .boot-note{margin-top:13px;color:#748278;font-size:10px;line-height:1.55}
+
+#xiantuSafeBoot .boot-card{max-height:calc(100dvh - 44px);overflow:auto;box-sizing:border-box}
+#introPanelV2860[hidden]{display:none!important}
+#introVideoV2860{display:block;width:100%;aspect-ratio:16/9;object-fit:contain;background:#000;border-radius:10px}
+.intro-controls-v2860{display:flex;gap:8px;margin:8px 0 14px}
+#xiantuSafeBoot .intro-controls-v2860 button{min-height:44px;font-size:14px;border-radius:9px}
+@media(orientation:landscape) and (max-height:500px){#xiantuSafeBoot .boot-card{width:min(760px,96vw);padding:12px;max-height:96dvh}#introPanelV2860:not([hidden]){float:left;width:55%;margin-right:16px}#xiantuSafeBoot .boot-mark{display:none}}
+</style>
+</head>
+<body class="xiantu-v2762-booting">
+
+<div id="xiantuSafeBoot" role="dialog" aria-labelledby="xiantuSafeBootTitle">
+  <div class="boot-card">
+    <div id="introPanelV2860" hidden>
+      <video id="introVideoV2860" muted playsinline webkit-playsinline preload="none" aria-label="仙途三十秒开场动画"></video>
+      <div class="intro-controls-v2860"><button id="introSoundV2860" type="button" aria-pressed="false">开启声音</button><button id="introSkipV2860" type="button">跳过动画</button></div>
+    </div>
+    <div class="boot-mark">☯</div>
+    <h1 id="xiantuSafeBootTitle">仙途</h1>
+    <div class="boot-version">V28.68</div>
+    <button id="xiantuSafeBootButton" type="button">进入仙途</button>
+    <div id="xiantuSafeBootProgress" class="boot-progress"></div>
+    <div id="xiantuSafeBootError" class="boot-error"></div>
+  </div>
+</div>
+  <!-- 存档控制按钮 -->
+  <div class="save-controls" id="saveControls" style="display:none;">
+    <button class="save-btn" onclick="manualSave()">💾 记档</button><button class="save-btn" onclick="showSaveManagerV2768()">📁 存档管理</button>
+    <button class="save-btn" onclick="showAchievements()">🏆 成就录</button>
+  </div>
+  <div class="save-indicator" id="saveIndicator">✓ 已记入玉简</div>
+  
+  <!-- 音效控制 -->
+  <div class="audio-controls" id="audioControls" style="display:none;">
+    <button class="audio-btn" id="muteBtn" onclick="toggleMute()">🔊</button>
+    <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="50" onchange="setVolume(this.value)">
+    <button class="audio-btn" onclick="toggleBGM()">🎵</button>
+  </div>
+  
+  <!-- 移动模式按钮 -->
+  <button class="move-toggle" id="moveToggle" style="display:none;" onclick="toggleMoveMode()">
+    🚶 移动模式
+  </button>
+  <div class="move-hint" id="moveHint">
+    使用 WASD 或方向键移动<br>
+    走到区域触发功能
+  </div>
+  
+  <!-- 移动角色画布 -->
+  <canvas id="playerMoveChar" style="display:none;" width="1" height="1" data-v2762-width="60" data-v2762-height="80"></canvas>
+  
+  <!-- 移动区域 -->
+  <div class="move-zone" id="moveZoneVillage" data-zone="village">🏘️ 村庄</div>
+  <div class="move-zone" id="moveZoneShop" data-zone="shop">🏪 商店</div>
+  <div class="move-zone" id="moveZoneExplore" data-zone="explore">⚔️ 历练</div>
+  <div class="move-zone" id="moveZoneAlchemy" data-zone="alchemy">🔥 炼丹</div>
+  <div class="move-zone" id="moveZoneRest" data-zone="rest">💤 休息</div>
+  
+  <!-- 存档加载对话框 -->
+  <div class="load-dialog" id="loadDialog" style="display:none;">
+    <div class="load-dialog-content">
+      <h3>📜 旧日修行录</h3>
+      <button class="load-dialog-btn secondary" onclick="showSaveManagerV2768()">📁 导入 / 恢复备份</button><p id="saveInfo">玉简中留有往昔修行记录，是否续行此途？</p>
+      <div class="load-dialog-btns">
+        <button class="load-dialog-btn primary" onclick="loadAndStart()">续行仙途</button>
+        <button class="load-dialog-btn secondary" onclick="newGame()">重新入世</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container">
+    <h1>⚔️ 仙途 ⚔️</h1>
+    
+    <div class="main-wrapper">
+    <!-- 开始界面 -->
+    <div id="startScreen" class="start-screen">
+      <canvas id="startChar" style="margin: 20px auto; display: block;" width="1" height="1" data-v2762-width="100" data-v2762-height="120"></canvas>
+      <p style="font-size: 18px; margin-bottom: 20px;">仙魔鏖战三万年，凡人自此入仙途</p>
+      <button class="save-btn" onclick="showSaveManagerV2768()">📁 导入 / 恢复存档</button><br><input type="text" id="playerName" class="name-input" placeholder="输入你的道号" maxlength="8">
+      <br><br>
+      <button class="start-btn" onclick="startGame()">开始修仙</button>
+    </div>
+    
+    <!-- 游戏界面 -->
+    <div id="gameScreen" class="hidden">
+
+      <!-- 俯视平面世界 -->
+      <div id="worldPanel">
+        <canvas id="worldCanvas" width="1" height="1" data-v2762-width="1" data-v2762-height="1"></canvas>
+        <canvas id="world3dCanvas" aria-label="3D角色渲染层" width="1" height="1" data-v2762-width="300" data-v2762-height="150"></canvas>
+        <div class="world-vignette"></div>
+        <div class="world-hud">
+          <div class="world-hud-top">
+            <div><div class="world-name" id="worldPlayerName">无名</div><div class="world-realm" id="worldRealm">凡人</div></div>
+            <div class="world-hud-actions"><button id="panelToggleBtn" onclick="toggleCharacterPanel()">📋 角色</button><button id="inventoryToggleBtn" onclick="showMobileInventory()">🎒 物品</button><button onclick="showJevHubV2846()">☯ Jev</button></div>
+          </div>
+          <div class="world-bars">
+            <div class="world-bar-row"><span>气血</span><div class="world-bar"><i id="worldHpBar" style="width:100%"></i></div><span id="worldHpText">100 / 100</span></div>
+            <div class="world-bar-row"><span>灵力</span><div class="world-bar"><i id="worldMpBar" style="width:100%"></i></div><span id="worldMpText">50 / 50</span></div>
+            <div class="world-bar-row"><span>修为</span><div class="world-bar"><i id="worldExpBar" style="width:0%"></i></div><span id="worldExpText">0 / 100</span></div>
+          </div>
+          <div class="world-resource-row"><span>💰 <b id="worldGold">0</b> 灵石</span><span>⚔ <b id="worldAtk">10</b></span><span>🛡 <b id="worldDef">5</b></span><span>💗 <b id="worldRomance">缘分未定</b></span><span>📅 <b id="worldTime">仙历1年1月1日</b></span><span id="worldTournament" style="display:none;color:#ffd98a">📯 百年大比</span></div>
+        </div>
+        <div class="world-location-card"><div id="worldAreaName">青云原</div><div id="worldAreaDesc">风吹灵草，远山隐于云雾</div></div>
+        <div class="world-minimap" id="worldMinimap">
+          <div class="world-minimap-head"><span>🧭 小地图</span><small id="minimapCoords">X:1050 · Y:760</small></div>
+          <div class="minimap-circle-shell">
+            <canvas id="minimapCanvas" aria-label="圆形小地图，可点选寻路" width="1" height="1" data-v2762-width="180" data-v2762-height="180"></canvas>
+          </div>
+          <div class="minimap-zoom-controls" aria-label="小地图缩放">
+            <button type="button" id="minimapZoomOut" onclick="changeMinimapZoom(-0.5);event.stopPropagation()" aria-label="缩小小地图">−</button>
+            <span id="minimapZoomLabel">1.0×</span>
+            <button type="button" id="minimapZoomIn" onclick="changeMinimapZoom(0.5);event.stopPropagation()" aria-label="放大小地图">＋</button>
+          </div>
+          <div class="world-minimap-note">点选方位寻路 · ±缩放</div>
+        </div>
+        <div class="world-interact" id="worldInteract"><span class="key">E</span><span id="worldInteractText">交互</span></div>
+        <div class="world-help">移动：WASD / 方向键　·　交互：E / 空格　·　点地寻路</div>
+        <div class="touch-pad joystick-pad" id="virtualJoystick" aria-label="移动摇杆">
+          <div class="joystick-ring"></div>
+          <div class="joystick-knob" id="virtualJoystickKnob"></div>
+        </div>
+        <button class="touch-action" id="touchAction">交互</button>
+      </div>
+
+      <!-- 深度角色面板 -->
+      <div id="characterPanel" class="character-panel hidden" aria-hidden="true">
+        <div class="character-panel-content">
+<div class="char-toolbar-v2799"><span>人物 · 修行录</span><button type="button" onclick="toggleCharacterPanel(false)" aria-label="关闭角色面板">关闭 ✕</button></div>          <div class="deep-panel-header">
+            <div class="deep-panel-avatar">
+              <canvas id="panelAvatar" aria-label="男主立绘" width="1" height="1" data-v2762-width="180" data-v2762-height="240"></canvas>
+              <div class="panel-titles" id="panelTitles"></div>
+            </div>
+            <div class="deep-panel-title">
+              <div class="player-name" id="panelName">无名</div>
+              <div class="player-dao" id="panelDao">道号：无</div>
+              <div class="player-identity" id="panelIdentity">凌霄宗 · 外门弟子</div>
+            </div>
+          </div>
+<section class="cultivation-card-v2799" aria-label="修炼与突破">
+<div class="cultivation-eyebrow-v2799">当前境界</div><div id="panelRealmFull" class="cultivation-realm-v2799">凡人初期</div>
+<div id="panelBottleneck" class="cultivation-state-v2799">积累修为中</div>
+<div class="cultivation-progress-label-v2799"><span>本阶段修为</span><strong id="panelExpFull">0 / 25</strong></div>
+<div class="panel-exp-bar" role="progressbar" aria-label="本阶段修为" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="cultivationProgressV2799"><div class="deep-exp-bar-fill" id="panelExpBarFull" style="width:0%"></div></div>
+<div class="cultivation-budget-v2799"><div><span>持有修为</span><strong id="panelExpTotalV2799">0</strong></div><div><span>成功消耗</span><strong id="panelExpCostV2799">25</strong></div><div><span>成功后剩余</span><strong id="panelExpReserveV2798">—</strong></div></div>
+<p id="panelExpHintV2799" class="cultivation-hint-v2799">修为达标后，可手动闭关突破。</p>
+<div class="deep-panel-stat"><span class="stat-label">突破评估</span><span class="stat-value" id="panelBreakthroughStatus">—</span></div><div class="deep-panel-stat"><span class="stat-label">预计成功率</span><span class="stat-value" id="panelBreakthroughRate">—</span></div><div id="breakthroughActionsV2798"></div></section><details class="char-details-v2799" open><summary>基本信息与寿元<span aria-hidden="true">＋</span></summary><div class="char-details-body-v2799"><div class="deep-panel-stat"><span class="stat-label">性别</span><span class="stat-value" id="panelGender">—</span></div><div class="deep-panel-stat"><span class="stat-label">生辰</span><span class="stat-value" id="panelBirth">—</span></div><div class="deep-panel-stat"><span class="stat-label">年龄</span><span class="stat-value" id="panelAge">—</span></div><div class="deep-panel-stat"><span class="stat-label">剩余 / 总寿元</span><span class="stat-value" id="panelLifespan">—</span></div><div class="deep-panel-stat"><span class="stat-label">丹药延寿</span><span class="stat-value" id="panelLongevityBonus">—</span></div><button class="panel-action-btn" onclick="showLongevityPanel()">延寿说明 / 服丹</button></div></details><details class="char-details-v2799" ><summary>宗门与身份<span aria-hidden="true">＋</span></summary><div class="char-details-body-v2799"><div class="deep-panel-stat"><span class="stat-label">所属宗门</span><span class="stat-value" id="panelSectFull">—</span></div><div class="deep-panel-stat"><span class="stat-label">当前职位</span><span class="stat-value" id="panelRankFull">—</span></div><div class="deep-panel-stat"><span class="stat-label">宗门贡献</span><span class="stat-value" id="panelContributionFull">—</span></div></div></details><details class="char-details-v2799" ><summary>情缘与师承<span aria-hidden="true">＋</span></summary><div class="char-details-body-v2799"><div class="deep-panel-stat"><span class="stat-label">道侣</span><span class="stat-value" id="panelPartnerFull">—</span></div><div class="deep-panel-stat"><span class="stat-label">师父</span><span class="stat-value" id="panelMaster">—</span></div><div class="deep-panel-stat"><span class="stat-label">弟子</span><span class="stat-value" id="panelDisciplesFull">—</span></div><div class="deep-panel-stat"><span class="stat-label">旧缘阶段</span><span class="stat-value" id="panelSuStage">—</span></div><div class="deep-panel-stat"><span class="stat-label">道心执念</span><span class="stat-value" id="panelHeartDemon">—</span></div><div class="deep-panel-stat"><span class="stat-label">顾承渊</span><span class="stat-value" id="panelRivalState">—</span></div></div></details><details class="char-details-v2799" ><summary>状态与同行<span aria-hidden="true">＋</span></summary><div class="char-details-body-v2799"><div class="panel-statuses" id="panelStatuses"></div><div class="deep-panel-section-title">装备与同行</div><div class="panel-equipment" id="panelEquipmentFull"></div></div></details><details class="char-details-v2799" ><summary>修改道号<span aria-hidden="true">＋</span></summary><div class="char-details-body-v2799"><label for="panelDaoInput" class="cultivation-hint-v2799">道号最多8字</label><div class="dao-edit-v2799"><input id="panelDaoInput" class="panel-dao-input" maxlength="8" placeholder="输入新的道号"><button class="panel-action-btn" onclick="setDaoNameFromPanel()">保存</button></div></div></details><div class="panel-actions"><button class="panel-action-btn" onclick="showEquipmentPanel()">查看全部装备</button><button class="panel-action-btn" onclick="toggleCharacterPanel(false)">返回游戏</button></div>
+        </div>
+      </div>
+
+      <div class="world-close-panel"><button onclick="closeWorldOverlay()">✕ 返回地图</button></div>
+      <!-- 角色展示区 -->
+      <div class="panel">
+        <div class="character-section">
+          <div class="character-display">
+            <div class="character-avatar">
+              <canvas id="playerChar" width="1" height="1" data-v2762-width="100" data-v2762-height="120"></canvas>
+            </div>
+            <div class="cultivation" style="font-weight:bold;" id="statCultivation">凡人</div>
+          </div>
+          <div class="stats-panel">
+            <div class="stats">
+              <div class="stat">
+                <div class="stat-name">道号</div>
+                <div class="stat-value" id="statName">无名</div>
+              </div>
+              <div class="stat">
+                <div class="stat-name">灵石</div>
+                <div class="stat-value gold-value" id="statGold">0</div>
+              </div>
+              <div class="stat">
+                <div class="stat-name">生命</div>
+                <div class="stat-value hp-value" id="statHp">100/100</div>
+              </div>
+              <div class="stat">
+                <div class="stat-name">灵力</div>
+                <div class="stat-value mp-value" id="statMp">50/50</div>
+              </div>
+              <div class="stat">
+                <div class="stat-name">攻击</div>
+                <div class="stat-value" id="statAtk">10</div>
+              </div>
+              <div class="stat">
+                <div class="stat-name">防御</div>
+                <div class="stat-value" id="statDef">5</div>
+              </div>
+              <div class="stat" style="grid-column: span 2;">
+                <div class="stat-name">修为</div>
+                <div class="stat-value" id="statExp">0/100</div>
+              </div>
+            </div>
+            <div class="equipment-slot" id="equipmentSlot"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 故事进度 -->
+      <div class="story-progress" id="storyProgressPanel">
+        <div class="story-progress-title" id="storyChapterTitle">序章：情断青云</div>
+        <div class="story-progress-bar">
+          <div class="story-progress-fill" id="storyProgressFill" style="width: 0%"></div>
+        </div>
+      </div>
+      
+      <!-- 物品栏 -->
+      <div class="panel" id="inventoryPanel">
+        <div class="stat-name" style="margin-bottom: 8px;">🎒 储物袋</div>
+        <div id="inventory">空空如也</div>
+      </div>
+      
+      <!-- 宠物/法宝快捷栏 -->
+      <div class="panel" id="quickBarPanel">
+        <div class="stat-name" style="margin-bottom: 8px;">🐾 战斗伙伴</div>
+        <div id="quickBar">
+          <span style="color: #aaa; font-size: 11px;">暂无宠物或法宝</span>
+        </div>
+      </div>
+      
+      <!-- 故事面板 -->
+      <div class="panel" id="storyPanel">
+        <div class="story-with-protagonist">
+          <div class="story-protagonist-card" aria-label="男主立绘">
+            <img id="storyProtagonistPortrait" alt="男主立绘">
+            <span>男主</span>
+          </div>
+          <div class="story">
+            <div class="story-text" id="storyText"></div>
+          </div>
+        </div>
+        <div class="choices" id="choices"></div>
+      </div>
+      
+      <!-- 战斗面板 -->
+      <div class="panel combat-panel hidden" id="combatPanel">
+        <div id="combatMpStatusV2820" class="combat-mp-status-v2820">
+          <div class="combat-mp-heading-v2820"><strong>🔹 灵力 <span id="combatMpTextV2820">— / —</span></strong><span id="combatMpHintV2820"></span></div>
+          <div id="combatMpMeterV2820" class="combat-mp-meter-v2820" role="progressbar" aria-label="当前灵力" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="combatMpFillV2820"></div></div>
+        </div>
+        <div class="ink-fx-toolbar-v2854"><span id="inkFxNameV2854">术法招式</span><button type="button" id="inkFxQualityV2854" aria-label="切换技能特效画质">特效：自动</button></div>
+        <div class="combat-arena" id="combatArena">
+          <div class="combatant" id="playerCombatant">
+            <div class="combatant-avatar" id="playerAvatarContainer">
+              <canvas id="combatPlayerChar" aria-label="主角战斗立绘" width="1" height="1" data-v2762-width="280" data-v2762-height="350"></canvas>
+            </div>
+            <div class="combatant-name" id="playerCombatName">玩家</div>
+            <div class="combatant-hp-bar">
+              <div class="combatant-hp-fill" id="playerHpFill" style="width: 100%"></div>
+            </div>
+            <div class="combatant-hp-text" id="playerCombatHp">100/100</div>
+          </div>
+          <div class="vs-text">VS</div>
+          <div class="combatant" id="enemyCombatant">
+            <div class="combatant-avatar" id="enemyAvatarContainer">
+              <canvas id="enemyChar" aria-label="敌方战斗形象" width="1" height="1" data-v2762-width="180" data-v2762-height="225"></canvas>
+            </div>
+            <div class="combatant-name" id="enemyName" style="color: #ff6b6b;">敌人</div>
+            <div class="boss-phase hidden" id="bossPhase"></div>
+            <div class="combatant-hp-bar">
+              <div class="combatant-hp-fill" id="enemyHpFill" style="width: 100%; background: linear-gradient(90deg, #8b0000, #ff4444);"></div>
+            </div>
+            <div class="combatant-hp-text" id="enemyHpText">100/100</div>
+          </div>
+          <div class="skill-effect" id="skillEffect"></div>
+          <div class="boss-skill-warning hidden" id="bossSkillWarning"></div>
+        </div>
+        <div class="log" id="combatLog"></div>
+        <div class="choices" id="combatChoices"></div>
+      </div>
+      
+      <!-- 炼丹面板 -->
+      <div class="panel alchemy-panel hidden" id="alchemyPanel">
+        <div class="alchemy-level" id="alchemyLevel">
+          🔥 炼丹等级: <b>1</b> | 成功率加成: <b>+0%</b> | 炼制次数: <b>0</b>
+        </div>
+        <div class="stat-name" style="margin-bottom: 8px;">🌿 材料库存</div>
+        <div id="materialInventory" style="margin-bottom: 15px;">暂无材料</div>
+        <div class="stat-name" style="margin-bottom: 8px;">📜 丹方列表</div>
+        <div id="recipeList"></div>
+        <div class="choices" style="margin-top: 15px;">
+          <button class="choice-btn" onclick="closeWorldOverlay()">← 返回当前地图</button>
+        </div>
+      </div>
+      
+      <!-- 宠物面板 · V27.8 -->
+      <div class="panel pet-panel hidden pet-panel-v28" id="petPanel">
+        <div class="pet-panel-head">
+          <div>
+            <div class="pet-panel-title">🐾 灵宠</div>
+            <div class="pet-panel-subtitle" id="petCollectionSummary">灵宠 0/5 · 当前无出战灵宠</div>
+          </div>
+          <button class="pet-panel-close" onclick="closeWorldOverlay()" aria-label="返回当前地图">✕</button>
+        </div>
+        <div id="activePetSpotlight" class="pet-active-spotlight"></div>
+        <div id="petCaptureDashboard" class="pet-capture-dashboard-v29"></div>
+        <div class="pet-section-head"><span>灵宠队列</span><span id="petCapacityBadge" class="pet-capacity-badge">0 / 5</span></div>
+        <div id="petList" class="pet-list-v28">
+          <div class="pet-empty-v28">暂无灵宠，在战斗或探索中有机会捕获。</div>
+        </div>
+        <div class="pet-section-head pet-material-head"><span>🍖 培养材料</span><span class="pet-section-note">点击灵宠的“培养”选择丹药</span></div>
+        <div id="petMaterialInventory" class="pet-material-inventory-v28">暂无培养材料</div>
+        <div class="pet-panel-footer">
+          <span>出战灵宠会自动参与战斗，并提供自身天赋加成。</span>
+          <button class="pet-return-btn" onclick="closeWorldOverlay()">← 返回当前地图</button>
+        </div>
+      </div>
+      
+      <!-- 法宝面板 -->
+      <div class="panel artifact-panel hidden" id="artifactPanel">
+        <div class="stat-name" style="margin-bottom: 8px;">✨ 我的法宝</div>
+        <div id="artifactList">
+          <p style="color: #aaa; font-size: 12px;">暂无法宝，Boss掉落或探索发现可获得</p>
+        </div>
+        <div class="stat-name" style="margin: 15px 0 8px;">💎 强化材料</div>
+        <div id="artifactMaterialInventory" style="margin-bottom: 10px;">暂无强化材料</div>
+        <div class="choices" style="margin-top: 15px;">
+          <button class="choice-btn" onclick="closeWorldOverlay()">← 返回当前地图</button>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+
+<script id="xiantu-intro-v2860">
+(function(){
+ 'use strict';
+ var video=document.getElementById('introVideoV2860'),panel=document.getElementById('introPanelV2860');
+ var skip=document.getElementById('introSkipV2860'),sound=document.getElementById('introSoundV2860');
+ var done=false,resolveIntro=null,deadline=null,stall=null,promise=null;
+ function finish(){
+  if(done)return;done=true;clearTimeout(deadline);clearTimeout(stall);
+  video.pause();video.removeAttribute('src');video.load();panel.hidden=true;
+  if(resolveIntro)resolveIntro();
+ }
+ function waiting(){if(done)return;clearTimeout(stall);stall=setTimeout(finish,8000);}
+ skip.onclick=finish;
+ sound.onclick=function(){video.muted=!video.muted;sound.textContent=video.muted?'开启声音':'关闭声音';sound.setAttribute('aria-pressed',String(!video.muted));};
+ video.addEventListener('ended',finish);video.addEventListener('error',finish);
+ video.addEventListener('waiting',waiting);video.addEventListener('stalled',waiting);
+ video.addEventListener('playing',function(){clearTimeout(stall);});
+ window.XiantuIntroV2860={finish:finish,start:function(){
+  if(promise)return promise;
+  promise=new Promise(function(resolve){resolveIntro=resolve;});
+  if(done){resolveIntro();return promise;}
+  panel.hidden=false;video.muted=true;video.src='./intro-v2860.mp4';
+  deadline=setTimeout(finish,45000);waiting();
+  try{var play=video.play();if(play&&play.catch)play.catch(finish);}catch(_){finish();}
+  return promise;
+ }};
+ window.addEventListener('pagehide',finish,{once:true});
+})();
+
+</script>
+<script id="xiantu-v2762-loader">
+(function(){
+  'use strict';
+  var expectedBuild='28.68';
+  var files=["xiantu-v2762-core.js", "xiantu-v2762-03-virtual-joystick-script.js", "xiantu-v2762-04-tutorial-guide-script.js", "xiantu-v2762-05-mobile-dedicated-script.js", "xiantu-v2762-06-local-test-bootstrap.js", "xiantu-v2762-07-v12-stable-map-ui-script.js", "xiantu-v2762-08-feature-08.js", "xiantu-v2762-09-control-mode-switch-script.js", "xiantu-v2762-10-upgrade-material-hint-script.js", "xiantu-v2762-11-feature-11.js", "xiantu-v2762-12-v277equipmentmanager.js", "xiantu-v2762-13-feature-13.js", "xiantu-v2762-14-v279-pet-capture-system.js", "xiantu-v2762-15-petgrowthsystemv210.js", "xiantu-v2762-16-petguidemapv211script.js", "xiantu-v2762-17-combatskillloadoutv212.js", "xiantu-v2762-18-skillswapmenuv213.js", "xiantu-v2762-19-v27-15-enemy-portrait-script.js", "xiantu-v2762-20-v27-16-enemy-batch1-script.js", "xiantu-v2762-21-v27-17-enemy-batch2-script.js", "xiantu-v2762-22-v2756-cinematic-combat-script.js", "xiantu-v2768-systems.js", "xiantu-v2770-avatar.js", "xiantu-v2773-economy.js", "xiantu-v2838-journey.js", "xiantu-v2839-war.js", "xiantu-v2840-war-map.js", "xiantu-v2841-dharma-war.js", "xiantu-v2842-jev-forge.js", "xiantu-v2850-jev-friends.js", "xiantu-v2844-monster-jev.js", "xiantu-v2846-world-jev.js", "xiantu-v2849-npc-jev.js", "xiantu-v2852-relationship-stories.js", "xiantu-v2852-relationships.js", "xiantu-v2853-monster-art.js", "xiantu-v2855-skill-fx.js", "xiantu-v2856-battle-clarity.js", "xiantu-v2868-sect-life.js"];
+  var button=document.getElementById('xiantuSafeBootButton');
+  var progress=document.getElementById('xiantuSafeBootProgress');
+  var errorBox=document.getElementById('xiantuSafeBootError');
+  var started=false;
+  var fatalError=null;
+  var currentStep='等待点击';
+  function setProgress(text){currentStep=text;progress.textContent=text.indexOf('等待开场')>=0?'加载完成':text.indexOf('1/4')===0?'正在加载 · 1/4':text.indexOf('2/4')===0?'正在加载 · 2/4':text.indexOf('3/4')===0?'正在加载 · 3/4':text.indexOf('4/4')===0?'正在加载 · 4/4':text;}
+  function pause(ms){return new Promise(function(resolve){setTimeout(resolve,ms)});}
+  function nextPaint(){return new Promise(function(resolve){requestAnimationFrame(function(){setTimeout(resolve,0)})});}
+  function loadStyle(){return new Promise(function(resolve,reject){var link=document.createElement('link');var timer=setTimeout(function(){reject(new Error('样式文件加载超时'))},15000);link.rel='stylesheet';link.href='./xiantu-v2762.css?v=2868-sect-stories-20260930';link.onload=function(){clearTimeout(timer);resolve()};link.onerror=function(){clearTimeout(timer);reject(new Error('样式文件加载失败'))};document.head.appendChild(link);});}
+  function loadScript(name){return new Promise(function(resolve,reject){var s=document.createElement('script');var timer=setTimeout(function(){reject(new Error(name+' 加载超时'))},15000);s.src='./'+name+'?v=2868-sect-stories-20260930';s.async=false;s.onload=function(){clearTimeout(timer);if(!window.__xiantuBuildFilesV2814||window.__xiantuBuildFilesV2814[name]!==expectedBuild){reject(new Error('文件版本不一致：'+name+'。请上传完整 V28.68 文件夹覆盖后刷新，勿清除网站数据。'));return;}resolve()};s.onerror=function(){clearTimeout(timer);reject(new Error(name+' 加载失败'))};document.body.appendChild(s);});}
+  function addInstallLinks(){
+    var manifest=document.createElement('link');manifest.rel='manifest';manifest.href='./manifest-v2762.webmanifest?v=2868-sect-stories-20260930';document.head.appendChild(manifest);
+    var icon=document.createElement('link');icon.rel='apple-touch-icon';icon.href='./v2762-apple-touch-icon.png?v=2868-sect-stories-20260930';document.head.appendChild(icon);
+  }
+  function restoreCanvasSizes(){
+    var list=document.querySelectorAll('canvas[data-v2762-width]');
+    for(var i=0;i<list.length;i++){
+      var canvas=list[i];
+      if(canvas.id==='worldCanvas'||canvas.id==='world3dCanvas')continue;
+      canvas.width=Number(canvas.getAttribute('data-v2762-width'))||1;
+      canvas.height=Number(canvas.getAttribute('data-v2762-height'))||1;
+    }
+  }
+  function showFailure(reason){
+    window.XiantuIntroV2860.finish();
+    errorBox.style.display='block';
+    errorBox.textContent='启动停在：'+currentStep+'\n'+(reason&&reason.message?reason.message:String(reason||'未知错误'))+'\n请截图这一段发给我。';
+    button.disabled=false;button.textContent='刷新后重试';started=true;
+    button.onclick=function(){location.reload()};
+  }
+  window.addEventListener('error',function(event){if(event.target&&event.target.id==='introVideoV2860')return;if(!document.body.classList.contains('xiantu-v2762-booting'))return;fatalError=new Error(event.message||'脚本运行异常');},true);
+  window.addEventListener('unhandledrejection',function(event){if(!document.body.classList.contains('xiantu-v2762-booting'))return;fatalError=new Error(event.reason&&event.reason.message?event.reason.message:'异步模块运行异常');},true);
+  async function boot(){
+    if(started)return;started=true;button.disabled=true;button.textContent='正在准备…';errorBox.style.display='none';
+    var introDone=window.XiantuIntroV2860.start();
+    try{
+      restoreCanvasSizes();
+      currentStep='1/4 · 加载界面样式';setProgress(currentStep);await loadStyle();if(getComputedStyle(document.documentElement).getPropertyValue('--xiantu-build').trim()!=='2868')throw new Error('样式版本不一致，请完整覆盖 V28.68 文件夹。');await nextPaint();
+      currentStep='2/4 · 加载修仙世界';setProgress(currentStep);await loadScript(files[0]);if(fatalError)throw fatalError;await pause(100);await nextPaint();
+      for(var i=1;i<files.length;i++){
+        currentStep='3/4 · 加载玩法模块 '+i+'/'+(files.length-1);setProgress(currentStep);await loadScript(files[i]);if(fatalError)throw fatalError;
+        if(i%3===0){await pause(45);await nextPaint();}
+      }
+      currentStep='4/4 · 恢复游戏入口';setProgress(currentStep);await pause(80);if(fatalError)throw fatalError;
+      setProgress('世界已就绪 · 等待开场结束，或点击跳过');await introDone;if(fatalError)throw fatalError;
+      if(typeof window.onload==='function')window.onload.call(window,new Event('load'));
+      if(fatalError)throw fatalError;
+      setTimeout(function(){try{if(typeof window.installTutorialInteractionHooks==='function')window.installTutorialInteractionHooks();if(typeof window.installGuideEntry==='function')window.installGuideEntry();if(typeof window.installTutorialTooltips==='function')window.installTutorialTooltips();}catch(_){}},650);
+      addInstallLinks();
+      bootJevFriendsV2850();
+      var buildBadge=document.createElement('button');buildBadge.id='xiantuBuildBadgeV2814';buildBadge.textContent='V28.68 ✓';buildBadge.title='查看实际加载版本';
+      buildBadge.onclick=function(){alert('当前实际版本：V28.68\n界面样式与 '+files.length+' 个脚本版本均已核对一致。\n本次更新：弟子成长履历、救援与探索后续、宗门待办直达与地图标记。沿用 V28.50 云函数。\n这表示当前页面文件一致，不代表已查询服务器是否有更新。');};
+      (document.querySelector('.world-hud-actions')||document.body).appendChild(buildBadge);
+      document.body.classList.remove('xiantu-v2762-booting');
+      document.getElementById('xiantuSafeBoot').remove();
+      document.documentElement.classList.add('xiantu-v2762-ready');
+    }catch(error){showFailure(error);}
+  }
+  button.addEventListener('click',boot,{passive:true});
+})();
+</script>
+</body>
+</html>

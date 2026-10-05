@@ -1,0 +1,2 @@
+去除主地图、小地图、山河图以及宗门内部的连接路线显示；寻路几何保留。村落、商铺、仙市、洞府、丹房、亭阁使用青绿水墨建筑图集；大型宗门沿用绘卷宫殿。灵泉、人物和自然地标保留其功能造型。素材加载失败时回退旧造型。继续使用 xiantu-v2831-scroll 目录，完整覆盖上传；入口参数 v=2835-region-buildings-20260917。未代为部署，未进行手机真机验证。
+素材：scroll-buildings-v2832.webp；内置 image_gen 生成，透明 3×2 图集，提示词：Chinese xianxia village, herbal shop, market, cave dwelling, alchemy courtyard, pagoda; blue-green shanshui scroll painting, transparent background, no roads or text.

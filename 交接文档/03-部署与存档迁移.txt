@@ -1,0 +1,34 @@
+部署与存档迁移
+
+A. 只换 ChatGPT 账号
+下载本包后上传到新聊天即可接手源码。现有腾讯云部署不变。新账号不会自动继承旧会话或云账号权限。
+
+B. 同一个腾讯云环境更新前端
+进入 CloudBase 控制台：https://tcb.cloud.tencent.com/dev
+静态网站托管上传 xiantu-v2831-scroll 整个文件夹，保持原有目录层级；不要把 tencent-jev-function 放入公开静态目录。
+若沿用当前路径，游戏入口为：
+https://xiantu-game-d9gy5heze4b039bf1-1255918878.tcloudbaseapp.com/xiantu-v2831-scroll/
+这是现有项目记录的地址，本次没有验证其在线状态。
+上传后核对入口显示 V28.68 和新脚本存在。不要只覆盖 HTML 而漏掉样式、脚本或图片。
+若改为部署目录内容到根目录，入口路径会改变，相关相对资源和访问地址需检查。
+
+C. 更换腾讯云账号或环境
+先在新环境配置静态托管，再单独创建 Node.js 事件云函数。函数名沿用 xiantu-jev-forge，执行方法 index.main。
+上传 xiantu-jev-cloud-function-v2850.zip 到云函数“函数代码/上传代码”，不是层管理，也不是静态托管。ZIP 根目录需直接包含 index.js 和 package.json。
+现有代码要求 Node >=18；新环境选择平台仍支持且满足此要求的运行时，部署后测试兼容性。
+在云函数环境变量配置 JEV_API_KEY、JEV_ACCESS_TOKEN、JEV_ALLOWED_ORIGINS。public-session.js 还支持 JEV_PUBLIC_PLAY，值的格式与行为以包内接入说明和代码为准，不要盲目更改。
+新环境不会自动继承旧环境的变量；凭据从本人服务控制台取得，不写入前端。
+配置 HTTP 路由 /api/jev-forge 指向该函数。允许来源应匹配新游戏的实际 origin（协议+域名，不含目录）。
+搜索前端原有接口地址并更新到新环境，然后测试朋友试玩会话、跨域和鉴权。
+旧接口地址：
+https://xiantu-game-d9gy5heze4b039bf1-1255918878.ap-shanghai.app.tcloudbase.com/api/jev-forge
+不能假定新账号可使用旧环境管理权限；静态网页可打开也不等于 Jev 已成功接通。
+
+D. 个人存档
+在原游戏“存档管理”导出 JSON，另存到本机，再在新游戏导入。
+存档不在源码 ZIP 内。仅换 ChatGPT 账号且沿用同一浏览器与游戏域名时，原浏览器存档一般仍保留。
+换域名、浏览器或设备时必须主动导入。不要先清空网站数据；先导出并保留原 JSON。
+
+E. 交付清单
+完整前端文件夹；独立后端源码与部署 ZIP；原版本说明；交接说明与新会话提示词。
+本包不包含腾讯云环境变量导出、账户登录状态或个人游戏存档。

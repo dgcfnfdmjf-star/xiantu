@@ -1,0 +1,3 @@
+通过：31个游戏脚本语法和版本、CSS标记、入口缓存版本；六类云函数严格选项校验、去除任意提示词、usage回报、缓存零新增用量；实际弟子派遣/NPC回应/战术选择/宗门经营/秘境结算/已装备技能选招；取消与过期结果拒绝；本地回退、第101次请求正常通过新玩法/洗练/怪兽，云函数第121次正常通过，单场怪兽第4次和主角第9次正常通过；设备记忆与检测页回归。
+均为模拟供应商接口，无付费真实Jev调用；未代为部署腾讯云。手机浏览器渲染因运行环境缺少浏览器程序未执行；未做iPhone/Safari真机验证。
+测试用法：从解压根目录执行 XIANTU_TEST_ROOT=./xiantu-v2831-scroll node xiantu-v2831-scroll/QA/v2847-test-world.cjs，其余 test-jev / test-monster / test-device / test-connection 同理。

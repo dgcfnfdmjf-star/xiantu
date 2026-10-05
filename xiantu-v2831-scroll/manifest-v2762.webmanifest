@@ -1,0 +1,28 @@
+{
+  "name": "仙途 · V28.68 青绿绘妖",
+  "short_name": "仙途",
+  "description": "仙侠荒野探索、宗门经营、弟子培养与小说式动画演武游戏",
+  "lang": "zh-CN",
+  "start_url": "./game-v2762.html?v=2868-sect-stories-20260930",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": [
+    "fullscreen",
+    "standalone"
+  ],
+  "orientation": "any",
+  "background_color": "#08100b",
+  "theme_color": "#08100b",
+  "icons": [
+    {
+      "src": "./v2762-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./v2762-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
