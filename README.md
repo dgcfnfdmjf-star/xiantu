@@ -1,3 +1,16 @@
+## 交给 AI 评审：请分别上传这些文件
+
+部署 ZIP 含图片和视频，不能把二进制资源当文本读取。下列 TXT 是独立 UTF-8 文本；PNG 请用图片上传。
+
+- [xiantu-v2868.11-ai-review.txt](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.11-ai-review.txt)
+- [xiantu-v2868.11-battle-landscape.png](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.11-battle-landscape.png)
+- [xiantu-v2868.11-battle-mobile.png](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.11-battle-mobile.png)
+- [xiantu-v2868.11-combat-code.txt](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.11-combat-code.txt)
+
+TXT 用于系统和代码评审；截图用于布局评审，不能替代动作录屏。
+
+---
+
 ## 最新完整游戏包：V28.68.11
 
 [下载 xiantu-v2868.11-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.11-game-folder.zip)

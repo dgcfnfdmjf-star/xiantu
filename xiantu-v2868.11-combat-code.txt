@@ -1,0 +1,742 @@
+仙途 V28.68.11：战斗核心代码摘录
+
+以下为当前版本 JavaScript 源文件摘录，仅供代码审阅，不是可独立运行的工程。
+核心文件的函数还可能被后续脚本包装。表现层脚本中体积较大的裁切坐标元数据已明确省略，其他展示逻辑保留。
+不能由静态代码推断实际帧率、自然玩家胜率或已在真实手机运行。
+
+
+===== xiantu-v2762-core.js，第 2721 行起：calculateFinalDamage =====
+
+function calculateFinalDamage({attacker={},defender={},skill=null,isCrit=false,isHeal=false,isPet=false,isBoss=false,critMultiplier=null}) {
+      if(isHeal){
+        const healAmount=Math.floor(getMaxHp()*(skill?.heal||.3));
+        return {damage:healAmount,isCrit:false,isUnderdog:false,pressureInfo:null,pressureStatus:null,isHeal:true};
+      }
+      const attackerLevel=Math.max(0,Math.min(CULTIVATION_REALMS.length-1,Number(attacker.level)||0));
+      const defenderLevel=Math.max(0,Math.min(CULTIVATION_REALMS.length-1,Number(defender.level)||0));
+      const attackerPhase=Math.max(0,Math.min(3,Number(attacker.phase)||0));
+      const defenderPhase=Math.max(0,Math.min(3,Number(defender.phase)||0));
+      const pressure=calculateRealmPressure(attackerLevel,attackerPhase,defenderLevel,defenderPhase);
+      const attackerBase=getRealmBasePower(attackerLevel,attackerPhase);
+      const defenderBase=getRealmBasePower(defenderLevel,defenderPhase);
+      const attackerStatusMult=(Number(attacker.pressureTurns)||0)>0?.7:1;
+      const defenderStatusMult=(Number(defender.pressureTurns)||0)>0?.7:1;
+      const baseAtk=Math.max(1,Number(attacker.atk)||1)*attackerStatusMult;
+      const baseDef=Math.max(0,Number(defender.def)||0)*defenderStatusMult;
+      const skillMultiplier=skill?Math.max(.1,Number(skill.damage)||1):1;
+      let rawDamage=(baseAtk*skillMultiplier)+(attackerBase.power*.30);
+      let effectiveDef=baseDef+(defenderBase.defense*.20)*defenderStatusMult;
+      // 技能自身破甲与境界穿透叠加计算；紫霄落雷、无音神雷会直接削减目标有效防御。
+      if(skill?.armorPierce) effectiveDef*=Math.max(0,1-Math.min(.85,Math.max(0,Number(skill.armorPierce)||0)));
+      if(pressure.penetration>0)effectiveDef*=1-pressure.penetration;
+      else if(pressure.penetration<0)effectiveDef*=1+Math.abs(pressure.penetration)*.5;
+      let damage=Math.max(1,rawDamage-Math.max(0,effectiveDef));
+      damage*=pressure.multiplier;
+      damage*=.9+Math.random()*.2;
+      let isCritFinal=!!isCrit;
+      if(isCritFinal)damage*=(Number(critMultiplier)||1.5)+(pressure.realmDiff>0?.2:0);
+      let isUnderdog=false;
+      if(pressure.isUnderdog&&Math.random()<REALM_PRESSURE_CONFIG.underdogCritChance){
+        damage*=2;isUnderdog=true;isCritFinal=true;
+      }
+      if(isBoss){
+        const bossReduce=Math.min(.30,.10+defenderLevel/100);
+        damage*=1-bossReduce;
+      }
+      if(isPet)damage*=.6;
+      let pressureStatus=null;
+      const chance=calculatePressureStatusChance(attackerLevel,defenderLevel);
+      if(!isBoss&&chance>0&&Math.random()<chance){
+        pressureStatus={type:'pressure',turns:1+Math.floor(Math.random()*2),effect:.7,name:'威压',stun:pressure.realmDiff>=2&&Math.random()<.35};
+      }
+      return {damage:Math.max(1,Math.floor(damage)),isCrit:isCritFinal,isUnderdog,pressureInfo:pressure,pressureStatus,isHeal:false,pressureLevel:pressure.pressureLevel,realmDiff:pressure.realmDiff};
+    }
+
+
+===== xiantu-v2762-core.js，第 6802 行起：combat =====
+
+function combat(action, skillIndex) {
+      if (!isPlayerTurn || gameState!=='combat' || !currentEnemy || currentEnemy.hp<=0) return;
+      // 在扣回合、持续伤害和法宝效果之前检查，拒绝过期按钮及未携带技能。
+      if(action==='skill'){
+        const usable=typeof getCombatSkillAvailabilityV2769==='function'?getCombatSkillAvailabilityV2769(skillIndex):{ok:false,reason:'技能配置尚未就绪'};
+        if(!usable.ok){showFloatingText?.(usable.reason,'#ffd76a');updateCombatChoices?.();return;}
+      }
+      if(playerPressureStun && Math.random()<Math.min(.6,gearModsV2790().controlResist||0)){playerPressureStun=false;addCombatLog('禅冠稳神，抵抗本次威压控制。','heal');}
+      if(playerPressureStun && action !== 'flee'){
+        playerPressureStun=false;
+        playerPressureTurns=Math.max(0,playerPressureTurns-1);
+        isPlayerTurn=false;
+        addCombatLog('👑 境界威压令你气机凝滞，本回合无法出手！','boss');
+        battleLaterV2838(()=>enemyTurn(),500);
+        return;
+      }
+      isPlayerTurn = false;
+      
+      // 处理灼烧伤害
+      if (currentEnemy && currentEnemy.burnStacks > 0 && currentEnemy.burnTurns > 0) {
+        currentEnemy.hp = Math.max(0, currentEnemy.hp - currentEnemy.burnStacks);
+        addCombatLog(`灼烧造成 ${currentEnemy.burnStacks} 点伤害！`, 'damage');
+        currentEnemy.burnTurns--;
+        if (currentEnemy.burnTurns <= 0) currentEnemy.burnStacks = 0;
+        updateCombatUI();
+      }
+      // 万雷噬狱持续雷域：在玩家行动前结算一次，不会把生命扣成负数。
+      if (currentEnemy && currentEnemy.thunderDomainDamage > 0 && currentEnemy.thunderDomainTurns > 0) {
+        const thunderTick=Math.max(1,Math.floor(currentEnemy.thunderDomainDamage));
+        currentEnemy.hp=Math.max(0,currentEnemy.hp-thunderTick);
+        currentEnemy.thunderDomainTurns--;
+        addCombatLog(`⚡ 万雷噬狱雷域轰击，造成 ${thunderTick} 点持续雷伤！`, 'damage');
+        if(currentEnemy.thunderDomainTurns<=0){currentEnemy.thunderDomainDamage=0;addCombatLog('⚡ 雷域渐渐消散。','pet');}
+        updateCombatUI();
+      }
+      
+      // 战斗开始时应用法宝效果
+      applyArtifactEffects('start');
+      if(currentEnemy.hp<=0){checkBattleEnd();return;}
+      
+      if (action === 'attack') {
+        playAttackAnimation('player');
+        playSound('attack');
+        
+        battleLaterV2838(() => {
+          const attackResult=calculateFinalDamage({skill:prepareGearSkillV2790(null),
+            attacker:{level:player.level,phase:player.phase,atk:getAtk(),def:getDef(),pressureTurns:playerPressureTurns},
+            defender:{level:currentEnemy._realmLevel||0,phase:currentEnemy._realmPhase||0,def:currentEnemy.def,hp:currentEnemy.hp,name:currentEnemy.name,pressureTurns:currentEnemy._pressureTurns||0},
+            skill:null,isCrit:Math.random()<getCritRateWithSet(),isBoss:isBossFight||isTribulation,critMultiplier:getCritDamage()
+          });
+          let damage=attackResult.damage;
+          const isCrit=attackResult.isCrit;
+          damage = Math.floor(damage * (1 + getDamageBonusWithSet()));
+          const pressureText=getPressureDisplay(attackResult.pressureInfo);
+          if(pressureText)addCombatLog(pressureText,'boss');
+          if(attackResult.isUnderdog)addCombatLog('⚡ 顿悟爆发！越级一击威力暴涨！','boss');
+          applyPressureToEnemy(attackResult);
+          if(playerPressureTurns>0)playerPressureTurns--;
+          
+          // 飞剑法宝加成
+          if (player.activeArtifact) {
+            const artType = ARTIFACT_TYPES[player.activeArtifact.type];
+            if (artType.effect.type === 'damage') {
+              damage = Math.floor(damage * (1 + artType.effect.value + player.activeArtifact.level * 0.02));
+            }
+          }
+          
+          // 雷珠连锁伤害
+          if (player.activeArtifact) {
+            const artType = ARTIFACT_TYPES[player.activeArtifact.type];
+            if (artType.effect.type === 'chain' && Math.random() < artType.effect.value + player.activeArtifact.level * 0.02) {
+              damage = Math.floor(damage * 1.5);
+              addCombatLog(`雷珠发动连锁！`, 'damage');
+            }
+          }
+          
+          damage=gearHitV2790(damage,null);
+          if(typeof monsterGuardDamageV2844==='function')damage=monsterGuardDamageV2844(damage);
+          currentEnemy.hp = Math.max(0, currentEnemy.hp - damage);
+          showDamageNumber(damage, 'enemy', false, isCrit, false, false, '普通攻击');
+          playHitEffect('enemy');
+          playSound('hit');
+          
+          const critText = isCrit ? '【暴击】' : '';
+          addCombatLog(`${critText}你对${currentEnemy.name}造成 ${damage} 点伤害！`, 'damage');
+          
+          // 宠物攻击
+          if (player.activePet && currentEnemy.hp > 0) {
+            battleLaterV2838(() => petAttack(), 200);
+          }
+          
+          checkBattleEnd();
+        }, 150);
+        return;
+        
+      } else if (action === 'skill') {
+        const skill = player.skills[skillIndex];
+        player.mp -= skill.mpCost;
+        updateCombatMpV2820();
+        
+        // 雷神附体：不直接造成伤害，开启3回合雷铠，强化后续雷系伤害并反伤。
+        if (skill.effect === 'thunder_armor') {
+          player._thunderArmorTurns=Math.max(1,Number(skill.buffTurns)||3);
+          player._thunderDamageBonus=Math.max(0,Number(skill.thunderBonus)||.35);
+          player._thunderReflectRatio=Math.max(0,Number(skill.reflectRatio)||.25);
+          playSkillEffect(skill.name, skill.element);
+          playSound('skill');
+          addCombatLog(`⚡ 施展【雷神附体】：${player._thunderArmorTurns}回合内雷系伤害 +${Math.round(player._thunderDamageBonus*100)}%，受击反伤 ${Math.round(player._thunderReflectRatio*100)}%！`, 'heal');
+          updateCombatUI();
+          battleLaterV2838(() => enemyTurn(), 500);
+          return;
+        }
+
+        // 治愈技能
+        if (skill.element === 'heal') {
+          healSkillV2785(skill);
+          playSound('heal');
+          playSkillEffect(skill.name, skill.element);
+          updateCombatUI();
+          
+          // 治愈后敌人回合
+          battleLaterV2838(() => enemyTurn(), 500);
+          return;
+        }
+        
+        playAttackAnimation('player');
+        if (!skill.silent) playSound('skill');
+        
+        battleLaterV2838(() => {
+          playSkillEffect(skill.name, skill.element);
+        }, 150);
+        
+        battleLaterV2838(() => {
+          const skillResult=calculateFinalDamage({
+            attacker:{level:player.level,phase:player.phase,atk:getAtk(),def:getDef(),pressureTurns:playerPressureTurns},
+            defender:{level:currentEnemy._realmLevel||0,phase:currentEnemy._realmPhase||0,def:currentEnemy.def,hp:currentEnemy.hp,name:currentEnemy.name,pressureTurns:currentEnemy._pressureTurns||0},
+            skill:prepareGearSkillV2790(skill),isCrit:Math.random()<Math.min(.6,getCritRateWithSet()+(['thunder','ice','fire'].includes(skill.element)?gearModsV2790().spellCrit||0:0)),isBoss:isBossFight||isTribulation,critMultiplier:getCritDamage()
+          });
+          let damage=skillResult.damage;
+          const isCrit=skillResult.isCrit;
+          damage = Math.floor(damage * (1 + getDamageBonusWithSet()));
+          if (skill.element === 'sword' && hasStatusEffect('jianqi')) damage = Math.floor(damage * 1.15);
+          if (skill.element === 'thunder' && (player._thunderArmorTurns||0)>0) {
+            damage=Math.floor(damage*(1+(player._thunderDamageBonus||.35)));
+            addCombatLog('⚡ 雷神附体强化了本次雷系伤害！','pet');
+          }
+          const pressureText=getPressureDisplay(skillResult.pressureInfo);
+          if(pressureText)addCombatLog(pressureText,'boss');
+          if(skillResult.isUnderdog)addCombatLog('⚡ 顿悟爆发！越级施法突破极限！','boss');
+          applyPressureToEnemy(skillResult);
+          if(playerPressureTurns>0)playerPressureTurns--;
+          
+          // 飞剑法宝加成
+          if (player.activeArtifact) {
+            const artType = ARTIFACT_TYPES[player.activeArtifact.type];
+            if (artType.effect.type === 'damage') {
+              damage = Math.floor(damage * (1 + artType.effect.value + player.activeArtifact.level * 0.02));
+            }
+          }
+          
+          if(skill.executeBonus && currentEnemy.hp<=currentEnemy.maxHp*.3){
+            damage=Math.floor(damage*(1+skill.executeBonus));
+            addCombatLog('追魂剑意：残血追击，伤害增加50%！','damage');
+          }
+          damage=gearHitV2790(damage,skill);
+          if(typeof monsterGuardDamageV2844==='function')damage=monsterGuardDamageV2844(damage);
+          const actualLossV2785=Math.min(currentEnemy.hp,damage);
+          currentEnemy.hp = Math.max(0, currentEnemy.hp - damage);
+          swordAfterHitV2785(skill,actualLossV2785);
+          showDamageNumber(damage, 'enemy', false, isCrit, false, false, skill.name,skill.mpCost);
+          playHitEffect('enemy');
+          if (!skill.silent) playSound('hit');
+          
+          const critText = isCrit ? '【暴击】' : '';
+          addCombatLog(`${critText}施展【${skill.name}】，对${currentEnemy.name}造成 ${damage} 点伤害！`, 'damage');
+          
+          // 冰系技能冻结效果
+          if (skill.element === 'ice' && skill.effect === 'freeze') {
+            const freezeChance = skill.name === '绝对零度' ? 1 : (skill.name === '冰封千里' ? 0.8 : 0.3);
+            if (Math.random() < freezeChance) {
+              skipEnemyTurn = true;
+              addCombatLog(`敌人被冻结！`, 'pet');
+            }
+          }
+          
+          // 火系技能灼烧效果
+          if (skill.element === 'fire' && skill.effect === 'burn') {
+            const burnDamage = Math.floor(damage * 0.2);
+            const burnTurns = skill.name === '焚天烈焰' ? 3 : 2;
+            currentEnemy.burnStacks = (currentEnemy.burnStacks || 0) + burnDamage;
+            currentEnemy.burnTurns = burnTurns;
+            addCombatLog(`敌人被灼烧，每回合受到 ${burnDamage} 点伤害！`, 'damage');
+          }
+
+          // 雷系进阶控制与持续效果。
+          if (skill.element === 'thunder') {
+            if (skill.effect === 'paralyze' && Math.random() < (skill.statusChance || .42)) {
+              skipEnemyTurn = true;
+              currentEnemy._skipReason='麻痹';
+              addCombatLog(`⚡ ${currentEnemy.name}体表电弧乱窜，陷入麻痹，本回合无法行动！`, 'pet');
+            } else if (skill.effect === 'stun' && Math.random() < (skill.statusChance || .68)) {
+              skipEnemyTurn = true;
+              currentEnemy._skipReason='眩晕';
+              addCombatLog(`⚡ 九天神雷震荡神魂，${currentEnemy.name}陷入眩晕！`, 'boss');
+            }
+            if (skill.effect === 'thunder_domain') {
+              currentEnemy.thunderDomainDamage=Math.max(1,Math.floor(damage*(skill.domainRatio||.16)));
+              currentEnemy.thunderDomainTurns=Math.max(1,Number(skill.domainTurns)||3);
+              addCombatLog(`⚡ 雷域成形：未来 ${currentEnemy.thunderDomainTurns} 回合持续轰击，每回合约 ${currentEnemy.thunderDomainDamage} 点雷伤。`, 'damage');
+            }
+            if (skill.effect === 'armor_pierce') {
+              addCombatLog(`⚡ 神雷贯体：本次攻击穿透 ${Math.round((skill.armorPierce||0)*100)}% 防御！`, 'pet');
+            }
+            if (skill.effect === 'chain') {
+              addCombatLog(`⚡ 闪电链完成首击；当前战斗为单目标，连锁电弧将保留至多目标战斗使用。`, 'pet');
+            }
+          }
+          
+          // 宠物攻击
+          if (player.activePet && currentEnemy.hp > 0) {
+            battleLaterV2838(() => petAttack(), 200);
+          }
+          
+          checkBattleEnd();
+        }, 300);
+        return;
+        
+      } else if (action === 'heal') {
+        // V19：战斗中禁用丹药。保留分支仅用于兼容旧按钮/旧页面缓存。
+        isPlayerTurn = true;
+        addCombatLog('战斗中无法使用丹药，请使用治疗技能。');
+        updateCombatChoices();
+        return;
+        const healItems = player.inventory.filter(i => ITEMS[i] && ITEMS[i].type === 'heal');
+        if (healItems.length === 0) {
+          isPlayerTurn = true;
+          addCombatLog('没有丹药了！');
+          return;
+        }
+        const item = healItems[0];
+        const idx = player.inventory.indexOf(item);
+        player.inventory.splice(idx, 1);
+        player.hp = Math.min(getMaxHp(), player.hp + ITEMS[item].value);
+        
+        showDamageNumber(ITEMS[item].value, 'player', true, false, false, false, item);
+        playSound('heal');
+        addCombatLog(`使用${item}，恢复 ${ITEMS[item].value} 点生命！`, 'heal');
+        
+        updateCombatUI();
+        battleLaterV2838(() => enemyTurn(), 500);
+        return;
+        
+      } else if (action === 'flee') {
+        if(currentEnemy?._warV2839){isPlayerTurn=true;addCombatLog('正魔交锋需分出胜负；退场后可在军务中撤军。');updateCombatChoices();return;}
+        if (currentEnemy?.tournamentFight) {
+          isPlayerTurn=true;updateCombatChoices();
+          addCombatLog('📯 宗门大比擂台不可逃战！');
+          return;
+        }
+        if (Math.random() > 0.4) {
+          addCombatLog('🏃 逃跑成功，已脱离敌人！', 'heal');
+          beginCombatFinishV2764('flee', {disabled:false, watchdogDelay:1800});
+          try { releaseCurrentMapMonster(false); }
+          finally { readyCombatFinishV2764({kind:'flee', delay:220}); }
+          return;
+        } else {
+          addCombatLog('逃跑失败！');
+          battleLaterV2838(() => enemyTurn(), 500);
+          return;
+        }
+      }
+    }
+    
+    // ================== 地图怪物战利品 ==================
+    // 普通地图怪可额外掉落装备；品质随怪物境界、地域危险度与精英状态提升。
+
+
+===== xiantu-v2762-core.js，第 7368 行起：enemyTurn =====
+
+function enemyTurn() {
+      if (!currentEnemy || gameState!=='combat' || isPlayerTurn || COMBAT_FINISH_V2764.settling) return;
+      if(typeof runCompanionTurnV2849==='function')return runCompanionTurnV2849(()=>runMonsterTurnV2844(resolveEnemyTurnV2844));
+      if(typeof runMonsterTurnV2844==='function')return runMonsterTurnV2844(resolveEnemyTurnV2844);
+      return resolveEnemyTurnV2844();
+    }
+
+
+===== xiantu-v2762-core.js，第 7152 行起：checkBattleEnd =====
+
+function checkBattleEnd() {
+      if (!currentEnemy || gameState!=='combat' || COMBAT_FINISH_V2764.settling) return;
+      updateCombatUI();
+      
+      if (currentEnemy.hp <= 0) {
+        if(currentEnemy._warV2839){finishWarDuelV2839(true);return;}
+        if (COMBAT_FINISH_V2764.settling) return;
+        const tournamentFightV2764 = !!currentEnemy?.tournamentFight;
+        const tournamentEnemyV2779=currentEnemy;
+        let shouldBreakthroughV2764 = false;
+        const rewardOwnerV2838=player,rewardBeforeV2838={gold:player.gold,exp:player.exp};
+        beginCombatFinishV2764('victory', {disabled:true, watchdogDelay:3200});
+        (() => {
+          try {
+          addCombatLog(`🎉 击败了 ${currentEnemy.name}！`, 'gold');
+          miniBattleResultV2778(currentEnemy,true);
+          onBattleVictory?.(currentEnemy);
+          if(typeof finishFirstJourneyBattleV28687==='function')finishFirstJourneyBattleV28687(currentEnemy);
+          
+          let goldGain = Math.floor(battleGoldV28683(currentEnemy) * getGoldBonus());
+          const earlyGoldBonus=getEarlyBattleBonusV2773(currentEnemy);goldGain+=earlyGoldBonus;
+          let expGain = Math.floor(battleExpV28683(currentEnemy) * getExpBonus());
+          
+          player.gold += goldGain;
+          player.exp += expGain;
+          addCombatLog(`获得 ${goldGain} 灵石，${expGain} 修为${earlyGoldBonus?`（含历练补贴 ${earlyGoldBonus} 灵石）`:''}`, 'gold');
+          // 越级击杀：仅普通非大比敌人追加奖励
+          const enemyRealmValue=(currentEnemy._realmLevel||0)+((currentEnemy._realmPhase||0)/4);
+          const playerRealmValue=(player.level||0)+((player.phase||0)/4);
+          if(!isBossFight&&!isTribulation&&!currentEnemy?.tournamentFight&&enemyRealmValue>playerRealmValue){
+            const bonusExp=Math.max(1,Math.floor(expGain*REALM_PRESSURE_CONFIG.underdogExpBonus));
+            player.exp+=bonusExp;
+            addCombatLog(`⚡ 越级挑战成功！额外修为 +${bonusExp}！`,'heal');
+            if(Math.random()<.15){
+              const rare=['天元丹','星辰砂','龙血果'];
+              const drop=rare[Math.floor(Math.random()*rare.length)];
+              if(drop==='天元丹')player.inventory.push(drop);else player.materials[drop]=(player.materials[drop]||0)+1;
+              addCombatLog(`🎁 越级奖励：获得 ${drop}！`,'gold');
+            }
+          }
+          // Boss战胜利处理
+          if (isBossFight) {
+            addCombatLog(`🏆 击败Boss【${currentEnemy.name}】！`, 'boss');
+            if(currentEnemy._nightRivalV2810&&player.level>=16)yeStateV2816().saintVictory=true;
+            if(!currentEnemy._nightRivalV2810)player.bossesDefeated.push(currentEnemy.name);
+            else addCombatLog('夜无疆退入界隙：“今日是你胜了。你的路还没到尽头……我的圣道，却已断了。”','boss');
+            playSound('victory');
+            
+            // Boss掉落特殊物品
+            if (currentEnemy.name === '宗门试炼守将') {
+              player.inventory.push('精钢剑');
+              player.inventory.push('大还丹');
+              addCombatLog(`获得 精钢剑、大还丹！`, 'gold');
+              playSound('item');
+            } else if (currentEnemy.name === '幽冥鬼王') {
+              player.inventory.push('灵剑');
+              player.inventory.push('天材地宝');
+              addCombatLog(`获得 灵剑、天材地宝！`, 'gold');
+              playSound('item');
+            } else if (currentEnemy.name === '血魔老祖') {
+              player.inventory.push('仙剑');
+              player.inventory.push('仙甲');
+              addCombatLog(`获得 仙剑、仙甲！`, 'gold');
+              playSound('item');
+            }
+            
+            // 只有主线Boss推进主线；迷雾领主、战神之魂、秘境之主等地图Boss只记录击杀。
+            if (Object.prototype.hasOwnProperty.call(BOSSES, currentEnemy.name)) advanceStory();
+            updateAchievementProgress('boss');
+          }
+          
+          // 渡劫胜利处理
+          if (isTribulation) {
+            addCombatLog(`🌟 成功渡过飞升天劫！`, 'boss');
+            player.tribulationAttempted = true;
+            // 渡劫圆满飞升：仍严格由天劫胜利触发，不允许普通突破绕过。
+            if (player.level === 9 && (player.phase || 0) >= 3) {
+              const ascensionSnapshot = createBreakthroughSnapshot();
+              player.level = 10;
+              player.phase = 0;
+              player.exp = 0;
+              syncUnlockedSkills();
+              player.maxLifespan = getTotalMaxLifespan();
+              player.hp = getMaxHp();
+              player.mp = getMaxMp();
+              addCombatLog(`☀️ 仙门洞开！你已飞升仙界，晋升【地仙初期】！`, 'heal');
+              updateAchievementProgress('realm');
+              COMBAT_FINISH_V2764.deferredAfterReturn = () => playForcedAscensionBreakthrough(ascensionSnapshot);
+            }
+            playSound('victory');
+            advanceStory();
+            updateAchievementProgress('story');
+          }
+          
+          // 普通怪物掉落；演武傀儡仅用于新手引路，不计野外掉落、清剿和随机捕获。
+          if (!isBossFight && !isTribulation && !currentEnemy?._isTutorial && !currentEnemy?._isTaskBattle) {
+            playSound('victory');
+
+            // 地图上可见的游荡怪：额外灵石 + 概率装备。
+            // 其它普通战斗仍保留原材料、丹药、宠物和法宝掉落。
+            if (currentMonsterRef) {
+              rollWorldMonsterBonusGold(currentEnemy);
+              rollWorldMonsterEquipmentDrop(currentEnemy);
+            }
+            
+            // 更新击杀数成就
+            updateAchievementProgress('monster');
+            
+            // 材料掉落
+            if (Math.random() > 0.5) {
+              const materialDrops = ['灵草', '仙果', '妖丹'];
+              const drop = materialDrops[Math.floor(Math.random() * materialDrops.length)];
+              player.materials[drop] = (player.materials[drop] || 0) + 1;
+              onCollectMaterial?.(drop,1);
+              addCombatLog(`获得材料 ${drop}！`, 'gold');
+              playSound('item');
+            }
+            
+            // 丹药掉落
+            if (Math.random() > 0.6) {
+              const drops = ['小还丹', '聚灵丹', '悟道茶'];
+              const drop = drops[Math.floor(Math.random() * drops.length)];
+              player.inventory.push(drop);
+              addCombatLog(`获得 ${drop}！`, 'gold');
+              playSound('item');
+            }
+            
+            // V27.9：击杀不再“随机自动捕获宠物”，避免与主动收服系统冲突。
+            // 改为小概率掉落培养丹；真正获得灵宠需要在其存活且生命≤25%时主动收服。
+            if (Math.random() < 0.12) {
+              player.petMaterials['灵兽丹'] = (player.petMaterials['灵兽丹'] || 0) + 1;
+              addCombatLog(`🍖 获得灵兽丹 ×1`, 'pet');
+            }
+            
+            // 法宝掉落（稀有）
+            if (Math.random() < 0.03) {
+              dropRandomArtifact();
+            }
+
+            // 宗门清剿任务：仅普通怪物计数；Boss、天劫、百年大比对手不计入。
+            if (!currentEnemy?.tournamentFight) addSectKill();
+
+            // 地图实体怪物：胜利后从世界中移除，并补充新的游荡怪物
+            if (currentMonsterRef) {
+              releaseCurrentMapMonster(true);
+            }
+          }
+          
+          // 更新灵石峰值成就
+          updateAchievementProgress('gold');
+          
+          // 奖励阶段只登记突破，必须先完成战斗退场，避免三层界面重叠。
+          shouldBreakthroughV2764 = player.exp >= getCurrentExpNeed();
+          if (shouldBreakthroughV2764 && player.breakthrough) player.breakthrough.pendingBreakthrough = true;
+          if(typeof recordBattleSummaryV2838==='function')recordBattleSummaryV2838(tournamentEnemyV2779,rewardBeforeV2838);
+          updateStats();
+          autoSave();
+        } catch (combatRewardErrorV2764) {
+          console.error('[V27.65] 战斗奖励结算异常，已强制继续退场：', combatRewardErrorV2764);
+          try { addCombatLog('⚠️ 部分战利品结算异常，已安全返回地图。', 'boss'); } catch (_) {}
+        } finally {
+          const pendingFinishV2764 = COMBAT_FINISH_V2764.pending;
+          if (pendingFinishV2764) {
+            const deferredV2764 = COMBAT_FINISH_V2764.deferredAfterReturn;
+            COMBAT_FINISH_V2764.deferredAfterReturn = null;
+            if (tournamentFightV2764) {
+              readyCombatFinishV2764({
+                kind:'victory', delay:420, skipReturn:true,
+                label:'🏆 本轮结束 · 返回大比',
+                afterReturn:() => recordTournamentRound(true,tournamentEnemyV2779)
+              });
+            } else {
+              readyCombatFinishV2764({
+                kind:'victory', delay:720,
+                afterReturn:() => {
+                  if (typeof deferredV2764 === 'function') {
+                    setTimeout(() => { if(player!==rewardOwnerV2838||gameState!=='exploring'||currentEnemy)return;try { deferredV2764(); } catch (_) {} }, 420);
+                  } else if (shouldBreakthroughV2764) {
+                    setTimeout(() => {if(player===rewardOwnerV2838&&gameState==='exploring'&&!currentEnemy)checkLevelUp({ silentCooldown: true });}, 900);
+                  }
+                }
+              });
+            }
+          }
+        }
+        })();
+        return;
+      }
+      
+      // Boss阶段转换
+      if ((isBossFight || isTribulation) && currentEnemy.phases) {
+        const hpPercent = currentEnemy.hp / currentEnemy.maxHp;
+        const bossData = getCombatBossData(currentEnemy);
+        
+        if (bossData && currentBossPhase < bossData.phases) {
+          const phaseThresholds = [0.75, 0.5, 0.25];
+          if (hpPercent <= phaseThresholds[currentBossPhase - 1]) {
+            currentBossPhase++;
+            addCombatLog(`⚠️ ${bossData.phaseMessages[currentBossPhase - 1]}`, 'boss');
+            showBossSkillWarning(bossData.skills[currentBossPhase - 1].name);
+            playSound('boss');
+          }
+        }
+      }
+      
+      const turnEnemyV2838=currentEnemy,turnOwnerV2838=player;
+      setTimeout(() => {if(player===turnOwnerV2838&&currentEnemy===turnEnemyV2838&&gameState==='combat')enemyTurn();}, 800);
+    }
+
+
+===== xiantu-v28684-duel.js：2.5D 表现层（裁切坐标省略）=====
+
+/* Illustrated sprite battle pilot. Presentation only: never writes gameplay state. */
+(()=>{
+'use strict';
+const W=720,H=420;
+const art=new Image();art.decoding='async';let artReady=false,artFailed=false;
+art.onload=()=>{artReady=art.naturalWidth>0;};art.onerror=()=>{artFailed=true;};
+art.src='./duel-ink-poses-v28689.png';
+const landscape=new Image();let landscapeReady=false;landscape.onload=()=>{landscapeReady=true;};landscape.src='./scroll-landscape-v2831.webp';
+/* 此处省略 ATLAS_FRAMES：美术图集裁切坐标，仅本审阅副本省略，原运行文件完整保留。 */
+const ROSTER=[["wolf","野狼","",0,"pounce",220,170,"sword","蓄势奔扑"],["frost-wolf","冰霜狼","beasts",0,"pounce",255,175,"sword","霜爪扑击"],["fox","九尾灵狐","beasts",1,"pounce",250,180,"spirit","灵狐吐息"],["tiger","妖虎","beasts",2,"pounce",280,185,"sword","猛虎扑杀"],["ape","巨猿","beasts",3,"heavy",350,205,"sword","重拳撼地"],["serpent","毒蛇","beasts",4,"slither",255,165,"sword","昂首突袭"],["spider","妖蛛","beasts",5,"scuttle",255,145,"sword","毒牙突刺"],["eagle","雷鹰","wings",0,"fly",265,190,"sword","振翅俯冲"],["phoenix","火凤幼崽","wings",1,"fly",285,195,"fire","振翅吐焰"],["dragon","冰龙幼崽","wings",2,"float",300,195,"ice","龙息凝霜"],["rabbit","灵纹野兔","wings",3,"hop",170,115,"sword","蹬地跃击"],["turtle","碧水灵龟","wings",4,"heavy",205,125,"sword","缩甲冲撞"],["bat","魔渊蝙蝠","wings",5,"fly",225,145,"sword","振翼掠袭"],["treant","树精","fighters",0,"heavy",380,210,"wood","藤枝横扫"],["golem","石傀儡","fighters",1,"heavy",410,225,"sword","裂石重拳"],["bandit","山贼","fighters",2,"human",380,200,"sword","踏步劈斩"],["cultivator","邪修","fighters",3,"human",400,210,"spirit","凝煞剑气"],["demon-general","魔将","fighters",4,"heavy",420,215,"sword","魔刃横斩"],["ghost","幽冥鬼","fighters",5,"float",345,185,"spirit","幽冥摄魂"],["celestial-guard","宗门试炼守将","bosses",0,"human",390,220,"sword","仙剑突进"],["war-spirit","战神之魂","bosses",1,"heavy",395,220,"sword","战戟破阵"],["mist-lord","迷雾领主","bosses",2,"float",390,220,"ice","凝雾摄敌"],["blood-elder","血魔老祖","bosses",3,"float",395,220,"fire","血焰噬魂"]].map(([key,name,group,row,motion,width,height,element,action])=>({key,name,group,row,motion,width,height,element,action}));
+const atlasCache=new Map();
+function getAtlas(group){
+ if(atlasCache.has(group))return atlasCache.get(group);
+ const image=new Image(),entry={image,ready:false,failed:false};atlasCache.set(group,entry);
+ image.decoding='async';image.onload=()=>{const m=ATLAS_FRAMES[group];entry.ready=image.naturalWidth===m.width&&image.naturalHeight===m.height;entry.failed=!entry.ready;};image.onerror=()=>{entry.failed=true;};
+ image.src='./duel-'+group+'-v286811.png';return entry;
+}
+function create(host,read,enemyKey='wolf'){
+ const profile=ROSTER.find(p=>p.key===enemyKey);if(!host||!profile)return null;
+ const atlas=profile.group?getAtlas(profile.group):null,started=performance.now();
+ const ready=()=>artReady&&(!atlas||atlas.ready);
+ const canvas=document.createElement('canvas');canvas.className='duel25-canvas';canvas.setAttribute('aria-label','斜视角战场：剑修与'+profile.name);host.appendChild(canvas);
+ const ctx=canvas.getContext('2d');if(!ctx){canvas.remove();return null;}
+ const bg=document.createElement('canvas');bg.width=W;bg.height=H;const b=bg.getContext('2d');
+ let raf=0,last=0,dead=false,elapsed=0,attack=null,queue=[],hits=[],floats=[],label="",paintedLandscape=false;
+ const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+ function poly(c,pts,fill,stroke){c.beginPath();pts.forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p));c.closePath();c.fillStyle=fill;c.fill();if(stroke){c.strokeStyle=stroke;c.stroke();}}
+ function ellipse(c,x,y,rx,ry,fill){c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fillStyle=fill;c.fill();}
+ function line(c,points,color,width=2){c.beginPath();points.forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p));c.strokeStyle=color;c.lineWidth=width;c.lineCap='round';c.lineJoin='round';c.stroke();}
+ function backdrop(){
+  b.fillStyle='#c1b99b';b.fillRect(0,0,W,H);
+  if(landscapeReady){b.drawImage(landscape,0,0,W,H);paintedLandscape=true;}
+  const shade=b.createLinearGradient(0,0,0,H);shade.addColorStop(0,'#102c38dc');shade.addColorStop(.25,'#19342e18');shade.addColorStop(1,'#233e3555');b.fillStyle=shade;b.fillRect(0,0,W,H);
+  ellipse(b,367,300,220,75,'#b6a47745');
+  b.strokeStyle='#7c755735';b.lineWidth=1;b.beginPath();b.ellipse(367,300,212,70,0,0,Math.PI*2);b.stroke();
+ }
+
+ backdrop();
+ function illustratedActor(c,x,y,t,pose,fall,row){
+  if(!artReady)return;
+  const frame=pose;
+  // The painted frames have different extents: anchor by feet, not a uniform grid.
+  const masks=[
+   [[0,0],[505,0],[505,225],[550,225],[550,280],[505,280],[505,560],[0,560]],
+   [[550,65],[995,65],[995,220],[1155,220],[1155,280],[995,280],[995,560],[505,560],[505,325],[550,290]],
+   [[1025,0],[1536,0],[1536,560],[1025,560],[1025,280],[1160,280],[1160,220],[1025,220]]
+  ];
+  c.save();c.translate(x,y);
+  if(fall){c.translate(0,8);c.rotate(row===0?-1.25:1.15);c.globalAlpha*=.65;}
+  const breath=reduced?0:Math.sin(t*2.2)*.006;
+  const scale=row===0?.39:.37;
+  c.scale(scale,scale*(1+breath));
+  if(row===0){c.translate(-[265,780,1305][frame],-545);c.beginPath();masks[frame].forEach((q,i)=>i?c.lineTo(...q):c.moveTo(...q));c.closePath();c.clip();c.drawImage(art,0,0,1536,1024);}
+  else {const base=frame===2?910:980;c.drawImage(art,frame*512,560,512,464,-256,560-base,512,464);}
+  c.restore();
+ }
+ function monsterActor(c,x,y,t,pose,fall){
+  if(!atlas){illustratedActor(c,x,y,t,pose,fall,1);return;}
+  if(!atlas.ready)return;
+  const meta=ATLAS_FRAMES[profile.group],frame=profile.row*2+(pose===2?1:0),box=meta.boxes[frame],other=meta.boxes[profile.row*2+(pose===2?0:1)];
+  const scale=Math.min(profile.width/Math.max(box[2],other[2]),profile.height/Math.max(box[3],other[3]));
+  c.save();c.translate(x,y);
+  if(fall){c.rotate(.95);c.globalAlpha*=.55;}
+  const breath=reduced?0:Math.sin(t*2.2)*.008;
+  c.scale(scale,scale*(1+breath));c.translate(-box[0]-box[2]/2,-box[1]-box[3]);
+  const clip=points=>{c.beginPath();points.forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p));c.closePath();c.clip();};
+  clip(meta.rows[profile.row]);
+  clip(frame%2?[[meta.width,0],[meta.width,meta.height],...meta.middle.slice().reverse()]:[[0,meta.height],[0,0],...meta.middle]);
+  c.drawImage(atlas.image,0,0);c.restore();
+ }
+ function draw(now){
+  if(dead)return;raf=0;if(artFailed||atlas?.failed||(!ready()&&performance.now()-started>10000)){destroy();return;}const data=read();if(data.active===false){destroy();return;}if(document.hidden)return;
+  if(landscapeReady&&!paintedLandscape)backdrop();
+  if(now-last<33){raf=requestAnimationFrame(draw);return;}const dt=Math.min(60,Math.max(0,now-last));last=now;elapsed+=dt;
+  const width=Math.max(1,host.clientWidth||W),dpr=Math.min(1.5,window.devicePixelRatio||1);const pw=Math.round(width*dpr),ph=Math.round(width*H/W*dpr);
+  if(canvas.width!==pw||canvas.height!==ph){canvas.width=pw;canvas.height=ph;}ctx.setTransform(canvas.width/W,0,0,canvas.height/H,0,0);ctx.drawImage(bg,0,0);
+  if(ready()&&!host.classList.contains('duel25-active')){host.classList.add('duel25-active');if(host.id==='combatArena')document.getElementById('combatPanel')?.classList.add('duel25-panel');}
+  if(!ready()){ctx.fillStyle='#e5e3cc';ctx.font='18px serif';ctx.textAlign='center';ctx.fillText('画卷展开中…',W/2,H/2);}
+  // Presentation clock only. Damage and turn timers remain owned by the combat engine.
+  if(attack&&elapsed-attack.at>=620){attack=queue.shift()||null;if(attack)attack.at=elapsed;}
+  const t=elapsed/1000,age=attack?(elapsed-attack.at)/620:0;
+  const cast=attack&&attack.element!=='sword';
+  const ease=v=>{v=Math.max(0,Math.min(1,v));return v*v*(3-2*v);};
+  const travel=age<.12?-8*ease(age/.12):age<.25?-8+143*ease((age-.12)/.13):135*(1-ease((age-.42)/.58));
+  const motionScale={heavy:.5,slither:.65,scuttle:.75,human:.8,pounce:1,hop:1,fly:1,float:.55}[profile.motion];
+  const move=attack&&!cast&&!reduced?travel*(attack.side==='enemy'?motionScale:1):0;
+  const pose=attack?(age<.16?1:age<.58?2:age<.8?1:0):0;
+  const px=242+(attack?.side==='player'?move:0),ex=493-(attack?.side==='enemy'?move:0);
+  const actors=[{side:'player',x:px,y:305},{side:'enemy',x:ex,y:profile.key==='wolf'?278:profile.height>200?315:/fly|float/.test(profile.motion)?306:292}].sort((a,b)=>a.y-b.y);
+  for(const a of actors){
+   const attacking=attack?.side===a.side,hit=hits.find(h=>h.side===a.side&&elapsed-h.at<250);
+   const hovering=a.side==='enemy'&&/fly|float/.test(profile.motion);
+   const airborne=hovering?(profile.motion==='fly'?28:16):0;
+   const jump={heavy:0,slither:0,scuttle:3,human:3,pounce:24,hop:40,fly:-22,float:10}[profile.motion];
+   const lift=a.side==='enemy'?airborne+(reduced?0:(hovering?Math.sin(t*3)*4:0)+(attacking&&!cast?Math.sin(Math.max(0,Math.min(1,(age-.12)/.55))*Math.PI)*jump:0)):0;
+   ellipse(ctx,a.x,a.y+2,(a.side==='player'?29:Math.min(55,profile.width*.2))-lift*.2,Math.max(3,10-lift*.1),'#102d2c66');
+   ctx.save();
+   // A single soft impact fade instead of strobing; healing never triggers recoil.
+   ctx.globalAlpha=hit&&!reduced?.78+.22*Math.min(1,(elapsed-hit.at)/220):1;
+   const recoil=hit&&!reduced?Math.sin((elapsed-hit.at)/250*Math.PI)*11:0;
+   if(a.side==='player')illustratedActor(ctx,a.x-recoil,a.y,t,attacking?(cast?0:pose):0,data.playerHp<=0,0);
+   else monsterActor(ctx,a.x+recoil,a.y-lift,t,attacking?pose:0,data.enemyHp<=0);
+   ctx.restore();
+  }
+  if(attack){
+   const k=Math.sin(age*Math.PI),from=attack.side==='player'?px:ex,to=attack.side==='player'?ex:px;
+   if(attack.element==='heal'){
+    ctx.strokeStyle='#b4f9ac';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(from,300,35+k*20,12+k*9,0,0,Math.PI*2);ctx.stroke();
+    for(let i=0;i<5;i++)ellipse(ctx,from+Math.cos(i*1.7)*28,285-((age*100+i*17)%100),2,4,'#d5f5bd');
+   }else if(/thunder|雷/.test(attack.element)){
+    if(age>.18&&age<.62)line(ctx,[[to,82],[to-18,129],[to+9,151],[to-12,200],[to,245]],'#d8fbff',3+k*3);
+   }else if(cast){
+    const colors={fire:'#ffc28c',ice:'#c6efff',water:'#9bdcff',wood:'#b9e8aa',spirit:'#d7bcfa'};
+    ellipse(ctx,from+(to-from)*ease(age/.5),220,10+k*9,7+k*6,colors[attack.element]||'#c5f8e2');
+   }else if(age>.16&&age<.6){
+    ctx.strokeStyle=attack.side==='player'?'#c5f8e2':'#e5c78d';ctx.globalAlpha=k;ctx.lineWidth=3+3*k;
+    ctx.beginPath();ctx.ellipse((from+to)/2,237,55+k*30,30,.3,Math.PI*1.15,Math.PI*2.1);ctx.stroke();ctx.globalAlpha=1;
+   }
+  }
+  hits=hits.filter(h=>elapsed-h.at<260);floats=floats.filter(f=>elapsed-f.at<850);
+  for(const h of hits){
+   const fade=1-(elapsed-h.at)/260,x=h.side==='player'?px:ex;
+   ctx.globalAlpha=fade;ctx.strokeStyle=h.crit?'#ffda84':'#edf3cf';ctx.lineWidth=h.crit?3:2;
+   if(!reduced)for(let i=0;i<5;i++){const angle=i*Math.PI*2/5,r=8+(1-fade)*22;line(ctx,[[x+Math.cos(angle)*r,227+Math.sin(angle)*r],[x+Math.cos(angle)*(r+9),227+Math.sin(angle)*(r+9)]],ctx.strokeStyle,ctx.lineWidth);}
+   ctx.globalAlpha=1;
+  }
+  for(const f of floats){
+   ctx.globalAlpha=Math.min(1,(850-(elapsed-f.at))/250);ctx.fillStyle=f.heal?'#b6f0a3':f.crit?'#ffcc65':'#fff0d4';ctx.font=`bold ${f.crit?30:26}px serif`;ctx.textAlign='center';
+   ctx.strokeStyle='#23352de0';ctx.lineWidth=3;ctx.strokeText(f.text,(f.side==='player'?242:493)+f.lane*24,179-f.lane*22-(reduced?0:(elapsed-f.at)/30));
+   ctx.fillText(f.text,(f.side==='player'?242:493)+f.lane*24,179-f.lane*22-(reduced?0:(elapsed-f.at)/30));ctx.globalAlpha=1;
+  }
+  const hud=(x,name,hp,max,color)=>{ctx.textAlign='left';ctx.font='bold 21px serif';ctx.fillStyle='#edf0d8';ctx.fillText(name,x,35);ctx.fillStyle='#152c2ccf';ctx.fillRect(x,46,180,7);ctx.fillStyle=color;ctx.fillRect(x,46,180*Math.max(0,Math.min(1,hp/Math.max(1,max))),7);ctx.font='17px sans-serif';ctx.fillStyle='#d4dfca';ctx.fillText(`${Math.max(0,Math.ceil(hp))} / ${Math.ceil(max)}`,x,70);};
+  hud(30,data.playerName||'青云剑修',data.playerHp,data.playerMax,'#a5cc9f');hud(510,data.enemyName||'苍山野狼',data.enemyHp,data.enemyMax,'#dba176');
+  ctx.fillStyle='#17352cce';ctx.fillRect(190,375,340,30);ctx.fillStyle='#e8ecd4';ctx.textAlign='center';ctx.font='17px sans-serif';ctx.fillText(attack?(attack.name||({heal:'回春 · 灵气归元',thunder:'引雷 · 凝神施法'}[attack.element])||(attack.side==='enemy'?profile.name+' · '+profile.action:'剑修 · 踏步出剑')):'青云试剑坪 · 水墨剑影',360,397);
+  const nextLabel=`${data.playerName||"剑修"}气血${Math.ceil(data.playerHp)}，${data.enemyName||"野狼"}气血${Math.ceil(data.enemyHp)}`;if(label!==nextLabel){label=nextLabel;canvas.setAttribute("aria-label",label);}
+  raf=requestAnimationFrame(draw);
+ }
+ function wake(){if(!dead&&!document.hidden&&!raf){last=performance.now();raf=requestAnimationFrame(draw);}}
+ function visibility(){if(document.hidden){cancelAnimationFrame(raf);raf=0;}else wake();}
+ function destroy(){if(dead)return;dead=true;attack=null;queue=[];hits=[];floats=[];cancelAnimationFrame(raf);raf=0;document.removeEventListener('visibilitychange',visibility);canvas.remove();bg.width=bg.height=1;host.classList.remove('duel25-active');if(host.id==='combatArena')document.getElementById('combatPanel')?.classList.remove('duel25-panel');}
+ document.addEventListener('visibilitychange',visibility);wake();
+ function act(side,element,name='',enhance=false){
+  if(dead)return;
+  element=element||(side==='enemy'?profile.element:'sword');
+  if(side==='enemy'&&!name)name=profile.name+' · '+profile.action;
+  // The engine emits attack first, then its skill effect 150ms later: enrich that
+  // same action instead of restarting the lunge or queuing a duplicate turn.
+  const latest=queue.length?queue[queue.length-1]:attack;
+  if(enhance&&latest?.side===side&&(queue.length||elapsed-latest.at<350)){
+   latest.element=element;latest.name=name;return;
+  }
+  const next={side,element,name,at:elapsed};
+  if(!attack||elapsed-attack.at>=620)attack=next;
+  else {if(queue.length>=4)queue.shift();queue.push(next);}
+ }
+ return {get ready(){return ready()&&!dead;},act,
+  hit(side,amount,heal=false,crit=false,pet=false){
+   if(dead)return;
+   amount=Number(amount);if(!Number.isFinite(amount)||amount<=0)return;
+   if(!heal)hits.push({side,crit,at:elapsed});
+   const lane=floats.filter(f=>f.side===side&&elapsed-f.at<850).length%3;
+   floats.push({side,text:(pet?'灵宠 ':crit?'暴击 ':'')+(heal?'+':'−')+Math.round(amount),heal,crit,lane,at:elapsed});
+  },reset(){if(dead)return;attack=null;queue=[];hits=[];floats=[];},destroy,canvas};
+}
+window.XiantuDuel25D={create,roster:ROSTER.map(({key,name})=>({key,name}))};
+// Shared species mapping includes elite variants; named story people and tribulations keep their own art.
+if(typeof window.startCombat==='function'){
+ let scene=null,owner=null,foe=null,casting=null;
+ const combatBase=window.combat;
+ if(typeof combatBase==='function')window.combat=function(action,index){
+  const previous=casting;casting=action==='skill'?player.skills?.[index]:null;
+  try{return combatBase.apply(this,arguments);}finally{casting=previous;}
+ };
+ const stop=()=>{scene?.destroy();scene=null;document.getElementById('combatArena')?.classList.remove('duel25-active');};
+ const start=window.startCombat;window.startCombat=function(...args){const result=start.apply(this,args);if(typeof currentEnemy!=='undefined'&&currentEnemy===args[0]&&gameState==='combat'){stop();const key=typeof scrollMonsterKeyV2853==='function'?scrollMonsterKeyV2853(currentEnemy.name):null;if(ROSTER.some(p=>p.key===key)){owner=player;foe=currentEnemy;scene=create(document.getElementById('combatArena'),()=>({active:player===owner&&currentEnemy===foe&&(gameState==='combat'||gameState==='combat-ending'),playerName:owner.name,enemyName:foe.name,playerHp:owner.hp,playerMax:getMaxHp(),enemyHp:foe.hp,enemyMax:foe.maxHp}),key);}}return result;};
+ for(const name of ['resetRuntimeState','endCombatAfterCapture']){const base=window[name];if(typeof base==='function')window[name]=function(...args){stop();return base.apply(this,args);};}
+ const attack=window.playAttackAnimation;window.playAttackAnimation=function(side){if(scene?.ready){scene.act(side,side==='player'&&casting?casting.element||'sword':side==='enemy'?undefined:'sword',side==='player'&&casting?casting.name:'');return;}return attack.apply(this,arguments);};
+ const skill=window.playSkillEffect;window.playSkillEffect=function(name,element,source){if(scene?.ready){scene.act('player',element||'sword',name,true);return;}return skill.apply(this,arguments);};
+ const damage=window.showDamageNumber;window.showDamageNumber=function(amount,side,heal,crit,boss,pet){if(scene?.ready){scene.hit(side,amount,heal,crit,pet);return;}return damage.apply(this,arguments);};
+ const story=window.showStory;window.showStory=function(...args){stop();return story.apply(this,args);};
+}
+
+})();
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.11';
