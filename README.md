@@ -1,4 +1,16 @@
-## 最新完整游戏包：V28.68.18
+## 最新完整游戏包：V28.68.19
+
+[下载 xiantu-v2868.19-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.19-game-folder.zip)
+
+战斗“更多招式”选择系别后，上方快捷栏同步显示该系已携带技能，保留槽位顺序、缺蓝限制及回合锁定。完整包126个运行文件，解压后仍为 `xiantu-v2831-scroll`。未部署腾讯云；Jev无需更新。私有仓库请登录有权限的GitHub账号下载。
+
+26个游戏回归脚本、3项限流测试、7项浏览器测试通过；另检查手机横竖屏分类切换、收起列表及真实施放技能。详情见 [修复与验证记录](skill-tabs-v286819.md)。
+
+SHA-256：`b66bd4af11176079cd020c0e9f7001209eaddf58bb801614976f24be3d53ad06`
+
+---
+
+## 历史完整游戏包：V28.68.18
 
 [下载 xiantu-v2868.18-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.18-game-folder.zip)
 
