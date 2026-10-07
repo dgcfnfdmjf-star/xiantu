@@ -1,4 +1,16 @@
-## 最新完整游戏包：V28.68.20
+## 最新完整游戏包：V28.68.21
+
+[下载 xiantu-v2868.21-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.21-game-folder.zip)
+
+元素弱点与每战一次破绽、三类装备招式羁绊、洞府8小时封顶游历派遣及离线领取；包含保存失败回滚与重复领取保护。完整包126个运行文件，解压后仍为 `xiantu-v2831-scroll`。未部署腾讯云；Jev无需更新。私有仓库请登录有权限的GitHub账号下载。
+
+28个游戏回归脚本、3项限流测试、7项浏览器测试通过；原有240场野狼对照一致，另有前后各240场弱点与剑流完整战斗，以及刷新后领取验证。详情见 [修复与验证记录](tactics-v286821.md)。
+
+SHA-256：`955efb6d65885555347fa32d833583f8b93adee787c16e6caff16ff23e17c042`
+
+---
+
+## 历史完整游戏包：V28.68.20
 
 [下载 xiantu-v2868.20-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.20-game-folder.zip)
 
