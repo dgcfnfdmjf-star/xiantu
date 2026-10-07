@@ -1,4 +1,16 @@
-## 最新完整游戏包：V28.68.16
+## 最新完整游戏包：V28.68.17
+
+[下载 xiantu-v2868.17-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.17-game-folder.zip)
+
+普攻命中回灵、雷系封脉与眩晕分开、战前境界风险提示、原立绘阵亡下沉消散与暴击短停微震。延续未结算战斗回滚保护。完整包126个运行文件，解压后仍为 `xiantu-v2831-scroll`。未部署腾讯云；Jev无需更新。私有仓库请登录有权限的GitHub账号下载。
+
+25个游戏回归脚本、3项限流测试、7项浏览器测试通过；360场固定种子战斗对照的既有结果一致，另有回灵、封脉与消散定向验证。详情见 [修复与验证记录](combat-loop-v286817.md)。
+
+SHA-256：`53673e33b138957578eb3c180bd83847b773f3397bc1ec3a6cbd7ad642ac4abc`
+
+---
+
+## 历史完整游戏包：V28.68.16
 
 [下载 xiantu-v2868.16-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.16-game-folder.zip)
 
