@@ -1,4 +1,18 @@
-## 最新完整游戏包：V28.68.23
+## 最新完整游戏包：V28.68.24
+
+[下载 xiantu-v2868.24-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.24-game-folder.zip)
+
+旧装备洗练档级修正，旧仙器/神器归三档；新词条攻击、防御、气血和灵力范围提高，旧词条与待选结果保留。完整包126个运行文件，解压后仍为 `xiantu-v2831-scroll`。未部署腾讯云。私有仓库请登录有权限的GitHub账号下载。
+
+[下载配套 Jev 云函数包](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-jev-v2868.24-cloud-function.zip)。本次判读采用新版数值协议，请先更新云函数再覆盖网站；入口仍为index.main，保留原环境变量。未更新云函数不影响洗练及本地对比，但云端判读可能拒绝新版数值。
+
+31个游戏回归脚本、3项限流测试、7项浏览器测试通过，180场合成配置战斗对照，旧仙器手机洗练与刷新恢复检查。详情见 [更新与验证记录](forge-v286824.md)。
+
+SHA-256：`a28cb0cd6f26c31f8f74a355bc3508471afa2666bad9d044827faa8923bfd645`
+
+---
+
+## 历史完整游戏包：V28.68.23
 
 [下载 xiantu-v2868.23-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.23-game-folder.zip)
 
