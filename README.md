@@ -1,4 +1,16 @@
-## 最新完整游戏包：V28.68.26
+## 最新完整游戏包：V28.68.27
+
+[下载完整游戏文件夹](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.27-game-folder.zip)
+
+雨夜卷二10幕（卷一完成且炼虚开放）、19段人物与地方拾遗、七段疏离选项、总纪事和三地域追查卷宗。仍为27任务主线，126文件，顶层文件夹xiantu-v2831-scroll。无需更新Jev云函数，未部署腾讯云。
+
+34个游戏回归脚本、3个限流测试、7个浏览器测试通过；160场卷二战斗模拟的假设与难度边界见 [更新说明](expansion-v286827.md)。私有仓库需登录有权限的GitHub账号。
+
+SHA-256：`f6fe6b56a403f8baf9660ef249219da7000ce0280b7cb23d52bf7cf43270534c`
+
+---
+
+## 历史完整游戏包：V28.68.26
 
 [下载完整游戏文件夹](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.26-game-folder.zip)
 
