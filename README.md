@@ -1,4 +1,16 @@
-## 最新完整游戏包：V28.68.25
+## 最新完整游戏包：V28.68.26
+
+[下载完整游戏文件夹](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.26-game-folder.zip)
+
+修复零执念与关系事件边界，增加好感共鸣、具体条件提示、前站传讯、三节旧关查案序引、Boss部署与夜无疆本源裂痕。仍为27任务主线，126文件，顶层文件夹xiantu-v2831-scroll。无需更新Jev云函数，未部署腾讯云。
+
+33个游戏回归脚本、3个限流测试、7个浏览器测试通过；160场夜无疆对照的假设与难度边界见 [更新说明](story-v286826.md)。私有仓库需登录有权限的GitHub账号。
+
+SHA-256：`e3f4fc990019810762609bbcd5897e4a3525003408172efaa896cc58f60b8374`
+
+---
+
+## 历史完整游戏包：V28.68.25
 
 [下载 xiantu-v2868.25-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.25-game-folder.zip)
 
