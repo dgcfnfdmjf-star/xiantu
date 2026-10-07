@@ -1,4 +1,16 @@
-## 最新完整游戏包：V28.68.21
+## 最新完整游戏包：V28.68.22
+
+[下载 xiantu-v2868.22-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.22-game-folder.zip)
+
+新增雨夜命牌案14幕：调查、救人与追踪分支、两场剧情战、秘境解阵与三种结案；村落和苏晚晴回应选择，支持暂停、回看与一次领奖。入口：任务主线页或教学来信。完整包126个运行文件，解压后仍为 `xiantu-v2831-scroll`。未部署腾讯云；Jev无需更新。私有仓库请登录有权限的GitHub账号下载。
+
+29个游戏回归脚本、3项限流测试、7项浏览器测试通过；12种剧情分支组合、80场入门配置剧情战斗模拟，以及完整路线试玩、刷新续读与只读回看验证。详情见 [修复与验证记录](rain-v286822.md)。
+
+SHA-256：`a9361e60f23cbe544d1992326e5f1379d9a701417577a47e894dbd279634c586`
+
+---
+
+## 历史完整游戏包：V28.68.21
 
 [下载 xiantu-v2868.21-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.21-game-folder.zip)
 
