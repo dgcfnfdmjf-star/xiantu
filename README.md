@@ -1,4 +1,18 @@
-## 最新完整游戏包：V28.68.24
+## 最新完整游戏包：V28.68.25
+
+[下载 xiantu-v2868.25-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.25-game-folder.zip)
+
+新洗练改为角色百分比加成，同类加成相加；三档攻击/防御3%–9%、气血/灵力6%–15%。旧固定词条及待选结果保留，新旧结果按试穿后角色面板比较。完整包126个运行文件，解压后仍为 `xiantu-v2831-scroll`。未部署腾讯云。私有仓库请登录有权限的GitHub账号下载。
+
+[下载配套 Jev 云函数包](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-jev-v2868.25-cloud-function.zip)。本次云端判读使用v3面板比较，兼容v1/v2旧客户端；请先更新云函数再覆盖网站，入口仍为index.main、保留原环境变量。未更新云函数不影响洗练及本地对比，但云端建议可能拒绝v3请求。
+
+32个游戏回归脚本、3项限流测试、7项浏览器测试通过，270场单件与全套百分比战斗对照，手机洗练、预览与实际穿戴一致及刷新恢复检查。详情见 [更新与验证记录](percent-v286825.md)。
+
+SHA-256：`ce6a7d248f34b947773e84ee5f70977728f891289859dc39dff2c77b61f5ca88`
+
+---
+
+## 历史完整游戏包：V28.68.24
 
 [下载 xiantu-v2868.24-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.24-game-folder.zip)
 
