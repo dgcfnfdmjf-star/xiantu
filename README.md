@@ -1,4 +1,16 @@
-## 最新完整游戏包：V28.68.22
+## 最新完整游戏包：V28.68.23
+
+[下载 xiantu-v2868.23-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.23-game-folder.zip)
+
+主线27章覆盖全部17个大境界：原八章游历扩充并衔接至主线；两处调查、护盾/破防方案、跨章线索与选择回响。旧任务ID、步骤、分支和已领奖记录保留。完整包126个运行文件，解压后仍为 `xiantu-v2831-scroll`。未部署腾讯云；Jev无需更新。私有仓库请登录有权限的GitHub账号下载。
+
+30个游戏回归脚本、3项限流测试、7项浏览器测试通过。8章×2方案逻辑回归、480场合成配置战斗模拟、手机横竖屏调查及刷新恢复检查；详情及数值测试边界见 [更新与验证记录](main-v286823.md)。
+
+SHA-256：`4516d439f09d83291c7263f3ce8c8370710493dd4ff0edeb8263212938ac52c0`
+
+---
+
+## 历史完整游戏包：V28.68.22
 
 [下载 xiantu-v2868.22-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.22-game-folder.zip)
 
