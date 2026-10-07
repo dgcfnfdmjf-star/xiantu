@@ -1,4 +1,16 @@
-## 最新完整游戏包：V28.68.12
+## 最新完整游戏包：V28.68.13
+
+[下载 xiantu-v2868.13-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.13-game-folder.zip)
+
+修复装备穿戴前后属性显示不一致，商店、背包、装备栏、强化预览统一计入品质倍率，实际数值和评分不变。完整包126个运行文件，解压后仍为 `xiantu-v2831-scroll`。未部署腾讯云；Jev无需更新。私有仓库请登录有权限的GitHub账号下载。
+
+24个游戏回归脚本、3项限流测试、7项浏览器测试通过；另已在手机尺寸浏览器实测商店查看、背包点击穿戴与属性一致性。详情见 [修复与验证记录](equipment-display-v286813.md)。
+
+SHA-256：`dc1bbb7b82178f6b94248e9dfb224fae0fbf0a7c4b81914399ed62d388d58db5`
+
+---
+
+## 历史完整游戏包：V28.68.12
 
 [下载 xiantu-v2868.12-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.12-game-folder.zip)
 
