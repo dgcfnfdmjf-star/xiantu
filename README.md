@@ -1,4 +1,16 @@
-## 最新完整游戏包：V28.68.19
+## 最新完整游戏包：V28.68.20
+
+[下载 xiantu-v2868.20-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.20-game-folder.zip)
+
+战斗静态背景分层、空闲15帧和动作30帧；音效手势恢复、最多三路并发与清理；改善手机操作，保持原有数值与存档。完整包126个运行文件，解压后仍为 `xiantu-v2831-scroll`。未部署腾讯云；Jev无需更新。私有仓库请登录有权限的GitHub账号下载。
+
+27个游戏回归脚本、3项限流测试、7项浏览器测试通过；另检查横竖屏切换、攻击和音效；3秒空闲重绘91次降至45次，背景复制降至0次，不代表真机温度或耗电实测。详情见 [修复与验证记录](mobile-v286820.md)。
+
+SHA-256：`29da8628988e8224a3e5f4d5768eaa2918649d327bdd70d3b1b2aa38823fedf2`
+
+---
+
+## 历史完整游戏包：V28.68.19
 
 [下载 xiantu-v2868.19-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.19-game-folder.zip)
 
