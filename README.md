@@ -1,4 +1,16 @@
-## 最新完整游戏包：V28.68.15
+## 最新完整游戏包：V28.68.16
+
+[下载 xiantu-v2868.16-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.16-game-folder.zip)
+
+合并双方气血灵力、四个常用技能直接施放、画质与Jev收进战斗设置、画卷显示最近三条战报；横屏操作集中在右侧。保持技能数值与存档格式。完整包126个运行文件，解压后仍为 `xiantu-v2831-scroll`。未部署腾讯云；Jev无需更新。私有仓库请登录有权限的GitHub账号下载。
+
+24个游戏回归脚本、3项限流测试、7项浏览器测试通过；另已在手机横竖屏检查四招快捷操作、耗蓝与锁定、更多招式、设置切换及传统立绘回退。详情见 [修复与验证记录](battle-ui-v286816.md)。
+
+SHA-256：`a698348398fcaabce149126c5ba501aaa5de2cc789f2c89560b5a872db08dc0c`
+
+---
+
+## 历史完整游戏包：V28.68.15
 
 [下载 xiantu-v2868.15-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.15-game-folder.zip)
 
