@@ -1,4 +1,16 @@
-## 最新完整游戏包：V28.68.14
+## 最新完整游戏包：V28.68.15
+
+[下载 xiantu-v2868.15-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.15-game-folder.zip)
+
+修正剑气冰刺终点、脚下法阵、治疗莲花与命中重复剑影；缩短飞行主体与爆点重叠，新增57个具名效果逐招预览。保持技能数值与存档格式。完整包126个运行文件，解压后仍为 `xiantu-v2831-scroll`。未部署腾讯云；Jev无需更新。私有仓库请登录有权限的GitHub账号下载。
+
+24个游戏回归脚本、3项限流测试、7项浏览器测试通过；另已在手机尺寸浏览器检查实际战斗技能命中反馈与帧间隔。详情见 [修复与验证记录](vfx-polish-v286815.md)。
+
+SHA-256：`77b0e848ff2a7497514ee0a042b53218be26bbe9286130a5053f9b1ac3ba97ba`
+
+---
+
+## 历史完整游戏包：V28.68.14
 
 [下载 xiantu-v2868.14-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.14-game-folder.zip)
 
