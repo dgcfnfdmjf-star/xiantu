@@ -1,4 +1,16 @@
-## 最新完整游戏包：V28.68.28
+## 最新完整游戏包：V28.68.29
+
+[下载完整游戏文件夹](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.29-game-folder.zip)
+
+新增14张场景插画，全部27个正式主线任务配图（连续同地章节共用场景），任务详情、对白及已读回看同步显示。竖屏上图下文，手机横屏对白左图右文。完整游戏包144文件，顶层文件夹xiantu-v2831-scroll。保留此前内容，无需更新Jev云函数，未部署腾讯云。
+
+34个游戏回归脚本、3个限流测试、7个浏览器测试通过；插画节点与上传方式见 [更新说明](main-art-v286829.md)。私有仓库需登录有权限的GitHub账号。
+
+SHA-256：`801697745506bc424fa4efd7cd714d4d7852e095de431e753483206771c71240`
+
+---
+
+## 历史完整游戏包：V28.68.28
 
 [下载完整游戏文件夹](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.28-game-folder.zip)
 
