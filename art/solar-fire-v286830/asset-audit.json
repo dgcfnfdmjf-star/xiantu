@@ -1,0 +1,515 @@
+{
+  "source": "art/solar-fire-v286830",
+  "registration": [
+    {
+      "plate": 0,
+      "observedPivot": [
+        338.68939054308686,
+        336.26431808014445
+      ],
+      "targetPivot": [
+        320,
+        320
+      ],
+      "translate": [
+        -19,
+        -16
+      ]
+    },
+    {
+      "plate": 1,
+      "observedPivot": [
+        323.029843811586,
+        332.44765206380606
+      ],
+      "targetPivot": [
+        320,
+        320
+      ],
+      "translate": [
+        -3,
+        -12
+      ]
+    },
+    {
+      "plate": 2,
+      "observedPivot": [
+        310.47929098853103,
+        325.82099554371575
+      ],
+      "targetPivot": [
+        320,
+        320
+      ],
+      "translate": [
+        10,
+        -6
+      ]
+    },
+    {
+      "plate": 3,
+      "observedPivot": [
+        327.16127939252004,
+        417.0217469148032
+      ],
+      "targetPivot": [
+        320,
+        416
+      ],
+      "translate": [
+        -7,
+        -1
+      ]
+    },
+    {
+      "plate": 4,
+      "observedPivot": [
+        318.1899512837322,
+        417.0039037274184
+      ],
+      "targetPivot": [
+        320,
+        416
+      ],
+      "translate": [
+        2,
+        -1
+      ]
+    },
+    {
+      "plate": 5,
+      "observedPivot": [
+        309.3416890063694,
+        417.8302127832642
+      ],
+      "targetPivot": [
+        320,
+        416
+      ],
+      "translate": [
+        11,
+        -2
+      ]
+    }
+  ],
+  "original": "bb5949c56b6338b1ae37e23e0f4ce467be4bb8ffdfbc70ccd0c8b369bf2103cf",
+  "safe": "5d331e36e569f9e606296c3f3aba63bee9499cbfa732a4ec7ccc4a8b2ae28f1e",
+  "manifest": "fdb4da939de64ced0997093e58f6e3000442bc332420101281cff309a51b098d",
+  "output": {
+    "solar_body.png": "faacc22b8f5e3d092a30323a85d1ccc2202f6a5e949cf3c927897b0dd847c503",
+    "solar_impact.png": "5fe34aa138e57e33386e25f4c890b46cd3409a74d1c4d13a19a47e030c30b69e",
+    "solar_residue.png": "53b1949794072de17bd8badca85d7978415b5e7d7d4297533b2c49e93e1463d0",
+    "solar_telegraph.png": "36d48915ba5a6998e5306235b0f9a3b3290fd53c0f52cffca2ac0e5ba907e71b"
+  },
+  "frames": [
+    {
+      "layer": "telegraph",
+      "frame": 0,
+      "sha256": "75394d4114c18548435de26fa1cb5f3f9ef03ff229982c2d465f5d220c8e4a80",
+      "bounds": [
+        65,
+        68,
+        191,
+        189
+      ],
+      "whiteCoverage": 0.014469061945671458,
+      "coloredMaterialCoverage": 0.9751428935805131
+    },
+    {
+      "layer": "telegraph",
+      "frame": 1,
+      "sha256": "e8bcf561a0d0b765e8a08fd9649a0101726df8c2d1bb4c8f983ae0e5e7419ffd",
+      "bounds": [
+        65,
+        67,
+        192,
+        189
+      ],
+      "whiteCoverage": 0.01349183615010026,
+      "coloredMaterialCoverage": 0.9750567393076702
+    },
+    {
+      "layer": "telegraph",
+      "frame": 2,
+      "sha256": "93be4abf900fb16a64502b9f8a52011dcae111ba54be5eac2a76bd6eaf2ceffe",
+      "bounds": [
+        64,
+        67,
+        192,
+        189
+      ],
+      "whiteCoverage": 0.014020909130128415,
+      "coloredMaterialCoverage": 0.9756044170257776
+    },
+    {
+      "layer": "telegraph",
+      "frame": 3,
+      "sha256": "a1cbe1f8c2628ff89b020b7cf8bd930630f01c22c0ad55db462eb38d91a4f938",
+      "bounds": [
+        64,
+        67,
+        192,
+        189
+      ],
+      "whiteCoverage": 0.01330621648170591,
+      "coloredMaterialCoverage": 0.9753991538811756
+    },
+    {
+      "layer": "body",
+      "frame": 0,
+      "sha256": "03b839d4dddbcdb057999dc3e43635f0719cf1797a4b30341ca630733bf54691",
+      "bounds": [
+        54,
+        52,
+        138,
+        136
+      ],
+      "whiteCoverage": 0.002127291236613872,
+      "coloredMaterialCoverage": 0.9812984662051419
+    },
+    {
+      "layer": "body",
+      "frame": 1,
+      "sha256": "787511c858cec36eb535784fab216acdedd428092eabd938267ce0c26241a898",
+      "bounds": [
+        54,
+        52,
+        138,
+        136
+      ],
+      "whiteCoverage": 0.0009440764146556805,
+      "coloredMaterialCoverage": 0.9874681621288877
+    },
+    {
+      "layer": "body",
+      "frame": 2,
+      "sha256": "bb4ed9291a27beb7cc0ee12b5fad0d7114c06c1901b1ff50aa7583d50e439b62",
+      "bounds": [
+        54,
+        52,
+        138,
+        137
+      ],
+      "whiteCoverage": 0.00047535080607659917,
+      "coloredMaterialCoverage": 0.9917424237442426
+    },
+    {
+      "layer": "body",
+      "frame": 3,
+      "sha256": "11414bb1e78bd2f2778cf50ccc79d32341160fb68aa1f6c3d1dc6e99d50074f5",
+      "bounds": [
+        54,
+        53,
+        137,
+        137
+      ],
+      "whiteCoverage": 0.0009432306541515757,
+      "coloredMaterialCoverage": 0.9882204100096952
+    },
+    {
+      "layer": "body",
+      "frame": 4,
+      "sha256": "690582b3635003e92d87d57089af9960de27dcc644590b71971de285b115014a",
+      "bounds": [
+        54,
+        53,
+        137,
+        137
+      ],
+      "whiteCoverage": 0.0016464985432658023,
+      "coloredMaterialCoverage": 0.9844627513674749
+    },
+    {
+      "layer": "body",
+      "frame": 5,
+      "sha256": "11414bb1e78bd2f2778cf50ccc79d32341160fb68aa1f6c3d1dc6e99d50074f5",
+      "bounds": [
+        54,
+        53,
+        137,
+        137
+      ],
+      "whiteCoverage": 0.0009432306541515757,
+      "coloredMaterialCoverage": 0.9882204100096952
+    },
+    {
+      "layer": "body",
+      "frame": 6,
+      "sha256": "bb4ed9291a27beb7cc0ee12b5fad0d7114c06c1901b1ff50aa7583d50e439b62",
+      "bounds": [
+        54,
+        52,
+        138,
+        137
+      ],
+      "whiteCoverage": 0.00047535080607659917,
+      "coloredMaterialCoverage": 0.9917424237442426
+    },
+    {
+      "layer": "body",
+      "frame": 7,
+      "sha256": "787511c858cec36eb535784fab216acdedd428092eabd938267ce0c26241a898",
+      "bounds": [
+        54,
+        52,
+        138,
+        136
+      ],
+      "whiteCoverage": 0.0009440764146556805,
+      "coloredMaterialCoverage": 0.9874681621288877
+    },
+    {
+      "layer": "impact",
+      "frame": 0,
+      "sha256": "f405af7b20120b608ba5d9d8e01c3cd7986df25994e1cccc193ab1ee526778c8",
+      "bounds": [
+        68,
+        49,
+        188,
+        183
+      ],
+      "whiteCoverage": 0.008973506577617932,
+      "coloredMaterialCoverage": 0.9710893341042334
+    },
+    {
+      "layer": "impact",
+      "frame": 1,
+      "sha256": "a05026d8e8a64604d9a9929c3a7b0567afbb30c6dffa7b805cea3896c265699e",
+      "bounds": [
+        68,
+        49,
+        188,
+        183
+      ],
+      "whiteCoverage": 0.0014915019992193022,
+      "coloredMaterialCoverage": 0.9903302931836645
+    },
+    {
+      "layer": "impact",
+      "frame": 2,
+      "sha256": "6eec7286c455f5c555a3b59c158f132d60cae1b5269ab33d43b36fdc8189dcc2",
+      "bounds": [
+        68,
+        49,
+        188,
+        183
+      ],
+      "whiteCoverage": 0.0010242336124324529,
+      "coloredMaterialCoverage": 0.9936496154016407
+    },
+    {
+      "layer": "impact",
+      "frame": 3,
+      "sha256": "5e4468cc801f5daf51155a1f52e1f9091117d00d30aa2cb61e6a45a19524c65e",
+      "bounds": [
+        68,
+        50,
+        188,
+        183
+      ],
+      "whiteCoverage": 0.0008811956648836131,
+      "coloredMaterialCoverage": 0.9924460892804062
+    },
+    {
+      "layer": "impact",
+      "frame": 4,
+      "sha256": "6da0c706d5de67d5eb6b38c535c487fa38c067b519a9936f9d80e024e3745dd8",
+      "bounds": [
+        69,
+        51,
+        188,
+        183
+      ],
+      "whiteCoverage": 0.0025708478691289613,
+      "coloredMaterialCoverage": 0.9829363985076828
+    },
+    {
+      "layer": "impact",
+      "frame": 5,
+      "sha256": "514d1cf81ee36b271acc5345b284e1c258007f24f9634d388b0c4320fd0022c4",
+      "bounds": [
+        72,
+        53,
+        186,
+        183
+      ],
+      "whiteCoverage": 0.01324688369704362,
+      "coloredMaterialCoverage": 0.9630212561882356
+    },
+    {
+      "layer": "residue",
+      "frame": 0,
+      "sha256": "fc41bb6c6f193fcf20a651cd5d8df5966f75e29712d639621fe793b5b034ce99",
+      "bounds": [
+        69,
+        65,
+        190,
+        183
+      ],
+      "whiteCoverage": 0.010450159206208556,
+      "coloredMaterialCoverage": 0.9819001528769098
+    },
+    {
+      "layer": "residue",
+      "frame": 1,
+      "sha256": "62708296567a4b2b7d1d5ac2dc1277d3bbeb1e596419b77d0dceb80d0489fbea",
+      "bounds": [
+        69,
+        65,
+        190,
+        183
+      ],
+      "whiteCoverage": 0.010954866133768282,
+      "coloredMaterialCoverage": 0.9818466774339781
+    },
+    {
+      "layer": "residue",
+      "frame": 2,
+      "sha256": "0c739fb130fc70079bd690638c9102c6549c6e2526804f3a6575099da97ab9a2",
+      "bounds": [
+        69,
+        67,
+        190,
+        183
+      ],
+      "whiteCoverage": 0.010995675272216364,
+      "coloredMaterialCoverage": 0.9822592860906214
+    },
+    {
+      "layer": "residue",
+      "frame": 3,
+      "sha256": "e8b64da88e48f67e04b02f7ab836abd612434de58e6cf94d5b125789173c854b",
+      "bounds": [
+        69,
+        68,
+        190,
+        183
+      ],
+      "whiteCoverage": 0.011055688936722135,
+      "coloredMaterialCoverage": 0.9821625686453073
+    },
+    {
+      "layer": "residue",
+      "frame": 4,
+      "sha256": "1f6db178590002a56a0566762d7ee9d27cf95423849fd3a94a7894c892f31155",
+      "bounds": [
+        69,
+        69,
+        190,
+        183
+      ],
+      "whiteCoverage": 0.011169290954454012,
+      "coloredMaterialCoverage": 0.9819823168380313
+    },
+    {
+      "layer": "residue",
+      "frame": 5,
+      "sha256": "4147c1537a5be9aa8e895bd0a27598f9d3acfc405163587dce92f954c1cee7cd",
+      "bounds": [
+        70,
+        71,
+        190,
+        183
+      ],
+      "whiteCoverage": 0.010425704410656123,
+      "coloredMaterialCoverage": 0.9820857098155233
+    }
+  ],
+  "baselineCommit": "36509d1a8193791e79d7c5b1449d34e74e0038a6",
+  "unchangedResources": {
+    "xiantu-v2831-scroll/QA/actor-preview.png": "b3c98c7e6d02d911a08158a0f35ccab33eb85d6ad66bee1c7920f4823927c47f",
+    "xiantu-v2831-scroll/QA/v2854-skill-fx-contact.png": "37486f25cec59f715c0b2b08aca3011b240fe3c2fd81dcbcf703cd85b46fb0f2",
+    "xiantu-v2831-scroll/QA/v2855-skill-fx-contact.png": "69d788c2d5085f8e1a7443618d08eb36ca876129829b6836ea079dffe9dfc7ed",
+    "xiantu-v2831-scroll/QA/v2855-skill-fx-phone-contact.png": "97790bf172851e2eef5a954928a2e4dfa677872882c6aa01a33c5f83a0c69e74",
+    "xiantu-v2831-scroll/V27.84-breakthrough-preview.mp4": "b14edd3cf92b50fa1a4bd4c8455c1cec61f984f876cbd7808adcdbe081a2d590",
+    "xiantu-v2831-scroll/breakthrough-v2784-0.webp": "2f30dff823cae6a1b52bbd64ad93858f0e5ec6e52bfe2f165a1709251ab90441",
+    "xiantu-v2831-scroll/breakthrough-v2784-1.webp": "3b8d4093e26b9b1b6c19ce8b1963666c06a5546e393fc7329a2686882d20722d",
+    "xiantu-v2831-scroll/breakthrough-v2784-2.webp": "c579a2bf9bb15fae137ff5f2f9830ef58b478f767616f13712e84a562aca9e39",
+    "xiantu-v2831-scroll/duel-beasts-v286811.png": "98f0567dcc307f9fb4bb5977803718e154ce93f0349fa4f7b5a0448dfe784b1c",
+    "xiantu-v2831-scroll/duel-bosses-v286811.png": "838f09950b63c65e19895fb61f03ca791f3365e3b74e69ee8d32570da3378e9b",
+    "xiantu-v2831-scroll/duel-fighters-v286811.png": "7f5075aaab2974e96f8933935e682628dd5781a701c7faff18343c78b0ef838d",
+    "xiantu-v2831-scroll/duel-ink-poses-v28689.png": "7e708efbe5e5584abcd37bbbe1e72f380f24c65581c8e44e196895dbfa3a0c62",
+    "xiantu-v2831-scroll/duel-wings-v286811.png": "d0e2bb215d69d41af00bc1b393e7c43116e700621904d444fd1b0c3f368b254c",
+    "xiantu-v2831-scroll/hero-walk-v2838.webp": "9d41b8fa1900b58deff44506a933d4bd204ab5f7afff57c1efb49e0aaf4b7846",
+    "xiantu-v2831-scroll/ink-beasts-v2833.webp": "dcafc8907ec5b002ddaddf2ed2e3dea8b5c41ae3f48e31c8a5cfc249cacb7778",
+    "xiantu-v2831-scroll/ink-enemies-v2833.webp": "112a39b951cc457b5bcf1e66f89a5dba64edac342687ab75f6fb59a60e2621ee",
+    "xiantu-v2831-scroll/intro-v2860.mp4": "17ee8d4b16b7a9888c450abf55d988d3c3474a2f0f01dfb7b4b278ecc7c3a323",
+    "xiantu-v2831-scroll/monster-ape-v2853.webp": "e2b75db8a1516c12de615d879aba6bb684bfc8298046dc9760098dd490f6a8c4",
+    "xiantu-v2831-scroll/monster-bandit-v2853.webp": "74d849703e3c19bd2b049aacf0f416017f9521052a95dab12b87aa270cd30275",
+    "xiantu-v2831-scroll/monster-blood-elder-v2853.webp": "c5b806e28b82943d6d43b424f8506fde9fff278c0b840c9a629076453ce81495",
+    "xiantu-v2831-scroll/monster-celestial-guard-v2853.webp": "ad57d56bcce6de260cf66c41fa892762f5c5981c7c496b3242928cf5dfddc9a1",
+    "xiantu-v2831-scroll/monster-cultivator-v2853.webp": "8efc15609efa341ba0fdccf2d7d4e6273dfa062a1101291ff62fd89a9ac10db1",
+    "xiantu-v2831-scroll/monster-demon-general-v2853.webp": "2074bf24e8c5e5651ea48b6fa279d332cbf0dad62aaec1c9a9bf8027b4a0cc74",
+    "xiantu-v2831-scroll/monster-dragon-v2853.webp": "a1ec39cccf7ad03674c8b44dcb56c12c7e9134ada33b4ebfcac6438615dd6257",
+    "xiantu-v2831-scroll/monster-eagle-v2853.webp": "df673b0955c8aec565ade1fbb1c9bde3435e7b582e1511c7837779874fe002c5",
+    "xiantu-v2831-scroll/monster-fox-v2853.webp": "5375eda77dd3f36817153ec501c7a52d7b3022dc5bcf76ab137c4718ac5b6370",
+    "xiantu-v2831-scroll/monster-frost-wolf-v2853.webp": "394315c714ab66030dc1384571811f1a1b7ea6cdd638ae03da61882d4e308cc7",
+    "xiantu-v2831-scroll/monster-ghost-v2853.webp": "e1d428a093bda9db2df1be16d4785f388c8259620e1d952085fadf33124dbbf3",
+    "xiantu-v2831-scroll/monster-golem-v2853.webp": "6023dbdb19063cfc439997dddb419162e5788587b9c69ca98a0211510205d868",
+    "xiantu-v2831-scroll/monster-map-v2853.webp": "bb90c9600d5cb27360a2399b7f50e43660e05405be7204e7f5dbf4028df2a770",
+    "xiantu-v2831-scroll/monster-mist-lord-v2853.webp": "bd7a0d01f85b1ecaeb4e490593f0299e55431c48978883fb0037416c38a3f7fc",
+    "xiantu-v2831-scroll/monster-phoenix-v2853.webp": "f32c67965cbc5bc5e43571eef18fc0591f6fbb85834d4d3c5821535de141d9df",
+    "xiantu-v2831-scroll/monster-serpent-v2853.webp": "4595c2e9bcb01e0532fdcecc7bb404488de83e5ede11bd9ece056fcf9cdaeb06",
+    "xiantu-v2831-scroll/monster-small-beasts-v28682.png": "6a1729a3ff1676cd8f6205e2723b4c683c6bc351a0e5f16546972d1b21ca9d86",
+    "xiantu-v2831-scroll/monster-spider-v2853.webp": "b2ff5a50a3cbad14b4d76d40a82be7aa92fe10c533fc3af93b6c2a653834a6e9",
+    "xiantu-v2831-scroll/monster-tiger-v2853.webp": "69825436d2e5cd6e121a40124208b69ab1626d356f4aba00c62775750f9db410",
+    "xiantu-v2831-scroll/monster-treant-v2853.webp": "765993511b46d668dc6cc05015a7761dc5a2d4f4de5709cf68a3411327c5e911",
+    "xiantu-v2831-scroll/monster-war-spirit-v2853.webp": "e957e08a2aad9e1765426344e801b412df491625cb08310ef07725d4d6924c82",
+    "xiantu-v2831-scroll/monster-wolf-v2853.webp": "19c638148b18923562f64991f39ada05a889e0c25785d733536bbad3c611f90f",
+    "xiantu-v2831-scroll/portrait-jihongling.webp": "b262128ac2c67a2cecf86040664739bea028fcb23325ed6925958558044f0671",
+    "xiantu-v2831-scroll/portrait-luoqinghan.webp": "ace4fe928dc0c9a875a79f59f7fd10491f20a959034618d451d407facd93bd06",
+    "xiantu-v2831-scroll/portrait-suwanqing.webp": "54e8b43589075fe837d909023c0e092b508f5342c075e2e89670f970812a1c73",
+    "xiantu-v2831-scroll/portrait-yewuji-v2810.webp": "0a28729508f690c3713f749c98bee7a1d40af5aefdd9fc720d83f4a89074c412",
+    "xiantu-v2831-scroll/region-buildings-v2835.webp": "12f850f12467345c81de3d4a8fe42d57742851f5f98d74c9898d181258c800b4",
+    "xiantu-v2831-scroll/scroll-buildings-v2832.webp": "c8392eb7b967849417e7fafcd8f5ec62abeadb02e0ae0fc50e1d56ea98445288",
+    "xiantu-v2831-scroll/scroll-landscape-v2831.webp": "695c86355e7336a0343bbb2fa571b13eba96baadcfc8951a8920be1b270cfe34",
+    "xiantu-v2831-scroll/scroll-palace-v2831.webp": "0db8ec87b08a0893174a23d830bc48ae5fbcaa9ae08d87163cc8ed7c1fb0aa73",
+    "xiantu-v2831-scroll/scroll-regions-v2834.webp": "fc4bb78ba68c35e7f6d253e106f7b27729f0a85cb1501f86c5e1d4d9422cd925",
+    "xiantu-v2831-scroll/story-arena-v286829.webp": "b5b530d0b5865ac50efb8ef226fa7061221cde9fa16ebe8c6fea9bfa80d3b098",
+    "xiantu-v2831-scroll/story-bridge-v286829.webp": "f7c124cbad7371935382e38ca0486eb37ee3d2ffffbf908d5c0d54ffcb9ad7d4",
+    "xiantu-v2831-scroll/story-camp-v286829.webp": "49f13a38e23a7986453a732e4543b3abd3146e7c59d70ee614f3223b41ea8bf9",
+    "xiantu-v2831-scroll/story-cloud-v286829.webp": "311d9523da043a01a420cbb2e4b249d53c6b03a453fcfb930ad5ad935179215a",
+    "xiantu-v2831-scroll/story-forbidden-v286829.webp": "0ad63012c8bbe47b1e0e64b964f4041849fdd926a0183163aeff50c97e8686e8",
+    "xiantu-v2831-scroll/story-forest-v286829.webp": "3c09fce8df355a532ca16a94a867a06111dab3cbf602a3cae9af421ba36c8059",
+    "xiantu-v2831-scroll/story-frontier-v286829.webp": "c32f51d9073f80836e89f6c3cfd7d09d9929ec57017ae15e4429382c4b1aa0f2",
+    "xiantu-v2831-scroll/story-lamp-ledger-v286828.webp": "87fca48b786e84e4a40a655725b2df7bbaff32fa0198d0b1a1ccd533a6e62160",
+    "xiantu-v2831-scroll/story-mirror-v286829.webp": "f3969321bde27fe9899bd079a657aaad057da36c1f92048f4248973401141087",
+    "xiantu-v2831-scroll/story-pass-v286829.webp": "c98882a9036b7fe6c34af5c77ef27ee2962ca4b11e389a152e89937eb410ddfc",
+    "xiantu-v2831-scroll/story-pharmacy-v286829.webp": "5c9962a534533bdd2bf36b1e2bc0970be890e420d9a311420074330c247c5bba",
+    "xiantu-v2831-scroll/story-platform-v286829.webp": "2bc70c4c64341a7a25c67d2ce95d9f7a85881e5719c982964be913b20b8406b7",
+    "xiantu-v2831-scroll/story-rain-dock-v286828.webp": "61e94f61953d60b32443f38e538a664e2ccfa6544f8f50a0588aa3cdaa17f07b",
+    "xiantu-v2831-scroll/story-sect-v286829.webp": "7e4740a8afe065444989140c6088873a68094d846ea532cc9ae5538db4292981",
+    "xiantu-v2831-scroll/story-snow-v286829.webp": "c3715bb2c9ccdc3fa4ad8057980e53555a4e3693d2f4e0c1f861a129283f3158",
+    "xiantu-v2831-scroll/story-suspension-v286829.webp": "a9600b78cec49f5f5bf581a4b7fc46a178fbcdf193fa2e2a38b9c2a8f177b3d5",
+    "xiantu-v2831-scroll/story-thunder-fleet-v286828.webp": "f4c5e68079ff9ec8d5d818efe85a8f6da453887a890fc9adda3c2dcddb6411ed",
+    "xiantu-v2831-scroll/story-tide-gate-v286828.webp": "00bcd3b97de2b07b018069d5c928e50ca4a8929f060e55b9e8275ff8caffc856",
+    "xiantu-v2831-scroll/v2762-apple-touch-icon.png": "323ec4f19cedcdb02e5cec5e35cbca80cf4cd8eb55041e9684a83a07767851be",
+    "xiantu-v2831-scroll/v2762-asset-enemy-ancient-ape.webp": "0b684cf630316b9080359824449dbe8eae4c3ce2d4510f1f4354776a72316182",
+    "xiantu-v2831-scroll/v2762-asset-enemy-bandit.webp": "4b26330d0d0e0e6bbe195cead72fb9cabf9babff11a953aa0a8aea200d2111cf",
+    "xiantu-v2831-scroll/v2762-asset-enemy-blood-demon-ancestor.webp": "00452c20c5a4000c84d4dfa63f5c79a11b78458ac15232b5910899bfcbcb3402",
+    "xiantu-v2831-scroll/v2762-asset-enemy-demon-beast.webp": "5ee7c906238c59b5688b73ddbfd77c760b16635f5a24a1bc7919cc09371a3671",
+    "xiantu-v2831-scroll/v2762-asset-enemy-demon-cultivator.webp": "2f12485df615999a7bec391897dc17626852ff715c0b3992de50dc2487068626",
+    "xiantu-v2831-scroll/v2762-asset-enemy-evil-cultivator.webp": "8715bad120be503a4a5163ce2c4aa8a60f2e219bc091916a54bc9a516802bc2f",
+    "xiantu-v2831-scroll/v2762-asset-enemy-fire-phoenix-cub.webp": "72e594f619b725727544ccb056c4a33590783f237ba02375f8fc5dcbae4f527c",
+    "xiantu-v2831-scroll/v2762-asset-enemy-frost-wolf.webp": "b83fe68f580b39689021669cbbe8c9cea32dd0b9650fb56eb2dc3905ccab5c22",
+    "xiantu-v2831-scroll/v2762-asset-enemy-generic-beast.webp": "a15cab2d171782e71adbefbf3f343d52602771cda0e708e56819898976b713e6",
+    "xiantu-v2831-scroll/v2762-asset-enemy-generic-female.webp": "ed013078d2ce27a8ae2cb6d0d2b64e59c97d1248224521ba7aa23d730d736cec",
+    "xiantu-v2831-scroll/v2762-asset-enemy-generic-male.webp": "8ece30df9c461793f6ac0d8e7e10ae180853aad55998298a451670cbd8798076",
+    "xiantu-v2831-scroll/v2762-asset-enemy-ghost-general.webp": "4135a4ce1fa5c0c28cb9ffe4cade6dfb69e36c3531b11f76f35b24187e367fc7",
+    "xiantu-v2831-scroll/v2762-asset-enemy-ice-dragon-cub.webp": "f876265b0fb2372713a3d90ebcddc7a2693e8c73fd32e329bfa310c6ff85e44e",
+    "xiantu-v2831-scroll/v2762-asset-enemy-ice-dragon.webp": "7c101b401c4590b083cb45d4bf1f122ba7bc67cd9de4e8e0fcc96ec178e617e7",
+    "xiantu-v2831-scroll/v2762-asset-enemy-mist-lord.webp": "78a4f222afa935ac07f629b8e7b9bdbb1cafc170b786a8475d4029a1c31f1d21",
+    "xiantu-v2831-scroll/v2762-asset-enemy-nether-ghost-king.webp": "151963c4a7f3f30d0485d9a6aca9f2e303154cd54956dad850a375e6906370fa",
+    "xiantu-v2831-scroll/v2762-asset-enemy-nether-ghost.webp": "72cfad38a2e2dc86b6da4b7e737335d07348cbee12af7a4eece7da8fd547e532",
+    "xiantu-v2831-scroll/v2762-asset-enemy-nine-tailed-fox.webp": "25c12ba2d56c6db858b2e69b3bd3c315c2a56946ab29e9ba4c5cafcaa33c7af6",
+    "xiantu-v2831-scroll/v2762-asset-enemy-sect-trial-guard.webp": "882b047855a57b43aa7c3c8379541b0d6bc12af319f90fea0d063b483365cae6",
+    "xiantu-v2831-scroll/v2762-asset-enemy-shadow-wolf.webp": "83fb17cada018950cf38240383aca0355e094d5ebf4486354f2ac4644a97d5c3",
+    "xiantu-v2831-scroll/v2762-asset-enemy-thunder-eagle.webp": "d4e05af05733a41bba3467343f4878cb11b2a186176d68f4a03cb9fc84135185",
+    "xiantu-v2831-scroll/v2762-asset-enemy-war-god-spirit.webp": "91ceda8e9e615f3c9f796234ec7ff609c3f716cd3fac9508f6fb67dbfac059bf",
+    "xiantu-v2831-scroll/v2762-asset-enemy-wolf.webp": "efe0bf4cba80cf57dc78506cc14b5d57111da09c8741def959be5cc160486125",
+    "xiantu-v2831-scroll/v2762-asset-protagonist.webp": "605813f7fcd6718cd0fb7ac92b778b96f516a7f20ab1220ecb8f34ae16ccd265",
+    "xiantu-v2831-scroll/v2762-icon-192.png": "b5adbd50e17014f15e14fc44dcf3abcc8b517314fb0d285dda2ae5f6f8492de8",
+    "xiantu-v2831-scroll/v2762-icon-512.png": "1b7257b7a489a669782cb689aaa5afc777434887d15506c694190c32861c86b6",
+    "xiantu-v2831-scroll/v2762-icon.svg": "bf4492de15d063e73567fc3833dfe9e075e76394fe19006e135c01e5a8656c74"
+  }
+}

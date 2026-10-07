@@ -215,7 +215,13 @@ function create(host,read,enemyKey='wolf'){
   raf=requestAnimationFrame(draw);
  }
  function wake(){if(!dead&&!document.hidden&&!raf){last=performance.now();raf=requestAnimationFrame(draw);}}
- function visibility(){if(document.hidden){cancelAnimationFrame(raf);raf=0;}else wake();}
+ function visibility(){if(document.hidden){
+  cancelAnimationFrame(raf);raf=0;
+  // Solar one-shots expire on backgrounding instead of replaying a frozen burst
+  // on return. This drops presentation records only; damage is already engine-owned.
+  if(attack?.name==='太阳真火')attack=null;
+  queue=queue.filter(a=>a.name!=='太阳真火');tails=tails.filter(a=>a.name!=='太阳真火');
+ }else wake();}
  function destroy(){if(dead)return;dead=true;attack=null;queue=[];tails=[];hits=[];floats=[];cancelAnimationFrame(raf);raf=0;document.removeEventListener('visibilitychange',visibility);stage.remove();canvas.width=canvas.height=1;bg.width=bg.height=1;host.classList.remove('duel25-active');if(host.id==='combatArena')document.getElementById('combatPanel')?.classList.remove('duel25-panel');}
  document.addEventListener('visibilitychange',visibility);wake();
  function act(side,element,name='',enhance=false){
@@ -272,4 +278,4 @@ if(typeof window.startCombat==='function'){
 }
 
 })();
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.29';
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.30';

@@ -1,4 +1,4 @@
-# 仙途 V28.68.29
+# 仙途 V28.68.30
 
 静态网页修仙游戏。网站目录沿用 `xiantu-v2831-scroll`，云函数源码在 `tencent-jev-function`。
 
@@ -14,11 +14,15 @@ npm test
 npm run test:browser
 ```
 
-`npm test` 运行选定的 34 个当前功能回归脚本与限流测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
+`npm test` 运行选定的 35 个当前功能回归脚本与限流测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
 
 浏览器测试覆盖恶意存档拒绝且原主档/备份不变、正常导入与刷新恢复、360/390/430/1366px 导航入口可达性、预加载去重与版本错误提示。外部请求被拦截，不调用付费服务。已有 Chromium 的云环境可使用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`。
 
 有本地测试 Redis 时，运行 `python3 scripts/test-redis.py`；默认连接 127.0.0.1:6379，可用 `REDIS_TEST_PORT` 改端口。仅操作随机前缀测试键，退出时清理。GitHub Actions 使用独立 Redis 服务自动执行此项。
+
+## V28.68.30 太阳真火
+
+新增太阳真火透明序列帧，按凝阳、逐日、日焰爆发与余烬四阶段接入现有命中事件。独立预览页为 `solar-fire-preview.html`，试剑坪支持直接选择本技能。耗蓝、伤害、灼烧与存档语义沿用原逻辑，无需更新 Jev。验收说明见 `docs/solar-fire-v286830.md`。
 
 ## V28.68.29 正式主线插画
 

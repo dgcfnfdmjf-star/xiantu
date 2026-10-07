@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "effects": [
+    {
+      "key": "solar_true_fire",
+      "name": "太阳真火",
+      "element": "fire",
+      "visualArchetype": "projectile",
+      "layers": {
+        "telegraph": {
+          "file": "solar_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 32,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "solar_body.png",
+          "frames": 8,
+          "frameWidth": 192,
+          "frameHeight": 192,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 32,
+          "loop": true,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "solar_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.65,
+          "fps": 34,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "solar_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.65,
+          "fps": 17,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 42,
+      "timing": {
+        "defaultArrival": 310,
+        "anticipationFraction": 0.35,
+        "impactMs": 180,
+        "aftermathMs": 540,
+        "transitionMs": 60,
+        "missedFadeMs": 150
+      },
+      "display": {
+        "body": 128,
+        "telegraph": 205,
+        "impact": 350,
+        "residue": 350
+      },
+      "preview": {
+        "displayMode": "projectile",
+        "motion": "travel",
+        "durationMs": 850,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0,
+            "end": 0.16,
+            "anchor": "origin",
+            "width": 205,
+            "height": 205,
+            "fadeOut": 0.22
+          },
+          "body": {
+            "start": 0,
+            "end": 0.36470588235294116,
+            "anchor": "moving",
+            "width": 128,
+            "height": 128
+          },
+          "impact": {
+            "start": 0.36470588235294116,
+            "end": 0.5764705882352941,
+            "anchor": "target",
+            "width": 350,
+            "height": 350,
+            "fadeOut": 0.3333333333333333
+          },
+          "residue": {
+            "start": 0.5058823529411764,
+            "end": 1,
+            "anchor": "target",
+            "width": 350,
+            "height": 350,
+            "fadeIn": 0.14285714285714285,
+            "fadeOut": 0.25
+          }
+        }
+      },
+      "acceptance": [
+        "Fixed-size solar body; no additional hits or RNG",
+        "Impact requires the existing hit event; locked target ground",
+        "Shared ground pivot and complementary impact/residue opacity",
+        "All layers expire, including misses and reduced-motion mode"
+      ]
+    }
+  ]
+}

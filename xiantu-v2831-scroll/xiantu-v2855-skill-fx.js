@@ -5,6 +5,9 @@
   const palettes={sword:['#a7d5cf','#f5e7b4','#284d50'],heal:['#8dbfa0','#f6e4b0','#31594b'],ice:['#b6d7e0','#eff5dd','#3b6578'],fire:['#d88b57','#f8dda3','#824b43'],thunder:['#b9adcf','#f8e6bc','#595075'],earth:['#bda674','#f3deaa','#685b45'],spear:['#dfc48a','#fff2c9','#61553c'],dark:['#b9a4be','#ddc8cb','#564757'],blood:['#c77678','#f3cab0','#723e4c'],spirit:['#a6c9b9','#e8e5bd','#3b5b55']};
   const styles={御剑术:'blade',清风剑诀:'blade',剑气纵横:'fan',万剑归宗:'rain',天地一剑:'great',破甲剑罡:'pierce',追魂一剑:'pierce',饮血剑诀:'return',玄罡护体剑:'guardblade',镇岳山河震:'mountain',穿云贯日:'lance',凝露诀:'dew',治愈术:'dew',回春术:'dew',灵泉归元:'spring',青莲护心:'lotus',生生不息:'lotus',莲华济世:'lotus',逆命回元:'revive',起死回生:'revive'};
   const forms={'九霄雷云':'storm','雷法':'bolt','惊雷闪':'dart','裂地奔雷':'ground','紫霄落雷':'bolt','万雷噬狱':'cage','九天神雷':'storm','闪电链':'chain','雷神附体':'armor','雷神附体·反噬':'bolt','无音神雷':'silent','寒冰掌':'frost','冰封千里':'field','绝对零度':'prison','玄冰刺':'icicle','冰爆术':'burst','霜寒结界':'field','冰蝶幻舞':'butterfly','霜龙吐息':'breath','冰河葬狱':'prison','寒渊领域':'field','冰甲护身':'armor','冰魄封魂':'seal','万载寒晶':'crystal','烈焰斩':'slash','焚天烈焰':'pillar','天火焚世':'meteor','炎爆术':'burst','红莲业火':'lotus','火墙术':'wall','三昧真火':'triple','赤焰龙息':'breath','焚心炎':'heart','燎原火域':'field','太阳真火':'sun','流火飞索':'bind','炎阳护盾':'armor'};
+  // BEGIN SOLAR GENERATED CONFIG
+  const SOLAR = {"key":"solar_true_fire","name":"太阳真火","element":"fire","visualArchetype":"projectile","layers":{"telegraph":{"file":"solar_telegraph.png","frames":4,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.5,"fps":32,"loop":false,"holdLast":false},"body":{"file":"solar_body.png","frames":8,"frameWidth":192,"frameHeight":192,"pivotX":0.5,"pivotY":0.5,"fps":32,"loop":true,"holdLast":false},"impact":{"file":"solar_impact.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.65,"fps":34,"loop":false,"holdLast":false},"residue":{"file":"solar_residue.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.65,"fps":17,"loop":false,"holdLast":false}},"scale":1,"offsetX":0,"offsetY":0,"trailLength":42,"timing":{"defaultArrival":310,"anticipationFraction":0.35,"impactMs":180,"aftermathMs":540,"transitionMs":60,"missedFadeMs":150},"display":{"body":128,"telegraph":205,"impact":350,"residue":350},"preview":{"displayMode":"projectile","motion":"travel","durationMs":850,"distance":233,"layers":{"telegraph":{"start":0,"end":0.16,"anchor":"origin","width":205,"height":205,"fadeOut":0.22},"body":{"start":0,"end":0.36470588235294116,"anchor":"moving","width":128,"height":128},"impact":{"start":0.36470588235294116,"end":0.5764705882352941,"anchor":"target","width":350,"height":350,"fadeOut":0.3333333333333333},"residue":{"start":0.5058823529411764,"end":1,"anchor":"target","width":350,"height":350,"fadeIn":0.14285714285714285,"fadeOut":0.25}}},"acceptance":["Fixed-size solar body; no additional hits or RNG","Impact requires the existing hit event; locked target ground","Shared ground pivot and complementary impact/residue opacity","All layers expire, including misses and reduced-motion mode"]};
+  // END SOLAR GENERATED CONFIG
   let quality='auto';try{const v=localStorage.getItem(KEY);if(['auto','rich','light'].includes(v))quality=v}catch(_){}
   let canvas=null,ctx=null,jobs=[],raf=0,timer=0,lastFrame=-Infinity,serial=0,observer=null,finishUntil=0;
   const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)),lerp=(a,b,t)=>a+(b-a)*t;
@@ -20,6 +23,73 @@
     const light=quality==='light'||(quality==='auto'&&(mobile||low||cinemaLight));
     return {reduced,light,fps:light?24:30,pixels:light?400000:900000,dpr:light?1:1.5};
   }
+  const solarTextures=new Map();
+  function prepareSolar(){
+    for(const [name,layer] of Object.entries(SOLAR.layers)){
+      if(solarTextures.has(name))continue;
+      const image=new Image(),entry={image,ready:false,failed:false};solarTextures.set(name,entry);
+      image.decoding='async';
+      image.onload=()=>{entry.ready=image.naturalWidth===layer.frameWidth*layer.frames&&image.naturalHeight===layer.frameHeight;entry.failed=!entry.ready;};
+      image.onerror=()=>{entry.ready=false;entry.failed=true;};
+      image.src='./solar-fire-v286830/'+layer.file;
+    }
+  }
+  function solarReady(){return solarTextures.size===4&&[...solarTextures.values()].every(t=>t.ready&&!t.failed)}
+  // One pure sample powers the game Canvas and the DOM resource preview. Only an
+  // acknowledged hit can create a target-ground layer; all clocks are visual.
+  function solarSample(j,age){
+    if(age<0||age>=j.duration)return [];
+    const hit=Number.isFinite(j.hitAt)?j.hitAt:null;
+    const arrive=Math.max(1,hit??j.arriveAt??SOLAR.timing.defaultArrival);
+    const start=arrive*SOLAR.timing.anticipationFraction;
+    const g=groundAnchors(j),s=(j.scale||1)*SOLAR.scale,parts=[];
+    const add=(layer,anchor,pos,progress,opacity,size,rotation=0)=>{
+      if(opacity<=0)return;
+      const spec=SOLAR.layers[layer];
+      const frame=j.reduced?Math.min(2,spec.frames-1):layer==='body'?Math.floor(age*spec.fps/1000)%spec.frames:Math.min(spec.frames-1,Math.floor(clamp(progress)*spec.frames));
+      parts.push({layer,anchor,x:pos.x+SOLAR.offsetX*s,y:pos.y+SOLAR.offsetY*s,
+        width:size*s,height:size*s,pivotX:spec.pivotX,pivotY:spec.pivotY,frame,
+        opacity:clamp(opacity),rotation:j.reduced?0:rotation});
+    };
+    if(hit===null||age<hit){
+      const travel=j.reduced?0:clamp((age-start)/Math.max(1,arrive-start));
+      const pos=point(j.from,j.to,travel);
+      const missFade=hit===null?clamp((arrive+SOLAR.timing.missedFadeMs-age)/SOLAR.timing.missedFadeMs):1;
+      const ringEnd=start+Math.min(28,arrive-start);
+      if(!j.reduced&&age<ringEnd)add('telegraph','origin',j.from,age/ringEnd,clamp((ringEnd-age)/28),SOLAR.display.telegraph);
+      add('body',j.reduced?'origin':'moving',pos,0,missFade*clamp(age/40,.35,1),SOLAR.display.body);
+    }else{
+      const elapsed=age-hit,end=SOLAR.timing.impactMs,transition=SOLAR.timing.transitionMs;
+      if(elapsed>=SOLAR.timing.aftermathMs)return [];
+      const blend=clamp((elapsed-(end-transition))/transition);
+      if(elapsed<end)add('impact','target',g.to,elapsed/end,1-blend,SOLAR.display.impact);
+      if(elapsed>=end-transition){
+        const progress=(elapsed-(end-transition))/(SOLAR.timing.aftermathMs-(end-transition));
+        add('residue','target',g.to,progress,blend*clamp((SOLAR.timing.aftermathMs-elapsed)/100),SOLAR.display.residue);
+      }
+    }
+    return parts;
+  }
+  function drawSolar(c,j,age){
+    prepareSolar();if(!solarReady())return false;
+    const parts=solarSample(j,age);
+    c.save();c.beginPath();c.rect(0,0,j.width,j.clipBottom);c.clip();c.globalCompositeOperation='source-over';
+    for(const part of parts){
+      // Short connector follows the current body, never a second solar silhouette.
+      if(part.layer==='body'&&!j.reduced&&part.x!==j.from.x){
+        const dx=part.x-j.from.x,dy=part.y-j.from.y,len=Math.hypot(dx,dy),tail=Math.min(SOLAR.trailLength*(j.scale||1),len);
+        for(let i=0;i<(j.light?1:3);i++){
+          const offset=(i-(j.light?0:1))*4;
+          path(c,[{x:part.x-dx/len*tail,y:part.y-dy/len*tail+offset},{x:part.x-dx/len*tail*.4,y:part.y+offset*.6},{x:part.x,y:part.y}],i===0?'#ea7217':'#ffb847',i===0?2:1,part.opacity*.6);
+        }
+      }
+      const spec=SOLAR.layers[part.layer],texture=solarTextures.get(part.layer).image;
+      c.save();c.translate(part.x,part.y);c.rotate(part.rotation);c.globalAlpha=part.opacity;
+      c.drawImage(texture,part.frame*spec.frameWidth,0,spec.frameWidth,spec.frameHeight,
+        -part.width*part.pivotX,-part.height*part.pivotY,part.width,part.height);c.restore();
+    }
+    c.restore();return true;
+  }
   function profile(name,element='',info=null,source='active'){
     name=String(name||'灵力冲击');
     if(!info&&typeof SKILLS!=='undefined')info=SKILLS.find(s=>s.name===name)||null;
@@ -27,6 +97,7 @@
     if(name==='镇岳山河震')family='earth';if(name==='穿云贯日')family='spear';
     if(!palettes[family])family='spirit';
     let kind=styles[name]||forms[name]||({sword:'blade',heal:'dew',ice:'breath',fire:'burst',thunder:'bolt',dark:'wave',blood:'wave',spirit:'wave',earth:'ground',spear:'lance'}[family]);
+    if(kind==='sun')prepareSolar();
     const self=family==='heal'||kind==='armor'||!!(info&&Number(info.damage)===0&&/护|甲|附体/.test(name));
     const tier=/天地|万剑|万载|九天|天火|太阳|绝对|灭世|济世/.test(name)?3:info?.damage>=2.5||/领域|雷云|结界|龙息|千里/.test(name)?2:1;
     return {name,family,kind,self,tier,source,palette:name==='天地一剑'?['#dccc93','#fff0c4','#595335']:palettes[family],guard:!!info?.guardRatio||kind==='guardblade'||/护心|济世/.test(name)};
@@ -108,6 +179,7 @@
   function groundAnchors(j){return {from:j.fromGround||{x:j.from.x,y:j.from.y+30*(j.scale||1)},to:j.toGround||{x:j.to.x,y:j.to.y+30*(j.scale||1)}}}
   function drawGround(c,j,age){
     const state=sample(j,age);if(!state.visible)return;
+    if(j.profile.kind==='sun'&&solarReady())return; // Solar plates own their single foot ring.
     const p=j.profile,pal=p.palette,s=j.scale||1,g=groundAnchors(j),fade=clamp((j.duration-age)/260);
     const groundKind=['field','prison','seal','crystal','meteor','pillar','wall','ground','mountain','lotus'].includes(p.kind);
     c.save();c.beginPath();c.rect(0,0,j.width,j.clipBottom);c.clip();
@@ -122,6 +194,7 @@
   function draw(c,j,age){
     const p=j.profile,pal=p.palette,from=j.from,to=j.to,s=j.scale||1,light=j.light;
     const state=sample(j,age);if(!state.visible)return;
+    if(p.kind==='sun'&&drawSolar(c,j,age))return;
     const duration=j.duration,fade=clamp((duration-age)/260),cast=clamp(age/170),hit=j.hitAt;
     const {arrive,travel,struck,burst}=state,flightAlpha=state.flight,g=groundAnchors(j);
     if(!j.groundDrawn)drawGround(c,j,age);
@@ -270,7 +343,7 @@
     if(opt.reduced){if(raf)cancelAnimationFrame(raf);raf=0;ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,box.width,box.height);draw(ctx,job,200)}else if(!raf)raf=requestAnimationFrame(frame);
     return true;
   }
-  function hit(side){for(const j of jobs){if(j.profile.self||j.hitAt!==null||j.side===side)continue;const age=now()-j.started;if(age<600)j.hitAt=Math.max(120,age)}}
+  function hit(side){for(const j of jobs){if(j.profile.self||j.hitAt!==null||j.side===side)continue;const age=now()-j.started;if(age<600){j.hitAt=Math.max(120,age);if(j.reduced&&j.profile.kind==='sun'&&ctx){ctx.setTransform(j.ratio,0,0,j.ratio,0,0);ctx.clearRect(0,0,j.width,j.height);for(const active of jobs)draw(ctx,active,Math.max(now()-active.started,active.hitAt??0));}}}}
   function sync(){const btn=D.getElementById('inkFxQualityV2854');if(btn){btn.textContent='特效：'+(settings().reduced?'静态':({auto:'自动',rich:'精致',light:'省电'}[quality]));btn.setAttribute('aria-label',btn.textContent+'，点击切换');}}
   function cycle(){quality={auto:'rich',rich:'light',light:'auto'}[quality];try{localStorage.setItem(KEY,quality)}catch(_){}clear();sync()}
   function install(){
@@ -282,7 +355,8 @@
   // Presentation controls cancel visuals without touching the battle queue.
   for(const name of ['pauseVisualsV2767']){const base=W[name];if(typeof base==='function')W[name]=function(...args){clear();return base.apply(this,args)}}
   W.playInkSkillV2854=play;
-  W.InkSkillFxV2854={profile,draw,drawGround,sample,catalog:()=>[...new Set([...Object.keys(styles),...Object.keys(forms),...(typeof SKILLS!=='undefined'?SKILLS.map(s=>s.name):[])])].map(name=>profile(name)),play,hit,clear,finish,cinemaClear,install,cycle,settings,inspect:()=>({version:'28.68',quality,finishing:finishUntil>now(),active:jobs.length,raf:!!raf,pixels:canvas?canvas.width*canvas.height:0,jobs:jobs.map(j=>({name:j.profile.name,kind:j.profile.kind,family:j.profile.family,side:j.side,self:j.profile.self,hitAt:j.hitAt,from:{...j.from},to:{...j.to}}))})};
+  const solar={definition:SOLAR,prepare:prepareSolar,ready:solarReady,sample:solarSample};
+  W.InkSkillFxV2854={profile,draw,drawGround,sample,solar,catalog:()=>[...new Set([...Object.keys(styles),...Object.keys(forms),...(typeof SKILLS!=='undefined'?SKILLS.map(s=>s.name):[])])].map(name=>profile(name)),play,hit,clear,finish,cinemaClear,install,cycle,settings,inspect:()=>({version:'28.68',quality,finishing:finishUntil>now(),active:jobs.length,raf:!!raf,pixels:canvas?canvas.width*canvas.height:0,jobs:jobs.map(j=>({name:j.profile.name,kind:j.profile.kind,family:j.profile.family,side:j.side,self:j.profile.self,hitAt:j.hitAt,from:{...j.from},to:{...j.to}}))})};
   install();
 })();
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2855-skill-fx.js']='28.68.29';
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2855-skill-fx.js']='28.68.30';
