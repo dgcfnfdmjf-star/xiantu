@@ -1,4 +1,16 @@
-## 最新完整游戏包：V28.68.13
+## 最新完整游戏包：V28.68.14
+
+[下载 xiantu-v2868.14-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.14-game-folder.zip)
+
+立绘战场接入剑阵、落雷、冰晶、天火、治疗等技能专属特效，对齐出招、命中与跳字；保持技能数值与存档格式。完整包126个运行文件，解压后仍为 `xiantu-v2831-scroll`。未部署腾讯云；Jev无需更新。私有仓库请登录有权限的GitHub账号下载。
+
+24个游戏回归脚本、3项限流测试、7项浏览器测试通过；另已在手机尺寸浏览器检查实际战斗技能命中反馈与帧间隔。详情见 [修复与验证记录](skill-duel-fx-v286814.md)。
+
+SHA-256：`265355c1c40ed5cbe02b6bb6dbfc188fadad258b87f9bc8e4ee470c4025a2167`
+
+---
+
+## 历史完整游戏包：V28.68.13
 
 [下载 xiantu-v2868.13-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.13-game-folder.zip)
 
