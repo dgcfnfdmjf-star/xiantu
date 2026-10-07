@@ -1,5 +1,5 @@
 const fs=require('fs'),a=require('assert'),fixture=require('./dom-fixture.cjs');
-const root=process.env.XIANTU_TEST_ROOT||'release-v2838/xiantu-v2831-scroll';
+const root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..');
 function game(){const f=fixture(root);const h=fs.readFileSync(root+'/game-v2762.html','utf8');for(const file of JSON.parse(h.match(/var files=(\[[^;]+\]);/)[1]))f.load(file);f.run('startGame()');f.timers.clear();return f;}
 function finishScene(f){let n=0;while(f.run('!!sceneSessionV2838')){a(n++<10);f.run('advanceSceneV2838(1)')}}
 (async()=>{

@@ -119,7 +119,7 @@ function handleTutorialAction(action,stepId){
   if(action==='training'){tutorialState.compactStepId=null;return startTutorialTraining();}
   if(action==='equipment'){tutorialState.compactStepId=null;completeTutorialStep(stepId);closeTutorialBubble();showEquipmentPanel();setTimeout(()=>{showTutorialToast('📦 点【背包装备】，再点【布衣】即可穿戴',4600)},260);return}
   if(action==='tasks'){tutorialState.compactStepId=null;completeTutorialStep(stepId);closeTutorialBubble();showSectTasks();showTutorialToast('📜 接取差事后可查看【详细指引】与【任务追踪】',4300);setTimeout(()=>triggerTutorial('cultivation',true),1100);return}
-  if(action==='finish'){tutorialState.compactStepId=null;completeTutorialStep(stepId);closeTutorialBubble();hideTutorialSkipBtn();clearTutorialStepClasses();showTutorialToast('✅ 基础引路已完成。现在可以自由行走四域，更多内容可随时从【修行指引】查看。',4300);return}
+  if(action==='finish'){if(!firstJourneyV28687()&&player.level<2){player.firstJourneyV28687={step:0};const owner=player;setTimeout(()=>{if(player===owner&&forgeAllowedV2825())showFirstJourneyV28687()},600);}tutorialState.compactStepId=null;completeTutorialStep(stepId);closeTutorialBubble();hideTutorialSkipBtn();clearTutorialStepClasses();showTutorialToast('✅ 基础引路已完成。现在可以自由行走四域，更多内容可随时从【修行指引】查看。',4300);return}
 }
 function skipAllTutorial(){
   const t=ensureTutorialState();if(!t)return;if(!confirm('略过新手引路？基础说明仍可在【修行指引】中随时查看。'))return;
@@ -131,10 +131,21 @@ function skipAllTutorial(){
 function checkAndStartTutorial(force=false){const t=ensureTutorialState();if(!t)return;if(t.skipped&&!force){clearTutorialStepClasses();return}if(force&&t.skipped)t.skipped=false;if(t.completedSteps.length>=TUTORIAL_ORDER.length){clearTutorialStepClasses();return}const resume=t.activeStep&&TUTORIAL_STEPS[t.activeStep]?t.activeStep:TUTORIAL_ORDER.find(id=>!t.completedSteps.includes(id));if(resume){syncTutorialStage(resume);setTimeout(()=>triggerTutorial(resume,true),260)}}
 function restartTutorial(){const t=ensureTutorialState();t.skipped=false;t.completedSteps=[];t.activeStep=null;t.readPopups=t.readPopups.filter(x=>x!=='training_reward');tutorialState.compactStepId=null;closeHelpManual();closeTutorialBubble();syncTutorialStage('welcome');showTutorialSkipBtn();setTimeout(()=>triggerTutorial('welcome',true),180);autoSave?.()}
 
+// 手机交互按钮和桌面 E/空格共用同一教学完成判定。
+function handleTutorialInteractionV28685(){
+  if(tutorialState.currentStepId!=='interaction')return false;
+  const p=FLAT_WORLD.nearby;
+  if(p&&FLAT_WORLD.pois.includes(p)&&Math.hypot(FLAT_WORLD.player.x-p.x,FLAT_WORLD.player.y-p.y)<=p.r+62){
+    goTutorialNext('interaction','combat');showTutorialToast('✅ 已掌握地点交互。完成演武后将正式开放自由探索。',2400);
+  }else showTutorialToast('再靠近一个地点，进入它的外圈后按【交互】',2200);
+  return true;
+}
+{const original=window.interactFlatWorld;window.interactFlatWorld=function(...args){if(handleTutorialInteractionV28685())return;return original.apply(this,args);};}
+
 // 实际操作监听：移动、交互、第一击
 function installTutorialInteractionHooks(){
   const pad=document.getElementById('virtualJoystick');if(pad&&!pad.dataset.tutorialHook){pad.dataset.tutorialHook='1';let start=null;pad.addEventListener('pointerdown',e=>{start={x:e.clientX,y:e.clientY}},{passive:true});pad.addEventListener('pointermove',e=>{if(tutorialState.currentStepId!=='movement'||!start)return;if(Math.hypot(e.clientX-start.x,e.clientY-start.y)>16){start=null;goTutorialNext('movement','interaction');showTutorialToast('✅ 已掌握移动操作',1800)}},{passive:true})}
-  const action=document.getElementById('touchAction');if(action&&!action.dataset.tutorialHook){action.dataset.tutorialHook='1';action.addEventListener('click',e=>{if(tutorialState.currentStepId!=='interaction')return;e.preventDefault();e.stopImmediatePropagation();if(FLAT_WORLD?.nearby){goTutorialNext('interaction','combat');showTutorialToast('✅ 已掌握地点交互。完成演武后将正式开放自由探索。',2400)}else showTutorialToast('再靠近一个地点，进入它的外圈后按【交互】',2200)},true)}
+  const action=document.getElementById('touchAction');if(action&&!action.dataset.tutorialHook){action.dataset.tutorialHook='1';action.addEventListener('click',e=>{if(tutorialState.currentStepId!=='interaction')return;e.preventDefault();e.stopImmediatePropagation();handleTutorialInteractionV28685()},true)}
   document.addEventListener('click',e=>{if(tutorialState.currentStepId!=='combat_attack'||!currentEnemy?._isTutorial)return;const btn=e.target?.closest?.('#combatChoices .choice-btn');if(btn&&btn.textContent.includes('普通攻击')){completeTutorialStep('combat_attack');closeTutorialBubble();showTutorialToast('⚔️ 很好。继续战斗，击败演武傀儡。',2400)}},true)
 }
 
@@ -177,4 +188,69 @@ function installGuideEntry(){
 
 window.addEventListener('load',()=>setTimeout(()=>{installTutorialInteractionHooks();installGuideEntry();installTutorialTooltips()},650));
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-04-tutorial-guide-script.js"]="28.68";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-04-tutorial-guide-script.js"]="28.68.29";
+
+// 初入仙途：只突出下一步，奖励随进度一次性保存。
+function firstJourneyV28687(){
+  const raw=player.firstJourneyV28687;
+  if(!raw||typeof raw!=='object')return null;
+  raw.step=Math.max(0,Math.min(5,Math.floor(Number(raw.step)||0)));return raw;
+}
+function beginFirstJourneyV28687(){
+  if(!forgeAllowedV2825())return;
+  if(!firstJourneyV28687())player.firstJourneyV28687={step:0};
+  autoSave();showFirstJourneyV28687();
+}
+function syncFirstJourneyV28687(){
+  const host=document.querySelector('.world-hud-actions');if(!host)return;
+  let b=document.getElementById('firstJourneyV28687');
+  const s=firstJourneyV28687(),eligible=!!s||player.level<2;
+  if(!eligible){b?.remove();return;}
+  if(!b){b=document.createElement('button');b.id='firstJourneyV28687';b.onclick=beginFirstJourneyV28687;host.insertBefore(b,host.firstChild);}
+  const names=['弱敌试手','装备木剑','配置功法','山道挑战','查看来信','引导已完成'];
+  const label=s?`下一步 · ${names[s.step]}`:'初入仙途 · 开始引导';
+  if(b.textContent!==label)b.textContent=label;
+}
+function showFirstJourneyV28687(){
+  if(!forgeAllowedV2825())return;
+  document.getElementById('afterBattleV2838')?.remove();
+  const s=firstJourneyV28687();if(!s)return beginFirstJourneyV28687();
+  const descriptions=[
+    ['山脚试手','先对付山脚受伤的野狼，熟悉攻击与技能。此引导战气血40、攻击6；出发前会为你补满气血和灵力。','胜利获得木剑：攻击 +3、暴击 +1。','前往试手'],
+    ['让装备成为实力','木剑已放入装备背包。点击下方穿戴，让攻击加成立即生效；已有更好武器则保留。','完成后进入御剑术配置。','穿戴武器'],
+    ['让功法改变打法','御剑术消耗10灵力，造成1.5倍攻击伤害。配置后，战斗技能栏会展开兵刃系，方便找到它。','下一战试试御剑术，比较它与普通攻击的伤害。','配置御剑术'],
+    ['守住山道','这次面对山道壮狼：气血100、攻击12。出发前补满状态；建议使用御剑术。引导期间不会被游荡怪物突然拉入战斗。','胜利获得120灵石，并发现一封发往凌霄宗的密信。','挑战山道壮狼'],
+    ['雨夜来信','狼群散去，你在翻倒的货箱里发现一封带血的信。封口印着凌霄宗的云纹，信中却只有一句：“今夜，不要让药师上山。”落款旁，是你熟悉的一枚木牌印记。','接下来追寻主线人物；现有入世补助也可直接领取。','收好来信'],
+    ['初入仙途已完成','你已亲手完成试手、穿戴、功法配置与山道挑战。自由探索前，记得查看气血、灵力和当前主线。','继续主线会获得修为、装备和新的剧情。','查看当前任务']
+  ];
+  const [title,body,reward,action]=descriptions[s.step];
+  showStory(`<h3>初入仙途 · ${Math.min(s.step+1,5)}/5 · ${title}</h3><p>${body}</p><p style="color:#e5cf87">${reward}</p><button class="choice-btn" onclick="actFirstJourneyV28687(${s.step})">${action}</button><button class="choice-btn" onclick="closeWorldOverlay()">返回地图 · 稍后继续</button>${s.step>=4?'<button class="choice-btn" onclick="showRainChapterV286822()">追查来信 · 雨夜命牌案</button><button class="choice-btn" onclick="showEarlyEconomyV2773()">查看并领取入世补助</button>':''}<button class="choice-btn" onclick="leaveFirstJourneyV28687()">结束引导，自由探索</button>`,[]);
+}
+function leaveFirstJourneyV28687(){if(!forgeAllowedV2825())return;const s=firstJourneyV28687();if(s)s.paused=true;autoSave();closeWorldOverlay();showFloatingText('可从“下一步”继续引导。','#e5cf87');}
+function actFirstJourneyV28687(expected){
+  if(!forgeAllowedV2825())return;const s=firstJourneyV28687();if(!s||s.step!==expected)return;s.paused=false;
+  if(s.step===0||s.step===3){
+    if(s.step===3&&(!player.equipment.weapon||!getEquippedSkillNamesV212('sword').includes('御剑术'))){showFloatingText('请先装备武器并在功法配置中携带御剑术。','#ffd76a');if(!player.equipment.weapon)showEquipmentPanel();else showSkillLoadoutPanelV212('sword');return;}
+    player.hp=getMaxHp();player.mp=getMaxMp();autoSave();closeWorldOverlay();
+    const strong=s.step===3;startCombat({name:strong?'山道壮狼':'山脚受伤野狼',hp:strong?100:40,maxHp:strong?100:40,atk:strong?12:6,def:strong?5:1,gold:0,exp:0,_realmLevel:0,_realmPhase:0,_isTutorial:true,_isTaskBattle:true,_firstJourneyStepV28687:s.step});
+    if(strong){combatSkillUiV212.open=true;combatSkillUiV212.element='sword';updateCombatChoices();}
+    return;
+  }
+  if(s.step===1){
+    if(!player.equipment.weapon){if(!player.equipmentInventory.includes('木剑')){showFloatingText('木剑已不在背包，请先从装备栏穿戴一把武器。','#ffd76a');return;}if(!equipItem('木剑'))return;}
+    s.step=2;showFloatingText('武器已生效：木剑提供攻击+3、暴击+1；更好武器会保留。','#9fe6bd');
+  }else if(s.step===2){
+    if(!player.skills.some(x=>x.name==='御剑术'))player.skills.push({...SKILLS.find(x=>x.name==='御剑术')});
+    const slots=ensureSkillLoadoutV212().sword;if(!slots.includes('御剑术')){if(slots.length>=3){showFloatingText('兵刃系已携带3个技能，请换入御剑术，再回来继续。','#ffd76a');showSkillLoadoutPanelV212('sword');return;}slots.push('御剑术');}s.step=3;
+  }else if(s.step===4){s.step=5;s.letterRead=true;}
+  else {showTaskPanel();return;}
+  autoSave();updateStats();showFirstJourneyV28687();
+}
+function finishFirstJourneyBattleV28687(enemy){
+  const s=firstJourneyV28687(),step=enemy?._firstJourneyStepV28687;
+  if(!s||!enemy||enemy.hp>0||![0,3].includes(step)||s.step!==step)return;
+  if(step===0){if(!playerOwnsEquipment('木剑'))player.equipmentInventory.push('木剑');s.step=1;}
+  else {player.gold+=120;s.step=4;}
+  autoSave();const owner=player;
+  setTimeout(()=>{if(player===owner&&forgeAllowedV2825()){closeWorldOverlay();showFirstJourneyV28687();}},1800);
+}

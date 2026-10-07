@@ -1,0 +1,20 @@
+// Synthetic complete battles at each newly linked realm; no real saves or network.
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),a=require('node:assert/strict');
+const root=path.resolve(__dirname,'../xiantu-v2831-scroll'),f=require('../xiantu-v2831-scroll/QA/v2858-dom-fixture.cjs')(root);
+f.c.Math=Object.create(Math);f.c.console.log=()=>{};
+for(const n of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(n);
+f.run('startGame();closeWorldOverlay()');
+(async()=>{const rows=[];for(const loadout of ['starter','prepared'])for(let chapter=0;chapter<8;chapter++)for(const plan of ['none','guard','breach'])for(let seed=1;seed<=10;seed++){
+ let r=seed;f.c.Math.random=()=>((r=(Math.imul(r,1664525)+1013904223)>>>0)/4294967296);f.c.probeLoadout=loadout;f.c.probeChapter=chapter;f.c.probePlan=plan;
+ f.run(`resetRuntimeState();player=createDefaultPlayer();var j=JOURNEYS_V2838[probeChapter];player.level=j.level;player.phase=0;player.equipment={weapon:'木剑',robe:'布衣'};player.skills=[SKILLS.find(s=>s.name=== (probeLoadout==='prepared'?'万剑归宗':'御剑术'))];if(probeLoadout==='prepared'){const best={};for(const [name,d] of Object.entries(EQUIPMENT_DB)){if(!d.priceV2790||d.priceV2790>j.level*1000||!canEquipItem(name).ok||(d.slot==='weapon'&&d.weaponFamily!=='sword'))continue;const score=(d.stats?.atk||0)+(d.stats?.def||0)+(d.stats?.hp||0)/10;if(score>(best[d.slot]?.score||0))best[d.slot]={name,score};}for(const [slot,piece] of Object.entries(best))player.equipment[slot]=piece.name;}player.skillLoadoutInitializedV212=false;ensureSkillLoadoutV212();player.inventory=[];player.activePet=null;player.activeArtifact=null;player.hp=getMaxHp();player.mp=getMaxMp();ensureTaskState();player.tasks.active[j.id]={currentStep:1,progress:{investigationV286823:{clues:[0,1],plan:probePlan}}};gameState='exploring';initAchievements();startCombat(journeyEnemyV2838(j),false,false,null);if(probePlan==='guard')elementGuardsV286818.set(currentEnemy,{owner:player,pool:Math.floor(getMaxHp()*.12),turns:2})`);f.timers.clear();
+ let turns=0,mpSpent=0;
+ while(f.run("gameState==='combat'&&!COMBAT_FINISH_V2764.settling")&&turns<100){
+  a(f.run('isPlayerTurn'));const mp=f.run('player.mp');f.run("getCombatSkillAvailabilityV2769(0).ok?combat('skill',0):combat('attack')");mpSpent+=Math.max(0,mp-f.run('player.mp'));turns++;
+  for(let i=0;i<300&&!f.run("isPlayerTurn||gameState!=='combat'||COMBAT_FINISH_V2764.settling");i++){const next=[...f.timers].sort((x,y)=>x[1].delay-y[1].delay)[0];if(next){f.timers.delete(next[0]);next[1].f();}await Promise.resolve();}
+ }
+ a(turns<100);rows.push({loadout,chapter,plan,seed,turns,mpSpent,win:f.run('currentEnemy.hp<=0'),hp:f.run('player.hp')});
+}
+const groups=[];for(const loadout of ['starter','prepared'])for(let chapter=0;chapter<8;chapter++)for(const plan of ['none','guard','breach']){const g=rows.filter(r=>r.loadout===loadout&&r.chapter===chapter&&r.plan===plan),t=g.map(r=>r.turns).sort((a,b)=>a-b),n=g.length,w=g.filter(r=>r.win).length,p=w/n,z=1.96,d=1+z*z/n,mid=(p+z*z/(2*n))/d,half=z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n))/d;groups.push({loadout,chapter:chapter+1,plan,n,wins:w,wilson95:[Math.max(0,mid-half),Math.min(1,mid+half)],medianTurns:t[5],p95Turns:t[9],meanMpSpent:g.reduce((s,r)=>s+r.mpSpent,0)/n});}
+fs.mkdirSync(path.resolve(__dirname,'../output/balance'),{recursive:true});fs.writeFileSync(path.resolve(__dirname,'../output/balance/main23.json'),JSON.stringify({conditions:'480 complete seeded battles; eight chapter realms at phase0; starter: wooden sword/cloth robe and 御剑术; prepared: equippable pieces each priced <= realm*1000, sword weapon, 万剑归宗 (requires separately earning sect rank/contribution); synthetic default player, normal attack when unavailable; no medicine/pet/artifact; no manual speed changes; baseline no plan vs guard/breach, 10 seeds each. Tests conservative equipment and help effects, not natural cultivation or all-build win rate. Resource use: zero consumables.',groups,rows},null,2));console.log(JSON.stringify(groups));
+})().catch(e=>{console.error(e);process.exitCode=1});

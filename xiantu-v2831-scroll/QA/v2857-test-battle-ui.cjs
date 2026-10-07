@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),a=require('node:assert/strict'),fixture=require('./v2857-dom-fixture.cjs');
-const root=process.env.XIANTU_TEST_ROOT||'release-v2857/xiantu-v2831-scroll';
+const root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..');
 const scripts=JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]);
 function game(){const f=fixture(root);f.c.Math=Object.create(Math);f.c.Math.random=()=>.5;f.c.AbortController=AbortController;f.storage.set('xiantu_battle_presentation_v2756','report');for(const name of scripts)f.load(name);f.run("startGame();closeWorldOverlay();startCombat({name:'野狼',hp:50000,maxHp:50000,atk:2,def:2,gold:1,exp:1,_realmLevel:0,_realmPhase:0});player.hp=getMaxHp();player.mp=getMaxMp();");f.timers.clear();return f;}
 const f=game();

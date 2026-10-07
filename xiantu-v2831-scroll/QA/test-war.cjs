@@ -1,5 +1,5 @@
 const fs=require('fs'),a=require('assert'),fixture=require('./dom-fixture.cjs');
-const root=process.env.XIANTU_TEST_ROOT||'release-v2839/xiantu-v2831-scroll';
+const root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..');
 function game(){const f=fixture(root);f.c.Math=Object.create(Math);f.c.Math.random=()=>.35;const h=fs.readFileSync(root+'/game-v2762.html','utf8');for(const file of JSON.parse(h.match(/var files=(\[[^;]+\]);/)[1]))f.load(file);f.run('startGame();closeWorldOverlay();player.level=2;player.phase=1;player.gold=10000;player.sectContribution=1000;player.hp=getMaxHp();player.mp=getMaxMp();');f.timers.clear();return f;}
 function prep(f){f.run('window.target=Object.keys(DEMON_FACTION_POWER)[0];player.warState.alliedSects=Object.keys(HUMAN_FACTION_POWER).filter(n=>n!==player.sect);');}
 function c(f){return JSON.parse(f.run('JSON.stringify(player.warState.campaignV2775||null)'));}

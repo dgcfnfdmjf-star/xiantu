@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),a=require('node:assert/strict'),fixture=require('./v2853-dom-fixture.cjs');
-const root=process.env.XIANTU_TEST_ROOT||'release-v2853/xiantu-v2831-scroll';
+const root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..');
 const {createHandler,parseAnswer}=require(require('node:path').resolve(root,'../tencent-jev-function/index.js'));
 const origin='https://example.test',token='test_access_token_32characters_ok';
 const good={type:'choice',choice:'replace',probabilities:{keep:.04,replace:.92,consider:.04},confidence:.86};

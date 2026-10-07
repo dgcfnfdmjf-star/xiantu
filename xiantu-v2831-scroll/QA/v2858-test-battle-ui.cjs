@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),a=require('node:assert/strict'),fixture=require('./v2858-dom-fixture.cjs');
-const root=process.env.XIANTU_TEST_ROOT||'release-v2858/xiantu-v2831-scroll';
+const root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..');
 const scripts=JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]);
 function game(){const f=fixture(root);f.c.Math=Object.create(Math);f.c.Math.random=()=>.5;f.c.AbortController=AbortController;f.storage.set('xiantu_battle_presentation_v2756','report');for(const name of scripts)f.load(name);f.run("startGame();closeWorldOverlay();startCombat({name:'野狼',hp:50000,maxHp:50000,atk:2,def:2,gold:1,exp:1,_realmLevel:0,_realmPhase:0});player.hp=getMaxHp();player.mp=getMaxMp();");f.timers.clear();return f;}
 const f=game();
@@ -33,3 +33,27 @@ s.run("currentEnemy.burnTurns=0;currentEnemy.thunderDomainTurns=0;skipEnemyTurn=
 s.run("beginCombatFinishV2764('victory')");a.match(box.innerHTML,/本场结算中/);s.run("gameState='exploring';BattleClarityV2856.sync()");a.equal(box.hidden,true);
 for(const x of [f,m,stale,s])a.equal(x.errors.length,0,JSON.stringify(x.errors));
 console.log('PASS medicine stale battle callbacks and out-of-battle use blocked; read-only guard/burn/thunder/control status expires correctly; settlement and map visibility correct');
+const clean=game();clean.run('BattleClarityV2856.sync()');
+const quick=()=>clean.ids.get('combatChoices').querySelectorAll('.quick-skill-v286816');
+clean.run(`player.skills=[
+{name:'火甲',element:'fire',mpCost:10},{name:'冰甲',element:'ice',mpCost:10},
+{name:'火乙',element:'fire',mpCost:20},{name:'兵甲',element:'sword',mpCost:10},
+{name:'未携带火',element:'fire',mpCost:10}];
+player.skillLoadoutV212={sword:['兵甲'],thunder:[],ice:['冰甲'],fire:['火乙','火甲'],heal:[]};
+player.skillLoadoutInitializedV212=true;selectCombatSkillElementV212('fire')`);
+const indices=()=>quick().map(b=>b.getAttribute('onclick'));
+a.deepEqual(indices(),["combat('skill',2)","combat('skill',0)"]);
+clean.run("selectCombatSkillElementV212('ice')");a.deepEqual(indices(),["combat('skill',1)"]);
+clean.run("selectCombatSkillElementV212('sword')");a.deepEqual(indices(),["combat('skill',3)"]);
+for(const el of ['thunder','heal']){clean.run(`selectCombatSkillElementV212('${el}')`);a.equal(quick().length,0);a.match(clean.ids.get('combatChoices').querySelector('.combat-quick-v286816').innerHTML,/此系暂未携带/);}
+clean.run("selectCombatSkillElementV212('fire');toggleCombatSkillDrawerV212()");
+a.deepEqual(indices(),["combat('skill',2)","combat('skill',0)"]);
+const slots=indices();
+clean.run('player.mp=0;updateCombatChoices()');a.deepEqual(quick().map(b=>b.getAttribute('onclick')),slots);a(quick().every(b=>b.disabled));
+a.equal(clean.ids.get('monsterAiV2844').parentNode.id,'battleSettingsV286816');
+a.equal(clean.ids.get('battleVitalsV286816').parentNode.id,'combatArena');
+const logCount=clean.ids.get('combatLog').children.length;
+for(let i=0;i<5;i++)clean.run(`addCombatLog('消息${i}')`);
+a.equal(clean.ids.get('battleRecentV286816').children.length,3);a.equal(clean.ids.get('combatLog').children.length,logCount+5);
+clean.run('player.mp=getMaxMp();updateCombatChoices();toggleCombatSkillDrawerV212()');a(clean.ids.get('combatSkillDrawerV2856'));
+console.log('PASS selected-family quick slots and equipped order, mana guard, settings relocation, unified vitals and three-line log with full history');

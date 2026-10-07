@@ -1,5 +1,5 @@
 const fs=require('fs'),a=require('assert'),fixture=require('./dom-fixture.cjs');
-const root=process.env.XIANTU_TEST_ROOT||'release-v2840/xiantu-v2831-scroll';
+const root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..');
 function game(){const f=fixture(root);f.c.Math=Object.create(Math);f.c.Math.random=()=>.35;for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);f.run('startGame();closeWorldOverlay();player.level=6;player.gold=10000;player.hp=getMaxHp();player.mp=getMaxMp();player.warState.alliedSects=Object.keys(HUMAN_FACTION_POWER).filter(n=>n!==player.sect);window.target=Object.keys(DEMON_FACTION_POWER)[0];');f.timers.clear();return f;}
 const f=game();f.run('syncWarMapV2840()');a.equal(f.run('WAR_MAP_V2840.scene'),null);a(!f.ids.has('warMapBarV2840'));
 f.run('executeWar(target)');a.equal(f.run('gameState'),'exploring');a(!f.ids.has('warPanelV2839'));a(f.ids.has('warMapBarV2840'));a(f.run('WAR_MAP_V2840.scene.local'));a.equal(f.run('FLAT_WORLD.pois.filter(p=>p.id===WAR_MAP_POI_V2840).length'),1);a(f.run('!FLAT_WORLD.colliders.some(o=>Math.hypot(FLAT_WORLD.player.x-o.x,FLAT_WORLD.player.y-o.y)<o.radius+17)'),'hero outside colliders');

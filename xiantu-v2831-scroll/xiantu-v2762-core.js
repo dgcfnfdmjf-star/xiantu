@@ -92,6 +92,28 @@
     
     const SAVE_BACKUP_KEY='xiantu_save_backup';
     let lastSaveFailureNoticeV2768=0;
+    function escapeGameText(value) {
+      return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    // Saves contain data, never markup or executable identifiers. Validate before writing.
+    function validateSaveTextV2869(data) {
+      const stack=[{value:data,key:'',depth:0}];let nodes=0;
+      const identifier=/^(?:name|daoName|id|.*Id|.*ID|type|action|slot|sect|inventory|equipmentInventory|skills|equipment|materials|petMaterials|artifactMaterials)$/;
+      while(stack.length){
+        const {value,key,depth}=stack.pop();
+        if(++nodes>300000||depth>60)throw Error('存档结构过于复杂');
+        if(typeof value==='string'){
+          if(value.length>20000||/[<>]|&(?:#|quot;|apos;)|(?:^|[\s;"'])on[a-z]+\s*=|javascript\s*:/i.test(value))throw Error('存档含不安全的文本，请使用原始游戏导出的存档');
+          if(/^(?:id|.*Id|.*ID)$/.test(key)&&/[^\p{L}\p{N}_.:\-]/u.test(value))throw Error('存档标识格式无效');
+          if(identifier.test(key)&&/["'`\\&\r\n]/.test(value))throw Error('存档名称或标识含不支持的字符');
+        }else if(value&&typeof value==='object'){
+          for(const [k,v] of Object.entries(value)){
+            if(['__proto__','prototype','constructor'].includes(k)||/[<>"'`\\&]/.test(k))throw Error('存档字段无效');
+            stack.push({value:v,key:Array.isArray(value)||identifier.test(key)?key:k,depth:depth+1});
+          }
+        }
+      }
+    }
     function parseSaveV2768(raw) {
       if(typeof raw!=='string'||raw.length>8*1024*1024)throw Error('存档大小无效');
       const data=JSON.parse(raw),p=data?.player;
@@ -99,9 +121,16 @@
       if(!Number.isInteger(data.version)||data.version<1||data.version>SAVE_VERSION)throw Error('存档版本不支持');
       if(p.inventory.some(n=>typeof n!=='string')||p.inventory.length>100000)throw Error('背包数据无效');
       for(const k of ['gold','exp','hp','mp'])if(!Number.isFinite(p[k])||p[k]<0)throw Error('角色数值无效');
+      validateSaveTextV2869(data);
       return data;
     }
+    // Incomplete battles save the pre-battle snapshot, never a paid half-action.
+    // This is a whole-battle rollback on reload, not animation/timer serialization.
+    let battleCheckpointV286812 = null;
     function createSaveDataV2768() {
+      if(gameState==='combat' && battleCheckpointV286812?.owner===player){
+        return {...JSON.parse(battleCheckpointV286812.raw),timestamp:Date.now(),interruptedBattleV286812:true};
+      }
       return {player:JSON.parse(JSON.stringify(player)),achievements:{progress:{...achievementProgress},completed:Array.from(completedAchievements)},timestamp:Date.now(),version:SAVE_VERSION};
     }
     function writeSaveV2768(raw) {
@@ -147,7 +176,7 @@
     
     function manualSave() {
       if (saveGame()) {
-        alert('💾 修行记录已记入玉简');
+        alert(gameState==='combat'?'💾 已保留开战前记录；未结算时退出，会恢复当场消耗并返回开战前。':'💾 修行记录已记入玉简');
       } else {
         alert('修行记录未能写入，请稍后再试');
       }
@@ -189,6 +218,8 @@
     // ================== 音效系统 ==================
     
     let audioCtx = null;
+    const activeTonesV286820 = new Set();
+    let audioResumeV286820 = null;
     let masterVolume = 0.5;
     let isMuted = false;
     let bgmOscillators = [];
@@ -204,32 +235,41 @@
       }
     }
     
-    function playTone(frequency, duration, type = 'sine', volume = 0.3) {
-      if (!audioCtx || isMuted) return;
-      
-      const oscillator = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
-      
-      oscillator.type = type;
-      oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-      
-      gainNode.gain.setValueAtTime(volume * masterVolume, audioCtx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-      
-      oscillator.start();
-      oscillator.stop(audioCtx.currentTime + duration);
+    // Oscillators are single-use WebAudio nodes. Bound live voices and disconnect on end.
+    function unlockAudioV286820() {
+      initAudio();
+      if (!audioCtx || isMuted || audioCtx.state === 'running' || audioCtx.state === 'closed' || audioResumeV286820) return;
+      try {
+        audioResumeV286820 = Promise.resolve(audioCtx.resume()).catch(()=>{}).finally(()=>{audioResumeV286820=null;});
+      } catch (_) { audioResumeV286820=null; }
     }
-    
+    document.addEventListener('pointerdown', unlockAudioV286820, true);
+    document.addEventListener('keydown', unlockAudioV286820, true);
+    document.addEventListener('visibilitychange',()=>{
+      if(!document.hidden)return;
+      for(const node of [...activeTonesV286820]){try{node.stop();}catch(_){}node.onended?.();}
+    });
+
+    function playTone(frequency, duration, type = 'sine', volume = 0.3) {
+      if (!audioCtx || isMuted || document.hidden || audioCtx.state !== 'running' || activeTonesV286820.size >= 3) return;
+      let oscillator, gainNode;
+      const release=()=>{activeTonesV286820.delete(oscillator);try{oscillator?.disconnect();gainNode?.disconnect();}catch(_){}};
+      try {
+        oscillator=audioCtx.createOscillator();gainNode=audioCtx.createGain();
+        oscillator.type=type;
+        oscillator.frequency.setValueAtTime(frequency,audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(Math.max(.0001,volume*masterVolume),audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+duration);
+        oscillator.connect(gainNode);gainNode.connect(audioCtx.destination);
+        oscillator.onended=release;activeTonesV286820.add(oscillator);
+        oscillator.start();oscillator.stop(audioCtx.currentTime+duration);
+      } catch (_) { release(); }
+    }
+
     function playSound(type) {
       if (!audioCtx || isMuted) return;
       
-      // 确保AudioContext处于运行状态
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
+      unlockAudioV286820();
       
       switch(type) {
         case 'click':
@@ -287,9 +327,7 @@
     function startBGM() {
       if (!audioCtx || isBgmPlaying) return;
       
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
+      unlockAudioV286820();
       
       isBgmPlaying = true;
       bgmGain = audioCtx.createGain();
@@ -2470,26 +2508,73 @@
     function addInfamousTitle(title){player.infamousTitle=String(title||'');showFloatingText?.(`☠️ 获得恶名：${player.infamousTitle}`,'#ff6b6b');autoSave?.();}
     function setMainTitle(title){player.mainTitle=String(title||'寻道者');updateCharacterPanelDeep?.();autoSave?.();}
 
+    const BREAKTHROUGH_PILLS_V28683={
+      '破障丹':{bonus:.15,cost:300,level:2},
+      '渡劫丹':{bonus:.20,cost:500,level:5},
+      '九转金丹':{bonus:.30,cost:900,level:9}
+    };
+    function breakthroughProtectionV28683(){
+      const key=`${player.level}:${player.phase||0}`,old=player.breakthrough?.protectionV28683;
+      return {key,failures:old?.key===key?Math.min(5,Math.max(0,Math.floor(Number(old.failures)||0))):0};
+    }
+    function selectedBreakthroughPillV28683(){
+      if(breakthroughProtectionV28683().failures>=5)return null;
+      const name=player.breakthrough?.pillV28683,d=BREAKTHROUGH_PILLS_V28683[name];
+      return d&&player.level>=d.level&&player.inventory?.includes(name)?name:null;
+    }
+    function selectBreakthroughPillV28683(name){
+      if(gameState==='combat'||gameState==='combat-ending'||player.breakthrough?.isAnimating)return;
+      if(name&&(!BREAKTHROUGH_PILLS_V28683[name]||player.level<BREAKTHROUGH_PILLS_V28683[name].level||!player.inventory.includes(name)))return;
+      player.breakthrough ||= {};player.breakthrough.pillV28683=name||null;
+      autoSave();showRetreatBreakthroughV2798();
+    }
+    function buyBreakthroughPillV28683(name){
+      const d=BREAKTHROUGH_PILLS_V28683[name];
+      if(!d||gameState==='combat'||gameState==='combat-ending'||player.breakthrough?.isAnimating||player.level<d.level||player.gold<d.cost)return;
+      player.gold-=d.cost;player.inventory.push(name);autoSave();updateStats();showRarePillShop();
+    }
+    function breakthroughDetailsV28683(){
+      const d=calculateBreakthroughSuccess();
+      return `<p>本次成功率：${Math.round(d.rate*100)}% · 当前瓶颈已失败 ${d.failures} 次${d.guaranteed?' · 本次保底成功':''}<br>基础 ${Math.round(d.base*100)}% · 丹药 +${Math.round(d.pillBonus*100)}% · 宗门 +${Math.round(d.sectBonus*100)}% · 状态/心结 -${Math.round(d.statusPenalty*100)}%<br>常规概率限制在5%—95%，再加失败保护 +${Math.round(d.pityBonus*100)} 个百分点；连续失败5次后下一次必成。成功后清零，读档保留。</p><p>本次丹药：${d.pillName||'不使用'}。开始尝试时消耗一颗，成功或失败均消耗；预览不消耗，不叠加多种丹药；保底时不消耗丹药。<br>失败损失 ${Math.floor(getCurrentExpNeed()*.15)} 修为，气血变为上限60%、灵力变为上限50%，调息30—49个游戏日。飞升天劫不适用此保底。</p>`;
+    }
+    function battleGoldV28683(enemy){
+      const base=Math.max(0,Number(enemy?.gold)||0);
+      if(!base||enemy._isTutorial||enemy._isTaskBattle||enemy._taskId||enemy._warV2839||enemy.tournamentFight||isBossFight||isTribulation)return base;
+      const lv=Math.max(0,Math.min(CULTIVATION_REALMS.length-1,Number(enemy._realmLevel)||0));
+      if(lv<2)return base;
+      // Early elites consume healing before higher-realm skill/gear sustain exists.
+      // Only this tier receives the additional gold floor; scripted fights stay excluded.
+      if(lv===2&&enemy._isElite)return Math.max(base,280);
+      return Math.max(base,Math.floor(Math.min(400,40*(lv+1))*(enemy._isElite?1.5:1)));
+    }
+    function battleExpV28683(enemy){
+      const base=Math.max(0,Number(enemy?.exp)||0);
+      if(!base||enemy._isTutorial||enemy._isTaskBattle||enemy._taskId||enemy._warV2839||enemy.tournamentFight||isBossFight||isTribulation)return base;
+      const lv=Math.max(0,Math.min(CULTIVATION_REALMS.length-1,Number(enemy._realmLevel)||0));
+      if(lv<3)return base;
+      const phase=Math.max(0,Math.min(3,Number(enemy._realmPhase)||0));
+      const floor=Math.floor(Math.min(getCurrentExpNeed(lv,phase)*(enemy._isElite?.03:.02),getCurrentExpNeed()*.04));
+      return Math.max(base,floor);
+    }
+
     function calculateBreakthroughSuccess() {
       const level=Math.max(0,Number(player?.level)||0), phase=Math.max(0,Number(player?.phase)||0);
       const baseRates=[.95,.85,.75,.55,.45,.35,.30,.25,.18,.10];
       let base=baseRates[Math.min(level,baseRates.length-1)] ?? .10;
       if(phase<3)base+=.20;
-      let pillBonus=0;
-      if(player.inventory?.includes('破障丹'))pillBonus+=.15;
-      if(player.inventory?.includes('九转金丹'))pillBonus+=.30;
-      if(player.inventory?.includes('渡劫丹'))pillBonus+=.20;
+      const pillName=selectedBreakthroughPillV28683(),pillBonus=pillName?BREAKTHROUGH_PILLS_V28683[pillName].bonus:0;
       const sectLevel=Math.max(1,Number(player.sectData?.level)||1);
       const sectBonus=(sectLevel-1)*.02;
       let statusPenalty=0;
       if(hasStatusEffect('jingmai'))statusPenalty+=.10;
       if(hasStatusEffect('xinmo'))statusPenalty+=.20;
-      // 男主旧执念尚未破除时，突破评估额外 -15%（当前仍保留自动晋升机制，仅作为评估值）。
+      // 未解除的心结扣减实际成功率；结算与预览共用本函数。
       const romanceHeartPenalty=getHeartDemonBreakthroughPenalty();
       statusPenalty+=romanceHeartPenalty;
       const heartDemonRisk=level>=3?Math.min(.75,.10+(level-3)*.03+(player.heartDemon?.broken?0:.08)):0;
-      const rate=Math.max(.05,Math.min(.95,base+pillBonus+sectBonus-statusPenalty));
-      return {rate,heartDemonRisk,hasHeartDemon:hasStatusEffect('xinmo'),pillBonus,sectBonus,statusPenalty};
+      const {failures}=breakthroughProtectionV28683(),guaranteed=failures>=5&&!isFinalTribulationGate(),pityBonus=isFinalTribulationGate()?0:failures*.15;
+      const rate=guaranteed?1:Math.min(.95,Math.max(.05,Math.min(.95,base+pillBonus+sectBonus-statusPenalty))+pityBonus);
+      return {rate,base,failures,guaranteed,pityBonus,pillName,heartDemonRisk,hasHeartDemon:hasStatusEffect('xinmo'),pillBonus,sectBonus,statusPenalty};
     }
 
     function isAtRealmBottleneck() { return (Number(player?.exp)||0) >= getCurrentExpNeed(); }
@@ -2505,11 +2590,11 @@
     function getBreakthroughStatus() {
       const bt=player?.breakthrough||{};
       const details=calculateBreakthroughSuccess();
-      const risk=Math.round(details.heartDemonRisk*100);
+      const protection=details.guaranteed?' · 本次保底':details.failures?` · 失败保护${details.failures}次`:'';
       if(bt.isAnimating) return {text:'灵机涌动 · 正在突破',rate:Math.round(details.rate*100),rateText:'突破中',hasHeartDemon:details.hasHeartDemon,details};
       if(Number(bt.cooldownDays)>0) return {text:`经脉调息 · 还需${Math.ceil(bt.cooldownDays)}天`,rate:Math.round(details.rate*100),rateText:'冷却中',hasHeartDemon:details.hasHeartDemon,details};
       if((player?.level||0)===9 && (player?.phase||0)>=3) return {text:'飞升瓶颈 · 需渡飞升天劫',rate:0,rateText:'天劫',hasHeartDemon:details.hasHeartDemon,details};
-      return {text:`${getNextCultivationName()}${risk>0?` · 心魔风险${risk}%`:''}`,rate:Math.round(details.rate*100),rateText:`${Math.round(details.rate*100)}%`,hasHeartDemon:details.hasHeartDemon,details};
+      return {text:`${getNextCultivationName()}${protection}`,rate:Math.round(details.rate*100),rateText:`${Math.round(details.rate*100)}%`,hasHeartDemon:details.hasHeartDemon,details};
     }
 
     function processCharacterTime(days) {
@@ -3902,6 +3987,10 @@
     ];
     
     const ITEMS = {
+      '神行符':{type:'escape',value:0,desc:'消耗一张，普通野外战必定脱战；首领、天劫、任务、擂台与正魔战禁用。'},
+      '破障丹':{type:'breakthrough',desc:'突破预览选用，尝试消耗一颗，成功率+15个百分点'},
+      '渡劫丹':{type:'breakthrough',desc:'突破预览选用，尝试消耗一颗，成功率+20个百分点'},
+      '九转金丹':{type:'breakthrough',desc:'突破预览选用，尝试消耗一颗，成功率+30个百分点'},
       '养元丹': {type:'longevity',icon:'⏳',desc:'延寿10年；凡人可用，终身限5枚。仙市购买或炼制'},
       '延寿丹': {type:'longevity',icon:'⏳',desc:'延寿50年；筑基可用，终身限3枚。仙市购买或炼制'},
       '万寿丹': {type:'longevity',icon:'⏳',desc:'延寿200年；金丹可用，终身限2枚。仙市购买或炼制'},
@@ -4095,7 +4184,7 @@
         if(tank.count>=4)state.weaken=.2;
         if(tank.immortal&&!state.guardUsed){state.guardUsed=true;state.guard=true;addCombatLog('镇岳霸体：本场首次山河震抵挡下一次命中。','heal');}
       }
-      if(skill?.element==='thunder'&&wand.count>=4&&Math.random()<.25){skipEnemyTurn=true;currentEnemy._skipReason='雷击麻痹';}
+      if(skill?.element==='thunder'&&wand.count>=4&&Math.random()<.25){sealEnemySpellsV286817(2);}
       damage=Math.max(1,Math.floor(damage));
       if(skill?.name==='九霄雷云'&&wand.immortal){currentEnemy.thunderDomainDamage=Math.max(currentEnemy.thunderDomainDamage||0,Math.floor(damage*.15));currentEnemy.thunderDomainTurns=Math.max(currentEnemy.thunderDomainTurns||0,2);addCombatLog('九霄雷云：未来两次行动前各结算15%持续雷伤。','damage');}
       if(isSpear&&spear.immortal&&skill?.requiredWeapon==='spear'&&damage>=currentEnemy.hp){const before=player.mp;player.mp=Math.min(getMaxMp(),before+Math.floor(getMaxMp()*.15));addCombatLog(`穿云收势，恢复${player.mp-before}灵力。`,'heal');}
@@ -4121,7 +4210,7 @@
       for(const name of Object.keys(NEW_SETS_V2790))html+=`<button class="choice-btn" onclick="showNewGearShopV2790('${name}',${grade})">${name}</button>`;
       GRADES_V2790.forEach((v,i)=>html+=`<button class="choice-btn" style="color:${getQualityInfo(v.quality).color};border-color:${getQualityInfo(v.quality).color}" onclick="showNewGearShopV2790('${family}',${i+1})">${getQualityInfo(v.quality).icon} ${v.name} · ${CULTIVATION_REALMS[v.level].name}</button>`);
       html+=`<p>${set.mechanic}</p><p>现有灵石：${player.gold}；每件${g.cost}，全套${g.cost*5}灵石。每件单独购买。</p>`;
-      for(let i=0;i<5;i++){const name=newGearNameV2790(family,i,grade),item=EQUIPMENT_DB[name];html+=`<div class="gear-grade-card-v2791" style="--gear-color:${getQualityInfo(item.quality).color}"><p><b style="color:var(--gear-color)">${getQualityInfo(item.quality).icon} ${name}</b><br><span class="gear-grade-badge-v2791">${g.name}</span><br>${formatEquipStats(item.stats)}<br>${item.desc}</p><button class="choice-btn" style="color:var(--gear-color);border-color:var(--gear-color)" onclick="buyNewGearV2790('${family}',${i},${grade})" ${player.gold<g.cost||player.level<g.level?'disabled':''}>购买 ${name}</button></div>`;}
+      for(let i=0;i<5;i++){const name=newGearNameV2790(family,i,grade),item=EQUIPMENT_DB[name];html+=`<div class="gear-grade-card-v2791" style="--gear-color:${getQualityInfo(item.quality).color}"><p><b style="color:var(--gear-color)">${getQualityInfo(item.quality).icon} ${name}</b><br><span class="gear-grade-badge-v2791">${g.name}</span><br>${formatEquipItemStatsV286813(name)}<br>${item.desc}</p><button class="choice-btn" style="color:var(--gear-color);border-color:var(--gear-color)" onclick="buyNewGearV2790('${family}',${i},${grade})" ${player.gold<g.cost||player.level<g.level?'disabled':''}>购买 ${name}</button></div>`;}
       html+='<p>回合制适配：追击代替攻速、一次命中抵挡代替短暂无敌、击杀回灵代替突进刷新；目前不模拟位移范围、击退浮空或Spine骨骼动画。</p>';
       showStory(html,[{text:'返回仙市',action:'market'}]);
     }
@@ -4178,7 +4267,7 @@
       for(const f of Object.keys(NEW_SETS_V2790))html+=`<button class="choice-btn" onclick="showNewGearShopV2790('${f}',${grade})">${f}</button>`;
       GRADES_V2790.forEach((g,i)=>html+=`<button class="choice-btn" style="color:${getQualityInfo(g.quality).color}" onclick="showOldGearShopV2792('${family}',${i+1})">${g.name}</button>`);
       html+=`<p>现有灵石 ${player.gold}；本套${OLD_SET_VERSIONS_V2792[family].length}件，每件${GRADES_V2790[grade-1].cost}灵石。</p>`;
-      OLD_SET_VERSIONS_V2792[family].forEach((_,i)=>{const name=oldVersionNameV2792(family,i,grade),item=EQUIPMENT_DB[name],q=getQualityInfo(item.quality);html+=`<div class="gear-grade-card-v2791" style="--gear-color:${q.color}"><b style="color:var(--gear-color)">${q.icon} ${name}</b><p>${formatEquipStats(Object.fromEntries(Object.entries(item.stats).map(([k,v])=>[k,Number((v*q.multiplier).toFixed(2))])))}</p><p>需${CULTIVATION_REALMS[item.realmRequired].name} · ${item.desc}</p><button class="choice-btn" style="color:var(--gear-color)" onclick="buyOldGearV2792('${family}',${i},${grade})" ${player.gold<item.priceV2790||!canEquipItem(name).ok?'disabled':''}>购买（${item.priceV2790}灵石）</button></div>`;});
+      OLD_SET_VERSIONS_V2792[family].forEach((_,i)=>{const name=oldVersionNameV2792(family,i,grade),item=EQUIPMENT_DB[name],q=getQualityInfo(item.quality);html+=`<div class="gear-grade-card-v2791" style="--gear-color:${q.color}"><b style="color:var(--gear-color)">${q.icon} ${name}</b><p>${formatEquipItemStatsV286813(name)}</p><p>需${CULTIVATION_REALMS[item.realmRequired].name} · ${item.desc}</p><button class="choice-btn" style="color:var(--gear-color)" onclick="buyOldGearV2792('${family}',${i},${grade})" ${player.gold<item.priceV2790||!canEquipItem(name).ok?'disabled':''}>购买（${item.priceV2790}灵石）</button></div>`;});
       showStory(html,[{text:'返回仙市',action:'market'}]);
     }
     function buyOldGearV2792(family,piece,grade){
@@ -4190,7 +4279,8 @@
 
     const FORGE_KEYS_V2825=new Set();
     let forgeOwnerV2825=null,forgeSelectionV2825=null,forgeNonceV2825=0;
-    const FORGE_STATS_V2825={atk:{name:'锋锐',label:'攻击',min:2,max:6},def:{name:'坚壁',label:'防御',min:2,max:5},hp:{name:'长生',label:'气血',min:10,max:30},mp:{name:'灵泉',label:'灵力',min:5,max:12}};
+    const FORGE_STATS_V2825={atk:{name:'锋锐',label:'攻击',min:3,max:9},def:{name:'坚壁',label:'防御',min:3,max:8},hp:{name:'长生',label:'气血',min:20,max:60},mp:{name:'灵泉',label:'灵力',min:8,max:20}};
+    const FORGE_PERCENT_V286825={atk:{min:1,max:3},def:{min:1,max:3},hp:{min:2,max:5},mp:{min:2,max:5}};
     function forgeRestoreV2825(target){
       if(forgeOwnerV2825===target)return;
       for(const key of FORGE_KEYS_V2825)delete EQUIPMENT_DB[key];FORGE_KEYS_V2825.clear();forgeOwnerV2825=target;
@@ -4204,18 +4294,21 @@
       }
     }
     function forgeCleanAffixesV2825(rows){
-      const seen=new Set();return (Array.isArray(rows)?rows:[]).filter(a=>a&&FORGE_STATS_V2825[a.stat]&&!seen.has(a.stat)&&seen.add(a.stat)).slice(0,2).map(a=>({stat:a.stat,value:Math.max(1,Math.min(FORGE_STATS_V2825[a.stat].max*3,Math.floor(Number(a.value)||1)))}));
+      const seen=new Set();return (Array.isArray(rows)?rows:[]).filter(a=>a&&FORGE_STATS_V2825[a.stat]&&!seen.has(a.stat)&&seen.add(a.stat)).slice(0,2).map(a=>({stat:a.stat,value:Math.max(1,Math.min((a.unit==='percent'?FORGE_PERCENT_V286825:FORGE_STATS_V2825)[a.stat].max*3,Math.floor(Number(a.value)||1))),...(a.unit==='percent'?{unit:'percent'}:{})}));
     }
     function forgeRegisterV2825(key,record){
       const base=EQUIPMENT_DB[record.base];if(!base)return;
-      const stats={...base.stats},multi=getQualityInfo(base.quality).multiplier||1,affixStats={};
+      const stats={...base.stats},multi=getQualityInfo(base.quality).multiplier||1,affixStats={},percentStats={},mods={...base.modsV2790};
       for(const stat of ['atk','def','hp','mp'])if(stats[stat])stats[stat]=Math.round(stats[stat]*(1+record.level*.05)*100)/100;
-      for(const a of record.affixes||[]){affixStats[a.stat]=(affixStats[a.stat]||0)+a.value/multi;stats[a.stat]=(stats[a.stat]||0)+a.value/multi;}
-      Object.defineProperty(EQUIPMENT_DB,key,{configurable:true,writable:true,enumerable:false,value:{...base,stats,forgeBaseV2825:record.base,forgeLevelV2825:record.level,forgeAffixStatsV2825:affixStats}});FORGE_KEYS_V2825.add(key);
+      for(const a of forgeCleanAffixesV2825(record.affixes)){if(a.unit==='percent'){percentStats[a.stat]=(percentStats[a.stat]||0)+a.value;mods[a.stat+'Pct']=(mods[a.stat+'Pct']||0)+a.value/100;continue;}affixStats[a.stat]=(affixStats[a.stat]||0)+a.value/multi;stats[a.stat]=(stats[a.stat]||0)+a.value/multi;}
+      Object.defineProperty(EQUIPMENT_DB,key,{configurable:true,writable:true,enumerable:false,value:{...base,stats,forgeBaseV2825:record.base,forgeLevelV2825:record.level,forgeAffixStatsV2825:affixStats,forgePercentStatsV286825:percentStats,modsV2790:mods}});FORGE_KEYS_V2825.add(key);
     }
     function forgeAllowedV2825(){return gameState!=='combat'&&gameState!=='combat-ending'&&!player.breakthrough?.isAnimating;}
-    function forgeGradeV2825(data){return Math.max(1,Math.min(3,Number(data.gradeV2790)||1));}
-    function forgeAffixTextV2825(rows){return rows?.length?rows.map(a=>`${FORGE_STATS_V2825[a.stat].name} · ${FORGE_STATS_V2825[a.stat].label} +${a.value}`).join('；'):'暂无词条';}
+    function forgeGradeV2825(data){
+      const declared=Number(data?.gradeV2790),qualityFloor=({BAO_QI:2,EXCELLENT:2,SPIRIT:2,IMMORTAL:3,GOD:3})[data?.quality]||1;
+      return Math.max(qualityFloor,Number.isInteger(declared)&&declared>=1&&declared<=3?declared:1);
+    }
+    function forgeAffixTextV2825(rows){return rows?.length?rows.map(a=>`${FORGE_STATS_V2825[a.stat].name} · ${FORGE_STATS_V2825[a.stat].label} +${a.value}${a.unit==='percent'?'%':''}`).join('；'):'暂无词条';}
     function forgeCurrentV2825(nonce){
       const ref=forgeSelectionV2825;if(!ref||ref.owner!==player||nonce!==ref.nonce||!forgeAllowedV2825())return null;
       const name=ref.kind==='slot'?player.equipment?.[ref.index]:player.equipmentInventory?.[ref.index];
@@ -4225,8 +4318,8 @@
       if(!forgeAllowedV2825())return showFloatingText?.('请先结束战斗或突破。','#ffd76a');
       document.getElementById('equipmentPanel')?.remove();migrateLooseEquipmentToEquipmentInventory(player);
       forgeSelectionV2825=null;const esc=discipleEscV2815;
-      let html='<section class="main-overview-v2822"><h3>⚒️ 装备工坊</h3><p>强化最高+10，每级提升原有攻击、防御、气血、灵力5%，成功率100%，不降级。洗练生成两条不同的固定数值词条，先对比再决定替换。强化与洗练均消耗灵石，操作前确认。</p><p>每件单独保存，卸下或换装后保留；加工后自动锁定。相同名称的其他装备不受影响。洗练词条不随强化倍增。</p><h4>身上装备</h4>';
-      const row=(name,kind,index)=>{const d=getEquipData(name);if(!d)return '';const rec=player.forgeV2825?.items?.[name],q=getQualityInfo(d.quality);return `<article class="task-card"><strong style="color:${q.color}">${esc(name)}${rec?` · +${rec.level}`:''}</strong><p>${esc(formatEquipStats(d.stats))}</p><p>${esc(forgeAffixTextV2825(rec?.affixes))}</p><button class="choice-btn" onclick="selectForgeV2825('${kind}','${index}')">${rec?.pending?'处理待选词条':'强化 / 洗练'}</button></article>`;};
+      let html='<section class="main-overview-v2822"><h3>⚒️ 装备工坊</h3><p>强化最高+10，每级提升原有攻击、防御、气血、灵力5%，成功率100%，不降级。新洗练生成两条不同的百分比词条，先对比再决定替换。强化与洗练均消耗灵石，操作前确认。</p><p>每件单独保存，卸下或换装后保留；加工后自动锁定。相同名称的其他装备不受影响。洗练百分比不乘品质或强化倍率；同类加成与装备百分比相加，作用于角色对应属性。洗练档级按装备品质与档级识别，旧仙器同样按三档；新范围只用于之后的洗练，已有和待选词条原样保留。</p><h4>身上装备</h4>';
+      const row=(name,kind,index)=>{const d=getEquipData(name);if(!d)return '';const rec=player.forgeV2825?.items?.[name],q=getQualityInfo(d.quality);return `<article class="task-card"><strong style="color:${q.color}">${esc(name)}${rec?` · +${rec.level}`:''}</strong><p>${esc(formatEquipItemStatsV286813(name))}</p><p>${esc(forgeAffixTextV2825(rec?.affixes))}</p><button class="choice-btn" onclick="selectForgeV2825('${kind}','${index}')">${rec?.pending?'处理待选词条':'强化 / 洗练'}</button></article>`;};
       for(const [slot,name] of Object.entries(player.equipment||{}))if(name)html+=row(name,'slot',slot);
       html+='<details><summary>背包装备 · '+(player.equipmentInventory||[]).length+' 件</summary>';
       (player.equipmentInventory||[]).forEach((name,i)=>html+=row(name,'bag',i));html+='</details></section>';html+='<button class="choice-btn" onclick="showEquipmentPanel()">返回装备</button>';showStory(html,[]);
@@ -4240,9 +4333,9 @@
       const ref=forgeSelectionV2825;if(!ref)return;ref.nonce=++forgeNonceV2825;
       const d=getEquipData(ref.name),record=player.forgeV2825.items[ref.name],level=record?.level||0,grade=forgeGradeV2825(d),cost=100*grade*(level+1),wash=200*grade,esc=discipleEscV2815;
       const base=getEquipData(record?.base||ref.name),next={...base.stats};for(const k of ['atk','def','hp','mp'])if(next[k])next[k]=Math.round(next[k]*(1+(level+1)*.05)*100)/100;
-      let html=`<section class="main-overview-v2822"><h3>⚒️ ${esc(ref.name)} · +${level}</h3><p>灵石 ${player.gold} · 品级 ${esc(getQualityInfo(d.quality).name)}</p><p>当前属性：${esc(formatEquipStats(d.stats))}</p><p>当前词条：${esc(forgeAffixTextV2825(record?.affixes))}</p>`;
+      let html=`<section class="main-overview-v2822"><h3>⚒️ ${esc(ref.name)} · +${level}</h3><p>灵石 ${player.gold} · 品级 ${esc(getQualityInfo(d.quality).name)} · 洗练${grade}档</p><p>当前属性：${esc(formatEquipItemStatsV286813(ref.name))}</p><p>当前词条：${esc(forgeAffixTextV2825(record?.affixes))}</p>`;
       if(record?.pending)html+=`<div class="disciple-claim-v2821"><h4>本次洗练结果（已扣费）</h4><p>${esc(forgeAffixTextV2825(record.pending))}</p>${forgeAdvicePanelV2842(ref,record)}<p>替换后旧词条消失；保留旧词条不退还本次洗练费用。未选择前不能再次洗练或强化。</p><button class="choice-btn" onclick="chooseForgeAffixesV2825(${ref.nonce},true)">替换为新词条</button><button class="choice-btn" onclick="chooseForgeAffixesV2825(${ref.nonce},false)">保留旧词条</button></div>`;
-      else html+=`<p>${level<10?`下级基础属性（未含词条）：${esc(formatEquipStats(next))}`:'强化已满级'}</p><button class="choice-btn" onclick="mutateForgeV2825(${ref.nonce},'enhance')" ${level>=10||player.gold<cost?'disabled':''}>${level>=10?'强化 +10 已满':`强化至 +${level+1} · ${cost}灵石`}</button><p>洗练范围（最终生效数值）：${Object.values(FORGE_STATS_V2825).map(a=>`${a.label} ${a.min*grade}—${a.max*grade}`).join('；')}，随机两种。</p><button class="choice-btn" onclick="mutateForgeV2825(${ref.nonce},'wash')" ${player.gold<wash?'disabled':''}>洗练两条属性 · ${wash}灵石</button>`;
+      else html+=`<p>${level<10?`下级基础属性（未含词条）：${esc(formatEquipItemStatsV286813(record?.base||ref.name,next))}`:'强化已满级'}</p><button class="choice-btn" onclick="mutateForgeV2825(${ref.nonce},'enhance')" ${level>=10||player.gold<cost?'disabled':''}>${level>=10?'强化 +10 已满':`强化至 +${level+1} · ${cost}灵石`}</button><p>洗练范围（角色属性百分比）：${Object.entries(FORGE_PERCENT_V286825).map(([k,a])=>`${FORGE_STATS_V2825[k].label} ${a.min*grade}%—${a.max*grade}%`).join('；')}，随机两种。</p><button class="choice-btn" onclick="mutateForgeV2825(${ref.nonce},'wash')" ${player.gold<wash?'disabled':''}>洗练两条属性 · ${wash}灵石</button>`;
       html+='<button class="choice-btn" onclick="showForgeV2825()">返回装备工坊</button></section>';showStory(html,[]);
     }
     function forgeIndividualV2825(ref){
@@ -4262,7 +4355,7 @@
       if(!forgeCurrentV2825(nonce)||player.gold<cost)return;
       const record=forgeIndividualV2825(ref);player.gold-=cost;
       if(op==='enhance')record.level++;
-      else{const pool=Object.keys(FORGE_STATS_V2825),rows=[];for(let i=0;i<2;i++){const stat=pool.splice(Math.floor(Math.random()*pool.length),1)[0],range=FORGE_STATS_V2825[stat];rows.push({stat,value:grade*(range.min+Math.floor(Math.random()*(range.max-range.min+1)))});}record.pending=rows;}
+      else{const pool=Object.keys(FORGE_STATS_V2825),rows=[];for(let i=0;i<2;i++){const stat=pool.splice(Math.floor(Math.random()*pool.length),1)[0],range=FORGE_PERCENT_V286825[stat];rows.push({stat,unit:'percent',value:grade*(range.min+Math.floor(Math.random()*(range.max-range.min+1)))});}record.pending=rows;}
       player.equipmentLocks ||= [];if(!player.equipmentLocks.includes(ref.name))player.equipmentLocks.push(ref.name);
       forgeRegisterV2825(ref.name,record);autoSave();updateStats();renderForgeV2825();
     }
@@ -4304,14 +4397,14 @@
     }
     function formatEquipStats(stats={}){
       const labels={atk:'攻击',def:'防御',hp:'生命',mp:'灵力',crit:'暴击',critDmg:'爆伤',dodge:'闪避',block:'格挡',resistance:'抗性',dmgReduce:'减伤',speed:'速度',spirit:'神魂',hit:'命中',hpRegen:'回血',fireDmg:'火伤'};
-      return Object.entries(stats).map(([k,v])=>`${labels[k]||k}+${v}${['crit','critDmg','dodge','block','resistance','dmgReduce','hit','fireDmg'].includes(k)?'%':''}`).join(' · ');
+      return Object.entries(stats).map(([k,v])=>`${labels[k]||k}+${Number(Number(v).toFixed(2))}${['crit','critDmg','dodge','block','resistance','dmgReduce','hit','fireDmg'].includes(k)?'%':''}`).join(' · ');
     }
 
     const SKILLS = [
       { name: '御剑术', mpCost: 10, damage: 1.5, desc: '消耗10灵力，造成1.5倍攻击伤害', element: 'sword' },
       { name: '雷法', mpCost: 20, damage: 2.0, desc: '消耗20灵力，造成2倍攻击伤害', element: 'thunder' },
       // 雷系进阶技能
-      { name: '惊雷闪', mpCost: 25, damage: 2.2, desc: '消耗25灵力，造成2.2倍攻击伤害，概率麻痹目标1回合', element: 'thunder', effect: 'paralyze', statusChance: 0.42 },
+      { name: '惊雷闪', mpCost: 25, damage: 2.2, desc: '消耗25灵力，造成2.2倍攻击伤害，概率封脉，使目标接下来2次行动无法施展术法或回生', element: 'thunder', effect: 'paralyze', statusChance: 0.42 },
       { name: '裂地奔雷', mpCost: 38, damage: 2.7, desc: '消耗38灵力，造成2.7倍范围雷伤', element: 'thunder', effect: 'thunder_aoe', scope: 'aoe' },
       { name: '紫霄落雷', mpCost: 52, damage: 3.4, desc: '消耗52灵力，造成3.4倍攻击伤害，并穿透45%防御', element: 'thunder', effect: 'armor_pierce', armorPierce: 0.45 },
       { name: '万雷噬狱', mpCost: 68, damage: 4.1, desc: '消耗68灵力，造成4.1倍攻击伤害，并形成持续3回合雷域', element: 'thunder', effect: 'thunder_domain', domainTurns: 3, domainRatio: 0.16, scope: 'aoe' },
@@ -4369,6 +4462,27 @@
       {name:'逆命回元',element:'heal',mpCost:48,heal:.35,emergencyHeal:.65,unlockRealm:2,desc:'消耗48灵力，恢复35%最大生命；施法前生命不高于25%时改为恢复65%；不复活、不延寿；筑基解锁'},
       {name:'莲华济世',element:'heal',mpCost:65,heal:.6,guardRatio:.4,unlockRealm:2,desc:'消耗65灵力，恢复60%最大生命；本场下一次命中伤害降低40%，不可叠加；筑基解锁'}
     ];
+
+
+    for(const skill of SKILLS){
+      if(!['ice','fire'].includes(skill.element))continue;
+      const base=`消耗${skill.mpCost}灵力，${skill.damage}倍伤害；`;
+      if(['iceArmor','fireShield'].includes(skill.effect)){skill.desc=`消耗${skill.mpCost}灵力，护盾吸收20%最大气血的伤害，持续敌方3次行动，同类不叠加`;continue;}
+      if(skill.element==='ice'){
+        skill.desc=base+`寒迟2次行动：追击速度降低${skill.effect==='heavySlow'?55:30}%，攻击面板降低${skill.effect==='heavySlow'?27.5:15}%；`;
+        const freeze={'冰封千里':80,'绝对零度':100,'冰蝶幻舞':35,'冰河葬狱':100,'冰魄封魂':100,'万载寒晶':100,'寒渊领域':35}[skill.name];
+        if(freeze)skill.desc+=`${freeze}%概率冻结下一次行动；`;
+        if(skill.effect==='defDown')skill.desc+='防御降低25%，持续敌方2次行动；';
+        if(['iceField','coldDomain','eternalIce'].includes(skill.effect))skill.desc+='12%本次伤害的冰蚀，持续3次主动出招；';
+        if(skill.effect==='freezeSilence')skill.desc+='封脉1次行动';
+      }else{
+        skill.desc=base+(skill.effect==='burnDetonate'?'引爆剩余灼烧并消除灼烧破甲':`灼烧每次20%本次伤害，持续${skill.name==='太阳真火'?4:skill.duration||(skill.name==='焚天烈焰'?3:2)}次主动出招，期间防御降低15%，同类取最高`);
+        if(skill.armorPierce)skill.desc+='；本次穿透40%防御';
+        if(skill.effect==='healBlockBurn')skill.desc+='；灼烧期间禁回生';
+        if(skill.effect==='atkDownBurn')skill.desc+='；灼烧期间攻击面板降低15%';
+        if(skill.effect==='fireBind')skill.desc+='；缠绕使下次行动追击速度降低30%、攻击面板降低15%';
+      }
+    }
 
 
     SKILLS.push(
@@ -4751,7 +4865,7 @@
       const p=yeStateV2816(),chapters=yeChaptersV2816();
       let html=`<section class="home-board-v2812"><h3>📜 夜无疆 · 宿敌纪事</h3><p>已完成 ${p.choices.length} / ${chapters.length} 章</p><p>随境界按顺序解锁；旧角色可补看前章。阅读不推进日期、不扣寿元，不影响现有主线。选择会保存在纪事中，已完成章节可回看。</p><div class="home-grid-v2812">`;
       chapters.forEach((ch,i)=>{const done=i<p.choices.length,open=yeStoryAvailableV2816(i);html+=`<article><h4>${i+1}. ${ch.title}</h4><p>${ch.place} · ${CULTIVATION_REALMS[ch.level].name}解锁</p><p>${done?'已完成 · '+ch.options[p.choices[i]]:open?'可以相遇':ch.win&&!p.saintVictory?'需先完成前章，并在圣人境实际击退夜无疆':'需达到境界并完成前章'}</p><button class="choice-btn" onclick="showYeChapterV2816(${i})" ${open?'':'disabled'}>${done?'回看纪事':'前往相遇'}</button></article>`;});
-      html+='</div></section>';showStory(html,[{text:'返回夜无疆人物页',action:'yewuji_v2810'},{text:'前往挑战',action:'challenge_yewuji_v2810'},{text:'返回地图',action:'return_to_map'}]);
+      html+='</div><p>另有「旧关回望」「残页余响」两篇番外，随相关主线完成开放。</p><button class="choice-btn" onclick="showExpansionV286827()">人物番外与旧案</button></section>';showStory(html,[{text:'返回夜无疆人物页',action:'yewuji_v2810'},{text:'前往挑战',action:'challenge_yewuji_v2810'},{text:'返回地图',action:'return_to_map'}]);
     }
     function showYeChapterV2816(index){
       if(gameState==='combat'||gameState==='combat-ending'||!yeStoryAvailableV2816(index))return;
@@ -5249,6 +5363,7 @@
         const old = saved.npcs && saved.npcs[id] && typeof saved.npcs[id] === 'object' ? saved.npcs[id] : {};
         out.npcs[id] = { ...base.npcs[id], ...old };
         out.npcs[id].affection = Math.max(0, Math.min(100, Number(out.npcs[id].affection) || 0));
+        out.npcs[id].resonanceV286826 = Math.max(0,Math.min(100-out.npcs[id].affection,Number.isFinite(Number(old.resonanceV286826))?Number(old.resonanceV286826):0));
         out.npcs[id].events = Array.isArray(out.npcs[id].events) ? out.npcs[id].events : [];
       }
       // 从上一版感情系统迁移苏晚晴进度，避免旧存档直接损坏。
@@ -5276,6 +5391,7 @@
 
     function getRomanceStage(affection, isPartner=false, npcId=null) {
       if (npcId === MAIN_HEROINE_ID) {
+        if(player.romanceProgress?.endingType==='release')return '知己 · 各自安好';
         if (isPartner) return '重归于好 · 道侣';
         const stages = ['旧爱 · 已分开','冷淡重逢','重新认识','情敌出现','暗线浮现','旧情未散','彼此牵挂','等待重新开始'];
         return stages[Math.min(getSuReunionCount(), stages.length - 1)];
@@ -5289,6 +5405,7 @@
 
 
     function getMainHeroineRivalStatus() {
+      if(expansionStateV286827().scenes.rumor_su)return '苏晚晴已知顾承渊的出身；他亲口回应了流言，她保留自己的判断。';
       if(player?.rivalState?.hasExited || player?.rivalState?.phase==='stepped_back') {
         return `${MAIN_HEROINE_RIVAL.name}已经体面退出这段关系。其真实出身仍只被极少数人知晓。`;
       }
@@ -5309,7 +5426,9 @@
       if (!r) return 0;
       const before = r.affection;
       const cap = npcId === MAIN_HEROINE_ID ? getSuAffectionCap() : 100;
-      r.affection = Math.max(0, Math.min(cap, r.affection + amount));
+      const delta=Number.isFinite(Number(amount))?Number(amount):0;
+      r.affection = delta>=0 ? Math.max(before,Math.min(cap,before+delta)) : Math.max(0,before+delta);
+      if(npcId===MAIN_HEROINE_ID&&delta>0)r.resonanceV286826=Math.min(100-r.affection,Math.max(0,Number(r.resonanceV286826)||0)+delta-(r.affection-before));
       return r.affection - before;
     }
 
@@ -5558,7 +5677,7 @@
         statusEffects: Array.isArray(saved.statusEffects) ? saved.statusEffects.filter(e=>e&&typeof e==='object'&&e.id).map(e=>({...e,remainingDays:Math.max(0,Number(e.remainingDays)||0)})).slice(0,30) : [],
         heartDemon: {
           ...base.heartDemon, ...(saved.heartDemon||{}),
-          attachment: Math.max(0,Math.min(100,Number(saved.heartDemon?.attachment ?? base.heartDemon.attachment)||0)),
+          attachment: Math.max(0,Math.min(100,Number(saved.heartDemon?.attachment ?? saved.zhinian ?? 0)||0)),
           type: String(saved.heartDemon?.type||'worth'), broken:!!saved.heartDemon?.broken,
           triggerCount:Math.max(0,Number(saved.heartDemon?.triggerCount)||0)
         },
@@ -5618,13 +5737,9 @@
       // V2感情线旧档迁移：已有七段事件时补齐阶段，不倒扣旧档好感/称号。
       const suDone=SU_REUNION_EVENT_IDS.filter(id=>merged.romance?.npcs?.[MAIN_HEROINE_ID]?.events?.includes(id));
       merged.romanceProgress.stage=Math.max(merged.romanceProgress.stage,suDone.length);
-      // pre-V2旧档没有heartDemon字段：按已完成事件重建执念，不让剧情状态倒退。
-      if(!saved.heartDemon){
-        let legacyAttachment=60;
-        for(const id of suDone){ if(id in SU_HEART_DEMON_DELTAS) legacyAttachment+=SU_HEART_DEMON_DELTAS[id]; }
-        if(suDone.includes('second_choice')) legacyAttachment=0;
-        merged.heartDemon.attachment=Math.max(0,Math.min(100,legacyAttachment));
-        if(suDone.includes('second_choice')){ merged.heartDemon.broken=true; merged.romanceProgress.heartDemonResolved=true; }
+      // Legacy zhinian is read above; a missing value is zero, never a falsy fallback to 60.
+      if(!saved.heartDemon&&suDone.includes('second_choice')){
+        merged.heartDemon.attachment=0;merged.heartDemon.broken=true;merged.romanceProgress.heartDemonResolved=true;
       }
       if(suDone.includes('rival_secret')){merged.rivalState.identityRevealed=true;if(merged.rivalState.phase==='pursuing')merged.rivalState.phase='revealed';}
       if(suDone.includes('truth_and_apology')){merged.suwanqingHidden.confessed=true;merged.suwanqingHidden.woodenTokenStage=Math.max(merged.suwanqingHidden.woodenTokenStage,1);}
@@ -5636,6 +5751,9 @@
         if(!merged.skills.some(s=>s?.name===skill.name)) merged.skills.push({...skill});
       }
       normalizeHomeV2812(merged);
+      if(typeof normalizeRoamingV286818==='function')merged.roamingV286818=normalizeRoamingV286818(saved.roamingV286818);
+      normalizeNarrativeV286826(merged);
+      merged.storyExpansionV286827=normalizeExpansionV286827(merged.storyExpansionV286827);
       return merged;
     }
 
@@ -5700,6 +5818,9 @@
     function readyCombatFinishV2764(options={}) {
       const pending = COMBAT_FINISH_V2764.pending;
       if (!pending) return null;
+      // Includes flee/capture-like exits that did not use the victory autosave.
+      battleCheckpointV286812=null;
+      autoSave();
       if (typeof options.afterReturn === 'function') pending.afterReturn = options.afterReturn;
       if (options.skipReturn != null) pending.skipReturn = !!options.skipReturn;
       const kind = options.kind || pending.kind || 'victory';
@@ -5835,6 +5956,7 @@
       if(!Array.isArray(player.tasks.failed))player.tasks.failed=[];
       if(!player.tasks.choices||typeof player.tasks.choices!=='object')player.tasks.choices={};
       if(!player.taskCounters)player.taskCounters={daily:0,weekly:0,lastDailyReset:-1,lastWeeklyReset:-1};
+      if(typeof migrateMainV286823==='function')migrateMainV286823(player.tasks);
       return player.tasks;
     }
     function getTaskData(id){return ALL_TASKS[id]||null;}
@@ -5844,14 +5966,14 @@
       if(Number.isFinite(task.unlockRealm) && (player.level||0)<task.unlockRealm)return false;
       if(task.type==='main'){
         const idx=MAIN_TASKS.findIndex(t=>t.id===task.id);
-        if(idx>0 && !player.tasks.completed.includes(MAIN_TASKS[idx-1].id)) return false;
+        if(!mainPredecessorMetV286823(task))return false;
       }
       const c=task.unlockCondition;if(!c)return true;
       if(Number.isFinite(c.realm)&&(player.level||0)<c.realm)return false;
       if(Number.isFinite(c.affection_su)){const r=player.romance?.npcs?.[MAIN_HEROINE_ID];if((r?.affection||0)<c.affection_su)return false;}
       if(Array.isArray(c.questCompleted)&&!c.questCompleted.every(q=>player.tasks.completed.includes(q)))return false;
       if(c.choiceTask&&c.choice&&player.tasks.choices[c.choiceTask]!==c.choice)return false;
-      if(c.heartDemon==='low' && Number(player.heartDemon?.attachment||100)>35)return false;
+      if(c.heartDemon==='low' && (!Number.isFinite(player.heartDemon?.attachment)||player.heartDemon.attachment>35))return false;
       if(Number.isFinite(c.warLevel) && Number(player.demonInvasionLevel||0)<c.warLevel)return false;
       return true;
     }
@@ -5932,7 +6054,7 @@
     }
     function checkTaskTriggers(){
       ensureTaskState();
-      const firstIncomplete=MAIN_TASKS.find(t=>!player.tasks.completed.includes(t.id));
+      const firstIncomplete=preferredMainV286823(MAIN_TASKS.filter(t=>!player.tasks.completed.includes(t.id)));
       if(firstIncomplete&&getTaskStatus(firstIncomplete.id)===TASK_STATUS.AVAILABLE)acceptTask(firstIncomplete.id,true);
       checkTaskPassiveConditions();updateTaskTracker();
     }
@@ -5968,7 +6090,7 @@
         }else if(enemy._taskId===id&&enemy._taskAction===step.action){completeTaskStep(id,step.action);}
       }
     }
-    function onChoiceMade(id,option){const task=getTaskData(id),inst=getTaskInstance(id),step=getCurrentTaskStep(id);if(!task||!inst||inst.completed||inst.failed||step?.action!=='choice'||!taskInteractionAllowedV2822()||!step.options?.some(x=>x[0]===option))return;player.tasks.choices[id]=option;inst.progress.choice=option;if(id==='main_09'&&option==='stay'){const su=player.romance?.npcs?.[MAIN_HEROINE_ID];if(su)su.affection=Math.min(100,(su.affection||0)+2);}if(id==='main_12'&&option==='release'){player.heartDemon ||= {};player.heartDemon.attachment=Math.max(0,(player.heartDemon.attachment||0)-8);}completeTaskStep(id,'choice');closeTaskPanel();}
+    function onChoiceMade(id,option){const task=getTaskData(id),inst=getTaskInstance(id),step=getCurrentTaskStep(id);if(!task||!inst||inst.completed||inst.failed||step?.action!=='choice'||!taskInteractionAllowedV2822()||!step.options?.some(x=>x[0]===option))return;player.tasks.choices[id]=option;inst.progress.choice=option;if(id==='main_09'&&option==='neutral'){addAffection(MAIN_HEROINE_ID,1);player.rivalState.neutralV286827=1;}if(id==='main_09'&&option==='stay'){const su=player.romance?.npcs?.[MAIN_HEROINE_ID];if(su)su.affection=Math.min(100,(su.affection||0)+2);}if(id==='main_12'&&option==='release'){player.heartDemon ||= {};player.heartDemon.attachment=Math.max(0,(player.heartDemon.attachment||0)-8);}completeTaskStep(id,'choice');closeTaskPanel();}
 
     function resetDailyTasks(){
       ensureTaskState();const day=Math.floor(player.worldTime?.totalDays||0);if(player.taskCounters.lastDailyReset===day)return;
@@ -6024,7 +6146,7 @@
     }
 
     function getTaskActionLabel(id){const step=getCurrentTaskStep(id);if(!step)return '';const m={collect_materials:'🌿 查看采集途径',journey_battle_v2838:'⚔️ 查看对手与状态',learn_high_skill:'📚 前往藏经阁（需已学会筑基及以上功法）',tournament_record_v2823:'🏆 前往正式大比',rival_record_v2823:'📜 前往宿敌纪事',saint_win_v2823:'⚔️ 前往夜无疆挑战',border_general_v2823:'⚔️ 护送归途',war_defender_v2823:'⚔️ 守卫灵脉',kill_enemies:'⚔️ 挑战目标',combat_puppet:'⚔️ 开始实战',kill_secret_boss:'👹 挑战妖王',clear_nest:'⚔️ 清剿巢穴',defend_attack:'⚔️ 抵御偷袭',breakthrough_realm:'☯️ 修炼 / 突破预览',cultivate_to_full:'🧘 前往修炼预览',survive_tribulation:'⚡ 进入三重护法考验',collect_task_materials:'🌿 查看秘境采集点',choice:'请选择分支'};return m[step.action]||'▶ 推进当前步骤';}
-    function renderTaskChoices(id,step){if(step?.action!=='choice')return '';return `<div class="task-actions">${(step.options||[]).map(([value,label])=>`<button class="task-action gold" onclick="onChoiceMade('${id}','${value}')">${label}</button>`).join('')}</div>`;}
+    function renderTaskChoices(id,step){if(step?.action!=='choice')return '';return `<p>${choiceNoteV286826(id)}</p><div class="task-actions">${(step.options||[]).map(([value,label])=>`<button class="task-action gold" onclick="onChoiceMade('${id}','${value}')">${label}</button>`).join('')}</div>`;}
     function taskStatusText(status){return status==='completed'?'✅ 已完成':status==='active'?'● 进行中':status==='available'?'可接取':status==='failed'?'失败':'🔒 未解锁';}
     function getTaskListByFilter(filter){return Object.values(ALL_TASKS).filter(t=>t.type===filter).filter(t=>!(t.hidden&&getTaskStatus(t.id)===TASK_STATUS.LOCKED));}
     function taskInteractionAllowedV2822(){
@@ -6077,18 +6199,18 @@
 
     function mainTaskGuideV2822(task){
       const locations=['青云渡口 · 凌霄山门','凌霄宗 · 外门演武场','凌霄宗 · 山门石桥','南域 · 后山试炼林','修炼 / 闭关','凌霄宗 · 筑基台','凌霄宗 · 内门考场','宗门秘境','凌霄宗 · 药庐','凌霄宗 · 禁阁','凌霄宗 · 内门回廊','凌霄宗 · 药庐','凌霄宗 · 大比备战','凌霄宗 · 百年宗门大比','西域 · 荒原归路','西域 · 三界灵脉前线','仙门 · 宿敌纪事','半圣天堑 · 问道','裂界台 · 宿敌终战'];
-      return locations[MAIN_TASKS.findIndex(t=>t.id===task.id)]||'查看当前目标';
+      return task.placeV286823||locations[Number(task.id.replace('main_',''))-1]||'查看当前目标';
     }
     function mainTaskLockV2822(task){
       const i=MAIN_TASKS.findIndex(t=>t.id===task.id),parts=[];
-      if(i>0&&!player.tasks.completed.includes(MAIN_TASKS[i-1].id))parts.push(`先完成「${MAIN_TASKS[i-1].title}」`);
+      if(i>0&&!mainPredecessorMetV286823(task))parts.push(`先完成「${MAIN_TASKS[i-1].title}」`);
       if((player.level||0)<(task.unlockRealm||0))parts.push(`达到${CULTIVATION_REALMS[task.unlockRealm]?.name||'指定境界'}初期`);
       return parts.join('；');
     }
     function renderTaskList(filter='main'){
       currentTaskTab=filter;const c=document.getElementById('taskListContainer');if(!c)return;
       document.querySelectorAll('.task-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===filter));
-      const list=getTaskListByFilter(filter),esc=discipleEscV2815;
+      const list=filter==='main'?MAIN_TASKS:filter==='journey'?JOURNEYS_V2838.map(j=>getTaskData(j.id)):getTaskListByFilter(filter),esc=discipleEscV2815;
       if(filter==='journal'){renderJournalV2838(c);return;}
       if(!list.length){c.innerHTML='<div class="task-empty">当前没有可显示的任务</div>';return;}
       const card=task=>{
@@ -6096,11 +6218,11 @@
         if(st===TASK_STATUS.AVAILABLE)buttons=`<button class="task-action gold" onclick="acceptTask('${task.id}');renderTaskList('${filter}')">接取任务</button>`;
         else if(st===TASK_STATUS.ACTIVE)buttons=step?.action==='choice'?renderTaskChoices(task.id,step):`<button class="task-action gold" onclick="performTaskAction('${task.id}')">${getTaskActionLabel(task.id)}</button>${task.type!=='main'?`<button class="task-action danger" onclick="abandonTask('${task.id}')">放弃</button>`:''}`;
         const checklist=task.type==='main'&&step?`<details class="main-steps-v2822"><summary>本章步骤 · ${inst.currentStep}/${task.steps.length}</summary><ol>${task.steps.map((x,i)=>`<li class="${i===inst.currentStep?'current':''}">${i<inst.currentStep?'✓ ':i===inst.currentStep?'➤ ':''}${esc(x.text)}</li>`).join('')}</ol></details>`:'';
-        return `<article class="task-card ${task.type==='main'?'main':''} ${st}"><div class="task-card-top"><div class="task-card-title">${esc(task.title)}</div><div class="task-status">${taskStatusText(st)}</div></div><p class="task-card-desc">${esc(task.desc)}</p>${task.type==='main'?`<p class="main-guide-v2822">📍 剧情地点：${esc(mainTaskGuideV2822(task))}${task.npc?` · ${esc(task.npc)}`:''}</p>`:''}${st===TASK_STATUS.LOCKED&&task.type==='main'?`<p class="main-lock-v2822">${esc(mainTaskLockV2822(task))}</p>`:''}${step?`<div class="task-step-box"><div class="task-step-label">当前目标 · 第 ${inst.currentStep+1}/${task.steps.length} 步</div><div class="task-step-text">${esc(getTaskStepDisplay(task.id,step))}</div></div>`:''}${checklist}<div class="task-reward">${st===TASK_STATUS.COMPLETED?'已发放':'完成后自动发放'}：${esc(formatTaskRewards(task.rewards))}</div><div class="task-actions">${buttons}</div></article>`;
+        return `<article class="task-card ${task.type==='main'?'main':''} ${st}"><div class="task-card-top"><div class="task-card-title">${esc(task.title)}</div><div class="task-status">${taskStatusText(st)}</div></div>${task.type==='main'&&st!==TASK_STATUS.LOCKED?mainIllustrationV286829(task.id):''}<p class="task-card-desc">${esc(task.desc)}</p>${task.type==='main'?`<p class="main-guide-v2822">📍 剧情地点：${esc(mainTaskGuideV2822(task))}${task.npc?` · ${esc(task.npc)}`:''}</p>`:''}${st===TASK_STATUS.LOCKED&&task.type==='main'?`<p class="main-lock-v2822">${esc(mainTaskLockV2822(task))}</p>`:''}${step?`<div class="task-step-box"><div class="task-step-label">当前目标 · 第 ${inst.currentStep+1}/${task.steps.length} 步</div><div class="task-step-text">${esc(getTaskStepDisplay(task.id,step))}</div></div>`:''}${checklist}<div class="task-reward">${st===TASK_STATUS.COMPLETED?'已发放':'完成后自动发放'}：${esc(formatTaskRewards(task.rewards))}</div><div class="task-actions">${buttons}</div></article>`;
       };
       if(filter!=='main'){c.innerHTML=(filter==='journey'?journeyIntroductionV2838():'')+list.map(card).join('');return;}
-      const done=list.filter(t=>getTaskStatus(t.id)===TASK_STATUS.COMPLETED),todo=list.filter(t=>getTaskStatus(t.id)!==TASK_STATUS.COMPLETED),current=todo[0],last=getTaskData(player.tasks.lastMainResultV2822?.id);
-      c.innerHTML=taskLovePanelV2824()+`<section class="main-overview-v2822"><h3>📜 主线旅程 · ${done.length}/${list.length} 章</h3><p>${current?`当前篇章：${esc(current.title)}`:'当前已开放主线全部完成，可继续宗门大比、三界历练与宿敌纪事。'}</p><progress max="${list.length}" value="${done.length}" aria-label="主线章节进度"></progress><p>剧情对话由下方按钮推进；实战需获胜，修炼与突破会先显示预览。</p>${last?`<details><summary>最近完成：${esc(last.title)} · 奖励已到账</summary><p>${esc(formatTaskRewards(last.rewards))}</p></details>`:''}</section>${current?card(current):''}${todo.length>1?`<details class="main-archive-v2822"><summary>后续章节 · ${todo.length-1}</summary>${todo.slice(1).map(card).join('')}</details>`:''}${done.length?`<details class="main-archive-v2822"><summary>已完成章节 · ${done.length}</summary>${done.map(card).join('')}</details>`:''}`;
+      const done=list.filter(t=>getTaskStatus(t.id)===TASK_STATUS.COMPLETED),todo=list.filter(t=>getTaskStatus(t.id)!==TASK_STATUS.COMPLETED),current=preferredMainV286823(todo),last=getTaskData(player.tasks.lastMainResultV2822?.id);
+      c.innerHTML=expansionCardV286827()+rainCardV286822()+storyMailCardV286826()+postCaseCardV286826()+taskLovePanelV2824()+`<section class="main-overview-v2822"><h3>📜 主线旅程 · ${done.length}/${list.length} 章</h3><p>${current?`当前篇章：${esc(current.title)}`:'当前已开放主线全部完成，可继续宗门大比、三界历练与宿敌纪事。'}</p><progress max="${list.length}" value="${done.length}" aria-label="主线章节进度"></progress><p>剧情对话由下方按钮推进；实战需获胜，修炼与突破会先显示预览。</p>${last?`<details><summary>最近完成：${esc(last.title)} · 奖励已到账</summary><p>${esc(formatTaskRewards(last.rewards))}</p></details>`:''}</section>${current?card(current):''}${todo.length>1?`<details class="main-archive-v2822"><summary>后续章节 · ${todo.length-1}</summary>${todo.filter(t=>t!==current).map(card).join('')}</details>`:''}${done.length?`<details class="main-archive-v2822"><summary>已完成章节 · ${done.length}</summary>${done.map(card).join('')}</details>`:''}`;
     }
     function showTaskPanel(filter='main'){
       if(gameState!=='combat'&&gameState!=='combat-ending'&&!player.breakthrough?.isAnimating)checkTaskTriggers();
@@ -6130,6 +6252,10 @@
     let playerPressureStun = false;
 
     function resetRuntimeState() {
+      if(typeof closeExpansionV286827==='function')closeExpansionV286827();
+      document.getElementById('postCaseV286826')?.remove();document.getElementById('storyBossPrepV286826')?.remove();
+      if(typeof rainCloseV286822==='function')rainCloseV286822();
+      battleCheckpointV286812=null;
       if(typeof resetWarMapV2840==='function')resetWarMapV2840();
       if(typeof closeWarPanelV2839==='function')closeWarPanelV2839();
       if(typeof closeSceneV2838==='function')closeSceneV2838(false);
@@ -6412,7 +6538,7 @@
     }
     
     function balanceEnemyV2802(enemy,isBoss=false,isTrib=false){
-      if(!enemy||enemy._isTutorial||enemy.tournamentFight||enemy._nightRivalV2810)return enemy;
+      if(!enemy||enemy._isTutorial||enemy.tournamentFight||enemy._nightRivalV2810||[4,9].includes(enemy._rainChapterV286822))return enemy;
       ensureEnemyRealm(enemy);
       const lv=Math.max(0,Math.min(CULTIVATION_REALMS.length-1,Number(enemy._realmLevel)||0));
       const ph=Math.max(0,Math.min(3,Number(enemy._realmPhase)||0));
@@ -6423,7 +6549,7 @@
       const ratio=Math.max(0,Math.min(1,(Number(enemy.hp)||0)/oldMax));
       const base=enemy._balanceBaseV2802||(enemy._balanceBaseV2802={hp:oldMax,atk:Math.max(1,Number(enemy.atk)||1),def:Math.max(0,Number(enemy.def)||0)});
       const realm=CULTIVATION_REALMS[lv],stage=getRealmStageMultiplierV2794(lv,ph);
-      const scale={normal:[1,1,1],elite:[1.65,1.15,1.15],boss:[3.2,1.3,1.25],tribulation:[3.6,1.35,1.3]}[tier];
+      const scale={normal:[1,1,1],elite:lv===2?[1.35,1.05,1.05]:[1.65,1.15,1.15],boss:[3.2,1.3,1.25],tribulation:[3.6,1.35,1.3]}[tier];
       enemy.maxHp=Math.max(base.hp,Math.round((180+realm.hpBonus*3)*stage*scale[0]));
       enemy.hp=ratio===0?0:Math.max(1,Math.round(enemy.maxHp*ratio));
       enemy.atk=Math.max(base.atk,Math.round((18+realm.atkBonus*.9)*stage*scale[1]));
@@ -6450,6 +6576,7 @@
     
     function startCombat(enemy, isBoss = false, isTrib = false, monsterRef = null) {
       if(!enemy || gameState==='combat' || gameState==='combat-ending' || COMBAT_FINISH_V2764.settling || player.breakthrough?.isAnimating)return false;
+      battleCheckpointV286812={owner:player,raw:JSON.stringify(createSaveDataV2768())};
       document.getElementById('afterBattleV2838')?.remove();
       if(typeof closeWarPanelV2839==='function')closeWarPanelV2839();
       if(typeof closeSceneV2838==='function')closeSceneV2838(false);
@@ -6463,8 +6590,10 @@
       ensureEnemyRealm(enemy);
       balanceEnemyV2802(enemy,isBoss,isTrib);
       currentEnemy = enemy;
+      if(enemy._nightRivalV2810&&player.level>=15)enemy._originV286826={turns:0,collapsed:false};
       guardsV2785.delete(currentEnemy);
       gearBattleV2790.delete(currentEnemy);
+      setupTacticsV286821();
       gameState = 'combat';
       isPlayerTurn = true;
       isBossFight = isBoss;
@@ -6478,6 +6607,11 @@
       currentEnemy.thunderDomainDamage = 0;
       currentEnemy.thunderDomainTurns = 0;
       currentEnemy._skipReason = '';
+      currentEnemy._spellSealTurnsV286817 = 0;
+      for(const key of ['_chillTurnsV286818','_iceBreakTurnsV286818','_frostTurnsV286818','_frostDamageV286818'])currentEnemy[key]=0;
+      currentEnemy.burnStacks=currentEnemy.burnTurns=0;
+      currentEnemy._burnHealBlockV286818=currentEnemy._burnWeakV286818=false;
+      elementGuardsV286818.delete(currentEnemy);
       player._thunderArmorTurns = 0;
       player._thunderDamageBonus = 0;
       player._thunderReflectRatio = 0;
@@ -6524,6 +6658,7 @@
       if(currentEnemy._balanceKeyV2802)addCombatLog(`🛡️ ${isTrib?'天劫':isBoss?'首领':currentEnemy._isElite?'精英':'普通'} · 生命 ${currentEnemy.maxHp} · 攻击 ${currentEnemy.atk} · 防御 ${currentEnemy.def}`,'boss');
       if(currentEnemy._isElite) addCombatLog('⭐ 精英敌人：境界与基础属性更高，击败后更值得挑战。','boss');
       updateCombatChoices();
+      autoSave();
     }
     
     function updateCombatMpV2820(){
@@ -6550,10 +6685,10 @@
       const enemyNameEl=document.getElementById('enemyName');
       if(enemyNameEl){
         const elite=currentEnemy._isElite?' ⭐':'';
-        enemyNameEl.innerHTML=`${currentEnemy.name}${elite} <span style="font-size:11px;color:#aaa">(${getEnemyRealmNameV2811(currentEnemy)})</span>`;
+        enemyNameEl.innerHTML=`${escapeGameText(currentEnemy.name)}${elite} <span style="font-size:11px;color:#aaa">(${getEnemyRealmNameV2811(currentEnemy)})</span>${currentEnemy._originV286826?`<small> · ${currentEnemy._originV286826.collapsed?'道基崩裂：攻击+20% / 禁疗 / 行动自损4%':'魔典燃源：攻击+10% / 防御+25% · '+Math.min(3,currentEnemy._originV286826.turns)+'/3'}</small>`:''}`;
       }
       const playerNameEl=document.getElementById('playerCombatName');
-      if(playerNameEl) playerNameEl.innerHTML=`${player.name} <span style="font-size:11px;color:#aaa">(${getCultivationName()})</span>`;
+      if(playerNameEl) playerNameEl.innerHTML=`${escapeGameText(player.name)} <span style="font-size:11px;color:#aaa">(${getCultivationName()})</span>`;
       if (isBossFight || isTribulation) {
         document.getElementById('bossPhase').textContent = `第 ${currentBossPhase} 阶段`;
       }
@@ -6564,7 +6699,7 @@
       if (!isPlayerTurn) return;
       
       const choicesDiv = document.getElementById('combatChoices');
-      let html = `<button class="choice-btn" onclick="combat('attack')">⚔️ 普通攻击</button>`;
+      let html = `<button class="choice-btn" onclick="combat('attack')">⚔️ 普攻 · 命中回灵</button>`;
       
       player.skills.forEach((skill, i) => {
         const disabled = player.mp < skill.mpCost ? 'disabled' : '';
@@ -6577,8 +6712,9 @@
       html += `<button class="choice-btn combat-bag-btn" onclick="toggleCombatMedicineDrawer()">🎒 战斗背包${combatConsumableCount?` (${combatConsumableCount})`:''}</button>`;
       
       // Boss战不能逃跑
-      if (!isBossFight && !isTribulation && !currentEnemy?.tournamentFight) {
-        html += `<button class="choice-btn" onclick="combat('flee')">🏃 逃跑</button>`;
+      if (canFleeV286818()) {
+        html += `<button class="choice-btn" onclick="combat('flee')">🏃 逃跑 ${Math.round(fleeChanceV286818()*100)}%</button>`;
+        if(player.inventory.includes('神行符'))html+=`<button class="choice-btn" onclick="combat('escapeScroll')">神行符 · 必定脱战</button>`;
       }
       
       choicesDiv.innerHTML = html;
@@ -6606,7 +6742,7 @@
       // 灵宠继承主人的大境界层级，避免越级战斗时宠物固定伤害绕过境界压制。
       const petResult=calculateFinalDamage({
         attacker:{level:player.level,phase:player.phase,atk:petBaseDamage,def:0,pressureTurns:playerPressureTurns},
-        defender:{level:currentEnemy._realmLevel||0,phase:currentEnemy._realmPhase||0,def:currentEnemy.def,hp:currentEnemy.hp,name:currentEnemy.name,pressureTurns:currentEnemy._pressureTurns||0},
+        defender:{level:currentEnemy._realmLevel||0,phase:currentEnemy._realmPhase||0,def:enemyDefenseV286818(),hp:currentEnemy.hp,name:currentEnemy.name,pressureTurns:currentEnemy._pressureTurns||0},
         skill:null,isCrit:false,isPet:true,isBoss:isBossFight||isTribulation
       });
       const petDamage=petResult.damage;
@@ -6628,7 +6764,8 @@
       showDamageNumber(petDamage, 'enemy', false, false, false, true, pet.name);
       playHitEffect('enemy');
       
-      let logText = `${petType.icon} ${pet.name}攻击造成 ${petDamage} 点伤害！`;
+      const speciesIcon=getWorldMonsterIcon(pet.speciesV286818||pet.name||'');
+      let logText = `${speciesIcon==='👾'?petType.icon:speciesIcon} ${pet.name}攻击造成 ${petDamage} 点伤害！`;
       if (burnDamage > 0) {
         currentEnemy.hp = Math.max(0, currentEnemy.hp - burnDamage);
         logText += ` <span style="color:#ff6600;">灼烧${burnDamage}!</span>`;
@@ -6670,6 +6807,93 @@
       return false;
     }
     
+    // 元素状态随本场敌人存活；不写入角色永久面板。
+    const elementGuardsV286818=new WeakMap();
+    function enemyDefenseV286818(enemy=currentEnemy,skill=null){
+      const weak=!!skill&&skill.element===weaknessV286821(enemy);
+      return Math.max(0,Number(enemy?.def)||0)*Math.max(.5,(enemy?.burnTurns>0?.85:1)*(enemy?._iceBreakTurnsV286818>0?.75:1)*(weak?.75:1))*(enemy?._originV286826&&!enemy._originV286826.collapsed?1.25:1);
+    }
+    function enemyAttackV286818(enemy=currentEnemy){
+      const chill=enemy?._chillTurnsV286818>0?Math.min(.55,enemy._chillV286818||.3):0;
+      return Math.max(1,Number(enemy?.atk)||1)*(1-chill*.5)*(enemy?.burnTurns>0&&enemy?._burnWeakV286818 ? .85 : 1)*(enemy?._originV286826?(enemy._originV286826.collapsed?1.2:1.1):1);
+    }
+    function applyElementHitV286818(skill,damage){
+      const e=currentEnemy;if(!e||e.hp<=0)return;
+      if(skill.element==='ice'){
+        const slow=skill.effect==='heavySlow'?.55:.3;
+        e._chillV286818=Math.max(e._chillTurnsV286818>0?e._chillV286818||0:0,slow);
+        e._chillTurnsV286818=Math.max(e._chillTurnsV286818||0,2);
+        addCombatLog(`❄ 寒迟：接下来两次行动追击速度降低${Math.round(e._chillV286818*100)}%，攻击面板降低${Math.round(e._chillV286818*50)}%。`,'pet');
+        if(skill.effect==='defDown')e._iceBreakTurnsV286818=2;
+        const chances={'冰封千里':.8,'绝对零度':1,'冰蝶幻舞':.35,'冰河葬狱':1,'冰魄封魂':1,'万载寒晶':1,'寒渊领域':.35};
+        if(chances[skill.name]&&Math.random()<chances[skill.name]){skipEnemyTurn=true;e._skipReason='冻结';addCombatLog('寒冰凝结，敌人下一次行动被冻结。','pet');}
+        if(skill.effect==='freezeSilence')sealEnemySpellsV286817(1);
+        if(['iceField','coldDomain','eternalIce'].includes(skill.effect)){
+          e._frostDamageV286818=Math.max(e._frostDamageV286818||0,Math.max(1,Math.floor(damage*.12)));e._frostTurnsV286818=3;
+          addCombatLog(`冰寒侵蚀：未来3次主动出招前各受到${e._frostDamageV286818}点冰伤。`,'damage');
+        }
+      }
+      if(skill.element==='fire'){
+        if(skill.effect==='burnDetonate'){
+          const extra=Math.max(0,Math.floor(e.burnStacks||0))*Math.max(0,e.burnTurns||0);
+          if(extra){e.hp=Math.max(0,e.hp-extra);showDamageNumber(extra,'enemy',false,false,false,false,'灼烧引爆');addCombatLog(`🔥 引爆剩余灼烧，追加${extra}点伤害，灼烧与破甲消散。`,'damage');}
+          e.burnTurns=0;e.burnStacks=0;e._burnHealBlockV286818=false;e._burnWeakV286818=false;return;
+        }
+        e.burnStacks=Math.max(e.burnTurns>0?e.burnStacks||0:0,Math.max(1,Math.floor(damage*.2)));
+        e.burnTurns=Math.max(e.burnTurns||0,skill.name==='太阳真火'?4:(skill.duration|| (skill.name==='焚天烈焰'?3:2)));
+        e._burnHealBlockV286818=!!e._burnHealBlockV286818||skill.effect==='healBlockBurn';
+        e._burnWeakV286818=!!e._burnWeakV286818||skill.effect==='atkDownBurn';
+        addCombatLog(`🔥 灼烧${e.burnStacks}点×${e.burnTurns}次，期间防御降低15%；同类取最高、不累加。`,'damage');
+        if(e._burnHealBlockV286818)addCombatLog('业火禁疗：灼烧期间无法妖元回生。','pet');
+        if(skill.effect==='fireBind'){e._chillV286818=.3;e._chillTurnsV286818=1;addCombatLog('流火缠身，下次行动追击速度降低30%、攻击面板降低15%。','pet');}
+      }
+    }
+    function applyElementGuardV286818(skill){
+      const old=elementGuardsV286818.get(currentEnemy),pool=Math.floor(getMaxHp()*.2);
+      elementGuardsV286818.set(currentEnemy,{owner:player,pool:Math.max(old?.owner===player?old.pool:0,pool),turns:3,element:skill.element});
+      addCombatLog(`护盾展开：吸收最多${pool}点伤害，持续敌方3次行动；同类不叠加。`,'heal');
+    }
+    function absorbElementGuardV286818(damage){
+      const g=elementGuardsV286818.get(currentEnemy);if(!g||g.owner!==player||g.turns<=0)return damage;
+      const absorbed=Math.min(g.pool,damage);g.pool-=absorbed;
+      if(absorbed>0)addCombatLog(`元素护盾吸收${absorbed}点伤害，剩余${g.pool}。`,'heal');
+      return damage-absorbed;
+    }
+    function finishEnemyElementsV286818(enemy,owner){
+      if(currentEnemy!==enemy||player!==owner)return;
+      for(const key of ['_chillTurnsV286818','_iceBreakTurnsV286818'])if(enemy[key]>0)enemy[key]--;
+      const g=elementGuardsV286818.get(enemy);if(g?.owner===owner&&--g.turns<=0)elementGuardsV286818.delete(enemy);
+      if(gameState==='combat'){updateCombatUI();updateCombatChoices();}
+    }
+    function canFleeV286818(){return !!currentEnemy&&!isBossFight&&!isTribulation&&!currentEnemy.tournamentFight&&!currentEnemy._warV2839&&!currentEnemy._isTaskBattle&&!currentEnemy._isTutorial;}
+    function fleeChanceV286818(){
+      if(!canFleeV286818())return 0;
+      const ours=100+Math.max(0,getEquipmentStat('speed')),chill=currentEnemy._chillTurnsV286818>0?currentEnemy._chillV286818||.3:0;
+      const theirs=(100+Math.max(0,Number(currentEnemy.speed)||0))*(1-chill);
+      const realm=Number(player.level||0)-Number(currentEnemy._realmLevel||0),phase=Number(player.phase||0)-Number(currentEnemy._realmPhase||0);
+      return Math.max(.15,Math.min(.95,.6+.2*(ours-theirs)/Math.max(ours,theirs)+realm*.10+phase*.025));
+    }
+
+    // 普攻命中回灵：只属于主角直接普攻，宠物、持续伤害与技能不重复触发。
+    function restoreAttackMpV286817(damage) {
+      if (!(damage > 0)) return 0;
+      const gain=Math.max(0,Math.min(getMaxMp()-player.mp,Math.max(1,Math.floor(10*getRegionMpRecoveryMultiplier()))));
+      if(gain){player.mp+=gain;addCombatLog(`普攻调息，恢复 ${gain} 点灵力。`,'heal');}
+      return gain;
+    }
+    function sealEnemySpellsV286817(turns=2) {
+      if(!currentEnemy || currentEnemy.hp<=0)return;
+      currentEnemy._spellSealTurnsV286817=Math.max(currentEnemy._spellSealTurnsV286817||0,turns);
+      addCombatLog(`⚡ 封脉：${currentEnemy.name}接下来 ${turns} 次行动不能施展术法或回生，仍可物理攻击、护体与回气。`,'pet');
+    }
+    // 这是境界提示，不伪装为完整胜率预测；精英与当前气血另行提醒。
+    function enemyRiskV286817(enemy) {
+      const gap=Number(enemy?._realmLevel??player.level)-Number(player.level||0);
+      if(gap>0)return {label:'越境危险',color:'#7f2028'};
+      if(enemy?._isElite)return {label:'精英慎战',color:'#854818'};
+      if(gap<0)return {label:'境界占优',color:'#245e43'};
+      return {label:'同境交锋',color:'#403e39'};
+    }
     // 仙鹤灵力恢复
     function applyMpRegen() {
       gearRestoreV2790();
@@ -6728,15 +6952,40 @@
       return setTimeout(()=>{if(player===owner&&currentEnemy===enemy&&gameState==='combat'&&COMBAT_FINISH_V2764.token===token)callback();},delay);
     }
 
+    // Preserve the established multiplicative zones and per-zone rounding.
+    // Defense, crit and variance remain in calculateFinalDamage; on-hit effects
+    // remain in gearHitV2790. No additive rebalance is hidden in this cleanup.
+    function playerDamageBonusesV286812(damage,skill=null){
+      const factors=[1+getDamageBonusWithSet()];
+      if(skill?.element==='sword'&&hasStatusEffect('jianqi'))factors.push(1.15);
+      if(skill?.element==='thunder'&&(player._thunderArmorTurns||0)>0){
+        factors.push(1+(player._thunderDamageBonus||.35));
+        addCombatLog('⚡ 雷神附体强化了本次雷系伤害！','pet');
+      }
+      const artifact=player.activeArtifact,type=ARTIFACT_TYPES[artifact?.type];
+      if(type?.effect.type==='damage')factors.push(1+type.effect.value+artifact.level*.02);
+      if(!skill&&type?.effect.type==='chain'&&Math.random()<type.effect.value+artifact.level*.02){
+        factors.push(1.5);addCombatLog('雷珠发动连锁！','damage');
+      }
+      if(skill?.executeBonus&&currentEnemy.hp<=currentEnemy.maxHp*.3){
+        factors.push(1+skill.executeBonus);addCombatLog('追魂剑意：残血追击，伤害增加50%！','damage');
+      }
+      return factors.reduce((value,factor)=>Math.floor(value*factor),damage);
+    }
+
     function combat(action, skillIndex) {
       if (!isPlayerTurn || gameState!=='combat' || !currentEnemy || currentEnemy.hp<=0) return;
       // 在扣回合、持续伤害和法宝效果之前检查，拒绝过期按钮及未携带技能。
+      if(action==='flee'||action==='escapeScroll'){
+        if(!canFleeV286818()){addCombatLog('此战必须分出胜负，无法脱战。');return;}
+        if(action==='escapeScroll'&&!player.inventory.includes('神行符'))return;
+      }
       if(action==='skill'){
         const usable=typeof getCombatSkillAvailabilityV2769==='function'?getCombatSkillAvailabilityV2769(skillIndex):{ok:false,reason:'技能配置尚未就绪'};
         if(!usable.ok){showFloatingText?.(usable.reason,'#ffd76a');updateCombatChoices?.();return;}
       }
       if(playerPressureStun && Math.random()<Math.min(.6,gearModsV2790().controlResist||0)){playerPressureStun=false;addCombatLog('禅冠稳神，抵抗本次威压控制。','heal');}
-      if(playerPressureStun && action !== 'flee'){
+      if(playerPressureStun && action !== 'flee' && action !== 'escapeScroll'){
         playerPressureStun=false;
         playerPressureTurns=Math.max(0,playerPressureTurns-1);
         isPlayerTurn=false;
@@ -6746,12 +6995,16 @@
       }
       isPlayerTurn = false;
       
+      if(currentEnemy._frostTurnsV286818>0){
+        currentEnemy.hp=Math.max(0,currentEnemy.hp-currentEnemy._frostDamageV286818);currentEnemy._frostTurnsV286818--;
+        addCombatLog(`冰寒侵蚀造成${currentEnemy._frostDamageV286818}点伤害。`,'damage');
+      }
       // 处理灼烧伤害
       if (currentEnemy && currentEnemy.burnStacks > 0 && currentEnemy.burnTurns > 0) {
         currentEnemy.hp = Math.max(0, currentEnemy.hp - currentEnemy.burnStacks);
         addCombatLog(`灼烧造成 ${currentEnemy.burnStacks} 点伤害！`, 'damage');
         currentEnemy.burnTurns--;
-        if (currentEnemy.burnTurns <= 0) currentEnemy.burnStacks = 0;
+        if (currentEnemy.burnTurns <= 0){currentEnemy.burnStacks=0;currentEnemy._burnHealBlockV286818=currentEnemy._burnWeakV286818=false;}
         updateCombatUI();
       }
       // 万雷噬狱持续雷域：在玩家行动前结算一次，不会把生命扣成负数。
@@ -6775,38 +7028,23 @@
         battleLaterV2838(() => {
           const attackResult=calculateFinalDamage({skill:prepareGearSkillV2790(null),
             attacker:{level:player.level,phase:player.phase,atk:getAtk(),def:getDef(),pressureTurns:playerPressureTurns},
-            defender:{level:currentEnemy._realmLevel||0,phase:currentEnemy._realmPhase||0,def:currentEnemy.def,hp:currentEnemy.hp,name:currentEnemy.name,pressureTurns:currentEnemy._pressureTurns||0},
-            skill:null,isCrit:Math.random()<getCritRateWithSet(),isBoss:isBossFight||isTribulation,critMultiplier:getCritDamage()
+            defender:{level:currentEnemy._realmLevel||0,phase:currentEnemy._realmPhase||0,def:enemyDefenseV286818(),hp:currentEnemy.hp,name:currentEnemy.name,pressureTurns:currentEnemy._pressureTurns||0},
+            isCrit:Math.random()<getCritRateWithSet(),isBoss:isBossFight||isTribulation,critMultiplier:getCritDamage()
           });
           let damage=attackResult.damage;
           const isCrit=attackResult.isCrit;
-          damage = Math.floor(damage * (1 + getDamageBonusWithSet()));
           const pressureText=getPressureDisplay(attackResult.pressureInfo);
           if(pressureText)addCombatLog(pressureText,'boss');
           if(attackResult.isUnderdog)addCombatLog('⚡ 顿悟爆发！越级一击威力暴涨！','boss');
           applyPressureToEnemy(attackResult);
           if(playerPressureTurns>0)playerPressureTurns--;
           
-          // 飞剑法宝加成
-          if (player.activeArtifact) {
-            const artType = ARTIFACT_TYPES[player.activeArtifact.type];
-            if (artType.effect.type === 'damage') {
-              damage = Math.floor(damage * (1 + artType.effect.value + player.activeArtifact.level * 0.02));
-            }
-          }
-          
-          // 雷珠连锁伤害
-          if (player.activeArtifact) {
-            const artType = ARTIFACT_TYPES[player.activeArtifact.type];
-            if (artType.effect.type === 'chain' && Math.random() < artType.effect.value + player.activeArtifact.level * 0.02) {
-              damage = Math.floor(damage * 1.5);
-              addCombatLog(`雷珠发动连锁！`, 'damage');
-            }
-          }
-          
+          damage=playerDamageBonusesV286812(damage);
           damage=gearHitV2790(damage,null);
           if(typeof monsterGuardDamageV2844==='function')damage=monsterGuardDamageV2844(damage);
           currentEnemy.hp = Math.max(0, currentEnemy.hp - damage);
+          restoreAttackMpV286817(damage);
+          hitTacticsV286821(null,damage);
           showDamageNumber(damage, 'enemy', false, isCrit, false, false, '普通攻击');
           playHitEffect('enemy');
           playSound('hit');
@@ -6841,6 +7079,10 @@
           return;
         }
 
+        if(['iceArmor','fireShield'].includes(skill.effect)){
+          applyElementGuardV286818(skill);playSkillEffect(skill.name,skill.element);updateCombatUI();
+          battleLaterV2838(()=>enemyTurn(),500);return;
+        }
         // 治愈技能
         if (skill.element === 'heal') {
           healSkillV2785(skill);
@@ -6863,35 +7105,18 @@
         battleLaterV2838(() => {
           const skillResult=calculateFinalDamage({
             attacker:{level:player.level,phase:player.phase,atk:getAtk(),def:getDef(),pressureTurns:playerPressureTurns},
-            defender:{level:currentEnemy._realmLevel||0,phase:currentEnemy._realmPhase||0,def:currentEnemy.def,hp:currentEnemy.hp,name:currentEnemy.name,pressureTurns:currentEnemy._pressureTurns||0},
+            defender:{level:currentEnemy._realmLevel||0,phase:currentEnemy._realmPhase||0,def:enemyDefenseV286818(currentEnemy,skill),hp:currentEnemy.hp,name:currentEnemy.name,pressureTurns:currentEnemy._pressureTurns||0},
             skill:prepareGearSkillV2790(skill),isCrit:Math.random()<Math.min(.6,getCritRateWithSet()+(['thunder','ice','fire'].includes(skill.element)?gearModsV2790().spellCrit||0:0)),isBoss:isBossFight||isTribulation,critMultiplier:getCritDamage()
           });
           let damage=skillResult.damage;
           const isCrit=skillResult.isCrit;
-          damage = Math.floor(damage * (1 + getDamageBonusWithSet()));
-          if (skill.element === 'sword' && hasStatusEffect('jianqi')) damage = Math.floor(damage * 1.15);
-          if (skill.element === 'thunder' && (player._thunderArmorTurns||0)>0) {
-            damage=Math.floor(damage*(1+(player._thunderDamageBonus||.35)));
-            addCombatLog('⚡ 雷神附体强化了本次雷系伤害！','pet');
-          }
           const pressureText=getPressureDisplay(skillResult.pressureInfo);
           if(pressureText)addCombatLog(pressureText,'boss');
           if(skillResult.isUnderdog)addCombatLog('⚡ 顿悟爆发！越级施法突破极限！','boss');
           applyPressureToEnemy(skillResult);
           if(playerPressureTurns>0)playerPressureTurns--;
           
-          // 飞剑法宝加成
-          if (player.activeArtifact) {
-            const artType = ARTIFACT_TYPES[player.activeArtifact.type];
-            if (artType.effect.type === 'damage') {
-              damage = Math.floor(damage * (1 + artType.effect.value + player.activeArtifact.level * 0.02));
-            }
-          }
-          
-          if(skill.executeBonus && currentEnemy.hp<=currentEnemy.maxHp*.3){
-            damage=Math.floor(damage*(1+skill.executeBonus));
-            addCombatLog('追魂剑意：残血追击，伤害增加50%！','damage');
-          }
+          damage=playerDamageBonusesV286812(damage,skill);
           damage=gearHitV2790(damage,skill);
           if(typeof monsterGuardDamageV2844==='function')damage=monsterGuardDamageV2844(damage);
           const actualLossV2785=Math.min(currentEnemy.hp,damage);
@@ -6904,30 +7129,13 @@
           const critText = isCrit ? '【暴击】' : '';
           addCombatLog(`${critText}施展【${skill.name}】，对${currentEnemy.name}造成 ${damage} 点伤害！`, 'damage');
           
-          // 冰系技能冻结效果
-          if (skill.element === 'ice' && skill.effect === 'freeze') {
-            const freezeChance = skill.name === '绝对零度' ? 1 : (skill.name === '冰封千里' ? 0.8 : 0.3);
-            if (Math.random() < freezeChance) {
-              skipEnemyTurn = true;
-              addCombatLog(`敌人被冻结！`, 'pet');
-            }
-          }
-          
-          // 火系技能灼烧效果
-          if (skill.element === 'fire' && skill.effect === 'burn') {
-            const burnDamage = Math.floor(damage * 0.2);
-            const burnTurns = skill.name === '焚天烈焰' ? 3 : 2;
-            currentEnemy.burnStacks = (currentEnemy.burnStacks || 0) + burnDamage;
-            currentEnemy.burnTurns = burnTurns;
-            addCombatLog(`敌人被灼烧，每回合受到 ${burnDamage} 点伤害！`, 'damage');
-          }
+          hitTacticsV286821(skill,damage);
+          applyElementHitV286818(skill,damage);
 
           // 雷系进阶控制与持续效果。
           if (skill.element === 'thunder') {
             if (skill.effect === 'paralyze' && Math.random() < (skill.statusChance || .42)) {
-              skipEnemyTurn = true;
-              currentEnemy._skipReason='麻痹';
-              addCombatLog(`⚡ ${currentEnemy.name}体表电弧乱窜，陷入麻痹，本回合无法行动！`, 'pet');
+              sealEnemySpellsV286817(2);
             } else if (skill.effect === 'stun' && Math.random() < (skill.statusChance || .68)) {
               skipEnemyTurn = true;
               currentEnemy._skipReason='眩晕';
@@ -6980,15 +7188,17 @@
         battleLaterV2838(() => enemyTurn(), 500);
         return;
         
-      } else if (action === 'flee') {
+      } else if (action === 'flee'||action === 'escapeScroll') {
         if(currentEnemy?._warV2839){isPlayerTurn=true;addCombatLog('正魔交锋需分出胜负；退场后可在军务中撤军。');updateCombatChoices();return;}
         if (currentEnemy?.tournamentFight) {
           isPlayerTurn=true;updateCombatChoices();
           addCombatLog('📯 宗门大比擂台不可逃战！');
           return;
         }
-        if (Math.random() > 0.4) {
-          addCombatLog('🏃 逃跑成功，已脱离敌人！', 'heal');
+        const assured=action==='escapeScroll';
+        if(assured)player.inventory.splice(player.inventory.indexOf('神行符'),1);
+        if (assured || Math.random() < fleeChanceV286818()) {
+          addCombatLog(assured?'神行符化作清风，已脱离敌人！':'🏃 逃跑成功，已脱离敌人！', 'heal');
           beginCombatFinishV2764('flee', {disabled:false, watchdogDelay:1800});
           try { releaseCurrentMapMonster(false); }
           finally { readyCombatFinishV2764({kind:'flee', delay:220}); }
@@ -7095,10 +7305,14 @@
           addCombatLog(`🎉 击败了 ${currentEnemy.name}！`, 'gold');
           miniBattleResultV2778(currentEnemy,true);
           onBattleVictory?.(currentEnemy);
+          recordTripWinV286821(currentEnemy);
+          finishRainBattleV286822(currentEnemy);
+          finishRainTwoV286827(currentEnemy);
+          if(typeof finishFirstJourneyBattleV28687==='function')finishFirstJourneyBattleV28687(currentEnemy);
           
-          let goldGain = Math.floor(currentEnemy.gold * getGoldBonus());
+          let goldGain = Math.floor(battleGoldV28683(currentEnemy) * getGoldBonus());
           const earlyGoldBonus=getEarlyBattleBonusV2773(currentEnemy);goldGain+=earlyGoldBonus;
-          let expGain = Math.floor(currentEnemy.exp * getExpBonus());
+          let expGain = Math.floor(battleExpV28683(currentEnemy) * getExpBonus());
           
           player.gold += goldGain;
           player.exp += expGain;
@@ -7307,6 +7521,7 @@
         done(); return;
       }
       if (COMBAT_FINISH_V2764.settling) {done();return;}
+      tickRivalOriginV286826(currentEnemy);
       
       // 境界威压震慑检查
       if(currentEnemy._pressureStun){
@@ -7327,13 +7542,18 @@
         done(); return;
       }
       
+      const originalDoneV286818=done;let finishedV286818=false;
+      done=()=>{if(finishedV286818)return;finishedV286818=true;try{finishEnemyElementsV286818(turnEnemyV2838,turnOwnerV2838);}finally{originalDoneV286818();}};
+      const spellSealedV286817=(currentEnemy._spellSealTurnsV286817||0)>0;
       if(decision && typeof commitMonsterActionV2844==='function') {
         decision=commitMonsterActionV2844(decision);
+        if(spellSealedV286817)currentEnemy._spellSealTurnsV286817--;
         if(decision.ended){done();return;}
         if(decision.utility) {
           isPlayerTurn=true;applyMpRegen();updateCombatUI();updateStats();updateCombatChoices();done();return;
         }
       }
+      if(!decision && spellSealedV286817)currentEnemy._spellSealTurnsV286817--;
       playAttackAnimation('enemy');
       
       setTimeout(() => {
@@ -7342,7 +7562,7 @@
         let isCrit = Math.random() > 0.9;
         let enemySkill=decision?.skill||null;
         if(enemySkill){playBossSkillEffect(enemySkill.name);addCombatLog(`【${currentEnemy.name}】施展【${enemySkill.name}】！`,'boss');}
-        if (!decision && (isBossFight || isTribulation) && currentEnemy.phases) {
+        if (!decision && !spellSealedV286817 && (isBossFight || isTribulation) && currentEnemy.phases) {
           const bossData = getCombatBossData(currentEnemy);
           const currentSkill = bossData?.skills?.[Math.min(currentBossPhase - 1, Math.max(0,(bossData?.skills?.length||1) - 1))] || null;
           if (Math.random() > 0.7 && currentSkill) {
@@ -7353,7 +7573,7 @@
           }
         }
         const enemyAttackResult=calculateFinalDamage({
-          attacker:{level:currentEnemy._realmLevel||0,phase:currentEnemy._realmPhase||0,atk:currentEnemy.atk,def:currentEnemy.def,pressureTurns:currentEnemy._pressureTurns||0},
+          attacker:{level:currentEnemy._realmLevel||0,phase:currentEnemy._realmPhase||0,atk:enemyAttackV286818(),def:currentEnemy.def,pressureTurns:currentEnemy._pressureTurns||0},
           defender:{level:player.level,phase:player.phase,def:getDef(),hp:player.hp,name:player.name,pressureTurns:playerPressureTurns},
           skill:enemySkill,isCrit,isBoss:false
         });
@@ -7383,8 +7603,10 @@
         
         enemyDamage=gearIncomingV2790(enemyDamage);
         enemyDamage=reduceSetDamageV2789(enemyDamage);
+        enemyDamage=defendTacticsV286821(enemyDamage);
         enemyDamage=consumeGuardV2785(enemyDamage);
         if(typeof companionGuardV2849==='function')enemyDamage=companionGuardV2849(enemyDamage);
+        enemyDamage=absorbElementGuardV286818(enemyDamage);
         player.hp = Math.max(0, player.hp - enemyDamage);
         showDamageNumber(enemyDamage, 'player', false, isCrit, !!enemySkill, false, enemySkill?.name||currentEnemy.name+'·攻击');
         playHitEffect('player');
@@ -7479,7 +7701,16 @@
       };
     }
 
+    function recoverPendingBreakthroughV28683(){
+      const pending=player.breakthrough?.pendingV28683;
+      if(!pending)return false;
+      player.breakthrough.pendingV28683=null;
+      if(pending.key!==`${player.level}:${player.phase||0}`)return false;
+      if(pending.success)applyBreakthroughSuccess(pending.result);else applyBreakthroughFailure(pending.result);
+      return true;
+    }
     function canAttemptBreakthrough() {
+      if(player.breakthrough?.pendingV28683&&!player.breakthrough.isAnimating){recoverPendingBreakthroughV28683();return false;}
       if(!player.breakthrough) player.breakthrough={isAnimating:false,attemptCount:0,lastAttemptTime:0,cooldownDays:0,pendingBreakthrough:false};
       const bt=player.breakthrough;
       if(bt.isAnimating)return false;
@@ -7505,11 +7736,15 @@
       const bt=player.breakthrough;
       const snapshot=createBreakthroughSnapshot();
       const result={...calculateBreakthroughSuccess(),snapshot,fromName:snapshot.name,toName:getNextCultivationName(),expNeed:getCurrentExpNeed(),forced:false,noAdvance:false};
+      if(result.pillName)player.inventory.splice(player.inventory.indexOf(result.pillName),1);
+      bt.pillV28683=null;
       bt.isAnimating=true;
       bt.pendingBreakthrough=false;
       bt.attemptCount=(bt.attemptCount||0)+1;
       bt.lastAttemptTime=Date.now();
-      const isSuccess=Math.random()<result.rate;
+      const isSuccess=result.guaranteed||Math.random()<result.rate;
+      bt.pendingV28683={key:`${player.level}:${player.phase||0}`,success:isSuccess,result};
+      autoSave();
       playBreakthroughAnimation(isSuccess,result,skipAnimation);
     }
 
@@ -7563,6 +7798,7 @@
       document.body.classList.remove('breakthrough-playing');
       if(player!==run.owner)return;
       player.breakthrough.isAnimating=false;
+      player.breakthrough.pendingV28683=null;
       if(success)applyBreakthroughSuccess(result);else applyBreakthroughFailure(result);
     }
     function playBreakthroughAnimation(isSuccess,result={},skipAnimation=false){
@@ -7616,7 +7852,8 @@
         text+=`<p>经脉调息还需 ${days} 个游戏日。可一次调息至冷却结束，仙历与年龄按实际天数推进，不需要等待现实时间；调息后仍需手动确认突破。</p>`;
         choices.push({text:`调息 ${days} 天`,action:'breakthrough_rest_v2798',days});
       }else{
-        text+=`<p>预计成功率：${Math.round(calculateBreakthroughSuccess().rate*100)}%。本次尝试不额外扣除整年闭关时间。</p>`;
+        text+=breakthroughDetailsV28683();
+        text+=`<p>选用丹药（只为下一次尝试）：<button class="choice-btn" onclick="selectBreakthroughPillV28683('')">不使用</button>${Object.entries(BREAKTHROUGH_PILLS_V28683).map(([n,d])=>`<button class="choice-btn" onclick="selectBreakthroughPillV28683('${n}')" ${player.level<d.level||!player.inventory.includes(n)?'disabled':''}>${n} · 库存${player.inventory.filter(x=>x===n).length}</button>`).join('')}</p><p>丹药可在仙市稀有丹药铺购买；本次尝试不额外扣除整年闭关时间。</p>`;
         choices.push({text:'开始突破 · 播放动画',action:'retreat_animated_v2783'},{text:'开始突破 · 跳过动画',action:'retreat_breakthrough_v2782'});
       }
       choices.push({text:'暂不突破，返回洞府',action:'home'});showStory(text,choices);
@@ -7793,6 +8030,7 @@
     function applyBreakthroughSuccess(result={}) {
       const bt=player.breakthrough||{};
       bt.isAnimating=false;bt.cooldownDays=0;bt.pendingBreakthrough=false;player.breakthrough=bt;
+      bt.protectionV28683=null;
       const before=result.snapshot||createBreakthroughSnapshot();
       let majorBreakthrough=false;
       if(!result.noAdvance){
@@ -7849,7 +8087,9 @@
     }
 
     function applyBreakthroughFailure(result={}) {
-      const bt=player.breakthrough||{};bt.isAnimating=false;bt.cooldownDays=30+Math.floor(Math.random()*20);player.breakthrough=bt;
+      const protection=breakthroughProtectionV28683();
+      const bt=player.breakthrough||{};bt.isAnimating=false;bt.cooldownDays=30+Math.floor(Math.random()*20);
+      bt.protectionV28683={key:protection.key,failures:Math.min(5,protection.failures+1)};player.breakthrough=bt;
       const loss=Math.floor(getCurrentExpNeed()*.15);player.exp=Math.max(0,player.exp-loss);
       bt.pendingBreakthrough=player.exp>=getCurrentExpNeed();
       player.hp=Math.max(1,Math.floor(getMaxHp()*.60));player.mp=Math.max(1,Math.floor(getMaxMp()*.50));
@@ -7923,11 +8163,15 @@
       return scoreEquipStats(d.stats,q.multiplier)+Object.values(d.modsV2790||{}).reduce((n,v)=>n+v*100,0)+qualityTie;
     }
 
-    function getScaledEquipStats(itemName){
+    function getScaledEquipStats(itemName,stats=null){
       const d=getEquipData(itemName);if(!d)return {};
       const m=getQualityInfo(d.quality).multiplier,out={};
-      for(const [k,v] of Object.entries(d.stats||{}))out[k]=Number(v||0)*m;
+      for(const [k,v] of Object.entries(stats||d.stats||{}))out[k]=Number(v||0)*m;
       return out;
+    }
+
+    function formatEquipItemStatsV286813(itemName,stats=null){
+      const pct=!stats?getEquipData(itemName)?.forgePercentStatsV286825:null;return formatEquipStats(getScaledEquipStats(itemName,stats))+(pct&&Object.keys(pct).length?' · '+Object.entries(pct).map(([k,v])=>`洗练${FORGE_STATS_V2825[k].label}+${v}%`).join(' · '):'');
     }
 
     function getAllowedSlotsForEquip(data){
@@ -8056,9 +8300,10 @@
       const c=getEquipCompareTarget(itemName);if(!c)return '';
       const slotLabel=EQUIPMENT_SLOTS[c.slot]?.label||c.slot,next=getScaledEquipStats(itemName),cur=getScaledEquipStats(c.current),keys=[...new Set([...Object.keys(next),...Object.keys(cur)])];
       const changes=keys.map(k=>({k,v:(next[k]||0)-(cur[k]||0)})).filter(x=>Math.abs(x.v)>.001).sort((a,b)=>Math.abs(b.v*(EQUIP_SCORE_WEIGHTS[b.k]||1))-Math.abs(a.v*(EQUIP_SCORE_WEIGHTS[a.k]||1))).slice(0,4);
+      const pctNext=getEquipData(itemName)?.forgePercentStatsV286825||{},pctOld=getEquipData(c.current)?.forgePercentStatsV286825||{};const pctDetail=Object.keys(FORGE_PERCENT_V286825).filter(k=>(pctNext[k]||0)!==(pctOld[k]||0)).map(k=>{const d=(pctNext[k]||0)-(pctOld[k]||0);return `洗练${FORGE_STATS_V2825[k].label} ${d>0?'+':''}${d}个百分点`;}).join(' · ');
       const detail=changes.map(({k,v})=>{const n=Math.round(v*10)/10,s=v>0?'+':'';return `<span style="color:${v>0?'#69f0ae':'#ff8f8f'}">${EQUIP_COMPARE_LABELS[k]||k} ${s}${n}${EQUIP_PERCENT_STATS.has(k)?'%':''}</span>`}).join(' · ');
       const cls=c.delta>1?'good':c.delta<-1?'bad':'';const head=c.current?`对比 ${slotLabel}【${c.current}】`:`${slotLabel}为空，可直接补位`;
-      return `<div class="equip-compare ${cls}">${head}<br>${c.delta>1?'↑':c.delta<-1?'↓':'≈'} 综合评分 ${c.delta>=0?'+':''}${Math.round(c.delta)}${detail?` · ${detail}`:''}</div>`;
+      return `<div class="equip-compare ${cls}">${head}<br>${c.delta>1?'↑':c.delta<-1?'↓':'≈'} 综合评分 ${c.delta>=0?'+':''}${Math.round(c.delta)}${detail?` · ${detail}`:''}${pctDetail?`<br>${pctDetail}`:''}</div>`;
     }
 
     function isInventoryEquipUpgrade(itemName){const c=getEquipCompareTarget(itemName);return !!(c&&canEquipItem(itemName).ok&&c.delta>1);}
@@ -8115,7 +8360,7 @@
         const locked=slot==='lifeArtifact'&&(player.level||0)<3, name=player.equipment?.[slot], data=name&&getEquipData(name), q=data?getQualityInfo(data.quality):null,upgrade=!locked?getBestBagUpgradeForSlot(slot):null;
         const itemText=locked?'🔒 未解锁':name||'空'; const color=locked?'#555':q?.color||(name?'#ddd':'#666');
         return `<div class="equipment-slot-row ${name?'equipped':''} ${upgrade?'has-upgrade':''}" ${name?`onclick="unequipItem('${slot}',true)" title="点击卸下"`:''}>
-          <span style="font-size:18px;text-align:center">${locked?'🔒':s.icon}</span><div class="slot-main"><span class="slot-name">${s.label}</span><span class="item-name" style="color:${color}">${itemText}</span>${data?`<span style="font-size:9px;color:${q.color}">${q.icon} ${q.name} · ${formatEquipStats(data.stats)}</span>`:''}${upgrade?`<span class="slot-upgrade-hint">↑ 背包有更优：${upgrade.name}</span>`:''}</div><span style="font-size:9px;color:#555">${s.type}</span></div>`;
+          <span style="font-size:18px;text-align:center">${locked?'🔒':s.icon}</span><div class="slot-main"><span class="slot-name">${s.label}</span><span class="item-name" style="color:${color}">${itemText}</span>${data?`<span style="font-size:9px;color:${q.color}">${q.icon} ${q.name} · ${formatEquipItemStatsV286813(name)}</span>`:''}${upgrade?`<span class="slot-upgrade-hint">↑ 背包有更优：${upgrade.name}</span>`:''}</div><span style="font-size:9px;color:#555">${s.type}</span></div>`;
       }).join('');
     }
 
@@ -8146,7 +8391,7 @@
       for(const [name,count] of Object.entries(counts)){
         const d=getEquipData(name);if(!d)continue;const q=getQualityInfo(d.quality),check=canEquipItem(name);const slotLabel=d.slot==='ring'?'戒指':d.slot==='artifact'?'法宝':d.slot==='life_artifact'?'本命法宝':(EQUIPMENT_SLOTS[d.slot]?.label||d.slot);
         const upgrade=isInventoryEquipUpgrade(name),compare=check.ok?getEquipStatComparisonHtml(name):'';
-        html+=`<div class="equipment-bag-card ${check.ok?'can-equip':''} ${upgrade?'upgrade':''}" style="border:1px solid ${upgrade?'rgba(105,240,174,.55)':q.color+'55'};${check.ok?'':'opacity:.58'}" ${check.ok?`onclick="equipItemFromInventory('${name}')"`:''}>${upgrade?'<span class="equip-upgrade-badge">↑ 更优</span>':''}<div style="font-size:20px;color:${q.color}">${q.icon}</div><div style="font-size:12px;color:${q.color};font-weight:bold;padding-right:${upgrade?'42px':'0'}">${name}${count>1?` ×${count}`:''}</div><div style="font-size:10px;color:#999">${slotLabel} · ${q.name} · 需${CULTIVATION_REALMS[d.realmRequired]?.name||'凡人'}</div><div style="font-size:10px;color:#bbb;margin-top:3px">${formatEquipStats(d.stats)}</div>${compare}${!check.ok?`<div style="font-size:9px;color:#ff7b7b;margin-top:3px">${check.reason}</div>`:''}</div>`;
+        html+=`<div class="equipment-bag-card ${check.ok?'can-equip':''} ${upgrade?'upgrade':''}" style="border:1px solid ${upgrade?'rgba(105,240,174,.55)':q.color+'55'};${check.ok?'':'opacity:.58'}" ${check.ok?`onclick="equipItemFromInventory('${name}')"`:''}>${upgrade?'<span class="equip-upgrade-badge">↑ 更优</span>':''}<div style="font-size:20px;color:${q.color}">${q.icon}</div><div style="font-size:12px;color:${q.color};font-weight:bold;padding-right:${upgrade?'42px':'0'}">${name}${count>1?` ×${count}`:''}</div><div style="font-size:10px;color:#999">${slotLabel} · ${q.name} · 需${CULTIVATION_REALMS[d.realmRequired]?.name||'凡人'}</div><div style="font-size:10px;color:#bbb;margin-top:3px">${formatEquipItemStatsV286813(name)}</div>${compare}${!check.ok?`<div style="font-size:9px;color:#ff7b7b;margin-top:3px">${check.reason}</div>`:''}</div>`;
       }
       html+=`</div><div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="choice-btn" style="flex:1;min-width:150px;background:linear-gradient(135deg,#237a52,#14543a);border-color:#69f0ae" onclick="autoEquipBest()">⚡ 一键装备最佳</button><button class="choice-btn" style="flex:1;min-width:150px" onclick="showEquipmentPanel()">← 返回装备栏</button></div>`;showStory(html,[]);
     }
@@ -8162,6 +8407,7 @@
       if(!player.inventory.includes(itemName))return showFloatingText?.('储物袋中没有该物品','#ffd76a');
       const now=performance.now();if(now-lastItemUseV2768<350)return;
       const def=ITEMS[itemName];
+      if(def?.type==='breakthrough')return showFloatingText?.('请在修为圆满后的闭关突破预览中选用，此处不消耗','#ffd76a');
       if(def?.type==='heal'&&player.hp>=getMaxHp())return showFloatingText?.('生命已满，未消耗丹药','#ffd76a');
       if(def?.type==='mp'&&player.mp>=getMaxMp())return showFloatingText?.('灵力已满，未消耗丹药','#ffd76a');
       lastItemUseV2768=now;
@@ -8707,7 +8953,7 @@
       for(const [name,d] of items){
         const q=getQualityInfo(d.quality),allowed=canEquipItem(name).ok,owned=(player.equipmentInventory||[]).filter(n=>n===name).length+Object.values(player.equipment||{}).filter(n=>n===name).length;
         const reason=!allowed?`需${CULTIVATION_REALMS[d.realmRequired]?.name||'更高境界'}`:player.gold<d.priceV2790?`还差 ${d.priceV2790-player.gold} 灵石`:'购买';
-        html+=`<article class="gear-grade-card-v2791 market-item-v2800" style="--gear-color:${q.color}"><b style="color:var(--gear-color)">${name}</b><p>${EQUIPMENT_SLOTS[d.slot]?.name||d.slot} · 需${CULTIVATION_REALMS[d.realmRequired]?.name} · 已持有 ${owned}</p><p>${formatEquipStats(Object.fromEntries(Object.entries(d.stats||{}).map(([k,v])=>[k,Number((v*q.multiplier).toFixed(2))])))}</p><details><summary>查看装备说明</summary><p>${d.desc||''}</p></details><div class="market-buy-v2800"><strong>${d.priceV2790} 灵石</strong><button type="button" class="choice-btn" ${!allowed||player.gold<d.priceV2790?'disabled':''} onclick="buyMarketGearV2800('${category}',${grade},'${family}','${d.familyV2790}',${d.pieceV2790})">${reason}</button></div></article>`;
+        html+=`<article class="gear-grade-card-v2791 market-item-v2800" style="--gear-color:${q.color}"><b style="color:var(--gear-color)">${name}</b><p>${EQUIPMENT_SLOTS[d.slot]?.name||d.slot} · 需${CULTIVATION_REALMS[d.realmRequired]?.name} · 已持有 ${owned}</p><p>${formatEquipItemStatsV286813(name)}</p><details><summary>查看装备说明</summary><p>${d.desc||''}</p></details><div class="market-buy-v2800"><strong>${d.priceV2790} 灵石</strong><button type="button" class="choice-btn" ${!allowed||player.gold<d.priceV2790?'disabled':''} onclick="buyMarketGearV2800('${category}',${grade},'${family}','${d.familyV2790}',${d.pieceV2790})">${reason}</button></div></article>`;
       }
       showStory(html,[{text:category==='weapon'?'🛡️ 前往护身坊':'⚔️ 前往神兵铺',action:'market_switch_v2800',category:category==='weapon'?'armor':'weapon',grade},{text:'← 返回仙市',action:'market'}]);
     }
@@ -8725,7 +8971,7 @@
       const home=normalizeHomeV2812(player),furnitureBonus=calculateFurnitureBonus(),furn=home.furniture.length?home.furniture.filter(f=>f.active!==false).map(f=>f.name).join('、')||'暂无摆放':'暂无';
       const text=buildAreaSceneCard({icon:'🏠',title:`我的洞府 · Lv.${home.level}`,subtitle:'前庭 / 静室 / 灵脉歇息区 / 陈设区',desc:'洞府现在按真正居所的逻辑分区，不再只是一个功能入口。',accent:'#bce59b',chips:['闭关修炼','家具增益','状态恢复'],info:`家具增益：<b style="color:#ffd700">${furnitureBonus.desc||'无'}</b><br>当前陈设：${furn}`})+
         buildInteriorStrip('洞府内室',[{icon:'🧘',name:'静修蒲团',desc:'一年修炼从这里开始。'},{icon:'🕯️',name:'闭关内室',desc:'十年闭关的核心区域。'},{icon:'🛏️',name:'灵脉歇息榻',desc:'恢复生命与灵力。'},{icon:'🪑',name:'家具陈设角',desc:'集中获得家具增益。'}]);
-      const choices=[{text:'🧘 短期修炼（最多一年）',action:'home_cultivate'},{text:'🕯️ 洞府闭关（最多十年）',action:'home_cultivate_decade'},{text:'💤 休息一天（恢复生命灵力）',action:'home_rest'},{text:'📋 管理家具',action:'home_manage'}];
+      const choices=[{text:'🧭 游历派遣与流派羁绊',action:'trip_v286821'},{text:'🧘 短期修炼（最多一年）',action:'home_cultivate'},{text:'🕯️ 洞府闭关（最多十年）',action:'home_cultivate_decade'},{text:'💤 休息一天（恢复生命灵力）',action:'home_rest'},{text:'📋 管理家具',action:'home_manage'}];
       if(home.level<5)choices.push({text:`🏠 升级洞府 (${home.level*200}灵石)`,action:'home_upgrade',condition:()=>player.gold>=home.level*200});
       choices.push({text:'← 返回南域地图',action:'return_to_map'});showStory(text,choices);
     }
@@ -8795,7 +9041,7 @@
 
     function getNextRomanceEvent(npcId) {
       const npc=ROMANCE_NPCS[npcId], r=player.romance.npcs[npcId];
-      if(npcId==='jihongling'){const ev=npc.events.find(e=>!r.events.includes(e.id));return ev && r.affection>=ev.threshold && romanceEventUnlocked(ev)?ev:null;}
+      if(npcId==='jihongling'||npcId===MAIN_HEROINE_ID){const ev=npc.events.find(e=>!r.events.includes(e.id));return ev && r.affection>=ev.threshold && romanceEventUnlocked(ev)?ev:null;}
       return npc.events.find(ev=>r.affection>=ev.threshold && romanceEventUnlocked(ev) && !r.events.includes(ev.id)) || null;
     }
 
@@ -8813,11 +9059,13 @@
       const nextEvent=getNextRomanceEvent(npcId);
       const unfinished=getFirstUnfinishedRomanceEvent(npcId);
       let text=`<p>${npc.icon} <b style="color:${npc.color}">${npc.name}</b> · ${npc.title}</p><p>${npc.intro}</p><p style="color:#ffb6c9">关系：<b>${stage}</b>　好感：${r.affection}/100</p>${romanceProgressBar(r.affection,npc.color)}`;
+      if(npcId===MAIN_HEROINE_ID&&rainStateV286822().step>=13){text+=`<p>雨夜旧案：${escapeGameText(rainSummaryV286822())}</p><p>${rainStateV286822().trust==='share'?'苏晚晴：下次有事，也像那夜一样，把原信拿来给我看。':'苏晚晴：我还在等你把保留的那一半，亲口讲给我听。'}</p>`;}
+      if(npcId===MAIN_HEROINE_ID)text+=`<p>心境共鸣：${Number(r.resonanceV286826)||0} 点 · 完成重逢事件后，按新好感上限补回；不跳过剧情条件。</p>`;
       if (npcId===MAIN_HEROINE_ID && !partner) {
         text += `<p style="font-size:11px;color:#d8c6aa">💔 你们不是初识，而是曾经在一起过。关系修复必须经历七段主线事件。</p><p style="font-size:11px;color:#d9b5ec">${getHeartDemonDescription()}</p><p style="font-size:11px;color:#cdb9a0">⚠ ${getMainHeroineRivalStatus()}</p>`;
         if (unfinished && !nextEvent) {
           const reqRealm=CULTIVATION_REALMS[unfinished.levelRequired||0]?.name || '当前境界';
-          text += `<p style="font-size:11px;color:#aaa">下一事件【${unfinished.title}】需要：${reqRealm} · 主线推进至第 ${unfinished.storyRequired||0} 章 · 好感 ${unfinished.threshold}</p>`;
+          text += romanceGuideV286826(unfinished,r);
         }
       }
       if(npcId==='jihongling'){
@@ -8842,6 +9090,7 @@
         choices.push({text:'❤️ 表明心意，结为道侣',action:'romance_confess',npcId,condition:()=>hasReachedRealm(2),story:true});
       }
       if (player.romance.partner && player.romance.partner!==npcId) text += `<p style="font-size:11px;color:#aaa">你已与 ${ROMANCE_NPCS[player.romance.partner].name} 结为道侣。</p>`;
+      text+='<button class="choice-btn" onclick="showExpansionV286827()">人物拾遗 · 可选支线</button>';
       text+=jevEntryV2846("showRelationshipsV2852('"+npcId+"')",'知己往事 · 剧情 / 闲谈');
       text+=jevEntryV2846("jevNpcV2846('"+npcId+"')",'Jev 人物回应');
       if(partner)text+=jevEntryV2846('showCompanionV2849()','同伴随行 / Jev 支援');
@@ -8855,10 +9104,10 @@
       const tier=npcId===MAIN_HEROINE_ID ? Math.min(3, getSuReunionCount()) : Math.min(3, Math.floor(r.affection/25));
       const lines=npc.dialogues[tier] || npc.dialogues[0];
       const tone=jevTone===0?'她略一颔首，回应仍保留着些许距离。':jevTone===1?'她收起心事，认真听你说起近况。':jevTone===2&&r.affection>=40?'她眉眼渐柔，主动问起你的修行与伤势。':'';
-      const line=(tone?tone+' ':'')+lines[r.chats % lines.length];
+      const line=npcId===MAIN_HEROINE_ID&&player.romanceProgress?.endingType==='release'?'旧事我们都记得，却不必再用它决定以后。下次查案若需药师，仍可来寻我。':(tone?tone+' ':'')+lines[r.chats % lines.length];
       r.chats++;
-      const gain=addAffection(npcId, r.chats<=4 ? 3 : 2);
-      const capNote=npcId===MAIN_HEROINE_ID && gain===0 && !player.romance.partner ? '<p style="font-size:11px;color:#aaa">关系停在这里了。想继续靠近，需要先推进主线与境界事件。</p>' : '';
+      const gain=npcId===MAIN_HEROINE_ID&&player.romanceProgress?.endingType==='release'?0:addAffection(npcId, r.chats<=4 ? 3 : 2);
+      const capNote=npcId===MAIN_HEROINE_ID && gain===0 && !player.romance.partner && player.romanceProgress?.endingType!=='release' ? '<p style="font-size:11px;color:#aaa">本次心意已记入心境共鸣（累计不超过满好感所需值）。请先完成下一段重逢，解开关系上限。</p>' : '';
       showStory(`<p>${npc.icon} <b style="color:${npc.color}">${npc.name}</b></p><p>“${line}”</p><p style="color:#ffb6c9">💗 好感 +${gain}（${r.affection}/100）</p>${capNote}`,[{text:'继续',action:'romance_npc',npcId}]);
     }
 
@@ -8878,7 +9127,7 @@
       const npc=ROMANCE_NPCS[npcId], r=player.romance.npcs[npcId];
       if (!npc || !r || (player.materials[item]||0)<=0) return showRomanceGiftMenu(npcId);
       player.materials[item]--; r.gifts++;
-      const gain=addAffection(npcId,delta);
+      const gain=npcId===MAIN_HEROINE_ID&&player.romanceProgress?.endingType==='release'?0:addAffection(npcId,delta);
       const reaction = gain>=10 ? '她明显很喜欢这份礼物。' : gain>=6 ? '她认真收下了礼物。' : gain>0 ? '她向你道谢，神色柔和了一些。' : '她收下了，但你能感觉到：有些隔阂不是一件礼物能跨过去的。';
       showStory(`<p>${npc.icon} 你将 <b>${item}</b> 送给 ${npc.name}。</p><p>${reaction}</p><p style="color:#ffb6c9">💗 好感 +${gain}（${r.affection}/100）</p>`,[{text:'继续',action:'romance_npc',npcId}]);
     }
@@ -8886,13 +9135,13 @@
     function showRomanceEvent(npcId,eventId) {
       const npc=ROMANCE_NPCS[npcId], ev=npc?.events.find(e=>e.id===eventId), r=player.romance.npcs[npcId];
       if (!npc || !ev || !r || r.events.includes(eventId) || r.affection<ev.threshold || !romanceEventUnlocked(ev)) return showRomanceNpc(npcId);
-      if(npcId==='jihongling' && getNextRomanceEvent(npcId)?.id!==eventId)return showRomanceNpc(npcId);
-      showStory(`<p style="color:${npc.color};font-weight:bold">【${ev.title}】</p><p>${ev.text}</p>`,ev.choices.map((c,option)=>({text:c.text,action:'romance_event_choice',npcId,eventId,option,story:true})));
+      if((npcId==='jihongling'||npcId===MAIN_HEROINE_ID) && getNextRomanceEvent(npcId)?.id!==eventId)return showRomanceNpc(npcId);
+      showStory(`<p style="color:${npc.color};font-weight:bold">【${ev.title}】</p><p>${relationshipTextV286827(ev.text)}</p>`,ev.choices.map((c,option)=>({text:c.text,action:'romance_event_choice',npcId,eventId,option,story:true})));
     }
 
     function resolveRomanceEvent(npcId,eventId,option=0) {
       const npc=ROMANCE_NPCS[npcId], ev=npc?.events.find(e=>e.id===eventId), r=player.romance.npcs[npcId];
-      if(!npc || !ev || !r || r.events.includes(eventId)) return showRomanceNpc(npcId);
+      if(!npc || !ev || !r || r.events.includes(eventId)||r.affection<ev.threshold||!romanceEventUnlocked(ev)) return showRomanceNpc(npcId);
       if(npcId==='jihongling' && getNextRomanceEvent(npcId)?.id!==eventId)return showRomanceNpc(npcId);
       // 苏晚晴主线严格按七阶段顺序，防止旧档/调试误跳事件。
       if(npcId===MAIN_HEROINE_ID){
@@ -8901,8 +9150,10 @@
       }
       const choice=ev.choices[Math.max(0,Math.min(ev.choices.length-1,option))];
       r.events.push(eventId);
+      const restored=npcId===MAIN_HEROINE_ID&&!choice.distantV286827?releaseResonanceV286826():0;
       const gain=addAffection(npcId,choice.delta||0);
-      let extra='';
+      recordRomanceV286827(npcId,eventId,option,choice);
+      let extra=restored?`<p>心境共鸣化开：好感补回 ${restored}。</p>`:'';
       let nextAction={text:'继续',action:'romance_npc',npcId};
       if(npcId===MAIN_HEROINE_ID){
         applySuV2EventState(eventId);
@@ -8914,9 +9165,10 @@
           nextAction={text:'🌅 直面心魔',action:'heart_demon_breakthrough'};
         }
       }
+      if(choice.distantV286827&&eventId==='second_choice')nextAction={text:'以知己相待，继续修行',action:'romance_npc',npcId};
       const milestone=npcId===MAIN_HEROINE_ID?`<p style="font-size:11px;color:#d8c6aa">关系阶段：${getRomanceStage(r.affection,false,npcId)} · 七段主线 ${getSuReunionCount()}/7</p>`:'';
       autoSave();
-      showStory(`<p style="color:${npc.color};font-weight:bold">【${ev.title}】</p><p>${choice.reply}</p><p style="color:#ffb6c9">💗 好感 +${gain}（${r.affection}/100）</p>${milestone}${extra}`,[nextAction]);
+      showStory(`<p style="color:${npc.color};font-weight:bold">【${ev.title}】</p><p>${relationshipTextV286827(choice.reply)}</p><p style="color:#ffb6c9">💗 好感 +${gain}（${r.affection}/100）</p>${milestone}${extra}`,[nextAction]);
     }
 
     function triggerEndingChoice() {
@@ -8945,6 +9197,7 @@
 
     function endingReunion() {
       if(player.romanceProgress.endingChosen) return triggerEndingChoice();
+      if(!SU_REUNION_EVENT_IDS.every(id=>player.romance.npcs[MAIN_HEROINE_ID].events.includes(id))||player.romance.npcs[MAIN_HEROINE_ID].affection<85||player.level<6||player.storyProgress<5)return triggerEndingChoice();
       player.romanceProgress.endingChosen=true; player.romanceProgress.endingType='reunion';
       player.romance.partner=MAIN_HEROINE_ID;
       const r=player.romance.npcs[MAIN_HEROINE_ID]; r.affection=100;
@@ -9066,7 +9319,7 @@
       const text=buildAreaSceneCard({icon:'🏘️',title:'南域 · 青云村',subtitle:`📅 ${getGameDateLabel()} · 起点聚落`,desc:'村口驿道、百宝阁、中央村舍、仙市、洞府与灵泉按用途分区，路线更容易理解。',accent:'#ffd98a',chips:['南域驿道','新手聚落','补给起点'],info:'推荐：先补给 → 再历练 → 之后再去仙市与洞府。'})+
         buildAreaLayout('村落布局',[{name:'村口驿道',desc:'跨地域远行入口。'},{name:'百宝阁西街',desc:'靠近入口，优先补给。'},{name:'中央村舍',desc:'聚落核心与任务中转。'},{name:'东南仙市',desc:'承担中期消费与稀有商品。'}])+
         buildInteriorStrip('村中分区',[{icon:'🧺',name:'百宝阁柜台',desc:'丹药、兵器与灵材。'},{icon:'🏮',name:'仙市主街',desc:'套装、法宝与家具。'},{icon:'🏠',name:'洞府坡道',desc:'远离主街，更适合闭关。'},{icon:'💧',name:'灵泉歇脚点',desc:'战后快速恢复。'}]);
-      showStory(text,choices);
+      showStory(text+rainVillageV286822(),choices);
     }
 
     const GENERAL_SHOP_V2801=[{"name":"小还丹","cost":30,"level":0,"category":"pill","store":"auto"},{"name":"大还丹","cost":80,"level":0,"category":"pill","store":"auto"},{"name":"聚灵丹","cost":40,"level":0,"category":"pill","store":"auto"},{"name":"铁剑","cost":100,"level":0,"category":"gear","store":"auto"},{"name":"铁甲","cost":120,"level":0,"category":"gear","store":"auto"},{"name":"精钢剑","cost":300,"level":2,"category":"gear","store":"auto"},{"name":"灵剑","cost":800,"level":2,"category":"gear","store":"auto"},{"name":"灵甲","cost":600,"level":2,"category":"gear","store":"auto"},{"name":"灵草","cost":20,"level":0,"category":"material","store":"materials"},{"name":"仙果","cost":40,"level":0,"category":"material","store":"materials"},{"name":"妖丹","cost":100,"level":0,"category":"material","store":"materials"},{"name":"灵兽丹","cost":50,"level":0,"category":"pet","store":"petMaterials"},{"name":"灵兽绳","cost":50,"level":0,"category":"pet","store":"auto"},{"name":"缚灵玉","cost":200,"level":0,"category":"pet","store":"auto"},{"name":"御灵葫芦","cost":500,"level":0,"category":"pet","store":"auto"},{"name":"魔缚索","cost":300,"level":2,"category":"pet","store":"auto"},{"name":"神兽结缘印","cost":2000,"level":3,"category":"pet","store":"auto"},{"name":"平等契约符","cost":800,"level":2,"category":"pet","store":"auto"},{"name":"本命契约石","cost":1500,"level":3,"category":"pet","store":"auto"}];
@@ -9744,7 +9997,7 @@
       const npcRanks = [
         {name:'沈砚', contribution:860}, {name:'赵玄', contribution:520}, {name:'林青禾', contribution:280}, {name:'周远', contribution:150}, {name:'许宁', contribution:70}
       ];
-      const rows=[...npcRanks,{name:`${player.name}（你）`,contribution:player.sectTotalContribution||0,player:true}].sort((a,b)=>b.contribution-a.contribution);
+      const rows=[...npcRanks,{name:`${escapeGameText(player.name)}（你）`,contribution:player.sectTotalContribution||0,player:true}].sort((a,b)=>b.contribution-a.contribution);
       let html=`<p>📊 <b>${player.sect || '凌霄宗'} · 宗门贡献榜</b></p><p>当前职位：${rankInfo.icon} ${rankInfo.name}</p><div style="border:1px solid rgba(255,215,0,.3);border-radius:8px;padding:10px">`;
       rows.forEach((r,i)=>{ html += `<p style="${r.player?'color:#ffd700;font-weight:bold':'color:#ccc'}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`} ${r.name} · 累计贡献 ${r.contribution}</p>`; });
       html += `</div><p style="font-size:11px;color:#888">宗门榜为本地模拟榜单，后续可接入更多NPC与宗门事件。</p>`;
@@ -10569,7 +10822,7 @@
             atk: ghostBoss.atk, def: ghostBoss.def, gold: ghostBoss.gold, exp: ghostBoss.exp,
             phases: ghostBoss.phases, skills: ghostBoss.skills, phaseMessages: ghostBoss.phaseMessages
           };
-          startCombat(ghostEnemy, true, false);
+          prepareStoryBossV286826(ghostEnemy);
           break;
           
         case 'boss_blood_demon':
@@ -10579,7 +10832,7 @@
             atk: bloodBoss.atk, def: bloodBoss.def, gold: bloodBoss.gold, exp: bloodBoss.exp,
             phases: bloodBoss.phases, skills: bloodBoss.skills, phaseMessages: bloodBoss.phaseMessages
           };
-          startCombat(bloodEnemy, true, false);
+          prepareStoryBossV286826(bloodEnemy);
           break;
           
         case 'tribulation':
@@ -10669,6 +10922,7 @@
           showFurnitureShop();
           break;
           
+        case 'trip_v286821': showTripV286821(); break;
         case 'home_cultivate':
           handleHomeCultivate();
           break;
@@ -10886,6 +11140,8 @@
       
       let text = `<p>📍 <b>稀有丹药铺</b></p><p>灵石: <b>${player.gold}</b></p><hr>
         <h3>⏳ 延寿丹药</h3><p>购入后在储物袋服用。终身限量，不随突破重置。</p>
+        <h3>突破丹药</h3><p>购入后在闭关突破预览中选用，每次只用一颗；尝试时消耗。</p>
+        ${Object.entries(BREAKTHROUGH_PILLS_V28683).map(([n,d])=>`<p>${n}：成功率 +${Math.round(d.bonus*100)} 个百分点 · 需${CULTIVATION_REALMS[d.level].name} · 库存${player.inventory.filter(x=>x===n).length}</p><button class="choice-btn" onclick="buyBreakthroughPillV28683('${n}')" ${player.level<d.level||player.gold<d.cost?'disabled':''}>购买${n}（${d.cost}灵石）</button>`).join('')}<hr>
         ${Object.entries(LONGEVITY_PILLS).map(([name,d])=>{
           const used=normalizeLongevity(player.longevity).uses[name],owned=player.inventory.filter(n=>n===name).length;
           return `<p>${name}：+${d.years}年 · 需${CULTIVATION_REALMS[d.level].name} · 已服${used}/${d.limit} · 库存${owned}</p><button class="choice-btn" onclick="buyLongevityPill('${name}')" ${player.level<d.level||used+owned>=d.limit||player.gold<d.cost?'disabled':''}>购买${name}（${d.cost}灵石）</button>`;
@@ -11513,7 +11769,7 @@
     function showMapNpcShop(npcId='trader'){
       if(!canMapNpcActV2864())return;
       const npc=MAP_NPCS[npcId]||MAP_NPCS.trader;
-      const rows=[['小还丹',25],['聚灵丹',35],['大还丹',70]];
+      const rows=[['小还丹',25],['聚灵丹',35],['大还丹',70],['神行符',120]];
       showStory(`${jevEntryV2846('jevMerchantV2849()','Jev 按需推荐')}${buildNpcPanelHeader(npc,'随身补给')}<div class="npc-speech">灵石：<b>${player.gold}</b></div>`,[
         ...rows.map(([item,cost])=>({text:`${item} · ${cost}灵石 · 已有${player.inventory.filter(x=>x===item).length}${player.gold<cost?' · 灵石不足':''}`,action:'map_npc_buy',npcId,item,cost,condition:()=>player.gold>=cost})),
         {text:'← 返回',action:'map_npc',npcId}
@@ -11522,7 +11778,7 @@
 
     function buyFromMapNpc(npcId,item,cost){
       if(!jevCanActV2846()||!MAP_NPCS[npcId])return;
-      const prices={'小还丹':25,'聚灵丹':35,'大还丹':70};if(!Object.hasOwn(prices,item)||cost!==prices[item])return;
+      const prices={'小还丹':25,'聚灵丹':35,'大还丹':70,'神行符':120};if(!Object.hasOwn(prices,item)||cost!==prices[item])return;
       if(player.gold<cost){showStory('<p>灵石不足。</p>',[{text:'返回',action:'map_npc_shop',npcId}]);return;}
       if(!window.confirm(`购买 ${item} ×1？消耗 ${cost} 灵石，剩余 ${player.gold-cost}。`))return;
       player.gold-=cost;player.inventory.push(item);autoSave?.();updateStats?.();
@@ -11616,7 +11872,7 @@
       let drawer=document.getElementById('combatItemDrawer');
       if(!drawer){drawer=document.createElement('div');drawer.id='combatItemDrawer';drawer.className='combat-item-drawer hidden';anchor.insertAdjacentElement('afterend',drawer);}
       const pills=getCombatConsumables();
-      const extras=getCombatExtraBagItems();
+      const extras=getCombatExtraBagItems().filter(it=>it.type!=='escape');
       const tab=combatBagState.tab||'all';
       drawer.classList.toggle('hidden',!combatBagState.open);
       if(!combatBagState.open)return;
@@ -11627,6 +11883,10 @@
       }else{
         const list=extras.filter(it=>tab==='equip'?['weapon','armor'].includes(it.type):!['weapon','armor'].includes(it.type));
         rows=list.length?list.map(it=>`<button class="combat-item-btn combat-readonly" disabled><span>${['weapon','armor'].includes(it.type)?(it.type==='weapon'?'⚔️':'🛡️'):'🎐'} ${it.name}<span class="count">x${it.count}</span></span><span class="meta">${it.desc||'背包道具'}<br>${tab==='equip'?'战斗中可查看，脱战后再正式换装':'当前战斗仅查看，不会误用'}</span></button>`).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无物品<span class="meta">获得后会自动显示在这里</span></button>`;
+      }
+      if(tab==='all'||tab==='item'){
+        const count=player.inventory.filter(n=>n==='神行符').length;
+        if(count)rows+=`<button class="combat-item-btn" ${canFleeV286818()&&isPlayerTurn?'':'disabled'} onclick="combat('escapeScroll')"><span>神行符 ×${count}</span><span class="meta">${canFleeV286818()?'消耗一张，必定脱战':'此战禁止脱战'}</span></button>`;
       }
       drawer.innerHTML=`<div class="combat-item-head"><span>🎒 战斗背包</span><button class="choice-btn" style="min-height:32px;padding:4px 10px;font-size:11px" onclick="toggleCombatMedicineDrawer(false)">收起</button></div>
         <div class="combat-tab-row"><button class="combat-tab-btn ${tab==='all'?'active':''}" onclick="setCombatMedicineTab('all')">补给</button><button class="combat-tab-btn ${tab==='heal'?'active':''}" onclick="setCombatMedicineTab('heal')">回血</button><button class="combat-tab-btn ${tab==='mp'?'active':''}" onclick="setCombatMedicineTab('mp')">回灵</button><button class="combat-tab-btn ${tab==='item'?'active':''}" onclick="setCombatMedicineTab('item')">道具</button><button class="combat-tab-btn ${tab==='equip'?'active':''}" onclick="setCombatMedicineTab('equip')">装备</button></div><div class="combat-item-grid">${rows}</div><div class="quick-tip">回血、回灵物品在这里使用会消耗本回合；主战斗界面不会直接摆出丹药按钮。</div>`;
@@ -12307,6 +12567,13 @@
 
     // ================== 地图怪物实体化系统 ==================
     function getWorldMonsterIcon(name='') {
+      if(name.includes('兔'))return '🐇';
+      if(name.includes('龟'))return '🐢';
+      if(name.includes('蝙蝠'))return '🦇';
+      if(name.includes('鹰'))return '🦅';
+      if(name.includes('鹤'))return '🪶';
+      if(name.includes('凤'))return '🔥';
+      if(name.includes('龙'))return '🐉';
       if (name.includes('狼')) return '🐺';
       if (name.includes('狐')) return '🦊';
       if (name.includes('山贼') || name.includes('邪修')) return '🥷';
@@ -12431,6 +12698,8 @@
     }
 
     function updateWorldMonsters(dt) {
+      const introduction=typeof firstJourneyV28687==='function'?firstJourneyV28687():null;
+      if(introduction&&!introduction.paused&&introduction.step<4)return;
       const warSceneV2840=typeof WAR_MAP_V2840!=='undefined'?WAR_MAP_V2840.scene:null;
       if(warSceneV2840?.local&&Math.hypot(FLAT_WORLD.player.x-warSceneV2840.site.x,FLAT_WORLD.player.y-warSceneV2840.site.y)<235)return;
       for (const monster of FLAT_WORLD.monsters) {
@@ -12545,10 +12814,11 @@
       ctx.fillRect(-22, -62, 44 * hpPct, 5);
       const close=Math.hypot(monster.x-FLAT_WORLD.player.x,monster.y-FLAT_WORLD.player.y)<150;
       if(close){
-        const title=String(monster.enemy?.name||'敌人').slice(0,12)+(monster.battleCooldown>0?' · 警戒':'');
+        const risk=enemyRiskV286817(monster.enemy);
+        const title=String(monster.enemy?.name||'敌人').slice(0,12)+' · '+risk.label+(weaknessV286821(monster.enemy)?' · '+SKILL_ELEMENT_META_V212[weaknessV286821(monster.enemy)].short+'弱点':'')+(monster.battleCooldown>0?' · 警戒':'');
         ctx.font='700 11px Microsoft YaHei';const tw=ctx.measureText(title).width;
         ctx.fillStyle='rgba(247,235,207,.96)';ctx.fillRect(-tw/2-6,27,tw+12,19);
-        ctx.fillStyle=monster.enemy?._isElite?'#81381f':'#4d352d';ctx.fillText(title,0,37);
+        ctx.fillStyle=risk.color;ctx.fillText(title,0,37);
       }else if(monster.battleCooldown>0){ctx.font='700 10px Microsoft YaHei';ctx.fillStyle='#702f29';ctx.fillText('警戒',0,32);}
 
       ctx.restore();
@@ -12737,8 +13007,19 @@
     }
     window.changeMinimapZoom=changeMinimapZoom;
 
+    // Shared reset for keyboard, point navigation and control-mode transitions.
+    function resetWorldMovementV28686(){
+      stopNavigationV2830();
+      FLAT_WORLD.keys={};FLAT_WORLD.target=null;FLAT_WORLD.tapTargetFx=null;
+      FLAT_WORLD.moving=false;FLAT_WORLD.moveDirX=0;FLAT_WORLD.moveDirY=0;
+      window.dispatchEvent(new CustomEvent('xiantu-movement-reset'));
+    }
+    window.addEventListener('blur',resetWorldMovementV28686);
+    window.addEventListener('pagehide',resetWorldMovementV28686);
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)resetWorldMovementV28686()});
+
     function onMinimapPointer(e) {
-      if (isWorldOverlayOpen()) return;
+      if (isWorldOverlayOpen()){showFloatingText?.('请先关闭当前界面，再点击小地图寻路。','#ffd76a');return;}
       const canvas=document.getElementById('minimapCanvas'); if(!canvas)return;
       const rect=canvas.getBoundingClientRect();
       const localX=e.clientX-rect.left, localY=e.clientY-rect.top;
@@ -12747,12 +13028,10 @@
       if(Math.hypot(localX-cx,localY-cy)>r) return;
       const px=Math.max(0,Math.min(1,localX/rect.width)), py=Math.max(0,Math.min(1,localY/rect.height));
       const view=getMinimapWorldViewport();
-      FLAT_WORLD.target={
-        x:Math.max(0,Math.min(FLAT_WORLD.width,view.left+px*view.width)),
-        y:Math.max(0,Math.min(FLAT_WORLD.height,view.top+py*view.height))
-      };
-      FLAT_WORLD.tapTargetFx={x:FLAT_WORLD.target.x,y:FLAT_WORLD.target.y,startedAt:performance.now()};
-      FLAT_WORLD.keys={};
+      startPointNavigationV28685({
+        x:Math.max(30,Math.min(FLAT_WORLD.width-30,view.left+px*view.width)),
+        y:Math.max(30,Math.min(FLAT_WORLD.height-30,view.top+py*view.height)),r:0
+      });
     }
 
     function resizeWorldCanvas() {
@@ -12770,6 +13049,7 @@
     }
 
     function isWorldOverlayOpen() {
+      if(['rainChapterV286822','expansionV286827','postCaseV286826','storyBossPrepV286826'].some(id=>document.getElementById(id)))return true;
       if(document.getElementById('jevWorldPanelV2846'))return true;
       if(document.getElementById('warPanelV2839'))return true;
       if(document.getElementById('sceneV2838')||document.getElementById('journeyPrepareV2838')||document.getElementById('scrollMapV2831'))return true;
@@ -12781,6 +13061,9 @@
     }
 
     function closeWorldOverlay() {
+      if(typeof closeExpansionV286827==='function')closeExpansionV286827();
+      document.getElementById('postCaseV286826')?.remove();document.getElementById('storyBossPrepV286826')?.remove();
+      if(typeof rainCloseV286822==='function')rainCloseV286822();
       window.jevStoryChangedV2846?.();
       ['storyPanel','combatPanel','alchemyPanel','petPanel','artifactPanel','characterPanel'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
       if(typeof FLAT_WORLD!=='undefined')FLAT_WORLD._panelOpen=false;
@@ -12863,14 +13146,14 @@
       let dx=0,dy=0,k=FLAT_WORLD.keys;
       if(k.w||k.arrowup)dy--; if(k.s||k.arrowdown)dy++; if(k.a||k.arrowleft)dx--; if(k.d||k.arrowright)dx++;
       if(dx||dy){ const l=Math.hypot(dx,dy)||1; dx/=l;dy/=l; FLAT_WORLD.target=null; }
-      else if(FLAT_WORLD.target){ const tx=FLAT_WORLD.target.x-FLAT_WORLD.player.x, ty=FLAT_WORLD.target.y-FLAT_WORLD.player.y, l=Math.hypot(tx,ty); if(l<8){FLAT_WORLD.target=null;FLAT_WORLD.tapTargetFx=null;} else {dx=tx/l;dy=ty/l;} }
+      else if(FLAT_WORLD.target){ const tx=FLAT_WORLD.target.x-FLAT_WORLD.player.x, ty=FLAT_WORLD.target.y-FLAT_WORLD.player.y, l=Math.hypot(tx,ty); if(l<(autoNavigationV2830?1:8)){FLAT_WORLD.target=null;FLAT_WORLD.tapTargetFx=null;} else {const scale=autoNavigationV2830?Math.min(1,l/Math.max(.001,FLAT_WORLD.player.speed*dt)):1;dx=tx/l*scale;dy=ty/l*scale;} }
       FLAT_WORLD.moving=!!(dx||dy); FLAT_WORLD.moveDirX=dx; FLAT_WORLD.moveDirY=dy;
       const desiredX=Math.max(30,Math.min(FLAT_WORLD.width-30,FLAT_WORLD.player.x+dx*FLAT_WORLD.player.speed*dt));
       const desiredY=Math.max(30,Math.min(FLAT_WORLD.height-30,FLAT_WORLD.player.y+dy*FLAT_WORLD.player.speed*dt));
       const resolvedPlayerPos=resolveWorldCollisionForActor(oldPX, oldPY, desiredX, desiredY, FLAT_WORLD.player.r || 17);
       FLAT_WORLD.player.x=resolvedPlayerPos.x;
       FLAT_WORLD.player.y=resolvedPlayerPos.y;
-      if (FLAT_WORLD.target && Math.hypot(FLAT_WORLD.target.x-FLAT_WORLD.player.x,FLAT_WORLD.target.y-FLAT_WORLD.player.y) < Math.max(10,(FLAT_WORLD.player.r||17)+4)) {
+      if (FLAT_WORLD.target && Math.hypot(FLAT_WORLD.target.x-FLAT_WORLD.player.x,FLAT_WORLD.target.y-FLAT_WORLD.player.y) < (autoNavigationV2830?1:Math.max(10,(FLAT_WORLD.player.r||17)+4))) {
         FLAT_WORLD.target=null;
         FLAT_WORLD.tapTargetFx=null;
       }
@@ -13076,6 +13359,7 @@
       if(exploreOwnerV2828!==player){exploreOwnerV2828=player;exploreCellV2828='';exploreDirtyV2828=false;}
       const p=FLAT_WORLD.player,region=currentRegion||'south',cx=Math.floor(p.x/96),cy=Math.floor(p.y/96),key=region+':'+cx+','+cy;
       if(key!==exploreCellV2828){exploreCellV2828=key;const map=explorationV2828();
+        if(typeof discoverRoamingV286818==='function')discoverRoamingV286818(cx+','+cy);
         for(let y=cy-3;y<=cy+3;y++)for(let x=cx-3;x<=cx+3;x++)if(x>=0&&y>=0&&x*96<FLAT_WORLD.width&&y*96<FLAT_WORLD.height&&Math.hypot((x+.5)*96-p.x,(y+.5)*96-p.y)<285){const cell=x+','+y;if(!map.seen[cell]){map.seen[cell]=1;exploreDirtyV2828=true;}}
       }
       if(exploreDirtyV2828&&Date.now()-exploreSaveAtV2828>5000){exploreSaveAtV2828=Date.now();exploreDirtyV2828=false;autoSave();}
@@ -13119,14 +13403,14 @@
 
     let autoNavigationV2830=null;
     function planNavigationV2830(goal){
-      const p=FLAT_WORLD.player,step=40,cols=Math.ceil(FLAT_WORLD.width/step),rows=Math.ceil(FLAT_WORLD.height/step),radius=(p.r||17)+30;
+      const p=FLAT_WORLD.player,step=40,cols=Math.ceil(FLAT_WORLD.width/step),rows=Math.ceil(FLAT_WORLD.height/step),radius=(p.r||17)+4;
       const clear=(a,b)=>(FLAT_WORLD.colliders||[]).every(c=>worldDistanceSegmentV2827(c.x,c.y,a,b)>=c.radius+radius);
       const point=id=>({x:(id%cols)*step+20,y:Math.floor(id/cols)*step+20});
       const open=new Uint8Array(cols*rows);for(let id=0;id<open.length;id++){const q=point(id);open[id]=q.x>=30&&q.y>=30&&q.x<=FLAT_WORLD.width-30&&q.y<=FLAT_WORLD.height-30&&clear(q,q)?1:0;}
       let start=-1,best=Infinity;for(let id=0;id<open.length;id++)if(open[id]){const q=point(id),d=Math.hypot(q.x-p.x,q.y-p.y);if(d<best&&d<120&&clear(p,q)){start=id;best=d;}}if(start<0)return null;
       const queue=[start],prev=new Int32Array(open.length);prev.fill(-2);prev[start]=-1;let found=-1;
       for(let head=0;head<queue.length;head++){
-        const id=queue[head],q=point(id);if(Math.hypot(q.x-goal.x,q.y-goal.y)<goal.r+43){found=id;break;}
+        const id=queue[head],q=point(id);if(Math.hypot(q.x-goal.x,q.y-goal.y)<goal.r+(goal.id?43:28)){found=id;break;}
         for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]]){
           const x=id%cols+dx,y=Math.floor(id/cols)+dy,n=y*cols+x;
           if(x<0||y<0||x>=cols||y>=rows||!open[n]||prev[n]!==-2||!clear(q,point(n)))continue;
@@ -13142,20 +13426,24 @@
       autoNavigationV2830=null;if(message)showFloatingText?.(message,'#ffd76a');
     }
     function startNavigationV2830(id){
-      if(!forgeAllowedV2825())return;const goal=FLAT_WORLD.pois.find(p=>p.id===id);if(!goal)return;
-      if(goal.action==='explore_v2828'&&(!exploredPointV2828(goal.x,goal.y)||explorationV2828().claimed[id]))return;
+      if(!forgeAllowedV2825())return;const goal=FLAT_WORLD.pois.find(p=>p.id===id);if(!goal)return showFloatingText?.('目标不在当前地图。','#ffd76a');
+      if(goal.action==='explore_v2828'&&(!exploredPointV2828(goal.x,goal.y)||explorationV2828().claimed[id]))return showFloatingText?.('该探索点尚未发现或已经领取。','#ffd76a');
+      return startPointNavigationV28685(goal);
+    }
+    function startPointNavigationV28685(goal){
+      if(!forgeAllowedV2825()||!goal||!Number.isFinite(goal.x)||!Number.isFinite(goal.y))return;
       stopNavigationV2830();const p=FLAT_WORLD.player;
       if(Math.hypot(p.x-goal.x,p.y-goal.y)<goal.r+55){closeWorldOverlay();showFloatingText?.('已在目标附近，请点击交互。','#9edcff');return;}
       const route=planNavigationV2830(goal);if(!route?.length)return showFloatingText?.('暂未找到安全路线，请手动绕开障碍后重试。','#ffd76a');
-      explorationV2828();player.explorationV2828.marked={region:currentRegion,id};autoSave();closeWorldOverlay();
-      autoNavigationV2830={owner:player,region:currentRegion,goal:id,route,index:0,target:route[0],lastX:p.x,lastY:p.y,stuck:0};
+      if(goal.id){explorationV2828();player.explorationV2828.marked={region:currentRegion,id:goal.id};autoSave();}closeWorldOverlay();
+      autoNavigationV2830={owner:player,region:currentRegion,goal:goal.id||null,route,index:0,target:route[0],lastX:p.x,lastY:p.y,stuck:0};
       FLAT_WORLD.keys={};FLAT_WORLD.target=route[0];FLAT_WORLD.tapTargetFx={...route[0],startedAt:performance.now()};
       showFloatingText?.('🧭 自动寻路中，操作摇杆或点击地图可接管。','#9edcff');
     }
     function tickNavigationV2830(dt){
       const nav=autoNavigationV2830;if(!nav)return;const p=FLAT_WORLD.player;
       if(nav.owner!==player||nav.region!==currentRegion||!forgeAllowedV2825()||Object.values(FLAT_WORLD.keys||{}).some(Boolean))return stopNavigationV2830();
-      const near=Math.hypot(p.x-nav.target.x,p.y-nav.target.y)<25;
+      const near=Math.hypot(p.x-nav.target.x,p.y-nav.target.y)<1;
       if(FLAT_WORLD.target!==nav.target&&!(FLAT_WORLD.target===null&&near))return stopNavigationV2830();
       const moved=Math.hypot(p.x-nav.lastX,p.y-nav.lastY);nav.stuck=moved<.1?nav.stuck+Math.min(dt,.1):0;nav.lastX=p.x;nav.lastY=p.y;
       if(nav.stuck>2)return stopNavigationV2830('路径受阻，已停止；可手动移动后重试。');
@@ -13198,7 +13486,7 @@
       const pending=progress.found.filter(p=>!map.claimed[p.id]).sort((a,b)=>distance(a)-distance(b));
       const services=FLAT_WORLD.pois.filter(p=>p.action==='rest'||p.buildingId==='spirit_spring'||p.id==='travel_gate'||p.action==='shop').sort((a,b)=>distance(a)-distance(b));
       const row=p=>`<article class="task-card"><strong>${p.icon} ${esc(p.name)}</strong><p>${esc(explorationDirectionV2829(p))}</p><button class="choice-btn" onclick="markExplorationV2829('${p.id}')">${marked?.id===p.id?'已标记 · 更新指引':'标记方向'}</button><button class="choice-btn" onclick="startNavigationV2830('${p.id}')">自动前往</button>${p.action==='explore_v2828'&&distance(p)<p.r+62?`<button class="choice-btn" onclick="showExplorationV2828('${p.id}')">查看探索点</button>`:''}</article>`;
-      showStory(`<section class="main-overview-v2822"><h3>🧭 ${esc(getRegionInfo(currentRegion||'south').name)} · 探索手册</h3><p>地面探索 ${progress.percent}% · 地点发现 ${progress.found.length}/${progress.points.length} · 已领取 ${progress.claimed.length}/${progress.points.length}</p><progress value="${progress.percent}" max="100" aria-label="地图探索进度"></progress><p>可选择方向标记或自动前往。自动寻路绕开静态障碍，到附近停下；摇杆、键盘或点地图可接管，遭遇战会停止。未发现探索点不显示坐标。</p>${marked?`<p>当前标记：${esc(marked.name)} · ${esc(explorationDirectionV2829(marked))}</p><button class="choice-btn" onclick="markExplorationV2829(null)">清除标记</button>`:''}${autoNavigationV2830?`<button class="choice-btn" onclick="stopNavigationV2830();showExplorationJournalV2829()">停止自动寻路</button>`:""}<h4>已发现 · 待领取</h4>${pending.length?pending.map(row).join(''):'<p>暂无待领取地点，继续探索周围区域吧。</p>'}<details><summary>补给与返回入口</summary>${services.map(row).join('')}</details><p>每处探索资源仅领取一次。切换地图后，仅显示当前地图的标记。</p></section>`,[{text:'返回地图',action:'return_to_map'}]);
+      showStory(`<section class="main-overview-v2822"><h3>🧭 ${esc(getRegionInfo(currentRegion||'south').name)} · 探索手册</h3><p>地面探索 ${progress.percent}% · 地点发现 ${progress.found.length}/${progress.points.length} · 已领取 ${progress.claimed.length}/${progress.points.length}</p><progress value="${progress.percent}" max="100" aria-label="地图探索进度"></progress><p>可选择方向标记或自动前往。自动寻路绕开静态障碍，到附近停下；摇杆、键盘或点地图可接管，遭遇战会停止。未发现探索点不显示坐标。</p>${marked?`<p>当前标记：${esc(marked.name)} · ${esc(explorationDirectionV2829(marked))}</p><button class="choice-btn" onclick="markExplorationV2829(null)">清除标记</button>`:''}${autoNavigationV2830?`<button class="choice-btn" onclick="stopNavigationV2830();showExplorationJournalV2829()">停止自动寻路</button>`:""}${typeof roamingNoticeV286818==='function'?roamingNoticeV286818():''}<h4>已发现 · 待领取</h4>${pending.length?pending.map(row).join(''):'<p>暂无待领取地点，继续探索周围区域吧。</p>'}<details><summary>补给与返回入口</summary>${services.map(row).join('')}</details><p>每处探索资源仅领取一次。切换地图后，仅显示当前地图的标记。</p></section>`,[{text:'返回地图',action:'return_to_map'}]);
     }
 
     const SCROLL_ART_V2831={started:false,landscape:null,palace:null};
@@ -13206,12 +13494,12 @@
       if(SCROLL_ART_V2831.started)return;SCROLL_ART_V2831.started=true;
       const request=(key,file,ground=false)=>{
         const img=new Image();img.decoding='async';
-        img.onload=()=>{SCROLL_ART_V2831[key]=img;if(ground)releaseStaticWorldCacheV2767();img.onload=img.onerror=null;if(key==='monstersV2853'&&currentEnemy&&!document.hidden&&gameState==='combat')window.drawCharacter?.(document.getElementById('enemyChar'),currentEnemy.name,player.level,true);};
+        img.onload=()=>{SCROLL_ART_V2831[key]=img;if(ground)releaseStaticWorldCacheV2767();img.onload=img.onerror=null;if((key==='monstersV2853'||key==='smallBeastsV28682')&&currentEnemy&&!document.hidden&&gameState==='combat')window.drawCharacter?.(document.getElementById('enemyChar'),currentEnemy.name,player.level,true);};
         img.onerror=()=>{SCROLL_ART_V2831[key]=null;img.onload=img.onerror=null;if(key==='regions')request('landscape','scroll-landscape-v2831.webp',true);if(key==='monstersV2853'){request('enemies','ink-enemies-v2833.webp');request('beasts','ink-beasts-v2833.webp');}};
         img.src='./'+file;
       };
       request('regions','scroll-regions-v2834.webp',true);
-      for(const [key,file] of [['palace','scroll-palace-v2831.webp'],['buildings','scroll-buildings-v2832.webp'],['monstersV2853','monster-map-v2853.webp?v=2868-sect-stories-20260930'],['regionalBuildings','region-buildings-v2835.webp']])request(key,file);
+      for(const [key,file] of [['smallBeastsV28682','monster-small-beasts-v28682.png'],['palace','scroll-palace-v2831.webp'],['buildings','scroll-buildings-v2832.webp'],['monstersV2853','monster-map-v2853.webp?v=2868-sect-stories-20260930'],['regionalBuildings','region-buildings-v2835.webp']])request(key,file);
     }
     function scrollRegionCellV2834(region=currentRegion){
       const n=['south','east','west','north','human_peaks','human_valleys','demon_domain','immortal_domain'].indexOf(region);return n<0?0:n;
@@ -13336,7 +13624,7 @@
       const poi=scrollKnownPoisV2837().find(p=>p.id===session.state.selected),esc=discipleEscV2815;
       if(!poi){el.innerHTML='<p>点选地标或展开地点目录，再选择前往方式。</p>';return;}
       const access=scrollPoiAccessV2837(poi),done=scrollPoiDoneV2837(poi),disabled=!access.allowed||done;
-      el.innerHTML=`<strong>${esc(poi.name)}</strong><p>${esc(explorationDirectionV2829(poi))}${!access.allowed?' · 未解锁':done?' · 已领取':''}</p><p class="scroll-detail-v2837">${esc(poi.desc||'')}${!access.allowed&&access.reason?' · '+esc(access.reason):''}</p><div class="scroll-journey-v2837"><button type="button" data-scroll-action="go" ${disabled?'disabled':''}>${done?'已完成探索':!access.allowed?'尚未解锁':'自动前往'}</button><button type="button" data-scroll-action="mark" ${disabled?'disabled':''}>标记方向</button></div>`;
+      el.innerHTML=`<strong>${esc(poi.name)}</strong><p>${esc(explorationDirectionV2829(poi))}${!access.allowed?' · 未解锁':done?' · 已领取':''}</p><p class="scroll-detail-v2837">${esc(poi.desc||'')}${poi.action==='village'&&rainStateV286822().step>=13?' · 青云渡口已复航 · '+esc(rainSummaryV286822()):''}${!access.allowed&&access.reason?' · '+esc(access.reason):''}</p><div class="scroll-journey-v2837"><button type="button" data-scroll-action="go" ${disabled?'disabled':''}>${done?'已完成探索':!access.allowed?'尚未解锁':'自动前往'}</button><button type="button" data-scroll-action="mark" ${disabled?'disabled':''}>标记方向</button></div>`;
     }
     function centerScrollPointV2837(point){
       const view=document.getElementById('scrollWindowV2831'),field=document.getElementById('scrollFieldV2831');if(!view||!field)return;
@@ -13662,6 +13950,7 @@
     }
 
     function updateWorldHUD(){
+      if(typeof syncFirstJourneyV28687==='function')syncFirstJourneyV28687();
       if(typeof syncSectTodoV2868==='function')syncSectTodoV2868();
       ensureScrollButtonV2831();
       ensureExplorationButtonV2829();
@@ -13787,16 +14076,7 @@
 
     function saveTest999V2760() {
       try {
-        const saveData = {
-          player: JSON.parse(JSON.stringify(player)),
-          achievements: {
-            progress: { ...achievementProgress },
-            completed: Array.from(completedAchievements)
-          },
-          timestamp: Date.now(),
-          version: 2761,
-          saveSlot: 'test999'
-        };
+        const saveData = {...createSaveDataV2768(),version:2761,saveSlot:'test999'};
         localStorage.setItem(TEST_SAVE_KEY_999_V2760, JSON.stringify(saveData));
         return true;
       } catch (e) {
@@ -13820,6 +14100,7 @@
     function startGame() {
       const rawName = document.getElementById('playerName').value.trim();
       const name = rawName || '无名';
+      try{validateSaveTextV2869({name});}catch(e){alert('道号请使用文字、数字或空格，不要包含代码符号');return;}
       const isTest999 = rawName === '999';
       resetRuntimeState();
 
@@ -13926,12 +14207,14 @@
       
       showStory(`
         <p style="color: #69f0ae;">📜 修行记录已恢复</p>
-        <p>欢迎回来，<b>${player.name}</b>！</p>
+        <p>欢迎回来，<b>${escapeGameText(player.name)}</b>！</p>
         <p>当前境界：${getCultivationName()}</p>
         <p>记录时间：${formatSaveTime(saveData.timestamp)}</p>
+        ${saveData.interruptedBattleV286812?'<p>上次战斗尚未结算，已恢复到开战前；当场消耗的丹药、气血和灵力已恢复，未发放战利品。</p>':''}
       `, [
         { text: '续行仙途', action: 'village' }
       ]);
+      recoverPendingBreakthroughV28683();
     }
     
     function newGame() {
@@ -14189,7 +14472,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.29";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
@@ -14339,3 +14622,87 @@ const MINI_ROUTES_V2867=[{name:'稳妥 · 外围药径',reward:1,hp:1,atk:1},{na
 function miniRouteV2867(c){return MINI_ROUTES_V2867[c?.routeV2867]||MINI_ROUTES_V2867[0];}
 function showMiniRouteV2867(c){if(!sectCanManageV2866())return;showStory(`<section class="sect-board-v2866"><h3>秘境岔路</h3><p>穿过山门后的云雾，三条小径通向不同深处。选定后，本次路线不会变化。</p>${MINI_ROUTES_V2867.map((r,i)=>`<article><h4>${r.name}</h4><p>取宝灵石/修为×${r.reward}；守关生命×${r.hp}，攻击×${r.atk}。</p>${i===1?'<p>完成首层采集额外积累80悟道修为。</p>':''}<button class="choice-btn" onclick="selectMiniRouteV2867(${c.id},${i})">选择此路</button></article>`).join('')}<p>途中可撤离，带回已采材料与悟道修为；守关战败失去未结算收获，并扣身上20%灵石。</p></section>`,[{text:'暂离 · 返回宗门',action:'sect_hall'}]);}
 function selectMiniRouteV2867(id,route){if(!sectCanManageV2866()||!Number.isInteger(route)||!MINI_ROUTES_V2867[route])return;const c=miniRunV2778();if(!c||c.id!==id||c.step!==0||c.routeV2867!==null)return;c.routeV2867=route;autoSave();showMiniRealmV2778();}
+
+// V28.68.29: bounded elemental openings, equipment/loadout synergies and timed expeditions.
+const tacticsV286821=new WeakMap();
+function weaknessV286821(enemy){
+ const key=typeof scrollMonsterKeyV2853==='function'?scrollMonsterKeyV2853(enemy?.name):null;
+ return ({treant:'fire',spider:'fire','frost-wolf':'fire',turtle:'thunder',serpent:'thunder',golem:'sword',phoenix:'ice'})[key]||null;
+}
+function weaknessTextV286821(enemy){const el=weaknessV286821(enemy);return el?'弱点：'+SKILL_ELEMENT_META_V212[el].label+'（命中护甲降低25%，元素状态破甲至多50%）':'无已知元素弱点';}
+function buildFlagsV286821(){
+ const l=typeof ensureSkillLoadoutV212==='function'?ensureSkillLoadoutV212():{};
+ const skills=(player.skills||[]).filter(s=>Object.values(l).some(v=>v.includes(s.name)));
+ const sword=weaponFamilyV2790()==='sword'||/剑/.test(player.equipment?.weapon||'');
+ return {sword:sword&&(l.sword?.length||0)>=2,thunder:(gearModsV2790().spellCrit||0)>0&&(l.thunder?.length||0)>=2,
+ guard:!!getEquipData(player.equipment?.robe||player.equipment?.armor)&&skills.some(s=>s.heal)&&skills.some(s=>s.guardRatio||['iceArmor','fireShield'].includes(s.effect))};
+}
+function setupTacticsV286821(){tacticsV286821.set(currentEnemy,{owner:player,marks:0,opened:false,builds:buildFlagsV286821()});}
+function hitTacticsV286821(skill,damage){
+ const e=currentEnemy,s=tacticsV286821.get(e);if(!s||s.owner!==player||damage<=0||e.hp<=0)return;
+ if(skill?.element===weaknessV286821(e)&&!s.opened){s.opened=true;
+  if(canFleeV286818()&&!e._isElite){skipEnemyTurn=true;e._skipReason='弱点破绽';addCombatLog('击中弱点：本战首次破绽，敌人硬直一次。','pet');}
+  else addCombatLog('击中弱点：破甲生效，强敌免疫破绽硬直。','pet');
+ }
+ if(s.builds.sword&&skill?.element==='sword'){
+  s.marks=Math.min(3,s.marks+1);addCombatLog(`剑气印记 ${s.marks}/3；满层后普攻引爆。`,'pet');
+ }else if(s.builds.sword&&!skill&&s.marks>=3){
+  s.marks=0;const extra=Math.max(1,Math.floor(getAtk()*.8));e.hp=Math.max(0,e.hp-extra);
+  showDamageNumber(extra,'enemy',false,false,false,false,'剑气引爆');addCombatLog(`剑气引爆：追加${extra}点单体贯穿伤害。`,'damage');
+ }
+}
+function defendTacticsV286821(damage){
+ const s=tacticsV286821.get(currentEnemy);if(!s||s.owner!==player||damage<=0)return damage;
+ if(s.builds.thunder&&player._thunderArmorTurns>0){const before=player.mp;player.mp=Math.min(getMaxMp(),player.mp+Math.max(1,Math.floor(5*getRegionMpRecoveryMultiplier())));addCombatLog(`五雷回流：雷甲承击，回复${player.mp-before}灵力。`,'heal');}
+ const g=elementGuardsV286818.get(currentEnemy);
+ if(s.builds.guard&&(guardsV2785.get(currentEnemy)?.owner===player||(g?.owner===player&&g.pool>0&&g.turns>0))){
+  const after=Math.floor(damage*.9);addCombatLog(`不动护体：护盾期间额外减免${damage-after}点伤害。`,'heal');return after;
+ }return damage;
+}
+function buildGuideV286821(){const b=buildFlagsV286821();return `<h3>流派羁绊</h3><p>开战时锁定本场羁绊；换装与招式配置于下场生效。</p><p>${b.sword?'✓':'○'} 纯阳剑意：装备剑类武器、携带至少2招兵刃。剑技命中叠印记，上限3层；满层普攻追加80%攻击力单体贯穿伤害。</p><p>${b.thunder?'✓':'○'} 五雷回流：装备含术法暴击词条、携带至少2招雷法。雷甲期间承受攻击回复5灵力，受区域恢复倍率及上限影响。</p><p>${b.guard?'✓':'○'} 不动护体：穿戴护甲、携带治疗及护体招式。护体/元素盾期间额外减伤10%，不提供无限反伤。</p>`;}
+const TRIP_ROUTES_V286821=[{key:'wolf',name:'狼谷旧道',gold:1},{key:'bandit',name:'山道巡行',gold:2},{key:'ghost',name:'幽林巡行',gold:10}];
+function tripStateV286821(){
+ const raw=player.expeditionV286821||{},wins={};
+ for(const r of TRIP_ROUTES_V286821){const n=raw.wins?.[r.key];if(Number.isInteger(n)&&n>=0&&n<CULTIVATION_REALMS.length)wins[r.key]=n;}
+ const t=raw.active;const active=t&&TRIP_ROUTES_V286821.some(r=>r.key===t.key)&&Number.isSafeInteger(t.started)&&t.started>=0&&Number.isInteger(t.level)&&t.level>=0&&t.level<CULTIVATION_REALMS.length?{key:t.key,started:t.started,level:t.level}:null;
+ return {wins,active};
+}
+function recordTripWinV286821(enemy){
+ if(!canFleeV286818()||enemy._isElite||enemy._firstJourneyV28687)return;
+ const key=scrollMonsterKeyV2853(enemy.name);if(!TRIP_ROUTES_V286821.some(r=>r.key===key))return;
+ const n=Number(enemy._realmLevel);if(!Number.isInteger(n)||n<0||n>=CULTIVATION_REALMS.length)return;
+ const s=tripStateV286821();s.wins[key]=Math.min(s.wins[key]??n,n);player.expeditionV286821=s;
+}
+function tripYieldV286821(now=Date.now()){
+ const t=tripStateV286821().active,r=TRIP_ROUTES_V286821.find(r=>r.key===t?.key);
+ if(!r)return {units:0,gold:0,herbs:0};
+ const units=Math.min(48,Math.max(0,Math.floor((now-t.started)/600000)));
+ return {units,gold:units*r.gold,herbs:Math.floor(units/6)};
+}
+function commitTripV286821(change){
+ if(gameState!=='exploring')return false;
+ const old={state:player.expeditionV286821,gold:player.gold,materials:player.materials};
+ change();if(saveGame())return true;
+ player.expeditionV286821=old.state;player.gold=old.gold;player.materials=old.materials;
+ showFloatingText('保存失败，游历操作未生效，可重试','#ff8a80');return false;
+}
+function startTripV286821(index){
+ if(gameState!=='exploring')return false;
+ const r=TRIP_ROUTES_V286821[index],s=tripStateV286821();
+ if(!r||s.active||!Number.isInteger(s.wins[r.key])||player.level<s.wins[r.key]+1)return false;
+ const ok=commitTripV286821(()=>{player.expeditionV286821={wins:s.wins,active:{key:r.key,started:Date.now(),level:s.wins[r.key]}};});
+ if(ok)showTripV286821();return ok;
+}
+function claimTripV286821(){
+ const s=tripStateV286821(),y=tripYieldV286821();if(!s.active||!y.units)return false;
+ const ok=commitTripV286821(()=>{player.expeditionV286821={wins:s.wins,active:null};player.gold+=y.gold;player.materials={...player.materials,'灵草':(Number(player.materials?.['灵草'])||0)+y.herbs};});
+ if(ok){showFloatingText(`游历归来：灵石+${y.gold}，灵草+${y.herbs}`);updateStats();showTripV286821();}return ok;
+}
+function showTripV286821(){
+ if(gameState!=='exploring')return;
+ const s=tripStateV286821(),y=tripYieldV286821(),r=TRIP_ROUTES_V286821.find(r=>r.key===s.active?.key);
+ let html='<h3>游历派遣</h3><p>派遣后可离线，也可继续修行。按现实时间每10分钟结算一段，上限8小时；提前领取结束本趟，未满10分钟不结算。不消耗灵石，不掉落Boss或突破材料。</p>';
+ if(r)html+=`<p>${r.name} · 已积累${y.units*10}分钟 / 480分钟，灵石${y.gold}、灵草${y.herbs}。${Date.now()<s.active.started?'设备时间早于出发时间，暂不累计收益。':''}</p><button class="choice-btn" onclick="claimTripV286821()" ${y.units?'':'disabled'}>领取并结束本趟</button><button class="choice-btn" onclick="showTripV286821()">刷新游历进度</button>`;
+ else html+=TRIP_ROUTES_V286821.map((r,i)=>{const n=s.wins[r.key],ok=Number.isInteger(n)&&player.level>=n+1;return `<p>${r.name}：每10分钟${r.gold}灵石，每小时1灵草。${n===undefined?'需先击败该类普通怪':ok?'可派遣':'需高于已击败敌人至少一个大境界'}</p><button class="choice-btn" onclick="startTripV286821(${i})" ${ok?'':'disabled'}>派遣 · ${r.name}</button>`;}).join('');
+ showStory(html+buildGuideV286821(),[{text:'返回洞府',action:'home'}]);
+}

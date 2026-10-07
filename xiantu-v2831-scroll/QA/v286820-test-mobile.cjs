@@ -1,0 +1,14 @@
+'use strict';
+const a=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const root=process.env.XIANTU_TEST_ROOT||path.resolve(__dirname,'..'),f=require('./v2858-dom-fixture.cjs')(root);
+const voices=[];let resumes=0,disconnected=0;
+f.c.AudioContext=class{constructor(){this.state='suspended';this.currentTime=0;this.destination={};}resume(){resumes++;this.state='running';return Promise.resolve();}createOscillator(){const o={frequency:{setValueAtTime(){}},connect(){},start(){},stop(){},disconnect(){disconnected++;}};voices.push(o);return o;}createGain(){return {gain:{setValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){},disconnect(){disconnected++;}};}};
+for(const name of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(name);
+f.run('unlockAudioV286820();for(let i=0;i<20;i++)playTone(200,.1)');
+a.equal(resumes,1);a.equal(voices.length,3);a.equal(f.run('activeTonesV286820.size'),3);
+voices[0].onended();a.equal(disconnected,2);f.run('playTone(200,.1)');a.equal(voices.length,4);
+f.run('isMuted=true;playTone(200,.1)');a.equal(voices.length,4);
+f.run('isMuted=false');f.c.document.hidden=true;f.run('playTone(200,.1)');a.equal(voices.length,4);
+f.c.document.hidden=false;for(const o of voices)o.onended();a.equal(f.run('activeTonesV286820.size'),0);
+f.run("audioCtx.state='interrupted';audioResumeV286820=null;unlockAudioV286820()");a.equal(resumes,2);
+console.log('PASS audio voice cap, ended cleanup, muted/background suppression and interrupted-context recovery');

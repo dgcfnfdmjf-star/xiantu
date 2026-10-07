@@ -1,0 +1,7 @@
+const {spawnSync}=require('node:child_process'),path=require('node:path');
+const root=path.resolve(__dirname,'../xiantu-v2831-scroll');
+const tests=['v286827-test-expansion','v286826-test-story','v286825-test-percent','v286824-test-forge','v286823-test-main','v286822-test-rain','v286821-test-tactics','v286820-test-mobile','v286818-test-depth','v286817-test-combat-loop','v286812-test-combat-integrity','v28687-test-introduction','v28685-test-flows','v28684-test-duel','v28683-test-balance','v28682-test-beasts','v2864-test-npc-interaction','v2865-test','v2866-test','v2867-test','v2868-test',...['jev','connection','device','battle-ui','mana','friends','world','monster','npc','spring','relationships','art','fx'].map(s=>'v2858-test-'+s)];
+let failed=0;
+for(const name of tests){const r=spawnSync(process.execPath,[path.join(root,'QA',name+'.cjs')],{stdio:'inherit',env:{...process.env,XIANTU_TEST_ROOT:root},timeout:60000});if(r.status!==0){failed++;console.error('FAIL',name,r.error?.message||'');}}
+const r=spawnSync(process.execPath,['--test',path.resolve(__dirname,'../tests/rate-limit.cjs')],{stdio:'inherit',timeout:60000});if(r.status!==0)failed++;
+console.log(`${tests.length} game regression scripts + rate-limit suite; failed: ${failed}`);process.exitCode=failed?1:0;

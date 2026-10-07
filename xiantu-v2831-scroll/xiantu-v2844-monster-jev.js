@@ -36,7 +36,10 @@ function monsterAvailableV2844(s=monsterStateV2844()) {
     if(key==='probe')return !!hostileKindV2849();
     if(key==='rally')return !!hostileKindV2849()&&hostileKindV2849()!=='rival'&&!(s.supportTurns>0);
     if(key==='retreat')return hostileCanRetreatV2849()&&currentEnemy.hp<=currentEnemy.maxHp*.25;
+    if((key==='spell'||key==='heal') && currentEnemy._spellSealTurnsV286817>0)return false;
     if(key==='spell')return !!monsterSpellV2844();
+    if(key==='heal'&&currentEnemy._originV286826?.collapsed)return false;
+    if(key==='heal'&&currentEnemy.burnTurns>0&&currentEnemy._burnHealBlockV286818)return false;
     if(key==='heal')return (isBossFight||/凤|狐|血/.test(currentEnemy.name))&&s.heals<2&&currentEnemy.hp<=currentEnemy.maxHp*.92;
     if(key==='recover')return s.mp<=78;
     return true;
@@ -180,4 +183,4 @@ function runMonsterTurnV2844(resolve) {
 window.addEventListener('xiantu:combat-finishing',()=>cancelMonsterJevV2844('changed'));
 window.addEventListener('pagehide',()=>{cancelMonsterJevV2844('disabled');});
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2844-monster-jev.js']='28.68';
+window.__xiantuBuildFilesV2814['xiantu-v2844-monster-jev.js']='28.68.29';

@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),a=require('node:assert/strict'),fixture=require('./v2853-dom-fixture.cjs');
-const root=process.env.XIANTU_TEST_ROOT||'release-v2853/xiantu-v2831-scroll',files=JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]);
+const root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..'),files=JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]);
 function game(){const f=fixture(root),images=[];f.c.Math=Object.create(Math);f.c.Math.random=()=>.5;f.c.Image=class{
  constructor(){this.complete=false;this.naturalWidth=0;this.naturalHeight=0;this.width=0;this.height=0;this.listeners={};images.push(this)}
  set src(v){this._src=v}get src(){return this._src||''}addEventListener(k,fn){this.listeners[k]=fn}removeAttribute(k){if(k==='src'){this._src='';this.released=true}}

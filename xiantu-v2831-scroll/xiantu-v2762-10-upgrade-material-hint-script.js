@@ -2,7 +2,7 @@
   function ensureUnified(){ try{window.unifyLegacyMaterialPools?.();}catch(_){} }
   function getArtifactUpgradeCheck(art){
     ensureUnified();
-    const type=art&&window.ARTIFACT_TYPES?.[art.type];
+    const type=art&&ARTIFACT_TYPES?.[art.type];
     if(!art||!type) return {ok:false,max:false,missing:['法宝数据异常'],requirements:[]};
     if((art.level||0)>=type.maxLevel) return {ok:false,max:true,missing:[],requirements:[]};
     const lv=Math.max(1,Number(art.level)||1), requirements=[], missing=[];
@@ -17,7 +17,7 @@
   function upgradeRequirementText(check, html=false){
     if(check.max) return html?'<span class="max">已满级</span>':'已满级';
     return check.requirements.map(r=>{
-      const icon=r.mat==='灵石'?'💰':(window.MATERIALS?.[r.mat]?.icon||'💎');
+      const icon=r.mat==='灵石'?'💰':(MATERIALS?.[r.mat]?.icon||'💎');
       if(html) return `<span class="${r.lack?'lack':'ok'}">${icon}${r.mat} ${r.have}/${r.need}</span>`;
       return `${icon}${r.mat} ${r.have}/${r.need}`;
     }).join(html?' · ':'、');
@@ -32,7 +32,7 @@
     window.showFloatingText?.(`❌ 强化材料不足：${msg}`,'#ff6b6b');
     if(typeof window.showStory==='function'){
       const rows=check.requirements.map(r=>{
-        const icon=r.mat==='灵石'?'💰':(window.MATERIALS?.[r.mat]?.icon||'💎');
+        const icon=r.mat==='灵石'?'💰':(MATERIALS?.[r.mat]?.icon||'💎');
         return `<div style="display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span>${icon} ${r.mat}</span><span style="color:${r.lack?'#ff8a80':'#69f0ae'}">${r.have} / ${r.need}${r.lack?`　缺 ${r.lack}`:'　✓'}</span></div>`;
       }).join('');
       window.showStory(`<p style="font-size:17px;color:#ffd76a;font-weight:800">⚒️ ${art.name} +${art.level} 强化材料不足</p><p style="font-size:11px;color:#aaa">补齐以下材料后即可强化：</p><div style="margin-top:8px">${rows}</div>`,[{text:'← 返回法宝强化',action:'artifacts'}]);
@@ -46,8 +46,9 @@
   window.canUpgradeArtifact=function(art){ return getArtifactUpgradeCheck(art).ok; };
 
   window.upgradeArtifact=function(index){
+    if(gameState==='combat'||gameState==='combat-ending'||player?.breakthrough?.isAnimating)return;
     ensureUnified();
-    const art=player?.artifacts?.[index], type=art&&window.ARTIFACT_TYPES?.[art.type];
+    const art=player?.artifacts?.[index], type=art&&ARTIFACT_TYPES?.[art.type];
     if(!art||!type){window.showFloatingText?.('❌ 法宝数据异常','#ff6b6b');return;}
     const check=getArtifactUpgradeCheck(art);
     if(!check.ok){showUpgradeMissing(art,check);return;}
@@ -92,10 +93,10 @@
   const prevForge=window.forgeMaterialEquipment;
   if(typeof prevForge==='function'){
     window.forgeMaterialEquipment=function(id){
-      const r=window.MATERIAL_FORGE_RECIPES?.[id];
+      const r=MATERIAL_FORGE_RECIPES?.[id];
       if(!r) return prevForge.apply(this,arguments);
       const lacks=[];
-      if((player.level||0)<r.realm) lacks.push(`境界不足（需要${window.CULTIVATION_REALMS?.[r.realm]?.name||r.realm}）`);
+      if((player.level||0)<r.realm) lacks.push(`境界不足（需要${CULTIVATION_REALMS?.[r.realm]?.name||r.realm}）`);
       for(const [mat,needRaw] of Object.entries(r.materials||{})){
         const need=Number(needRaw)||0,have=Number(player.materials?.[mat])||0;
         if(have<need) lacks.push(`${mat}缺${need-have}（${have}/${need}）`);
@@ -108,4 +109,4 @@
   }
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-10-upgrade-material-hint-script.js"]="28.68";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-10-upgrade-material-hint-script.js"]="28.68.29";

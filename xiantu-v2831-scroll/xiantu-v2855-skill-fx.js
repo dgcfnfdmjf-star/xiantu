@@ -23,7 +23,7 @@
   function profile(name,element='',info=null,source='active'){
     name=String(name||'灵力冲击');
     if(!info&&typeof SKILLS!=='undefined')info=SKILLS.find(s=>s.name===name)||null;
-    let family=element||info?.element||(/雷|天劫/.test(name)?'thunder':/冰|霜|寒/.test(name)?'ice':/火|焰|炎/.test(name)?'fire':/剑|斩|试锋/.test(name)?'sword':/血/.test(name)?'blood':/幽冥|鬼|魂/.test(name)?'spirit':/魔|妖/.test(name)?'dark':'earth');
+    let family=element||info?.element||(/凝露|治愈|回春|灵泉|青莲|生生不息|莲华|逆命回元|起死回生/.test(name)?'heal':/雷|天劫/.test(name)?'thunder':/冰|霜|寒/.test(name)?'ice':/火|焰|炎/.test(name)?'fire':/剑|斩|试锋/.test(name)?'sword':/血/.test(name)?'blood':/幽冥|鬼|魂/.test(name)?'spirit':/魔|妖/.test(name)?'dark':'earth');
     if(name==='镇岳山河震')family='earth';if(name==='穿云贯日')family='spear';
     if(!palettes[family])family='spirit';
     let kind=styles[name]||forms[name]||({sword:'blade',heal:'dew',ice:'breath',fire:'burst',thunder:'bolt',dark:'wave',blood:'wave',spirit:'wave',earth:'ground',spear:'lance'}[family]);
@@ -96,24 +96,46 @@
     c.bezierCurveTo(p.x+r*.95,p.y-r*.44,p.x+r*1.25,p.y+r*.1,p.x+r,p.y+9);
     c.closePath();c.fill();c.stroke();c.restore();
   }
+  // Pure presentation samples: stagger launches, share an arrival, never invent a hit.
+  function sample(j,age,delay=0){
+    const arrive=Math.max(90,j.arriveAt??(j.hitAt===null?250:Math.max(120,j.hitAt)));
+    delay=Math.min(Math.max(0,delay),arrive-75);
+    const struck=j.hitAt!==null&&age>=j.hitAt;
+    return {visible:age>=0&&age<j.duration,arrive,travel:clamp((age-45-delay)/(arrive-45-delay)),struck,
+      burst:struck?clamp((age-j.hitAt)/540):0,
+      flight:clamp((j.hitAt===null?500-age:j.hitAt+120-age)/(j.hitAt===null?210:120))*clamp((j.duration-age)/260)};
+  }
+  function groundAnchors(j){return {from:j.fromGround||{x:j.from.x,y:j.from.y+30*(j.scale||1)},to:j.toGround||{x:j.to.x,y:j.to.y+30*(j.scale||1)}}}
+  function drawGround(c,j,age){
+    const state=sample(j,age);if(!state.visible)return;
+    const p=j.profile,pal=p.palette,s=j.scale||1,g=groundAnchors(j),fade=clamp((j.duration-age)/260);
+    const groundKind=['field','prison','seal','crystal','meteor','pillar','wall','ground','mountain','lotus'].includes(p.kind);
+    c.save();c.beginPath();c.rect(0,0,j.width,j.clipBottom);c.clip();
+    if(p.self)seal(c,g.from,(27+15*clamp(age/340))*s,pal,fade*.7,j.reduced?0:age*.0004);
+    else if(p.source!=='passive'&&age<state.arrive)seal(c,g.from,(16+24*clamp(age/170))*s,pal,clamp((state.arrive-age)/150)*.6);
+    if(!p.self&&groundKind){
+      const a=state.struck?(1-state.burst)*fade*.7:clamp(age/120)*clamp((state.arrive+120-age)/120)*.4;
+      seal(c,g.to,(state.struck?32+25*state.burst:32)*s,pal,a);
+    }
+    c.restore();
+  }
   function draw(c,j,age){
     const p=j.profile,pal=p.palette,from=j.from,to=j.to,s=j.scale||1,light=j.light;
+    const state=sample(j,age);if(!state.visible)return;
     const duration=j.duration,fade=clamp((duration-age)/260),cast=clamp(age/170),hit=j.hitAt;
-    const arrive=hit===null?250:Math.max(120,hit),travel=clamp((age-45)/(arrive-45));
-    const struck=hit!==null&&age>=hit,burst=struck?clamp((age-hit)/540):0;
-    const visualEnd=hit===null?500:hit+560;
-    const flightAlpha=clamp((visualEnd-age)/210)*fade;
+    const {arrive,travel,struck,burst}=state,flightAlpha=state.flight,g=groundAnchors(j);
+    if(!j.groundDrawn)drawGround(c,j,age);
     c.save();c.beginPath();c.rect(0,0,j.width,j.clipBottom);c.clip();
     if(j.reduced){seal(c,p.self?from:to,34*s,pal,.75);halo(c,p.self?from:to,36*s,pal[0],.18);c.restore();return}
     // Keep the uploaded patch's local impact accent, bounded on mobile.
     if(struck&&!p.self&&p.tier>=2){const decay=clamp(1-burst/.3);if(decay){const a=noise((j.id||1)+Math.floor(age/60))*TAU,mag=(light?1.5:3)*s*decay;c.translate(Math.cos(a)*mag,Math.sin(a)*mag)}}
-    if(p.source!=='passive'&&age<330){seal(c,{x:from.x,y:from.y+30*s},(16+24*cast)*s,pal,(1-clamp((age-180)/150))*.7);halo(c,from,30*s,pal[0],.16*(1-cast/2))}
+    if(p.source!=='passive'&&age<330){halo(c,from,30*s,pal[0],.16*(1-cast/2))}
     if(p.self){
       const rise=clamp(age/340),a=fade*.8;
-      seal(c,{x:from.x,y:from.y+30*s},(27+15*rise)*s,pal,a,age*.0004);
+
       if(p.family==='heal'){
-        if(p.kind==='lotus'||p.kind==='revive')petals(c,{x:from.x,y:from.y+30*s},(39+19*rise)*s,pal,a,rise,light?5:7);
-        else {for(let i=0;i<(light?2:3);i++){const t=(age/1100+i*.32)%1;ellipse(c,{x:from.x,y:from.y+30*s-t*75*s},(8+22*Math.sin(t*Math.PI))*s,5*s,pal[i%2],1,(1-t)*fade*.75)}}
+        if(p.kind==='lotus'||p.kind==='revive')petals(c,g.from,(39+19*rise)*s,pal,a,rise,light?5:7);
+        else {for(let i=0;i<(light?2:3);i++){const t=(age/1100+i*.32)%1;ellipse(c,{x:from.x,y:g.from.y-t*75*s},(8+22*Math.sin(t*Math.PI))*s,5*s,pal[i%2],1,(1-t)*fade*.75)}}
         if(p.kind==='spring')for(let i=0;i<2;i++)ellipse(c,from,31*s,18*s,pal[0],1,a*.7,age*.001+i*Math.PI/2,0,Math.PI*1.45);
         if(p.kind==='revive')halo(c,from,62*s,pal[1],.2*fade*Math.sin(cast*Math.PI/2));
       }
@@ -124,12 +146,12 @@
       for(let i=0;i<count;i++){
         const offset=(i-(count-1)/2),origin=p.kind==='rain'?{x:from.x+offset*11*s,y:from.y-42*s-Math.abs(offset)*7*s}:from;
         const target={x:to.x,y:to.y+offset*8*s};
-        const t=clamp(travel-i*.045),a=flightAlpha;
+        const t=sample(j,age,i*10).travel,a=flightAlpha;
         const end=ribbon(c,origin,target,t,pal,(p.kind==='great'?9:p.kind==='lance'?4:3)*s,offset*7*s-10*s,a*.8);
         if(t<1||age<arrive+220)blade(c,end,Math.atan2(target.y-origin.y,target.x-origin.x),(p.kind==='great'?100:p.kind==='lance'?90:55)*s,pal,a,(p.kind==='great'?10:5)*s);
       }
       if(struck&&burst<1){
-        if(p.kind==='great')blade(c,{x:to.x,y:to.y+34*s},Math.PI/2,112*s,pal,(1-burst)*.9,11*s);
+
         const r=(22+30*burst)*s;c.save();c.translate(to.x,to.y);c.rotate(-.6);ellipse(c,{x:0,y:0},r,r*.6,pal[0],(4-3*burst)*s,(1-burst)*.8,0,-1.5,1.4);ellipse(c,{x:0,y:0},r*.93,r*.57,pal[1],1,(1-burst),0,-1.4,1.2);c.restore();
         if(p.kind==='return'){const t=clamp((age-hit-100)/400);ribbon(c,to,from,t,pal,2*s,28*s,Math.sin(t*Math.PI)*fade)}
         if(p.guard)ellipse(c,from,32*s,49*s,pal[0],1.5,fade*.65);
@@ -141,45 +163,45 @@
         if(travel>.25){const n=p.kind==='storm'?(light?2:3):1;for(let i=0;i<n;i++)lightning(c,{x:high.x+(i-(n-1)/2)*28*s,y:high.y+12*s},point(high,to,travel),pal,flightAlpha,11+i,2.6*s)}
       }else lightning(c,from,point(from,to,travel),pal,flightAlpha,17,1.5*s);
       if(struck&&p.kind==='cage')for(let i=0;i<3;i++)ellipse(c,to,(22+i*5)*s,48*s,pal[0],1,fade*.5,i*Math.PI/3);
-      if(struck&&p.kind==='ground')seal(c,{x:to.x,y:to.y+25*s},(25+30*burst)*s,pal,(1-burst)*.75);
+
     }else if(p.family==='ice'){
       for(let i=0;i<(light?4:7);i++){
-        const t=clamp(travel-i*.035),q=point(from,to,t);q.y+=(i-(light?1.5:3))*10*s*Math.sin(t*Math.PI);
+        const t=sample(j,age,i*8).travel,q=point(from,to,t);q.y+=(i-(light?1.5:3))*10*s*Math.sin(t*Math.PI);
         if(p.kind==='butterfly'){petals(c,q,10*s,pal,flightAlpha*.7,travel,2)}
         else if(p.kind==='breath'||p.kind==='icicle'||p.kind==='frost')crystal(c,q,(16+noise(i)*13)*s,Math.atan2(to.y-from.y,to.x-from.x)+Math.PI/2,pal,flightAlpha*.9);
-        else {const at=struck?to:point(from,to,travel),o=(i-(light?1.5:3))*16*s;crystal(c,{x:at.x+o,y:at.y+32*s},(36+noise(i)*32)*(1-burst*.2)*s,o*.008,pal,(1-burst)*.85)}
+        else if(struck){const o=(i-(light?1.5:3))*16*s;crystal(c,{x:g.to.x+o,y:g.to.y},(36+noise(i)*32)*s,o*.008,pal,(1-burst)*.85)}
       }
-      if(!struck)ribbon(c,from,to,travel,pal,3*s,-10*s,flightAlpha*.55);
+      if(!struck&&!['field','prison','seal','crystal'].includes(p.kind))ribbon(c,from,to,travel,pal,3*s,-10*s,flightAlpha*.55);
       if(struck&&(p.kind==='field'||p.kind==='prison'||p.kind==='seal'||p.kind==='crystal')){
-        seal(c,{x:to.x,y:to.y+30*s},(26+35*burst)*s,pal,(1-burst)*.8);
-        if(p.kind==='crystal')crystal(c,{x:to.x,y:to.y+30*s},96*s,0,pal,(1-burst)*.85);
+
+        if(p.kind==='crystal')crystal(c,g.to,96*s,0,pal,(1-burst)*.85);
         if(p.kind==='prison')for(let i=0;i<3;i++)ellipse(c,to,(22+i*6)*s,46*s,pal[0],1,(1-burst)*.8,i*.4-.4);
       }
       if(struck)snow(c,to,(28+21*burst)*s,pal,(1-burst)*.9,burst*.18);
     }else if(p.family==='fire'){
       if(p.kind==='meteor'){
-        for(let i=0;i<(light?3:5);i++){const start={x:to.x+(i-1)*29*s-35*s,y:Math.max(8,to.y-125*s)},target={x:to.x+(i-1)*19*s,y:to.y+12*s};const q=ribbon(c,start,target,clamp(travel-i*.06),pal,4*s,0,flightAlpha*.5);flame(c,q,17*s,pal,flightAlpha,age*.009+i)}
-      }else if(p.kind==='breath'){for(let i=0;i<(light?4:6);i++){const t=clamp(travel-i*.13),q=point(from,to,t);q.y+=Math.sin(t*Math.PI+i)*8*s;flame(c,q,(12+t*16)*s,pal,flightAlpha*.85,age*.009+i)}}
+        for(let i=0;i<(light?3:5);i++){const offset=i-((light?3:5)-1)/2,start={x:g.to.x+offset*29*s-35*s,y:Math.max(8,to.y-125*s)},target={x:g.to.x+offset*19*s,y:g.to.y};const q=ribbon(c,start,target,sample(j,age,i*12).travel,pal,4*s,0,flightAlpha*.5);flame(c,q,17*s,pal,flightAlpha,age*.009+i)}
+      }else if(p.kind==='breath'){for(let i=0;i<(light?4:6);i++){const t=sample(j,age,i*22).travel,q=point(from,to,t);q.y+=Math.sin(t*Math.PI+i)*8*s;flame(c,q,(12+t*16)*s,pal,flightAlpha*.85,age*.009+i)}}
       else {const q=ribbon(c,from,to,travel,pal,3*s,-18*s,flightAlpha*.4);flame(c,q,24*s,pal,flightAlpha,age*.01)}
       if(struck){
-        if(['field','wall','pillar'].includes(p.kind))seal(c,{x:to.x,y:to.y+28*s},(28+28*burst)*s,pal,(1-burst)*.8);
-        if(p.kind==='lotus')petals(c,{x:to.x,y:to.y+30*s},(44+16*burst)*s,pal,(1-burst)*.95,burst,7);
+
+        if(p.kind==='lotus')petals(c,g.to,(44+16*burst)*s,pal,(1-burst)*.95,burst,7);
         else if(p.kind==='bind')for(let i=0;i<2;i++)ellipse(c,to,(29+i*5)*s,43*s,pal[0],2,(1-burst)*.8,i*.8-.4);
-        else {for(let i=0;i<(light?4:7);i++){const t=burst;const q={x:to.x+(noise(i+40)-.5)*(62+35*t)*s,y:to.y+(24-t*(25+noise(i)*30))*s};flame(c,q,(21+noise(i+3)*18)*(1-t*.45)*s,pal,(1-t)*.9,age*.01+i)}}
+        else {for(let i=0;i<(light?4:7);i++){const t=burst;const base=['meteor','field','wall','pillar'].includes(p.kind)?g.to:to;const q={x:base.x+(noise(i+40)-.5)*(62+35*t)*s,y:base.y-t*(25+noise(i)*30)*s};flame(c,q,(21+noise(i+3)*18)*(1-t*.45)*s,pal,(1-t)*.9,age*.01+i)}}
         if(p.kind==='sun'){halo(c,to,(24+26*burst)*s,pal[1],(1-burst)*.4);ellipse(c,to,26*s,26*s,pal[1],1,(1-burst)*.9)}
       }
     }else if(p.family==='earth'){
       if(!struck)ribbon(c,from,to,travel,pal,7*s,24*s,flightAlpha*.7);
       if(struck){
-        seal(c,{x:to.x,y:to.y+32*s},(22+50*burst)*s,pal,(1-burst)*.85);
+
         if(p.kind==='mountain'){
-          const h=(1-clamp(burst*.3))*104*s,w=62*s,base=to.y+46*s;
+          const h=(1-clamp(burst*.3))*104*s,w=62*s,base=g.to.y;
           const ridge=[{x:to.x-w,y:base},{x:to.x-w*.72,y:to.y-h*.45},{x:to.x-w*.42,y:to.y-h*.26},{x:to.x-w*.08,y:to.y-h},{x:to.x+w*.24,y:to.y-h*.37},{x:to.x+w*.54,y:to.y-h*.64},{x:to.x+w,y:base}];
           c.globalAlpha=(1-burst)*.4;c.fillStyle='#182e2b';c.beginPath();c.moveTo(ridge[0].x,ridge[0].y);for(const q of ridge.slice(1))c.lineTo(q.x,q.y);c.closePath();c.fill();
           path(c,ridge,'#172724',5*s,(1-burst)*.95);path(c,ridge,pal[1],1.8*s,(1-burst)*.95);
           for(let i=1;i<6;i+=2)path(c,[ridge[i],{x:ridge[i].x-8*s,y:ridge[i].y+22*s},{x:ridge[i].x+4*s,y:base-6*s}],pal[0],1,(1-burst)*.75);
         }
-        for(let i=0;i<5;i++){const a=i*TAU/5,r=(18+38*burst)*s;path(c,[{x:to.x,y:to.y+29*s},{x:to.x+Math.cos(a)*r*.6,y:to.y+29*s+Math.sin(a)*r*.18},{x:to.x+Math.cos(a+.15)*r,y:to.y+29*s+Math.sin(a+.15)*r*.32}],pal[2],1.7,(1-burst)*.8)}
+        for(let i=0;i<5;i++){const a=i*TAU/5,r=(18+38*burst)*s;path(c,[{x:to.x,y:g.to.y},{x:to.x+Math.cos(a)*r*.6,y:g.to.y+Math.sin(a)*r*.18},{x:to.x+Math.cos(a+.15)*r,y:g.to.y+Math.sin(a+.15)*r*.32}],pal[2],1.7,(1-burst)*.8)}
       }
     }else{
       for(let i=0;i<(light?2:3);i++)ribbon(c,from,to,travel,pal,4*s,(i-1)*23*s,flightAlpha*.7);
@@ -260,7 +282,7 @@
   // Presentation controls cancel visuals without touching the battle queue.
   for(const name of ['pauseVisualsV2767']){const base=W[name];if(typeof base==='function')W[name]=function(...args){clear();return base.apply(this,args)}}
   W.playInkSkillV2854=play;
-  W.InkSkillFxV2854={profile,draw,play,hit,clear,finish,cinemaClear,install,cycle,settings,inspect:()=>({version:'28.68',quality,finishing:finishUntil>now(),active:jobs.length,raf:!!raf,pixels:canvas?canvas.width*canvas.height:0,jobs:jobs.map(j=>({name:j.profile.name,kind:j.profile.kind,family:j.profile.family,side:j.side,self:j.profile.self,hitAt:j.hitAt,from:{...j.from},to:{...j.to}}))})};
+  W.InkSkillFxV2854={profile,draw,drawGround,sample,catalog:()=>[...new Set([...Object.keys(styles),...Object.keys(forms),...(typeof SKILLS!=='undefined'?SKILLS.map(s=>s.name):[])])].map(name=>profile(name)),play,hit,clear,finish,cinemaClear,install,cycle,settings,inspect:()=>({version:'28.68',quality,finishing:finishUntil>now(),active:jobs.length,raf:!!raf,pixels:canvas?canvas.width*canvas.height:0,jobs:jobs.map(j=>({name:j.profile.name,kind:j.profile.kind,family:j.profile.family,side:j.side,self:j.profile.self,hitAt:j.hitAt,from:{...j.from},to:{...j.to}}))})};
   install();
 })();
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2855-skill-fx.js']='28.68';
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2855-skill-fx.js']='28.68.29';

@@ -1,0 +1,574 @@
+(function exposePreviewCore(globalScope) {
+  'use strict';
+
+  const ARCHETYPE_RULES = Object.freeze({
+    'close-range-slash': { bodyFrames: 4, motion: 'static' },
+    projectile: { bodyFrames: 6, motion: 'travel' },
+    'projectile-volley': { bodyFrames: 6, motion: 'volley' },
+    'moving-front': { bodyFrames: 6, motion: 'front' },
+    falling: { bodyFrames: 6, motion: 'fall' },
+    'ground-eruption': { bodyFrames: 4, motion: 'erupt' },
+    'persistent-zone': { bodyFrames: 8, motion: 'zone' },
+    trap: { bodyFrames: 4, motion: 'trap' },
+    'target-brand': { bodyFrames: 4, motion: 'brand' },
+    'target-beam': { bodyFrames: 4, motion: 'beam' },
+    'shield-orbit': { bodyFrames: 8, motion: 'orbit' },
+  });
+
+  const ARCHETYPE_PROFILES = Object.freeze({
+    'close-range-slash': { displayMode: 'in-place', motion: 'static' },
+    projectile: { displayMode: 'projectile', motion: 'travel' },
+    'projectile-volley': { displayMode: 'projectile', motion: 'volley' },
+    'moving-front': { displayMode: 'moving-front', motion: 'front' },
+    falling: { displayMode: 'falling', motion: 'fall' },
+    'ground-eruption': { displayMode: 'persistent-ground', motion: 'erupt' },
+    'persistent-zone': { displayMode: 'persistent-ground', motion: 'zone' },
+    trap: { displayMode: 'persistent-ground', motion: 'zone' },
+    'target-brand': { displayMode: 'persistent-ground', motion: 'static' },
+    'target-beam': { displayMode: 'persistent-ground', motion: 'static' },
+    'shield-orbit': { displayMode: 'orbit', motion: 'orbit' },
+  });
+
+  const DEFAULT_PREVIEW_PROFILE = Object.freeze({
+    displayMode: 'in-place',
+    motion: 'static',
+    directionDeg: 0,
+    distance: 340,
+    durationMs: 900,
+    originAnchor: 'caster',
+    targetAnchor: 'ground',
+  });
+
+  const STAGE_DURATIONS = Object.freeze({
+    telegraph: 500,
+    body: 900,
+    impact: 350,
+    residue: 650,
+  });
+  const REQUIRED_LAYERS = Object.freeze(Object.keys(STAGE_DURATIONS));
+  const LOOPING_ARCHETYPES = new Set([
+    'persistent-zone',
+    'trap',
+    'target-brand',
+    'target-beam',
+    'shield-orbit',
+  ]);
+
+  function buildLifecycle(effect) {
+    const rule = ARCHETYPE_RULES[effect?.visualArchetype];
+
+    return REQUIRED_LAYERS.map((name) => ({
+      name,
+      durationMs: effect?.layers?.[name]?.durationMs ?? STAGE_DURATIONS[name],
+      loop: name === 'body' && LOOPING_ARCHETYPES.has(effect?.visualArchetype),
+      motion: name === 'body' ? (rule?.motion ?? 'static') : name,
+    }));
+  }
+
+  function resolvePreviewProfile(effect, overrides = {}) {
+    return {
+      ...DEFAULT_PREVIEW_PROFILE,
+      ...(ARCHETYPE_PROFILES[effect?.visualArchetype] || {}),
+      ...(effect?.preview || {}),
+      ...(overrides || {}),
+    };
+  }
+
+  function motionPose(profile, progress, instanceIndex = 0) {
+    const normalized = Math.max(0, Math.min(1, Number(progress) || 0));
+    const eased = normalized * normalized * (3 - 2 * normalized);
+    const distance = Math.max(0, Number(profile?.distance) || 0);
+    const directionDeg = Number.isFinite(Number(profile?.directionDeg))
+      ? Number(profile.directionDeg)
+      : 0;
+    const radians = directionDeg * Math.PI / 180;
+    const halfX = Math.cos(radians) * distance / 2;
+    const halfY = Math.sin(radians) * distance / 2;
+    const base = { x: 0, y: 0, rotationDeg: 0, scaleX: 1, scaleY: 1 };
+    const clean = (value) => Math.abs(value) < 1e-9 ? 0 : value;
+    const travelPose = (amount) => ({
+      ...base,
+      x: clean(-halfX + halfX * 2 * amount),
+      y: clean(-halfY + halfY * 2 * amount),
+      rotationDeg: directionDeg - 90,
+    });
+
+    switch (profile?.motion) {
+      case 'travel':
+      case 'front':
+        return travelPose(eased);
+      case 'out-and-back': {
+        const leg = normalized <= .5 ? normalized * 2 : (1 - normalized) * 2;
+        const legEased = leg * leg * (3 - 2 * leg);
+        return travelPose(legEased);
+      }
+      case 'volley': {
+        const pose = travelPose(eased);
+        const spread = (instanceIndex - 2) * 24;
+        return {
+          ...pose,
+          x: pose.x + Math.cos(radians + Math.PI / 2) * spread,
+          y: pose.y + Math.sin(radians + Math.PI / 2) * spread,
+        };
+      }
+      case 'fall':
+        return { ...base, y: -distance * (1 - eased), rotationDeg: directionDeg - 90 };
+      case 'erupt':
+        return { ...base, y: distance * .18 * (1 - eased), scaleY: .5 + .5 * eased };
+      case 'zone':
+        return { ...base, rotationDeg: normalized * 12, scaleX: .9 + .08 * Math.sin(normalized * Math.PI * 2), scaleY: .9 + .08 * Math.sin(normalized * Math.PI * 2) };
+      case 'orbit': {
+        const angle = normalized * Math.PI * 2 + instanceIndex * Math.PI * 2 / 3;
+        const radius = distance ? Math.min(distance / 2, 72) : 36;
+        return { ...base, x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
+      }
+      default:
+        return base;
+    }
+  }
+
+  function buildStageInstances(effect, stage) {
+    const base = {
+      layerName: stage.name,
+      motion: stage.motion,
+      delayMs: 0,
+      offsetX: 0,
+      offsetY: 0,
+      fixed: false,
+    };
+
+    if (stage.name === 'body' && effect?.visualArchetype === 'falling') {
+      return [
+        { id: 'body-telegraph', ...base, layerName: 'telegraph', motion: 'static', fixed: true },
+        { id: 'body-0', ...base },
+      ];
+    }
+
+    if (stage.name === 'body' && effect?.visualArchetype === 'projectile-volley') {
+      return [-48, -24, 0, 24, 48].map((offsetX, index) => ({
+        id: `body-${index}`,
+        ...base,
+        delayMs: index * 90,
+        offsetX,
+      }));
+    }
+
+    return [{ id: `${stage.name}-0`, ...base }];
+  }
+
+  function buildPreviewInstances(effect, elapsedMs) {
+    const layerInstances = effect?.preview?.layerInstances;
+    if (Array.isArray(layerInstances)) {
+      const durationMs = Math.max(1, Number(effect.preview.durationMs) || 1);
+      const globalMs = Number(elapsedMs) || 0;
+      return layerInstances.flatMap((config) => {
+        const layerName = config?.layerName || config?.layer;
+        const startMs = Number(config?.startMs);
+        const endMs = Number(config?.endMs);
+        const fps = Number(config?.fps);
+        if (!config?.id
+          || !layerName
+          || !Number.isFinite(startMs)
+          || !Number.isFinite(endMs)
+          || endMs <= startMs
+          || !['origin', 'target', 'moving'].includes(config.anchor)
+          || !Number.isFinite(fps)
+          || fps <= 0
+          || globalMs < startMs
+          || globalMs > endMs) return [];
+        const localElapsedMs = globalMs - startMs;
+        const localProgress = localElapsedMs / (endMs - startMs);
+        return [{
+          id: config.id,
+          layerName,
+          startMs,
+          endMs,
+          anchor: config.anchor,
+          fps,
+          motion: config.motion || (layerName === 'body' ? effect.preview.motion : 'static'),
+          width: Number(config.width) || undefined,
+          height: Number(config.height) || undefined,
+          opacity: Number.isFinite(Number(config.opacity)) ? Number(config.opacity) : 1,
+          loop: typeof config.loop === 'boolean' ? config.loop : effect.layers?.[layerName]?.loop,
+          timelineProgress: Math.max(0, Math.min(1, globalMs / durationMs)),
+          localProgress,
+          elapsedMs: localElapsedMs,
+          delayMs: 0,
+          offsetX: Number(config.offsetX) || 0,
+          offsetY: Number(config.offsetY) || 0,
+          fixed: layerName !== 'body',
+        }];
+      });
+    }
+    const choreography = effect?.preview?.layers;
+    if (!choreography || typeof choreography !== 'object') return [];
+    const durationMs = Math.max(1, Number(effect.preview.durationMs) || 1);
+    const progress = Math.max(0, Math.min(1, Number(elapsedMs) / durationMs));
+    return REQUIRED_LAYERS.flatMap((layerName) => {
+      const config = choreography[layerName];
+      if (!config) return [];
+      const start = Math.max(0, Math.min(1, Number(config.start) || 0));
+      const end = Math.max(start, Math.min(1, Number(config.end) || 1));
+      const count = Math.max(1, Math.floor(Number(config.count)
+        || (layerName === 'body' && effect.visualArchetype === 'projectile-volley' ? 5 : 1)));
+      const stagger = Math.max(0, Number(config.stagger)
+        || (count > 1 ? .08 : 0));
+      return Array.from({ length: count }, (_, index) => {
+        const instanceStart = start + index * stagger;
+        const instanceEnd = end + index * stagger;
+        if (progress < instanceStart || progress > instanceEnd) return null;
+        const localProgress = (progress - instanceStart) / Math.max(.000001, instanceEnd - instanceStart);
+        const fadeIn = Math.max(0, Math.min(1, Number(config.fadeIn) || 0));
+        const fadeOut = Math.max(0, Math.min(1, Number(config.fadeOut) || 0));
+        const fadeInOpacity = fadeIn > 0 ? Math.min(1, localProgress / fadeIn) : 1;
+        const fadeOutOpacity = fadeOut > 0
+          ? Math.min(1, (1 - localProgress) / fadeOut)
+          : 1;
+        return {
+          id: count > 1 ? `${layerName}-runtime-${index}` : `${layerName}-runtime`,
+          layerName,
+          motion: config.motion || (layerName === 'body' ? effect.preview.motion : 'static'),
+          anchor: config.anchor || (layerName === 'body' ? 'moving' : 'target'),
+          width: Number(config.width) || undefined,
+          height: Number(config.height) || undefined,
+          opacity: Math.max(0, Math.min(1, fadeInOpacity, fadeOutOpacity)),
+          timelineProgress: progress,
+          localProgress,
+          elapsedMs: localProgress * (end - start) * durationMs,
+          delayMs: 0,
+          offsetX: Number(config.offsetX) || 0,
+          offsetY: Number(config.offsetY) || 0,
+          fixed: layerName !== 'body',
+        };
+      }).filter(Boolean);
+    });
+  }
+
+  function buildPreviewStageInstances(effect) {
+    const layerInstances = effect?.preview?.layerInstances;
+    if (Array.isArray(layerInstances)) {
+      return layerInstances.flatMap((config) => {
+        const layerName = config?.layerName || config?.layer;
+        const startMs = Number(config?.startMs);
+        const endMs = Number(config?.endMs);
+        const fps = Number(config?.fps);
+        if (!config?.id
+          || !layerName
+          || !Number.isFinite(startMs)
+          || !Number.isFinite(endMs)
+          || endMs <= startMs
+          || !['origin', 'target', 'moving'].includes(config.anchor)
+          || !Number.isFinite(fps)
+          || fps <= 0) return [];
+        return [{
+          id: config.id,
+          layerName,
+          anchor: config.anchor,
+          motion: config.motion || (layerName === 'body' ? effect.preview.motion : 'static'),
+          width: Number(config.width) || undefined,
+          height: Number(config.height) || undefined,
+          offsetX: Number(config.offsetX) || 0,
+          offsetY: Number(config.offsetY) || 0,
+        }];
+      });
+    }
+
+    const choreography = effect?.preview?.layers;
+    if (!choreography || typeof choreography !== 'object') return [];
+    return REQUIRED_LAYERS.flatMap((layerName) => {
+      const config = choreography[layerName];
+      if (!config) return [];
+      const count = Math.max(1, Math.floor(Number(config.count)
+        || (layerName === 'body' && effect.visualArchetype === 'projectile-volley' ? 5 : 1)));
+      return Array.from({ length: count }, (_, index) => ({
+        id: count > 1 ? `${layerName}-runtime-${index}` : `${layerName}-runtime`,
+        layerName,
+        anchor: config.anchor || (layerName === 'body' ? 'moving' : 'target'),
+        motion: config.motion || (layerName === 'body' ? effect.preview.motion : 'static'),
+        width: Number(config.width) || undefined,
+        height: Number(config.height) || undefined,
+        offsetX: Number(config.offsetX) || 0,
+        offsetY: Number(config.offsetY) || 0,
+      }));
+    });
+  }
+
+  function previewStageBounds(profile, instances, options = {}) {
+    const scale = Number.isFinite(Number(options.scale)) ? Number(options.scale) : 1;
+    const offsetX = Number(options.offsetX) || 0;
+    const offsetY = Number(options.offsetY) || 0;
+    const sampleCount = Math.max(4, Math.floor(Number(options.sampleCount) || 32));
+    const bounds = { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity };
+
+    (instances || []).forEach((instance, listIndex) => {
+      const width = Math.max(0, Number(instance?.width) || 0);
+      const height = Math.max(0, Number(instance?.height) || 0);
+      const instanceIndex = Number.isFinite(Number(instance?.instanceIndex))
+        ? Number(instance.instanceIndex)
+        : listIndex;
+      for (let sample = 0; sample <= sampleCount; sample += 1) {
+        const progress = sample / sampleCount;
+        const pose = composePreviewPose(
+          profile,
+          { ...instance, timelineProgress: progress },
+          progress,
+          instanceIndex,
+        );
+        const radians = (Number(pose.rotationDeg) || 0) * Math.PI / 180;
+        const halfWidth = Math.abs(width * scale * (pose.scaleX ?? 1)) / 2;
+        const halfHeight = Math.abs(height * scale * (pose.scaleY ?? 1)) / 2;
+        const extentX = Math.abs(halfWidth * Math.cos(radians)) + Math.abs(halfHeight * Math.sin(radians));
+        const extentY = Math.abs(halfWidth * Math.sin(radians)) + Math.abs(halfHeight * Math.cos(radians));
+        const centerX = offsetX + (Number(instance?.offsetX) || 0) + pose.x;
+        const centerY = offsetY + (Number(instance?.offsetY) || 0) + pose.y;
+        bounds.minX = Math.min(bounds.minX, centerX - extentX);
+        bounds.maxX = Math.max(bounds.maxX, centerX + extentX);
+        bounds.minY = Math.min(bounds.minY, centerY - extentY);
+        bounds.maxY = Math.max(bounds.maxY, centerY + extentY);
+      }
+    });
+
+    return Number.isFinite(bounds.minX) ? bounds : null;
+  }
+
+  function composePreviewPose(profile, instance, progress, instanceIndex = 0) {
+    const origin = motionPose({ ...profile, motion: 'travel' }, 0);
+    const target = motionPose({ ...profile, motion: 'travel' }, 1);
+    if (instance?.anchor === 'moving') {
+      const timelineProgress = Number.isFinite(Number(instance.timelineProgress))
+        ? Number(instance.timelineProgress)
+        : progress;
+      return motionPose({ ...profile, motion: profile.motion }, timelineProgress, instanceIndex);
+    }
+    const anchor = instance?.anchor === 'origin'
+      ? origin
+      : instance?.anchor === 'target' ? target : { x: 0, y: 0, rotationDeg: 0 };
+    const moving = instance?.layerName === 'body';
+    const pose = motionPose(
+      { ...profile, motion: moving ? profile.motion : 'static' },
+      progress,
+      instanceIndex,
+    );
+    return {
+      x: anchor.x + pose.x,
+      y: anchor.y + pose.y,
+      rotationDeg: pose.rotationDeg,
+      scaleX: pose.scaleX,
+      scaleY: pose.scaleY,
+    };
+  }
+
+  function instanceProgress(stage, elapsedMs, instance) {
+    const activeElapsed = elapsedMs - instance.delayMs;
+    const activeDuration = Math.max(1, stage.durationMs - instance.delayMs);
+    return {
+      visible: activeElapsed >= 0,
+      elapsedMs: Math.max(0, activeElapsed),
+      progress: Math.max(0, Math.min(1, activeElapsed / activeDuration)),
+    };
+  }
+
+  function sampleSpriteFrame(frameCount, elapsedMs, fps, loop) {
+    if (!Number.isInteger(frameCount) || frameCount < 1) {
+      throw new RangeError('frameCount must be a positive integer');
+    }
+    if (!Number.isFinite(fps) || fps <= 0) {
+      throw new RangeError('fps must be a finite positive number');
+    }
+    const sampled = Math.max(0, Math.floor(Math.max(0, elapsedMs) * fps / 1000));
+    return loop ? sampled % frameCount : Math.min(frameCount - 1, sampled);
+  }
+
+  function advanceTimeline(timeline, lifecycle, deltaMs, loopEnabled) {
+    let stageIndex = timeline.stageIndex;
+    let stageElapsed = timeline.stageElapsed + Math.max(0, deltaMs);
+    let playing = timeline.playing;
+
+    while (stageElapsed >= lifecycle[stageIndex].durationMs) {
+      const stage = lifecycle[stageIndex];
+      if (stage.loop && loopEnabled) {
+        stageElapsed %= stage.durationMs;
+        break;
+      }
+      stageElapsed -= stage.durationMs;
+      stageIndex += 1;
+      if (stageIndex < lifecycle.length) continue;
+      if (!loopEnabled) {
+        stageIndex = lifecycle.length - 1;
+        stageElapsed = lifecycle[stageIndex].durationMs;
+        playing = false;
+        break;
+      }
+      stageIndex = 0;
+      const cycleDuration = lifecycle.reduce((total, entry) => total + entry.durationMs, 0);
+      stageElapsed %= cycleDuration;
+    }
+
+    return { stageIndex, stageElapsed, playing };
+  }
+
+  function stepTimeline(timeline, lifecycle, fps, loopEnabled) {
+    if (!Number.isFinite(fps) || fps <= 0) {
+      throw new RangeError('fps must be a finite positive number');
+    }
+    return advanceTimeline({ ...timeline, playing: false }, lifecycle, 1000 / fps, loopEnabled);
+  }
+
+  function resetTimeline(_timeline, playing) {
+    return { stageIndex: 0, stageElapsed: 0, playing: Boolean(playing) };
+  }
+
+  function inspectEffect(effect) {
+    const errors = [];
+    const rule = ARCHETYPE_RULES[effect?.visualArchetype];
+
+    if (!rule) errors.push('invalid visualArchetype');
+    if (!(Number(effect?.scale) > 0)) errors.push('scale must be positive');
+
+    for (const layerName of REQUIRED_LAYERS) {
+      const layer = effect?.layers?.[layerName];
+      if (!layer || typeof layer !== 'object') {
+        errors.push(`${layerName} layer is required`);
+        continue;
+      }
+      if (!Number.isInteger(layer.frames) || layer.frames < 1) {
+        errors.push(`${layerName}.frames must be a positive integer`);
+        continue;
+      }
+      if ('durationMs' in layer && (!Number.isFinite(layer.durationMs) || layer.durationMs <= 0)) {
+        errors.push(`${layerName}.durationMs must be a finite positive number`);
+      }
+
+      const minimumFrames = layerName === 'body' ? rule?.bodyFrames : (layerName === 'impact' ? 4 : 1);
+      if (minimumFrames && layer.frames < minimumFrames) {
+        errors.push(`${layerName} requires at least ${minimumFrames} frames`);
+      }
+
+      const previewLayer = effect?.preview?.layers?.[layerName];
+      if (previewLayer) {
+        if (!['origin', 'target', 'moving'].includes(previewLayer.anchor)) {
+          errors.push(`${layerName}.anchor must be origin, target, or moving`);
+        }
+        for (const fadeName of ['fadeIn', 'fadeOut']) {
+          if (fadeName in previewLayer
+            && (!Number.isFinite(previewLayer[fadeName])
+              || previewLayer[fadeName] < 0
+              || previewLayer[fadeName] > 1)) {
+            errors.push(`${layerName}.${fadeName} must be a finite number from 0 to 1`);
+          }
+        }
+      }
+    }
+
+    const layerInstances = effect?.preview?.layerInstances;
+    if (layerInstances !== undefined) {
+      if (!Array.isArray(layerInstances)) {
+        errors.push('preview.layerInstances must be an array');
+      } else {
+        if (!Number.isFinite(effect?.preview?.durationMs) || effect.preview.durationMs <= 0) {
+          errors.push('preview.durationMs must be a finite positive number when layerInstances are configured');
+        }
+        const ids = new Set();
+        layerInstances.forEach((instance, index) => {
+          const path = `layerInstances[${index}]`;
+          const layerName = instance?.layerName || instance?.layer;
+          if (typeof instance?.id !== 'string' || !instance.id.trim()) {
+            errors.push(`${path}.id must be a non-empty string`);
+          } else if (ids.has(instance.id)) {
+            errors.push(`${path}.id must be unique`);
+          } else {
+            ids.add(instance.id);
+          }
+          if (typeof layerName !== 'string' || !REQUIRED_LAYERS.includes(layerName)) {
+            errors.push(`${path}.layerName must reference an existing effect layer`);
+          }
+          if (!Number.isFinite(instance?.startMs)
+            || !Number.isFinite(instance?.endMs)
+            || instance.endMs <= instance.startMs) {
+            errors.push(`${path}.startMs and ${path}.endMs must be finite with startMs before endMs`);
+          }
+          if (!['origin', 'target', 'moving'].includes(instance?.anchor)) {
+            errors.push(`${path}.anchor must be origin, target, or moving`);
+          }
+          if (!Number.isFinite(instance?.fps) || instance.fps <= 0) {
+            errors.push(`${path}.fps must be a finite positive number`);
+          }
+          if ('loop' in (instance || {}) && typeof instance.loop !== 'boolean') {
+            errors.push(`${path}.loop must be a boolean when provided`);
+          }
+        });
+      }
+    }
+
+    return errors;
+  }
+
+  function spriteFrameStyle(frameCount, frameIndex) {
+    if (!Number.isInteger(frameCount) || frameCount < 1) {
+      throw new RangeError('frameCount must be a positive integer');
+    }
+    if (!Number.isInteger(frameIndex) || frameIndex < 0 || frameIndex >= frameCount) {
+      throw new RangeError(`frameIndex must be an integer from 0 to ${frameCount - 1}`);
+    }
+
+    const position = frameCount === 1 ? 0 : frameIndex / (frameCount - 1) * 100;
+    return {
+      backgroundSize: `${frameCount * 100}% 100%`,
+      backgroundPosition: `${position}% 0%`,
+    };
+  }
+
+  function parsePngHeader(buffer) {
+    const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+    if (bytes.byteLength < 33) {
+      throw new Error('Invalid PNG: data is truncated before the IHDR header');
+    }
+
+    const signature = [137, 80, 78, 71, 13, 10, 26, 10];
+    if (!signature.every((byte, index) => bytes[index] === byte)) {
+      throw new Error('Invalid PNG: signature does not match');
+    }
+    if (bytes[12] !== 73 || bytes[13] !== 72 || bytes[14] !== 68 || bytes[15] !== 82) {
+      throw new Error('Invalid PNG: IHDR chunk is missing');
+    }
+
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    if (view.getUint32(8) !== 13) {
+      throw new Error('Invalid PNG: IHDR chunk length must be 13');
+    }
+
+    const width = view.getUint32(16);
+    const height = view.getUint32(20);
+    if (width === 0) throw new Error('Invalid PNG: width must be positive');
+    if (height === 0) throw new Error('Invalid PNG: height must be positive');
+
+    const colorType = bytes[25];
+    return {
+      width,
+      height,
+      hasAlpha: colorType === 4 || colorType === 6,
+    };
+  }
+
+  const api = {
+    ARCHETYPE_RULES,
+    advanceTimeline,
+    buildLifecycle,
+    buildPreviewInstances,
+    buildPreviewStageInstances,
+    buildStageInstances,
+    composePreviewPose,
+    inspectEffect,
+    instanceProgress,
+    motionPose,
+    parsePngHeader,
+    previewStageBounds,
+    resetTimeline,
+    resolvePreviewProfile,
+    sampleSpriteFrame,
+    spriteFrameStyle,
+    stepTimeline,
+  };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else globalScope.VfxPreviewCore = api;
+}(globalThis));

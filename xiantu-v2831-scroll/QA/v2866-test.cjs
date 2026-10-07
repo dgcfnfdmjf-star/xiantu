@@ -1,5 +1,5 @@
 const fs=require('fs'),a=require('node:assert/strict'),fixture=require('./v2858-dom-fixture.cjs');
-const root=process.env.XIANTU_TEST_ROOT||'release-v2866/xiantu-v2831-scroll',f=fixture(root);
+const root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..'),f=fixture(root);
 for(const s of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(s);
 f.run("startGame();closeWorldOverlay();player.sect='凌霄宗';player.sectTotalContribution=600;player.sectContribution=25;var r=discipleRosterV2815();r.members=[{id:1,name:'灵植弟子',level:1,specialty:0,job:null},{id:2,name:'商路弟子',level:3,specialty:1,job:null},{id:3,name:'巡防弟子',level:6,specialty:2,job:null},{id:4,name:'忙碌弟子',level:1,specialty:0,job:{type:'train',end:99999}}];");
 f.run('showSectOverviewV2866()');a.match(f.ids.get('storyText').innerHTML,/宗门总览/);

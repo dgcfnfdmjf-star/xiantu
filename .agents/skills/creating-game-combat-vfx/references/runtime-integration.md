@@ -1,0 +1,61 @@
+# Runtime integration
+
+## Motion archetypes
+
+| Archetype | Presentation behavior |
+|---|---|
+| `close-range-slash` | Center on the caster or a fixed forward offset; stage arcs rather than move a projectile. |
+| `projectile` | Move a fixed-size body from origin to target; attach a short trail. |
+| `projectile-volley` | Create independent children with launch delays and shared hit memory when required. |
+| `moving-front` | Move a fixed-size wave, tornado, or giant sword; keep residue close behind it. |
+| `falling` | Interpolate a visual body from a high spawn point to a locked ground anchor. |
+| `ground-eruption` | Lock nodes to the ground and grow animated columns upward with staggered local ages. |
+| `persistent-zone` | Lock to the ground, loop body frames, timestamp each tick pulse, dissolve on exit. |
+| `trap` | Plant, arm, trigger, impact, then residue; keep these phases ordered. |
+| `target-brand` | Form a mark above the target and descend or stamp it onto the ground. |
+| `target-beam` | Elevate the source glyph and connect it to a locked ground impact. |
+| `shield-orbit` | Follow the owner and launch a separate moving counter actor when consumed. |
+
+## Visual state contract
+
+Expose presentation data without changing mechanical state:
+
+```js
+{
+  position: { x, y },
+  previousPosition: { x, y },
+  targetPoint: { x, y },
+  children: [{ visualPosition, groundPoint, impactDone }],
+  visualImpacts: [{ x, y, bornAtMs, index }]
+}
+```
+
+Use `groundPoint` for telegraphs, impact art, and persistent zones. Use `visualPosition` for a flying or falling body. Calculate a trail from the current body and prior samples; never from the global road midpoint.
+
+## Mechanic-visual event contract
+
+Define each event with Mechanical event, Visual owner, Visual layers, Anchor, Lifetime, Frame contract, Draw order, and Exit priority. Use one visual owner for a complete silhouette at a given time. Give attached bodies, tick pulses, expiry fades, impacts, and death events independent lifecycles when their mechanics differ.
+
+For every visual layer, the Frame contract must state its frame count, per-layer FPS, terminal-frame reachability, loop rule, and hold behavior. A looping layer restarts its declared frame range until its lifecycle exits. A non-looping layer plays once; `holdLast: true` keeps its final frame visible until exit, while `holdLast: false` stops drawing after that frame. Configure the lifecycle so playback can reach the final frame before the layer exits or stops drawing.
+
+For every non-looping layer, prove its terminal frame is reachable inside its lifetime. At an exact transition boundary, prevent two complete high-opacity silhouettes from coexisting. Define same update priority for hit, expiry, death, refresh, escape, and chain events that can coincide.
+
+## Impact lifetime
+
+Record an occurrence timestamp with every impact. Compute `ageMs = now - bornAtMs`, stop drawing after the approved duration, and set one-shot sheets to `holdLast: false`. Do not repeatedly draw an accumulated array of plain coordinates.
+
+## Anchors
+
+- Use only `origin`, `target`, and `moving` in preview layer configuration. Translate project-facing names such as caster or ground into that vocabulary at export time.
+- Select anchors from event semantics: caster body, target body, target foot, locked ground, moving position, or sky spawn.
+- Map each event explicitly: attached status and body-centered application art use target-body center. A visual intentionally following a target's contact point uses target foot. Fixed telegraphs, persistent zones, fixed impacts, and death-event ground points use a locked ground snapshot unless the mechanic contract explicitly defines following behavior. Keep moving and sky-spawn bodies separate from their locked impact point.
+- Use `anchorY` near `0.8-1.0` for ground eruptions and falling weapons whose tip meets the ground.
+- Treat scale and offset as presentation-only configuration.
+
+## Semantic-layer transitions
+
+Give adjacent semantic layers explicit time windows and crossfade fractions. When two plates describe one continuous action, align their pivot, display size, direction, and contact point before blending. Keep the body authoritative through travel; let impact add contact information instead of drawing a second complete body on top of it.
+
+## Safe integration order
+
+Add a failing renderer-state test, expose the smallest visual metadata from the combat actor, update the renderer, run visual tests, then run the entire mechanics suite. Never alter damage timing to make a sprite arrive at the desired frame; alter only the visual interpolation.

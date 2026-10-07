@@ -1,5 +1,5 @@
-const fs=require('fs'),assert=require('assert/strict');const root='release-v2864/xiantu-v2831-scroll';
-const f=require('../'+root+'/QA/v2858-dom-fixture.cjs')(root);for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);f.run('startGame();closeWorldOverlay();');f.timers.clear();const run=s=>f.run(s);
+const fs=require('fs'),assert=require('assert/strict');const root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..');
+const f=require('./v2858-dom-fixture.cjs')(root);for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);f.run('startGame();closeWorldOverlay();');f.timers.clear();const run=s=>f.run(s);
 for(const state of ['combat','combat-ending']){
  run(`gameState='${state}';`);const before=run('JSON.stringify(player)');
  for(const fn of ['showMapNpcHub','talkToMapNpc','showMapNpcIntel','acceptMapNpcQuest','submitMapNpcQuest','claimMapNpcReward','showMapNpcShop'])run(fn+'("mentor")');

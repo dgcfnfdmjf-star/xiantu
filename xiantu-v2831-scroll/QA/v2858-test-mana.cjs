@@ -1,5 +1,5 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
-const source=fs.readFileSync('release-v2858/xiantu-v2831-scroll/xiantu-v2762-core.js','utf8');
+const source=fs.readFileSync(require('node:path').join(process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..'),'xiantu-v2762-core.js'),'utf8');
 const fn=source.match(/function getMaxMp\(\)\{[^\n]+\}/)[0];
 const c={player:{maxMp:50,mp:23,level:0,phase:0},equip:0,pct:0};c.getEquipMp=()=>c.equip;c.gearModsV2790=()=>({mpPct:c.pct});vm.createContext(c);vm.runInContext(fn,c);
 assert.equal(c.getMaxMp(),100);

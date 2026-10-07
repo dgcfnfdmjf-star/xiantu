@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),a=require('node:assert/strict'),fixture=require('./v2854-dom-fixture.cjs');
-const root=process.env.XIANTU_TEST_ROOT||'release-v2854/xiantu-v2831-scroll';
+const root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..');
 const files=JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]);
 function game(){
  const f=fixture(root);let stamp=1000,rid=0,randomCalls=0;const frames=new Map();

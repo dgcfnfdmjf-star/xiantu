@@ -3,7 +3,9 @@
 const https = require('node:https');
 const crypto = require('node:crypto');
 const publicSession = require('./public-session.js');
+const {createLimiter} = require('./rate-limit.js');
 const STATS = { atk: 18, def: 15, hp: 90, mp: 36 };
+const STATS_V2 = { atk: 27, def: 24, hp: 180, mp: 60 };
 const GOALS = { balanced: 'Balance all four stats', attack: 'Prioritize attack', survival: 'Prioritize health and defense', mana: 'Prioritize mana capacity' };
 const CHOICES = ['keep', 'replace', 'consider'];
 const { CONTRACTS, validWorldState, worldProviderBody } = require('./world.js');
@@ -12,27 +14,27 @@ function validState(input) {
   if(input && Object.hasOwn(CONTRACTS,input.task))return validWorldState(input);
   if(input?.task==='monster')return validMonsterState(input);
   if(input?.task != null && input.task!=='forge')throw Error('task');
-  if (!input || input.version !== 1 || !Number.isInteger(input.grade) || input.grade < 1 || input.grade > 3 || !Object.hasOwn(GOALS, input.goal)) throw Error('state');
+  if (!input || ![1,2,3].includes(input.version) || !Number.isInteger(input.grade) || input.grade < 1 || input.grade > 3 || !Object.hasOwn(GOALS, input.goal)) throw Error('state');
   const pick = rows => {
     if (!rows || typeof rows !== 'object' || Array.isArray(rows)) throw Error('stats');
     const out = {};
-    for (const [key, max] of Object.entries(STATS)) {
+    for (const [key, max] of Object.entries(input.version===3?{atk:1000000000,def:1000000000,hp:1000000000,mp:1000000000}:input.version===2?STATS_V2:STATS)) {
       if (!Number.isInteger(rows[key]) || rows[key] < 0 || rows[key] > max) throw Error('stats');
       out[key] = rows[key];
     }
-    if (Object.values(out).filter(v => v > 0).length > 2) throw Error('stats');
+    if (input.version!==3 && Object.values(out).filter(v => v > 0).length > 2) throw Error('stats');
     return out;
   };
   // Whitelist only numbers and a known goal. Never forward arbitrary client prompts or saves.
-  return { version: 1, grade: input.grade, goal: input.goal, before: pick(input.before), after: pick(input.after) };
+  return { version: input.version, grade: input.grade, goal: input.goal, before: pick(input.before), after: pick(input.after) };
 }
 function providerBody(state) {
   if(Object.hasOwn(CONTRACTS,state.task))return worldProviderBody(state);
   if(state.task==='monster')return monsterProviderBody(state);
   return { model: 'jev-latest', state: { ...state, preference: GOALS[state.goal],
     rules: { atk: 'attack', def: 'defense', hp: 'maximum health, NOT lifespan or immediate healing', mp: 'maximum mana, NOT immediate recovery',
-      basis: 'Only affixes change. Base item, enhancement and set are unchanged. Flat stats apply when worn, before other character modifiers.',
-      maximumAffixByStat: STATS, note: 'No skill loadout, enemies or current character stats are supplied. Avoid assuming them.' } },
+      basis: state.version===3?'before and after are projected whole-character attack, defense, maximum health and mana when the SAME item is worn in the SAME slot with old or new affixes. Compare relative changes, not raw magnitude across different stats. Flat legacy and additive percentage affixes are already included. Do not apply another multiplier.': 'Only affixes change. Base item, enhancement and set are unchanged. Flat stats apply when worn, before other character modifiers.',
+      maximumAffixByStat: state.version===3?null:state.version===2?STATS_V2:STATS, note: 'No skill loadout or enemies are supplied. Avoid assuming them.' } },
     questions: { forge: { type: 'choice', instructions: 'Advise whether to keep old affixes (before) or adopt new affixes (after), respecting the selected preference. All-zero difference: keep. Strict improvement without loss: replace; strict loss without gain: keep. For mixed stats, consider relative stat scales and preference; use consider if the tradeoff cannot be decided with the supplied information. Never interpret HP as lifespan. This is advice, not an instruction to execute.',
       criteria: { keep: 'Old affixes better fit the preference or values are identical.', replace: 'New affixes better fit the preference.', consider: 'Tradeoff is close or information is insufficient to favor either.' } } } };
 }
@@ -68,9 +70,7 @@ function safeEqual(a, b) {
   const hash = text => crypto.createHash('sha256').update(String(text)).digest();
   return crypto.timingSafeEqual(hash(a), hash(b));
 }
-function createHandler({ env = process.env, call = evaluate, now = Date.now } = {}) {
-  // Cache and in-flight/cooldown guards prevent duplicate bursts; no hourly/daily call quota.
-  let nextAt = 0, inFlight = false;
+function createHandler({ env = process.env, call = evaluate, now = Date.now, limiter = createLimiter(env, now) } = {}) {
   const cache = new Map();
   return async function main(event = {}) {
     const headers = Object.fromEntries(Object.entries(event.headers || {}).map(([k, v]) => [k.toLowerCase(), String(v)]));
@@ -96,14 +96,22 @@ function createHandler({ env = process.env, call = evaluate, now = Date.now } = 
     if(input?.task==='session'){
       if(input.version!==1||Object.keys(input).some(k=>!['task','version'].includes(k)))return response(400,{error:'invalid_state'});
       if(!publicSession.enabled(env))return response(403,{error:'public_disabled'});
-      return response(200,publicSession.issue(origin,env,now()));
+      // Trust only the gateway event field, never client-supplied forwarding headers.
+      const client=String(event.requestContext?.sourceIp || 'unknown');
+      let release;
+      try{release=await limiter.acquire('session',client);}catch(_){return response(503,{error:'rate_limit_unavailable'});}
+      if(!release)return response(429,{error:'rate_limit'});
+      try{return response(200,publicSession.issue(origin,env,now()));}
+      finally{await release().catch(()=>{});}
     }
     if(!ownerAccess&&!publicSession.verify(headers['x-xiantu-session'],origin,env,now()))return response(401,{error:'access'});
     try{state=validState(input);}catch(_){return response(400,{error:'invalid_state'});}
     const time = now(), key = JSON.stringify(state), cached = cache.get(key);
     if (cached && time - cached.time < 60000) return response(200, {...cached.value, cached:true, usage:{input_tokens:0,output_tokens:0}});
-    if (time < nextAt || inFlight) return response(429, { error: 'rate_limit' });
-    nextAt = time + 10000; inFlight = true;
+    const identity=ownerAccess?'owner':headers['x-xiantu-session'];
+    let release;
+    try{release=await limiter.acquire('paid',identity);}catch(_){return response(503,{error:'rate_limit_unavailable'});}
+    if(!release)return response(429,{error:'rate_limit'});
     try {
       const raw = await call(providerBody(state), env.JEV_API_KEY);
       const question=state.task||'forge';
@@ -117,7 +125,7 @@ function createHandler({ env = process.env, call = evaluate, now = Date.now } = 
       if (cache.size > 20) cache.delete(cache.keys().next().value);
       return response(200, value);
     } catch (_) { return response(502, { error: 'jev_unavailable' }); }
-    finally { inFlight = false; }
+    finally { await release().catch(()=>{}); }
   };
 }
 exports.main = createHandler();

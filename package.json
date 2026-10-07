@@ -1,0 +1,19 @@
+{
+  "name": "xiantu",
+  "version": "28.68.29",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node scripts/serve.cjs",
+    "test": "node scripts/test.cjs",
+    "test:browser": "playwright test",
+    "test:all": "npm test && npm run test:browser",
+    "package:cloud": "python3 scripts/package-cloud.py",
+    "package:game": "python3 scripts/package-game.py"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1"
+  }
+}

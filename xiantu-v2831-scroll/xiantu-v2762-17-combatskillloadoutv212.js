@@ -52,13 +52,25 @@ function renderCompactCombatSkillsV212(){
   ensureSkillLoadoutV212();
   // 原战斗逻辑先生成全部技能按钮；这里只移除技能按钮，保留普攻、背包、逃跑和收服按钮。
   for(const b of [...div.querySelectorAll('button.choice-btn')]){const click=b.getAttribute('onclick')||'';if(/^combat\(['\"]skill['\"]/.test(click))b.remove()}
-  div.querySelector('.combat-skill-toggle-v212')?.remove();div.querySelector('.combat-skill-drawer-v212')?.remove();
+  div.querySelector('.combat-quick-v286816')?.remove();div.querySelector('.combat-skill-toggle-v212')?.remove();div.querySelector('.combat-skill-drawer-v212')?.remove();
   const attack=[...div.querySelectorAll('button.choice-btn')].find(b=>(b.getAttribute('onclick')||'').includes("combat('attack')"));
   const total=getTotalEquippedSkillsV212();
-  const toggle=document.createElement('button');toggle.className='choice-btn combat-skill-toggle-v212';toggle.type='button';toggle.setAttribute('aria-expanded',String(combatSkillUiV212.open));toggle.setAttribute('aria-controls','combatSkillDrawerV2856');toggle.onclick=toggleCombatSkillDrawerV212;toggle.innerHTML=`✨ 技能 ${combatSkillUiV212.open?'▲':'▼'} <span class="combat-skill-count-v212">已携带 ${total}/15</span>`;
+  const toggle=document.createElement('button');toggle.className='choice-btn combat-skill-toggle-v212';toggle.type='button';toggle.setAttribute('aria-expanded',String(combatSkillUiV212.open));toggle.setAttribute('aria-controls','combatSkillDrawerV2856');toggle.onclick=toggleCombatSkillDrawerV212;toggle.innerHTML=`更多招式 ${combatSkillUiV212.open?'▲':'▼'} <span class="combat-skill-count-v212">已携带 ${total}/15</span>`;
   if(attack)attack.insertAdjacentElement('afterend',toggle);else div.insertBefore(toggle,div.firstChild);
-  if(!combatSkillUiV212.open)return;
+  // Follow the selected family in equipped-slot order; preserve original combat indices.
   if(!SKILL_ELEMENT_ORDER_V212.includes(combatSkillUiV212.element))combatSkillUiV212.element='sword';
+  const meta=SKILL_ELEMENT_META_V212[combatSkillUiV212.element];
+  const quick=getEquippedSkillNamesV212(combatSkillUiV212.element).map(name=>{
+    const index=(player.skills||[]).findIndex(s=>s?.name===name);
+    return {s:player.skills[index],index};
+  }).filter(x=>x.s);
+  const bar=document.createElement('div');bar.className='combat-quick-v286816';bar.setAttribute('aria-label',meta.label+'招式');
+  bar.innerHTML=`<div class="combat-quick-heading-v286819">${meta.icon} ${meta.label} · 已携带 ${quick.length}/${SKILL_MAX_PER_ELEMENT_V212}</div>`+(quick.map(({s,index})=>{
+    const available=getCombatSkillAvailabilityV2769(index),cost=Math.max(0,Number(s.mpCost)||0);
+    return `<button type="button" class="choice-btn quick-skill-v286816" ${available.ok?'':'disabled'} onclick="combat('skill',${index})" title="${skillTextEscapeV212(available.ok?s.desc:available.reason)}"><b>${skillTextEscapeV212(s.name)}</b><small>${cost} 灵力${available.ok?'':' · '+skillTextEscapeV212(available.reason)}</small></button>`;
+  }).join('')||'<div class="combat-quick-empty-v286819">此系暂未携带技能，可在更多招式中配置。</div>');
+  div.insertBefore(bar,toggle);
+  if(!combatSkillUiV212.open)return;
   const drawer=document.createElement('div');drawer.className='combat-skill-drawer-v212';drawer.id='combatSkillDrawerV2856';
   const loadout=ensureSkillLoadoutV212();
   const tabs=SKILL_ELEMENT_ORDER_V212.map(el=>{const m=SKILL_ELEMENT_META_V212[el],count=loadout[el]?.length||0;return `<button type="button" class="combat-skill-tab-v212 ${combatSkillUiV212.element===el?'active':''}" aria-pressed="${combatSkillUiV212.element===el}" onclick="selectCombatSkillElementV212('${el}')">${m.short}<small>${count}/3</small></button>`}).join('');
@@ -124,7 +136,7 @@ function renderSkillLoadoutPanelV212(){
   const reserve=learned.filter(s=>!equipped.includes(s.name));
   const reserveCards=reserve.map(s=>`<div class="skill-reserve-card-v213" onclick="chooseSkillSwapV213('${skillTextEscapeV212(s.name)}')"><div class="name">${m.icon} ${skillTextEscapeV212(s.name)}</div><div class="meta">${s.mpCost||0} 灵力${s.damage?` · ${s.damage}倍伤害`:''}${s.heal?` · 恢复${Math.round(s.heal*100)}%生命`:''}</div><div class="meta">${skillTextEscapeV212(s.desc||'')}</div><div class="action">${equipped.length>=3?'🔄 点此选择替换槽位':'➕ 点此加入携带栏'}</div></div>`).join('');
   let swapBox='';if(pendingSkillSwapV213&&pendingSkillSwapV213.element===skillConfigElementV212){const nn=pendingSkillSwapV213.newSkill;const opts=equipped.map((n,i)=>`<button onclick="confirmSkillSwapV213(${i})">替换槽${i+1}<br>【${skillTextEscapeV212(n)}】</button>`).join('');swapBox=`<div class="skill-swap-box-v213"><div class="title">🔄 准备换上【${skillTextEscapeV212(nn)}】</div><div class="hint">当前3格已满，请选择要替换掉的技能：</div><div class="skill-swap-options-v213">${opts}</div><button class="skill-swap-cancel-v213" onclick="cancelSkillSwapV213()">取消更换</button></div>`}
-  root.innerHTML=`<div class="skill-loadout-panel-v212" onclick="event.stopPropagation()"><div class="skill-loadout-head-v212"><div><h3>🧩 更换战斗技能</h3><p>每个系最多携带3个。上方是当前携带槽，下方是所有已学但未携带的技能。</p></div><button class="skill-loadout-close-v212" onclick="closeSkillLoadoutPanelV212()">✕</button></div><div class="skill-loadout-tabs-v212">${tabs}</div><div class="skill-loadout-summary-v212"><span>${m.icon} <b>${m.label}</b> · 携带 ${equipped.length}/3 · 候选 ${reserve.length}</span><button onclick="autoPickSkillLoadoutV212('${skillConfigElementV212}')">✨ 推荐3个</button></div><div class="skill-equipped-slots-v213">${equippedSlots}</div>${swapBox}<div class="skill-reserve-title-v213"><b>📚 未携带技能库</b><span>${reserve.length} 个可更换技能</span></div><div class="skill-reserve-list-v213">${reserveCards||'<div class="skill-loadout-empty-v212">当前此系没有多余技能；以后学到的新技能会自动出现在这里。</div>'}</div><div class="skill-loadout-foot-v212">可以在大地图 ☰ →【更换技能】随时调整，不必进入战斗。战斗中也能从技能折叠栏进入配置。</div></div>`;
+  root.innerHTML=`<div class="skill-loadout-panel-v212" onclick="event.stopPropagation()"><div class="skill-loadout-head-v212"><div><h3>🧩 更换战斗技能</h3><p>每个系最多携带3个。上方是当前携带槽，下方是所有已学但未携带的技能。</p></div><button class="skill-loadout-close-v212" onclick="closeSkillLoadoutPanelV212()">✕</button></div><div class="skill-loadout-tabs-v212">${tabs}</div><div class="skill-loadout-summary-v212"><span>${m.icon} <b>${m.label}</b> · 携带 ${equipped.length}/3 · 候选 ${reserve.length}</span><button onclick="autoPickSkillLoadoutV212('${skillConfigElementV212}')">✨ 推荐3个</button></div><div class="skill-equipped-slots-v213">${equippedSlots}</div>${swapBox}<div class="skill-reserve-title-v213"><b>📚 未携带技能库</b><span>${reserve.length} 个可更换技能</span></div><div class="skill-reserve-list-v213">${reserveCards||'<div class="skill-loadout-empty-v212">当前此系没有多余技能；以后学到的新技能会自动出现在这里。</div>'}</div><details class="skill-loadout-foot-v212"><summary>查看流派羁绊与激活条件</summary>${buildGuideV286821()}</details><div class="skill-loadout-foot-v212">可以在大地图 ☰ →【更换技能】随时调整，不必进入战斗。战斗中也能从技能折叠栏进入配置。</div></div>`;
 }
 
 // 学到新技能后保留“已学习”状态；若该系从未配置，则首次配置时自动带入前3个。
@@ -152,6 +164,6 @@ function getAvailableCombatSkillsV2769(){
  return (p.skills||[]).map((_,index)=>getCombatSkillAvailabilityV2769(index)).filter(x=>x.ok);
 }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-17-combatskillloadoutv212.js"]="28.68";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-17-combatskillloadoutv212.js"]="28.68.29";
 
 function toggleSkillDetailsV2856(){combatSkillUiV212.details=!combatSkillUiV212.details;updateCombatChoices?.();}

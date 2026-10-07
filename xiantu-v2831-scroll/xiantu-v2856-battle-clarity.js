@@ -8,6 +8,15 @@
     const ending=gameState==='combat-ending',chips=[];
     const push=(side,text)=>chips.push({side,text});
     if(!ending){
+      const origin=currentEnemy._originV286826;
+      if(origin)push('enemy',origin.collapsed?'道基崩裂 · 攻击+20% · 禁疗 · 行动自损4%':`魔典燃源 ${Math.min(3,origin.turns)}/3 · 攻击+10% · 防御+25%`);
+      const tactics=tacticsV286821.get(currentEnemy);
+      if(weaknessV286821(currentEnemy))push('enemy',weaknessTextV286821(currentEnemy));
+      if(tactics?.owner===player){
+        if(tactics.builds.sword)push('self',`纯阳剑意 · 剑气 ${tactics.marks}/3`);
+        if(tactics.builds.thunder)push('self','五雷回流 · 雷甲承击回灵');
+        if(tactics.builds.guard)push('self','不动护体 · 盾中减伤10%');
+      }
       const guard=guardsV2785.get(currentEnemy),gear=gearBattleV2790.get(currentEnemy),enemy=monsterStateV2844();
       if(guard?.owner===player&&guard.ratio>0)push('self',`护体 · 下次减伤${Math.round(guard.ratio*100)}%`);
       if(gear?.owner===player&&gear.guard)push('self','镇岳霸体 · 抵挡下次命中');
@@ -15,6 +24,12 @@
       if(playerPressureStun)push('self','受威压震慑 · 下次行动可能受阻');
       if(playerPressureTurns>0)push('self',`威压削弱 · 余${count(playerPressureTurns)}次行动`);
       if(enemy?.guard)push('enemy','敌方护体 · 抵挡部分下次伤害');
+      const elemental=elementGuardsV286818.get(currentEnemy);
+      if(elemental?.owner===player&&elemental.pool>0)push('self',`护盾 ${elemental.pool} · 余${elemental.turns}次行动`);
+      if(currentEnemy._chillTurnsV286818>0)push('enemy',`寒迟 · 余${currentEnemy._chillTurnsV286818}次行动`);
+      if(currentEnemy._iceBreakTurnsV286818>0)push('enemy','冰爆破甲25%');
+      if(currentEnemy.burnTurns>0)push('enemy','灼烧破甲15%'+(currentEnemy._burnHealBlockV286818?' · 禁疗':''));
+      if(currentEnemy._spellSealTurnsV286817>0)push('enemy',`封脉 · 余 ${currentEnemy._spellSealTurnsV286817} 次行动`);
       if(skipEnemyTurn||currentEnemy._pressureStun)push('enemy',`敌方${currentEnemy._skipReason||'受控'} · 下次停手`);
       if(currentEnemy.burnTurns>0&&currentEnemy.burnStacks>0)push('enemy',`灼烧 · ${count(currentEnemy.burnStacks)}点×${count(currentEnemy.burnTurns)}次`);
       if(currentEnemy.thunderDomainTurns>0&&currentEnemy.thunderDomainDamage>0)push('enemy',`雷域 · ${count(currentEnemy.thunderDomainDamage)}点×${count(currentEnemy.thunderDomainTurns)}次`);
@@ -29,6 +44,30 @@
     const summary=D.createElement('summary');summary.textContent='详细战报 · 点击展开 / 收起';
     fold.appendChild(summary);log.parentNode.insertBefore(fold,log);fold.appendChild(log);
   }
+  let uiEnemy=null;
+  function compactUi(data,panel,arena){
+    panel.classList.add('battle-clean-v286816');
+    let settings=D.getElementById('battleSettingsV286816');
+    if(!settings){settings=D.createElement('details');settings.id='battleSettingsV286816';const title=D.createElement('summary');title.textContent='战斗设置';settings.appendChild(title);panel.appendChild(settings);}
+    if(uiEnemy!==currentEnemy){uiEnemy=currentEnemy;settings.open=false;const full=D.getElementById('reportLogV2857');if(full)full.open=false;}
+    const nodes=[D.querySelector('.ink-fx-toolbar-v2854'),D.getElementById('monsterAiV2844'),D.getElementById('battlePresentationBarV2756'),D.getElementById('autoStrategyV2819'),D.getElementById('cinemaLightBtnV2776')];
+    for(const node of nodes)if(node&&node.parentNode!==settings)settings.appendChild(node);
+    let status=D.getElementById('battleVitalsV286816');
+    if(!status){status=D.createElement('section');status.id='battleVitalsV286816';status.setAttribute('aria-label','双方战斗状态');arena.appendChild(status);}
+    const enemy=monsterStateV2844(),hp=count(currentEnemy.hp),max=count(currentEnemy.maxHp);
+    const bar=(value,max,cls)=>`<span class="battle-meter-v286816 ${cls}" aria-hidden="true"><i style="width:${Math.min(100,value/Math.max(1,max)*100)}%"></i></span>`;
+    const markup=`<div><b>${esc(player.name||'剑修')}</b><span>气血 ${data.hp}/${data.maxHp}</span>${bar(data.hp,data.maxHp,'hp')}<span>灵力 ${data.mp}/${data.maxMp}</span>${bar(data.mp,data.maxMp,'mp')}</div><div><b>${esc(currentEnemy.name)}</b><span>气血 ${hp}/${max}</span>${bar(hp,max,'foe')}${enemy?`<span>灵力 ${count(enemy.mp)}/100</span>${bar(count(enemy.mp),100,'mp')}`:''}</div>`;
+    if(status._markup!==markup){status.innerHTML=markup;status._markup=markup;}
+    syncRecentLog();
+  }
+  function syncRecentLog(){
+    const arena=D.getElementById('combatArena'),log=D.getElementById('combatLog');if(!arena||!log)return;
+    let recent=D.getElementById('battleRecentV286816');
+    if(!recent){recent=D.createElement('div');recent.id='battleRecentV286816';recent.setAttribute('aria-label','最近三条战报');arena.appendChild(recent);}
+    const lines=[...log.children].slice(0,3).reverse().map(n=>(n.textContent||'').replace(/(?:◇ 本地策略|☯ Jev 决策)[：:]?/g,''));
+    const markup=lines.map(t=>`<div>${esc(t)}</div>`).join('');
+    if(recent._markup!==markup){recent.innerHTML=markup;recent._markup=markup;}
+  }
   function sync(){
     installReportLog();
     const panel=D.getElementById('combatPanel'),arena=D.getElementById('combatArena');if(!panel||!arena)return;
@@ -36,6 +75,7 @@
     if(!data){if(box)box.hidden=true;return;}
     if(!box){box=D.createElement('section');box.id='battleReadoutV2856';box.className='battle-readout-v2856';box.setAttribute('aria-label','战斗行动与持续状态');panel.insertBefore(box,arena);}
     box.hidden=false;
+    compactUi(data,panel,arena);
     const markup=`<div class="battle-vitals-v2865"><span class="hp">气血 <b>${data.hp} / ${data.maxHp}</b></span><span class="mp">灵力 <b>${data.mp} / ${data.maxMp}</b></span></div><div class="battle-readout-head-v2856"><strong>${esc(data.turn)}</strong><span>${data.ending?'奖励按战斗结果结算':data.waiting?'等待本次行动完成':'选择攻击、招式或补给'}</span></div>${data.chips.length?`<div class="battle-chip-list-v2856">${data.chips.map(c=>`<span class="battle-chip-v2856 ${c.side}">${esc(c.text)}</span>`).join('')}</div>`:''}`;
     if(box._markupV2856!==markup){box.innerHTML=markup;box._markupV2856=markup;}
     box.classList.toggle('waiting',data.waiting);
@@ -51,8 +91,9 @@
   for(const name of ['updateCombatUI','updateCombatChoices','combat','enemyTurn','useCombatBagItem','completeCombatFinishV2764','setBattlePresentationV2756']){
     const base=W[name];if(typeof base==='function')W[name]=function(...args){const result=base.apply(this,args);sync();return result;};
   }
+  const logBase=W.addCombatLog;if(typeof logBase==='function')W.addCombatLog=function(...args){const result=logBase.apply(this,args);syncRecentLog();return result;};
   W.addEventListener('xiantu:combat-finishing',sync);
   W.BattleClarityV2856={read,sync};
 })(window,document);
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2856-battle-clarity.js']='28.68';
+window.__xiantuBuildFilesV2814['xiantu-v2856-battle-clarity.js']='28.68.29';

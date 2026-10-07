@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),fixture=require('./v2847-dom-fixture.cjs');
-const root=process.env.XIANTU_TEST_ROOT||'release-v2847/xiantu-v2831-scroll';
+const root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..');
 const {createHandler,validState}=require(path.resolve(root,'../tencent-jev-function/index.js'));
 const token='test_world_access_32characters_ok',origin='https://example.test',env={JEV_API_KEY:'test_server_key',JEV_ACCESS_TOKEN:token,JEV_ALLOWED_ORIGINS:origin};
 function game(){const f=fixture(root);f.c.AbortController=AbortController;f.storage.set('xiantu_battle_presentation_v2756','report');for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);f.run('startGame();closeWorldOverlay();');f.timers.clear();return f;}

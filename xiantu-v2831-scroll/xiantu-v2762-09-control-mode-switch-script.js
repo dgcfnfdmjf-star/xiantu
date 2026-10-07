@@ -32,12 +32,7 @@
     return VALID_MODES.includes(p?.controlMode) ? p.controlMode : 'joystick';
   }
   function clearControlMoveState(){
-    try{
-      if(window.FLAT_WORLD?.keys){
-        FLAT_WORLD.keys.w=false;FLAT_WORLD.keys.a=false;FLAT_WORLD.keys.s=false;FLAT_WORLD.keys.d=false;
-      }
-      if(window.FLAT_WORLD){ FLAT_WORLD.target=null; FLAT_WORLD.tapTargetFx=null; }
-    }catch(_){ }
+    resetWorldMovementV28686();
     const knob=document.getElementById('virtualJoystickKnob');
     if(knob) knob.style.transform='translate(-50%,-50%)';
     document.getElementById('virtualJoystick')?.classList.remove('active');
@@ -141,4 +136,4 @@
   else boot();
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-09-control-mode-switch-script.js"]="28.68";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-09-control-mode-switch-script.js"]="28.68.29";

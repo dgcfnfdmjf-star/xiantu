@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),a=require('node:assert/strict'),fixture=require('./v2854-dom-fixture.cjs');
-const root=process.env.XIANTU_TEST_ROOT||'release-v2854/xiantu-v2831-scroll';
+const root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..');
 const {createHandler,validState}=require(path.resolve(root,'../tencent-jev-function/index.js'));
 const token='test_monster_access_not_a_real_key',origin='https://example.test';
 const env={JEV_API_KEY:'test_key',JEV_ACCESS_TOKEN:token,JEV_ALLOWED_ORIGINS:origin};

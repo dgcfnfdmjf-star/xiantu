@@ -1,0 +1,2 @@
+const {defineConfig}=require('@playwright/test');
+module.exports=defineConfig({testDir:'tests/browser',timeout:45000,workers:1,reporter:'list',use:{baseURL:'http://127.0.0.1:8766',headless:true,launchOptions:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH}:{}},webServer:{command:'node scripts/serve.cjs',url:'http://127.0.0.1:8766',env:{PORT:'8766'},reuseExistingServer:false}});

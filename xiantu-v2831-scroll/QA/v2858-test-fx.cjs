@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),a=require('node:assert/strict'),fixture=require('./v2858-dom-fixture.cjs');
-const root=process.env.XIANTU_TEST_ROOT||'release-v2858/xiantu-v2831-scroll';
+const root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..');
 const files=JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]);
 function game(){
  const f=fixture(root);let stamp=1000,rid=0,randomCalls=0;const frames=new Map();
@@ -69,3 +69,16 @@ for(const mode of ['report','cinema']){
 for(const action of ['completeCombatFinishV2764()',"document.hidden=true;window.dispatchEvent(new CustomEvent('visibilitychange'))"]){const t=lethal();t.run(action);a.equal(t.run('InkSkillFxV2854.inspect().active'),0);t.step(300);a.equal(t.run('InkSkillFxV2854.inspect().active'),0)}
 const miss=game();miss.run("playSkillEffect('天火焚世','fire');beginCombatFinishV2764('flee')");a.equal(miss.run('InkSkillFxV2854.inspect().active'),0);
 console.log('PASS lethal report/cinema casts retain bounded confirmed impact through settlement; rewards/MP/token unchanged; return/hidden cancel immediately; no new casts or fake missed impacts');
+// Visual lifecycle contracts: staggered bodies arrive, then yield to one impact.
+const sample=f.c.InkSkillFxV2854.sample;
+a.equal(typeof sample,'function');
+const job={arriveAt:310,hitAt:310,duration:900};
+for(const delay of [0,20,60,100]){
+ a.equal(sample(job,310,delay).travel,1,'every staggered projectile reaches the contact anchor');
+ a.equal(sample(job,30,delay).travel,0,'no projectile advances during anticipation');
+}
+a.equal(sample(job,450).flight,0,'body expires after impact handoff');
+a.equal(sample(job,900).visible,false,'one-shot effect expires');
+a.equal(sample({...job,hitAt:null},450).struck,false,'a miss never invents an impact');
+a.equal(sample({...job,hitAt:null},710).flight,0,'missed projectile also expires');
+console.log('PASS staggered arrival, body/impact handoff, miss and one-shot expiry');

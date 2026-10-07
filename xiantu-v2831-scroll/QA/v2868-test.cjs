@@ -1,4 +1,4 @@
-const fs=require('fs'),a=require('node:assert/strict'),root=process.env.XIANTU_TEST_ROOT||'build-2868/xiantu-v2831-scroll';
+const fs=require('fs'),a=require('node:assert/strict'),root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..');
 const fixture=require('./v2858-dom-fixture.cjs');
 function game(){const f=fixture(root);for(const s of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(s);f.run("startGame();closeWorldOverlay();player.sect='凌霄宗';player.sectTotalContribution=600;player.level=4;var roster=discipleRosterV2815();roster.members=[{id:1,name:'甲',level:6,specialty:0,job:null}];var d=roster.members[0];");return f;}
 const f=game();

@@ -3899,7 +3899,7 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 /* V28.12 洞府管理 */
 .home-board-v2812{padding:16px;border:1px solid #9eb781;border-radius:16px;background:linear-gradient(135deg,#14251e,#18202b);color:#e9eee3;line-height:1.65}.home-board-v2812 h3{color:#ead592;margin:0 0 12px}.home-grid-v2812{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-grid-v2812 article{padding:14px;border:1px solid #526454;border-radius:12px;background:#ffffff08}.home-grid-v2812 h4{margin:0;color:#e8d594}.home-grid-v2812 p{color:#d0dbd1}.home-grid-v2812 strong{color:#83ddb6}.home-notice-v2812{padding:12px;background:#31534066;border-radius:10px}@media(max-width:600px){.home-grid-v2812{grid-template-columns:1fr}.home-board-v2812{padding:12px;font-size:14px}}
 
-:root{--xiantu-build:2868;}
+:root{--xiantu-build:286829;}
 #xiantuBuildBadgeV2814{font-size:11px;min-height:32px;padding:5px 9px;white-space:nowrap;color:#b4d4bd;background:#18251f;border:1px solid #718475;border-radius:8px;}
 
 /* V28.68 战斗数值可视层 */
@@ -4223,3 +4223,136 @@ html.xiantu-mobile-dedicated #combatChoices .combat-skill-btn-v212,#combatChoice
 @media(max-width:640px){.sect-stats-v2866{grid-template-columns:repeat(2,minmax(0,1fr));}.sect-board-v2866 article{padding:12px;}.sect-actions-v2866{grid-template-columns:1fr;}}
 
 .disciple-history-v2868{list-style:none;padding:0}.disciple-history-v2868 li{display:flex;flex-wrap:wrap;gap:8px;padding:10px 0;border-bottom:1px solid #93ae8333}.disciple-history-v2868 small{color:#a5b8a3}.disciple-titles-v2868{color:#dfcc85}#sectTodoBtnV2868{min-height:44px;white-space:nowrap}#sectTodoBtnV2868[hidden]{display:none!important}
+
+/* Keep identity readable and every action reachable, including dynamically added buttons. */
+.world-hud-top { flex-direction:column; align-items:stretch; }
+.world-hud-top > div:first-child { flex:none; min-width:0; width:100%; }
+.world-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.world-hud-actions { width:100%; min-width:0; max-width:100%; overflow-x:auto; overflow-y:hidden;
+  padding:4px 0 8px; scrollbar-width:thin; touch-action:pan-x; }
+.world-hud-actions > button { flex:0 0 auto; min-height:44px; }
+.world-hud-actions:focus-visible { outline:2px solid #f1d186; outline-offset:2px; }
+/* 2.5D pilot: full-body stage replaces portrait cards only in wolf encounters. */
+#combatArena.duel25-active{display:block!important;padding:0!important;overflow:hidden;min-height:0!important;height:auto!important;aspect-ratio:12/7;background:#19382f;border:1px solid #a6af7b55;border-radius:16px;}
+.duel25-canvas{display:block;width:100%;height:auto;aspect-ratio:12/7;}
+#combatArena.duel25-active>.combatant,#combatArena.duel25-active>#cinemaLayerV2756,#combatArena.duel25-active>.vs-text{display:none!important;}
+#combatArena.duel25-active::before,#combatArena.duel25-active::after{display:none!important;}
+html body #gameScreen #combatPanel.duel25-panel{position:fixed!important;inset:12px!important;z-index:20000!important;margin:0 auto!important;width:calc(100% - 24px)!important;max-width:980px!important;max-height:calc(100dvh - 24px)!important;overflow:auto!important;display:flex!important;flex-direction:column;gap:12px;padding:12px!important;background:#122720!important;}
+html body #gameScreen #combatPanel.duel25-panel>*{order:5;flex-shrink:0;margin:0!important;}
+html body #gameScreen #combatPanel.duel25-panel>#combatArena{order:0;}
+html body #gameScreen #combatPanel.duel25-panel>#combatChoices{order:1;}
+html body #gameScreen #combatPanel.duel25-panel>#combatMpStatusV2820{order:2;}
+html body #gameScreen #combatPanel.duel25-panel>#battleReadoutV2856{order:3;}
+html body #gameScreen #combatPanel.duel25-panel>#battlePresentationBarV2756{order:4;}
+html body #gameScreen #combatPanel.duel25-panel.hidden{display:none!important;}
+html body #gameScreen.world-mode #combatPanel.duel25-panel:not(.hidden){position:fixed!important;top:12px!important;bottom:12px!important;left:12px!important;right:12px!important;height:auto!important;max-height:calc(100dvh - 24px)!important;}
+html body #gameScreen.world-mode #combatPanel.duel25-panel:not(.hidden){width:calc(100% - 24px)!important;max-width:980px!important;z-index:999999!important;}
+@media(orientation:landscape) and (min-width:640px){
+html body #gameScreen.world-mode #combatPanel.duel25-panel:not(.hidden){display:grid!important;grid-template-columns:minmax(0,1.4fr) minmax(240px,1fr);align-content:start;}
+html body #gameScreen #combatPanel.duel25-panel>*{grid-column:1/-1;min-width:0;}
+html body #gameScreen #combatPanel.duel25-panel>#combatArena{grid-column:1;grid-row:1/4;align-self:start;}
+html body #gameScreen #combatPanel.duel25-panel>#combatChoices{grid-column:2;grid-row:1;}
+html body #gameScreen #combatPanel.duel25-panel>#combatMpStatusV2820{grid-column:2;grid-row:2;}
+html body #gameScreen #combatPanel.duel25-panel>#battleReadoutV2856{grid-column:2;grid-row:3;}
+}
+
+#combatArena:not(.duel25-active) > .duel25-canvas{display:none}
+html body #gameScreen #combatPanel.duel25-panel #combatArena.duel25-active{padding:0!important;min-height:0!important;height:auto!important;aspect-ratio:12/7;}
+/* V28.68.29: one status surface, direct skills and optional battle settings. */
+#combatPanel.battle-clean-v286816 #combatMpStatusV2820,
+#combatPanel.battle-clean-v286816 .battle-vitals-v2865,
+#combatPanel.battle-clean-v286816 #monsterAiSourceV2844{display:none!important}
+#combatPanel.battle-clean-v286816 #combatArena{position:relative;}
+#battleVitalsV286816{display:grid;grid-template-columns:1fr 1fr;gap:20%;position:absolute;inset:8px 10px auto;z-index:6;pointer-events:none;font-size:11px;line-height:1.2;color:#f0ecd4;text-shadow:0 1px 3px #000;}
+#battleVitalsV286816>div{padding:5px 7px;background:#112c26d9;border-radius:8px;min-width:0;}
+#battleVitalsV286816 b,#battleVitalsV286816 span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#battleVitalsV286816 b{font-size:12px;margin-bottom:3px;}
+#battleVitalsV286816 .battle-meter-v286816{height:3px;background:#152a24;margin:2px 0 3px;border-radius:3px;}
+.battle-meter-v286816 i{display:block;height:100%;background:#a8d99d}.battle-meter-v286816.mp i{background:#76c4e3}.battle-meter-v286816.foe i{background:#dca279}
+#battleRecentV286816{position:absolute;bottom:6px;left:8px;right:8px;z-index:6;padding:4px 7px;background:#0a221dd6;color:#e7e3c9;font-size:11px;line-height:1.35;pointer-events:none;border-radius:6px;max-height:53px;overflow:hidden;}
+#battleRecentV286816:empty{display:none}#battleRecentV286816>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#battleRecentV286816>div:last-child{color:#f6d889;}
+#combatPanel.battle-clean-v286816 #battleReadoutV2856{padding:7px 10px!important;font-size:12px;margin:0!important;}
+#combatPanel.battle-clean-v286816 .battle-readout-head-v2856>span{display:none;}
+#combatPanel.battle-clean-v286816 .battle-chip-list-v2856{margin-top:4px;}
+#combatPanel.battle-clean-v286816 #combatChoices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
+#combatPanel.battle-clean-v286816 #combatChoices .choice-btn{min-height:44px!important;padding:8px!important;margin:0!important;font-size:13px;white-space:normal;min-width:0;}
+#combatPanel.battle-clean-v286816 .combat-quick-v286816{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
+#combatPanel.battle-clean-v286816 .quick-skill-v286816{background:#263e33;border:1px solid #afaa70;border-radius:10px;}
+.quick-skill-v286816 b,.quick-skill-v286816 small{display:block}.quick-skill-v286816 small{font-size:11px;opacity:.85;margin-top:3px;}
+#combatPanel.battle-clean-v286816 .combat-skill-drawer-v212{grid-column:1/-1;}
+#battleSettingsV286816{padding:9px 12px;border:1px solid #85957577;border-radius:10px;font-size:13px;}
+#battleSettingsV286816>summary,#reportLogV2857>summary{cursor:pointer;min-height:28px;line-height:28px;}
+#battleSettingsV286816>*:not(summary){margin-top:10px!important;}
+#battleSettingsV286816 #inkFxNameV2854{display:none}
+#battleSettingsV286816 button{min-height:44px;}
+#combatPanel.battle-clean-v286816 #reportLogV2857{font-size:12px;}
+html body #gameScreen #combatPanel.battle-clean-v286816>#battleReadoutV2856{order:1}
+html body #gameScreen #combatPanel.battle-clean-v286816>#combatChoices{order:2}
+html body #gameScreen #combatPanel.battle-clean-v286816>#cinemaControlsV2756{order:3}
+html body #gameScreen #combatPanel.battle-clean-v286816>#reportLogV2857{order:4}
+html body #gameScreen #combatPanel.battle-clean-v286816>#battleSettingsV286816{order:5}
+#combatPanel.battle-clean-v286816 #combatArena:not(.duel25-active) #battleVitalsV286816{position:relative;inset:auto;grid-column:1/-1;width:100%;}
+#combatPanel.battle-clean-v286816 #combatArena:not(.duel25-active) .health-bar,#combatPanel.battle-clean-v286816 #combatArena:not(.duel25-active) .health-text{display:none!important}
+@media(orientation:landscape) and (min-width:640px){
+ html body #gameScreen #combatPanel.battle-clean-v286816{gap:8px;grid-template-columns:minmax(0,1.5fr) minmax(270px,1fr);}
+ html body #gameScreen #combatPanel.battle-clean-v286816>#combatArena{grid-column:1;grid-row:1/7;position:sticky;top:0;}
+ html body #gameScreen #combatPanel.battle-clean-v286816>#battleReadoutV2856{grid-column:2;grid-row:1;}
+ html body #gameScreen #combatPanel.battle-clean-v286816>#combatChoices{grid-column:2;grid-row:2;}
+ html body #gameScreen #combatPanel.battle-clean-v286816>#cinemaControlsV2756{grid-column:2;grid-row:3;}
+ html body #gameScreen #combatPanel.battle-clean-v286816>#reportLogV2857{grid-column:2;grid-row:4;}
+ html body #gameScreen #combatPanel.battle-clean-v286816>#battleSettingsV286816{grid-column:2;grid-row:5;}
+}
+/* Reserve space for readable status/subtitles instead of covering heads and feet. */
+html body #gameScreen #combatPanel.battle-clean-v286816 #combatArena.duel25-active{aspect-ratio:auto!important;}
+#combatPanel.battle-clean-v286816 .duel25-canvas{margin-top:28px;margin-bottom:20px;}
+#combatPanel.battle-clean-v286816 .combat-quick-v286816{order:-1;}
+#combatPanel.battle-clean-v286816 #combatArena:not(.duel25-active){flex-wrap:wrap;}
+#combatPanel.battle-clean-v286816 #combatArena:not(.duel25-active) .combatant-hp-bar,
+#combatPanel.battle-clean-v286816 #combatArena:not(.duel25-active) .combatant-hp-text{display:none!important}
+#combatPanel.battle-clean-v286816 #combatArena:not(.duel25-active) #battleVitalsV286816{order:-1;flex-basis:100%;}
+#combatPanel.battle-clean-v286816 #combatArena:not(.duel25-active) #battleRecentV286816{position:relative;inset:auto;order:3;flex-basis:100%;}
+
+html body #gameScreen.world-mode #combatPanel.battle-clean-v286816:not(.hidden){position:fixed!important;inset:12px!important;z-index:999999!important;margin:0 auto!important;width:calc(100% - 24px)!important;max-width:980px!important;height:auto!important;max-height:calc(100dvh - 24px)!important;overflow:auto!important;display:flex!important;flex-direction:column;gap:8px;padding:12px!important;background:#122720!important;}
+html body #gameScreen #combatPanel.battle-clean-v286816>*{flex-shrink:0;margin:0!important;}
+html body #gameScreen #combatPanel.battle-clean-v286816>#combatArena{order:0;}
+html body #gameScreen #combatPanel.battle-clean-v286816.hidden{display:none!important;}
+@media(orientation:landscape) and (min-width:640px){
+ html body #gameScreen.world-mode #combatPanel.battle-clean-v286816:not(.hidden){display:grid!important;grid-template-columns:minmax(0,1.5fr) minmax(270px,1fr);align-content:start;}
+}
+
+.combat-quick-heading-v286819,.combat-quick-empty-v286819{grid-column:1/-1;font-size:12px;color:#d5c79d;line-height:1.5}.combat-quick-empty-v286819{padding:8px;color:#aebbad}
+
+/* Static scenery stays composited while only actors and effects repaint. */
+.duel25-stage{position:relative;width:100%;isolation:isolate;}
+.duel25-backdrop{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+.duel25-stage>.duel25-canvas{position:relative;margin:0!important;}
+#combatArena:not(.duel25-active)>.duel25-stage{display:none;}
+#combatPanel.battle-clean-v286816 .duel25-stage{margin-top:28px;margin-bottom:20px;}
+#combatPanel{touch-action:manipulation;user-select:none;-webkit-user-select:none;}
+#combatPanel input,#combatPanel textarea,#combatLog{user-select:text;-webkit-user-select:text;}
+
+.rain-overlay-v286822{position:fixed;inset:0;z-index:35000;background:#071410dd;display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box}.rain-card-v286822{width:min(760px,100%);max-height:calc(100dvh - 24px);overflow:auto;overscroll-behavior:contain;background:#122c25;color:#eee7d0;border:1px solid #9c8a50;border-radius:16px;padding:20px;box-sizing:border-box;line-height:1.85}.rain-card-v286822 header{display:flex;justify-content:space-between;align-items:center;color:#d4b76e}.rain-card-v286822 button{min-height:44px;touch-action:manipulation;cursor:pointer}.rain-card-v286822 header button{background:none;border:0;color:#fff;font-size:26px}.rain-card-v286822 details{padding:10px 0;border-top:1px solid #ffffff22}.rain-card-v286822 details button{display:block;width:100%;background:#203a31;border:1px solid #908157;color:#eee7d0;margin:6px 0;border-radius:8px}.rain-actions-v286822{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}#rainNoticeV286822{color:#ffd780;padding:8px 0}.rain-card-v286822 h2{color:#f1d988;font-size:24px}.rain-card-v286822>.choice-btn{width:100%;margin-top:12px}
+
+/* Illustrated chapters reserve image space and keep actions available on failure. */
+.story-illustration-v286828{margin:16px 0 20px;border:1px solid #8f80564d;border-radius:12px;overflow:hidden;background:#101e1c}
+.story-illustration-v286828 img{display:block;width:100%;height:auto;max-height:320px;object-fit:contain}
+.story-illustration-v286828 img[hidden]{display:none}
+.story-illustration-v286828 figcaption{padding:7px 12px;color:#cbbb8e;font-size:13px;line-height:1.6;text-align:center;letter-spacing:.08em}
+.story-art-fallback{display:none;letter-spacing:normal}
+.story-art-unavailable .story-art-fallback{display:inline}
+@media (orientation:landscape) and (max-height:540px){.story-illustration-v286828 img{max-height:110px}}
+
+/* Main-story artwork shares the scrollable text area; navigation stays outside it. */
+.scene-illustrated-v286829 .scene-landscape-v2838{display:none}
+#sceneArtV286829 .story-illustration-v286828{margin:0 0 18px}
+#sceneArtV286829 img{max-height:240px}
+.task-card .story-illustration-v286828 img{max-height:220px}
+@media (orientation:landscape) and (max-height:540px){
+ #sceneArtV286829 img,.task-card .story-illustration-v286828 img{max-height:110px}
+}
+@media (orientation:landscape) and (max-height:540px){
+ .scene-illustrated-v286829 #sceneArtV286829{float:left;width:40%;margin:0 16px 8px 0}
+ .scene-illustrated-v286829 #sceneArtV286829 img{max-height:150px}
+ .scene-illustrated-v286829 #sceneTextV2838{margin-top:8px}
+}

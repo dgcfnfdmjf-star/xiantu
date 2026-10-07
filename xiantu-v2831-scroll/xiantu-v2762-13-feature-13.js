@@ -1,20 +1,21 @@
 // ===== V27.8 灵宠界面 / 存档身份 / 培养体验优化 =====
 let petFeedOpenId = null;
 function createPetRuntimeId(){return 'pet_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
-function ensurePetSystemState(){
-  if(!player)return;
-  if(!Array.isArray(player.pets))player.pets=[];
-  if(!player.petMaterials||typeof player.petMaterials!=='object')player.petMaterials={};
+function ensurePetSystemState(target=player){
+  if(!target)return;
+  if(!Array.isArray(target.pets))target.pets=[];
+  if(!target.petMaterials||typeof target.petMaterials!=='object')target.petMaterials={};
   // 先给列表中的每只宠物补稳定ID。
-  player.pets.forEach(p=>{if(p&&!p._petId)p._petId=createPetRuntimeId()});
+  target.pets.forEach(p=>{if(p&&!p._petId)p._petId=createPetRuntimeId()});
   // JSON存档会让 activePet 成为一个独立对象；通过ID重新绑定回宠物列表。
-  if(player.activePet){
+  if(target.activePet){
     let linked=null;
-    if(player.activePet._petId)linked=player.pets.find(p=>p?._petId===player.activePet._petId)||null;
-    if(!linked){
-      linked=player.pets.find(p=>p&&p.type===player.activePet.type&&p.name===player.activePet.name&&Number(p.level||1)===Number(player.activePet.level||1)&&Number(p.exp||0)===Number(player.activePet.exp||0))||null;
+    if(target.activePet._petId)linked=target.pets.find(p=>p?._petId===target.activePet._petId)||null;
+    if(!linked&&!target.activePet._petId){
+      const matches=target.pets.filter(p=>p&&p.type===target.activePet.type&&p.name===target.activePet.name&&Number(p.level||1)===Number(target.activePet.level||1)&&Number(p.exp||0)===Number(target.activePet.exp||0));
+      linked=matches.length===1?matches[0]:null;
     }
-    player.activePet=linked;
+    target.activePet=linked;
   }
 }
 function getPetById(id){ensurePetSystemState();return player.pets.find(p=>p?._petId===id)||null}
@@ -89,4 +90,4 @@ window.feedPet=function(index,foodName){
   updatePetPanel();updateStats?.();autoSave();
 };
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-13-feature-13.js"]="28.68";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-13-feature-13.js"]="28.68.29";

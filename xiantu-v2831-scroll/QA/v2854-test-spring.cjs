@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),a=require('node:assert/strict'),fixture=require('./v2854-dom-fixture.cjs');
-const root=process.env.XIANTU_TEST_ROOT||'release-v2854/xiantu-v2831-scroll';
+const root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..');
 const f=fixture(root);for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);
 f.run('startGame();closeWorldOverlay();tutorialState.active=false;player.level=0;player.gold=0;player.hp=1;player.mp=0;player.buildingReadyDaysV2768={spring:999999,herb:999999};');
 const unchanged=()=>f.run('JSON.stringify([player.gold,player.exp,player.age,player.longevity,player.worldTime,player.sectContribution,player.materials,player.inventory])');

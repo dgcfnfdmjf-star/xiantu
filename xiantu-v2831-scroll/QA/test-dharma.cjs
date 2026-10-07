@@ -1,5 +1,5 @@
 const fs=require('fs'),a=require('assert'),fixture=require('./dom-fixture.cjs');
-const root=process.env.XIANTU_TEST_ROOT||'release-v2841/xiantu-v2831-scroll';
+const root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..');
 function game(level){const f=fixture(root);f.c.Math=Object.create(Math);f.c.Math.random=()=>.35;for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);f.run(`startGame();closeWorldOverlay();player.level=${level};player.hp=getMaxHp();player.mp=getMaxMp();player.gold=10000;player.warState.alliedSects=Object.keys(HUMAN_FACTION_POWER).filter(n=>n!==player.sect);window.target=Object.keys(DEMON_FACTION_POWER)[0];executeWar(target);`);f.timers.clear();f.c.items=[];f.c.view={minX:0,maxX:2200,minY:0,maxY:1600};return f;}
 for(const level of [0,1,2,4,5,9,10,16]){
  const f=game(level);f.run('appendWarUnitsV2840(items,0,view)');const profile=JSON.parse(f.run('JSON.stringify(warSpellStateV2841(WAR_MAP_V2840.scene).profile)'));

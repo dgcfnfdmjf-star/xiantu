@@ -1,4 +1,4 @@
-const fs=require('fs'),assert=require('assert'),root=process.env.XIANTU_TEST_ROOT||'release-v2865/xiantu-v2831-scroll';
+const fs=require('fs'),assert=require('assert'),root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..');
 const f=require('./v2858-dom-fixture.cjs')(root);f.c.Math=Object.create(Math);f.c.Math.random=()=>.5;
 for(const s of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(s);
 f.run('startGame();closeWorldOverlay();');let rows=[];

@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),a=require('node:assert/strict'),fixture=require('./v2858-dom-fixture.cjs');
-const root=process.env.XIANTU_TEST_ROOT||'release-v2858/xiantu-v2831-scroll';
+const root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..');
 const {createHandler}=require(path.resolve(root,'../tencent-jev-function/index.js'));
 const origin='https://example.test',other='https://other.test';
 const privateCode='test_private_owner_access_code_001',apiKey='test_private_provider_key_001';

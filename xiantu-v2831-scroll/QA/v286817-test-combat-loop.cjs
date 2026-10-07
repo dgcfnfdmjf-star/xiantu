@@ -1,0 +1,37 @@
+const fs=require('node:fs'),path=require('node:path'),a=require('node:assert/strict');
+const root=process.env.XIANTU_TEST_ROOT||path.resolve(__dirname,'..');
+const f=require('./v2858-dom-fixture.cjs')(root);
+f.c.Math=Object.create(Math);f.c.Math.random=()=>.5;
+for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);
+f.run('startGame();closeWorldOverlay()');
+function fresh(){f.run('resetRuntimeState();player=createDefaultPlayer();player.hp=100;player.mp=0;startCombat({name:"血狐",hp:50000,maxHp:50000,atk:1,def:1,gold:1,exp:1,_realmLevel:0,_realmPhase:0});currentEnemy.atk=1;');f.timers.clear();}
+fresh();f.run('combat("attack");combat("attack")');f.flush(150);
+a.equal(f.run('player.mp'),10,'one accepted ordinary attack restores ten, duplicate input does not');
+f.run('saveGame();loadAndStart()');a.equal(f.run('player.mp'),0,'interrupted battle restores pre-battle MP, no farming by refresh');
+fresh();f.run('player.mp=getMaxMp()-3');a.equal(f.run('restoreAttackMpV286817(1)'),3);a.equal(f.run('player.mp'),f.run('getMaxMp()'));
+a.equal(f.run('restoreAttackMpV286817(1)'),0);f.run('player.mp=0');a.equal(f.run('restoreAttackMpV286817(0)'),0);
+f.run('var regionRecoveryV17=getRegionMpRecoveryMultiplier;getRegionMpRecoveryMultiplier=()=>.6');a.equal(f.run('restoreAttackMpV286817(1)'),6);f.run('getRegionMpRecoveryMultiplier=regionRecoveryV17');
+console.log('PASS normal-hit MP, duplicate input, cap, zero damage, regional penalty and interruption rollback');
+fresh();f.run('currentEnemy.hp=100;sealEnemySpellsV286817(2)');
+a(!f.run('monsterAvailableV2844().includes("spell")'));a(!f.run('monsterAvailableV2844().includes("heal")'));
+a(f.run('monsterAvailableV2844().includes("attack")'));a(f.run('monsterAvailableV2844().includes("heavy")'));
+f.run('skipEnemyTurn=true;isPlayerTurn=false;resolveEnemyTurnV2844()');a.equal(f.run('currentEnemy._spellSealTurnsV286817'),2,'stun is not an actual action');
+const hp=f.run('player.hp');
+f.run('isPlayerTurn=false;resolveEnemyTurnV2844({choice:"heal",source:"jev"})');f.flush(150);
+a.equal(f.run('currentEnemy._spellSealTurnsV286817'),1);a.equal(f.run('currentEnemy.hp'),100,'stale forbidden remote choice becomes attack');a(f.run('player.hp')<hp,'sealed enemy still attacks');
+f.run('isPlayerTurn=false;resolveEnemyTurnV2844({choice:"attack",source:"local"})');f.flush(150);
+a.equal(f.run('currentEnemy._spellSealTurnsV286817'),0);a(f.run('monsterAvailableV2844().includes("heal")'),'spells return after two actual actions');
+fresh();f.run('sealEnemySpellsV286817(2);sealEnemySpellsV286817(1)');a.equal(f.run('currentEnemy._spellSealTurnsV286817'),2,'refresh does not shorten or add unbounded turns');
+fresh();a.equal(f.run('currentEnemy._spellSealTurnsV286817||0'),0,'new enemy has no old status');
+a.equal(f.run('enemyRiskV286817({_realmLevel:2}).label'),'越境危险');a.equal(f.run('enemyRiskV286817({_realmLevel:0,_isElite:true}).label'),'精英慎战');
+f.run('player.level=2');a.equal(f.run('enemyRiskV286817({_realmLevel:0}).label'),'境界占优');
+a.equal(f.errors.length,0,JSON.stringify(f.errors));
+console.log('PASS spell seal, physical response, stale decision validation, duration, reset and realm labels');
+
+fresh();f.run('player.mp=getMaxMp();player.skills=[{...SKILLS.find(s=>s.name==="惊雷闪")}];player.skillLoadoutV212={thunder:["惊雷闪"]};player.skillLoadoutInitializedV212=true;');
+f.c.Math.random=()=>.3;
+a(f.run('getCombatSkillAvailabilityV2769(0).ok'));
+f.run('combat("skill",0)');f.flush(300);
+a.equal(f.run('currentEnemy._spellSealTurnsV286817'),2,'actual thunder skill applies seal');
+a.equal(f.run('skipEnemyTurn'),false,'paralyze no longer skips the enemy turn');
+console.log('PASS equipped thunder skill uses the new control contract');

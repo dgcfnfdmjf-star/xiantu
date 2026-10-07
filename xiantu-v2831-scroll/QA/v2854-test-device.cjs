@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),a=require('node:assert/strict'),fixture=require('./v2854-dom-fixture.cjs');
-const root=process.env.XIANTU_TEST_ROOT||'release-v2854/xiantu-v2831-scroll';
+const root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..');
 const key='xiantu_jev_device_v1',token='test_remembered_game_access_123';
 const files=JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]);
 function page(saved=[],blocked=false){

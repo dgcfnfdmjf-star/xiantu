@@ -1,5 +1,5 @@
 const fs=require('fs'),assert=require('node:assert/strict'),fixture=require('./v2858-dom-fixture.cjs');
-const root=process.env.XIANTU_TEST_ROOT||'release-v2865/xiantu-v2831-scroll';
+const root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..');
 const scripts=JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]);
 const f=fixture(root);f.c.Math=Object.create(Math);f.c.Math.random=()=>.5;
 for(const s of scripts)f.load(s);
@@ -38,5 +38,5 @@ f.run("player.yewujiStoryV2816.choices=[0,1,2,0]");assert.equal(f.run('relations
 f.run("player.yewujiStoryV2816.saintVictory=true");assert.equal(f.run('relationshipWarMomentV2865()'),3);
 f.run("startCombat({name:'野狼',hp:500,maxHp:500,atk:2,def:2,_realmLevel:0,_realmPhase:0});player.hp=17;player.mp=3;BattleClarityV2856.sync()");assert.match(f.ids.get('battleReadoutV2856').innerHTML,/气血 <b>17/);assert.match(f.ids.get('battleReadoutV2856').innerHTML,/灵力 <b>3/);
 assert.equal(f.errors.length,0,JSON.stringify(f.errors));
-fs.writeFileSync(root+'/QA/v2865-enemy-matrix.json',JSON.stringify(rows,null,2));
+if(process.env.XIANTU_TEST_OUTPUT)fs.writeFileSync(require('node:path').join(process.env.XIANTU_TEST_OUTPUT,'v2865-enemy-matrix.json'),JSON.stringify(rows,null,2));
 console.log('PASS save recovery/quota/pagehide guards; malformed legacy records; map idle single timer and resume; 68 pressure calculations; 272 stable enemy cases; 12 war snapshots; battle HP/MP readout');

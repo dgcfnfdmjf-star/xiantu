@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),a=require('node:assert/strict'),vm=require('node:vm'),fixture=require('./v2852-dom-fixture.cjs');
-const root=process.env.XIANTU_TEST_ROOT||'release-v2852/xiantu-v2831-scroll';
+const root=process.env.XIANTU_TEST_ROOT||require('node:path').resolve(__dirname,'..');
 const {createHandler}=require(path.resolve(root,'../tencent-jev-function/index.js'));
 const token='test_relationship_token_32_only',origin='https://example.test',env={JEV_API_KEY:'test_provider_key',JEV_ACCESS_TOKEN:token,JEV_ALLOWED_ORIGINS:origin};
 const files=JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]),fixtures=[];
