@@ -1,4 +1,16 @@
-## 最新完整游戏包：V28.68.17
+## 最新完整游戏包：V28.68.18
+
+[下载 xiantu-v2868.18-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.18-game-folder.zip)
+
+灵宠同台追击，冰系迟缓/护盾/冰蚀与火系灼烧破甲/引爆/禁疗实装；身法境界影响逃跑，神行符保底脱战；自由探索增加两类一次性奇遇。完整包126个运行文件，解压后仍为 `xiantu-v2831-scroll`。未部署腾讯云；Jev无需更新。私有仓库请登录有权限的GitHub账号下载。
+
+26个游戏回归脚本、3项限流测试、7项浏览器测试通过；360场既有战斗对照一致，另有前后各240场元素轮转测试及灵宠、逃跑和奇遇存档验证。详情见 [修复与验证记录](depth-v286818.md)。
+
+SHA-256：`830848209081d127ef24e42ef4abe9842245eed91774e650aa0bcf002c62098a`
+
+---
+
+## 历史完整游戏包：V28.68.17
 
 [下载 xiantu-v2868.17-game-folder.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.17-game-folder.zip)
 
