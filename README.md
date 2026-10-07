@@ -1,4 +1,16 @@
-## 最新完整游戏包：V28.68.27
+## 最新完整游戏包：V28.68.28
+
+[下载完整游戏文件夹](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.28-game-folder.zip)
+
+新增雨夜渡口、灯下旧卷、秘境潮门、雷海行舟四张本地剧情插画，配套横竖屏排版、回看及图片失败降级。完整游戏包130文件，顶层文件夹xiantu-v2831-scroll。保留之前全部游戏内容，无需更新Jev云函数，未部署腾讯云。
+
+34个游戏回归脚本、3个限流测试、7个浏览器测试通过；插画节点与上传方式见 [更新说明](story-art-v286828.md)。私有仓库需登录有权限的GitHub账号。
+
+SHA-256：`606c0e910f0b1b80bcecfead3c86ac19fb34486ef5eb58b1424c5bb9e77d07aa`
+
+---
+
+## 历史完整游戏包：V28.68.27
 
 [下载完整游戏文件夹](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.27-game-folder.zip)
 
