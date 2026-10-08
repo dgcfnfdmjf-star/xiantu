@@ -67,6 +67,8 @@
       controls.querySelector('#cinemaCaptureBtnV2756').onclick=cinematicCaptureV2756;
       controls.querySelector('#cinemaSkipBtnV2756').onclick=()=>setBattlePresentationV2756('report');
     }
+    const prose=document.getElementById('cinemaNarrationV2756');
+    if(prose&&prose.parentNode!==panel){arena.insertAdjacentElement('afterend',prose);prose.setAttribute('role','status');prose.setAttribute('aria-live','polite');}
     ensureStrategyUiV2819(panel);
     return panel;
   }
@@ -106,14 +108,59 @@
   }
   function cycleCinemaSpeedV2756(){state.speed=state.speed===1?2:state.speed===2?3:1;savePref();syncCinemaControls();showFloatingText?.(`🎬 动画演武速度：${state.speed}倍`,'#ccefdc');if(!state.paused)scheduleCinemaTurn(delay(420))}
 
-  function speakerFromText(text){
-    if(!text)return'旁白';if(text.includes('灵宠')||text.includes('触发【'))return player?.activePet?.name||'灵宠';
-    if(currentEnemy&&text.includes(currentEnemy.name))return currentEnemy.name;
-    if(/你|施展|顿悟|法宝|灵力/.test(text))return player?.name||'你';return'旁白';
+  // 文学描写只读已发生的战况，不调用随机数，不参与伤害或存档结算。
+  let proseSequence=0,proseParts=[];
+  function novelCastV286832(name,skill,element='',variant=0){
+    const who=String(name||'你'),title=String(skill||'');
+    if(title==='太阳真火')return `${who}催动【太阳真火】，金焰聚作一轮烈日，炽光沿着战场缓缓铺开。`;
+    if(title==='冰蝶幻舞')return `${who}引动【冰蝶幻舞】，霜光凝成蝶翼，纷纷绕过身前，向对手翩然掠去。`;
+    if(!title)return [ `${who}觑准间隙，攻势陡然递出，破空声紧随而至。`,`${who}收住气息，随即疾攻而出，将这一招送向对手。` ][variant%2];
+    const lines={
+      sword:['剑意沿锋而起，一线寒芒划破身前的沉寂。','锋芒一转，剑光随势铺开，直指对手。'],
+      thunder:['雷光在身前明灭，沉闷的轰鸣滚过战场。','电芒骤聚，细碎雷声连成一片，映亮了双方的身影。'],
+      ice:['寒意随灵光散开，点点霜华在半空凝起。','冰光悄然流转，将眼前的光影染上一层冷色。'],
+      fire:['焰光随势腾起，灼热气浪卷向前方。','火色乍亮，赤焰在灵力牵引下翻涌而出。'],
+      heal:['温润灵光循着经脉流转，试着抚平激战留下的伤势。','灵息缓缓回拢，一缕柔光融入周身。']
+    };
+    const group=lines[element]||['灵光循诀而动，气机层层交织，化作这一式仙法。','周身气息一凝，法光随之展开。'];
+    return `${who}运起【${title}】，${group[variant%group.length]}`;
   }
-  function showCinemaNarration(speaker,text){
+  function novelResultV286832(text,enemy='对手'){
+    const t=String(text||''),foe=String(enemy||'对手');let m;
+    if((m=t.match(/^(?:【暴击】)?(?:你对|施展【([^】]+)】，对).+造成\s*([\d.]+)\s*点伤害！$/))){
+      const lead=m[1]==='太阳真火'?`【太阳真火】裹着金焰落下，烈日般的光辉照亮了${foe}。`:m[1]==='冰蝶幻舞'?`【冰蝶幻舞】掠过${foe}，蝶翼散作细碎霜光。`:m[1]?`【${m[1]}】落向${foe}。`:'';
+      return lead+(Number(m[2])<=0?'这一击终被挡下，未能造成伤害。':t.startsWith('【暴击】')?`攻势陡然爆发，重重击中${foe}！`:`攻势落实，${foe}受了这一击。`);
+    }
+    if((m=t.match(/^([^\n]*?)对你造成\s*([\d.]+)\s*点伤害！$/))){
+      return Number(m[2])<=0?`${foe}的攻势被挡下，你未受伤。`:t.startsWith('【暴击】')?`${foe}这一击格外沉重，剧痛猝然袭来！`:`${foe}的攻势落在你身上，疼痛随之传来。`;
+    }
+    if((m=t.match(/^.+? (.+?)攻击造成\s*([\d.]+)\s*点伤害！/)))return Number(m[2])>0?`${m[1]}紧随你的攻势出手，也击中了${foe}。`+(t.includes('敌人被冻结!')?'寒意随之凝结，封住了敌人的行动。':''):`${m[1]}随你出手，这一击却未能伤及对手。`;
+    if(/闪避了攻击！$/.test(t))return '遁光一闪，你避过了迎面而来的攻势。';
+    if(t==='寒冰凝结，敌人下一次行动被冻结。')return `寒意终于凝实，${foe}的下一次行动被冰封截住。`;
+    if(/封脉：/.test(t)&&/不能施展术法/.test(t))return `雷意封住${foe}的术法运转，然而对方仍能近身进攻。`;
+    if(/敌人因.+无法行动！$/.test(t)||/被境界威压震慑，本回合无法行动！$/.test(t))return `${foe}的动作受制，这一轮未能出招。`;
+    if(/陷入眩晕！$/.test(t))return `${foe}神魂受震，一时陷入眩晕。`;
+    if(/^🔥 灼烧/.test(t))return `余火缠住${foe}，灼烧与破甲随之生效。`;
+    if(/^灼烧造成\s*[1-9]\d* 点伤害/.test(t))return `余焰尚未熄灭，又一次灼伤了${foe}。`;
+    if(/^护盾展开：/.test(t))return '护体灵光凝成屏障，守在你的身前。';
+    if(/^元素护盾吸收[1-9]/.test(t))return '攻势撞上护体灵光，屏障替你承下了部分冲击。';
+    if(/恢复\s*[1-9]\d*\s*点生命/.test(t))return '一股暖意回到体内，你的伤势得到了缓解。';
+    if(/重伤倒地/.test(t))return '气力终于耗尽，你重伤倒地，眼前的战场渐渐模糊。';
+    if(/逃跑失败！$/.test(t))return '退路仍被对手封住，这次脱身未能成功。';
+    if(/已脱离敌人！$/.test(t))return '敌人的攻势被甩在身后，你终于脱离了这场交锋。';
+    // 未识别的信息仍完整进入原战报，不能凭技能名猜测命中、控制或战果。
+    return '';
+  }
+  window.XiantuBattleProseV286832=Object.freeze({cast:novelCastV286832,result:novelResultV286832});
+  function showCinemaNarration(speaker,text,group='scene',append=false){
     if(document.hidden||state.mode!=='cinema'||!state.active)return;const box=document.getElementById('cinemaNarrationV2756'),sp=document.getElementById('cinemaSpeakerV2756'),tx=document.getElementById('cinemaTextV2756');if(!box||!sp||!tx)return;
-    cinemaCancel(state.narrationTimer);sp.textContent=speaker||'旁白';tx.textContent=strip(text).slice(0,92)||'灵气激荡，胜负仍未分明。';box.classList.remove('show');void box.offsetWidth;box.classList.add('show');state.narrationTimer=cinemaLater(()=>box.classList.remove('show'),delay(2300));
+    cinemaCancel(state.narrationTimer);state.narrationTimer=0;sp.textContent='斗法纪事';
+    const value=String(text||'灵气激荡，胜负仍未分明。');
+    if(group==='scene')proseParts=[];
+    const last=proseParts[proseParts.length-1];
+    if(last&&last.group===group)last.text=append&&last.text.length+value.length<=180?last.text+value:value;
+    else proseParts.push({group,text:value});
+    proseParts=proseParts.slice(-2);tx.textContent=proseParts.map(p=>p.text).join('\n');box.classList.add('show');
   }
   function elementLabel(name,element){
     const map={sword:'剑道 · 剑意纵横',thunder:'雷法 · 天威煌煌',ice:'冰诀 · 寒意封天',fire:'火法 · 烈焰焚空',heal:'医道 · 生生不息'};
@@ -132,13 +179,15 @@
   }
   function playCinemaCutin(side,skillName,element=''){
     if(state.mode!=='cinema'||!state.active||document.hidden)return;
-    if(state.light){showCinemaNarration(side==='enemy'?(currentEnemy?.name||'敌人'):(player?.name||'你'),`施展【${skillName}】 · ${elementLabel(skillName,element)}`);return}
+    const prose=novelCastV286832(side==='enemy'?(currentEnemy?.name||'对手'):(player?.name||'你'),skillName,element,proseSequence++);
+    showCinemaNarration('旁白',prose,side);
+    if(state.light)return;
     const cut=document.getElementById('cinemaCutinV2756');if(!cut)return;
     const isEnemy=side==='enemy',name=isEnemy?(currentEnemy?.name||'未知强敌'):(player?.name||'修士'),portrait=cut.querySelector('canvas');if(portrait)copyCanvasPortrait(side,portrait);
     cut.querySelector('.cinema-cutin-role-v2756').textContent=isEnemy?'ENEMY ART':'PLAYER ART';cut.querySelector('.cinema-cutin-name-v2756').textContent=name;cut.querySelector('.cinema-cutin-skill-v2756').textContent=`「${skillName}」`;cut.querySelector('.cinema-cutin-element-v2756').textContent=elementLabel(skillName,element);
     cut.classList.toggle('enemy',isEnemy);cut.classList.remove('play');void cut.offsetWidth;cut.classList.add('play');
     const actor=document.getElementById(isEnemy?'enemyCombatant':'playerCombatant');if(actor){const cls=isEnemy?'cinema-cast-v2756':'cinema-cast-v2756';actor.classList.remove(cls);void actor.offsetWidth;actor.classList.add(cls);cinemaLater(()=>actor.classList.remove(cls),delay(760))}
-    showCinemaNarration(name,isEnemy?`${name}周身气机骤变，悍然施展【${skillName}】！`:`${name}凝神掐诀，道韵汇聚成【${skillName}】！`);
+
   }
   function playCinemaEntrance(){
     if(state.mode!=='cinema'||!state.active)return;const p=document.getElementById('playerCombatant'),e=document.getElementById('enemyCombatant');
@@ -184,7 +233,7 @@
       if(typeof choosePlayerJevV2846==='function')pick=await choosePlayerJevV2846(pick,valid,strategyV2819);
       if(!valid())return;
       if(pick.action==='skill'&&!getAvailableCombatSkillsV2769().some(x=>x.index===pick.index&&x.skill===pick.skill))pick=chooseCinemaAction();
-      if(pick.skill)showCinemaNarration(player?.name||'你',`灵力沿经脉奔涌，${player?.name||'你'}准备施展【${pick.skill.name}】。`);else showCinemaNarration(player?.name||'你',`${player?.name||'你'}踏地前掠，${player?.equipment?.weapon?'挥动兵器':'凝力出掌'}攻向${currentEnemy.name}！`);
+
       window.combat?.(pick.action,pick.index);
     },turnWait);
   }
@@ -200,7 +249,7 @@
   }
   function cleanupCinema(){
     if(typeof clearSkillFxV2786==='function')clearSkillFxV2786();
-    clearAuto();clearCinemaFx();state.active=false;state.paused=false;
+    clearAuto();clearCinemaFx();state.active=false;state.paused=false;proseSequence=0;proseParts=[];
     const portrait=document.getElementById('cinemaCutinV2756')?.querySelector('canvas');if(portrait){portrait.width=1;portrait.height=1}
     const panel=document.getElementById('combatPanel');
     if(panel?.classList.contains('cinema-mode-v2756'))panel.classList.remove('cinema-mode-v2756');
@@ -220,11 +269,11 @@
   const baseUi=window.updateCombatUI;
   if(typeof baseUi==='function')window.updateCombatUI=function(...args){const result=baseUi.apply(this,args);syncCinemaControls();return result};
   const baseLog=window.addCombatLog;
-  if(typeof baseLog==='function')window.addCombatLog=function(text,type){const result=baseLog.apply(this,arguments),plain=strip(text);if(plain&&state.mode==='cinema'&&state.active)showCinemaNarration(speakerFromText(plain),plain);return result};
+  if(typeof baseLog==='function')window.addCombatLog=function(text,type){const result=baseLog.apply(this,arguments),plain=strip(text);if(plain&&state.mode==='cinema'&&state.active){const prose=novelResultV286832(plain,currentEnemy?.name);if(prose){const followup=type==='pet'||/^(?:🔥 灼烧|寒冰凝结|⚡ 封脉|⚡ 九天神雷)/.test(plain);showCinemaNarration('旁白',prose,/对你造成|闪避了攻击/.test(plain)?'enemy':'player',followup);}}return result};
   const baseAttack=window.playAttackAnimation;
-  if(typeof baseAttack==='function')window.playAttackAnimation=function(attacker){const result=baseAttack.apply(this,arguments);if(state.mode==='cinema'&&state.active){const who=attacker==='player'?(player?.name||'你'):(currentEnemy?.name||'敌人');showCinemaNarration(who,attacker==='player'?`${who}${player?.equipment?.weapon?'挥动兵器，凌厉攻势破空而去':'凝气出掌，掌风直逼对手'}。`:`${who}嘶吼一声，裹挟凶煞之气扑杀而来！`)}return result};
+  if(typeof baseAttack==='function')window.playAttackAnimation=function(attacker){const result=baseAttack.apply(this,arguments);if(state.mode==='cinema'&&state.active){const who=attacker==='player'?(player?.name||'你'):(currentEnemy?.name||'敌人');showCinemaNarration(who,novelCastV286832(who,'','',proseSequence++),attacker)}return result};
   const baseSkill=window.playSkillEffect;
-  if(typeof baseSkill==='function')window.playSkillEffect=function(skillName,element,source='active'){if(state.mode==='cinema'&&state.active){if(source==='passive')showCinemaNarration('护体效果',`【${skillName}】被动触发，并非再次施法。`);else playCinemaCutin('player',skillName,element);}return baseSkill.apply(this,arguments)};
+  if(typeof baseSkill==='function')window.playSkillEffect=function(skillName,element,source='active'){if(state.mode==='cinema'&&state.active){if(source==='passive')showCinemaNarration('护体效果',`【${skillName}】的余韵自行流转，护体灵光应势而起。`);else playCinemaCutin('player',skillName,element);}return baseSkill.apply(this,arguments)};
   const baseBossSkill=window.playBossSkillEffect;
   if(typeof baseBossSkill==='function')window.playBossSkillEffect=function(skillName){if(state.mode==='cinema'&&state.active)playCinemaCutin('enemy',skillName,'');return baseBossSkill.apply(this,arguments)};
   const baseHit=window.playHitEffect;
@@ -253,4 +302,4 @@
   // 战斗呈现UI与观察器由第一次 startCombat 按需创建。
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-22-v2756-cinematic-combat-script.js"]="28.68.31";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-22-v2756-cinematic-combat-script.js"]="28.68.32";

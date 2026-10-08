@@ -90,4 +90,4 @@ window.feedPet=function(index,foodName){
   updatePetPanel();updateStats?.();autoSave();
 };
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-13-feature-13.js"]="28.68.31";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-13-feature-13.js"]="28.68.32";
