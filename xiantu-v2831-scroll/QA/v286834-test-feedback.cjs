@@ -1,0 +1,42 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const root=process.env.XIANTU_TEST_ROOT||path.resolve(__dirname,'..'),fixture=require('./v2858-dom-fixture.cjs');
+const f=fixture(root);for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);
+f.run('startGame();closeWorldOverlay();resetRuntimeState();player=createDefaultPlayer();player.mp=300;player.hp=200;player.skills=[{...SKILLS.find(s=>s.name==="炎爆术")}];player.skillLoadoutV212={fire:["炎爆术"]};player.skillLoadoutInitializedV212=true;setBattlePresentationV2756("report");startCombat({name:"血狐",hp:50000,maxHp:50000,atk:1,def:10,gold:1,exp:1,_realmLevel:0,_realmPhase:0});currentEnemy.burnTurns=3;currentEnemy.burnStacks=100;currentEnemy._burnWeakV286818=true;');f.timers.clear();
+const before=f.run('JSON.stringify([player,currentEnemy])');
+assert.match(f.run('burnComboHintV286834(player.skills[0],currentEnemy)'),/出招前灼烧100点.*额外引爆200点/);
+assert.match(f.run('burnComboHintV286834(player.skills[0],{burnTurns:1,burnStacks:100})'),/引爆0点/);
+assert.match(f.run('burnComboHintV286834(player.skills[0],{})'),/尚无灼烧/);
+assert(f.c.BattleClarityV2856.read().chips.some(x=>/攻击降低15%.*3次/.test(x.text)));
+assert.equal(f.run('JSON.stringify([player,currentEnemy])'),before);
+f.run('combat("skill",0)');assert.equal(f.run('currentEnemy.hp'),49900);f.flush(300);
+assert.equal(f.run('currentEnemy.burnTurns'),0);assert.equal(f.run('currentEnemy._burnWeakV286818'),false);
+assert.match(f.c.XiantuBattleProseV286832.result('🔥 引爆剩余灼烧，追加200点伤害，灼烧与破甲消散。'),/潜伏的余火骤然爆开/);
+assert(!f.c.BattleClarityV2856.read().chips.some(x=>/攻击降低15%/.test(x.text)));
+f.run('setBattlePresentationV2756("cinema");addCombatLog("你对血狐造成 12 点伤害！","damage")');f.timers.clear();
+const text=f.ids.get('cinemaTextV2756').textContent,history=f.c.XiantuBattleProseV286832.history().length;
+f.ids.get('cinemaPauseBtnV2756').click();assert.equal(f.ids.get('cinemaTextV2756').textContent,text);assert.equal(f.c.XiantuBattleProseV286832.history().length,history);
+f.ids.get('cinemaPauseBtnV2756').click();assert.equal(f.ids.get('cinemaTextV2756').textContent,text);
+const prose=f.c.XiantuBattleProseV286832;
+assert.match(prose.result('你对血狐造成 12 点伤害！','血狐',{enemyHp:0,enemyMax:100}),/气力耗尽/);
+assert.match(prose.result('你对血狐造成 12 点伤害！','血狐',{enemyHp:20,enemyMax:100}),/强弩之末/);
+assert.doesNotMatch(prose.result('你对血狐造成 0 点伤害！','血狐',{enemyHp:0,enemyMax:100}),/气力耗尽/);
+assert.notEqual(prose.result('你对血狐造成 12 点伤害！','血狐',{variant:0}),prose.result('你对血狐造成 12 点伤害！','血狐',{variant:1}));
+console.log('PASS truthful burn preview including pre-action tick, weaken readout, pause/resume prose preservation, outcome variation');
+// Persistent ember consumes live state and tick events; no new RAF, timers or gameplay writes.
+const images=[],g=fixture(root),Base=g.c.Image;g.c.Image=class extends Base{constructor(){super();images.push(this)}};
+for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))g.load(file);
+let serial=0;const frames=new Map();g.c.requestAnimationFrame=fn=>{frames.set(++serial,fn);return serial};g.c.cancelAnimationFrame=id=>frames.delete(id);g.c.performance.now=()=>1000;
+const ink=images.find(i=>(i.src||'').includes('duel-ink-poses'));ink.naturalWidth=1536;ink.naturalHeight=1024;ink.onload();
+const calls=[];g.c.InkSkillFxV2854.heart.prepare();
+const residue=images.find(i=>(i.src||'').endsWith('heart_fire_residue.png'));
+for(const im of images.filter(i=>(i.src||'').includes('heart-fire-v286833/'))){const spec=Object.values(g.c.InkSkillFxV2854.heart.definition.layers).find(l=>im.src.endsWith(l.file));im.naturalWidth=spec.frames*spec.frameWidth;im.naturalHeight=spec.frameHeight;im.onload();}
+g.run('var burnHost=document.createElement("div");document.body.appendChild(burnHost);var burnData={active:true,playerHp:100,playerMax:100,enemyHp:100,enemyMax:100,burnTurns:3,burnDamage:10};var burnScene=XiantuDuel25D.create(burnHost,()=>burnData);');
+const ctx=g.run('burnScene.canvas.getContext("2d")');ctx.drawImage=(im,...args)=>{if(im===residue)calls.push({alpha:ctx.globalAlpha,args})};
+function tick(t){const batch=[...frames.values()];frames.clear();for(const fn of batch)fn(t);}
+tick(1100);assert.equal(calls.length,1);assert.equal(calls[0].args.at(-2),130);assert.equal(frames.size,1);
+calls.length=0;g.run('burnScene.burnTick()');tick(1170);assert(calls[0].alpha>.45);
+calls.length=0;g.run('burnData.burnTurns=0');tick(1240);assert.equal(calls.length,0);
+g.run('burnData.burnTurns=3;burnData.enemyHp=0');tick(1310);assert.equal(calls.length,0);
+g.run('burnScene.destroy()');assert.equal(frames.size,0);
+console.log('PASS ember follows live burn state, real tick pulse, expiry/death removal and one-loop cleanup');

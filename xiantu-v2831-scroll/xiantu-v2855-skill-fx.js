@@ -218,7 +218,16 @@ function sampleHeartFire(D,j,age){
     }
     c.restore();return true;
   }
-  const heart=Object.freeze({definition:HEART_FIRE,sample:heartSample,prepare:prepareHeart,ready:heartReady});
+  // Persistent status reuses a dim residue plate; no extra timer or animation owner.
+  function drawBurnStatus(c,x,y,age,pulse,reduced){
+    prepareHeart();if(!heartReady())return;
+    const spec=HEART_FIRE.layers.residue,texture=heartTextures.get('residue').image;
+    c.save();c.globalCompositeOperation='source-over';
+    c.globalAlpha=reduced?.45:.45+.25*Math.max(0,Math.min(1,pulse));
+    const frame=1,size=130; // Static low ember: tick changes opacity, never restarts the full cast.
+    c.drawImage(texture,frame*spec.frameWidth,0,spec.frameWidth,spec.frameHeight,x-size/2,y-size/2,size,size);c.restore();
+  }
+  const heart=Object.freeze({definition:HEART_FIRE,sample:heartSample,prepare:prepareHeart,ready:heartReady,drawStatus:drawBurnStatus});
   function profile(name,element='',info=null,source='active'){
     name=String(name||'灵力冲击');
     if(!info&&typeof SKILLS!=='undefined')info=SKILLS.find(s=>s.name===name)||null;
@@ -493,4 +502,4 @@ function sampleHeartFire(D,j,age){
   W.InkSkillFxV2854={profile,draw,drawGround,sample,solar,butterfly,heart,catalog:()=>[...new Set([...Object.keys(styles),...Object.keys(forms),...(typeof SKILLS!=='undefined'?SKILLS.map(s=>s.name):[])])].map(name=>profile(name)),play,hit,clear,finish,cinemaClear,install,cycle,settings,inspect:()=>({version:'28.68',quality,finishing:finishUntil>now(),active:jobs.length,raf:!!raf,pixels:canvas?canvas.width*canvas.height:0,jobs:jobs.map(j=>({name:j.profile.name,kind:j.profile.kind,family:j.profile.family,side:j.side,self:j.profile.self,hitAt:j.hitAt,from:{...j.from},to:{...j.to}}))})};
   install();
 })();
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2855-skill-fx.js']='28.68.33';
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2855-skill-fx.js']='28.68.34';

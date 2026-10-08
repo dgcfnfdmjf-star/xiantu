@@ -29,6 +29,7 @@
       if(currentEnemy._chillTurnsV286818>0)push('enemy',`寒迟 · 余${currentEnemy._chillTurnsV286818}次行动`);
       if(currentEnemy._iceBreakTurnsV286818>0)push('enemy','冰爆破甲25%');
       if(currentEnemy.burnTurns>0)push('enemy','灼烧破甲15%'+(currentEnemy._burnHealBlockV286818?' · 禁疗':''));
+      if(currentEnemy.burnTurns>0&&currentEnemy._burnWeakV286818)push('enemy',`心火 · 攻击降低15% · 余${count(currentEnemy.burnTurns)}次主动出招`);
       if(currentEnemy._spellSealTurnsV286817>0)push('enemy',`封脉 · 余 ${currentEnemy._spellSealTurnsV286817} 次行动`);
       if(skipEnemyTurn||currentEnemy._pressureStun)push('enemy',`敌方${currentEnemy._skipReason||'受控'} · 下次停手`);
       if(currentEnemy.burnTurns>0&&currentEnemy.burnStacks>0)push('enemy',`灼烧 · ${count(currentEnemy.burnStacks)}点×${count(currentEnemy.burnTurns)}次`);
@@ -96,4 +97,4 @@
   W.BattleClarityV2856={read,sync};
 })(window,document);
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2856-battle-clarity.js']='28.68.33';
+window.__xiantuBuildFilesV2814['xiantu-v2856-battle-clarity.js']='28.68.34';

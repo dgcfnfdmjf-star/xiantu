@@ -69,6 +69,7 @@
     }
     const prose=document.getElementById('cinemaNarrationV2756');
     if(prose&&prose.parentNode!==panel){arena.insertAdjacentElement('afterend',prose);prose.setAttribute('role','status');prose.setAttribute('aria-live','polite');}
+    syncProseHistory();
     ensureStrategyUiV2819(panel);
     return panel;
   }
@@ -88,7 +89,7 @@
     if(cinema){const locked=!!(currentEnemy?._isTutorial);cinema.disabled=locked;cinema.title=locked?'新手引路需先亲自完成一次普通攻击':''}
     const pause=document.getElementById('cinemaPauseBtnV2756');if(pause)pause.textContent=state.paused?'▶ 继续':'⏸ 暂停';
     const speed=document.getElementById('cinemaSpeedBtnV2756');if(speed)speed.textContent=`⏩ ${state.speed}倍`;
-    const status=document.getElementById('cinemaStatusV2756');if(status)status.textContent=state.paused?'自动出招已暂停':(typeof isPlayerTurn!=='undefined'&&isPlayerTurn?'蓄势出招中':'敌方回击中');
+    const status=document.getElementById('cinemaStatusV2756');if(status)status.textContent=state.paused?'已暂停自动出招 · 当前招式仍会完成结算':(typeof isPlayerTurn!=='undefined'&&isPlayerTurn?'蓄势出招中':'敌方回击中');
     syncCinemaCaptureButton();applySpeedVars();
   }
   function setBattlePresentationV2756(mode,opts={}){
@@ -104,12 +105,32 @@
   function toggleCinemaPauseV2756(){
     window.InkSkillFxV2854?.clear();
     if(state.mode!=='cinema'||!state.active)return;state.paused=!state.paused;clearAuto();syncCinemaControls();
-    showCinemaNarration('旁白',state.paused?'已暂停自动出招；当前已发出的招式会完成结算。':'画面再度流转，未尽的斗法继续。');if(!state.paused)scheduleCinemaTurn(delay(520));
+    if(!state.paused)scheduleCinemaTurn(delay(520));
   }
   function cycleCinemaSpeedV2756(){state.speed=state.speed===1?2:state.speed===2?3:1;savePref();syncCinemaControls();showFloatingText?.(`🎬 动画演武速度：${state.speed}倍`,'#ccefdc');if(!state.paused)scheduleCinemaTurn(delay(420))}
 
   // 文学描写只读已发生的战况，不调用随机数，不参与伤害或存档结算。
-  let proseSequence=0,proseParts=[];
+  let proseSequence=0,proseParts=[],proseHistory=[],proseDropped=0;
+  function syncProseHistory(){
+    const panel=document.getElementById('combatPanel');if(!panel)return;
+    let box=document.getElementById('battleProseHistoryV286834');
+    if(!box){box=document.createElement('details');box.id='battleProseHistoryV286834';
+      const summary=document.createElement('summary');box.appendChild(summary);
+      const list=document.createElement('div');list.className='battle-prose-pages';box.appendChild(list);
+      box.addEventListener('toggle',()=>{if(box.open&&state.mode==='cinema'&&state.active&&!state.paused)toggleCinemaPauseV2756();});
+      panel.appendChild(box);
+    }
+    box.querySelector('summary').textContent=`回看本场纪事 · ${proseHistory.length}段${proseDropped?'（保留最近500段）':''}`;
+    const list=box.querySelector('.battle-prose-pages');
+    if(list._count===proseHistory.length&&list._tail===proseHistory.at(-1))return;
+    list.textContent='';for(const text of proseHistory){const p=document.createElement('p');p.textContent=text;list.appendChild(p);}
+    list._count=proseHistory.length;list._tail=proseHistory.at(-1);
+  }
+  function rememberProse(text){
+    if(proseHistory.at(-1)===text)return;
+    proseHistory.push(text);if(proseHistory.length>500){proseHistory.shift();proseDropped++;}
+    syncProseHistory();
+  }
   function novelCastV286832(name,skill,element='',variant=0){
     const who=String(name||'你'),title=String(skill||'');
     if(title==='太阳真火')return `${who}催动【太阳真火】，金焰聚作一轮烈日，炽光沿着战场缓缓铺开。`;
@@ -117,20 +138,20 @@
     if(title==='冰蝶幻舞')return `${who}引动【冰蝶幻舞】，霜光凝成蝶翼，纷纷绕过身前，向对手翩然掠去。`;
     if(!title)return [ `${who}觑准间隙，攻势陡然递出，破空声紧随而至。`,`${who}收住气息，随即疾攻而出，将这一招送向对手。` ][variant%2];
     const lines={
-      sword:['剑意沿锋而起，一线寒芒划破身前的沉寂。','锋芒一转，剑光随势铺开，直指对手。'],
-      thunder:['雷光在身前明灭，沉闷的轰鸣滚过战场。','电芒骤聚，细碎雷声连成一片，映亮了双方的身影。'],
-      ice:['寒意随灵光散开，点点霜华在半空凝起。','冰光悄然流转，将眼前的光影染上一层冷色。'],
-      fire:['焰光随势腾起，灼热气浪卷向前方。','火色乍亮，赤焰在灵力牵引下翻涌而出。'],
-      heal:['温润灵光循着经脉流转，试着抚平激战留下的伤势。','灵息缓缓回拢，一缕柔光融入周身。']
+      sword:['剑意沿锋而起，一线寒芒划破身前的沉寂。','锋芒一转，剑光随势铺开，直指对手。','气息沿剑脊凝成一线，随挥剑之势递向前方。'],
+      thunder:['雷光在身前明灭，沉闷的轰鸣滚过战场。','电芒骤聚，细碎雷声连成一片，映亮了双方的身影。','指间电光游走，低沉雷音从交锋之处传来。'],
+      ice:['寒意随灵光散开，点点霜华在半空凝起。','冰光悄然流转，将眼前的光影染上一层冷色。','灵息转寒，霜晶顺着法诀在身前次第凝结。'],
+      fire:['焰光随势腾起，灼热气浪卷向前方。','火色乍亮，赤焰在灵力牵引下翻涌而出。','掌间火光由暗转明，裹着灼热气息向前卷去。'],
+      heal:['温润灵光循着经脉流转，试着抚平激战留下的伤势。','灵息缓缓回拢，一缕柔光融入周身。','喧嚣之中，一道温和的灵息循经而行，护住周身。']
     };
     const group=lines[element]||['灵光循诀而动，气机层层交织，化作这一式仙法。','周身气息一凝，法光随之展开。'];
     return `${who}运起【${title}】，${group[variant%group.length]}`;
   }
-  function novelResultV286832(text,enemy='对手'){
+  function novelResultV286832(text,enemy='对手',context={}){
     const t=String(text||''),foe=String(enemy||'对手');let m;
     if((m=t.match(/^(?:【暴击】)?(?:你对|施展【([^】]+)】，对).+造成\s*([\d.]+)\s*点伤害！$/))){
       const lead=m[1]==='焚心炎'?`【焚心炎】的赤黑火束抵至${foe}身前。`:m[1]==='太阳真火'?`【太阳真火】裹着金焰落下，烈日般的光辉照亮了${foe}。`:m[1]==='冰蝶幻舞'?`【冰蝶幻舞】掠过${foe}，蝶翼散作细碎霜光。`:m[1]?`【${m[1]}】落向${foe}。`:'';
-      return lead+(Number(m[2])<=0?'这一击终被挡下，未能造成伤害。':t.startsWith('【暴击】')?`攻势陡然爆发，重重击中${foe}！`:`攻势落实，${foe}受了这一击。`);
+      return lead+(Number(m[2])>0&&context.enemyHp===0?`最后一击落定，${foe}气力耗尽，倒在余波之中。`:Number(m[2])<=0?'这一击终被挡下，未能造成伤害。':t.startsWith('【暴击】')?`攻势陡然爆发，重重击中${foe}！`:(context.enemyMax>0&&context.enemyHp/context.enemyMax<=.25?`${foe}已是强弩之末，仍承下了这一击。`:[`攻势落实，${foe}受了这一击。`, `招式越过交锋的气浪，在${foe}身上留下新的伤势。`, `灵光散去，${foe}已被这一招所伤。`][(context.variant||0)%3]));
     }
     if((m=t.match(/^([^\n]*?)对你造成\s*([\d.]+)\s*点伤害！$/))){
       return Number(m[2])<=0?`${foe}的攻势被挡下，你未受伤。`:t.startsWith('【暴击】')?`${foe}这一击格外沉重，剧痛猝然袭来！`:`${foe}的攻势落在你身上，疼痛随之传来。`;
@@ -141,10 +162,11 @@
     if(/封脉：/.test(t)&&/不能施展术法/.test(t))return `雷意封住${foe}的术法运转，然而对方仍能近身进攻。`;
     if(/敌人因.+无法行动！$/.test(t)||/被境界威压震慑，本回合无法行动！$/.test(t))return `${foe}的动作受制，这一轮未能出招。`;
     if(/陷入眩晕！$/.test(t))return `${foe}神魂受震，一时陷入眩晕。`;
+    if(/^🔥 引爆剩余灼烧/.test(t))return `潜伏的余火骤然爆开，${foe}身上的灼烧与破甲也随之散尽。`;
     if(/^🔥 灼烧/.test(t))return `余火缠住${foe}，灼烧与破甲随之生效。`;
     if(/^灼烧造成\s*[1-9]\d* 点伤害/.test(t))return `余焰尚未熄灭，又一次灼伤了${foe}。`;
     if(/^护盾展开：/.test(t))return '护体灵光凝成屏障，守在你的身前。';
-    if(/^元素护盾吸收[1-9]/.test(t))return '攻势撞上护体灵光，屏障替你承下了部分冲击。';
+    if(/^元素护盾吸收[1-9]/.test(t))return ['攻势撞上护体灵光，屏障替你承下了部分冲击。','护体屏障应声亮起，将袭来的部分力道挡在身外。'][(context.variant||0)%2];
     if(/恢复\s*[1-9]\d*\s*点生命/.test(t))return '一股暖意回到体内，你的伤势得到了缓解。';
     if(/重伤倒地/.test(t))return '气力终于耗尽，你重伤倒地，眼前的战场渐渐模糊。';
     if(/逃跑失败！$/.test(t))return '退路仍被对手封住，这次脱身未能成功。';
@@ -152,9 +174,11 @@
     // 未识别的信息仍完整进入原战报，不能凭技能名猜测命中、控制或战果。
     return '';
   }
-  window.XiantuBattleProseV286832=Object.freeze({cast:novelCastV286832,result:novelResultV286832});
+  window.XiantuBattleProseV286832=Object.freeze({cast:novelCastV286832,result:novelResultV286832,history:()=>proseHistory.slice()});
   function showCinemaNarration(speaker,text,group='scene',append=false){
-    if(document.hidden||state.mode!=='cinema'||!state.active)return;const box=document.getElementById('cinemaNarrationV2756'),sp=document.getElementById('cinemaSpeakerV2756'),tx=document.getElementById('cinemaTextV2756');if(!box||!sp||!tx)return;
+    if(!state.active)return;
+    rememberProse(String(text||'灵气激荡，胜负仍未分明。'));
+    if(document.hidden||state.mode!=='cinema')return;const box=document.getElementById('cinemaNarrationV2756'),sp=document.getElementById('cinemaSpeakerV2756'),tx=document.getElementById('cinemaTextV2756');if(!box||!sp||!tx)return;
     cinemaCancel(state.narrationTimer);state.narrationTimer=0;sp.textContent='斗法纪事';
     const value=String(text||'灵气激荡，胜负仍未分明。');
     if(group==='scene')proseParts=[];
@@ -261,7 +285,7 @@
   const baseStart=window.startCombat;
   if(typeof baseStart==='function')window.startCombat=function(...args){
     if(gameState==='combat'||gameState==='combat-ending'||COMBAT_FINISH_V2764.settling||player.breakthrough?.isAnimating)return false;
-    cleanupCinema();state.starting=true;state.round=0;state.skillCursor=0;state.paused=false;state.mode=(args[0]?._isTutorial?'report':readMode());state.speed=readSpeed();state.active=true;
+    cleanupCinema();proseHistory=[];proseDropped=0;const historyBox=document.getElementById('battleProseHistoryV286834');if(historyBox)historyBox.open=false;syncProseHistory();state.starting=true;state.round=0;state.skillCursor=0;state.paused=false;state.mode=(args[0]?._isTutorial?'report':readMode());state.speed=readSpeed();state.active=true;
     let result;try{result=baseStart.apply(this,args)}catch(error){cleanupCinema();throw error}finally{state.starting=false}install();
     if(state.mode==='cinema'){playCinemaEntrance();scheduleCinemaTurn(delay(1450))}return result;
   };
@@ -270,7 +294,7 @@
   const baseUi=window.updateCombatUI;
   if(typeof baseUi==='function')window.updateCombatUI=function(...args){const result=baseUi.apply(this,args);syncCinemaControls();return result};
   const baseLog=window.addCombatLog;
-  if(typeof baseLog==='function')window.addCombatLog=function(text,type){const result=baseLog.apply(this,arguments),plain=strip(text);if(plain&&state.mode==='cinema'&&state.active){const prose=novelResultV286832(plain,currentEnemy?.name);if(prose){const followup=type==='pet'||/^(?:🔥 灼烧|寒冰凝结|⚡ 封脉|⚡ 九天神雷)/.test(plain);showCinemaNarration('旁白',prose,/对你造成|闪避了攻击/.test(plain)?'enemy':'player',followup);}}return result};
+  if(typeof baseLog==='function')window.addCombatLog=function(text,type){const result=baseLog.apply(this,arguments),plain=strip(text);if(plain&&state.active){const prose=novelResultV286832(plain,currentEnemy?.name,{enemyHp:currentEnemy?.hp,enemyMax:currentEnemy?.maxHp,variant:proseSequence++});if(prose){const followup=type==='pet'||/^(?:🔥 灼烧|寒冰凝结|⚡ 封脉|⚡ 九天神雷)/.test(plain);showCinemaNarration('旁白',prose,/对你造成|闪避了攻击/.test(plain)?'enemy':'player',followup);}}return result};
   const baseAttack=window.playAttackAnimation;
   if(typeof baseAttack==='function')window.playAttackAnimation=function(attacker){const result=baseAttack.apply(this,arguments);if(state.mode==='cinema'&&state.active){const who=attacker==='player'?(player?.name||'你'):(currentEnemy?.name||'敌人');showCinemaNarration(who,novelCastV286832(who,'','',proseSequence++),attacker)}return result};
   const baseSkill=window.playSkillEffect;
@@ -303,4 +327,4 @@
   // 战斗呈现UI与观察器由第一次 startCombat 按需创建。
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-22-v2756-cinematic-combat-script.js"]="28.68.33";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-22-v2756-cinematic-combat-script.js"]="28.68.34";

@@ -3899,7 +3899,7 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 /* V28.12 洞府管理 */
 .home-board-v2812{padding:16px;border:1px solid #9eb781;border-radius:16px;background:linear-gradient(135deg,#14251e,#18202b);color:#e9eee3;line-height:1.65}.home-board-v2812 h3{color:#ead592;margin:0 0 12px}.home-grid-v2812{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-grid-v2812 article{padding:14px;border:1px solid #526454;border-radius:12px;background:#ffffff08}.home-grid-v2812 h4{margin:0;color:#e8d594}.home-grid-v2812 p{color:#d0dbd1}.home-grid-v2812 strong{color:#83ddb6}.home-notice-v2812{padding:12px;background:#31534066;border-radius:10px}@media(max-width:600px){.home-grid-v2812{grid-template-columns:1fr}.home-board-v2812{padding:12px;font-size:14px}}
 
-:root{--xiantu-build:286833;}
+:root{--xiantu-build:286834;}
 #xiantuBuildBadgeV2814{font-size:11px;min-height:32px;padding:5px 9px;white-space:nowrap;color:#b4d4bd;background:#18251f;border:1px solid #718475;border-radius:8px;}
 
 /* V28.68 战斗数值可视层 */
@@ -4364,3 +4364,15 @@ html body #gameScreen #combatPanel.battle-clean-v286816.hidden{display:none!impo
 #cinemaNarrationV2756 .cinema-text-v2756{max-height:none;overflow:visible;overflow-wrap:anywhere;white-space:pre-line;}
 @media(max-height:500px) and (orientation:landscape){#combatPanel > #cinemaNarrationV2756{margin:5px 0;padding:20px 12px 8px;font-size:13px;min-height:56px;line-height:1.6;}}
 #combatPanel.cinema-mode-v2756 #battleRecentV286816{display:none;}
+
+/* V28.68.34: readable status, combo planning and session-only prose history. */
+.burn-combo-v286834{display:block!important;white-space:normal;line-height:1.55;color:#eac28b;margin-top:5px;font-size:12px;font-weight:normal}
+#battleProseHistoryV286834{grid-column:1/-1;margin:10px 0;padding:10px 12px;border:1px solid #b8a56d55;border-radius:10px;color:#e5dfc8;background:#112b26}
+#battleProseHistoryV286834 summary{cursor:pointer;padding:4px 0}
+#battleProseHistoryV286834 .battle-prose-pages{max-height:45vh;overflow:auto;overscroll-behavior:contain;line-height:1.8;overflow-wrap:anywhere}
+#battleProseHistoryV286834 p{margin:10px 0;border-bottom:1px solid #b8a56d22;padding-bottom:8px}
+html body #gameScreen #combatPanel.battle-clean-v286816>#battleProseHistoryV286834{order:4;}
+@media(orientation:landscape) and (min-width:640px){
+ html body #gameScreen #combatPanel.battle-clean-v286816>#cinemaNarrationV2756{grid-column:2;grid-row:6;}
+ html body #gameScreen #combatPanel.battle-clean-v286816>#battleProseHistoryV286834{grid-column:2;grid-row:7;}
+}
