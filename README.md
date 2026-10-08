@@ -1,4 +1,20 @@
-## 最新完整游戏包：V28.68.32
+## 最新完整游戏包：V28.68.33
+
+[下载完整游戏文件夹](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.33-game-folder.zip)
+
+新增焚心炎专属四阶段特效：凝心蓄炎、赤黑贯心、焚脉火纹、余烬消散。使用原角色立绘，保留65灵力、4.2倍率与原灼烧降攻规则，支持人形/野兽躯干定位。包括此前全部游戏内容与美术资源。
+
+173个运行文件，解压后顶层文件夹仍为 `xiantu-v2831-scroll`，整文件夹上传覆盖。无需更新Jev，不清除存档。本次未部署腾讯云。
+
+来源 main：`0c7ad11af94d860e1e9f45f781e315fcd2724cc8`。38个游戏回归脚本、3个限流测试、7项浏览器测试通过，并检查390×844及844×390浏览器模拟界面（非实机）。三份源码校验清单及ZIP逐文件比对通过。
+
+大小：44,602,866字节。SHA-256：`ec73c76ceb0dfa0f2ffa75e013fa719cae2b17d48d5b408aeecdaf9bf32474cd`
+
+[更新说明](heart-fire-v286833.md)。私有仓库下载需登录有权限的GitHub账号。
+
+---
+
+## 历史完整游戏包：V28.68.32
 
 [下载完整游戏文件夹](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.32-game-folder.zip)
 
