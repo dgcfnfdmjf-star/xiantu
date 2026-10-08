@@ -1,4 +1,18 @@
-## 最新完整游戏包：V28.68.29
+## 最新完整游戏包：V28.68.31
+
+[下载完整游戏文件夹](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.31-game-folder.zip)
+
+包含太阳真火、冰蝶幻舞四阶段特效，以及此前全部主线插画和游戏内容。完整包162文件，解压后顶层文件夹仍为 `xiantu-v2831-scroll`，可上传同名文件夹覆盖。无需重传Jev，本次未部署腾讯云。
+
+来源：main 提交 `e1c64923de476b9ad0b9ed355fd0e1106ae4ca8e`。本次从该提交的干净文件快照打包，40个脚本版本标记、三份SHA-256清单及ZIP逐文件比对均通过；36个游戏回归脚本和3个限流测试通过。本次未重复执行浏览器视觉验收，已有特效制作记录见 [太阳真火说明](solar-fire-v286830.md) 与 [冰蝶幻舞说明](ice-butterfly-v286831.md)。
+
+包大小：44,227,432字节。SHA-256：`47d4d51590965c383969d949f4abe3a671710946939ac6eca4d04f1de4414f1a`
+
+私有仓库下载需登录有权限的GitHub账号。
+
+---
+
+## 历史完整游戏包：V28.68.29
 
 [下载完整游戏文件夹](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.29-game-folder.zip)
 
