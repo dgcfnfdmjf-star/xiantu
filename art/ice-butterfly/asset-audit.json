@@ -1,0 +1,529 @@
+{
+  "sources": {
+    "approved-storyboard.png": "46d4e9d3b23915d110fe51a328d358e90bb412305cac52d1a346ef08576df858",
+    "keyplates-original.png": "87a98cd142a5b03971efe430cd131ad44dc24eb407326225be38c8c75e1dae2f",
+    "keyplates-safe.png": "2b400dfc108d314be4ba79bb6e3311e8d4faa6637ce7892d07317768e67f11ca",
+    "material-master-original.png": "be5ffd53480b6509079ec29f0ad61719646528f3e464205d37d2f7ceeea31ac5",
+    "material-master-safe.png": "09ae2f7edcc905bcc5b5763fd2fb96eeb360efb6ce177b2ece5d27c910d447ac"
+  },
+  "registration": [
+    {
+      "index": 0,
+      "observedPivot": [
+        355,
+        405
+      ],
+      "targetPivot": [
+        336,
+        336
+      ],
+      "translate": [
+        -19,
+        -69
+      ]
+    },
+    {
+      "index": 1,
+      "observedPivot": [
+        339,
+        405
+      ],
+      "targetPivot": [
+        336,
+        336
+      ],
+      "translate": [
+        -3,
+        -69
+      ]
+    },
+    {
+      "index": 2,
+      "observedPivot": [
+        328,
+        407
+      ],
+      "targetPivot": [
+        336,
+        336
+      ],
+      "translate": [
+        8,
+        -71
+      ]
+    },
+    {
+      "index": 3,
+      "observedPivot": [
+        354,
+        446
+      ],
+      "targetPivot": [
+        336,
+        450
+      ],
+      "translate": [
+        -18,
+        4
+      ]
+    },
+    {
+      "index": 4,
+      "observedPivot": [
+        337,
+        469
+      ],
+      "targetPivot": [
+        336,
+        450
+      ],
+      "translate": [
+        -1,
+        -19
+      ]
+    },
+    {
+      "index": 5,
+      "observedPivot": [
+        329,
+        480
+      ],
+      "targetPivot": [
+        336,
+        450
+      ],
+      "translate": [
+        7,
+        -30
+      ]
+    },
+    {
+      "index": 6,
+      "observedPivot": [
+        350,
+        447
+      ],
+      "targetPivot": [
+        336,
+        450
+      ],
+      "translate": [
+        -14,
+        3
+      ]
+    },
+    {
+      "index": 7,
+      "observedPivot": [
+        339,
+        448
+      ],
+      "targetPivot": [
+        336,
+        450
+      ],
+      "translate": [
+        -3,
+        2
+      ]
+    },
+    {
+      "index": 8,
+      "observedPivot": [
+        324,
+        434
+      ],
+      "targetPivot": [
+        336,
+        450
+      ],
+      "translate": [
+        12,
+        16
+      ]
+    }
+  ],
+  "outputs": {
+    "ice_butterfly_body.png": "9d1250544abf5aae67f0b5bf96cd86c5484cffb7fb0af7d40196f219c51e2ace",
+    "ice_butterfly_impact.png": "4638642061026e262d27f91972f13dfa4e4ce0348365c6d23a44afe336f6e725",
+    "ice_butterfly_residue.png": "8078c837647724434a18742d0dc9b1c8334a5334dc3eba6475b400ed3525de98",
+    "ice_butterfly_telegraph.png": "5774300e6c4953785bb5bdd65d3e76d277be1ea8c1941515d706d3a6246be5b9"
+  },
+  "manifest": "84e54748011255a3acd03631bb03a1b5d5974204a9200e8f7df767eb59da15d1",
+  "frames": [
+    {
+      "layer": "telegraph",
+      "frame": 0,
+      "sha256": "b620872f4c9d00b3643e4b8d4f1364d937838e6555863cd5ca87c8a7efd3c835",
+      "bounds": [
+        60,
+        134,
+        199,
+        192
+      ],
+      "whiteCoverage": 0.008426998132911446,
+      "blueCoverage": 0.9856462506821433
+    },
+    {
+      "layer": "telegraph",
+      "frame": 1,
+      "sha256": "45ade0bbbe84de8477735a32dad4cdfe7bfd4e8605544f3108933867e9d80ea6",
+      "bounds": [
+        60,
+        132,
+        198,
+        192
+      ],
+      "whiteCoverage": 0.0003955272994887324,
+      "blueCoverage": 0.9980337105972139
+    },
+    {
+      "layer": "telegraph",
+      "frame": 2,
+      "sha256": "408a99721d538089f3eec6ad0a7157e13c64c07c192c32ac9fc461fb77d148f1",
+      "bounds": [
+        60,
+        131,
+        198,
+        192
+      ],
+      "whiteCoverage": 0.0007897002375573666,
+      "blueCoverage": 0.9981438807941019
+    },
+    {
+      "layer": "telegraph",
+      "frame": 3,
+      "sha256": "6dac83a0acae1473c7ac3829d9ae4e0b71b55b14d76fd72511d2f5d7f1f8de22",
+      "bounds": [
+        60,
+        131,
+        197,
+        188
+      ],
+      "whiteCoverage": 0.007607876237910839,
+      "blueCoverage": 0.9856089844781927
+    },
+    {
+      "layer": "body",
+      "frame": 0,
+      "sha256": "47940fe632fd14abcb7454a8c5b04bc2d0c822ae5b761e917a7b4ad3918f43c0",
+      "bounds": [
+        31,
+        27,
+        97,
+        84
+      ],
+      "whiteCoverage": 0.002069825303547739,
+      "blueCoverage": 0.9958736687320521
+    },
+    {
+      "layer": "body",
+      "frame": 1,
+      "sha256": "d6fe00d2dcdf7b72b810726bab331e13276811c2ee5ad6e7984b818cd599f063",
+      "bounds": [
+        31,
+        26,
+        97,
+        84
+      ],
+      "whiteCoverage": 0.0,
+      "blueCoverage": 0.9991006148857413
+    },
+    {
+      "layer": "body",
+      "frame": 2,
+      "sha256": "157dfbeb6d71a8a9142e734b6e458c8145d93308c1645b0d25ee102a4cd7aab6",
+      "bounds": [
+        41,
+        26,
+        88,
+        84
+      ],
+      "whiteCoverage": 0.0009063260122730157,
+      "blueCoverage": 0.9945799555076325
+    },
+    {
+      "layer": "body",
+      "frame": 3,
+      "sha256": "2d9408608bbdba634c4e587ff61143f86991db0868e2a83736710cc8a5bd0d97",
+      "bounds": [
+        41,
+        26,
+        88,
+        85
+      ],
+      "whiteCoverage": 0.0,
+      "blueCoverage": 1.0
+    },
+    {
+      "layer": "body",
+      "frame": 4,
+      "sha256": "ef7b40ec03234e69c23e0172fe6b9edb8b6485f2a3c01fca073204a47d18578d",
+      "bounds": [
+        49,
+        26,
+        79,
+        85
+      ],
+      "whiteCoverage": 0.0009792192306021803,
+      "blueCoverage": 0.9950367799481171
+    },
+    {
+      "layer": "body",
+      "frame": 5,
+      "sha256": "2d9408608bbdba634c4e587ff61143f86991db0868e2a83736710cc8a5bd0d97",
+      "bounds": [
+        41,
+        26,
+        88,
+        85
+      ],
+      "whiteCoverage": 0.0,
+      "blueCoverage": 1.0
+    },
+    {
+      "layer": "body",
+      "frame": 6,
+      "sha256": "157dfbeb6d71a8a9142e734b6e458c8145d93308c1645b0d25ee102a4cd7aab6",
+      "bounds": [
+        41,
+        26,
+        88,
+        84
+      ],
+      "whiteCoverage": 0.0009063260122730157,
+      "blueCoverage": 0.9945799555076325
+    },
+    {
+      "layer": "body",
+      "frame": 7,
+      "sha256": "d6fe00d2dcdf7b72b810726bab331e13276811c2ee5ad6e7984b818cd599f063",
+      "bounds": [
+        31,
+        26,
+        97,
+        84
+      ],
+      "whiteCoverage": 0.0,
+      "blueCoverage": 0.9991006148857413
+    },
+    {
+      "layer": "impact",
+      "frame": 0,
+      "sha256": "43a1169363c293c8a6f32eb1151876c2a9146dffe2b20e0de3adf96ea5bc976f",
+      "bounds": [
+        78,
+        107,
+        178,
+        179
+      ],
+      "whiteCoverage": 0.029160082420115304,
+      "blueCoverage": 0.9492979066920245
+    },
+    {
+      "layer": "impact",
+      "frame": 1,
+      "sha256": "13060cb2032298f56005d48f75be3e152318d0b2af3347ebdaef94e2dda7dcd0",
+      "bounds": [
+        64,
+        66,
+        194,
+        179
+      ],
+      "whiteCoverage": 0.01126856571562739,
+      "blueCoverage": 0.9767478849664093
+    },
+    {
+      "layer": "impact",
+      "frame": 2,
+      "sha256": "34dadbe442b6388ab1dc2cfdb1271e548467d8919eba14550c65faa7d3346807",
+      "bounds": [
+        64,
+        65,
+        194,
+        179
+      ],
+      "whiteCoverage": 0.008107855943273,
+      "blueCoverage": 0.9830285501026312
+    },
+    {
+      "layer": "impact",
+      "frame": 3,
+      "sha256": "0cc6c41c08d4c73604fee7bade859e44fef1666cce56ffb18d07ee3af4aa1138",
+      "bounds": [
+        63,
+        65,
+        194,
+        179
+      ],
+      "whiteCoverage": 0.007548746782664856,
+      "blueCoverage": 0.9796835376914967
+    },
+    {
+      "layer": "impact",
+      "frame": 4,
+      "sha256": "da9a6080d5284746c2a36dcc12b6f728c8b047fe49013c590792f1060b566412",
+      "bounds": [
+        63,
+        65,
+        194,
+        179
+      ],
+      "whiteCoverage": 0.026764209899019106,
+      "blueCoverage": 0.9535772286932398
+    },
+    {
+      "layer": "impact",
+      "frame": 5,
+      "sha256": "4bfc997871f718811f725e0cebbcfddbba5d1f796226cf6d8fadaf4d16d6f358",
+      "bounds": [
+        63,
+        65,
+        194,
+        179
+      ],
+      "whiteCoverage": 0.027581188276209742,
+      "blueCoverage": 0.9540154840267311
+    },
+    {
+      "layer": "residue",
+      "frame": 0,
+      "sha256": "a2148d3e29401e66aa2e20b3ccbcb3b8ddb8ed91b6a1f373af56b273b2d98243",
+      "bounds": [
+        85,
+        82,
+        178,
+        181
+      ],
+      "whiteCoverage": 0.007329669075299465,
+      "blueCoverage": 0.98765820705018
+    },
+    {
+      "layer": "residue",
+      "frame": 1,
+      "sha256": "d9d1c6ebc0e4622f0f3f233f7cd6001295504304b27613c5cef9f321489a37db",
+      "bounds": [
+        85,
+        82,
+        178,
+        181
+      ],
+      "whiteCoverage": 0.0,
+      "blueCoverage": 0.9906409235847825
+    },
+    {
+      "layer": "residue",
+      "frame": 2,
+      "sha256": "3623d101cf8f18b69cf404a1c3946baa11d31c87e15342306442e1667ba4f56a",
+      "bounds": [
+        85,
+        82,
+        177,
+        181
+      ],
+      "whiteCoverage": 0.0,
+      "blueCoverage": 0.9906083696178035
+    },
+    {
+      "layer": "residue",
+      "frame": 3,
+      "sha256": "591479a5ba515e3065452d11ae2229ae81e1a2ad503b60a988cbe96671c4f9a7",
+      "bounds": [
+        85,
+        83,
+        177,
+        180
+      ],
+      "whiteCoverage": 0.0,
+      "blueCoverage": 0.9909101062778689
+    },
+    {
+      "layer": "residue",
+      "frame": 4,
+      "sha256": "47c0f00fed98b36ecaace58f20f73f540c906112ae5c203a985f68e6152e2a72",
+      "bounds": [
+        86,
+        83,
+        176,
+        180
+      ],
+      "whiteCoverage": 0.0,
+      "blueCoverage": 0.9917839907470186
+    },
+    {
+      "layer": "residue",
+      "frame": 5,
+      "sha256": "32a3139a48c543c27bbfd1a4b25dc7ce2b4219fe3466d80d803c6e13d3668c86",
+      "bounds": [
+        86,
+        109,
+        171,
+        178
+      ],
+      "whiteCoverage": 0.010656747752270549,
+      "blueCoverage": 0.9844826799324541
+    }
+  ],
+  "sourcePaletteAudit": [
+    {
+      "file": "material-master-safe.png",
+      "cell": 0,
+      "whiteCoverage": 0.08170683939995577,
+      "blueCoverage": 0.8967390572209715
+    },
+    {
+      "file": "keyplates-safe.png",
+      "cell": 0,
+      "whiteCoverage": 0.044825583318756614,
+      "blueCoverage": 0.9293957843824645
+    },
+    {
+      "file": "keyplates-safe.png",
+      "cell": 1,
+      "whiteCoverage": 0.0358737546493266,
+      "blueCoverage": 0.9395982062142908
+    },
+    {
+      "file": "keyplates-safe.png",
+      "cell": 2,
+      "whiteCoverage": 0.028199735431676774,
+      "blueCoverage": 0.9516509652576236
+    },
+    {
+      "file": "keyplates-safe.png",
+      "cell": 3,
+      "whiteCoverage": 0.0471201408654202,
+      "blueCoverage": 0.9311270055878651
+    },
+    {
+      "file": "keyplates-safe.png",
+      "cell": 4,
+      "whiteCoverage": 0.047542792604968104,
+      "blueCoverage": 0.9282360448304521
+    },
+    {
+      "file": "keyplates-safe.png",
+      "cell": 5,
+      "whiteCoverage": 0.04858718485686686,
+      "blueCoverage": 0.923148613228496
+    },
+    {
+      "file": "keyplates-safe.png",
+      "cell": 6,
+      "whiteCoverage": 0.025302536334765834,
+      "blueCoverage": 0.9561057835589298
+    },
+    {
+      "file": "keyplates-safe.png",
+      "cell": 7,
+      "whiteCoverage": 0.02297809015562118,
+      "blueCoverage": 0.969564257607778
+    },
+    {
+      "file": "keyplates-safe.png",
+      "cell": 8,
+      "whiteCoverage": 0.04112268397875844,
+      "blueCoverage": 0.9340819420106004
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "effects": [
+    {
+      "key": "ice_butterfly_dance",
+      "name": "冰蝶幻舞",
+      "element": "ice",
+      "visualArchetype": "projectile-volley",
+      "layers": {
+        "telegraph": {
+          "file": "ice_butterfly_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.6696428571428571,
+          "fps": 30.769230769230766,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "ice_butterfly_body.png",
+          "frames": 8,
+          "frameWidth": 128,
+          "frameHeight": 128,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 32,
+          "loop": true,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "ice_butterfly_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.6696428571428571,
+          "fps": 33.333333333333336,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "ice_butterfly_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.6696428571428571,
+          "fps": 15.0,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 18,
+      "timing": {
+        "arrivalMs": 310,
+        "gatherMs": 95,
+        "impactMs": 180,
+        "crossfadeMs": 60,
+        "residueEndMs": 830,
+        "durationMs": 900
+      },
+      "display": {
+        "body": 76,
+        "telegraph": 256,
+        "impact": 260,
+        "residue": 260
+      },
+      "volley": {
+        "count": 7,
+        "lightCount": 4,
+        "arcHeight": 40
+      },
+      "preview": {
+        "displayMode": "projectile-volley",
+        "motion": "travel",
+        "durationMs": 900,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0,
+            "end": 0.14444444444444443,
+            "anchor": "origin",
+            "width": 256,
+            "height": 256,
+            "fadeIn": 0.2,
+            "fadeOut": 0.3
+          },
+          "body": {
+            "start": 0,
+            "end": 0.34444444444444444,
+            "anchor": "moving",
+            "width": 76,
+            "height": 76,
+            "fadeIn": 0.08
+          },
+          "impact": {
+            "start": 0.34444444444444444,
+            "end": 0.5444444444444444,
+            "anchor": "target",
+            "width": 260,
+            "height": 260,
+            "fadeOut": 0.3333333333333333
+          },
+          "residue": {
+            "start": 0.4777777777777778,
+            "end": 0.9222222222222223,
+            "anchor": "target",
+            "width": 260,
+            "height": 260,
+            "fadeIn": 0.15,
+            "fadeOut": 0.25
+          }
+        }
+      },
+      "acceptance": [
+        "Independent crystal butterfly master and three authored wing poses",
+        "Fixed-size bodies and parent-attached short trails",
+        "Impact consumes existing hit event; does not roll freeze or damage",
+        "Registered target ground pivot; complementary impact/residue opacity",
+        "Approved resources; hit, freeze, damage and RNG remain engine-owned"
+      ]
+    }
+  ]
+}
