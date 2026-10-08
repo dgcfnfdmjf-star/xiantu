@@ -233,7 +233,7 @@ function create(host,read,enemyKey='wolf'){
   cancelAnimationFrame(raf);raf=0;
   // Authored solar and butterfly one-shots expire on backgrounding instead of replaying a frozen burst
   // on return. This drops presentation records only; damage is already engine-owned.
-  const authored=a=>['太阳真火','冰蝶幻舞','焚心炎'].includes(a?.name);
+  const authored=a=>['太阳真火','冰蝶幻舞','焚心炎','绝对零度'].includes(a?.name);
   if(authored(attack))attack=null;
   queue=queue.filter(a=>!authored(a));tails=tails.filter(a=>!authored(a));
  }else wake();}
@@ -296,4 +296,4 @@ if(typeof window.startCombat==='function'){
 }
 
 })();
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.34';
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.35';

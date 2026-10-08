@@ -1,0 +1,40 @@
+{
+  "command": "python3 scripts/build-absolute-zero-vfx.py --runtime; python3 scripts/audit-absolute-zero-vfx.py",
+  "inputs": {
+    "art/absolute-zero/source/material-master-safe.png": "948dccbd8df74dee53f3ad2d163748ee3bb8c88d41d4e6ce37126f42f5747255",
+    "art/absolute-zero/source/keyplates-rejected.png": "7451014483c41f16a0a5e7471bfaebf20f5bb0c14d27435cada098cc60e281c9",
+    "art/absolute-zero/source/keyplates-original.png": "032d3f1d115e210c708efdc55c58d84e74531f4334b48fba6dec92e335497573",
+    "art/absolute-zero/source/material-master-original.png": "225d93d6a5c61619ae3d8b6c085f872212437b8b845533550c10bdbe09817b9d",
+    "art/absolute-zero/preview/absolute_zero_residue.png": "fe23ba967b5059f5961e11bd661bc7ee22825bf3f973ee1e990ae4f1616cfb67",
+    "art/absolute-zero/preview/absolute_zero_impact.png": "039d4fad23ff965d272b98fd27d679b4d1ec68440ae70edadf7f8763cfe38e5b",
+    "art/absolute-zero/preview/absolute_zero_body.png": "5e989ff5b6dcbd085406c8ea97376e924e0bd486989b92495a6d80e2483dcebf",
+    "art/absolute-zero/preview/absolute_zero_telegraph.png": "3c2a65aa089b65493c5587fbba411cd6ed60487a046ee4483b91d68024039a0f",
+    "art/absolute-zero/sampler.js": "3a30ce3d06b448c9310597cde1caa6d571666fbbb22982c7fb9e65a0dcdd8ac8",
+    "art/absolute-zero/preview/effect-manifest.json": "1d584520b1ab00b67f07ab381d655602b6314ff3c0000ccdf35c8335a68d1a7f",
+    "art/absolute-zero/evidence/real-landscape.png": "5ca21ff4dfa62b82744872a06743247fb9f80cb0be09ec8be97def87a25cb4f9",
+    "art/absolute-zero/evidence/real-mobile.png": "7e17ae5c95db3cd8955618cc7ea172d507bed765969f912cc461c8cf4de72083",
+    "art/absolute-zero/evidence/duel-human-reduced.png": "79558dad51eecd2ccde8adc096dbb19f7b94746760aca236701f55250f886f3c",
+    "art/absolute-zero/evidence/duel-impact.png": "6fcc971f5f2fb2b65c95ec107724726d7e39ea9a5bb62f86f7f05fc6f8dac481",
+    "art/absolute-zero/evidence/stage-900.png": "66ae874a48bf0328629991721fcf21cff5c7edddb43ff99032b59c81d0ed85ea",
+    "art/absolute-zero/evidence/stage-820.png": "bb4b46157aeab20009c6db4b99e11c415a66e5ae74bd61ccc95078240835db2b",
+    "art/absolute-zero/evidence/stage-650.png": "cb1f767d1b16057cf38bb2a91d8e62c2a54560ce367cc9a5eecb6d96ee488ec0",
+    "art/absolute-zero/evidence/stage-550.png": "282cb3cad6315f05f5b6ef94c6dbee28ea73805cb02fa0dbd03ab2a7630fb5e1",
+    "art/absolute-zero/evidence/stage-520.png": "8d20191f1d25007a75d4471c2333459e74b2ae2e7e7b1453f2a87a4761f9e762",
+    "art/absolute-zero/evidence/stage-490.png": "994253872e9d61dc23a3ede136c0ab6cf11c8db31cd27e5615d95602e910d5e9",
+    "art/absolute-zero/evidence/stage-400.png": "d354da14f554e82f296ba0421fba330171e6e48b15313c503a76b913c8176ec5",
+    "art/absolute-zero/evidence/stage-310.png": "fb949e18159daa4f92da461dbb4575bcb09c38289f590ce20d57a67e9de475a5",
+    "art/absolute-zero/evidence/stage-280.png": "3c1f22bb505a220c32fc28dcd9267675a517ac96639ea185d60f6820616bc281",
+    "art/absolute-zero/evidence/stage-190.png": "d97876a550f132ff96e2da2c852a681673d47997943b0284bdc145a0416c0dd6",
+    "art/absolute-zero/evidence/stage-150.png": "8842c8673f0dc8317975d709da954f775eb1a3d5c5d96656e64de831e13cb2d1",
+    "art/absolute-zero/evidence/stage-60.png": "30fd0a2f6429a230532a7c4ee1a116e92c92d04427421e19d74bf4318b3574d8",
+    "art/absolute-zero/evidence/previous-impact.png": "1771a8afc0c6197d5672e06a781a82b68d7b0648f8c89db5aa895dac94d0389c",
+    "art/absolute-zero/evidence/resource-impact.png": "21e7386cf1b0f894960984011651a8786e61a5fed64cafda98cd134073e1b8c7"
+  },
+  "evidence": {
+    "absolute-zero-preview.webp": "440096a79aafb6792cc96b3325a89d4ac4303364ab5bfecacb9b443696ae1c68",
+    "comparison.jpg": "b9794779c1a8ddbb786536ec33d07e460f0c4618f58f843c0e99ba4be7fb6dd3",
+    "overlap-review.jpg": "7535976062054b45e72f628b52ea038c84369c41e75cd63562ccb659de2e3629",
+    "storyboard.jpg": "979031c2682451c675ad41a18735424a963b6dc09cd1bf5127db2df1420b3e5d"
+  },
+  "runtimeBytes": 914888
+}
