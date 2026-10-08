@@ -1,4 +1,20 @@
-## 最新完整游戏包：V28.68.33
+## 最新完整游戏包：V28.68.34
+
+[下载完整游戏文件夹](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.34-game-folder.zip)
+
+暂停保留小说叙述；心火降攻提示、持续灼烧余烬、炎爆术预估；增加小说句式与本场纪事回看。横屏纪事位于右侧，避免遮挡画卷。包括此前全部游戏内容与美术资源。
+
+173个运行文件，解压后顶层文件夹仍为 `xiantu-v2831-scroll`，整文件夹上传覆盖。无需更新Jev，不清除存档。本次未部署腾讯云。
+
+来源 main：`073839d10b8cb819381f2b79c89002059a5ad82b`。39个游戏回归脚本、3个限流测试、7项浏览器测试通过，检查390×844及844×390浏览器模拟界面（非实机）。三份源码校验清单及ZIP逐文件比对通过。
+
+大小：44,604,975字节。SHA-256：`367d1bf5ef59593ee65ee92be49acc790a1888ff5ea229c059ca4fd55371855a`
+
+[更新说明](feedback-v286834.md)。私有仓库下载需登录有权限的GitHub账号。
+
+---
+
+## 历史完整游戏包：V28.68.33
 
 [下载完整游戏文件夹](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.33-game-folder.zip)
 
