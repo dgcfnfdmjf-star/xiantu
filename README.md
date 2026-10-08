@@ -1,4 +1,20 @@
-## 最新完整游戏包：V28.68.31
+## 最新完整游戏包：V28.68.32
+
+[下载完整游戏文件夹](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.32-game-folder.zip)
+
+新增动画演武小说式叙述：按实际战况描写出招、命中、暴击、控制与灵宠协攻；太阳真火和冰蝶幻舞有专属描写。最近两段交锋保留在画卷下方，原数值战报保留。包括此前全部游戏内容与美术资源。
+
+162个运行文件，解压后顶层文件夹仍为 `xiantu-v2831-scroll`，整文件夹上传覆盖。无需更新Jev，不清除存档。本次未部署腾讯云。
+
+来源 main：`77119bff8a5ba868ac917b2bdcc9fa180bd7b164`。37个游戏回归脚本、3个限流测试、7项浏览器测试通过，并检查390×844及844×390浏览器模拟界面（非实机）。三份源码校验清单及ZIP逐文件比对通过。
+
+大小：44,229,906字节。SHA-256：`c1df3d9817f5b3b6b57c05e44b9e505914c91db7adb7fe70ea7843fcf7647a64`
+
+[更新说明](novel-narration-v286832.md)。私有仓库下载需登录有权限的GitHub账号。
+
+---
+
+## 历史完整游戏包：V28.68.31
 
 [下载完整游戏文件夹](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.31-game-folder.zip)
 
