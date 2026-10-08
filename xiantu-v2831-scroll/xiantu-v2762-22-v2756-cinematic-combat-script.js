@@ -113,6 +113,7 @@
   function novelCastV286832(name,skill,element='',variant=0){
     const who=String(name||'你'),title=String(skill||'');
     if(title==='太阳真火')return `${who}催动【太阳真火】，金焰聚作一轮烈日，炽光沿着战场缓缓铺开。`;
+    if(title==='焚心炎')return `${who}凝起【焚心炎】，一点赤火裹着暗烟离掌而去，直取对手心脉。`;
     if(title==='冰蝶幻舞')return `${who}引动【冰蝶幻舞】，霜光凝成蝶翼，纷纷绕过身前，向对手翩然掠去。`;
     if(!title)return [ `${who}觑准间隙，攻势陡然递出，破空声紧随而至。`,`${who}收住气息，随即疾攻而出，将这一招送向对手。` ][variant%2];
     const lines={
@@ -128,7 +129,7 @@
   function novelResultV286832(text,enemy='对手'){
     const t=String(text||''),foe=String(enemy||'对手');let m;
     if((m=t.match(/^(?:【暴击】)?(?:你对|施展【([^】]+)】，对).+造成\s*([\d.]+)\s*点伤害！$/))){
-      const lead=m[1]==='太阳真火'?`【太阳真火】裹着金焰落下，烈日般的光辉照亮了${foe}。`:m[1]==='冰蝶幻舞'?`【冰蝶幻舞】掠过${foe}，蝶翼散作细碎霜光。`:m[1]?`【${m[1]}】落向${foe}。`:'';
+      const lead=m[1]==='焚心炎'?`【焚心炎】的赤黑火束抵至${foe}身前。`:m[1]==='太阳真火'?`【太阳真火】裹着金焰落下，烈日般的光辉照亮了${foe}。`:m[1]==='冰蝶幻舞'?`【冰蝶幻舞】掠过${foe}，蝶翼散作细碎霜光。`:m[1]?`【${m[1]}】落向${foe}。`:'';
       return lead+(Number(m[2])<=0?'这一击终被挡下，未能造成伤害。':t.startsWith('【暴击】')?`攻势陡然爆发，重重击中${foe}！`:`攻势落实，${foe}受了这一击。`);
     }
     if((m=t.match(/^([^\n]*?)对你造成\s*([\d.]+)\s*点伤害！$/))){
@@ -302,4 +303,4 @@
   // 战斗呈现UI与观察器由第一次 startCombat 按需创建。
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-22-v2756-cinematic-combat-script.js"]="28.68.32";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-22-v2756-cinematic-combat-script.js"]="28.68.33";

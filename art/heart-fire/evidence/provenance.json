@@ -1,0 +1,541 @@
+{
+  "inputs": {
+    "art/heart-fire/sampler.js": "ba527f3604473bf147efc9d761fa7c96c2998453ec4ba874385b9b5ab2b6d80e",
+    "art/heart-fire/preview/effect-manifest.json": "7a817a7f4a085833d554a05936fa9f6b50277b00da2ca19f9a7091820d97a67c",
+    "art/heart-fire/preview/stage-reference.webp": "d88933abbf05d2c3506b73545dde8fcb030583304d55781bcdc491d8514361b3",
+    "art/heart-fire/source/previous-runtime.png": "ab58e21e97b522913b8386ce0ed392681fa0c1e9dc39e0aed6fda08d39a81abf",
+    "art/heart-fire/source/keyplates-registered.png": "4c69e288b7e7995c47f8f4b8d602aecfea95b877dc6213b3c06424e9c8bd6f4e",
+    "art/heart-fire/source/keyplates-safe.png": "f27f6d4b42f8f86577fd2e55fc50aa68b7649724d4d318a9207ff930d07f426e",
+    "art/heart-fire/source/keyplates-grid.png": "e82db23c5e5e7cd66e93a00b4e70963766af4f7617ec627ccde3f6fdb695cfa7",
+    "art/heart-fire/source/material-master-safe.png": "13b381613c45af17e885d02de402d589ab846a619f6d71416a0094a8c6ca89d7",
+    "art/heart-fire/source/keyplates-original.png": "3a5fe452ef9b05e54eac7766930c8d3fde5e74d5c208d70e70124fe187f348f2",
+    "art/heart-fire/source/approved-design.png": "713bed27b5cef845017af54dcd7d27a4e90a62cdbd9661bb13159bf2ded76496",
+    "art/heart-fire/source/material-master-original.png": "c699e3cdd1b3c360f3209c06f96841756813a4a5ba27604fe063b48f4b590754",
+    "art/heart-fire/preview/heart_fire_residue.png": "0f3e28174c7d1199660a31e4707326259b928100bd3dc2ec372781d7ca91c216",
+    "art/heart-fire/preview/heart_fire_impact.png": "bcbddea0c1303918ad967e3e22d5042099678e1a6ec2a747979843a65f551a2f",
+    "art/heart-fire/preview/heart_fire_body.png": "22db3b602f2cd1a4df76daa54a2a46259e1678cb6438f491e8118a7a9e4c5e0a",
+    "art/heart-fire/preview/heart_fire_telegraph.png": "654c551ed173509a763cf653070b240a16ac0b89cc746211d2765f05c04c83e9"
+  },
+  "samples": [
+    {
+      "time": 0,
+      "parts": []
+    },
+    {
+      "time": 33,
+      "parts": [
+        {
+          "id": "telegraph",
+          "layer": "telegraph",
+          "anchor": "origin",
+          "x": 260,
+          "y": 205,
+          "width": 200,
+          "height": 200,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "frame": 1,
+          "opacity": 1,
+          "rotation": 0
+        }
+      ]
+    },
+    {
+      "time": 66,
+      "parts": [
+        {
+          "id": "telegraph",
+          "layer": "telegraph",
+          "anchor": "origin",
+          "x": 260,
+          "y": 205,
+          "width": 200,
+          "height": 200,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "frame": 2,
+          "opacity": 1,
+          "rotation": 0
+        }
+      ]
+    },
+    {
+      "time": 99,
+      "parts": [
+        {
+          "id": "telegraph",
+          "layer": "telegraph",
+          "anchor": "origin",
+          "x": 260,
+          "y": 205,
+          "width": 200,
+          "height": 200,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "frame": 3,
+          "opacity": 0.7857142857142857,
+          "rotation": 0
+        },
+        {
+          "id": "body",
+          "layer": "body",
+          "anchor": "moving",
+          "x": 266.44239631336404,
+          "y": 205.13824884792626,
+          "width": 390,
+          "height": 390,
+          "pivotX": 0.6993243243243243,
+          "pivotY": 0.5,
+          "frame": 0,
+          "opacity": 0.21428571428571427,
+          "rotation": 0.02145593439735292
+        }
+      ]
+    },
+    {
+      "time": 132,
+      "parts": [
+        {
+          "id": "body",
+          "layer": "body",
+          "anchor": "moving",
+          "x": 301.87557603686633,
+          "y": 205.89861751152074,
+          "width": 390,
+          "height": 390,
+          "pivotX": 0.6993243243243243,
+          "pivotY": 0.5,
+          "frame": 1,
+          "opacity": 1,
+          "rotation": 0.02145593439735292
+        }
+      ]
+    },
+    {
+      "time": 165,
+      "parts": [
+        {
+          "id": "body",
+          "layer": "body",
+          "anchor": "moving",
+          "x": 337.3087557603687,
+          "y": 206.65898617511522,
+          "width": 390,
+          "height": 390,
+          "pivotX": 0.6993243243243243,
+          "pivotY": 0.5,
+          "frame": 2,
+          "opacity": 1,
+          "rotation": 0.02145593439735292
+        }
+      ]
+    },
+    {
+      "time": 198,
+      "parts": [
+        {
+          "id": "body",
+          "layer": "body",
+          "anchor": "moving",
+          "x": 372.741935483871,
+          "y": 207.41935483870967,
+          "width": 390,
+          "height": 390,
+          "pivotX": 0.6993243243243243,
+          "pivotY": 0.5,
+          "frame": 3,
+          "opacity": 1,
+          "rotation": 0.02145593439735292
+        }
+      ]
+    },
+    {
+      "time": 231,
+      "parts": [
+        {
+          "id": "body",
+          "layer": "body",
+          "anchor": "moving",
+          "x": 408.17511520737327,
+          "y": 208.17972350230414,
+          "width": 390,
+          "height": 390,
+          "pivotX": 0.6993243243243243,
+          "pivotY": 0.5,
+          "frame": 5,
+          "opacity": 1,
+          "rotation": 0.02145593439735292
+        }
+      ]
+    },
+    {
+      "time": 264,
+      "parts": [
+        {
+          "id": "body",
+          "layer": "body",
+          "anchor": "moving",
+          "x": 443.60829493087556,
+          "y": 208.94009216589862,
+          "width": 390,
+          "height": 390,
+          "pivotX": 0.6993243243243243,
+          "pivotY": 0.5,
+          "frame": 6,
+          "opacity": 1,
+          "rotation": 0.02145593439735292
+        }
+      ]
+    },
+    {
+      "time": 297,
+      "parts": [
+        {
+          "id": "body",
+          "layer": "body",
+          "anchor": "moving",
+          "x": 479.0414746543779,
+          "y": 209.7004608294931,
+          "width": 390,
+          "height": 390,
+          "pivotX": 0.6993243243243243,
+          "pivotY": 0.5,
+          "frame": 7,
+          "opacity": 1,
+          "rotation": 0.02145593439735292
+        }
+      ]
+    },
+    {
+      "time": 330,
+      "parts": [
+        {
+          "id": "impact",
+          "layer": "impact",
+          "anchor": "target",
+          "x": 493,
+          "y": 210,
+          "width": 230,
+          "height": 230,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "frame": 0,
+          "opacity": 1,
+          "rotation": 0
+        }
+      ]
+    },
+    {
+      "time": 363,
+      "parts": [
+        {
+          "id": "impact",
+          "layer": "impact",
+          "anchor": "target",
+          "x": 493,
+          "y": 210,
+          "width": 230,
+          "height": 230,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "frame": 1,
+          "opacity": 1,
+          "rotation": 0
+        }
+      ]
+    },
+    {
+      "time": 396,
+      "parts": [
+        {
+          "id": "impact",
+          "layer": "impact",
+          "anchor": "target",
+          "x": 493,
+          "y": 210,
+          "width": 230,
+          "height": 230,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "frame": 2,
+          "opacity": 1,
+          "rotation": 0
+        }
+      ]
+    },
+    {
+      "time": 429,
+      "parts": [
+        {
+          "id": "impact",
+          "layer": "impact",
+          "anchor": "target",
+          "x": 493,
+          "y": 210,
+          "width": 230,
+          "height": 230,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "frame": 3,
+          "opacity": 1,
+          "rotation": 0
+        }
+      ]
+    },
+    {
+      "time": 462,
+      "parts": [
+        {
+          "id": "impact",
+          "layer": "impact",
+          "anchor": "target",
+          "x": 493,
+          "y": 210,
+          "width": 230,
+          "height": 230,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "frame": 5,
+          "opacity": 0.4666666666666667,
+          "rotation": 0
+        },
+        {
+          "id": "residue",
+          "layer": "residue",
+          "anchor": "target",
+          "x": 493,
+          "y": 210,
+          "width": 230,
+          "height": 230,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "frame": 0,
+          "opacity": 0.5333333333333333,
+          "rotation": 0
+        }
+      ]
+    },
+    {
+      "time": 495,
+      "parts": [
+        {
+          "id": "residue",
+          "layer": "residue",
+          "anchor": "target",
+          "x": 493,
+          "y": 210,
+          "width": 230,
+          "height": 230,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "frame": 0,
+          "opacity": 1,
+          "rotation": 0
+        }
+      ]
+    },
+    {
+      "time": 528,
+      "parts": [
+        {
+          "id": "residue",
+          "layer": "residue",
+          "anchor": "target",
+          "x": 493,
+          "y": 210,
+          "width": 230,
+          "height": 230,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "frame": 1,
+          "opacity": 1,
+          "rotation": 0
+        }
+      ]
+    },
+    {
+      "time": 561,
+      "parts": [
+        {
+          "id": "residue",
+          "layer": "residue",
+          "anchor": "target",
+          "x": 493,
+          "y": 210,
+          "width": 230,
+          "height": 230,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "frame": 1,
+          "opacity": 1,
+          "rotation": 0
+        }
+      ]
+    },
+    {
+      "time": 594,
+      "parts": [
+        {
+          "id": "residue",
+          "layer": "residue",
+          "anchor": "target",
+          "x": 493,
+          "y": 210,
+          "width": 230,
+          "height": 230,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "frame": 2,
+          "opacity": 1,
+          "rotation": 0
+        }
+      ]
+    },
+    {
+      "time": 627,
+      "parts": [
+        {
+          "id": "residue",
+          "layer": "residue",
+          "anchor": "target",
+          "x": 493,
+          "y": 210,
+          "width": 230,
+          "height": 230,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "frame": 2,
+          "opacity": 1,
+          "rotation": 0
+        }
+      ]
+    },
+    {
+      "time": 660,
+      "parts": [
+        {
+          "id": "residue",
+          "layer": "residue",
+          "anchor": "target",
+          "x": 493,
+          "y": 210,
+          "width": 230,
+          "height": 230,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "frame": 3,
+          "opacity": 1,
+          "rotation": 0
+        }
+      ]
+    },
+    {
+      "time": 693,
+      "parts": [
+        {
+          "id": "residue",
+          "layer": "residue",
+          "anchor": "target",
+          "x": 493,
+          "y": 210,
+          "width": 230,
+          "height": 230,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "frame": 3,
+          "opacity": 1,
+          "rotation": 0
+        }
+      ]
+    },
+    {
+      "time": 726,
+      "parts": [
+        {
+          "id": "residue",
+          "layer": "residue",
+          "anchor": "target",
+          "x": 493,
+          "y": 210,
+          "width": 230,
+          "height": 230,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "frame": 4,
+          "opacity": 1,
+          "rotation": 0
+        }
+      ]
+    },
+    {
+      "time": 759,
+      "parts": [
+        {
+          "id": "residue",
+          "layer": "residue",
+          "anchor": "target",
+          "x": 493,
+          "y": 210,
+          "width": 230,
+          "height": 230,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "frame": 4,
+          "opacity": 0.91,
+          "rotation": 0
+        }
+      ]
+    },
+    {
+      "time": 792,
+      "parts": [
+        {
+          "id": "residue",
+          "layer": "residue",
+          "anchor": "target",
+          "x": 493,
+          "y": 210,
+          "width": 230,
+          "height": 230,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "frame": 5,
+          "opacity": 0.58,
+          "rotation": 0
+        }
+      ]
+    },
+    {
+      "time": 825,
+      "parts": [
+        {
+          "id": "residue",
+          "layer": "residue",
+          "anchor": "target",
+          "x": 493,
+          "y": 210,
+          "width": 230,
+          "height": 230,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "frame": 5,
+          "opacity": 0.25,
+          "rotation": 0
+        }
+      ]
+    },
+    {
+      "time": 858,
+      "parts": []
+    },
+    {
+      "time": 891,
+      "parts": []
+    }
+  ],
+  "outputs": {
+    "comparison.jpg": "b3b0e4079c2b210f04cf3c58e6165618456fe7bc4dcfbf77ab91a173050b80de",
+    "stages-and-overlaps.jpg": "fa76b7c4dc62292df111c0561db9b26102c574719564d667ad48773907df88bb",
+    "heart-fire-animation.webp": "03be4d604c16dc5c7bf27714084b7e22b24400695bc16fdfa63eda894c6e0dc1"
+  }
+}

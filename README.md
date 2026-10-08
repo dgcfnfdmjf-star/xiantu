@@ -1,6 +1,10 @@
-# 仙途 V28.68.32
+# 仙途 V28.68.33
 
 静态网页修仙游戏。网站目录沿用 `xiantu-v2831-scroll`，云函数源码在 `tencent-jev-function`。
+
+## V28.68.33 焚心炎
+
+焚心炎新增赤黑火束、躯干火纹与心火余烬，保留原耗蓝、伤害、灼烧及降攻。包含独立资源试播和同台动作预览，详见 `docs/heart-fire-v286833.md`。无需更新 Jev。
 
 ## V28.68.32 小说式斗法叙述
 
@@ -18,7 +22,7 @@ npm test
 npm run test:browser
 ```
 
-`npm test` 运行选定的 37 个当前功能回归脚本与限流测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
+`npm test` 运行选定的 38 个当前功能回归脚本与限流测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
 
 浏览器测试覆盖恶意存档拒绝且原主档/备份不变、正常导入与刷新恢复、360/390/430/1366px 导航入口可达性、预加载去重与版本错误提示。外部请求被拦截，不调用付费服务。已有 Chromium 的云环境可使用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`。
 

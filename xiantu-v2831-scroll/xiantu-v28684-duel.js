@@ -145,6 +145,13 @@ function create(host,read,enemyKey='wolf'){
      a.anchors={fromGround:origin,toGround:a.fxProfile.self?origin:target};
     }
     const from={x:a.side==='player'?260:475,y:225},to=a.fxProfile.self?from:{x:a.side==='player'?493:242,y:225};
+    // Heart-fire is a torso brand: use the illustrated species' height, never its foot ring.
+    if(a.fxProfile.kind==='heart'){
+     const enemyFoot=profile.key==='wolf'?278:profile.height>200?315:/fly|float/.test(profile.motion)?306:292;
+     const torso={x:ex,y:enemyFoot-profile.height*(profile.motion==='human'?.58:.43)};
+     const hero={x:px+8,y:205};
+     Object.assign(from,a.side==='player'?hero:torso);Object.assign(to,a.side==='player'?torso:hero);
+    }
     fxJobs.push({action:a,job:{id:a.side==='player'?1:2,profile:a.fxProfile,from,to,...a.anchors,width:W,clipBottom:355,scale:1.05,light:fxSettings.light,reduced,duration:900,arriveAt:contactTime(a),hitAt:a.impactAt??null,groundDrawn:!!ink.drawGround}});
    }
   }
@@ -219,7 +226,7 @@ function create(host,read,enemyKey='wolf'){
   cancelAnimationFrame(raf);raf=0;
   // Authored solar and butterfly one-shots expire on backgrounding instead of replaying a frozen burst
   // on return. This drops presentation records only; damage is already engine-owned.
-  const authored=a=>['太阳真火','冰蝶幻舞'].includes(a?.name);
+  const authored=a=>['太阳真火','冰蝶幻舞','焚心炎'].includes(a?.name);
   if(authored(attack))attack=null;
   queue=queue.filter(a=>!authored(a));tails=tails.filter(a=>!authored(a));
  }else wake();}
@@ -279,4 +286,4 @@ if(typeof window.startCombat==='function'){
 }
 
 })();
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.32';
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.33';

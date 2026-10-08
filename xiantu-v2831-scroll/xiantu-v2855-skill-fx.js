@@ -50,6 +50,44 @@ function sampleIceButterfly(D,j,age){
  return out;
 }
   // END ICE BUTTERFLY GENERATED
+  // BEGIN HEART FIRE GENERATED
+  const HEART_FIRE={"key":"heart_scorching_fire","name":"焚心炎","element":"fire","visualArchetype":"projectile","layers":{"telegraph":{"file":"heart_fire_telegraph.png","frames":4,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.5,"fps":32,"loop":false,"holdLast":false},"body":{"file":"heart_fire_body.png","frames":8,"frameWidth":256,"frameHeight":256,"pivotX":0.6993243243243243,"pivotY":0.5,"fps":36.86635944700461,"loop":true,"holdLast":false},"impact":{"file":"heart_fire_impact.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.5,"fps":33.333333333333336,"loop":false,"holdLast":false},"residue":{"file":"heart_fire_residue.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.5,"fps":14.285714285714286,"loop":false,"holdLast":false}},"scale":1,"offsetX":0,"offsetY":0,"trailLength":0,"timing":{"arrivalMs":310,"gatherFraction":0.3,"impactMs":180,"crossfadeMs":60,"aftermathMs":540,"missFadeMs":140,"durationMs":900},"display":{"telegraph":200,"body":390,"impact":230,"residue":230},"preview":{"displayMode":"projectile","motion":"travel","durationMs":900,"distance":233,"layers":{"telegraph":{"start":0,"end":0.13444444444444445,"anchor":"origin","width":200,"height":200,"fadeOut":0.23140495867768596},"body":{"start":0.10333333333333333,"end":0.34444444444444444,"anchor":"moving","width":390,"height":390,"fadeIn":0.12903225806451613},"impact":{"start":0.34444444444444444,"end":0.5444444444444444,"anchor":"target","width":230,"height":230,"fadeOut":0.3333333333333333},"residue":{"start":0.4777777777777778,"end":0.9444444444444444,"anchor":"target","width":230,"height":230,"fadeIn":0.14285714285714285,"fadeOut":0.23809523809523808}}},"acceptance":["Independent crimson-black material master, no reused solar art","Fixed-size tip-aligned projectile; torso-centered impact only after real hit","Registered target pivot and complementary impact/residue alpha","No damage, shield break, debuff, RNG or save mutations"]};
+/* Read-only choreography, shared verbatim by DOM preview and game renderer. */
+function sampleHeartFire(D,j,age){
+ const T=D.timing,clamp=v=>Math.max(0,Math.min(1,v));
+ if(age<0||age>=(j.duration??T.durationMs))return [];
+ const hit=Number.isFinite(j.hitAt)?j.hitAt:null,arrival=Math.max(1,hit??j.arriveAt??T.arrivalMs);
+ const gather=arrival*T.gatherFraction,from=j.from,to=j.to,s=(j.scale||1)*D.scale,out=[];
+ const angle=Math.atan2(to.y-from.y,to.x-from.x);
+ const add=(layer,anchor,p,frame,opacity,rotation=0)=>{
+  const spec=D.layers[layer];if(opacity<=0)return;
+  out.push({id:layer,layer,anchor,x:p.x+D.offsetX*s,y:p.y+D.offsetY*s,
+   width:D.display[layer]*s,height:D.display[layer]*s,pivotX:spec.pivotX,pivotY:spec.pivotY,
+   frame:Math.max(0,Math.min(spec.frames-1,frame)),opacity:clamp(opacity),rotation});
+ };
+ if(hit===null||age<hit){
+  const end=gather+Math.min(28,arrival-gather),miss=hit===null?clamp((arrival+T.missFadeMs-age)/T.missFadeMs):1;
+  if(j.reduced){add('telegraph','origin',from,2,miss*.85);return out;}
+  const blend=clamp((age-gather)/Math.max(1,end-gather));
+  if(age<end)add('telegraph','origin',from,Math.floor(age/end*D.layers.telegraph.frames),clamp(age/25)*(1-blend));
+  if(age>=gather){
+   const t=clamp((age-gather)/Math.max(1,arrival-gather));
+   const p={x:from.x+(to.x-from.x)*t,y:from.y+(to.y-from.y)*t};
+   add('body','moving',p,Math.floor((age-gather)/Math.max(1,arrival-gather)*D.layers.body.frames)%D.layers.body.frames,blend*miss,angle);
+  }
+ }else{
+  const elapsed=age-hit,overlap=T.impactMs-T.crossfadeMs;
+  if(elapsed>=T.aftermathMs)return [];
+  const blend=clamp((elapsed-overlap)/T.crossfadeMs);
+  if(elapsed<T.impactMs)add('impact','target',to,j.reduced?2:Math.floor(elapsed/T.impactMs*D.layers.impact.frames),1-blend);
+  if(elapsed>=overlap){
+   const progress=(elapsed-overlap)/(T.aftermathMs-overlap);
+   add('residue','target',to,j.reduced?3:Math.floor(progress*D.layers.residue.frames),blend*clamp((T.aftermathMs-elapsed)/100));
+  }
+ }
+ return out;
+}
+  // END HEART FIRE GENERATED
   let quality='auto';try{const v=localStorage.getItem(KEY);if(['auto','rich','light'].includes(v))quality=v}catch(_){}
   let canvas=null,ctx=null,jobs=[],raf=0,timer=0,lastFrame=-Infinity,serial=0,observer=null,finishUntil=0;
   const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)),lerp=(a,b,t)=>a+(b-a)*t;
@@ -159,6 +197,28 @@ function sampleIceButterfly(D,j,age){
     }
     c.restore();return true;
   }
+  const heartTextures=new Map();
+  function prepareHeart(){
+    for(const [name,layer] of Object.entries(HEART_FIRE.layers)){
+      if(heartTextures.has(name))continue;
+      const image=new Image(),entry={image,ready:false,failed:false};heartTextures.set(name,entry);image.decoding='async';
+      image.onload=()=>{entry.ready=image.naturalWidth===layer.frames*layer.frameWidth&&image.naturalHeight===layer.frameHeight;entry.failed=!entry.ready;};
+      image.onerror=()=>{entry.ready=false;entry.failed=true;};image.src='./heart-fire-v286833/'+layer.file;
+    }
+  }
+  function heartReady(){return heartTextures.size===4&&[...heartTextures.values()].every(t=>t.ready&&!t.failed)}
+  function heartSample(j,age){return sampleHeartFire(HEART_FIRE,j,age)}
+  function drawHeart(c,j,age){
+    prepareHeart();if(!heartReady())return false;
+    c.save();c.beginPath();c.rect(0,0,j.width,j.clipBottom);c.clip();c.globalCompositeOperation='source-over';
+    for(const p of heartSample(j,age)){
+      const spec=HEART_FIRE.layers[p.layer],texture=heartTextures.get(p.layer).image;
+      c.save();c.translate(p.x,p.y);c.rotate(p.rotation);c.globalAlpha=p.opacity;
+      c.drawImage(texture,p.frame*spec.frameWidth,0,spec.frameWidth,spec.frameHeight,-p.width*p.pivotX,-p.height*p.pivotY,p.width,p.height);c.restore();
+    }
+    c.restore();return true;
+  }
+  const heart=Object.freeze({definition:HEART_FIRE,sample:heartSample,prepare:prepareHeart,ready:heartReady});
   function profile(name,element='',info=null,source='active'){
     name=String(name||'灵力冲击');
     if(!info&&typeof SKILLS!=='undefined')info=SKILLS.find(s=>s.name===name)||null;
@@ -168,6 +228,7 @@ function sampleIceButterfly(D,j,age){
     let kind=styles[name]||forms[name]||({sword:'blade',heal:'dew',ice:'breath',fire:'burst',thunder:'bolt',dark:'wave',blood:'wave',spirit:'wave',earth:'ground',spear:'lance'}[family]);
     if(kind==='sun')prepareSolar();
     if(kind==='butterfly')prepareButterfly();
+    if(kind==='heart')prepareHeart();
     const self=family==='heal'||kind==='armor'||!!(info&&Number(info.damage)===0&&/护|甲|附体/.test(name));
     const tier=/天地|万剑|万载|九天|天火|太阳|绝对|灭世|济世/.test(name)?3:info?.damage>=2.5||/领域|雷云|结界|龙息|千里/.test(name)?2:1;
     return {name,family,kind,self,tier,source,palette:name==='天地一剑'?['#dccc93','#fff0c4','#595335']:palettes[family],guard:!!info?.guardRatio||kind==='guardblade'||/护心|济世/.test(name)};
@@ -249,7 +310,7 @@ function sampleIceButterfly(D,j,age){
   function groundAnchors(j){return {from:j.fromGround||{x:j.from.x,y:j.from.y+30*(j.scale||1)},to:j.toGround||{x:j.to.x,y:j.to.y+30*(j.scale||1)}}}
   function drawGround(c,j,age){
     const state=sample(j,age);if(!state.visible)return;
-    if((j.profile.kind==='sun'&&solarReady())||(j.profile.kind==='butterfly'&&butterflyReady()))return; // Solar plates own their single foot ring.
+    if((j.profile.kind==='sun'&&solarReady())||(j.profile.kind==='butterfly'&&butterflyReady())||(j.profile.kind==='heart'&&heartReady()))return; // Solar plates own their single foot ring.
     const p=j.profile,pal=p.palette,s=j.scale||1,g=groundAnchors(j),fade=clamp((j.duration-age)/260);
     const groundKind=['field','prison','seal','crystal','meteor','pillar','wall','ground','mountain','lotus'].includes(p.kind);
     c.save();c.beginPath();c.rect(0,0,j.width,j.clipBottom);c.clip();
@@ -266,6 +327,7 @@ function sampleIceButterfly(D,j,age){
     const state=sample(j,age);if(!state.visible)return;
     if(p.kind==='sun'&&drawSolar(c,j,age))return;
     if(p.kind==='butterfly'&&drawButterfly(c,j,age))return;
+    if(p.kind==='heart'&&drawHeart(c,j,age))return;
     const duration=j.duration,fade=clamp((duration-age)/260),cast=clamp(age/170),hit=j.hitAt;
     const {arrive,travel,struck,burst}=state,flightAlpha=state.flight,g=groundAnchors(j);
     if(!j.groundDrawn)drawGround(c,j,age);
@@ -414,7 +476,7 @@ function sampleIceButterfly(D,j,age){
     if(opt.reduced){if(raf)cancelAnimationFrame(raf);raf=0;ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,box.width,box.height);draw(ctx,job,200)}else if(!raf)raf=requestAnimationFrame(frame);
     return true;
   }
-  function hit(side){for(const j of jobs){if(j.profile.self||j.hitAt!==null||j.side===side)continue;const age=now()-j.started;if(age<600){j.hitAt=Math.max(120,age);if(j.reduced&&['sun','butterfly'].includes(j.profile.kind)&&ctx){ctx.setTransform(j.ratio,0,0,j.ratio,0,0);ctx.clearRect(0,0,j.width,j.height);for(const active of jobs)draw(ctx,active,Math.max(now()-active.started,active.hitAt??0));}}}}
+  function hit(side){for(const j of jobs){if(j.profile.self||j.hitAt!==null||j.side===side)continue;const age=now()-j.started;if(age<600){j.hitAt=Math.max(120,age);if(j.reduced&&['sun','butterfly','heart'].includes(j.profile.kind)&&ctx){ctx.setTransform(j.ratio,0,0,j.ratio,0,0);ctx.clearRect(0,0,j.width,j.height);for(const active of jobs)draw(ctx,active,Math.max(now()-active.started,active.hitAt??0));}}}}
   function sync(){const btn=D.getElementById('inkFxQualityV2854');if(btn){btn.textContent='特效：'+(settings().reduced?'静态':({auto:'自动',rich:'精致',light:'省电'}[quality]));btn.setAttribute('aria-label',btn.textContent+'，点击切换');}}
   function cycle(){quality={auto:'rich',rich:'light',light:'auto'}[quality];try{localStorage.setItem(KEY,quality)}catch(_){}clear();sync()}
   function install(){
@@ -428,7 +490,7 @@ function sampleIceButterfly(D,j,age){
   W.playInkSkillV2854=play;
   const solar={definition:SOLAR,prepare:prepareSolar,ready:solarReady,sample:solarSample};
   const butterfly={definition:ICE_BUTTERFLY,prepare:prepareButterfly,ready:butterflyReady,sample:butterflySample};
-  W.InkSkillFxV2854={profile,draw,drawGround,sample,solar,butterfly,catalog:()=>[...new Set([...Object.keys(styles),...Object.keys(forms),...(typeof SKILLS!=='undefined'?SKILLS.map(s=>s.name):[])])].map(name=>profile(name)),play,hit,clear,finish,cinemaClear,install,cycle,settings,inspect:()=>({version:'28.68',quality,finishing:finishUntil>now(),active:jobs.length,raf:!!raf,pixels:canvas?canvas.width*canvas.height:0,jobs:jobs.map(j=>({name:j.profile.name,kind:j.profile.kind,family:j.profile.family,side:j.side,self:j.profile.self,hitAt:j.hitAt,from:{...j.from},to:{...j.to}}))})};
+  W.InkSkillFxV2854={profile,draw,drawGround,sample,solar,butterfly,heart,catalog:()=>[...new Set([...Object.keys(styles),...Object.keys(forms),...(typeof SKILLS!=='undefined'?SKILLS.map(s=>s.name):[])])].map(name=>profile(name)),play,hit,clear,finish,cinemaClear,install,cycle,settings,inspect:()=>({version:'28.68',quality,finishing:finishUntil>now(),active:jobs.length,raf:!!raf,pixels:canvas?canvas.width*canvas.height:0,jobs:jobs.map(j=>({name:j.profile.name,kind:j.profile.kind,family:j.profile.family,side:j.side,self:j.profile.self,hitAt:j.hitAt,from:{...j.from},to:{...j.to}}))})};
   install();
 })();
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2855-skill-fx.js']='28.68.32';
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2855-skill-fx.js']='28.68.33';
