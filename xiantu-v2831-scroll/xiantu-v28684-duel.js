@@ -31,6 +31,7 @@ function create(host,read,enemyKey='wolf'){
  const stage=document.createElement('div');stage.className='duel25-stage';host.insertBefore(stage,canvas);
  bg.className='duel25-backdrop';bg.setAttribute('aria-hidden','true');stage.appendChild(bg);stage.appendChild(canvas);
  let raf=0,last=0,dead=false,elapsed=0,attack=null,queue=[],tails=[],hits=[],floats=[],label="",paintedLandscape=false;
+ let zeroStatus=null;
  const deaths={player:null,enemy:null};
  let petHitAt=-1000,petKey=null,petProfile=null,petAtlas=null;
  let reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -104,7 +105,7 @@ function create(host,read,enemyKey='wolf'){
   if(dead)return;raf=0;if(artFailed||atlas?.failed||(!ready()&&performance.now()-started>10000)){destroy();return;}const data=read();if(data.active===false){destroy();return;}if(document.hidden)return;
   const fxSettings=window.InkSkillFxV2854?.settings?.()||{reduced,light:true};reduced=fxSettings.reduced;
   if(landscapeReady&&!paintedLandscape)backdrop();
-  const animating=attack||queue.length||tails.length||hits.length||floats.length||elapsed-petHitAt<320||
+  const animating=zeroStatus||attack||queue.length||tails.length||hits.length||floats.length||elapsed-petHitAt<320||
    (data.enemyHp<=0&&(deaths.enemy===null||elapsed-deaths.enemy<440))||
    (data.playerHp<=0&&(deaths.player===null||elapsed-deaths.player<440));
   if(now-last<(animating?33:66)){raf=requestAnimationFrame(draw);return;}const dt=Math.max(0,now-last);last=now;elapsed+=dt;
@@ -134,6 +135,15 @@ function create(host,read,enemyKey='wolf'){
   const pose=attack?(age<.16?1:age<.58?2:age<.8?1:0):0;
   const px=242+(attack?.side==='player'?move:0),ex=493-(attack?.side==='enemy'?move:0);
   const ink=window.InkSkillFxV2854,fxJobs=[];
+  // A read-only owner outlives the short cast. Target loss/death wins over release.
+  const identity=data.enemyIdentity??enemyKey;
+  if(zeroStatus){
+   if(data.enemyHp<=0||data.playerHp<=0||zeroStatus.identity!==identity)zeroStatus=null;
+   else{
+    if(!data.enemyFrozen&&zeroStatus.job.freezeEnd===Infinity)zeroStatus.job.freezeEnd=elapsed-zeroStatus.at;
+    if(elapsed-zeroStatus.at>=zeroStatus.job.freezeEnd+300)zeroStatus=null;
+   }
+  }
   tails=tails.filter(a=>elapsed-a.at<900);
   if(ink?.draw&&ink?.profile){
    for(const a of [...tails,attack].filter(Boolean)){
@@ -145,9 +155,18 @@ function create(host,read,enemyKey='wolf'){
      a.anchors={fromGround:origin,toGround:a.fxProfile.self?origin:target};
     }
     const from={x:a.side==='player'?260:475,y:225},to=a.fxProfile.self?from:{x:a.side==='player'?493:242,y:225};
-    fxJobs.push({action:a,job:{id:a.side==='player'?1:2,profile:a.fxProfile,from,to,...a.anchors,width:W,clipBottom:355,scale:1.05,light:fxSettings.light,reduced,duration:900,arriveAt:contactTime(a),hitAt:a.impactAt??null,groundDrawn:!!ink.drawGround}});
+    const job={id:a.side==='player'?1:2,profile:a.fxProfile,from,to,...a.anchors,width:W,clipBottom:355,scale:1.05,light:fxSettings.light,reduced,duration:900,arriveAt:contactTime(a),hitAt:a.impactAt??null,groundDrawn:!!ink.drawGround};
+    if(a.name==='绝对零度'&&a.side==='player'){
+     job.zeroPhase='cast';
+     if(a.impactAt!=null&&!a.zeroClaimed){
+      a.zeroClaimed=true;
+      if(data.enemyFrozen&&data.enemyHp>0&&data.playerHp>0&&!(zeroStatus?.identity===identity&&zeroStatus.job.freezeEnd===Infinity))zeroStatus={identity,at:a.at,job:{...job,zeroPhase:'status',freezeEnd:Infinity,shellScale:Math.max(.8,Math.min(1.45,Math.max(profile.height/170,profile.width/210)))}};
+     }
+    }
+    fxJobs.push({action:a,job});
    }
   }
+  if(zeroStatus){zeroStatus.job.light=fxSettings.light;zeroStatus.job.reduced=reduced;fxJobs.push({action:zeroStatus,job:zeroStatus.job});}
   for(const {action:a,job} of fxJobs)ink.drawGround?.(ctx,job,elapsed-a.at);
   petActor(data,t);
   const actors=[{side:'player',x:px,y:305},{side:'enemy',x:ex,y:profile.key==='wolf'?278:profile.height>200?315:/fly|float/.test(profile.motion)?306:292}].sort((a,b)=>a.y-b.y);
@@ -217,13 +236,14 @@ function create(host,read,enemyKey='wolf'){
  function wake(){if(!dead&&!document.hidden&&!raf){last=performance.now();raf=requestAnimationFrame(draw);}}
  function visibility(){if(document.hidden){
   cancelAnimationFrame(raf);raf=0;
-  // Authored solar and butterfly one-shots expire on backgrounding instead of replaying a frozen burst
+  // Authored effects expire on backgrounding instead of replaying a frozen burst
   // on return. This drops presentation records only; damage is already engine-owned.
-  const authored=a=>['太阳真火','冰蝶幻舞'].includes(a?.name);
+  zeroStatus=null;
+  const authored=a=>['太阳真火','冰蝶幻舞','绝对零度'].includes(a?.name);
   if(authored(attack))attack=null;
   queue=queue.filter(a=>!authored(a));tails=tails.filter(a=>!authored(a));
  }else wake();}
- function destroy(){if(dead)return;dead=true;attack=null;queue=[];tails=[];hits=[];floats=[];cancelAnimationFrame(raf);raf=0;document.removeEventListener('visibilitychange',visibility);stage.remove();canvas.width=canvas.height=1;bg.width=bg.height=1;host.classList.remove('duel25-active');if(host.id==='combatArena')document.getElementById('combatPanel')?.classList.remove('duel25-panel');}
+ function destroy(){if(dead)return;dead=true;zeroStatus=null;attack=null;queue=[];tails=[];hits=[];floats=[];cancelAnimationFrame(raf);raf=0;document.removeEventListener('visibilitychange',visibility);stage.remove();canvas.width=canvas.height=1;bg.width=bg.height=1;host.classList.remove('duel25-active');if(host.id==='combatArena')document.getElementById('combatPanel')?.classList.remove('duel25-panel');}
  document.addEventListener('visibilitychange',visibility);wake();
  function act(side,element,name='',enhance=false){
   if(dead)return;
@@ -257,7 +277,7 @@ function create(host,read,enemyKey='wolf'){
    const action=pet?null:[...queue].reverse().find(a=>a.side===source)||(attack?.side===source?attack:null);
    if(action&&(action!==attack||elapsed-action.at<contactTime(action)))action.pendingHits.push(h);
    else emitHit(h,action);
-  },reset(){if(dead)return;petHitAt=-1000;deaths.player=deaths.enemy=null;attack=null;queue=[];tails=[];hits=[];floats=[];},destroy,canvas};
+  },reset(){if(dead)return;zeroStatus=null;petHitAt=-1000;deaths.player=deaths.enemy=null;attack=null;queue=[];tails=[];hits=[];floats=[];},destroy,canvas};
 }
 window.XiantuDuel25D={create,petKey:petVisualKeyV286818,roster:ROSTER.map(({key,name})=>({key,name}))};
 // Shared species mapping includes elite variants; named story people and tribulations keep their own art.
@@ -269,7 +289,7 @@ if(typeof window.startCombat==='function'){
   try{return combatBase.apply(this,arguments);}finally{casting=previous;}
  };
  const stop=()=>{scene?.destroy();scene=null;document.getElementById('combatArena')?.classList.remove('duel25-active');};
- const start=window.startCombat;window.startCombat=function(...args){const result=start.apply(this,args);if(typeof currentEnemy!=='undefined'&&currentEnemy===args[0]&&gameState==='combat'){stop();const key=typeof scrollMonsterKeyV2853==='function'?scrollMonsterKeyV2853(currentEnemy.name):null;if(ROSTER.some(p=>p.key===key)){owner=player;foe=currentEnemy;scene=create(document.getElementById('combatArena'),()=>({active:player===owner&&currentEnemy===foe&&(gameState==='combat'||gameState==='combat-ending'),compact:!!document.getElementById('battleVitalsV286816'),pet:owner.activePet,playerName:owner.name,enemyName:foe.name,playerHp:owner.hp,playerMax:getMaxHp(),enemyHp:foe.hp,enemyMax:foe.maxHp}),key);}}return result;};
+ const start=window.startCombat;window.startCombat=function(...args){const result=start.apply(this,args);if(typeof currentEnemy!=='undefined'&&currentEnemy===args[0]&&gameState==='combat'){stop();const key=typeof scrollMonsterKeyV2853==='function'?scrollMonsterKeyV2853(currentEnemy.name):null;if(ROSTER.some(p=>p.key===key)){owner=player;foe=currentEnemy;scene=create(document.getElementById('combatArena'),()=>({active:player===owner&&currentEnemy===foe&&(gameState==='combat'||gameState==='combat-ending'),compact:!!document.getElementById('battleVitalsV286816'),enemyIdentity:foe,enemyFrozen:typeof skipEnemyTurn!=='undefined'&&skipEnemyTurn&&foe._skipReason==='冻结',pet:owner.activePet,playerName:owner.name,enemyName:foe.name,playerHp:owner.hp,playerMax:getMaxHp(),enemyHp:foe.hp,enemyMax:foe.maxHp}),key);}}return result;};
  for(const name of ['resetRuntimeState','endCombatAfterCapture']){const base=window[name];if(typeof base==='function')window[name]=function(...args){stop();return base.apply(this,args);};}
  const attack=window.playAttackAnimation;window.playAttackAnimation=function(side){if(scene?.ready){scene.act(side,side==='player'&&casting?casting.element||'sword':side==='enemy'?undefined:'sword',side==='player'&&casting?casting.name:'');return;}return attack.apply(this,arguments);};
  const skill=window.playSkillEffect;window.playSkillEffect=function(name,element,source){if(scene?.ready){scene.act('player',element||'sword',name,true);return;}return skill.apply(this,arguments);};
@@ -279,4 +299,4 @@ if(typeof window.startCombat==='function'){
 }
 
 })();
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.31';
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.32';

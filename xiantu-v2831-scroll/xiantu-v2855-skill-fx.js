@@ -50,6 +50,36 @@ function sampleIceButterfly(D,j,age){
  return out;
 }
   // END ICE BUTTERFLY GENERATED
+  // BEGIN ABSOLUTE ZERO GENERATED
+  const ABSOLUTE_ZERO = {"key":"absolute_zero","name":"绝对零度","element":"ice","visualArchetype":"moving-front","layers":{"telegraph":{"file":"absolute_zero_telegraph.png","frames":6,"frameWidth":192,"frameHeight":192,"pivotX":0.5,"pivotY":0.5,"fps":40,"loop":false,"holdLast":false},"body":{"file":"absolute_zero_body.png","frames":8,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.6696428571428571,"fps":32,"loop":true,"holdLast":false},"impact":{"file":"absolute_zero_impact.png","frames":6,"frameWidth":384,"frameHeight":384,"pivotX":0.5,"pivotY":0.6696428571428571,"fps":33.333333333333336,"loop":false,"holdLast":false},"sustain":{"file":"absolute_zero_sustain.png","frames":8,"frameWidth":384,"frameHeight":384,"pivotX":0.5,"pivotY":0.6696428571428571,"fps":12,"loop":true,"holdLast":false},"residue":{"file":"absolute_zero_residue.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.6696428571428571,"fps":20,"loop":false,"holdLast":false}},"scale":1,"offsetX":0,"offsetY":0,"trailLength":0,"display":{"telegraph":140,"body":260,"impact":460,"sustain":460,"residue":300},"timing":{"gatherMs":95,"arrivalMs":310,"impactMs":180,"crossfadeMs":60,"releaseMs":300,"defaultFreezeEndMs":1600},"preview":{"displayMode":"moving-front","motion":"travel","durationMs":1900,"distance":233,"layers":{"telegraph":{"start":0,"end":0.07894736842105263,"anchor":"origin","width":140,"height":140,"fadeIn":0.1,"fadeOut":0.4},"body":{"start":0.05,"end":0.19473684210526315,"anchor":"moving","width":260,"height":260,"fadeIn":0.15,"fadeOut":0.21818181818181817},"impact":{"start":0.1631578947368421,"end":0.2578947368421053,"anchor":"target","width":460,"height":460,"fadeOut":0.3333333333333333},"sustain":{"start":0.22631578947368422,"end":1,"anchor":"target","width":460,"height":460,"fadeIn":0.04081632653061224,"fadeOut":0.20408163265306123},"residue":{"start":0.8421052631578947,"end":1,"anchor":"target","width":300,"height":300,"fadeIn":0.2,"fadeOut":0.6}}},"acceptance":["Hollow shell has clear central monster window","Fixed-size moving front; no stretched beam","Acknowledged hit and current frozen target own separate visual layers","Eight-frame sustain continues until freeze ends; target loss clears immediately","One registered shell silhouette through impact/sustain/release","Combat state stays authoritative; preview inputs only simulate it"]};
+/* Pure visual sampler; the caller supplies the acknowledged hit and freeze exit. */
+function sampleAbsoluteZero(D,j,age){
+ const T=D.timing,clamp=v=>Math.max(0,Math.min(1,v));
+ if(age<0||j.targetPresent===false)return [];
+ const hit=Number.isFinite(j.hitAt)?j.hitAt:null,arrival=Math.max(1,hit??j.arriveAt??T.arrivalMs);
+ const freezeEnd=j.freezeEnd??hit,from=j.from,groundFrom=j.fromGround||{x:from.x,y:from.y+30*(j.scale||1)},groundTo=j.toGround||{x:j.to.x,y:j.to.y+30*(j.scale||1)};
+ const reduced=!!j.reduced,out=[],s=(j.scale||1)*D.scale,gather=arrival*T.gatherMs/T.arrivalMs,coreEnd=arrival*150/T.arrivalMs;
+ const add=(id,layer,anchor,p,frame,opacity)=>{
+  if(opacity<=0)return;const m=D.layers[layer],size=D.display[layer]*s*(['impact','sustain'].includes(layer)?j.shellScale||1:1);
+  out.push({id,layer,anchor,x:p.x+D.offsetX*s,y:p.y+D.offsetY*s,width:size,height:size,pivotX:m.pivotX,pivotY:m.pivotY,frame:Math.min(m.frames-1,Math.max(0,frame)),opacity:clamp(opacity),rotation:0,flipX:layer==='body'&&groundTo.x<groundFrom.x});
+ };
+ if(j.zeroPhase!=='status'){
+  if(age<coreEnd)add('core','telegraph','origin',from,reduced?2:Math.floor(age/coreEnd*D.layers.telegraph.frames),Math.min(clamp(age/(coreEnd/6)),clamp((coreEnd-age)/(coreEnd*.4))));
+  const fade=hit!==null?60:140;
+  if(!reduced&&age>=gather&&age<arrival+fade){
+   const t=clamp((age-gather)/Math.max(1,arrival-gather));
+   add('front','body','moving',{x:groundFrom.x+(groundTo.x-groundFrom.x)*t,y:groundFrom.y+(groundTo.y-groundFrom.y)*t},Math.floor(age*D.layers.body.fps/1000)%D.layers.body.frames,Math.min(clamp((age-gather)/40),clamp((arrival+fade-age)/fade)));
+  }
+ }
+ if(j.zeroPhase!=='cast'&&hit!==null&&age>=hit&&freezeEnd>hit&&age<freezeEnd+T.releaseMs){
+  const elapsed=Math.min(age,freezeEnd)-hit,overlap=T.impactMs-T.crossfadeMs,blend=clamp((elapsed-overlap)/T.crossfadeMs),release=clamp((freezeEnd+T.releaseMs-age)/T.releaseMs);
+  if(elapsed<T.impactMs)add('forming','impact','target',groundTo,reduced?2:Math.floor(elapsed/T.impactMs*D.layers.impact.frames),(1-blend)*release);
+  if(elapsed>=overlap)add('frozen','sustain','target',groundTo,reduced?0:Math.floor(Math.max(0,elapsed-T.impactMs)*(j.light?8:D.layers.sustain.fps)/1000)%D.layers.sustain.frames,blend*release);
+  if(Number.isFinite(freezeEnd)&&age>=freezeEnd){const t=(age-freezeEnd)/T.releaseMs;add('outro','residue','target',groundTo,reduced?3:Math.floor(t*D.layers.residue.frames),Math.min(clamp(t*5),clamp((1-t)*2)));}
+ }
+ return out;
+}
+  // END ABSOLUTE ZERO GENERATED
   let quality='auto';try{const v=localStorage.getItem(KEY);if(['auto','rich','light'].includes(v))quality=v}catch(_){}
   let canvas=null,ctx=null,jobs=[],raf=0,timer=0,lastFrame=-Infinity,serial=0,observer=null,finishUntil=0;
   const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)),lerp=(a,b,t)=>a+(b-a)*t;
@@ -159,6 +189,27 @@ function sampleIceButterfly(D,j,age){
     }
     c.restore();return true;
   }
+  const zeroTextures=new Map();
+  function prepareZero(){
+    for(const [name,layer] of Object.entries(ABSOLUTE_ZERO.layers)){
+      if(zeroTextures.has(name))continue;
+      const image=new Image(),entry={image,ready:false,failed:false};zeroTextures.set(name,entry);image.decoding='async';
+      image.onload=()=>{entry.ready=image.naturalWidth===layer.frames*layer.frameWidth&&image.naturalHeight===layer.frameHeight;entry.failed=!entry.ready};
+      image.onerror=()=>{entry.ready=false;entry.failed=true};image.src='./absolute-zero-v286832/'+layer.file;
+    }
+  }
+  function zeroReady(){return zeroTextures.size===5&&[...zeroTextures.values()].every(t=>t.ready&&!t.failed)}
+  function zeroSample(j,age){return sampleAbsoluteZero(ABSOLUTE_ZERO,j,age)}
+  function drawZero(c,j,age){
+    prepareZero();if(!zeroReady())return false;
+    c.save();c.beginPath();c.rect(0,0,j.width,j.clipBottom);c.clip();c.globalCompositeOperation='source-over';
+    for(const p of zeroSample(j,age)){
+      const spec=ABSOLUTE_ZERO.layers[p.layer],texture=zeroTextures.get(p.layer).image;
+      c.save();c.translate(p.x,p.y);if(p.flipX)c.scale(-1,1);c.globalAlpha=p.opacity;
+      c.drawImage(texture,p.frame*spec.frameWidth,0,spec.frameWidth,spec.frameHeight,-p.width*p.pivotX,-p.height*p.pivotY,p.width,p.height);c.restore();
+    }
+    c.restore();return true;
+  }
   function profile(name,element='',info=null,source='active'){
     name=String(name||'灵力冲击');
     if(!info&&typeof SKILLS!=='undefined')info=SKILLS.find(s=>s.name===name)||null;
@@ -166,6 +217,7 @@ function sampleIceButterfly(D,j,age){
     if(name==='镇岳山河震')family='earth';if(name==='穿云贯日')family='spear';
     if(!palettes[family])family='spirit';
     let kind=styles[name]||forms[name]||({sword:'blade',heal:'dew',ice:'breath',fire:'burst',thunder:'bolt',dark:'wave',blood:'wave',spirit:'wave',earth:'ground',spear:'lance'}[family]);
+    if(name==='绝对零度'){family='ice';prepareZero();}
     if(kind==='sun')prepareSolar();
     if(kind==='butterfly')prepareButterfly();
     const self=family==='heal'||kind==='armor'||!!(info&&Number(info.damage)===0&&/护|甲|附体/.test(name));
@@ -248,6 +300,7 @@ function sampleIceButterfly(D,j,age){
   }
   function groundAnchors(j){return {from:j.fromGround||{x:j.from.x,y:j.from.y+30*(j.scale||1)},to:j.toGround||{x:j.to.x,y:j.to.y+30*(j.scale||1)}}}
   function drawGround(c,j,age){
+    if(j.profile.name==='绝对零度'&&j.zeroPhase&&zeroReady())return;
     const state=sample(j,age);if(!state.visible)return;
     if((j.profile.kind==='sun'&&solarReady())||(j.profile.kind==='butterfly'&&butterflyReady()))return; // Solar plates own their single foot ring.
     const p=j.profile,pal=p.palette,s=j.scale||1,g=groundAnchors(j),fade=clamp((j.duration-age)/260);
@@ -262,6 +315,8 @@ function sampleIceButterfly(D,j,age){
     c.restore();
   }
   function draw(c,j,age){
+    if(j.profile.name==='绝对零度'&&j.zeroPhase&&drawZero(c,j,age))return;
+    if(j.zeroPhase==='status')return; // Missing authored art must not replay a second generic prison.
     const p=j.profile,pal=p.palette,from=j.from,to=j.to,s=j.scale||1,light=j.light;
     const state=sample(j,age);if(!state.visible)return;
     if(p.kind==='sun'&&drawSolar(c,j,age))return;
@@ -382,9 +437,17 @@ function sampleIceButterfly(D,j,age){
     if(!raf&&!settings().reduced)raf=requestAnimationFrame(frame);
   }
   function cinemaClear(){if(typeof gameState!=='undefined'&&gameState==='combat-ending')finish();else clear()}
+  function syncZeroState(j,age){
+    if(!j.zeroPhase)return true;
+    if(typeof currentEnemy==='undefined'||currentEnemy!==j.zeroEnemy||currentEnemy?.hp<=0)return false;
+    const frozen=typeof skipEnemyTurn!=='undefined'&&skipEnemyTurn&&currentEnemy._skipReason==='冻结';
+    if(j.hitAt!==null&&!j.zeroClaimed){j.zeroClaimed=true;if(frozen){j.freezeEnd=Infinity;j.duration=Infinity;}}
+    if(j.freezeEnd===Infinity&&!frozen){j.freezeEnd=age;j.duration=age+ABSOLUTE_ZERO.timing.releaseMs;}
+    return true;
+  }
   function frame(stamp){
     raf=0;if(!live()){clear();return}
-    jobs=jobs.filter(j=>stamp-j.started<j.duration);
+    jobs=jobs.filter(j=>syncZeroState(j,stamp-j.started)&&stamp-j.started<j.duration);
     if(!jobs.length){clear();return}
     const fps=jobs.some(j=>!j.light)?30:24;
     if(stamp-lastFrame>=1000/fps){lastFrame=stamp;ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);ctx.setTransform(jobs[0].ratio,0,0,jobs[0].ratio,0,0);for(const j of jobs)draw(ctx,j,stamp-j.started)}
@@ -408,10 +471,13 @@ function sampleIceButterfly(D,j,age){
     if(!canvas){canvas=D.createElement('canvas');canvas.className='ink-skill-canvas-v2854';canvas.setAttribute('aria-hidden','true');ctx=canvas.getContext('2d');if(!ctx){canvas=null;return false}host.replaceChildren(canvas);canvas.width=Math.max(1,Math.floor(box.width*ratio));canvas.height=Math.max(1,Math.floor(box.height*ratio));}
     const a=anchor('combatPlayerChar',box,'player'),b=anchor('enemyChar',box,'enemy'),from=side==='enemy'?b:a,to=p.self?from:side==='enemy'?a:b;
     const started=now(),job={id:++serial,profile:p,side,from,to,width:box.width,height:box.height,clipBottom:Math.min(a.bottom,b.bottom),scale:clamp(box.width/460,.67,1.12),ratio,started,light:opt.light,reduced:opt.reduced,duration:opt.reduced?360:source==='passive'?620:opt.light?880:1040,hitAt:p.self?170:source==='passive'?120:null};
-    jobs=jobs.filter(j=>j.side!==side&&started-j.started<j.duration);jobs.push(job);if(jobs.length>2)jobs.shift();
+    if(name==='绝对零度'&&side==='player'&&typeof currentEnemy!=='undefined'){
+      job.zeroPhase='full';job.zeroEnemy=currentEnemy;job.duration=1040;
+    }
+    jobs=jobs.filter(j=>(j.side!==side||(j.zeroPhase&&j.profile.name!==name))&&started-j.started<j.duration);jobs.push(job);if(jobs.length>3)jobs.shift();
     const label=D.getElementById('inkFxNameV2854');if(label){label.textContent=(source==='passive'?'被动':side==='enemy'?'敌方':'我方')+' · '+p.name;label.style.color=p.palette[0]}
-    if(timer)clearTimeout(timer);timer=setTimeout(()=>clear(),Math.max(...jobs.map(j=>j.started+j.duration))-started+80);
-    if(opt.reduced){if(raf)cancelAnimationFrame(raf);raf=0;ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,box.width,box.height);draw(ctx,job,200)}else if(!raf)raf=requestAnimationFrame(frame);
+    if(timer)clearTimeout(timer);timer=0;if(!jobs.some(j=>j.zeroPhase))timer=setTimeout(()=>clear(),Math.max(...jobs.map(j=>j.started+j.duration))-started+80);
+    if(opt.reduced&&!jobs.some(j=>j.zeroPhase)){if(raf)cancelAnimationFrame(raf);raf=0;ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,box.width,box.height);draw(ctx,job,200)}else if(!raf)raf=requestAnimationFrame(frame);
     return true;
   }
   function hit(side){for(const j of jobs){if(j.profile.self||j.hitAt!==null||j.side===side)continue;const age=now()-j.started;if(age<600){j.hitAt=Math.max(120,age);if(j.reduced&&['sun','butterfly'].includes(j.profile.kind)&&ctx){ctx.setTransform(j.ratio,0,0,j.ratio,0,0);ctx.clearRect(0,0,j.width,j.height);for(const active of jobs)draw(ctx,active,Math.max(now()-active.started,active.hitAt??0));}}}}
@@ -427,8 +493,9 @@ function sampleIceButterfly(D,j,age){
   for(const name of ['pauseVisualsV2767']){const base=W[name];if(typeof base==='function')W[name]=function(...args){clear();return base.apply(this,args)}}
   W.playInkSkillV2854=play;
   const solar={definition:SOLAR,prepare:prepareSolar,ready:solarReady,sample:solarSample};
+  const absoluteZero={definition:ABSOLUTE_ZERO,prepare:prepareZero,ready:zeroReady,sample:zeroSample};
   const butterfly={definition:ICE_BUTTERFLY,prepare:prepareButterfly,ready:butterflyReady,sample:butterflySample};
-  W.InkSkillFxV2854={profile,draw,drawGround,sample,solar,butterfly,catalog:()=>[...new Set([...Object.keys(styles),...Object.keys(forms),...(typeof SKILLS!=='undefined'?SKILLS.map(s=>s.name):[])])].map(name=>profile(name)),play,hit,clear,finish,cinemaClear,install,cycle,settings,inspect:()=>({version:'28.68',quality,finishing:finishUntil>now(),active:jobs.length,raf:!!raf,pixels:canvas?canvas.width*canvas.height:0,jobs:jobs.map(j=>({name:j.profile.name,kind:j.profile.kind,family:j.profile.family,side:j.side,self:j.profile.self,hitAt:j.hitAt,from:{...j.from},to:{...j.to}}))})};
+  W.InkSkillFxV2854={profile,draw,drawGround,sample,solar,butterfly,absoluteZero,catalog:()=>[...new Set([...Object.keys(styles),...Object.keys(forms),...(typeof SKILLS!=='undefined'?SKILLS.map(s=>s.name):[])])].map(name=>profile(name)),play,hit,clear,finish,cinemaClear,install,cycle,settings,inspect:()=>({version:'28.68',quality,finishing:finishUntil>now(),active:jobs.length,raf:!!raf,pixels:canvas?canvas.width*canvas.height:0,jobs:jobs.map(j=>({name:j.profile.name,kind:j.profile.kind,family:j.profile.family,side:j.side,self:j.profile.self,hitAt:j.hitAt,from:{...j.from},to:{...j.to}}))})};
   install();
 })();
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2855-skill-fx.js']='28.68.31';
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2855-skill-fx.js']='28.68.32';

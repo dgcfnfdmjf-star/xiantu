@@ -7,4 +7,4 @@
   window.installSkillSwapMenuV213=install;
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-18-skillswapmenuv213.js"]="28.68.31";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-18-skillswapmenuv213.js"]="28.68.32";

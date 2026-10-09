@@ -96,4 +96,4 @@
   W.BattleClarityV2856={read,sync};
 })(window,document);
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2856-battle-clarity.js']='28.68.31';
+window.__xiantuBuildFilesV2814['xiantu-v2856-battle-clarity.js']='28.68.32';

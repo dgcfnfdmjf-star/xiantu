@@ -1,4 +1,4 @@
-# 仙途 V28.68.31
+# 仙途 V28.68.32
 
 静态网页修仙游戏。网站目录沿用 `xiantu-v2831-scroll`，云函数源码在 `tencent-jev-function`。
 
@@ -14,11 +14,15 @@ npm test
 npm run test:browser
 ```
 
-`npm test` 运行选定的 36 个当前功能回归脚本与限流测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
+`npm test` 运行选定的 37 个当前功能回归脚本与限流测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
 
 浏览器测试覆盖恶意存档拒绝且原主档/备份不变、正常导入与刷新恢复、360/390/430/1366px 导航入口可达性、预加载去重与版本错误提示。外部请求被拦截，不调用付费服务。已有 Chromium 的云环境可使用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`。
 
 有本地测试 Redis 时，运行 `python3 scripts/test-redis.py`；默认连接 127.0.0.1:6379，可用 `REDIS_TEST_PORT` 改端口。仅操作随机前缀测试键，退出时清理。GitHub Actions 使用独立 Redis 服务自动执行此项。
+
+## V28.68.32 绝对零度
+
+新增聚核、低空寒潮、透明冰棺与霜痕消散。冰棺随真实冻结状态维持，解除、死亡及换敌时清理；耗蓝 70、倍率 4.0 和原冻结/寒迟规则不变。独立资源页 `absolute-zero-v286832/index.html`，同台试演 `battle-25d-preview.html?skill=绝对零度`，支持解除冻结。验收见 `docs/absolute-zero-v286832.md`。无需更新 Jev。
 
 ## V28.68.31 冰蝶幻舞
 

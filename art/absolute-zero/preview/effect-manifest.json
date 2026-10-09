@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "effects": [
+    {
+      "key": "absolute_zero",
+      "name": "绝对零度",
+      "element": "ice",
+      "visualArchetype": "moving-front",
+      "layers": {
+        "telegraph": {
+          "file": "absolute_zero_telegraph.png",
+          "frames": 6,
+          "frameWidth": 192,
+          "frameHeight": 192,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 40,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "absolute_zero_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.6696428571428571,
+          "fps": 32,
+          "loop": true,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "absolute_zero_impact.png",
+          "frames": 6,
+          "frameWidth": 384,
+          "frameHeight": 384,
+          "pivotX": 0.5,
+          "pivotY": 0.6696428571428571,
+          "fps": 33.333333333333336,
+          "loop": false,
+          "holdLast": false
+        },
+        "sustain": {
+          "file": "absolute_zero_sustain.png",
+          "frames": 8,
+          "frameWidth": 384,
+          "frameHeight": 384,
+          "pivotX": 0.5,
+          "pivotY": 0.6696428571428571,
+          "fps": 12,
+          "loop": true,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "absolute_zero_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.6696428571428571,
+          "fps": 20,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "display": {
+        "telegraph": 140,
+        "body": 260,
+        "impact": 460,
+        "sustain": 460,
+        "residue": 300
+      },
+      "timing": {
+        "gatherMs": 95,
+        "arrivalMs": 310,
+        "impactMs": 180,
+        "crossfadeMs": 60,
+        "releaseMs": 300,
+        "defaultFreezeEndMs": 1600
+      },
+      "preview": {
+        "displayMode": "moving-front",
+        "motion": "travel",
+        "durationMs": 1900,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0,
+            "end": 0.07894736842105263,
+            "anchor": "origin",
+            "width": 140,
+            "height": 140,
+            "fadeIn": 0.1,
+            "fadeOut": 0.4
+          },
+          "body": {
+            "start": 0.05,
+            "end": 0.19473684210526315,
+            "anchor": "moving",
+            "width": 260,
+            "height": 260,
+            "fadeIn": 0.15,
+            "fadeOut": 0.21818181818181817
+          },
+          "impact": {
+            "start": 0.1631578947368421,
+            "end": 0.2578947368421053,
+            "anchor": "target",
+            "width": 460,
+            "height": 460,
+            "fadeOut": 0.3333333333333333
+          },
+          "sustain": {
+            "start": 0.22631578947368422,
+            "end": 1,
+            "anchor": "target",
+            "width": 460,
+            "height": 460,
+            "fadeIn": 0.04081632653061224,
+            "fadeOut": 0.20408163265306123
+          },
+          "residue": {
+            "start": 0.8421052631578947,
+            "end": 1,
+            "anchor": "target",
+            "width": 300,
+            "height": 300,
+            "fadeIn": 0.2,
+            "fadeOut": 0.6
+          }
+        }
+      },
+      "acceptance": [
+        "Hollow shell has clear central monster window",
+        "Fixed-size moving front; no stretched beam",
+        "Acknowledged hit and current frozen target own separate visual layers",
+        "Eight-frame sustain continues until freeze ends; target loss clears immediately",
+        "One registered shell silhouette through impact/sustain/release",
+        "Combat state stays authoritative; preview inputs only simulate it"
+      ]
+    }
+  ]
+}
