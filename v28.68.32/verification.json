@@ -1,0 +1,22 @@
+{
+  "version": "28.68.32",
+  "source_sha256": "9413cf9b884cece0a4795e944e74eb22392418f9f7b9849f8b388c8f9e0fcb21",
+  "limit_bytes": 25000000,
+  "parts": [
+    {
+      "file": "xiantu-v2868.32-part1-of2.zip",
+      "bytes": 22538432,
+      "files": 85
+    },
+    {
+      "file": "xiantu-v2868.32-part2-of2.zip",
+      "bytes": 22538770,
+      "files": 89
+    }
+  ],
+  "sha256": {
+    "xiantu-v2868.32-part1-of2.zip": "42b3342f8efea72676cceefc56d6264ae38f8563f6c40aefa7fca60d9ee55f37",
+    "xiantu-v2868.32-part2-of2.zip": "a434d9d0f156a605a5988228147f0e5c5431e3bfac48b907ff383132f7556fbd"
+  },
+  "verified_files": 174
+}
