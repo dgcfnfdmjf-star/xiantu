@@ -2,12 +2,14 @@
 
 这里专门存放下载包，与 main 游戏开发分支分开维护。
 
+**仓库为私有：请先登录有仓库权限的 GitHub 账号。未登录显示 404，并不表示文件丢失。打开下面的文件页面后，点击 Download raw file（下载原始文件）或下载箭头。**
+
 ## V28.68.32 · 绝对零度状态特效版
 
 这是 `codex/absolute-zero-v286832` 分支提交 `a2ee53b27eeb4f9d44b2a1646b68ed574c2a7098` 对应的完整游戏包，**不是 main 上的 V28.68.35**。两个 ZIP 都要下载，每个文件严格小于 25,000,000 字节。
 
-- [下载第 1 份（22.54 MB）](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/download-packages/v28.68.32/xiantu-v2868.32-part1-of2.zip)
-- [下载第 2 份（22.54 MB）](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/download-packages/v28.68.32/xiantu-v2868.32-part2-of2.zip)
+- [下载第 1 份（22.54 MB）](https://github.com/dgcfnfdmjf-star/xiantu/blob/download-packages/v28.68.32/xiantu-v2868.32-part1-of2.zip)
+- [下载第 2 份（22.54 MB）](https://github.com/dgcfnfdmjf-star/xiantu/blob/download-packages/v28.68.32/xiantu-v2868.32-part2-of2.zip)
 
 ## 解压方法
 
