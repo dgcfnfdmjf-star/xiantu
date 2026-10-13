@@ -7,7 +7,7 @@ const TUTORIAL_STEPS={
   combat_attack:{title:'⚔️ 先出一剑',desc:'点击<b>【普通攻击】</b>完成第一击。之后自由应战，击败演武傀儡即可。',compact:'点击【普通攻击】完成第一击',target:'#combatChoices .choice-btn',placement:'left',waitFor:'attack'},
   equipment:{title:'🎒 穿戴所得',desc:'演武奖励已经放入<b>装备背包</b>。打开装备栏，点击【背包装备】，再点【布衣】穿到法袍位。<br><br>装备有品质与境界要求，高阶装备必须达到相应境界才能使用。',placement:'left',actions:[{text:'打开装备栏',action:'equipment'}]},
   tasks:{title:'📜 宗门差事',desc:'宗门任务是稳定获取<b>修为、贡献与灵石</b>的途径。接取后可以查看详细指引与任务追踪；采集、清剿与捐献都有各自的真实获取路线。',placement:'center',actions:[{text:'查看宗门任务',action:'tasks'},{text:'继续了解修炼',action:'next',nextStep:'cultivation'}]},
-  cultivation:{title:'🧘 修炼与突破',desc:'修为达到当前瓶颈后，会进入突破流程，突破存在失败风险。失败后需要调息，时间会随仙历流逝而减少。<br><br><b>闭关十年最多推进一个小段</b>，不会连续跨越多个境界；渡劫圆满必须真正渡过飞升天劫，方能进入金仙。',placement:'center',actions:[{text:'我已明白',action:'finish'}]}
+  cultivation:{title:'🧘 修炼与突破',desc:'修为达到当前瓶颈后，会进入突破流程，突破存在失败风险。失败后需要调息，时间会随仙历流逝而减少。<br><br><b>闭关十年最多推进一个小段</b>，不会连续跨越多个境界；渡劫圆满必须真正渡过飞升天劫，方能进入地仙。',placement:'center',actions:[{text:'我已明白',action:'finish'}]}
 };
 const TUTORIAL_ORDER=['welcome','movement','interaction','combat','combat_attack','equipment','tasks','cultivation'];
 let tutorialState={active:false,currentStepId:null,bubble:null,dim:null,skipBtn:null,trainingWatcher:null,lastMoveX:null,lastMoveY:null,freeExploreAnnounced:false,compactStepId:null};
@@ -159,9 +159,10 @@ function installTutorialInteractionHooks(){
 // ===== 境界解锁提示：只讲真实开放内容 =====
 function showTutorialUnlockPopup(key,title,body){const t=ensureTutorialState();if(!t||t.readPopups.includes(key))return;t.readPopups.push(key);autoSave?.();document.getElementById('tutorialUnlock')?.remove();const el=document.createElement('div');el.id='tutorialUnlock';el.className='tutorial-unlock';el.innerHTML=`<h3>${title}</h3><p>${body}</p><button onclick="document.getElementById('tutorialUnlock')?.remove()">记下了</button>`;document.body.appendChild(el)}
 function checkTutorialRealm(level){
-  if(level>=2)showTutorialUnlockPopup('unlock_east','🌲 东域可行','你已踏入筑基，东域之路开放。可前往迷雾森林、灵兽谷；万宗秘境仍需宗门取得本世纪资格。');
-  if(level>=4)showTutorialUnlockPopup('unlock_north','❄️ 北域可行','筑基境后，北域之路开放。问道山、凌霄宗与三界势力碑皆可前往。');
-  if(level>=3)showTutorialUnlockPopup('unlock_west','✨ 金丹道成','金丹境后，西域之路开放；装备栏中的【本命法宝】位置也已开启。古战场、炼丹房与法宝台皆在西域。');
+  const unlock=typeof REGION_UNLOCK_LEVEL==='object'?REGION_UNLOCK_LEVEL:{east:2,north:2,west:3};
+  if(level>=unlock.east)showTutorialUnlockPopup('unlock_east','🌲 东域可行','你已踏入筑基，东域之路开放。可前往迷雾森林、灵兽谷；万宗秘境仍需宗门取得本世纪资格。');
+  if(level>=unlock.north)showTutorialUnlockPopup('unlock_north','❄️ 北域可行','筑基境后，北域之路开放。问道山、凌霄宗与三界势力碑皆可前往。');
+  if(level>=unlock.west)showTutorialUnlockPopup('unlock_west','✨ 金丹道成','金丹境后，西域之路开放；装备栏中的【本命法宝】位置也已开启。古战场、炼丹房与法宝台皆在西域。');
 }
 
 // ===== 修行指引手册 =====
@@ -169,12 +170,12 @@ function showHelpManual(){
   document.getElementById('helpManual')?.remove();const t=ensureTutorialState();const el=document.createElement('div');el.id='helpManual';el.className='help-manual-overlay active';el.onclick=e=>{if(e.target===el)closeHelpManual()};
   el.innerHTML=`<div class="help-manual-content" onclick="event.stopPropagation()"><div class="help-manual-title"><span>📖 仙途 · 修行指引</span><button class="help-manual-close" onclick="closeHelpManual()">✕</button></div><div class="help-manual-grid">
   <div class="help-section"><h4>🕹️ 行走与交互</h4><p>左下摇杆可自由控制方向；也可轻点地面自动前往落点。走进地点外圈后，右下【交互】进入。</p><p>右上小地图可查看周围地点，也可点选地图位置寻路。☰中可打开角色、装备、宗门任务与记档。</p></div>
-  <div class="help-section"><h4>🧘 修炼与突破</h4><p>修为达到瓶颈后会进入突破流程，成功率会受境界、丹药、宗门状态与心境影响。</p><p><b>闭关十年最多推进一个小段</b>。突破失败会损失部分修为并进入调息期；渡劫圆满必须渡过飞升天劫才能进入金仙。</p></div>
+  <div class="help-section"><h4>🧘 修炼与突破</h4><p>修为达到瓶颈后会进入突破流程，成功率会受境界、丹药、宗门状态与心境影响。</p><p><b>闭关十年最多推进一个小段</b>。突破失败会损失部分修为并进入调息期；渡劫圆满必须渡过飞升天劫才能进入地仙。</p></div>
   <div class="help-section"><h4>🎒 装备</h4><p>装备分防具、首饰、武器法宝等槽位，并有凡品至神器的品质差异。装备品质会放大其基础属性。</p><p>高阶装备有境界要求。戒指有两格、法宝有三格；<b>本命法宝位在金丹境开启</b>。成套装备可激活额外加成。</p></div>
   <div class="help-section"><h4>🗺️ 四域行路</h4><p><span class="help-tag">南域 初始</span><span class="help-tag">东域 筑基</span><span class="help-tag">北域 筑基</span><span class="help-tag">西域 金丹</span></p><p>通过四方驿道或行路选择前往其他地域。不同地域拥有不同地点与危险。</p></div>
   <div class="help-section"><h4>📜 宗门差事</h4><p>宗门任务包含采集灵草、妖丹、仙果，清剿妖兽，以及灵石/珍材捐献。任务面板提供真实获取路线与任务追踪。</p><p>宗门贡献可用于职位与宗门玩法；累计贡献不会因消费当前贡献而倒退。</p></div>
   <div class="help-section"><h4>⚔️ 战斗</h4><p>高境界会对低境界形成威压和伤害优势，越级战斗更危险，但成功时可能获得额外收益。</p><p>功法会随修为逐步解锁；冰冻、灼烧、治疗等效果各有用途。装备还能提供暴击、爆伤、闪避、格挡与抗性。</p></div>
-  <div class="help-section"><h4>🐾 灵宠与法宝</h4><p>东域灵兽谷可查看、培养与选择出战灵宠。野外遇到可收服灵兽时，将其生命压到25%以下即可使用灵兽绳、缚灵玉、御灵葫芦等道具尝试收服；魔宠与王兽/神兽需要特殊契具。</p><p>灵宠拥有品质、等级上限与契约类型；御兽功法可提升收服成功率。西域法宝台可查看与强化已有法宝。</p></div>
+  <div class="help-section"><h4>🐾 灵宠与法宝</h4><p>东域灵兽谷可查看、培养与选择出战灵宠。野外遇到可收服灵兽时，将其气血压到25%以下即可使用灵兽绳、缚灵玉、御灵葫芦等道具尝试收服；魔宠与王兽/神兽需要特殊契具。</p><p>灵宠拥有品质、等级上限与契约类型；御兽功法可提升收服成功率。西域法宝台可查看与强化已有法宝。</p></div>
   <div class="help-section"><h4>🌸 剧情与宗门</h4><p>主线会随着境界与战斗推进；苏晚晴相关剧情存在独立进展与结局。宗门还有任务、职位、百年大比与战争等长期玩法。</p><p>百年宗门大比前三的人类宗门，可获得本世纪进入万宗秘境的资格。</p></div>
   </div><div class="help-manual-actions"><button onclick="restartTutorial()">🌅 重走新手引路</button><button onclick="toggleTutorialTooltips()">${t?.showTooltips?'关闭':'开启'}问号提示</button><button onclick="closeHelpManual()">返回仙途</button></div></div>`;document.body.appendChild(el)
 }

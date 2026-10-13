@@ -32,7 +32,7 @@
   function ensureStrategyUiV2819(panel){
     if(document.getElementById('autoStrategyV2819'))return;
     const box=document.createElement('details');box.id='autoStrategyV2819';
-    box.innerHTML='<summary>⚙️ 自动战斗策略</summary><button type="button" onclick="showJevHubV2846()">☯ Jev 选招 / 今日用量</button><label>出招偏好<select data-pref="mode"><option value="burst">全力输出</option><option value="save">节省灵力</option><option value="survive">保命优先</option></select></label><label>生命≤ <input data-pref="healAt" type="number" min="10" max="90" step="5"> % 时尝试治疗</label><label>节省模式保留 <input data-pref="reserve" type="number" min="0" max="80" step="5"> % 灵力</label><p>全力输出优先高倍率伤害；节省灵力优先每点灵力的伤害倍率，并保留设定比例；保命优先护体与治疗，攻击时预留一次治疗灵力。三种策略都会在设定血线尝试治疗。</p><p>只使用已携带且灵力足够的技能。没有可用治疗时继续攻击；不会自动吃药或逃跑。修改从下一次自动选招生效。</p><small data-status></small>';
+    box.innerHTML='<summary>⚙️ 自动战斗策略</summary><button type="button" onclick="showJevHubV2846()">☯ Jev 选招 / 今日用量</button><label>出招偏好<select data-pref="mode"><option value="burst">全力输出</option><option value="save">节省灵力</option><option value="survive">保命优先</option></select></label><label>气血≤ <input data-pref="healAt" type="number" min="10" max="90" step="5"> % 时尝试治疗</label><label>节省模式保留 <input data-pref="reserve" type="number" min="0" max="80" step="5"> % 灵力</label><p>全力输出优先高倍率伤害；节省灵力优先每点灵力的伤害倍率，并保留设定比例；保命优先护体与治疗，攻击时预留一次治疗灵力。三种策略都会在设定血线尝试治疗。</p><p>只使用已携带且灵力足够的技能。没有可用治疗时继续攻击；不会自动吃药或逃跑。修改从下一次自动选招生效。</p><small data-status></small>';
     for(const el of box.querySelectorAll('[data-pref]')){
       const key=el.dataset.pref;el.value=strategyV2819[key];
       el.onchange=()=>{
@@ -168,7 +168,7 @@
     if(/^灼烧造成\s*[1-9]\d* 点伤害/.test(t))return `余焰尚未熄灭，又一次灼伤了${foe}。`;
     if(/^护盾展开：/.test(t))return '护体灵光凝成屏障，守在你的身前。';
     if(/^元素护盾吸收[1-9]/.test(t))return ['攻势撞上护体灵光，屏障替你承下了部分冲击。','护体屏障应声亮起，将袭来的部分力道挡在身外。'][(context.variant||0)%2];
-    if(/恢复\s*[1-9]\d*\s*点生命/.test(t))return '一股暖意回到体内，你的伤势得到了缓解。';
+    if(/恢复\s*[1-9]\d*\s*点(?:生命|气血)/.test(t))return '一股暖意回到体内，你的伤势得到了缓解。';
     if(/重伤倒地/.test(t))return '气力终于耗尽，你重伤倒地，眼前的战场渐渐模糊。';
     if(/逃跑失败！$/.test(t))return '退路仍被对手封住，这次脱身未能成功。';
     if(/已脱离敌人！$/.test(t))return '敌人的攻势被甩在身后，你终于脱离了这场交锋。';
