@@ -2,7 +2,7 @@
 const SCROLL_MONSTER_ART_V2853={
   keys:['wolf','frost-wolf','fox','tiger','dragon','ape','eagle','phoenix','serpent','spider','treant','golem','bandit','cultivator','demon-general','ghost','celestial-guard','war-spirit','mist-lord','blood-elder'],
   extraKeys:['rabbit','turtle','bat'],
-  failed:new WeakSet(),configured:new WeakSet(),version:'2868-sect-stories-20260930'
+  failed:new WeakSet(),configured:new WeakSet(),version:'2868-elements-20261013'
 };
 function scrollMonsterKeyV2853(name='',region='',generic=false){
   const n=String(name||'').replace(/【?精英】?[·・\s]*/g,'').trim();
@@ -117,4 +117,4 @@ window.drawCharacter=function(canvas,type,level,isEnemy=false){
   }
   return drawCharacterBeforeV2853.apply(this,arguments);
 };
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2853-monster-art.js']='28.68.35';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2853-monster-art.js']='28.68.38';

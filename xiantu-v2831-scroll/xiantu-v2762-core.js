@@ -13503,7 +13503,7 @@
         img.src='./'+file;
       };
       request('regions','scroll-regions-v2834.webp',true);
-      for(const [key,file] of [['smallBeastsV28682','monster-small-beasts-v28682.png'],['palace','scroll-palace-v2831.webp'],['buildings','scroll-buildings-v2832.webp'],['monstersV2853','monster-map-v2853.webp?v=2868-sect-stories-20260930'],['regionalBuildings','region-buildings-v2835.webp']])request(key,file);
+      for(const [key,file] of [['smallBeastsV28682','monster-small-beasts-v28682.png'],['palace','scroll-palace-v2831.webp'],['buildings','scroll-buildings-v2832.webp'],['monstersV2853','monster-map-v2853.webp?v=2868-elements-20261013'],['regionalBuildings','region-buildings-v2835.webp']])request(key,file);
     }
     function scrollRegionCellV2834(region=currentRegion){
       const n=['south','east','west','north','human_peaks','human_valleys','demon_domain','immortal_domain'].indexOf(region);return n<0?0:n;
@@ -14480,7 +14480,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.35";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.38";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
