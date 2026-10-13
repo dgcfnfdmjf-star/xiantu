@@ -27,7 +27,7 @@
 
 火系两批六招已合并 main（PR #1，V28.68.35）；见 `fire-skills-batch1-integration.md`、`fire-skills-batch2-integration.md`。
 
-剩余 18 个程序绘制技能已全部接入序列帧：火系第三批天火焚世、赤焰龙息、燎原火域由 `codex/skill-vfx-expansion` 的已确认资源（`fire-skills-batch3/`）移植到 main；其余 15 招沿用上面的家族流程（同一构建脚本、同一 `ELEMENT_BATCH`），新增 7 张 3×3 阶段原图：冰系投射家族 `frost_shard`（寒冰掌、玄冰刺、冰爆术、霜龙吐息）、冰系地面领域家族 `glacier_domain`（冰封千里、霜寒结界、冰河葬狱、寒渊领域、冰魄封魂、万载寒晶），以及独立资源 `frost_armor`（冰甲护身）、`solar_aegis`（炎阳护盾）、`flame_bind`（流火飞索）、`mountain_quake`（镇岳山河震）、`sun_spear`（穿云贯日）。至此 55/55 可学习技能都有序列帧资源，纹理未加载或失败时仍回退原程序绘制。倍率、耗蓝、命中、状态与随机数未改。按招式逐个定制冰系家族（如冰封状态驱动的冰棺、寒渊持续领域）仍属后续；本轮设计稿与资源预览两个确认节点未单独经过用户确认。
+剩余 18 个程序绘制技能已全部接入序列帧：火系第三批天火焚世、赤焰龙息、燎原火域由 `codex/skill-vfx-expansion` 的已确认资源（`fire-skills-batch3/`）移植到 main；其余 15 招沿用上面的家族流程（同一构建脚本、同一 `ELEMENT_BATCH`），共 15 张 3×3 阶段原图：冰系 10 招各有独立资源（`frost_palm` 寒冰掌、`ice_spike` 玄冰刺、`ice_burst` 冰爆术、`frost_dragon_breath` 霜龙吐息、`frozen_expanse` 冰封千里、`frost_barrier` 霜寒结界、`glacier_prison` 冰河葬狱、`abyss_domain` 寒渊领域、`soul_seal` 冰魄封魂、`eternal_crystal` 万载寒晶），以及独立资源 `frost_armor`（冰甲护身）、`solar_aegis`（炎阳护盾）、`flame_bind`（流火飞索）、`mountain_quake`（镇岳山河震）、`sun_spear`（穿云贯日）。至此 55/55 可学习技能都有序列帧资源，纹理未加载或失败时仍回退原程序绘制。倍率、耗蓝、命中、状态与随机数未改。冰系资源按招式造型区分，但尚未读取冻结、冰蚀等实时状态做持续表现，仍属后续；本轮设计稿与资源预览两个确认节点未单独经过用户确认。
 
 ## 技能清单
 
@@ -46,19 +46,19 @@
 | 剑气纵横 | sword | 35 | 2.5 | fan | 家族共享资源 `sword_qi`，本分支接入（V28.68.38），未发布 |
 | 万剑归宗 | sword | 50 | 3.5 | rain | 家族共享资源 `sword_qi`，本分支接入（V28.68.38），未发布 |
 | 天地一剑 | sword | 80 | 5 | great | 家族共享资源 `sword_qi`，本分支接入（V28.68.38），未发布 |
-| 寒冰掌 | ice | 15 | 1.6 | frost | 家族共享资源 `frost_shard`，本分支接入，未发布 |
-| 冰封千里 | ice | 40 | 2.8 | field | 家族共享资源 `glacier_domain`，本分支接入，未发布 |
+| 寒冰掌 | ice | 15 | 1.6 | frost | 独立资源 `frost_palm`，本分支接入，未发布 |
+| 冰封千里 | ice | 40 | 2.8 | field | 独立资源 `frozen_expanse`，本分支接入，未发布 |
 | 绝对零度 | ice | 70 | 4 | prison | 已有，本轮保留 |
-| 玄冰刺 | ice | 22 | 1.9 | icicle | 家族共享资源 `frost_shard`，本分支接入，未发布 |
-| 冰爆术 | ice | 28 | 2.3 | burst | 家族共享资源 `frost_shard`，本分支接入，未发布 |
-| 霜寒结界 | ice | 33 | 2.5 | field | 家族共享资源 `glacier_domain`，本分支接入，未发布 |
+| 玄冰刺 | ice | 22 | 1.9 | icicle | 独立资源 `ice_spike`，本分支接入，未发布 |
+| 冰爆术 | ice | 28 | 2.3 | burst | 独立资源 `ice_burst`，本分支接入，未发布 |
+| 霜寒结界 | ice | 33 | 2.5 | field | 独立资源 `frost_barrier`，本分支接入，未发布 |
 | 冰蝶幻舞 | ice | 36 | 2.7 | butterfly | 已有，本轮保留 |
-| 霜龙吐息 | ice | 48 | 3.3 | breath | 家族共享资源 `frost_shard`，本分支接入，未发布 |
-| 冰河葬狱 | ice | 56 | 3.7 | prison | 家族共享资源 `glacier_domain`，本分支接入，未发布 |
-| 寒渊领域 | ice | 64 | 4 | field | 家族共享资源 `glacier_domain`，本分支接入，未发布 |
+| 霜龙吐息 | ice | 48 | 3.3 | breath | 独立资源 `frost_dragon_breath`，本分支接入，未发布 |
+| 冰河葬狱 | ice | 56 | 3.7 | prison | 独立资源 `glacier_prison`，本分支接入，未发布 |
+| 寒渊领域 | ice | 64 | 4 | field | 独立资源 `abyss_domain`，本分支接入，未发布 |
 | 冰甲护身 | ice | 30 | 0 | armor | 独立资源 `frost_armor`，本分支接入，未发布 |
-| 冰魄封魂 | ice | 70 | 4.2 | seal | 家族共享资源 `glacier_domain`，本分支接入，未发布 |
-| 万载寒晶 | ice | 82 | 5.1 | crystal | 家族共享资源 `glacier_domain`，本分支接入，未发布 |
+| 冰魄封魂 | ice | 70 | 4.2 | seal | 独立资源 `soul_seal`，本分支接入，未发布 |
+| 万载寒晶 | ice | 82 | 5.1 | crystal | 独立资源 `eternal_crystal`，本分支接入，未发布 |
 | 烈焰斩 | fire | 18 | 1.8 | slash | 已合并 main（V28.68.35） |
 | 焚天烈焰 | fire | 45 | 3 | pillar | 已合并 main（V28.68.35） |
 | 天火焚世 | fire | 75 | 4.5 | meteor | 独立资源 `heaven_meteor`（火系第三批），本分支接入，未发布 |

@@ -8,7 +8,7 @@
 
 ## 开发分支：剩余 18 招序列帧特效
 
-此前仍为程序绘制的 18 招全部改为序列帧：火系第三批天火焚世、赤焰龙息、燎原火域从 `codex/skill-vfx-expansion` 移植；冰系 10 招使用两套家族资源（投射 `frost_shard`、地面领域 `glacier_domain`）；冰甲护身、炎阳护盾、流火飞索、镇岳山河震、穿云贯日各有独立资源（`art/element-skills-v286838/`，`python3 scripts/build-element-skills-vfx.py` 生成）。纹理未就绪时回退原程序绘制；技能倍率、耗蓝、命中和状态不变。浏览器端改动，无需更新 Jev，尚未发布。
+此前仍为程序绘制的 18 招全部改为序列帧：火系第三批天火焚世、赤焰龙息、燎原火域从 `codex/skill-vfx-expansion` 移植；冰系 10 招及冰甲护身、炎阳护盾、流火飞索、镇岳山河震、穿云贯日各有独立资源（`art/element-skills-v286838/`，`python3 scripts/build-element-skills-vfx.py` 生成）。纹理未就绪时回退原程序绘制；技能倍率、耗蓝、命中和状态不变。浏览器端改动，无需更新 Jev，尚未发布。
 
 ## 开发分支：火系两批特效
 

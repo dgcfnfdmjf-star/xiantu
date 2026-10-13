@@ -4,7 +4,7 @@ const root=process.env.XIANTU_TEST_ROOT||path.resolve(__dirname,'..'),fixture=re
 const files=JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]);
 const f=fixture(root),images=[],Base=f.c.Image;f.c.Image=class extends Base{constructor(){super();images.push(this)}};for(const file of files)f.load(file);
 const fx=f.c.InkSkillFxV2854,b=fx.elementBatch;assert(b,'element batch must be integrated');
-const families={thunder_strike:'thunder',sword_qi:'sword',jade_lotus_heal:'heal',frost_shard:'ice',glacier_domain:'ice',frost_armor:'ice',solar_aegis:'fire',flame_bind:'fire',mountain_quake:'earth',sun_spear:'spear'};
+const families={thunder_strike:'thunder',sword_qi:'sword',jade_lotus_heal:'heal',frost_palm:'ice',ice_spike:'ice',ice_burst:'ice',frost_dragon_breath:'ice',frozen_expanse:'ice',frost_barrier:'ice',glacier_prison:'ice',abyss_domain:'ice',soul_seal:'ice',eternal_crystal:'ice',frost_armor:'ice',solar_aegis:'fire',flame_bind:'fire',mountain_quake:'earth',sun_spear:'spear'};
 assert.deepEqual(JSON.parse(JSON.stringify(b.definitions.map(d=>d.key))),Object.keys(families));
 const known=new Set(fx.catalog().map(p=>p.name));
 for(const D of b.definitions){
@@ -18,7 +18,8 @@ for(const D of b.definitions){
   assert.equal(fx.elementBatch.definition(name),D);assert.equal(fx.authoredDuration(name),1100);
  }
 }
-const all=b.definitions.flatMap(d=>d.skills);assert.equal(new Set(all).size,all.length,'each skill has one owner');
+const all=b.definitions.flatMap(d=>d.skills);
+for(const D of b.definitions.filter(d=>d.element==='ice'))assert.equal(D.skills.length,1,D.key+' is dedicated to one ice skill');assert.equal(new Set(all).size,all.length,'each skill has one owner');
 for(const name of ['雷法','惊雷闪','裂地奔雷','紫霄落雷','万雷噬狱','九天神雷','闪电链','雷神附体','无音神雷','御剑术','剑气纵横','万剑归宗','天地一剑','清风剑诀','破甲剑罡','追魂一剑','饮血剑诀','玄罡护体剑','回春术','生生不息','起死回生','凝露诀','青莲护心','灵泉归元','逆命回元','莲华济世','寒冰掌','玄冰刺','冰爆术','霜龙吐息','冰封千里','霜寒结界','冰河葬狱','寒渊领域','冰魄封魂','万载寒晶','冰甲护身','炎阳护盾','流火飞索','镇岳山河震','穿云贯日'])assert(all.includes(name),name+' covered');
 assert.equal(fx.authoredDuration('雷神附体·反噬'),0);for(const name of ['绝对零度','冰蝶幻舞','太阳真火','焚心炎'])assert.equal(b.definition(name),undefined,name+' keeps its own dedicated path');
 for(const name of ['冰甲护身','炎阳护盾'])assert(fx.profile(name).self,name+' is a self cast');
