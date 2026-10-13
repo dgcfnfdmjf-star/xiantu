@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-13",
+  "status": "visual-design-approved",
+  "baseline": "d9cb3a18e4545739071c01ddea5b778e623471e3",
+  "tool": "image_gen.imagegen",
+  "inputs": {
+    "xiantu-v2831-scroll/fire-skills-batch2/stage-reference.webp": "f60f880c0af47119a62ffc50c7d21e3a16ccebb93f683ced7810d6e05835cee3",
+    "art/fire-skills-batch2/design/samadhi_fire-storyboard.png": "ac7324ffad4dc242ca99ecac17d09e6f818ef77988a94d80990cf235fecce750",
+    "xiantu-v2831-scroll/xiantu-v2762-core.js": "44ec740c25f2af28a5d641a96c40a086017a63c79713c56cb39c93ab1a2264fe",
+    "xiantu-v2831-scroll/xiantu-v2855-skill-fx.js": "ac17b1fbf15fe992db34523a5c77c6f3f7e8eba91646c4109de083bfc1259b24",
+    "xiantu-v2831-scroll/xiantu-v28684-duel.js": "fbf1335642f391eea3176a85b8b54b049f8665f9c837db248209181b6751724d"
+  },
+  "originals": {
+    "heaven_meteor-draft": "exec-e596338e-50f8-4417-8a4d-93f0f9c5ec09.png",
+    "heaven_meteor-storyboard": "exec-84be399b-ade5-47fb-ad73-c513fc15cd8f.png",
+    "wildfire_domain-draft": "exec-8b601433-3980-40db-a3ce-aaeb6c904d29.png",
+    "wildfire_domain-storyboard": "exec-be3624e0-4e9f-432c-9287-815fb3dfeded.png",
+    "dragon_breath-draft": "exec-696b8faa-f35c-40dd-9333-dd60bdda5a80.png",
+    "dragon_breath-storyboard": "exec-5efa0d31-ed4a-4bc5-8365-62535d305dca.png"
+  },
+  "outputs": {
+    "heaven_meteor-draft.png": "cbbb9bd2527d7a4231d1c214214488019f99c1e0ff1451a153647efa571bf51c",
+    "heaven_meteor-storyboard.png": "0be55d5e42396d3471e52f2871fb050977719e304d9b08801fa4a1d8f28807c7",
+    "dragon_breath-draft.png": "4ee42d5163a48d9bf957d34e476ad854f2128a25c89857b6524fc1f3e3e4ad40",
+    "wildfire_domain-draft.png": "a75f992c1b6694cad45b8d0296349747e3cadc00f7e89e085fddf930107908ab",
+    "wildfire_domain-storyboard.png": "06a48c543fcb2fe8b72128689308d12a79526f674582215e7c59af651337a0ef",
+    "dragon_breath-storyboard.png": "101148572274cd382038188ba6cd3170bbf88b6de696bdc0bb8aa2d5b5e1df80"
+  },
+  "mechanicsHash": "a28ba07ae3beea5a04a1fc11e935b9c7b4073cf46c6999d752167b283f3dd0aa",
+  "adjustments": [
+    "Removed meteor-like anticipation streaks; reduced meteor, impact and residue footprint",
+    "Corrected wildfire direction and subtitle; reduced persistent domain to a small ground ember crescent",
+    "Corrected dragon subtitle, reduced source head, removed persistent ground patch, lowered impact highlight"
+  ],
+  "limitations": [
+    "Static generated storyboards are material and silhouette references, not measured transparent atlases or game screenshots",
+    "Dragon breath path still passes near muzzle in concept; runtime contract requires an independently anchored lower-torso endpoint and no face occlusion",
+    "No animation, performance, source-grid, or real-combat acceptance claimed at design stage"
+  ],
+  "gameFilesUnchangedThisTurn": true,
+  "approval": {
+    "date": "2026-10-13",
+    "userMessage": "确认",
+    "scope": "Three corrected storyboards; transparent animation production and resource preview"
+  },
+  "resourceStage": "Transparent assets produced; see ../asset-audit.json and resource-preview report; runtime promotion requires resource approval"
+}

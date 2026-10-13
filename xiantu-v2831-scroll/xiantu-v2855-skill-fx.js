@@ -95,6 +95,69 @@ function sampleFireBatch2(D, j, age) {
 }
 if(typeof module!=='undefined')module.exports={sampleFireBatch2};
   // END FIRE BATCH2 GENERATED
+  // BEGIN FIRE BATCH3 GENERATED
+  const FIRE_BATCH3=[{"key":"heaven_meteor","name":"天火焚世","element":"fire","visualArchetype":"falling","layers":{"telegraph":{"file":"heaven_meteor_telegraph.png","frames":4,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.75,"fps":30,"loop":false,"holdLast":false},"body":{"file":"heaven_meteor_body.png","frames":8,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.75,"fps":30,"loop":false,"holdLast":false},"impact":{"file":"heaven_meteor_impact.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.75,"fps":30,"loop":false,"holdLast":false},"residue":{"file":"heaven_meteor_residue.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.75,"fps":30,"loop":false,"holdLast":false}},"scale":1,"offsetX":0,"offsetY":0,"trailLength":0,"timing":{"arrivalMs":310,"crossfadeMs":40,"aftermathMs":580,"durationMs":2400},"display":{"telegraph":250,"body":220,"impact":325,"residue":180},"acceptance":["Independent approved raster material; source-over","Fixed-size travel; authoritative hit gates contact","Single target burn owner; no combat mutation or timers"],"preview":{"displayMode":"falling","durationMs":2400,"distance":233,"layers":{"telegraph":{"start":0.0,"end":0.14583333333333334,"anchor":"target","width":250,"height":250,"fadeIn":0.11428571428571428,"fadeOut":0.11428571428571428},"body":{"start":0.03333333333333333,"end":0.14583333333333334,"anchor":"moving","width":220,"height":220,"fadeIn":0.14814814814814814,"fadeOut":0.14814814814814814},"impact":{"start":0.12916666666666668,"end":0.22083333333333333,"anchor":"target","width":325,"height":325,"fadeIn":0.18181818181818182,"fadeOut":0.18181818181818182},"residue":{"start":0.20416666666666666,"end":0.37083333333333335,"anchor":"target","width":180,"height":180,"fadeIn":0.1,"fadeOut":0.1}}}},{"key":"dragon_breath","name":"赤焰龙息","element":"fire","visualArchetype":"moving-front","layers":{"telegraph":{"file":"dragon_breath_telegraph.png","frames":4,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.5,"fps":30,"loop":false,"holdLast":false},"body":{"file":"dragon_breath_body.png","frames":8,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.5,"fps":30,"loop":false,"holdLast":false},"impact":{"file":"dragon_breath_impact.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.5,"fps":30,"loop":false,"holdLast":false},"residue":{"file":"dragon_breath_residue.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.75,"fps":30,"loop":false,"holdLast":false},"source":{"file":"dragon_breath_source.png","frames":8,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.5,"fps":30,"loop":false,"holdLast":false}},"scale":1,"offsetX":0,"offsetY":0,"trailLength":0,"timing":{"arrivalMs":310,"crossfadeMs":40,"aftermathMs":480,"durationMs":2400},"display":{"telegraph":105,"source":105,"body":132,"impact":155,"residue":180},"acceptance":["Independent approved raster material; source-over","Fixed-size travel; authoritative hit gates contact","Single target burn owner; no combat mutation or timers"],"preview":{"displayMode":"moving-front","durationMs":2400,"distance":233,"layers":{"telegraph":{"start":0.0,"end":0.058333333333333334,"anchor":"origin","width":105,"height":105,"fadeIn":0.2857142857142857,"fadeOut":0.2857142857142857},"body":{"start":0.041666666666666664,"end":0.14583333333333334,"anchor":"moving","width":132,"height":132,"fadeIn":0.16,"fadeOut":0.16},"source":{"start":0.041666666666666664,"end":0.17083333333333334,"anchor":"origin","width":105,"height":105,"fadeIn":0.12903225806451613,"fadeOut":0.12903225806451613},"impact":{"start":0.12916666666666668,"end":0.20416666666666666,"anchor":"target","width":155,"height":155,"fadeIn":0.2222222222222222,"fadeOut":0.2222222222222222},"residue":{"start":0.1875,"end":0.32916666666666666,"anchor":"target","width":180,"height":180,"fadeIn":0.11764705882352941,"fadeOut":0.11764705882352941}}}},{"key":"wildfire_domain","name":"燎原火域","element":"fire","visualArchetype":"ground-eruption","layers":{"telegraph":{"file":"wildfire_domain_telegraph.png","frames":4,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.75,"fps":30,"loop":false,"holdLast":false},"body":{"file":"wildfire_domain_body.png","frames":8,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.75,"fps":30,"loop":false,"holdLast":false},"impact":{"file":"wildfire_domain_impact.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.75,"fps":30,"loop":false,"holdLast":false},"residue":{"file":"wildfire_domain_residue.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.75,"fps":30,"loop":false,"holdLast":false},"status":{"file":"wildfire_domain_status.png","frames":8,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.75,"fps":8,"loop":true,"holdLast":false}},"scale":1,"offsetX":0,"offsetY":0,"trailLength":0,"timing":{"arrivalMs":310,"crossfadeMs":40,"aftermathMs":620,"durationMs":2400},"display":{"telegraph":240,"body":300,"impact":255,"residue":300,"status":130},"acceptance":["Independent approved raster material; source-over","Fixed-size travel; authoritative hit gates contact","Single target burn owner; no combat mutation or timers"],"preview":{"displayMode":"ground-eruption","durationMs":2400,"distance":233,"layers":{"telegraph":{"start":0.0,"end":0.14583333333333334,"anchor":"target","width":240,"height":240,"fadeIn":0.11428571428571428,"fadeOut":0.11428571428571428},"body":{"start":0.12916666666666668,"end":0.2791666666666667,"anchor":"target","width":300,"height":300,"fadeIn":0.1111111111111111,"fadeOut":0.1111111111111111},"impact":{"start":0.12916666666666668,"end":0.19583333333333333,"anchor":"target","width":255,"height":255,"fadeIn":0.25,"fadeOut":0.25},"residue":{"start":0.25416666666666665,"end":0.3875,"anchor":"target","width":300,"height":300,"fadeIn":0.125,"fadeOut":0.125},"status":{"start":0.3625,"end":1.0,"anchor":"target","width":130,"height":130,"fadeIn":0.026143790849673203,"fadeOut":0}}}}];
+/* Pure resource choreography. Caller owns hit events, target identity and burn state. */
+function sampleFireBatch3(D,j,age){
+ const out=[],clamp=v=>Math.max(0,Math.min(1,v)),T=D.timing;
+ if(age<0||j.hidden||j.exited||j.alive===false||j.sameTarget===false)return out;
+ const hit=Number.isFinite(j.hitAt)&&j.hitAt>=0?j.hitAt:null,H=hit??j.arriveAt??T.arrivalMs;
+ const from=j.from,to=j.to,foot=j.toGround??to,scale=(j.scale??1)*D.scale;
+ const delta={x:to.x-from.x,y:to.y-from.y},angle=Math.atan2(delta.y,delta.x),length=Math.hypot(delta.x,delta.y);
+ const fade=(t,start,end,fi=40,fo=40)=>clamp((t-start)/fi)*clamp((end-t)/fo);
+ function add(layer,p,start,end,opacity,anchor='target',extra={}){
+  if(age<start||age>=end||opacity<=0)return;
+  const L=D.layers[layer],phase=age-start;
+  const frame=j.reduced?Math.min(2,L.frames-1):L.loop?Math.floor((j.sceneAge??age)*L.fps/1000)%L.frames:Math.min(L.frames-1,Math.floor(phase/(end-start)*L.frames));
+  out.push({id:layer,layer,anchor,x:p.x+(j.offsetX??0)+D.offsetX,y:p.y+(j.offsetY??0)+D.offsetY,width:D.display[layer]*scale,height:D.display[layer]*scale,pivotX:L.pivotX,pivotY:L.pivotY,frame,opacity:clamp(opacity),rotation:0,...extra});
+ }
+ const shortEnd=H+T.aftermathMs,shortActive=age<Math.min(shortEnd,j.duration??Infinity);
+ if(shortActive&&D.key==='heaven_meteor'){
+  add('telegraph',foot,0,H+40,fade(age,0,H+40));
+  const begin=H*80/310,p=clamp((age-begin)/Math.max(1,H-begin));
+  if(!j.reduced)add('body',{x:foot.x-35*(1-p),y:foot.y-210*(1-p)},begin,H+40,fade(age,begin,H+40),'moving');
+  if(hit!==null){
+   add('impact',foot,H,H+220,fade(age,H,H+220));
+   add('residue',foot,H+180,shortEnd,fade(age,H+180,shortEnd,40,120));
+  }
+ }
+ if(shortActive&&D.key==='dragon_breath'){
+  const gather=H*100/310,sourceEnd=H+100;
+  add('telegraph',from,0,gather+40,fade(age,0,gather+40),'origin');
+  if(!j.reduced){
+   add('source',from,gather,sourceEnd,fade(age,gather,sourceEnd),'origin');
+   // Authored flame segments retain size; clipping reveals only the advancing front.
+   // The source head is separate; there is never a stretched complete dragon image.
+   const startDistance=25*scale,front=length*clamp((age-gather)/Math.max(1,H-gather));
+   const step=38*scale,span=D.display.body*scale*.59;
+   for(let n=0;n<9;n++){
+    const left=startDistance+n*step;if(left>=length||left>=front)break;
+    const center=left+span/2,ratio=center/Math.max(1,length);
+    const clip=clamp((Math.min(front,length)-left)/span);
+    add('body',{x:from.x+delta.x*ratio,y:from.y+delta.y*ratio},gather,H+40,fade(age,gather,H+40),'moving',{id:'body-'+n,rotation:angle,clipStart:.205,clipEnd:.205+.59*clip});
+   }
+  }
+  if(hit!==null){
+   add('impact',to,H,H+180,fade(age,H,H+180));
+   add('residue',foot,H+140,shortEnd,fade(age,H+140,shortEnd,40,120));
+  }
+ }
+ if(shortActive&&D.key==='wildfire_domain'){
+  add('telegraph',foot,0,H+40,fade(age,0,H+40));
+  if(hit!==null){
+   add('body',foot,H,H+360,fade(age,H,H+360,40,60));
+   if(!j.light&&!j.reduced)add('impact',foot,H,H+160,fade(age,H,H+160)*.55);
+   add('residue',foot,H+300,shortEnd,fade(age,H+300,shortEnd,60,60));
+  }
+ }
+ // This is a preview input contract, not a combat field or a new damage timer.
+ const burn=j.burn,domain=D.key==='wildfire_domain'&&hit!==null&&j.domainConfirmed===true;
+ if(domain&&age>=shortEnd-60&&burn?.burnTurns>0&&burn?.burnStacks>0&&!burn?._burnHealBlockV286818)
+  add('status',foot,shortEnd-60,Infinity,clamp((age-shortEnd+60)/60));
+ return out;
+}
+if(typeof module!=='undefined')module.exports={sampleFireBatch3};
+  // END FIRE BATCH3 GENERATED
   // BEGIN SOLAR GENERATED CONFIG
   const SOLAR = {"key":"solar_true_fire","name":"太阳真火","element":"fire","visualArchetype":"projectile","layers":{"telegraph":{"file":"solar_telegraph.png","frames":4,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.5,"fps":32,"loop":false,"holdLast":false},"body":{"file":"solar_body.png","frames":8,"frameWidth":192,"frameHeight":192,"pivotX":0.5,"pivotY":0.5,"fps":32,"loop":true,"holdLast":false},"impact":{"file":"solar_impact.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.65,"fps":34,"loop":false,"holdLast":false},"residue":{"file":"solar_residue.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.65,"fps":17,"loop":false,"holdLast":false}},"scale":1,"offsetX":0,"offsetY":0,"trailLength":42,"timing":{"defaultArrival":310,"anticipationFraction":0.35,"impactMs":180,"aftermathMs":540,"transitionMs":60,"missedFadeMs":150},"display":{"body":128,"telegraph":205,"impact":350,"residue":350},"preview":{"displayMode":"projectile","motion":"travel","durationMs":850,"distance":233,"layers":{"telegraph":{"start":0,"end":0.16,"anchor":"origin","width":205,"height":205,"fadeOut":0.22},"body":{"start":0,"end":0.36470588235294116,"anchor":"moving","width":128,"height":128},"impact":{"start":0.36470588235294116,"end":0.5764705882352941,"anchor":"target","width":350,"height":350,"fadeOut":0.3333333333333333},"residue":{"start":0.5058823529411764,"end":1,"anchor":"target","width":350,"height":350,"fadeIn":0.14285714285714285,"fadeOut":0.25}}},"acceptance":["Fixed-size solar body; no additional hits or RNG","Impact requires the existing hit event; locked target ground","Shared ground pivot and complementary impact/residue opacity","All layers expire, including misses and reduced-motion mode"]};
   // END SOLAR GENERATED CONFIG
@@ -310,7 +373,7 @@ function sampleAbsoluteZero(D,j,age){
     c.restore();return true;
   }
   const fireBatchTextures=new Map();
-  function fireDefinition(name){return FIRE_BATCH.find(d=>d.name===name)||FIRE_BATCH2.find(d=>d.name===name)}
+  function fireDefinition(name){return FIRE_BATCH.find(d=>d.name===name)||FIRE_BATCH2.find(d=>d.name===name)||FIRE_BATCH3.find(d=>d.name===name)}
   function prepareFireBatch(name){
     const D=fireDefinition(name);if(!D)return;
     if(!fireBatchTextures.has(name))fireBatchTextures.set(name,new Map());
@@ -319,17 +382,18 @@ function sampleAbsoluteZero(D,j,age){
       if(textures.has(key))continue;
       const image=new Image(),entry={image,ready:false};textures.set(key,entry);image.decoding='async';
       image.onload=()=>{entry.ready=image.naturalWidth===L.frames*L.frameWidth&&image.naturalHeight===L.frameHeight};
-      image.onerror=()=>{entry.ready=false};image.src=(FIRE_BATCH2.includes(D)?'./fire-skills-batch2/':'./fire-skills-batch1/')+L.file;
+      image.onerror=()=>{entry.ready=false};image.src=(FIRE_BATCH3.includes(D)?'./fire-skills-batch3/':FIRE_BATCH2.includes(D)?'./fire-skills-batch2/':'./fire-skills-batch1/')+L.file;
     }
   }
   function fireBatchReady(name){const D=fireDefinition(name),textures=fireBatchTextures.get(name);return !!D&&textures?.size===Object.keys(D.layers).length&&[...textures.values()].every(t=>t.ready)}
-  function fireBatchSample(j,age){const D=fireDefinition(j.profile.name);return D?(FIRE_BATCH2.includes(D)?sampleFireBatch2(D,j,age):sampleFireBatch(D,j,age)):[]}
+  function fireBatchSample(j,age){const D=fireDefinition(j.profile.name);return D?(FIRE_BATCH3.includes(D)?sampleFireBatch3(D,j,age):FIRE_BATCH2.includes(D)?sampleFireBatch2(D,j,age):sampleFireBatch(D,j,age)):[]}
   function drawFireBatch(c,j,age){
     prepareFireBatch(j.profile.name);if(!fireBatchReady(j.profile.name))return false;
     const D=fireDefinition(j.profile.name),textures=fireBatchTextures.get(D.name);
     c.save();c.beginPath();c.rect(0,0,j.width,j.clipBottom);c.clip();c.globalCompositeOperation='source-over';
     for(const p of fireBatchSample(j,age)){
       const L=D.layers[p.layer];c.save();c.translate(p.x,p.y);c.rotate(p.rotation);c.globalAlpha=p.opacity;
+      if(p.clipStart!=null){c.beginPath();c.rect((p.clipStart-p.pivotX)*p.width,-p.pivotY*p.height,(p.clipEnd-p.clipStart)*p.width,p.height);c.clip();}
       c.drawImage(textures.get(p.layer).image,p.frame*L.frameWidth,0,L.frameWidth,L.frameHeight,-p.width*p.pivotX,-p.height*p.pivotY,p.width,p.height);c.restore();
     }
     c.restore();return true;
@@ -350,6 +414,15 @@ function sampleAbsoluteZero(D,j,age){
     c.drawImage(fireBatchTextures.get(D.name).get('status').image,frame*L.frameWidth,0,L.frameWidth,L.frameHeight,x-size*L.pivotX,y-size*L.pivotY,size,size);c.restore();return true;
   }
   const fireBatch2={definitions:FIRE_BATCH2,prepare:prepareFireBatch,ready:fireBatchReady,sample:fireBatchSample,statusActive:lotusStatusActive,drawStatus:drawLotusStatus};
+  function domainStatusActive(data){return data.domainConfirmed===true&&data.enemyHp>0&&data.burnTurns>0&&data.burnDamage>0&&!data.burnHealBlock}
+  function drawDomainStatus(c,x,y,age,reduced,scale=1,opacity=1){
+    prepareFireBatch('燎原火域');if(!fireBatchReady('燎原火域'))return false;
+    const D=fireDefinition('燎原火域'),L=D.layers.status,size=D.display.status*scale;
+    const frame=reduced?2:Math.floor(Math.max(0,age)*L.fps/1000)%L.frames;
+    c.save();c.globalCompositeOperation='source-over';c.globalAlpha=Math.max(0,Math.min(1,opacity));
+    c.drawImage(fireBatchTextures.get(D.name).get('status').image,frame*L.frameWidth,0,L.frameWidth,L.frameHeight,x-size*L.pivotX,y-size*L.pivotY,size,size);c.restore();return true;
+  }
+  const fireBatch3={definitions:FIRE_BATCH3,prepare:prepareFireBatch,ready:fireBatchReady,sample:fireBatchSample,statusActive:domainStatusActive,drawStatus:drawDomainStatus};
 
   const heartTextures=new Map();
   function prepareHeart(){
@@ -681,7 +754,7 @@ function sampleAbsoluteZero(D,j,age){
   W.playInkSkillV2854=play;
   const solar={definition:SOLAR,prepare:prepareSolar,ready:solarReady,sample:solarSample};
   const butterfly={definition:ICE_BUTTERFLY,prepare:prepareButterfly,ready:butterflyReady,sample:butterflySample};
-  W.InkSkillFxV2854={profile,draw,drawGround,sample,solar,butterfly,heart,absoluteZero,fireBatch,fireBatch2,catalog:()=>[...new Set([...Object.keys(styles),...Object.keys(forms),...(typeof SKILLS!=='undefined'?SKILLS.map(s=>s.name):[])])].map(name=>profile(name)),play,hit,clear,finish,cinemaClear,install,cycle,settings,inspect:()=>({version:'28.68',quality,finishing:finishUntil>now(),active:jobs.length,raf:!!raf,pixels:canvas?canvas.width*canvas.height:0,jobs:jobs.map(j=>({name:j.profile.name,kind:j.profile.kind,family:j.profile.family,side:j.side,self:j.profile.self,hitAt:j.hitAt,from:{...j.from},to:{...j.to}}))})};
+  W.InkSkillFxV2854={profile,draw,drawGround,sample,solar,butterfly,heart,absoluteZero,fireBatch,fireBatch2,fireBatch3,catalog:()=>[...new Set([...Object.keys(styles),...Object.keys(forms),...(typeof SKILLS!=='undefined'?SKILLS.map(s=>s.name):[])])].map(name=>profile(name)),play,hit,clear,finish,cinemaClear,install,cycle,settings,inspect:()=>({version:'28.68',quality,finishing:finishUntil>now(),active:jobs.length,raf:!!raf,pixels:canvas?canvas.width*canvas.height:0,jobs:jobs.map(j=>({name:j.profile.name,kind:j.profile.kind,family:j.profile.family,side:j.side,self:j.profile.self,hitAt:j.hitAt,from:{...j.from},to:{...j.to}}))})};
   install();
 })();
 ;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2855-skill-fx.js']='28.68.35';
