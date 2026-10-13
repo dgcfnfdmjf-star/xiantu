@@ -3,8 +3,8 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const root=process.env.XIANTU_TEST_ROOT||path.resolve(__dirname,'..'),fixture=require('./v2858-dom-fixture.cjs');
 const files=JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]);
 const f=fixture(root),images=[],Base=f.c.Image;f.c.Image=class extends Base{constructor(){super();images.push(this)}};for(const file of files)f.load(file);
-const fx=f.c.InkSkillFxV2854,b=fx.elementBatch;assert(b,'thunder/sword/heal batch must be integrated');
-const families={thunder_strike:'thunder',sword_qi:'sword',jade_lotus_heal:'heal'};
+const fx=f.c.InkSkillFxV2854,b=fx.elementBatch;assert(b,'element batch must be integrated');
+const families={thunder_strike:'thunder',sword_qi:'sword',jade_lotus_heal:'heal',frost_shard:'ice',glacier_domain:'ice',frost_armor:'ice',solar_aegis:'fire',flame_bind:'fire',mountain_quake:'earth',sun_spear:'spear'};
 assert.deepEqual(JSON.parse(JSON.stringify(b.definitions.map(d=>d.key))),Object.keys(families));
 const known=new Set(fx.catalog().map(p=>p.name));
 for(const D of b.definitions){
@@ -19,14 +19,15 @@ for(const D of b.definitions){
  }
 }
 const all=b.definitions.flatMap(d=>d.skills);assert.equal(new Set(all).size,all.length,'each skill has one owner');
-for(const name of ['雷法','惊雷闪','裂地奔雷','紫霄落雷','万雷噬狱','九天神雷','闪电链','雷神附体','无音神雷','御剑术','剑气纵横','万剑归宗','天地一剑','清风剑诀','破甲剑罡','追魂一剑','饮血剑诀','玄罡护体剑','回春术','生生不息','起死回生','凝露诀','青莲护心','灵泉归元','逆命回元','莲华济世'])assert(all.includes(name),name+' covered');
-assert.equal(fx.authoredDuration('雷神附体·反噬'),0);assert.equal(fx.authoredDuration('玄冰刺'),0);
+for(const name of ['雷法','惊雷闪','裂地奔雷','紫霄落雷','万雷噬狱','九天神雷','闪电链','雷神附体','无音神雷','御剑术','剑气纵横','万剑归宗','天地一剑','清风剑诀','破甲剑罡','追魂一剑','饮血剑诀','玄罡护体剑','回春术','生生不息','起死回生','凝露诀','青莲护心','灵泉归元','逆命回元','莲华济世','寒冰掌','玄冰刺','冰爆术','霜龙吐息','冰封千里','霜寒结界','冰河葬狱','寒渊领域','冰魄封魂','万载寒晶','冰甲护身','炎阳护盾','流火飞索','镇岳山河震','穿云贯日'])assert(all.includes(name),name+' covered');
+assert.equal(fx.authoredDuration('雷神附体·反噬'),0);for(const name of ['绝对零度','冰蝶幻舞','太阳真火','焚心炎'])assert.equal(b.definition(name),undefined,name+' keeps its own dedicated path');
+for(const name of ['冰甲护身','炎阳护盾'])assert(fx.profile(name).self,name+' is a self cast');
 const ctx=f.ids.get('combatPlayerChar').getContext('2d'),draws=[];ctx.drawImage=(im,...args)=>draws.push(im.src);
 for(const D of b.definitions){
- const name=D.skills[1];
+ const name=D.skills[1]??D.skills[0];
  const j={profile:fx.profile(name),from:{x:260,y:205},to:{x:493,y:210},toGround:{x:493,y:278},width:720,clipBottom:355,scale:1,light:false,reduced:false,duration:1100,arriveAt:310,hitAt:null};
  draws.length=0;fx.draw(ctx,j,200);assert(!draws.some(s=>s.includes('element-skills')),'procedural fallback until textures load');
- b.prepare(D.skills[0]);b.prepare(D.skills[2]);
+ for(const other of D.skills)b.prepare(other);
  const textures=images.filter(i=>(i.src||'').includes('element-skills-v286838/'+D.key+'_'));assert.equal(textures.length,4,'one shared texture set per family');
  for(const im of textures){const L=Object.values(D.layers).find(l=>im.src.endsWith(l.file));im.naturalWidth=L.frames*L.frameWidth;im.naturalHeight=L.frameHeight;im.onload()}
  for(const other of D.skills)assert(b.ready(other),other+' ready');
@@ -42,4 +43,6 @@ for(const D of b.definitions){
 }
 const heal=b.sample({profile:fx.profile('回春术'),from:{x:260,y:205},to:{x:260,y:205},toGround:{x:260,y:305},duration:1100,arriveAt:310,hitAt:170,scale:1},400);
 assert(heal.length&&heal.every(p=>p.x===260&&p.y===305),'heal anchors on the caster foot');
-console.log('PASS thunder/sword/heal sprite VFX: 3 shared families, 28 skills, lazy textures, hit gating, final frames, expiry, read-only draw');
+const ward=b.sample({profile:fx.profile('冰甲护身'),from:{x:260,y:205},to:{x:260,y:205},toGround:{x:260,y:305},duration:1100,arriveAt:310,hitAt:170,scale:1},400);
+assert(ward.length&&ward.every(p=>p.x===260&&p.y===305),'ice armor anchors on the caster foot');
+console.log('PASS element sprite VFX: '+b.definitions.length+' families, '+all.length+' skills, lazy textures, hit gating, final frames, expiry, read-only draw');

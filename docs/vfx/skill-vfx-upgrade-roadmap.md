@@ -25,7 +25,9 @@
 
 雷系、剑系、治疗系已按火系流程补上家族共享的独立资源：每系一张 AI 绘制的 3×3 阶段原图（`art/element-skills-v286838/source/`），经 `python3 scripts/build-element-skills-vfx.py` 黑底抠透明、边界校验、按层统一缩放后导出四层帧条到 `xiantu-v2831-scroll/element-skills-v286838/`。雷系 `thunder_strike`（落雷，目标脚下）、剑系 `sword_qi`（飞剑投射）、治疗 `jade_lotus_heal`（施法者脚下青莲）。同一系所有技能共用一套纹理，未改动技能倍率、耗蓝或命中逻辑；回归见 `QA/v286838-test-element-vfx.cjs`。按招式逐个定制（如闪电链连锁、万剑归宗剑阵）仍属后续；设计稿与资源预览两个确认节点本轮未单独经过用户确认。镇岳山河震（earth）与穿云贯日（spear）不属于这三套资源，仍为程序绘制。
 
-火系两批六招已合并 main（PR #1，V28.68.35）；见 `fire-skills-batch1-integration.md`、`fire-skills-batch2-integration.md`。冰系剩余 11 招与火系剩余 5 招仍按原顺序待做。
+火系两批六招已合并 main（PR #1，V28.68.35）；见 `fire-skills-batch1-integration.md`、`fire-skills-batch2-integration.md`。
+
+剩余 18 个程序绘制技能已全部接入序列帧：火系第三批天火焚世、赤焰龙息、燎原火域由 `codex/skill-vfx-expansion` 的已确认资源（`fire-skills-batch3/`）移植到 main；其余 15 招沿用上面的家族流程（同一构建脚本、同一 `ELEMENT_BATCH`），新增 7 张 3×3 阶段原图：冰系投射家族 `frost_shard`（寒冰掌、玄冰刺、冰爆术、霜龙吐息）、冰系地面领域家族 `glacier_domain`（冰封千里、霜寒结界、冰河葬狱、寒渊领域、冰魄封魂、万载寒晶），以及独立资源 `frost_armor`（冰甲护身）、`solar_aegis`（炎阳护盾）、`flame_bind`（流火飞索）、`mountain_quake`（镇岳山河震）、`sun_spear`（穿云贯日）。至此 55/55 可学习技能都有序列帧资源，纹理未加载或失败时仍回退原程序绘制。倍率、耗蓝、命中、状态与随机数未改。按招式逐个定制冰系家族（如冰封状态驱动的冰棺、寒渊持续领域）仍属后续；本轮设计稿与资源预览两个确认节点未单独经过用户确认。
 
 ## 技能清单
 
@@ -44,32 +46,32 @@
 | 剑气纵横 | sword | 35 | 2.5 | fan | 家族共享资源 `sword_qi`，本分支接入（V28.68.38），未发布 |
 | 万剑归宗 | sword | 50 | 3.5 | rain | 家族共享资源 `sword_qi`，本分支接入（V28.68.38），未发布 |
 | 天地一剑 | sword | 80 | 5 | great | 家族共享资源 `sword_qi`，本分支接入（V28.68.38），未发布 |
-| 寒冰掌 | ice | 15 | 1.6 | frost | 待升级 |
-| 冰封千里 | ice | 40 | 2.8 | field | 待升级 |
+| 寒冰掌 | ice | 15 | 1.6 | frost | 家族共享资源 `frost_shard`，本分支接入，未发布 |
+| 冰封千里 | ice | 40 | 2.8 | field | 家族共享资源 `glacier_domain`，本分支接入，未发布 |
 | 绝对零度 | ice | 70 | 4 | prison | 已有，本轮保留 |
-| 玄冰刺 | ice | 22 | 1.9 | icicle | 待升级 |
-| 冰爆术 | ice | 28 | 2.3 | burst | 待升级 |
-| 霜寒结界 | ice | 33 | 2.5 | field | 待升级 |
+| 玄冰刺 | ice | 22 | 1.9 | icicle | 家族共享资源 `frost_shard`，本分支接入，未发布 |
+| 冰爆术 | ice | 28 | 2.3 | burst | 家族共享资源 `frost_shard`，本分支接入，未发布 |
+| 霜寒结界 | ice | 33 | 2.5 | field | 家族共享资源 `glacier_domain`，本分支接入，未发布 |
 | 冰蝶幻舞 | ice | 36 | 2.7 | butterfly | 已有，本轮保留 |
-| 霜龙吐息 | ice | 48 | 3.3 | breath | 待升级 |
-| 冰河葬狱 | ice | 56 | 3.7 | prison | 待升级 |
-| 寒渊领域 | ice | 64 | 4 | field | 待升级 |
-| 冰甲护身 | ice | 30 | 0 | armor | 待升级 |
-| 冰魄封魂 | ice | 70 | 4.2 | seal | 待升级 |
-| 万载寒晶 | ice | 82 | 5.1 | crystal | 待升级 |
+| 霜龙吐息 | ice | 48 | 3.3 | breath | 家族共享资源 `frost_shard`，本分支接入，未发布 |
+| 冰河葬狱 | ice | 56 | 3.7 | prison | 家族共享资源 `glacier_domain`，本分支接入，未发布 |
+| 寒渊领域 | ice | 64 | 4 | field | 家族共享资源 `glacier_domain`，本分支接入，未发布 |
+| 冰甲护身 | ice | 30 | 0 | armor | 独立资源 `frost_armor`，本分支接入，未发布 |
+| 冰魄封魂 | ice | 70 | 4.2 | seal | 家族共享资源 `glacier_domain`，本分支接入，未发布 |
+| 万载寒晶 | ice | 82 | 5.1 | crystal | 家族共享资源 `glacier_domain`，本分支接入，未发布 |
 | 烈焰斩 | fire | 18 | 1.8 | slash | 已合并 main（V28.68.35） |
 | 焚天烈焰 | fire | 45 | 3 | pillar | 已合并 main（V28.68.35） |
-| 天火焚世 | fire | 75 | 4.5 | meteor | 待升级 |
+| 天火焚世 | fire | 75 | 4.5 | meteor | 独立资源 `heaven_meteor`（火系第三批），本分支接入，未发布 |
 | 炎爆术 | fire | 22 | 2 | burst | 已合并 main（V28.68.35） |
 | 红莲业火 | fire | 32 | 2.6 | lotus | 已合并 main（V28.68.35） |
 | 火墙术 | fire | 28 | 2.3 | wall | 已合并 main（V28.68.35） |
 | 三昧真火 | fire | 42 | 3.2 | triple | 已合并 main（V28.68.35） |
-| 赤焰龙息 | fire | 58 | 3.9 | breath | 待升级 |
+| 赤焰龙息 | fire | 58 | 3.9 | breath | 独立资源 `dragon_breath`（火系第三批），本分支接入，未发布 |
 | 焚心炎 | fire | 65 | 4.2 | heart | 已有，本轮保留 |
-| 燎原火域 | fire | 72 | 4.4 | field | 本地已接入，未发布 |
+| 燎原火域 | fire | 72 | 4.4 | field | 独立资源 `wildfire_domain`（火系第三批），本分支接入，未发布 |
 | 太阳真火 | fire | 88 | 5.3 | sun | 已有，本轮保留 |
-| 流火飞索 | fire | 35 | 2.4 | bind | 待升级 |
-| 炎阳护盾 | fire | 30 | 0 | armor | 待升级 |
+| 流火飞索 | fire | 35 | 2.4 | bind | 独立资源 `flame_bind`，本分支接入，未发布 |
+| 炎阳护盾 | fire | 30 | 0 | armor | 独立资源 `solar_aegis`，本分支接入，未发布 |
 | 回春术 | heal | 20 | — | dew | 家族共享资源 `jade_lotus_heal`，本分支接入（V28.68.38），未发布 |
 | 生生不息 | heal | 40 | — | lotus | 家族共享资源 `jade_lotus_heal`，本分支接入（V28.68.38），未发布 |
 | 起死回生 | heal | 60 | — | revive | 家族共享资源 `jade_lotus_heal`，本分支接入（V28.68.38），未发布 |
@@ -83,6 +85,6 @@
 | 灵泉归元 | heal | 35 | — | spring | 家族共享资源 `jade_lotus_heal`，本分支接入（V28.68.38），未发布 |
 | 逆命回元 | heal | 48 | — | revive | 家族共享资源 `jade_lotus_heal`，本分支接入（V28.68.38），未发布 |
 | 莲华济世 | heal | 65 | — | lotus | 家族共享资源 `jade_lotus_heal`，本分支接入（V28.68.38），未发布 |
-| 镇岳山河震 | sword | 35 | 2.8 | mountain | 待升级 |
-| 穿云贯日 | sword | 32 | 3 | lance | 待升级 |
+| 镇岳山河震 | sword | 35 | 2.8 | mountain | 独立资源 `mountain_quake`，本分支接入，未发布 |
+| 穿云贯日 | sword | 32 | 3 | lance | 独立资源 `sun_spear`，本分支接入，未发布 |
 | 九霄雷云 | thunder | 55 | 3.8 | storm | 家族共享资源 `thunder_strike`，本分支接入（V28.68.38），未发布 |
