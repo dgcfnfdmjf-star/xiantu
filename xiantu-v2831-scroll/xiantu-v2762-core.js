@@ -4386,7 +4386,12 @@
       if(!Array.isArray(target.equipmentInventory))target.equipmentInventory=[];
       if(!Array.isArray(target.inventory))target.inventory=[];
       const keep=[];
-      for(const name of target.inventory){if(EQUIPMENT_DB[name])target.equipmentInventory.push(name);else keep.push(name);}
+      for(const raw of target.inventory){
+        const name=TASK_REWARD_LEGACY_V286838[raw]||raw;
+        if(EQUIPMENT_DB[name])target.equipmentInventory.push(name);
+        else if(name!==raw&&MATERIALS[name]){if(!target.materials||typeof target.materials!=='object')target.materials={};target.materials[name]=(Number(target.materials[name])||0)+1;}
+        else keep.push(name);
+      }
       target.inventory=keep;
       if(!target.equipment)target.equipment=createEmptyEquipmentSlots();
       for(const slot of Object.keys(EQUIPMENT_SLOTS)){
@@ -5884,17 +5889,19 @@
 
 
     // ================== 完整主线 + 支线任务系统 V11 ==================
+    // Saves made before rewards matched the item tables may still hold these placeholder names.
+    const TASK_REWARD_LEGACY_V286838={基础剑袍:'素布道袍',基础剑诀:'木剑',新手药瓶:'小还丹',基础护符:'石佩',内门令牌:'青云佩·灵品',高阶灵药:'大还丹',天机洞察buff:'悟道丹',道心突破:'破障丹',炼丹材料:'灵草',功法残页:'悟道茶',灵宠进阶材料:'妖丹',阵法熟练度:'星辰砂',心境修为:'悟道丹',后期关键分支解锁:'天材地宝',心魔抗性永久提升:'玄玉护脉丹',魔抗:'魔核',高阶防御材料:'冰晶石'};
     const TASK_TYPES={MAIN:'main',SIDE:'side',DAILY:'daily',WEEKLY:'weekly',HIDDEN:'hidden'};
     const TASK_STATUS={AVAILABLE:'available',ACTIVE:'active',COMPLETED:'completed',FAILED:'failed',LOCKED:'locked'};
 
     const MAIN_TASKS=[
-      {id:'main_01',type:'main',title:'仙缘入世',desc:'凡尘少年在青云渡口得遇清玄真人，自此踏入凌霄宗仙途。',npc:'清玄真人',unlockRealm:0,nextTask:'main_02',rewards:{exp:100,gold:300,items:['基础剑袍','基础剑诀']},steps:[
+      {id:'main_01',type:'main',title:'仙缘入世',desc:'凡尘少年在青云渡口得遇清玄真人，自此踏入凌霄宗仙途。',npc:'清玄真人',unlockRealm:0,nextTask:'main_02',rewards:{exp:100,gold:300,items:['素布道袍','木剑']},steps:[
         {text:'跟随清玄真人走上凌霄山门石阶',action:'walk_to_sect'},
         {text:'观看入门仙光洗礼',action:'watch_ritual'},
         {text:'完成引气入体，踏入练气初期',action:'breakthrough_realm',targetRealm:1,targetPhase:0}]},
-      {id:'main_02',type:'main',title:'外门初修',desc:'正式成为凌霄宗外门弟子，熟悉宗门规矩与基础修行。',npc:'外门执事长老',unlockRealm:0,nextTask:'main_03',rewards:{exp:80,contribution:50,items:['新手药瓶']},steps:[
+      {id:'main_02',type:'main',title:'外门初修',desc:'正式成为凌霄宗外门弟子，熟悉宗门规矩与基础修行。',npc:'外门执事长老',unlockRealm:0,nextTask:'main_03',rewards:{exp:80,contribution:50,items:['小还丹']},steps:[
         {text:'前往外门演武场报到',action:'go_to_arena'},{text:'学习宗门基础吐纳法',action:'learn_breath'},{text:'完成一次基础修行打坐',action:'meditate'}]},
-      {id:'main_03',type:'main',title:'山门重逢',desc:'山门石桥再遇苏晚晴。多年后重逢，彼此都已不是当初的模样。',npc:'苏晚晴',unlockRealm:1,loveEvent:'cold_reunion',nextTask:'main_04',rewards:{exp:150,affection_su:8,items:['基础护符']},steps:[
+      {id:'main_03',type:'main',title:'山门重逢',desc:'山门石桥再遇苏晚晴。多年后重逢，彼此都已不是当初的模样。',npc:'苏晚晴',unlockRealm:1,loveEvent:'cold_reunion',nextTask:'main_04',rewards:{exp:150,affection_su:8,items:['石佩']},steps:[
         {text:'前往山门石桥',action:'go_to_bridge'},{text:'与苏晚晴对话',action:'talk_suwanqing'},{text:'平静完成初次重逢',action:'complete_reunion'}]},
       {id:'main_04',type:'main',title:'妖兽试炼',desc:'外门弟子需进入后山试炼林地，积累第一次真正的实战经验。',npc:'外门长老',unlockRealm:1,nextTask:'main_05',rewards:{exp:200,gold:150,contribution:30},steps:[
         {text:'进入后山试炼林地',action:'enter_forest'},
@@ -5907,17 +5914,17 @@
         {text:'前往宗门禁地筑基台',action:'go_to_platform'},
         {text:'扛过三重小天劫',action:'survive_tribulation',count:3},
         {text:'成功踏入筑基初期',action:'breakthrough_realm',targetRealm:2,targetPhase:0}]},
-      {id:'main_07',type:'main',title:'内门考核',desc:'筑基弟子可参与内门晋升考核，笔试、实战、心性三关缺一不可。',unlockRealm:2,loveEvent:'trial_side_by_side',nextTask:'main_08',rewards:{exp:400,contribution:80,affection_su:14,items:['内门令牌']},steps:[
+      {id:'main_07',type:'main',title:'内门考核',desc:'筑基弟子可参与内门晋升考核，笔试、实战、心性三关缺一不可。',unlockRealm:2,loveEvent:'trial_side_by_side',nextTask:'main_08',rewards:{exp:400,contribution:80,affection_su:14,items:['青云佩·灵品']},steps:[
         {text:'完成宗门道典笔试',action:'written_exam'},{text:'实战击败内门考核傀儡',action:'combat_puppet'},{text:'通过幻境心性测试',action:'mind_test'}]},
-      {id:'main_08',type:'main',title:'秘境同行',desc:'你与苏晚晴被安排一同入秘境历练。再度并肩后，旧日隔阂开始松动。',unlockRealm:2,nextTask:'main_09',rewards:{exp:600,gold:500,affection_su:20,items:['高阶灵药']},steps:[
+      {id:'main_08',type:'main',title:'秘境同行',desc:'你与苏晚晴被安排一同入秘境历练。再度并肩后，旧日隔阂开始松动。',unlockRealm:2,nextTask:'main_09',rewards:{exp:600,gold:500,affection_su:20,items:['大还丹']},steps:[
         {text:'与苏晚晴组队进入宗门秘境',action:'enter_secret_realm'},{text:'联手击败秘境妖王',action:'kill_secret_boss'},{text:'采集秘境灵材×3',action:'collect_task_materials',count:3},{text:'安全离开秘境',action:'exit_secret_realm'}]},
       {id:'main_09',type:'main',title:'药庐外的风',desc:'药庐外，顾承渊向苏晚晴示好。宗门里不少人都觉得他们十分般配。',unlockRealm:2,loveEvent:'courting_rival',nextTask:'main_10',rewards:{exp:200,affection_su:6},steps:[
         {text:'前往药庐外',action:'go_to_yaolu'},{text:'旁观顾承渊与苏晚晴对话',action:'watch_dialogue'},{text:'选择：默然离开 / 驻足观看',action:'choice',options:[['leave','默然离开'],['stay','驻足观看']]}]},
-      {id:'main_10',type:'main',title:'禁阁夜影',desc:'深夜里，顾承渊独自进入内门禁阁，大长老顾玄岳亲自接见了他。',unlockRealm:3,nextTask:'main_11',rewards:{exp:500,items:['天机洞察buff']},steps:[
+      {id:'main_10',type:'main',title:'禁阁夜影',desc:'深夜里，顾承渊独自进入内门禁阁，大长老顾玄岳亲自接见了他。',unlockRealm:3,nextTask:'main_11',rewards:{exp:500,items:['悟道丹']},steps:[
         {text:'深夜潜入禁阁外围',action:'go_to_jinge'},{text:'偷听禁阁内的密谈',action:'eavesdrop'},{text:'得知顾承渊是顾玄岳唯一嫡孙',action:'learn_secret'}]},
       {id:'main_11',type:'main',title:'无人知晓的身份',desc:'顾承渊私下找到你，希望你暂时不要公开他的真正身份。',unlockRealm:3,loveEvent:'rival_secret',nextTask:'main_12',rewards:{exp:300},steps:[
         {text:'与顾承渊私下对话',action:'talk_gu'},{text:'选择：答应保密 / 拒绝保密',action:'choice',options:[['promise','答应保密'],['refuse','拒绝保密']]}]},
-      {id:'main_12',type:'main',title:'那年真正的答案',desc:'金丹雨夜，苏晚晴拿出当年旧木牌，将青石桥分开的真正原因全部说了出来。',unlockRealm:3,loveEvent:'truth_and_apology',nextTask:'main_13',rewards:{exp:800,affection_su:30,items:['道心突破']},steps:[
+      {id:'main_12',type:'main',title:'那年真正的答案',desc:'金丹雨夜，苏晚晴拿出当年旧木牌，将青石桥分开的真正原因全部说了出来。',unlockRealm:3,loveEvent:'truth_and_apology',nextTask:'main_13',rewards:{exp:800,affection_su:30,items:['破障丹']},steps:[
         {text:'雨夜进入药庐',action:'enter_yaolu_rain'},{text:'倾听苏晚晴完整坦白',action:'listen_confession'},{text:'选择：释然 / 沉默',action:'choice',options:[['release','释然'],['silent','沉默']]}]},
       {id:'main_13',type:'main',title:'金丹大比前奏',desc:'百年宗门大比将至，凌霄宗内部暗流涌动。你需要开始为真正的宗门争锋做准备。',unlockRealm:3,nextTask:null,rewards:{exp:500,contribution:100},steps:[
         {text:'接取宗门大比预备任务',action:'accept_prep'},{text:'研习一门高阶功法',action:'learn_high_skill'},{text:'完成宗门大比备战',action:'prepare_tournament'}]}
@@ -5934,16 +5941,16 @@
     );
 
     const SIDE_TASKS=[
-      {id:'side_daily_01',type:'daily',title:'宗门采药',desc:'药庐童子需要新鲜灵草。',npc:'药庐童子',repeatable:true,dailyReset:true,rewards:{exp:50,gold:30,contribution:10,items:['炼丹材料']},steps:[{text:'采集灵草×5',action:'collect_materials',material:'灵草',count:5}]},
+      {id:'side_daily_01',type:'daily',title:'宗门采药',desc:'药庐童子需要新鲜灵草。',npc:'药庐童子',repeatable:true,dailyReset:true,rewards:{exp:50,gold:30,contribution:10,items:['灵草']},steps:[{text:'采集灵草×5',action:'collect_materials',material:'灵草',count:5}]},
       {id:'side_daily_02',type:'daily',title:'山门镇守',desc:'协助外门执事驱赶山门附近游荡的小妖。',npc:'外门执事',repeatable:true,dailyReset:true,rewards:{exp:60,gold:40,contribution:15},steps:[{text:'驱赶小妖×3',action:'kill_enemies',enemyCounts:{'小妖':3}}]},
-      {id:'side_daily_03',type:'daily',title:'典籍抄录',desc:'前往藏书阁抄录基础道典，磨炼心性。',npc:'藏书阁长老',repeatable:true,dailyReset:true,rewards:{exp:40,items:['功法残页']},steps:[{text:'完成一次道典抄录',action:'copy_text'}]},
-      {id:'side_weekly_01',type:'weekly',title:'妖兽清剿',desc:'宗门发布清剿令，要求处理边境妖兽巢穴。',repeatable:true,weeklyReset:true,rewards:{exp:300,gold:200,contribution:50,items:['灵宠进阶材料']},steps:[{text:'清剿边境妖兽巢穴',action:'clear_nest'}]},
-      {id:'side_weekly_02',type:'weekly',title:'阵法维护',desc:'护山大阵灵纹磨损，需要弟子协助修补。',repeatable:true,weeklyReset:true,rewards:{exp:250,contribution:60,items:['阵法熟练度']},steps:[{text:'修补宗门护山大阵',action:'repair_array'}]},
-      {id:'side_hidden_01',type:'hidden',title:'苏晚晴·月下谈心',desc:'月下庭院偶遇苏晚晴，两人安静谈心。',hidden:true,unlockCondition:{affection_su:50},rewards:{exp:200,affection_su:20,items:['心境修为']},steps:[{text:'夜晚前往庭院',action:'go_to_courtyard_night'},{text:'与苏晚晴月下谈心',action:'talk_su_night'}]},
-      {id:'side_hidden_02',type:'hidden',title:'顾承渊·君子之约',desc:'顾承渊与你约定，往后的竞争只凭各自本事。',hidden:true,unlockCondition:{questCompleted:['main_11'],choiceTask:'main_11',choice:'promise'},rewards:{exp:150,items:['后期关键分支解锁']},steps:[{text:'与顾承渊立下君子之约',action:'talk_gu_promise'}]},
-      {id:'side_hidden_03',type:'hidden',title:'清玄真人·道心指点',desc:'清玄真人看出你的道心已有变化，准备传授独门心境法。',hidden:true,unlockCondition:{heartDemon:'low',realm:2},rewards:{exp:300,items:['心魔抗性永久提升']},steps:[{text:'前往清玄真人处接受道心指点',action:'visit_master'}]},
-      {id:'side_war_01',type:'side',title:'边境探查',desc:'前往西域边境探查魔族营地与补给动向。',unlockCondition:{realm:3,warLevel:1},rewards:{exp:400,gold:300,contribution:80,items:['魔抗']},steps:[{text:'前往西域边境',action:'go_to_border'},{text:'探查魔族营地',action:'scout_camp'}]},
-      {id:'side_war_02',type:'side',title:'灵脉守护',desc:'守护人族边境灵脉，抵御魔修偷袭。',unlockCondition:{realm:4,warLevel:2},rewards:{exp:500,gold:400,contribution:100,items:['高阶防御材料']},steps:[{text:'前往边境灵脉',action:'go_to_spirit_vein'},{text:'击退偷袭灵脉的魔修',action:'defend_attack'}]}
+      {id:'side_daily_03',type:'daily',title:'典籍抄录',desc:'前往藏书阁抄录基础道典，磨炼心性。',npc:'藏书阁长老',repeatable:true,dailyReset:true,rewards:{exp:40,items:['悟道茶']},steps:[{text:'完成一次道典抄录',action:'copy_text'}]},
+      {id:'side_weekly_01',type:'weekly',title:'妖兽清剿',desc:'宗门发布清剿令，要求处理边境妖兽巢穴。',repeatable:true,weeklyReset:true,rewards:{exp:300,gold:200,contribution:50,items:['妖丹']},steps:[{text:'清剿边境妖兽巢穴',action:'clear_nest'}]},
+      {id:'side_weekly_02',type:'weekly',title:'阵法维护',desc:'护山大阵灵纹磨损，需要弟子协助修补。',repeatable:true,weeklyReset:true,rewards:{exp:250,contribution:60,items:['星辰砂']},steps:[{text:'修补宗门护山大阵',action:'repair_array'}]},
+      {id:'side_hidden_01',type:'hidden',title:'苏晚晴·月下谈心',desc:'月下庭院偶遇苏晚晴，两人安静谈心。',hidden:true,unlockCondition:{affection_su:50},rewards:{exp:200,affection_su:20,items:['悟道丹']},steps:[{text:'夜晚前往庭院',action:'go_to_courtyard_night'},{text:'与苏晚晴月下谈心',action:'talk_su_night'}]},
+      {id:'side_hidden_02',type:'hidden',title:'顾承渊·君子之约',desc:'顾承渊与你约定，往后的竞争只凭各自本事。',hidden:true,unlockCondition:{questCompleted:['main_11'],choiceTask:'main_11',choice:'promise'},rewards:{exp:150,items:['天材地宝']},steps:[{text:'与顾承渊立下君子之约',action:'talk_gu_promise'}]},
+      {id:'side_hidden_03',type:'hidden',title:'清玄真人·道心指点',desc:'清玄真人看出你的道心已有变化，准备传授独门心境法。',hidden:true,unlockCondition:{heartDemon:'low',realm:2},rewards:{exp:300,items:['玄玉护脉丹']},steps:[{text:'前往清玄真人处接受道心指点',action:'visit_master'}]},
+      {id:'side_war_01',type:'side',title:'边境探查',desc:'前往西域边境探查魔族营地与补给动向。',unlockCondition:{realm:3,warLevel:1},rewards:{exp:400,gold:300,contribution:80,items:['魔核']},steps:[{text:'前往西域边境',action:'go_to_border'},{text:'探查魔族营地',action:'scout_camp'}]},
+      {id:'side_war_02',type:'side',title:'灵脉守护',desc:'守护人族边境灵脉，抵御魔修偷袭。',unlockCondition:{realm:4,warLevel:2},rewards:{exp:500,gold:400,contribution:100,items:['冰晶石']},steps:[{text:'前往边境灵脉',action:'go_to_spirit_vein'},{text:'击退偷袭灵脉的魔修',action:'defend_attack'}]}
     ];
 
     const ALL_TASKS={}; MAIN_TASKS.forEach(t=>ALL_TASKS[t.id]=t); SIDE_TASKS.forEach(t=>ALL_TASKS[t.id]=t);
@@ -6013,7 +6020,13 @@
       if(inst.currentStep>=task.steps.length)completeTask(id);else{showFloatingText?.(`✓ ${step.text}`,'#9edcff');updateTaskTracker();autoSave?.();}
       return true;
     }
-    function addTaskRewardItem(name){if(!name)return;player.inventory.push(name);}
+    function taskRewardKindV286838(name){return EQUIPMENT_DB[name]?'equipment':MATERIALS[name]?'material':(ITEMS[name]||LONGEVITY_PILLS[name])?'item':null;}
+    function addTaskRewardItem(name){
+      name=TASK_REWARD_LEGACY_V286838[name]||name;const kind=taskRewardKindV286838(name);if(!kind)return;
+      if(kind==='equipment'){if(!Array.isArray(player.equipmentInventory))player.equipmentInventory=[];player.equipmentInventory.push(name);}
+      else if(kind==='material'){if(!player.materials)player.materials={};player.materials[name]=(player.materials[name]||0)+1;}
+      else player.inventory.push(name);
+    }
     function formatTaskRewards(rewards={}){const a=[];if(rewards.exp)a.push(`修为+${rewards.exp}`);if(rewards.gold)a.push(`灵石+${rewards.gold}`);if(rewards.contribution)a.push(`宗门贡献+${rewards.contribution}`);if(rewards.affection_su)a.push(`苏晚晴好感+${rewards.affection_su}`);if(rewards.hp)a.push(`基础生命+${rewards.hp}`);if(rewards.atk)a.push(`基础攻击+${rewards.atk}`);if(rewards.def)a.push(`基础防御+${rewards.def}`);if(rewards.items?.length)a.push(rewards.items.join('、'));return a.join(' · ')||'无';}
     function completeTask(id){
       const task=getTaskData(id),inst=getTaskInstance(id);if(!task||!inst||inst.completed||inst.failed||inst.currentStep<task.steps.length||(!task.repeatable&&player.tasks.completed.includes(id)))return;
@@ -14087,11 +14100,15 @@
       }
     }
 
+    function devToolsAllowedV286838(){
+      const loc=typeof location==='undefined'?{}:location,host=String(loc.hostname||'');
+      return loc.protocol==='file:'||host==='localhost'||host==='127.0.0.1'||host==='[::1]'||host.endsWith('.localhost');
+    }
     function startGame() {
       const rawName = document.getElementById('playerName').value.trim();
       const name = rawName || '无名';
       try{validateSaveTextV2869({name});}catch(e){alert('道号请使用文字、数字或空格，不要包含代码符号');return;}
-      const isTest999 = rawName === '999';
+      const isTest999 = rawName === '999' && devToolsAllowedV286838();
       resetRuntimeState();
 
       if (isTest999) {
