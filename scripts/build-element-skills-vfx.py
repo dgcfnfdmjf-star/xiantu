@@ -116,7 +116,9 @@ for E in EFFECTS:
         framesets[layer] = frames
         strip = Image.new('RGBA', (256 * n, 256))
         for i, im in enumerate(frames): strip.alpha_composite(im, (256 * i, 0))
-        file = f"{E['key']}_{layer}.png"; strip.save(OUT / file, optimize=True)
+        file = f"{E['key']}_{layer}.png"
+        # 256-colour palette keeps alpha gradients (audited MAE about 1/255) at a quarter of the bytes.
+        strip.quantize(256, method=Image.Quantize.FASTOCTREE, dither=Image.Dither.NONE).save(OUT / file, optimize=True)
         a = [audit(im, E['hue']) for im in frames]
         assert len({v['hash'] for v in a}) == n, (E['key'], layer, 'duplicate frames')
         assert all(v['familyHue'] > .7 and v['white'] < .3 for v in a), (E['key'], layer, 'palette', [(round(v['familyHue'], 2), round(v['white'], 2)) for v in a])
