@@ -153,7 +153,7 @@ function create(host,read,enemyKey='wolf'){
      const hero={x:px+8,y:205};
      Object.assign(from,a.side==='player'?hero:torso);Object.assign(to,a.side==='player'?torso:hero);
     }
-    fxJobs.push({action:a,job:{id:a.side==='player'?1:2,profile:a.fxProfile,from,to,...a.anchors,width:W,clipBottom:355,scale:1.05,light:fxSettings.light,reduced,duration:ink.authoredDuration?.(a.name)||900,arriveAt:contactTime(a),hitAt:a.impactAt??null,detonationAt:a.detonationAt??null,groundDrawn:!!ink.drawGround}});
+    fxJobs.push({action:a,job:{id:a.side==='player'?1:2,profile:a.fxProfile,from,to,...a.anchors,width:W,clipBottom:355,scale:1.05,light:fxSettings.light,reduced,duration:ink.authoredDuration?.(a.name)||900,arriveAt:contactTime(a),hitAt:a.impactAt??(a.fxProfile.self?contactTime(a):null),detonationAt:a.detonationAt??null,groundDrawn:!!ink.drawGround}});
    }
   }
   for(const {action:a,job} of fxJobs)ink.drawGround?.(ctx,job,elapsed-a.at);
