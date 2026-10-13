@@ -76,7 +76,7 @@
         return `<div class="mobile-inventory-item"><span class="name">${icon} ${row.name}</span><span class="count">×${row.count}</span><span class="desc">${desc}</span></div>`;
       }).join(''):`<div class="mobile-inventory-empty">这一栏目前是空的</div>`;
       card.innerHTML=`
-        <div class="mobile-inventory-head"><div><div class="mobile-inventory-title">🎒 储物袋</div><div style="font-size:10px;color:#8f99a4;margin-top:2px">随身物资与修行资源</div></div><button class="mobile-inventory-close" onclick="closeMobileInventory()">✕</button></div>
+        <div class="mobile-inventory-head"><div><div class="mobile-inventory-title">🎒 储物袋</div><div style="font-size:10px;color:#8f99a4;margin-top:2px">随身物资与修行资源</div></div><button aria-label="关闭" class="mobile-inventory-close" onclick="closeMobileInventory()">✕</button></div>
         <div class="mobile-inventory-summary"><span>💰 灵石 ${player.gold||0}</span><span>💠 灵力 ${Math.max(0,Math.round(player.mp||0))} / ${typeof getMaxMp==='function'?getMaxMp():Math.max(0,Math.round(player.maxMp||0))}</span><span>🎐 物品 ${itemRows.reduce((a,b)=>a+b.count,0)}</span><span>🌿 材料 ${materialRows.reduce((a,b)=>a+Number(b.count||0),0)}</span><span>⚔️ 装备 ${equipmentRows.length}</span></div>
         <div class="mobile-inventory-tabs">${tabs.map(([id,label])=>`<button class="mobile-inventory-tab ${mobileInventoryTab===id?'active':''}" onclick="setMobileInventoryTab('${id}')">${label}</button>`).join('')}</div>
         <div class="mobile-inventory-grid">${htmlRows}</div>
@@ -423,23 +423,25 @@
       // 成长成就（按大境界解锁）
       realm_qi: { name:'练气入门', desc:'达到练气境', icon:'✨', type:'realm', target:1, reward:{ gold:50 } },
       realm_foundation: { name:'筑基有成', desc:'达到筑基境', icon:'🌟', type:'realm', target:2, reward:{ gold:100, exp:50 } },
-      realm_kaiguang: { name:'灵台筑基', desc:'达到筑基境', icon:'🔆', type:'realm', target:2, reward:{ gold:140, exp:70 } },
-      realm_ronghe: { name:'灵脉筑基', desc:'达到筑基境', icon:'🌀', type:'realm', target:2, reward:{ gold:180, exp:90 } },
-      realm_xindong: { name:'筑基问道', desc:'达到筑基境', icon:'💗', type:'realm', target:2, reward:{ gold:220, exp:110 } },
+      realm_kaiguang: { name:'灵台筑基', desc:'达到筑基中期', icon:'🔆', type:'realm', target:2, phase:1, reward:{ gold:140, exp:70 } },
+      realm_ronghe: { name:'灵脉筑基', desc:'达到筑基后期', icon:'🌀', type:'realm', target:2, phase:2, reward:{ gold:180, exp:90 } },
+      realm_xindong: { name:'筑基问道', desc:'达到筑基圆满', icon:'💗', type:'realm', target:2, phase:3, reward:{ gold:220, exp:110 } },
       realm_golden: { name:'金丹大道', desc:'达到金丹境', icon:'💫', type:'realm', target:3, reward:{ gold:300, exp:150 } },
       realm_nascent: { name:'元婴诞生', desc:'达到元婴境', icon:'🔮', type:'realm', target:4, reward:{ gold:450, exp:220, item:'灵剑' } },
       realm_chuqiao: { name:'元神化神', desc:'达到化神境', icon:'👁️', type:'realm', target:5, reward:{ gold:550, exp:280 } },
       realm_fenshen: { name:'神念万千', desc:'达到炼虚境', icon:'🌌', type:'realm', target:6, reward:{ gold:700, exp:350 } },
       realm_heti: { name:'天人合体', desc:'达到合体境', icon:'☯️', type:'realm', target:7, reward:{ gold:850, exp:420 } },
-      realm_dongxu: { name:'合体见真', desc:'达到合体境', icon:'🕳️', type:'realm', target:7, reward:{ gold:1050, exp:520 } },
+      realm_dongxu: { name:'合体见真', desc:'达到合体圆满', icon:'🕳️', type:'realm', target:7, phase:3, reward:{ gold:1050, exp:520 } },
       realm_dacheng: { name:'大道将成', desc:'达到大乘境', icon:'🌠', type:'realm', target:8, reward:{ gold:1300, exp:650 } },
       realm_tribulation: { name:'渡劫问天', desc:'达到渡劫境', icon:'⚡', type:'realm', target:9, reward:{ gold:1800, exp:900, item:'仙甲' } },
+      realm_dixian: { name:'地仙证道', desc:'达到地仙境', icon:'🏔️', type:'realm', target:10, reward:{ gold:2000, exp:1000 } },
+      realm_tianxian: { name:'天仙御风', desc:'达到天仙境', icon:'🌤️', type:'realm', target:11, reward:{ gold:2300, exp:1150 } },
       realm_jinxian: { name:'金仙登临', desc:'达到金仙境', icon:'🌞', type:'realm', target:12, reward:{ gold:2600, exp:1400 } },
-      realm_xuanxian: { name:'金仙妙境', desc:'达到金仙境', icon:'🌙', type:'realm', target:12, reward:{ gold:3600, exp:1900 } },
+      realm_xuanxian: { name:'金仙妙境', desc:'达到金仙圆满', icon:'🌙', type:'realm', target:12, phase:3, reward:{ gold:3600, exp:1900 } },
       realm_taiyizhen: { name:'太乙凝道', desc:'达到太乙金仙境', icon:'🪷', type:'realm', target:13, reward:{ gold:5000, exp:2600 } },
-      realm_taiyijin: { name:'太乙金仙', desc:'达到太乙金仙境', icon:'☀️', type:'realm', target:13, reward:{ gold:7000, exp:3500 } },
+      realm_taiyijin: { name:'太乙金仙', desc:'达到太乙金仙圆满', icon:'☀️', type:'realm', target:13, phase:3, reward:{ gold:7000, exp:3500 } },
       realm_taiyixuan: { name:'大罗证道', desc:'达到大罗金仙境', icon:'🌀', type:'realm', target:14, reward:{ gold:9500, exp:4700 } },
-      realm_daluo: { name:'大罗不朽', desc:'达到大罗金仙境', icon:'🌌', type:'realm', target:14, reward:{ gold:13000, exp:6500 } },
+      realm_daluo: { name:'大罗不朽', desc:'达到大罗金仙圆满', icon:'🌌', type:'realm', target:14, phase:3, reward:{ gold:13000, exp:6500 } },
       realm_zhunsheng: { name:'准圣之境', desc:'达到准圣境', icon:'🔱', type:'realm', target:15, reward:{ gold:18000, exp:9000 } },
       realm_shengren: { name:'混元圣人', desc:'达到圣人境', icon:'👑', type:'realm', target:16, reward:{ gold:30000, exp:15000 } },
       
@@ -544,6 +546,7 @@
             break;
           case 'realm':
             progress = player.level;
+            if (progress === ach.target && (player.phase || 0) < (ach.phase || 0)) progress = ach.target - 1;
             break;
           case 'collect':
             progress = Math.max(achievementProgress.weaponsCollected, achievementProgress.armorsCollected);
@@ -4877,7 +4880,7 @@
     function showYeWujiV2810(){
       if(gameState==='combat'||gameState==='combat-ending')return;
       const e=createYeWujiV2810();
-      showStory(`${jevEntryV2846('jevRivalV2849()','Jev 宿敌应对')}<section class="yewuji-card-v2810"><img src="./portrait-yewuji-v2810.webp" alt="夜无疆，玄黑暗金长袍立于破碎仙阵前" width="640" height="960" loading="lazy"><div><p>魔族共尊 · 逆天魔典</p><h3>夜无疆</h3><p>${YEWUJI_LORE_V2810}</p></div></section><p>你的境界：${getCultivationName()}<br>夜无疆：<b>${getEnemyRealmNameV2811(e)}</b></p><p>气血 ${e.hp} · 攻击 ${e.atk} · 防御 ${e.def}</p><p>境界极限：半圣圆满（对应现有准圣），永久无法突破圣人；到达极限后，主角继续成长也不会再提高他的属性。</p><p>三阶段招式：破阵指 → 裂界掌 → 万法归寂，逐步加强伤害与破甲。</p><p>这是宿敌挑战，可自行决定何时尝试。胜利代表击退，夜无疆不会永久死亡；本次不发放灵石和修为。战败沿用普通战斗扣款规则。</p>`,[{text:'📜 宿敌纪事 · '+yeStateV2816().choices.length+'/8章',action:'yewuji_story_v2816'},{text:'⚔️ 挑战夜无疆',action:'challenge_yewuji_v2810'},{text:'☠️ 前往玄煞魔域',action:'travel_world_map',regionId:'demon_domain',condition:()=>isRegionUnlocked('demon_domain')},{text:'返回地图',action:'return_to_map'}]);
+      showStory(`${jevEntryV2846('jevRivalV2849()','Jev 宿敌应对')}<section class="yewuji-card-v2810"><img src="./portrait-yewuji-v2810.webp" alt="夜无疆，玄黑暗金长袍立于破碎仙阵前" width="640" height="960" loading="lazy"><div><p>魔族共尊 · 逆天魔典</p><h3>夜无疆</h3><p>${YEWUJI_LORE_V2810}</p></div></section><p>你的境界：${getCultivationName()}<br>夜无疆：<b>${getEnemyRealmNameV2811(e)}</b></p><p>气血 ${e.hp} · 攻击 ${e.atk} · 防御 ${e.def}</p><p>境界极限：半圣圆满（对应现有准圣），永久无法突破圣人；到达极限后，主角继续成长也不会再提高他的属性。</p><p>三阶段招式：破阵指 → 裂界掌 → 万法归寂，逐步加强伤害与破甲。</p><p>备战建议：先到北域灵泉补满气血与灵力；储物袋备好大还丹或玄玉护脉丹；功法栏放入青莲护心、莲华济世或玄罡护体剑，在「万法归寂」前抵挡一次重击。战败不影响主线进度，可整备后再试。</p><p>这是宿敌挑战，可自行决定何时尝试。胜利代表击退，夜无疆不会永久死亡；本次不发放灵石和修为。战败沿用普通战斗扣款规则。</p>`,[{text:'📜 宿敌纪事 · '+yeStateV2816().choices.length+'/8章',action:'yewuji_story_v2816'},{text:'⚔️ 挑战夜无疆',action:'challenge_yewuji_v2810'},{text:'☠️ 前往玄煞魔域',action:'travel_world_map',regionId:'demon_domain',condition:()=>isRegionUnlocked('demon_domain')},{text:'返回地图',action:'return_to_map'}]);
     }
     function challengeYeWujiV2810(){
       if(gameState==='combat'||gameState==='combat-ending'||COMBAT_FINISH_V2764.settling)return;
@@ -6228,7 +6231,7 @@
     }
     function showTaskPanel(filter='main'){
       if(gameState!=='combat'&&gameState!=='combat-ending'&&!player.breakthrough?.isAnimating)checkTaskTriggers();
-      closeTaskPanel();const ov=document.createElement('div');ov.id='taskPanel';ov.className='task-panel-overlay';ov.innerHTML=`<div class="task-panel-box"><div class="task-panel-head"><div><div class="task-panel-title">📜 仙途任务志</div><div class="task-panel-sub">主线 · 三界游历 · 修行纪事</div></div><button class="task-close" onclick="closeTaskPanel()">✕</button></div><div class="task-tabs">${[['main','主线'],['journey','游历'],['journal','纪事'],['side','支线'],['daily','日常'],['weekly','周常'],['hidden','隐藏']].map(([id,n])=>`<button class="task-tab" data-tab="${id}" onclick="renderTaskList('${id}')">${n}</button>`).join('')}</div><div id="taskListContainer"></div></div>`;document.body.appendChild(ov);ov.addEventListener('pointerdown',e=>{if(e.target===ov)closeTaskPanel();});renderTaskList(filter);
+      closeTaskPanel();const ov=document.createElement('div');ov.id='taskPanel';ov.className='task-panel-overlay';ov.innerHTML=`<div class="task-panel-box"><div class="task-panel-head"><div><div class="task-panel-title">📜 仙途任务志</div><div class="task-panel-sub">主线 · 三界游历 · 修行纪事</div></div><button aria-label="关闭" class="task-close" onclick="closeTaskPanel()">✕</button></div><div class="task-tabs">${[['main','主线'],['journey','游历'],['journal','纪事'],['side','支线'],['daily','日常'],['weekly','周常'],['hidden','隐藏']].map(([id,n])=>`<button class="task-tab" data-tab="${id}" onclick="renderTaskList('${id}')">${n}</button>`).join('')}</div><div id="taskListContainer"></div></div>`;document.body.appendChild(ov);ov.addEventListener('pointerdown',e=>{if(e.target===ov)closeTaskPanel();});renderTaskList(filter);
     }
     function closeTaskPanel(){document.getElementById('taskPanel')?.remove();}
     function addTaskButton(){const actions=document.querySelector('.world-hud-top > div:last-child');if(!actions||document.getElementById('taskBtn'))return;const b=document.createElement('button');b.id='taskBtn';b.textContent='📜 任务';b.onclick=()=>showTaskPanel('main');actions.insertBefore(b,actions.firstChild);}
@@ -8056,7 +8059,7 @@
       syncUnlockedSkills();
       player.maxLifespan=getTotalMaxLifespan();
       player.hp=getMaxHp();player.mp=getMaxMp();
-      if(majorBreakthrough)updateAchievementProgress('realm');
+      updateAchievementProgress('realm');
       playSound?.('levelup');
       const after=createBreakthroughSnapshot();
       result.fromName=result.fromName||before.name;result.toName=getCultivationName();result.after=after;result.majorBreakthrough=majorBreakthrough;
@@ -8384,7 +8387,7 @@
       toggleCharacterPanel?.(false);document.getElementById('equipmentPanel')?.remove();migrateLooseEquipmentToEquipmentInventory(player);checkSetBonuses();
       const panel=document.createElement('div');panel.id='equipmentPanel';panel.className='equipment-panel-overlay';
       const content=document.createElement('div');content.className='equipment-panel-content';
-      content.innerHTML=`<button onclick="document.getElementById('equipmentPanel')?.remove()" style="position:absolute;right:12px;top:10px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#ddd;font-size:16px">✕</button>
+      content.innerHTML=`<button aria-label="关闭" onclick="document.getElementById('equipmentPanel')?.remove()" style="position:absolute;right:12px;top:10px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#ddd;font-size:16px">✕</button>
         <div style="margin-bottom:14px"><span style="font-size:20px;font-weight:bold;color:#ffd700">🎒 角色装备</span><span style="font-size:12px;color:#aaa;margin-left:10px">最高品质：${getEquipQualitySummary()}</span></div>
         <div class="equipment-grid-primary"><div><div style="color:#ffd700;font-size:13px;font-weight:bold;margin-bottom:6px">🛡️ 防具 · 6件</div>${renderEquipSlots(['head','robe','bracer','belt','pants','boots'])}</div><div><div style="color:#ffd700;font-size:13px;font-weight:bold;margin-bottom:6px">💎 首饰 · 5件</div>${renderEquipSlots(['necklace','bracelet','ring1','ring2','jade'])}</div></div>
         <div style="margin-top:12px"><div style="color:#ffd700;font-size:13px;font-weight:bold;margin-bottom:6px">⚔️ 武器法宝</div>${renderEquipSlots(['weapon','offhand','artifact1','artifact2','artifact3','flying'])}</div>
@@ -10012,7 +10015,7 @@
       const rows=[...npcRanks,{name:`${escapeGameText(player.name)}（你）`,contribution:player.sectTotalContribution||0,player:true}].sort((a,b)=>b.contribution-a.contribution);
       let html=`<p>📊 <b>${player.sect || '凌霄宗'} · 宗门贡献榜</b></p><p>当前职位：${rankInfo.icon} ${rankInfo.name}</p><div style="border:1px solid rgba(255,215,0,.3);border-radius:8px;padding:10px">`;
       rows.forEach((r,i)=>{ html += `<p style="${r.player?'color:#ffd700;font-weight:bold':'color:#ccc'}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`} ${r.name} · 累计贡献 ${r.contribution}</p>`; });
-      html += `</div><p style="font-size:11px;color:#888">宗门榜为本地模拟榜单，后续可接入更多NPC与宗门事件。</p>`;
+      html += `</div><p style="font-size:11px;color:#888">宗门榜为本地模拟榜单，按各宗势力与本地事件推算，不联网。</p>`;
       showStory(html,[{text:'← 返回宗门大殿',action:'sect_hall'}]);
     }
 

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=overlays-content">
   <meta name="theme-color" content="#08100b">
+  <link rel="icon" type="image/png" href="./v2762-apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="仙途">
@@ -80,7 +81,7 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
   <!-- 音效控制 -->
   <div class="audio-controls" id="audioControls" style="display:none;">
     <button class="audio-btn" id="muteBtn" onclick="toggleMute()">🔊</button>
-    <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="50" onchange="setVolume(this.value)">
+    <input type="range" class="volume-slider" id="volumeSlider" aria-label="音量" min="0" max="100" value="50" onchange="setVolume(this.value)">
     <button class="audio-btn" onclick="toggleBGM()">🎵</button>
   </div>
   
@@ -401,6 +402,8 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
 <script id="xiantu-v2762-loader">
 (function(){
   'use strict';
+  // iOS Safari before 15.4 lacks Object.hasOwn, which several modules use.
+  if(typeof Object.hasOwn!=='function')Object.defineProperty(Object,'hasOwn',{value:function(o,k){return Object.prototype.hasOwnProperty.call(o,k);},configurable:true,writable:true});
   var expectedBuild='28.68.35';
   var files=["xiantu-v2762-core.js", "xiantu-v2762-03-virtual-joystick-script.js", "xiantu-v2762-04-tutorial-guide-script.js", "xiantu-v2762-05-mobile-dedicated-script.js", "xiantu-v2762-06-local-test-bootstrap.js", "xiantu-v2762-07-v12-stable-map-ui-script.js", "xiantu-v2762-08-feature-08.js", "xiantu-v2762-09-control-mode-switch-script.js", "xiantu-v2762-10-upgrade-material-hint-script.js", "xiantu-v2762-11-feature-11.js", "xiantu-v2762-12-v277equipmentmanager.js", "xiantu-v2762-13-feature-13.js", "xiantu-v2762-14-v279-pet-capture-system.js", "xiantu-v2762-15-petgrowthsystemv210.js", "xiantu-v2762-16-petguidemapv211script.js", "xiantu-v2762-17-combatskillloadoutv212.js", "xiantu-v2762-18-skillswapmenuv213.js", "xiantu-v2762-19-v27-15-enemy-portrait-script.js", "xiantu-v2762-20-v27-16-enemy-batch1-script.js", "xiantu-v2762-21-v27-17-enemy-batch2-script.js", "xiantu-v2762-22-v2756-cinematic-combat-script.js", "xiantu-v2768-systems.js", "xiantu-v2770-avatar.js", "xiantu-v2773-economy.js", "xiantu-v2838-journey.js", "xiantu-v2839-war.js", "xiantu-v2840-war-map.js", "xiantu-v2841-dharma-war.js", "xiantu-v2842-jev-forge.js", "xiantu-v2850-jev-friends.js", "xiantu-v2844-monster-jev.js", "xiantu-v2846-world-jev.js", "xiantu-v2849-npc-jev.js", "xiantu-v2852-relationship-stories.js", "xiantu-v2852-relationships.js", "xiantu-v2853-monster-art.js", "xiantu-v2855-skill-fx.js", "xiantu-v2856-battle-clarity.js", "xiantu-v2868-sect-life.js", "xiantu-v28684-duel.js"];
   var button=document.getElementById('xiantuSafeBootButton');

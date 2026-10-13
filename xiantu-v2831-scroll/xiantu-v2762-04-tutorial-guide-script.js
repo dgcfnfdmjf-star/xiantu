@@ -168,7 +168,7 @@ function checkTutorialRealm(level){
 // ===== 修行指引手册 =====
 function showHelpManual(){
   document.getElementById('helpManual')?.remove();const t=ensureTutorialState();const el=document.createElement('div');el.id='helpManual';el.className='help-manual-overlay active';el.onclick=e=>{if(e.target===el)closeHelpManual()};
-  el.innerHTML=`<div class="help-manual-content" onclick="event.stopPropagation()"><div class="help-manual-title"><span>📖 仙途 · 修行指引</span><button class="help-manual-close" onclick="closeHelpManual()">✕</button></div><div class="help-manual-grid">
+  el.innerHTML=`<div class="help-manual-content" onclick="event.stopPropagation()"><div class="help-manual-title"><span>📖 仙途 · 修行指引</span><button aria-label="关闭" class="help-manual-close" onclick="closeHelpManual()">✕</button></div><div class="help-manual-grid">
   <div class="help-section"><h4>🕹️ 行走与交互</h4><p>左下摇杆可自由控制方向；也可轻点地面自动前往落点。走进地点外圈后，右下【交互】进入。</p><p>右上小地图可查看周围地点，也可点选地图位置寻路。☰中可打开角色、装备、宗门任务与记档。</p></div>
   <div class="help-section"><h4>🧘 修炼与突破</h4><p>修为达到瓶颈后会进入突破流程，成功率会受境界、丹药、宗门状态与心境影响。</p><p><b>闭关十年最多推进一个小段</b>。突破失败会损失部分修为并进入调息期；渡劫圆满必须渡过飞升天劫才能进入地仙。</p></div>
   <div class="help-section"><h4>🎒 装备</h4><p>装备分防具、首饰、武器法宝等槽位，并有凡品至神器的品质差异。装备品质会放大其基础属性。</p><p>高阶装备有境界要求。戒指有两格、法宝有三格；<b>本命法宝位在金丹境开启</b>。成套装备可激活额外加成。</p></div>
