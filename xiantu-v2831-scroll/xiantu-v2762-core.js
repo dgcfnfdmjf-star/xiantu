@@ -6204,6 +6204,7 @@
     function mainTaskLockV2822(task){
       const i=MAIN_TASKS.findIndex(t=>t.id===task.id),parts=[];
       if(i>0&&!mainPredecessorMetV286823(task))parts.push(`先完成「${MAIN_TASKS[i-1].title}」`);
+      if(task.id==='main_17'&&(player.level||0)<(task.unlockRealm||10))parts.push('先在青云村把地点剧情推到终章，并打赢飞升天劫');
       if((player.level||0)<(task.unlockRealm||0))parts.push(`达到${CULTIVATION_REALMS[task.unlockRealm]?.name||'指定境界'}初期`);
       return parts.join('；');
     }
@@ -6537,8 +6538,16 @@
       updateStats();
     }
     
+    function authoredStoryCombatV286835(enemy){
+      return enemy?.name==='宗门试炼守将'||enemy?.name==='幽冥鬼王'||enemy?.name==='血魔老祖'||enemy?.name==='天劫';
+    }
+    function makeAuthoredBossV286835(name){
+      const src=name==='天劫'?TRIBULATION:BOSSES[name];
+      if(!src)return null;
+      return {name:src.name,hp:src.hp,maxHp:src.hp,atk:src.atk,def:src.def,gold:src.gold,exp:src.exp,phases:src.phases,skills:src.skills,phaseMessages:src.phaseMessages};
+    }
     function balanceEnemyV2802(enemy,isBoss=false,isTrib=false){
-      if(!enemy||enemy._isTutorial||enemy.tournamentFight||enemy._nightRivalV2810||[4,9].includes(enemy._rainChapterV286822))return enemy;
+      if(!enemy||enemy._isTutorial||enemy.tournamentFight||enemy._nightRivalV2810||[4,9].includes(enemy._rainChapterV286822)||authoredStoryCombatV286835(enemy))return enemy;
       ensureEnemyRealm(enemy);
       const lv=Math.max(0,Math.min(CULTIVATION_REALMS.length-1,Number(enemy._realmLevel)||0));
       const ph=Math.max(0,Math.min(3,Number(enemy._realmPhase)||0));
@@ -7357,8 +7366,8 @@
               playSound('item');
             }
             
-            // 只有主线Boss推进主线；迷雾领主、战神之魂、秘境之主等地图Boss只记录击杀。
-            if (Object.prototype.hasOwnProperty.call(BOSSES, currentEnemy.name)) advanceStory();
+            // 只有打赢当前地点章节写明的 Boss 才推进；提前打死守将不能跳过幽冥鬼王或血魔老祖。
+            if (STORY_CHAPTERS[player.storyProgress]?.boss===currentEnemy.name) advanceStory();
             updateAchievementProgress('boss');
           }
           
@@ -9314,7 +9323,7 @@
       let choices=[{text:'📜 三万年仙魔战 · 战事总览',action:'ancient_war_v2859',story:true},{text:'💰 赚取灵石（补助 / 跑腿 / 回收）',action:'early_economy_v2773'},{text:'🗺️ 前往其他地域',action:'world_travel_menu',story:true},{text:'🏪 杂货铺',action:'shop'},{text:'⚔️ 南域历练',action:'explore'},{text:'🏪 仙市',action:'market'},{text:'🏠 我的洞府',action:'home',condition:()=>hasReachedRealm(1)},{text:'💗 姻缘亭（感情线）',action:'romance',story:true},{text:'💤 灵泉休息',action:'rest'}];
       if(player.storyProgress>=3||hasReachedRealm(2))choices.push({text:'🌑 幽冥谷（特殊秘境）',action:'youmingu',story:true});
       const storyEvent=getStoryEvent();if(storyEvent)choices.unshift({text:`📜 当前主线：${storyEvent.title}`,action:'story_event',chapterId:storyEvent.id,story:true});
-      if(storyEvent&&storyEvent.boss&&!player.bossesDefeated.includes(storyEvent.boss))choices.unshift({text:storyEvent.boss==='宗门试炼守将'?`👹 挑战【${storyEvent.boss}】（试炼阵法压制）`:`👹 挑战【${storyEvent.boss}】`,action:'boss_fight',boss:storyEvent.boss,boss:true});
+      if(storyEvent&&storyEvent.boss&&!player.bossesDefeated.includes(storyEvent.boss))choices.unshift({text:storyEvent.boss==='宗门试炼守将'?`👹 挑战【${storyEvent.boss}】（试炼阵法压制）`:`👹 挑战【${storyEvent.boss}】`,action:'boss_fight',bossName:storyEvent.boss,boss:true});
       if(hasReachedRealm(9,3)&&!player.tribulationAttempted&&player.storyProgress>=6)choices.unshift({text:'⚡ 挑战飞升天劫（渡劫圆满）',action:'tribulation',tribulation:true});
       const text=buildAreaSceneCard({icon:'🏘️',title:'南域 · 青云村',subtitle:`📅 ${getGameDateLabel()} · 起点聚落`,desc:'村口驿道、百宝阁、中央村舍、仙市、洞府与灵泉按用途分区，路线更容易理解。',accent:'#ffd98a',chips:['南域驿道','新手聚落','补给起点'],info:'推荐：先补给 → 再历练 → 之后再去仙市与洞府。'})+
         buildAreaLayout('村落布局',[{name:'村口驿道',desc:'跨地域远行入口。'},{name:'百宝阁西街',desc:'靠近入口，优先补给。'},{name:'中央村舍',desc:'聚落核心与任务中转。'},{name:'东南仙市',desc:'承担中期消费与稀有商品。'}])+
@@ -10133,9 +10142,12 @@
       let text=buildAreaSceneCard({icon:'⛩️',title:'北域 · 凌霄宗',subtitle:`📅 ${getGameDateLabel()} · 宗门驻地`,desc:'前山门、中央大殿、演武场与后山修行区形成完整宗门建筑群。',accent:'#c7e4ff',chips:['主线节点','演武试炼','百年大比'],info:pendingCentury?`📯 第 ${pendingCentury} 年百年宗门大比已至。`:`下一届万宗大比：仙历 ${getNextTournamentYear()} 年。`})+
         buildAreaLayout('宗门建筑布局',[{name:'前山门',desc:'弟子进出与接引访客。'},{name:'中央大殿',desc:'主线与宗门事务核心。'},{name:'侧翼演武场',desc:'试炼与守将考核。'},{name:'后山修行区',desc:'静修、闭关与等待大比。'}])+
         buildInteriorStrip('宗门大殿',[{icon:'🏛️',name:'宗主主位',desc:'剧情与高层议事。'},{icon:'📜',name:'外务案台',desc:'任务与宗门公告。'},{icon:'⚔️',name:'演武传令处',desc:'试炼与大比报名。'},{icon:'🪶',name:'静修回廊',desc:'弟子休整区域。'}]);
-      if(player.storyProgress===2&&!player.bossesDefeated.includes('宗门试炼守将'))text+=`<div class="area-info-box" style="color:#ffd700">宗门试炼守将正在试炼场等待挑战者……</div>`;
+      const guardianWaiting=player.storyProgress===2&&!player.bossesDefeated.includes('宗门试炼守将');
+      if(guardianWaiting)text+=`<div class="area-info-box" style="color:#ffd700">宗门试炼守将正在试炼场等待挑战者。请点「挑战宗门试炼守将」；「试炼场（普通难度）」只是日常练习。</div>`;
       text='<button class="choice-btn" onclick="showSectOverviewV2866()">宗门总览 · 待办与晋升</button>'+text;
-      showStory(text,[{text:`👥 弟子事务${disciplePendingV2821()?` · ${disciplePendingV2821()} 项待领取`:' · 招募/培养/派遣'}`,action:'disciples_v2815'},{text:'💧 北域灵泉 · 恢复生命/灵力',action:'lingxiao_building',buildingId:'spirit_spring'},{text:'🏯 宗门建筑总览',action:'building_directory',story:true},{text:'🏛️ 宗门大殿',action:'sect_hall',story:true},{text:'📚 静修一年',action:'cultivate'},{text:'🧘 闭关（最多十年）',action:'cultivate_decade'},{text:pendingCentury?'📯 参加百年宗门大比':'📯 查看百年宗门大比',action:'sect_tournament'},{text:'⚔️ 试炼场（普通难度）',action:'sect_battle'},{text:'🌌 查看三界宗门势力',action:'factions_human'},{text:'← 返回北域地图',action:'return_to_map'}]);
+      const sectChoices=[{text:`👥 弟子事务${disciplePendingV2821()?` · ${disciplePendingV2821()} 项待领取`:' · 招募/培养/派遣'}`,action:'disciples_v2815'},{text:'💧 北域灵泉 · 恢复生命/灵力',action:'lingxiao_building',buildingId:'spirit_spring'},{text:'🏯 宗门建筑总览',action:'building_directory',story:true},{text:'🏛️ 宗门大殿',action:'sect_hall',story:true},{text:'📚 静修一年',action:'cultivate'},{text:'🧘 闭关（最多十年）',action:'cultivate_decade'},{text:pendingCentury?'📯 参加百年宗门大比':'📯 查看百年宗门大比',action:'sect_tournament'},{text:'⚔️ 试炼场（普通难度）',action:'sect_battle'},{text:'🌌 查看三界宗门势力',action:'factions_human'},{text:'← 返回北域地图',action:'return_to_map'}];
+      if(guardianWaiting)sectChoices.unshift({text:'👹 挑战宗门试炼守将',action:'boss_guardian',boss:true});
+      showStory(text,sectChoices);
     }
 
     function showYoumingu() {
@@ -10804,49 +10816,27 @@
           }
           break;
           
-        case 'boss_fight':
+        case 'boss_fight': {
+          const storyBossName=getStoryEvent()?.boss;
+          const storyBoss=makeAuthoredBossV286835(storyBossName);
+          if(!storyBoss){showStory('<p>当前青云村地点剧情没有待挑战的 Boss。</p>',[{text:'返回村庄',action:'village'}]);break;}
+          if(storyBossName==='宗门试炼守将')startCombat(storyBoss,true,false);
+          else prepareStoryBossV286826(storyBoss);
+          break;
+        }
         case 'boss_guardian':
-          const guardianBoss = BOSSES['宗门试炼守将'];
-          const guardianEnemy = {
-            name: guardianBoss.name, hp: guardianBoss.hp, maxHp: guardianBoss.hp,
-            atk: guardianBoss.atk, def: guardianBoss.def, gold: guardianBoss.gold, exp: guardianBoss.exp,
-            phases: guardianBoss.phases, skills: guardianBoss.skills, phaseMessages: guardianBoss.phaseMessages
-          };
-          startCombat(guardianEnemy, true, false);
+          startCombat(makeAuthoredBossV286835('宗门试炼守将'),true,false);
           break;
-          
         case 'boss_ghost_king':
-          const ghostBoss = BOSSES['幽冥鬼王'];
-          const ghostEnemy = {
-            name: ghostBoss.name, hp: ghostBoss.hp, maxHp: ghostBoss.hp,
-            atk: ghostBoss.atk, def: ghostBoss.def, gold: ghostBoss.gold, exp: ghostBoss.exp,
-            phases: ghostBoss.phases, skills: ghostBoss.skills, phaseMessages: ghostBoss.phaseMessages
-          };
-          prepareStoryBossV286826(ghostEnemy);
+          prepareStoryBossV286826(makeAuthoredBossV286835('幽冥鬼王'));
           break;
-          
         case 'boss_blood_demon':
-          const bloodBoss = BOSSES['血魔老祖'];
-          const bloodEnemy = {
-            name: bloodBoss.name, hp: bloodBoss.hp, maxHp: bloodBoss.hp,
-            atk: bloodBoss.atk, def: bloodBoss.def, gold: bloodBoss.gold, exp: bloodBoss.exp,
-            phases: bloodBoss.phases, skills: bloodBoss.skills, phaseMessages: bloodBoss.phaseMessages
-          };
-          prepareStoryBossV286826(bloodEnemy);
+          prepareStoryBossV286826(makeAuthoredBossV286835('血魔老祖'));
           break;
-          
         case 'tribulation':
         case 'tribulation_fight':
-          if (hasReachedRealm(9, 3)) {
-            const tribEnemy = {
-              name: TRIBULATION.name, hp: TRIBULATION.hp, maxHp: TRIBULATION.hp,
-              atk: TRIBULATION.atk, def: TRIBULATION.def, gold: TRIBULATION.gold, exp: TRIBULATION.exp,
-              phases: TRIBULATION.phases, skills: TRIBULATION.skills, phaseMessages: TRIBULATION.phaseMessages
-            };
-            startCombat(tribEnemy, false, true);
-          } else {
-            showStory(`<p>你的修为还不够，需要达到渡劫圆满才能挑战飞升天劫。</p>`, [{ text: '返回', action: 'village' }]);
-          }
+          if (hasReachedRealm(9, 3)) startCombat(makeAuthoredBossV286835('天劫'), false, true);
+          else showStory(`<p>你的修为还不够，需要达到渡劫圆满才能挑战飞升天劫。</p>`, [{ text: '返回', action: 'village' }]);
           break;
           
         // 新地图处理
