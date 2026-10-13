@@ -1,0 +1,26 @@
+{
+  "command": "python scripts/render-fire-skills-batch1-evidence.py",
+  "inputs": {
+    "art/fire-skills-batch1/preview/effect-manifest.json": "ddd18046b6beaa12031383e79e28df9074926ea2be3a7ace1e099c332e444708",
+    "art/fire-skills-batch1/sampler.js": "d7a4d8d30d5638b6afaf2ee3315289d5fc3cbe99d9520c129bb895214dadb856",
+    "art/fire-skills-batch1/preview/stage-reference.webp": "f60f880c0af47119a62ffc50c7d21e3a16ccebb93f683ced7810d6e05835cee3",
+    "art/fire-skills-batch1/design/approved-storyboard.png": "867183e3b6f12cbe9b530e310f659a1c3c75774d148b48f9091b8d089e7917a1",
+    "art/fire-skills-batch1/preview/flame_burst_residue.png": "3a77241348fd473802eca08248dcf13d327b64b4c58329db608a47e4b485c4a1",
+    "art/fire-skills-batch1/preview/flame_pillar_residue.png": "b5d893543751b478d4558f4b5114350b000d26b0271ff40edfbfdad934c04380",
+    "art/fire-skills-batch1/preview/flame_pillar_telegraph.png": "b2d1a18256bae0a51fe411be53df4edb9c7ac84b3914c75d09ffd5dc573ac718",
+    "art/fire-skills-batch1/preview/flame_slash_impact.png": "7a785e9a08fa7a4ef8d1bcb09f97e5574fa441c4be1ef18926286382d314f382",
+    "art/fire-skills-batch1/preview/flame_slash_body.png": "7ae90a17cc57035b388a1ff4dac61bd6a859ea55ade1f80356534dedb84a7ec6",
+    "art/fire-skills-batch1/preview/flame_pillar_body.png": "a61b1a85a1c42f64b13782ee6a40b8cf3b4d61a612699db185e35fef4bc010f9",
+    "art/fire-skills-batch1/preview/flame_pillar_impact.png": "aa77d9c5f70c4d8729dfd62ceebbfd9fb1d6adcde4d71d838c2497d7333afeef",
+    "art/fire-skills-batch1/preview/flame_burst_body.png": "70a1aa20b5e08ce2448162241a4fd2df4ec5ea5a3e918fcfa880a6dd7adf63a2",
+    "art/fire-skills-batch1/preview/flame_burst_telegraph.png": "cfbbf372e092de2a478e9b6309a00e75e640ae568817d20c53dfccd46cb0b01c",
+    "art/fire-skills-batch1/preview/flame_slash_residue.png": "9ef04797eb4d5ddc44060ef48efc71f6298fca27142e28129e50fc2eb464a3b8",
+    "art/fire-skills-batch1/preview/flame_burst_impact.png": "8a02ba6798409b8f3d09e5bb935f8cf6b8384e36e95ac5ea37c272c876aca0bf",
+    "art/fire-skills-batch1/preview/flame_burst_detonation.png": "a81e1b12639d64242b6b041ae8d9d374da45cb78c236acb2e9d13f1fb2fd2857",
+    "art/fire-skills-batch1/preview/flame_slash_telegraph.png": "cfcfd77df41570ff1745bb731afc2a9a42f920589f5d7d45df2cc638f6514b11",
+    "art/fire-skills-batch1/source/flame_burst/previous-runtime.png": "aa165422de1704545ca5266613be885ad5f6cc1fc7b07c63286a866ce98587a3",
+    "art/fire-skills-batch1/source/flame_slash/previous-runtime.png": "5c7633e5e6e75996bb9c7501d8b7b0c7281d49e4554b8d8211bd1ecbbb30c15f",
+    "art/fire-skills-batch1/source/flame_pillar/previous-runtime.png": "79581d73b5a430cc3cf2d42459be660b64de1fd473c28bfaf7c835306cf056f6"
+  },
+  "comparison": "Full approved representative storyboard; normalized visible target material, old captured via InkSkillFxV2854.draw; old target crop excludes caster glow."
+}

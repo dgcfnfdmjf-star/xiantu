@@ -1,0 +1,544 @@
+[
+  {
+    "name": "御剑术",
+    "element": "sword",
+    "mp": 10,
+    "damage": 1.5,
+    "effect": null,
+    "desc": "消耗10灵力，造成1.5倍攻击伤害",
+    "visual": "blade",
+    "authored": false
+  },
+  {
+    "name": "雷法",
+    "element": "thunder",
+    "mp": 20,
+    "damage": 2,
+    "effect": null,
+    "desc": "消耗20灵力，造成2倍攻击伤害",
+    "visual": "bolt",
+    "authored": false
+  },
+  {
+    "name": "惊雷闪",
+    "element": "thunder",
+    "mp": 25,
+    "damage": 2.2,
+    "effect": "paralyze",
+    "desc": "消耗25灵力，造成2.2倍攻击伤害，概率封脉，使目标接下来2次行动无法施展术法或回生",
+    "visual": "dart",
+    "authored": false
+  },
+  {
+    "name": "裂地奔雷",
+    "element": "thunder",
+    "mp": 38,
+    "damage": 2.7,
+    "effect": "thunder_aoe",
+    "desc": "消耗38灵力，造成2.7倍范围雷伤",
+    "visual": "ground",
+    "authored": false
+  },
+  {
+    "name": "紫霄落雷",
+    "element": "thunder",
+    "mp": 52,
+    "damage": 3.4,
+    "effect": "armor_pierce",
+    "desc": "消耗52灵力，造成3.4倍攻击伤害，并穿透45%防御",
+    "visual": "bolt",
+    "authored": false
+  },
+  {
+    "name": "万雷噬狱",
+    "element": "thunder",
+    "mp": 68,
+    "damage": 4.1,
+    "effect": "thunder_domain",
+    "desc": "消耗68灵力，造成4.1倍攻击伤害，并形成持续3回合雷域",
+    "visual": "cage",
+    "authored": false
+  },
+  {
+    "name": "九天神雷",
+    "element": "thunder",
+    "mp": 85,
+    "damage": 5.2,
+    "effect": "stun",
+    "desc": "消耗85灵力，造成5.2倍巨额雷伤，并有较高概率眩晕",
+    "visual": "storm",
+    "authored": false
+  },
+  {
+    "name": "闪电链",
+    "element": "thunder",
+    "mp": 30,
+    "damage": 2.4,
+    "effect": "chain",
+    "desc": "消耗30灵力，造成2.4倍雷伤；多目标战斗可最多弹射4次",
+    "visual": "chain",
+    "authored": false
+  },
+  {
+    "name": "雷神附体",
+    "element": "thunder",
+    "mp": 45,
+    "damage": 0,
+    "effect": "thunder_armor",
+    "desc": "消耗45灵力，3回合内雷系伤害+35%，受击反伤25%",
+    "visual": "armor",
+    "authored": false
+  },
+  {
+    "name": "无音神雷",
+    "element": "thunder",
+    "mp": 60,
+    "damage": 3.8,
+    "effect": "armor_pierce",
+    "desc": "消耗60灵力，造成3.8倍攻击伤害，并穿透65%防御",
+    "visual": "silent",
+    "authored": false
+  },
+  {
+    "name": "剑气纵横",
+    "element": "sword",
+    "mp": 35,
+    "damage": 2.5,
+    "effect": null,
+    "desc": "消耗35灵力，造成2.5倍攻击伤害",
+    "visual": "fan",
+    "authored": false
+  },
+  {
+    "name": "万剑归宗",
+    "element": "sword",
+    "mp": 50,
+    "damage": 3.5,
+    "effect": null,
+    "desc": "消耗50灵力，造成3.5倍攻击伤害",
+    "visual": "rain",
+    "authored": false
+  },
+  {
+    "name": "天地一剑",
+    "element": "sword",
+    "mp": 80,
+    "damage": 5,
+    "effect": null,
+    "desc": "消耗80灵力，造成5倍攻击伤害",
+    "visual": "great",
+    "authored": false
+  },
+  {
+    "name": "寒冰掌",
+    "element": "ice",
+    "mp": 15,
+    "damage": 1.6,
+    "effect": "freeze",
+    "desc": "消耗15灵力，1.6倍伤害；寒迟2次行动：追击速度降低30%，攻击面板降低15%；",
+    "visual": "frost",
+    "authored": false
+  },
+  {
+    "name": "冰封千里",
+    "element": "ice",
+    "mp": 40,
+    "damage": 2.8,
+    "effect": "freeze",
+    "desc": "消耗40灵力，2.8倍伤害；寒迟2次行动：追击速度降低30%，攻击面板降低15%；80%概率冻结下一次行动；",
+    "visual": "field",
+    "authored": false
+  },
+  {
+    "name": "绝对零度",
+    "element": "ice",
+    "mp": 70,
+    "damage": 4,
+    "effect": "freeze",
+    "desc": "消耗70灵力，4倍伤害；寒迟2次行动：追击速度降低30%，攻击面板降低15%；100%概率冻结下一次行动；",
+    "visual": "prison",
+    "authored": true
+  },
+  {
+    "name": "玄冰刺",
+    "element": "ice",
+    "mp": 22,
+    "damage": 1.9,
+    "effect": "slow",
+    "desc": "消耗22灵力，1.9倍伤害；寒迟2次行动：追击速度降低30%，攻击面板降低15%；",
+    "visual": "icicle",
+    "authored": false
+  },
+  {
+    "name": "冰爆术",
+    "element": "ice",
+    "mp": 28,
+    "damage": 2.3,
+    "effect": "defDown",
+    "desc": "消耗28灵力，2.3倍伤害；寒迟2次行动：追击速度降低30%，攻击面板降低15%；防御降低25%，持续敌方2次行动；",
+    "visual": "burst",
+    "authored": false
+  },
+  {
+    "name": "霜寒结界",
+    "element": "ice",
+    "mp": 33,
+    "damage": 2.5,
+    "effect": "iceField",
+    "desc": "消耗33灵力，2.5倍伤害；寒迟2次行动：追击速度降低30%，攻击面板降低15%；12%本次伤害的冰蚀，持续3次主动出招；",
+    "visual": "field",
+    "authored": false
+  },
+  {
+    "name": "冰蝶幻舞",
+    "element": "ice",
+    "mp": 36,
+    "damage": 2.7,
+    "effect": "multiFreeze",
+    "desc": "消耗36灵力，2.7倍伤害；寒迟2次行动：追击速度降低30%，攻击面板降低15%；35%概率冻结下一次行动；",
+    "visual": "butterfly",
+    "authored": true
+  },
+  {
+    "name": "霜龙吐息",
+    "element": "ice",
+    "mp": 48,
+    "damage": 3.3,
+    "effect": "heavySlow",
+    "desc": "消耗48灵力，3.3倍伤害；寒迟2次行动：追击速度降低55%，攻击面板降低27.5%；",
+    "visual": "breath",
+    "authored": false
+  },
+  {
+    "name": "冰河葬狱",
+    "element": "ice",
+    "mp": 56,
+    "damage": 3.7,
+    "effect": "icePrison",
+    "desc": "消耗56灵力，3.7倍伤害；寒迟2次行动：追击速度降低30%，攻击面板降低15%；100%概率冻结下一次行动；",
+    "visual": "prison",
+    "authored": false
+  },
+  {
+    "name": "寒渊领域",
+    "element": "ice",
+    "mp": 64,
+    "damage": 4,
+    "effect": "coldDomain",
+    "desc": "消耗64灵力，4倍伤害；寒迟2次行动：追击速度降低30%，攻击面板降低15%；35%概率冻结下一次行动；12%本次伤害的冰蚀，持续3次主动出招；",
+    "visual": "field",
+    "authored": false
+  },
+  {
+    "name": "冰甲护身",
+    "element": "ice",
+    "mp": 30,
+    "damage": 0,
+    "effect": "iceArmor",
+    "desc": "消耗30灵力，护盾吸收20%最大气血的伤害，持续敌方3次行动，同类不叠加",
+    "visual": "armor",
+    "authored": false
+  },
+  {
+    "name": "冰魄封魂",
+    "element": "ice",
+    "mp": 70,
+    "damage": 4.2,
+    "effect": "freezeSilence",
+    "desc": "消耗70灵力，4.2倍伤害；寒迟2次行动：追击速度降低30%，攻击面板降低15%；100%概率冻结下一次行动；封脉1次行动",
+    "visual": "seal",
+    "authored": false
+  },
+  {
+    "name": "万载寒晶",
+    "element": "ice",
+    "mp": 82,
+    "damage": 5.1,
+    "effect": "eternalIce",
+    "desc": "消耗82灵力，5.1倍伤害；寒迟2次行动：追击速度降低30%，攻击面板降低15%；100%概率冻结下一次行动；12%本次伤害的冰蚀，持续3次主动出招；",
+    "visual": "crystal",
+    "authored": false
+  },
+  {
+    "name": "烈焰斩",
+    "element": "fire",
+    "mp": 18,
+    "damage": 1.8,
+    "effect": "burn",
+    "desc": "消耗18灵力，1.8倍伤害；灼烧每次20%本次伤害，持续2次主动出招，期间防御降低15%，同类取最高",
+    "visual": "slash",
+    "authored": false
+  },
+  {
+    "name": "焚天烈焰",
+    "element": "fire",
+    "mp": 45,
+    "damage": 3,
+    "effect": "burn",
+    "desc": "消耗45灵力，3倍伤害；灼烧每次20%本次伤害，持续3次主动出招，期间防御降低15%，同类取最高",
+    "visual": "pillar",
+    "authored": false
+  },
+  {
+    "name": "天火焚世",
+    "element": "fire",
+    "mp": 75,
+    "damage": 4.5,
+    "effect": "burn",
+    "desc": "消耗75灵力，4.5倍伤害；灼烧每次20%本次伤害，持续2次主动出招，期间防御降低15%，同类取最高",
+    "visual": "meteor",
+    "authored": false
+  },
+  {
+    "name": "炎爆术",
+    "element": "fire",
+    "mp": 22,
+    "damage": 2,
+    "effect": "burnDetonate",
+    "desc": "消耗22灵力，2倍伤害；引爆剩余灼烧并消除灼烧破甲",
+    "visual": "burst",
+    "authored": false
+  },
+  {
+    "name": "红莲业火",
+    "element": "fire",
+    "mp": 32,
+    "damage": 2.6,
+    "effect": "healBlockBurn",
+    "desc": "消耗32灵力，2.6倍伤害；灼烧每次20%本次伤害，持续3次主动出招，期间防御降低15%，同类取最高；灼烧期间禁回生",
+    "visual": "lotus",
+    "authored": false
+  },
+  {
+    "name": "火墙术",
+    "element": "fire",
+    "mp": 28,
+    "damage": 2.3,
+    "effect": "fireWall",
+    "desc": "消耗28灵力，2.3倍伤害；灼烧每次20%本次伤害，持续3次主动出招，期间防御降低15%，同类取最高",
+    "visual": "wall",
+    "authored": false
+  },
+  {
+    "name": "三昧真火",
+    "element": "fire",
+    "mp": 42,
+    "damage": 3.2,
+    "effect": "trueFire",
+    "desc": "消耗42灵力，3.2倍伤害；灼烧每次20%本次伤害，持续2次主动出招，期间防御降低15%，同类取最高；本次穿透40%防御",
+    "visual": "triple",
+    "authored": false
+  },
+  {
+    "name": "赤焰龙息",
+    "element": "fire",
+    "mp": 58,
+    "damage": 3.9,
+    "effect": "dragonBurn",
+    "desc": "消耗58灵力，3.9倍伤害；灼烧每次20%本次伤害，持续3次主动出招，期间防御降低15%，同类取最高",
+    "visual": "breath",
+    "authored": false
+  },
+  {
+    "name": "焚心炎",
+    "element": "fire",
+    "mp": 65,
+    "damage": 4.2,
+    "effect": "atkDownBurn",
+    "desc": "消耗65灵力，4.2倍伤害；灼烧每次20%本次伤害，持续3次主动出招，期间防御降低15%，同类取最高；灼烧期间攻击面板降低15%",
+    "visual": "heart",
+    "authored": true
+  },
+  {
+    "name": "燎原火域",
+    "element": "fire",
+    "mp": 72,
+    "damage": 4.4,
+    "effect": "fireDomain",
+    "desc": "消耗72灵力，4.4倍伤害；灼烧每次20%本次伤害，持续3次主动出招，期间防御降低15%，同类取最高",
+    "visual": "field",
+    "authored": false
+  },
+  {
+    "name": "太阳真火",
+    "element": "fire",
+    "mp": 88,
+    "damage": 5.3,
+    "effect": "sunFire",
+    "desc": "消耗88灵力，5.3倍伤害；灼烧每次20%本次伤害，持续4次主动出招，期间防御降低15%，同类取最高",
+    "visual": "sun",
+    "authored": true
+  },
+  {
+    "name": "流火飞索",
+    "element": "fire",
+    "mp": 35,
+    "damage": 2.4,
+    "effect": "fireBind",
+    "desc": "消耗35灵力，2.4倍伤害；灼烧每次20%本次伤害，持续2次主动出招，期间防御降低15%，同类取最高；缠绕使下次行动追击速度降低30%、攻击面板降低15%",
+    "visual": "bind",
+    "authored": false
+  },
+  {
+    "name": "炎阳护盾",
+    "element": "fire",
+    "mp": 30,
+    "damage": 0,
+    "effect": "fireShield",
+    "desc": "消耗30灵力，护盾吸收20%最大气血的伤害，持续敌方3次行动，同类不叠加",
+    "visual": "armor",
+    "authored": false
+  },
+  {
+    "name": "回春术",
+    "element": "heal",
+    "mp": 20,
+    "effect": null,
+    "desc": "消耗20灵力，恢复30%最大生命值",
+    "visual": "dew",
+    "authored": false
+  },
+  {
+    "name": "生生不息",
+    "element": "heal",
+    "mp": 40,
+    "effect": null,
+    "desc": "消耗40灵力，恢复50%最大生命值",
+    "visual": "lotus",
+    "authored": false
+  },
+  {
+    "name": "起死回生",
+    "element": "heal",
+    "mp": 60,
+    "effect": null,
+    "desc": "消耗60灵力，恢复80%最大生命值",
+    "visual": "revive",
+    "authored": false
+  },
+  {
+    "name": "清风剑诀",
+    "element": "sword",
+    "mp": 8,
+    "damage": 1.35,
+    "effect": null,
+    "desc": "消耗8灵力，1.35倍剑伤；凡人自动领悟",
+    "visual": "blade",
+    "authored": false
+  },
+  {
+    "name": "破甲剑罡",
+    "element": "sword",
+    "mp": 24,
+    "damage": 2.1,
+    "effect": null,
+    "desc": "消耗24灵力，2.1倍剑伤，本次穿透50%防御；练气解锁",
+    "visual": "pierce",
+    "authored": false
+  },
+  {
+    "name": "追魂一剑",
+    "element": "sword",
+    "mp": 38,
+    "damage": 2.8,
+    "effect": null,
+    "desc": "消耗38灵力，2.8倍剑伤；目标生命不高于30%时本次伤害增加50%；筑基解锁",
+    "visual": "pierce",
+    "authored": false
+  },
+  {
+    "name": "饮血剑诀",
+    "element": "sword",
+    "mp": 42,
+    "damage": 2.7,
+    "effect": null,
+    "desc": "消耗42灵力，2.7倍剑伤；按实际扣血的20%回血，单次最多恢复15%最大生命；筑基解锁",
+    "visual": "return",
+    "authored": false
+  },
+  {
+    "name": "玄罡护体剑",
+    "element": "sword",
+    "mp": 50,
+    "damage": 3.1,
+    "effect": null,
+    "desc": "消耗50灵力，3.1倍剑伤；本场下一次命中伤害降低35%，不可叠加；筑基解锁",
+    "visual": "guardblade",
+    "authored": false
+  },
+  {
+    "name": "凝露诀",
+    "element": "heal",
+    "mp": 8,
+    "effect": null,
+    "desc": "消耗8灵力，恢复15%最大生命；凡人自动领悟",
+    "visual": "dew",
+    "authored": false
+  },
+  {
+    "name": "青莲护心",
+    "element": "heal",
+    "mp": 26,
+    "effect": null,
+    "desc": "消耗26灵力，恢复25%最大生命；本场下一次命中伤害降低30%，不可叠加；练气解锁",
+    "visual": "lotus",
+    "authored": false
+  },
+  {
+    "name": "灵泉归元",
+    "element": "heal",
+    "mp": 35,
+    "effect": null,
+    "desc": "先消耗35灵力，恢复30%最大生命和12灵力（净耗23）；筑基解锁",
+    "visual": "spring",
+    "authored": false
+  },
+  {
+    "name": "逆命回元",
+    "element": "heal",
+    "mp": 48,
+    "effect": null,
+    "desc": "消耗48灵力，恢复35%最大生命；施法前生命不高于25%时改为恢复65%；不复活、不延寿；筑基解锁",
+    "visual": "revive",
+    "authored": false
+  },
+  {
+    "name": "莲华济世",
+    "element": "heal",
+    "mp": 65,
+    "effect": null,
+    "desc": "消耗65灵力，恢复60%最大生命；本场下一次命中伤害降低40%，不可叠加；筑基解锁",
+    "visual": "lotus",
+    "authored": false
+  },
+  {
+    "name": "镇岳山河震",
+    "element": "sword",
+    "mp": 35,
+    "damage": 2.8,
+    "effect": null,
+    "desc": "需装备镇岳棍；2.8倍伤害，25%概率震慑1回合，可触发镇岳套装效果",
+    "visual": "mountain",
+    "authored": false
+  },
+  {
+    "name": "穿云贯日",
+    "element": "sword",
+    "mp": 32,
+    "damage": 3,
+    "effect": null,
+    "desc": "需装备裂星枪；3倍伤害，触发枪击穿透、追击与仙器套装收势",
+    "visual": "lance",
+    "authored": false
+  },
+  {
+    "name": "九霄雷云",
+    "element": "thunder",
+    "mp": 55,
+    "damage": 3.8,
+    "effect": null,
+    "desc": "需装备玄霆法杖；3.8倍雷伤，全套仙器追加两次15%持续雷伤",
+    "visual": "storm",
+    "authored": false
+  }
+]

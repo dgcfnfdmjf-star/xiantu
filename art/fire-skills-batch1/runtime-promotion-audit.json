@@ -1,0 +1,177 @@
+{
+  "status": "integrated and browser-tested locally; not committed or published",
+  "source": "art/fire-skills-batch1/preview",
+  "destination": "xiantu-v2831-scroll/fire-skills-batch1",
+  "command": "python scripts/promote-fire-skills-batch1-vfx.py",
+  "sha256": {
+    "flame_burst_residue.png": "3a77241348fd473802eca08248dcf13d327b64b4c58329db608a47e4b485c4a1",
+    "flame_pillar_residue.png": "b5d893543751b478d4558f4b5114350b000d26b0271ff40edfbfdad934c04380",
+    "flame_pillar_telegraph.png": "b2d1a18256bae0a51fe411be53df4edb9c7ac84b3914c75d09ffd5dc573ac718",
+    "flame_slash_impact.png": "7a785e9a08fa7a4ef8d1bcb09f97e5574fa441c4be1ef18926286382d314f382",
+    "flame_slash_body.png": "7ae90a17cc57035b388a1ff4dac61bd6a859ea55ade1f80356534dedb84a7ec6",
+    "effect-manifest.json": "ddd18046b6beaa12031383e79e28df9074926ea2be3a7ace1e099c332e444708",
+    "flame_pillar_body.png": "a61b1a85a1c42f64b13782ee6a40b8cf3b4d61a612699db185e35fef4bc010f9",
+    "stage-reference.webp": "f60f880c0af47119a62ffc50c7d21e3a16ccebb93f683ced7810d6e05835cee3",
+    "effect-manifest.preview.json": "ddd18046b6beaa12031383e79e28df9074926ea2be3a7ace1e099c332e444708",
+    "index.html": "9d701581c85b03cf11650199ce226e33cb16458e265a1940dd53595a012515c1",
+    "definition.js": "e0b741c67d66f65328aed6b1520f4bf35a76df14f23c9e1b5f87b679e643e863",
+    "flame_pillar_impact.png": "aa77d9c5f70c4d8729dfd62ceebbfd9fb1d6adcde4d71d838c2497d7333afeef",
+    "flame_burst_body.png": "70a1aa20b5e08ce2448162241a4fd2df4ec5ea5a3e918fcfa880a6dd7adf63a2",
+    "choreography.js": "d7a4d8d30d5638b6afaf2ee3315289d5fc3cbe99d9520c129bb895214dadb856",
+    "flame_burst_telegraph.png": "cfbbf372e092de2a478e9b6309a00e75e640ae568817d20c53dfccd46cb0b01c",
+    "flame_slash_residue.png": "9ef04797eb4d5ddc44060ef48efc71f6298fca27142e28129e50fc2eb464a3b8",
+    "flame_burst_impact.png": "8a02ba6798409b8f3d09e5bb935f8cf6b8384e36e95ac5ea37c272c876aca0bf",
+    "flame_burst_detonation.png": "a81e1b12639d64242b6b041ae8d9d374da45cb78c236acb2e9d13f1fb2fd2857",
+    "flame_slash_telegraph.png": "cfcfd77df41570ff1745bb731afc2a9a42f920589f5d7d45df2cc638f6514b11",
+    "preview.js": "30c1bd87bd1cf022e4344c0ef34b102289d9743ab07fc47a6512de822fdbab5c"
+  },
+  "resourceApproval": "用户：接入",
+  "runtimeFiles": {
+    "xiantu-v2831-scroll/xiantu-v2855-skill-fx.js": "64bb3bd7693bf43f55e46ad231e009374ac3821b525e284a50ccd8c4ba1140be",
+    "xiantu-v2831-scroll/xiantu-v28684-duel.js": "8bcc8fc30948629c9e09ffa7407a2e97e8b2c6c16656026b1a41189bf96c4087",
+    "xiantu-v2831-scroll/battle-25d-preview.html": "e238af931f376963986e6bb61123b29361a29572a9e5f231806c114fb0906946"
+  },
+  "browserChecks": {
+    "fire-baseline": {
+      "draw": {
+        "烈焰斩": {
+          "samples": 240,
+          "median": 0.20000000298023224,
+          "p95": 0.8999999985098839
+        },
+        "炎爆术": {
+          "samples": 240,
+          "median": 0.20000000298023224,
+          "p95": 0.8000000044703484
+        },
+        "焚天烈焰": {
+          "samples": 240,
+          "median": 0.20000000298023224,
+          "p95": 1
+        }
+      },
+      "raf": {
+        "median": 16.699999999999818,
+        "p95": 16.799999999999955
+      },
+      "viewport": [
+        390,
+        844
+      ],
+      "dpr": 2,
+      "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    },
+    "fire-after": {
+      "draw": {
+        "烈焰斩": {
+          "samples": 240,
+          "median": 0,
+          "p95": 0.19999999552965164
+        },
+        "炎爆术": {
+          "samples": 240,
+          "median": 0,
+          "p95": 0.10000000149011612
+        },
+        "焚天烈焰": {
+          "samples": 240,
+          "median": 0,
+          "p95": 0.10000000149011612
+        }
+      },
+      "raf": {
+        "median": 16.700000000000045,
+        "p95": 16.700000000000045
+      },
+      "viewport": [
+        390,
+        844
+      ],
+      "dpr": 2,
+      "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    },
+    "fire-game-check": {
+      "results": [
+        {
+          "name": "烈焰斩",
+          "turns": 0,
+          "mpSpent": 18,
+          "burn": 2,
+          "seen": 30,
+          "detonation": false,
+          "impact": true,
+          "hp": 49936
+        },
+        {
+          "name": "炎爆术",
+          "turns": 0,
+          "mpSpent": 22,
+          "burn": 0,
+          "seen": 30,
+          "detonation": false,
+          "impact": true,
+          "hp": 49933
+        },
+        {
+          "name": "炎爆术",
+          "turns": 3,
+          "mpSpent": 22,
+          "burn": 0,
+          "seen": 30,
+          "detonation": true,
+          "impact": true,
+          "hp": 49892
+        },
+        {
+          "name": "焚天烈焰",
+          "turns": 0,
+          "mpSpent": 45,
+          "burn": 3,
+          "seen": 30,
+          "detonation": false,
+          "impact": true,
+          "hp": 49895
+        }
+      ],
+      "errors": [],
+      "afterResetStages": 0
+    },
+    "fire-reduced-check": {
+      "rows": [
+        {
+          "name": "烈焰斩",
+          "files": [
+            "flame_slash_impact.png"
+          ],
+          "raf": false
+        },
+        {
+          "name": "炎爆术",
+          "files": [
+            "flame_burst_impact.png",
+            "flame_burst_detonation.png"
+          ],
+          "raf": false
+        },
+        {
+          "name": "焚天烈焰",
+          "files": [
+            "flame_pillar_telegraph.png",
+            "flame_pillar_body.png"
+          ],
+          "raf": false
+        }
+      ],
+      "clean": {
+        "version": "28.68",
+        "quality": "auto",
+        "finishing": false,
+        "active": 0,
+        "raf": false,
+        "pixels": 0,
+        "jobs": []
+      }
+    }
+  },
+  "unchangedExistingArt": true
+}

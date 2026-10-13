@@ -1,0 +1,92 @@
+{
+  "preview-check": {
+    "passed": true,
+    "pageErrors": [],
+    "lifecycle": {
+      "expired": 0,
+      "detonated": 0,
+      "ordinary": 0,
+      "dead": 0,
+      "changed": 0
+    },
+    "stepped": 288.3333333333333,
+    "paused": 478.0333333303532,
+    "mobileOverflow": false,
+    "resourceErrors": {}
+  },
+  "resource-errors": {
+    "passed": true,
+    "results": {
+      "png": "素材加载失败：karmic_lotus_body.png；请重新构建该技能资源。",
+      "dimensions": "图集尺寸错误：karmic_lotus_body.png；请重新构建该技能资源。",
+      "frames": "动画帧数不足：karmic_lotus_body.png；请重新构建该技能资源。",
+      "manifest": "缺少技能配置：请重新运行构建脚本。"
+    }
+  },
+  "generic-check": {
+    "count": "3",
+    "issues": "资源与序列帧几何检查通过。",
+    "summary": "检查通过",
+    "effects": "karmic_lotus\nground-eruption\n可播放\nember_wall\nground-eruption\n可播放\nsamadhi_fire\nprojectile\n可播放"
+  },
+  "mobile-final": {
+    "passed": true,
+    "results": [
+      {
+        "key": "karmic_lotus",
+        "width": 390,
+        "dpr": 2,
+        "overflow": false,
+        "ready": true
+      },
+      {
+        "key": "ember_wall",
+        "width": 390,
+        "dpr": 2,
+        "overflow": false,
+        "ready": true
+      },
+      {
+        "key": "samadhi_fire",
+        "width": 390,
+        "dpr": 2,
+        "overflow": false,
+        "ready": true
+      },
+      {
+        "width": 844,
+        "height": 390,
+        "overflow": false
+      }
+    ]
+  },
+  "files": {
+    "art/fire-skills-batch2/preview/karmic_lotus_status.png": "9e62539ce2922e83db2dd2b42c7482ed6b41021f76bca0eca0df8877bae0ec21",
+    "art/fire-skills-batch2/preview/samadhi_fire_residue.png": "85cb9586cc900f1bb0af0cb257530361e93c6aa88d5233eb7c1538c549d3aa97",
+    "art/fire-skills-batch2/preview/effect-manifest.json": "7897d44ea1fc733e7e4ea46129a5b662ff7af0ca6ad23f4a7f0a2b191f2bee15",
+    "art/fire-skills-batch2/preview/stage-reference.webp": "f60f880c0af47119a62ffc50c7d21e3a16ccebb93f683ced7810d6e05835cee3",
+    "art/fire-skills-batch2/preview/samadhi_fire_impact.png": "75b5c923ce7470872ddf21731303e1026fa24e4c2f9fe4eb48163039fcd7e9a4",
+    "art/fire-skills-batch2/preview/samadhi_fire_body.png": "635f31ec08550a19e164a56b53979642d4b9c3c39a1504b568a8b7454abe209c",
+    "art/fire-skills-batch2/preview/effect-manifest.preview.json": "7897d44ea1fc733e7e4ea46129a5b662ff7af0ca6ad23f4a7f0a2b191f2bee15",
+    "art/fire-skills-batch2/preview/samadhi_fire_telegraph.png": "5650caab4bcec8e60d7e94085173c7ef2bb9923b8dc28f78368840eb640aa2ef",
+    "art/fire-skills-batch2/preview/index.html": "28200e58eb96cf6ed7c91fbe2939e0888fd1b0471df18ab6a7492a3e7e143117",
+    "art/fire-skills-batch2/preview/karmic_lotus_impact.png": "d333e54f1e2059b5ec79a97d9112a7da71683ed0428a11244c727e5b41808bbd",
+    "art/fire-skills-batch2/preview/definition.js": "785eaf0b72b86a9dbd615577275279fb43b47c46c7257d0da2c3cadb1ddf8309",
+    "art/fire-skills-batch2/preview/ember_wall_impact.png": "c6aca095d57256ace829d93a1c4e3233c55f9d6f13dfb4165764d8f8e5bee310",
+    "art/fire-skills-batch2/preview/ember_wall_body.png": "f55e66ae5ed00700bbed9fa6ae039dbdf8974e1368cd7a1a6b3bc6df417ba9a0",
+    "art/fire-skills-batch2/preview/karmic_lotus_residue.png": "f0bc2b3d7a4e55cc917c17d0f30e25c40e51d571504ac711bb4d61f5aa21d49b",
+    "art/fire-skills-batch2/preview/karmic_lotus_body.png": "9d6e68b7cf118d084b4a97b6f4047f7f52f0bd712b4a5a85c800d00b62c4fe2c",
+    "art/fire-skills-batch2/preview/choreography.js": "6fd476e4d297d434d564794c9acd1fbe23a3b8eb7067e8a1d98d507d73c973f0",
+    "art/fire-skills-batch2/preview/karmic_lotus_telegraph.png": "8db9f6bd97d433a6b5ab9a4164ac9924298fe8ed62d44376fc4308450afb09e2",
+    "art/fire-skills-batch2/preview/ember_wall_telegraph.png": "7d381829e3c835dc26d228dd535f190f017322aecf4240631267ac01958290e9",
+    "art/fire-skills-batch2/preview/ember_wall_residue.png": "f3d182c2e6519f1a2c082f4520cfba97f730a38108ee36031c37e27a6e393cfe",
+    "art/fire-skills-batch2/preview/preview.js": "59f8d8b8fa9923d4de952b88d8995d97793bb5e6bc0620b3f967464c5c1aafc0"
+  },
+  "browserScripts": {
+    "output/playwright/fire-skills-batch2/preview-check.js": "61b5b52260cef8840abc5f782dd6b8a70cd92859596c1ad935ac982cc3d71edc",
+    "output/playwright/fire-skills-batch2/generic-check.js": "094b99c18491d26a0aa81a7e6e838b9efde2bca9395e2cdc9fbd215befbe131d",
+    "output/playwright/fire-skills-batch2/resource-errors.js": "c07d6cc6defbe72a0c9a3b66f13e0d61374f6f7d7cf0c83772dafe54871a1b4c",
+    "output/playwright/fire-skills-batch2/mobile-final.js": "33ef6ea215626b9c553a8a47fcd2b24ecf801a8a355452ed95b5fac51a12ac75",
+    "output/playwright/fire-skills-batch2/old-capture.js": "7b9816a504c4b650091879255a400008ab73ce8eda7c0acad4b099f86d32c713"
+  }
+}
