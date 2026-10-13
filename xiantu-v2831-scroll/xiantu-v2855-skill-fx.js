@@ -5,6 +5,96 @@
   const palettes={sword:['#a7d5cf','#f5e7b4','#284d50'],heal:['#8dbfa0','#f6e4b0','#31594b'],ice:['#b6d7e0','#eff5dd','#3b6578'],fire:['#d88b57','#f8dda3','#824b43'],thunder:['#b9adcf','#f8e6bc','#595075'],earth:['#bda674','#f3deaa','#685b45'],spear:['#dfc48a','#fff2c9','#61553c'],dark:['#b9a4be','#ddc8cb','#564757'],blood:['#c77678','#f3cab0','#723e4c'],spirit:['#a6c9b9','#e8e5bd','#3b5b55']};
   const styles={御剑术:'blade',清风剑诀:'blade',剑气纵横:'fan',万剑归宗:'rain',天地一剑:'great',破甲剑罡:'pierce',追魂一剑:'pierce',饮血剑诀:'return',玄罡护体剑:'guardblade',镇岳山河震:'mountain',穿云贯日:'lance',凝露诀:'dew',治愈术:'dew',回春术:'dew',灵泉归元:'spring',青莲护心:'lotus',生生不息:'lotus',莲华济世:'lotus',逆命回元:'revive',起死回生:'revive'};
   const forms={'九霄雷云':'storm','雷法':'bolt','惊雷闪':'dart','裂地奔雷':'ground','紫霄落雷':'bolt','万雷噬狱':'cage','九天神雷':'storm','闪电链':'chain','雷神附体':'armor','雷神附体·反噬':'bolt','无音神雷':'silent','寒冰掌':'frost','冰封千里':'field','绝对零度':'prison','玄冰刺':'icicle','冰爆术':'burst','霜寒结界':'field','冰蝶幻舞':'butterfly','霜龙吐息':'breath','冰河葬狱':'prison','寒渊领域':'field','冰甲护身':'armor','冰魄封魂':'seal','万载寒晶':'crystal','烈焰斩':'slash','焚天烈焰':'pillar','天火焚世':'meteor','炎爆术':'burst','红莲业火':'lotus','火墙术':'wall','三昧真火':'triple','赤焰龙息':'breath','焚心炎':'heart','燎原火域':'field','太阳真火':'sun','流火飞索':'bind','炎阳护盾':'armor'};
+  // BEGIN FIRE BATCH GENERATED
+  const FIRE_BATCH=[{"key":"flame_slash","name":"烈焰斩","element":"fire","visualArchetype":"projectile","layers":{"telegraph":{"file":"flame_slash_telegraph.png","frames":4,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.5,"fps":30,"loop":false,"holdLast":false},"body":{"file":"flame_slash_body.png","frames":8,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.5,"fps":30,"loop":true,"holdLast":false},"impact":{"file":"flame_slash_impact.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.5,"fps":30,"loop":false,"holdLast":false},"residue":{"file":"flame_slash_residue.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.72,"fps":30,"loop":false,"holdLast":false}},"scale":1,"offsetX":0,"offsetY":0,"trailLength":0,"timing":{"arrivalMs":310,"gatherMs":100,"crossfadeMs":40,"impactMs":180,"aftermathMs":440,"durationMs":1100},"display":{"telegraph":248,"body":215,"impact":190,"residue":180,"detonation":350},"acceptance":["Independent authored master and stage plates; source-over compositing","Impact and conditional detonation require acknowledged events","Fixed moving size; ground registered pillar; no combat mutations"],"preview":{"displayMode":"projectile","durationMs":1100,"distance":233,"layers":{"telegraph":{"start":0.0,"end":0.12727272727272726,"anchor":"origin","width":248,"height":248,"fadeIn":0.2857142857142857,"fadeOut":0.2857142857142857},"body":{"start":0.09090909090909091,"end":0.3181818181818182,"anchor":"moving","width":215,"height":215,"fadeIn":0.16,"fadeOut":0.16},"impact":{"start":0.2818181818181818,"end":0.44545454545454544,"anchor":"target","width":190,"height":190,"fadeIn":0.2222222222222222,"fadeOut":0.2222222222222222},"residue":{"start":0.4090909090909091,"end":0.6818181818181818,"anchor":"target","width":180,"height":180,"fadeIn":0.13333333333333333,"fadeOut":0.13333333333333333}}}},{"key":"flame_burst","name":"炎爆术","element":"fire","visualArchetype":"projectile","layers":{"telegraph":{"file":"flame_burst_telegraph.png","frames":4,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.5,"fps":30,"loop":false,"holdLast":false},"body":{"file":"flame_burst_body.png","frames":8,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.5,"fps":30,"loop":true,"holdLast":false},"impact":{"file":"flame_burst_impact.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.5,"fps":30,"loop":false,"holdLast":false},"residue":{"file":"flame_burst_residue.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.72,"fps":30,"loop":false,"holdLast":false},"detonation":{"file":"flame_burst_detonation.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.5,"fps":30,"loop":false,"holdLast":false}},"scale":1,"offsetX":0,"offsetY":0,"trailLength":0,"timing":{"arrivalMs":310,"gatherMs":100,"crossfadeMs":40,"impactMs":180,"aftermathMs":650,"durationMs":1100},"display":{"telegraph":180,"body":155,"impact":190,"residue":180,"detonation":350},"acceptance":["Independent authored master and stage plates; source-over compositing","Impact and conditional detonation require acknowledged events","Fixed moving size; ground registered pillar; no combat mutations"],"preview":{"displayMode":"projectile","durationMs":1100,"distance":233,"layers":{"telegraph":{"start":0.0,"end":0.12727272727272726,"anchor":"origin","width":180,"height":180,"fadeIn":0.2857142857142857,"fadeOut":0.2857142857142857},"body":{"start":0.09090909090909091,"end":0.3181818181818182,"anchor":"moving","width":155,"height":155,"fadeIn":0.16,"fadeOut":0.16},"impact":{"start":0.2818181818181818,"end":0.44545454545454544,"anchor":"target","width":190,"height":190,"fadeIn":0.2222222222222222,"fadeOut":0.2222222222222222},"residue":{"start":0.4090909090909091,"end":0.8727272727272727,"anchor":"target","width":180,"height":180,"fadeIn":0.0784313725490196,"fadeOut":0.0784313725490196}}}},{"key":"flame_pillar","name":"焚天烈焰","element":"fire","visualArchetype":"ground-eruption","layers":{"telegraph":{"file":"flame_pillar_telegraph.png","frames":4,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.72,"fps":30,"loop":false,"holdLast":false},"body":{"file":"flame_pillar_body.png","frames":8,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.8,"fps":30,"loop":true,"holdLast":false},"impact":{"file":"flame_pillar_impact.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.72,"fps":30,"loop":false,"holdLast":false},"residue":{"file":"flame_pillar_residue.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.72,"fps":30,"loop":false,"holdLast":false}},"scale":1,"offsetX":0,"offsetY":0,"trailLength":0,"timing":{"arrivalMs":310,"gatherMs":100,"crossfadeMs":40,"impactMs":180,"aftermathMs":650,"durationMs":1100},"display":{"telegraph":155,"body":350,"impact":190,"residue":180,"detonation":350},"acceptance":["Independent authored master and stage plates; source-over compositing","Impact and conditional detonation require acknowledged events","Fixed moving size; ground registered pillar; no combat mutations"],"preview":{"displayMode":"ground-eruption","durationMs":1100,"distance":233,"layers":{"telegraph":{"start":0.0,"end":0.3181818181818182,"anchor":"target","width":155,"height":155,"fadeIn":0.11428571428571428,"fadeOut":0.11428571428571428},"body":{"start":0.2818181818181818,"end":0.6454545454545455,"anchor":"target","width":350,"height":350,"fadeIn":0.1,"fadeOut":0.1},"impact":{"start":0.2818181818181818,"end":0.44545454545454544,"anchor":"target","width":190,"height":190,"fadeIn":0.2222222222222222,"fadeOut":0.2222222222222222},"residue":{"start":0.5909090909090909,"end":0.8727272727272727,"anchor":"target","width":180,"height":180,"fadeIn":0.12903225806451613,"fadeOut":0.12903225806451613}}}}];
+/* Pure presentation contract. Event timestamps are supplied by the caller. */
+function sampleFireBatch(D, j, age) {
+ const clamp=v=>Math.max(0,Math.min(1,v)),T=D.timing,out=[];
+ const hit=Number.isFinite(j.hitAt)&&j.hitAt>=0?j.hitAt:null,arrival=hit??j.arriveAt??T.arrivalMs;
+ const pillar=D.key==='flame_pillar',burst=D.key==='flame_burst',scale=(j.scale??1)*D.scale;
+ const from=j.from,to=j.to,ground=j.toGround??to, end=hit===null?arrival+140:hit+T.aftermathMs;
+ if(age<0||age>=Math.min(end,j.duration??Infinity))return out;
+ const add=(layer,p,start,duration,alpha,anchor='target')=>{
+  if(alpha<=0||age<start||age>=start+duration)return;
+  const L=D.layers[layer];let frame=Math.min(L.frames-1,Math.floor((age-start)/duration*L.frames));
+  if(j.reduced)frame=Math.min(2,L.frames-1);
+  out.push({id:layer,layer,anchor,x:p.x+(j.offsetX??0)+D.offsetX,y:p.y+(j.offsetY??0)+D.offsetY,width:D.display[layer]*scale,height:D.display[layer]*scale,pivotX:L.pivotX,pivotY:L.pivotY,frame,opacity:clamp(alpha),rotation:(!pillar&&layer!=='residue'&&to.x<from.x)?Math.PI:0});
+ };
+ const gather=arrival*T.gatherMs/T.arrivalMs,fade=T.crossfadeMs,miss=hit===null?clamp((end-age)/140):1;
+ if(pillar){
+  add('telegraph',ground,0,arrival+fade,clamp(age/35)*clamp((arrival+fade-age)/fade)*miss);
+ }else if(age<arrival+fade){
+  const blend=clamp((age-gather)/fade),p=clamp((age-gather-fade)/Math.max(1,arrival-gather-fade));
+  add('telegraph',from,0,gather+fade,clamp(age/30)*(1-blend)*miss,'origin');
+  if(!j.reduced)add('body',{x:from.x+(to.x-from.x)*p,y:from.y+(to.y-from.y)*p},gather,arrival+fade-gather,blend*clamp((arrival+fade-age)/fade)*miss,'moving');
+ }
+ if(hit===null||age<hit)return out;
+ const elapsed=age-hit;
+ const det=burst&&Number.isFinite(j.detonationAt)&&j.detonationAt>=hit&&j.detonationAt<hit+300?j.detonationAt:null;
+ if(pillar){
+  add('body',ground,hit,400,clamp(elapsed/fade)*clamp((400-elapsed)/60));
+  if(!j.light&&!j.reduced)add('impact',ground,hit,180,clamp(elapsed/fade)*clamp((180-elapsed)/60)*.6);
+  add('residue',ground,hit+340,310,clamp((elapsed-340)/60)*clamp((650-elapsed)/120));
+ }else{
+  let alpha=clamp(elapsed/fade)*clamp((180-elapsed)/40);
+  if(det!==null)alpha*=clamp((det+40-age)/40);
+  add('impact',to,hit,det===null?180:Math.min(180,det+40-hit),alpha);
+  if(det!==null){
+   add('detonation',to,det,320,clamp((age-det)/40)*clamp((det+320-age)/100));
+   add('residue',ground,det+260,hit+T.aftermathMs-det-260,clamp((age-det-260)/60)*clamp((hit+T.aftermathMs-age)/120));
+  }else add('residue',ground,hit+140,T.aftermathMs-140,clamp((elapsed-140)/40)*clamp((T.aftermathMs-elapsed)/120));
+ }
+ return out;
+}
+if(typeof module!=='undefined')module.exports={sampleFireBatch};
+  // END FIRE BATCH GENERATED
+  // BEGIN FIRE BATCH2 GENERATED
+  const FIRE_BATCH2=[{"key":"karmic_lotus","name":"红莲业火","element":"fire","visualArchetype":"ground-eruption","layers":{"telegraph":{"file":"karmic_lotus_telegraph.png","frames":4,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.75,"fps":30,"loop":false,"holdLast":false},"body":{"file":"karmic_lotus_body.png","frames":8,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.75,"fps":30,"loop":false,"holdLast":false},"impact":{"file":"karmic_lotus_impact.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.75,"fps":30,"loop":false,"holdLast":false},"residue":{"file":"karmic_lotus_residue.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.75,"fps":30,"loop":false,"holdLast":false},"status":{"file":"karmic_lotus_status.png","frames":8,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.75,"fps":8,"loop":true,"holdLast":false}},"scale":1,"offsetX":0,"offsetY":0,"trailLength":0,"timing":{"arrivalMs":310,"gatherMs":100,"crossfadeMs":40,"bodyMs":360,"impactMs":180,"aftermathMs":620,"durationMs":2400},"display":{"telegraph":115,"body":285,"impact":245,"residue":245,"status":49},"acceptance":["Independent authored master and stage plates; source-over","Authoritative hit event; same living target state for lotus mark","Fixed moving size; target ground registration; no combat writes"],"preview":{"displayMode":"ground-eruption","durationMs":1100,"distance":233,"layers":{"telegraph":{"start":0.0,"end":0.3181818181818182,"anchor":"target","width":115,"height":115,"fadeIn":0.11428571428571428,"fadeOut":0.11428571428571428},"body":{"start":0.2818181818181818,"end":0.6090909090909091,"anchor":"target","width":285,"height":285,"fadeIn":0.1111111111111111,"fadeOut":0.16666666666666666},"impact":{"start":0.2818181818181818,"end":0.44545454545454544,"anchor":"target","width":245,"height":245,"fadeIn":0.2222222222222222,"fadeOut":0.2222222222222222},"residue":{"start":0.5545454545454546,"end":0.8454545454545455,"anchor":"target","width":245,"height":245,"fadeIn":0.125,"fadeOut":0.125},"status":{"start":0.8454545454545455,"end":1,"anchor":"target","width":49,"height":49,"fadeIn":0,"fadeOut":0}}}},{"key":"ember_wall","name":"火墙术","element":"fire","visualArchetype":"ground-eruption","layers":{"telegraph":{"file":"ember_wall_telegraph.png","frames":4,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.75,"fps":30,"loop":false,"holdLast":false},"body":{"file":"ember_wall_body.png","frames":8,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.75,"fps":30,"loop":false,"holdLast":false},"impact":{"file":"ember_wall_impact.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.75,"fps":30,"loop":false,"holdLast":false},"residue":{"file":"ember_wall_residue.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.75,"fps":30,"loop":false,"holdLast":false}},"scale":1,"offsetX":0,"offsetY":0,"trailLength":0,"timing":{"arrivalMs":310,"gatherMs":100,"crossfadeMs":40,"bodyMs":360,"impactMs":180,"aftermathMs":580,"durationMs":2400},"display":{"telegraph":350,"body":365,"impact":310,"residue":330},"acceptance":["Independent authored master and stage plates; source-over","Authoritative hit event; same living target state for lotus mark","Fixed moving size; target ground registration; no combat writes"],"preview":{"displayMode":"ground-eruption","durationMs":1100,"distance":233,"layers":{"telegraph":{"start":0.0,"end":0.3181818181818182,"anchor":"target","width":350,"height":350,"fadeIn":0.11428571428571428,"fadeOut":0.11428571428571428},"body":{"start":0.2818181818181818,"end":0.6090909090909091,"anchor":"target","width":365,"height":365,"fadeIn":0.1111111111111111,"fadeOut":0.16666666666666666},"impact":{"start":0.2818181818181818,"end":0.44545454545454544,"anchor":"target","width":310,"height":310,"fadeIn":0.2222222222222222,"fadeOut":0.2222222222222222},"residue":{"start":0.5545454545454546,"end":0.8090909090909091,"anchor":"target","width":330,"height":330,"fadeIn":0.14285714285714285,"fadeOut":0.14285714285714285}}}},{"key":"samadhi_fire","name":"三昧真火","element":"fire","visualArchetype":"projectile","layers":{"telegraph":{"file":"samadhi_fire_telegraph.png","frames":4,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.5,"fps":30,"loop":false,"holdLast":false},"body":{"file":"samadhi_fire_body.png","frames":8,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.5,"fps":30,"loop":false,"holdLast":false},"impact":{"file":"samadhi_fire_impact.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.5,"fps":30,"loop":false,"holdLast":false},"residue":{"file":"samadhi_fire_residue.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.75,"fps":30,"loop":false,"holdLast":false}},"scale":1,"offsetX":0,"offsetY":0,"trailLength":0,"timing":{"arrivalMs":310,"gatherMs":100,"crossfadeMs":40,"bodyMs":360,"impactMs":180,"aftermathMs":440,"durationMs":2400},"display":{"telegraph":150,"body":210,"impact":190,"residue":200},"acceptance":["Independent authored master and stage plates; source-over","Authoritative hit event; same living target state for lotus mark","Fixed moving size; target ground registration; no combat writes"],"preview":{"displayMode":"projectile","durationMs":1100,"distance":233,"layers":{"telegraph":{"start":0.0,"end":0.12727272727272726,"anchor":"origin","width":150,"height":150,"fadeIn":0.2857142857142857,"fadeOut":0.2857142857142857},"body":{"start":0.09090909090909091,"end":0.3181818181818182,"anchor":"moving","width":210,"height":210,"fadeIn":0.16,"fadeOut":0.16},"impact":{"start":0.2818181818181818,"end":0.44545454545454544,"anchor":"target","width":190,"height":190,"fadeIn":0.2222222222222222,"fadeOut":0.2222222222222222},"residue":{"start":0.4090909090909091,"end":0.6818181818181818,"anchor":"target","width":200,"height":200,"fadeIn":0.13333333333333333,"fadeOut":0.13333333333333333}}}}];
+/* Read-only resource choreography; all hit and burn state belongs to the caller. */
+function sampleFireBatch2(D, j, age) {
+ const clamp=v=>Math.max(0,Math.min(1,v)),T=D.timing,out=[];
+ if(age<0||j.hidden||j.exited||j.alive===false||j.sameTarget===false)return out;
+ const hit=Number.isFinite(j.hitAt)&&j.hitAt>=0?j.hitAt:null,arrival=hit??j.arriveAt??T.arrivalMs;
+ const ground=D.visualArchetype==='ground-eruption',lotus=D.key==='karmic_lotus';
+ const from=j.from,to=j.to,foot=j.toGround??to,scale=(j.scale??1)*D.scale;
+ function add(layer,p,start,duration,alpha,anchor='target'){
+  if(alpha<=0||age<start||age>=start+duration)return;
+  const L=D.layers[layer],elapsed=age-start;
+  let frame=L.loop?Math.floor(elapsed*L.fps/1000)%L.frames:Math.min(L.frames-1,Math.floor(elapsed/duration*L.frames));
+  if(j.reduced)frame=Math.min(2,L.frames-1);
+  out.push({id:layer,layer,anchor,x:p.x+(j.offsetX??0)+D.offsetX,y:p.y+(j.offsetY??0)+D.offsetY,width:D.display[layer]*scale,height:D.display[layer]*scale,pivotX:L.pivotX,pivotY:L.pivotY,frame,opacity:clamp(alpha),rotation:!ground&&layer!=='residue'&&to.x<from.x?Math.PI:0});
+ }
+ const fade=T.crossfadeMs,shortEnd=hit===null?arrival+fade:hit+T.aftermathMs;
+ if(age<Math.min(shortEnd,j.duration??Infinity)){
+  if(ground){
+   add('telegraph',foot,0,arrival+fade,clamp(age/35)*clamp((arrival+fade-age)/fade));
+  }else{
+   const gather=arrival*T.gatherMs/T.arrivalMs,blend=clamp((age-gather)/fade);
+   const p=clamp((age-gather-fade)/Math.max(1,arrival-gather-fade));
+   add('telegraph',from,0,gather+fade,clamp(age/30)*(1-blend),'origin');
+   if(!j.reduced)add('body',{x:from.x+(to.x-from.x)*p,y:from.y+(to.y-from.y)*p},gather,arrival+fade-gather,blend*clamp((arrival+fade-age)/fade),'moving');
+  }
+  if(hit!==null&&age>=hit){
+   const e=age-hit;
+   if(ground){
+    add('body',foot,hit,T.bodyMs,clamp(e/fade)*clamp((T.bodyMs-e)/60));
+    if(!j.light&&!j.reduced)add('impact',foot,hit,180,clamp(e/fade)*clamp((180-e)/60)*.6);
+    add('residue',foot,hit+300,T.aftermathMs-300,clamp((e-300)/60)*clamp((T.aftermathMs-e)/120));
+   }else{
+    add('impact',to,hit,180,clamp(e/fade)*clamp((180-e)/40));
+    add('residue',foot,hit+140,T.aftermathMs-140,clamp((e-140)/40)*clamp((T.aftermathMs-e)/120));
+   }
+  }
+ }
+ // Preview feeds the same state fields required by the eventual runtime owner.
+ // Time alone never expires a real burn, and repeated fire never restarts this loop.
+ const state=j.burn;
+ if(lotus&&hit!==null&&age>=shortEnd&&state?.burnTurns>0&&state?.burnStacks>0&&state?._burnHealBlockV286818)
+  add('status',foot,shortEnd,Infinity,1);
+ return out;
+}
+if(typeof module!=='undefined')module.exports={sampleFireBatch2};
+  // END FIRE BATCH2 GENERATED
   // BEGIN SOLAR GENERATED CONFIG
   const SOLAR = {"key":"solar_true_fire","name":"太阳真火","element":"fire","visualArchetype":"projectile","layers":{"telegraph":{"file":"solar_telegraph.png","frames":4,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.5,"fps":32,"loop":false,"holdLast":false},"body":{"file":"solar_body.png","frames":8,"frameWidth":192,"frameHeight":192,"pivotX":0.5,"pivotY":0.5,"fps":32,"loop":true,"holdLast":false},"impact":{"file":"solar_impact.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.65,"fps":34,"loop":false,"holdLast":false},"residue":{"file":"solar_residue.png","frames":6,"frameWidth":256,"frameHeight":256,"pivotX":0.5,"pivotY":0.65,"fps":17,"loop":false,"holdLast":false}},"scale":1,"offsetX":0,"offsetY":0,"trailLength":42,"timing":{"defaultArrival":310,"anticipationFraction":0.35,"impactMs":180,"aftermathMs":540,"transitionMs":60,"missedFadeMs":150},"display":{"body":128,"telegraph":205,"impact":350,"residue":350},"preview":{"displayMode":"projectile","motion":"travel","durationMs":850,"distance":233,"layers":{"telegraph":{"start":0,"end":0.16,"anchor":"origin","width":205,"height":205,"fadeOut":0.22},"body":{"start":0,"end":0.36470588235294116,"anchor":"moving","width":128,"height":128},"impact":{"start":0.36470588235294116,"end":0.5764705882352941,"anchor":"target","width":350,"height":350,"fadeOut":0.3333333333333333},"residue":{"start":0.5058823529411764,"end":1,"anchor":"target","width":350,"height":350,"fadeIn":0.14285714285714285,"fadeOut":0.25}}},"acceptance":["Fixed-size solar body; no additional hits or RNG","Impact requires the existing hit event; locked target ground","Shared ground pivot and complementary impact/residue opacity","All layers expire, including misses and reduced-motion mode"]};
   // END SOLAR GENERATED CONFIG
@@ -219,6 +309,48 @@ function sampleAbsoluteZero(D,j,age){
     }
     c.restore();return true;
   }
+  const fireBatchTextures=new Map();
+  function fireDefinition(name){return FIRE_BATCH.find(d=>d.name===name)||FIRE_BATCH2.find(d=>d.name===name)}
+  function prepareFireBatch(name){
+    const D=fireDefinition(name);if(!D)return;
+    if(!fireBatchTextures.has(name))fireBatchTextures.set(name,new Map());
+    const textures=fireBatchTextures.get(name);
+    for(const [key,L] of Object.entries(D.layers)){
+      if(textures.has(key))continue;
+      const image=new Image(),entry={image,ready:false};textures.set(key,entry);image.decoding='async';
+      image.onload=()=>{entry.ready=image.naturalWidth===L.frames*L.frameWidth&&image.naturalHeight===L.frameHeight};
+      image.onerror=()=>{entry.ready=false};image.src=(FIRE_BATCH2.includes(D)?'./fire-skills-batch2/':'./fire-skills-batch1/')+L.file;
+    }
+  }
+  function fireBatchReady(name){const D=fireDefinition(name),textures=fireBatchTextures.get(name);return !!D&&textures?.size===Object.keys(D.layers).length&&[...textures.values()].every(t=>t.ready)}
+  function fireBatchSample(j,age){const D=fireDefinition(j.profile.name);return D?(FIRE_BATCH2.includes(D)?sampleFireBatch2(D,j,age):sampleFireBatch(D,j,age)):[]}
+  function drawFireBatch(c,j,age){
+    prepareFireBatch(j.profile.name);if(!fireBatchReady(j.profile.name))return false;
+    const D=fireDefinition(j.profile.name),textures=fireBatchTextures.get(D.name);
+    c.save();c.beginPath();c.rect(0,0,j.width,j.clipBottom);c.clip();c.globalCompositeOperation='source-over';
+    for(const p of fireBatchSample(j,age)){
+      const L=D.layers[p.layer];c.save();c.translate(p.x,p.y);c.rotate(p.rotation);c.globalAlpha=p.opacity;
+      c.drawImage(textures.get(p.layer).image,p.frame*L.frameWidth,0,L.frameWidth,L.frameHeight,-p.width*p.pivotX,-p.height*p.pivotY,p.width,p.height);c.restore();
+    }
+    c.restore();return true;
+  }
+  function fireDetonate(side){
+    for(const j of jobs){if(j.profile.name!=='炎爆术'||j.side===side||j.hitAt===null||j.detonationAt!=null)continue;
+      const age=now()-j.started;if(age>=j.duration)continue;j.detonationAt=Math.max(age,j.hitAt)+60;
+      if(j.reduced&&ctx){ctx.setTransform(j.ratio,0,0,j.ratio,0,0);ctx.clearRect(0,0,j.width,j.height);draw(ctx,j,j.detonationAt+100);}
+    }
+  }
+  const fireBatch={definitions:FIRE_BATCH,prepare:prepareFireBatch,ready:fireBatchReady,sample:fireBatchSample,detonate:fireDetonate};
+  function lotusStatusActive(data){return data.enemyHp>0&&data.burnTurns>0&&data.burnDamage>0&&data.burnHealBlock===true}
+  function drawLotusStatus(c,x,y,age,reduced,scale=1){
+    prepareFireBatch('红莲业火');if(!fireBatchReady('红莲业火'))return false;
+    const D=fireDefinition('红莲业火'),L=D.layers.status,size=D.display.status*scale;
+    const frame=reduced?2:Math.floor(Math.max(0,age)*L.fps/1000)%L.frames;
+    c.save();c.globalCompositeOperation='source-over';c.globalAlpha=1;
+    c.drawImage(fireBatchTextures.get(D.name).get('status').image,frame*L.frameWidth,0,L.frameWidth,L.frameHeight,x-size*L.pivotX,y-size*L.pivotY,size,size);c.restore();return true;
+  }
+  const fireBatch2={definitions:FIRE_BATCH2,prepare:prepareFireBatch,ready:fireBatchReady,sample:fireBatchSample,statusActive:lotusStatusActive,drawStatus:drawLotusStatus};
+
   const heartTextures=new Map();
   function prepareHeart(){
     for(const [name,layer] of Object.entries(HEART_FIRE.layers)){
@@ -278,6 +410,7 @@ function sampleAbsoluteZero(D,j,age){
     if(name==='镇岳山河震')family='earth';if(name==='穿云贯日')family='spear';
     if(!palettes[family])family='spirit';
     let kind=styles[name]||forms[name]||({sword:'blade',heal:'dew',ice:'breath',fire:'burst',thunder:'bolt',dark:'wave',blood:'wave',spirit:'wave',earth:'ground',spear:'lance'}[family]);
+    if(fireDefinition(name))prepareFireBatch(name);
     if(name==='绝对零度')prepareAbsoluteZero();
     if(kind==='sun')prepareSolar();
     if(kind==='butterfly')prepareButterfly();
@@ -363,6 +496,7 @@ function sampleAbsoluteZero(D,j,age){
   function groundAnchors(j){return {from:j.fromGround||{x:j.from.x,y:j.from.y+30*(j.scale||1)},to:j.toGround||{x:j.to.x,y:j.to.y+30*(j.scale||1)}}}
   function drawGround(c,j,age){
     const state=sample(j,age);if(!state.visible)return;
+    if(fireBatchReady(j.profile.name))return;
     if(j.profile.name==='绝对零度'&&absoluteZeroReady())return;
     if((j.profile.kind==='sun'&&solarReady())||(j.profile.kind==='butterfly'&&butterflyReady())||(j.profile.kind==='heart'&&heartReady()))return; // Solar plates own their single foot ring.
     const p=j.profile,pal=p.palette,s=j.scale||1,g=groundAnchors(j),fade=clamp((j.duration-age)/260);
@@ -379,6 +513,7 @@ function sampleAbsoluteZero(D,j,age){
   function draw(c,j,age){
     const p=j.profile,pal=p.palette,from=j.from,to=j.to,s=j.scale||1,light=j.light;
     const state=sample(j,age);if(!state.visible)return;
+    if(fireDefinition(p.name)&&drawFireBatch(c,j,age))return;
     if(p.name==='绝对零度'&&drawAbsoluteZero(c,j,age))return;
     if(p.kind==='sun'&&drawSolar(c,j,age))return;
     if(p.kind==='butterfly'&&drawButterfly(c,j,age))return;
@@ -525,13 +660,14 @@ function sampleAbsoluteZero(D,j,age){
     if(!canvas){canvas=D.createElement('canvas');canvas.className='ink-skill-canvas-v2854';canvas.setAttribute('aria-hidden','true');ctx=canvas.getContext('2d');if(!ctx){canvas=null;return false}host.replaceChildren(canvas);canvas.width=Math.max(1,Math.floor(box.width*ratio));canvas.height=Math.max(1,Math.floor(box.height*ratio));}
     const a=anchor('combatPlayerChar',box,'player'),b=anchor('enemyChar',box,'enemy'),from=side==='enemy'?b:a,to=p.self?from:side==='enemy'?a:b;
     const started=now(),job={id:++serial,profile:p,side,from,to,width:box.width,height:box.height,clipBottom:Math.min(a.bottom,b.bottom),scale:clamp(box.width/460,.67,1.12),ratio,started,light:opt.light,reduced:opt.reduced,duration:opt.reduced?360:source==='passive'?620:opt.light?880:1040,hitAt:p.self?170:source==='passive'?120:null};
+    if(fireDefinition(name)){job.duration=1100;job.arriveAt=310;job.fromGround={x:from.x,y:from.bottom};job.toGround={x:to.x,y:to.bottom};}
     jobs=jobs.filter(j=>j.side!==side&&started-j.started<j.duration);jobs.push(job);if(jobs.length>2)jobs.shift();
     const label=D.getElementById('inkFxNameV2854');if(label){label.textContent=(source==='passive'?'被动':side==='enemy'?'敌方':'我方')+' · '+p.name;label.style.color=p.palette[0]}
     if(timer)clearTimeout(timer);timer=setTimeout(()=>clear(),Math.max(...jobs.map(j=>j.started+j.duration))-started+80);
     if(opt.reduced){if(raf)cancelAnimationFrame(raf);raf=0;ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,box.width,box.height);draw(ctx,job,200)}else if(!raf)raf=requestAnimationFrame(frame);
     return true;
   }
-  function hit(side){for(const j of jobs){if(j.profile.self||j.hitAt!==null||j.side===side)continue;const age=now()-j.started;if(age<600){j.hitAt=Math.max(120,age);if(j.reduced&&(['sun','butterfly','heart'].includes(j.profile.kind)||j.profile.name==='绝对零度')&&ctx){ctx.setTransform(j.ratio,0,0,j.ratio,0,0);ctx.clearRect(0,0,j.width,j.height);for(const active of jobs)draw(ctx,active,Math.max(now()-active.started,active.hitAt??0));}}}}
+  function hit(side){for(const j of jobs){if(j.profile.self||j.hitAt!==null||j.side===side)continue;const age=now()-j.started;if(age<600){j.hitAt=Math.max(120,age);if(j.reduced&&(['sun','butterfly','heart'].includes(j.profile.kind)||j.profile.name==='绝对零度'||fireDefinition(j.profile.name))&&ctx){ctx.setTransform(j.ratio,0,0,j.ratio,0,0);ctx.clearRect(0,0,j.width,j.height);for(const active of jobs)draw(ctx,active,Math.max(now()-active.started,(active.hitAt??0)+(active.reduced&&fireDefinition(active.profile.name)?100:0)));}}}}
   function sync(){const btn=D.getElementById('inkFxQualityV2854');if(btn){btn.textContent='特效：'+(settings().reduced?'静态':({auto:'自动',rich:'精致',light:'省电'}[quality]));btn.setAttribute('aria-label',btn.textContent+'，点击切换');}}
   function cycle(){quality={auto:'rich',rich:'light',light:'auto'}[quality];try{localStorage.setItem(KEY,quality)}catch(_){}clear();sync()}
   function install(){
@@ -545,7 +681,7 @@ function sampleAbsoluteZero(D,j,age){
   W.playInkSkillV2854=play;
   const solar={definition:SOLAR,prepare:prepareSolar,ready:solarReady,sample:solarSample};
   const butterfly={definition:ICE_BUTTERFLY,prepare:prepareButterfly,ready:butterflyReady,sample:butterflySample};
-  W.InkSkillFxV2854={profile,draw,drawGround,sample,solar,butterfly,heart,absoluteZero,catalog:()=>[...new Set([...Object.keys(styles),...Object.keys(forms),...(typeof SKILLS!=='undefined'?SKILLS.map(s=>s.name):[])])].map(name=>profile(name)),play,hit,clear,finish,cinemaClear,install,cycle,settings,inspect:()=>({version:'28.68',quality,finishing:finishUntil>now(),active:jobs.length,raf:!!raf,pixels:canvas?canvas.width*canvas.height:0,jobs:jobs.map(j=>({name:j.profile.name,kind:j.profile.kind,family:j.profile.family,side:j.side,self:j.profile.self,hitAt:j.hitAt,from:{...j.from},to:{...j.to}}))})};
+  W.InkSkillFxV2854={profile,draw,drawGround,sample,solar,butterfly,heart,absoluteZero,fireBatch,fireBatch2,catalog:()=>[...new Set([...Object.keys(styles),...Object.keys(forms),...(typeof SKILLS!=='undefined'?SKILLS.map(s=>s.name):[])])].map(name=>profile(name)),play,hit,clear,finish,cinemaClear,install,cycle,settings,inspect:()=>({version:'28.68',quality,finishing:finishUntil>now(),active:jobs.length,raf:!!raf,pixels:canvas?canvas.width*canvas.height:0,jobs:jobs.map(j=>({name:j.profile.name,kind:j.profile.kind,family:j.profile.family,side:j.side,self:j.profile.self,hitAt:j.hitAt,from:{...j.from},to:{...j.to}}))})};
   install();
 })();
 ;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2855-skill-fx.js']='28.68.35';
