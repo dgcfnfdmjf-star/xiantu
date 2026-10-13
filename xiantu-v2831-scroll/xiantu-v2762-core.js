@@ -4022,9 +4022,12 @@
       EXCELLENT:{name:'精品',color:'#9c27b0',multiplier:2.0,icon:'◒'},
       SPIRIT:{name:'灵宝',color:'#ff9800',multiplier:2.5,icon:'◕'},
       IMMORTAL:{name:'仙器',color:'#ffd700',multiplier:3.2,icon:'✦'},
-      GOD:{name:'神器',color:'#ff1744',multiplier:4.0,icon:'★'}
+      GOD:{name:'神器',color:'#ff1744',multiplier:4.0,icon:'★'},
+      TIAN_QI:{name:'天器',color:'#ffb347',multiplier:3.2,icon:'✧'},
+      SHENG_QI:{name:'圣器',color:'#ff7ab6',multiplier:3.2,icon:'✪'},
+      DAO_QI:{name:'道器',color:'#7fe3ff',multiplier:3.2,icon:'☯'}
     };
-    const QUALITY_KEYS=['MORTAL','GOOD','FINE','EXCELLENT','SPIRIT','IMMORTAL','GOD'];
+    const QUALITY_KEYS=['MORTAL','GOOD','FINE','EXCELLENT','SPIRIT','IMMORTAL','TIAN_QI','SHENG_QI','DAO_QI','GOD'];
 
     const EQUIPMENT_SLOTS = {
       head:{label:'头冠',icon:'👑',type:'armor'}, robe:{label:'法袍',icon:'👘',type:'armor'}, bracer:{label:'护腕',icon:'💪',type:'armor'},
@@ -4145,7 +4148,13 @@
       '裂星穿云':{family:'spear',color:'#f1cf9b',names:['九霄寂灭枪','逐星凌劲袍','破云束星冠','掠影追风靴','流星破戒'],slots:['weapon','robe','head','boots','ring'],look:['陨星玄金枪，菱形寒锋与赤金枪缨。','银白劲袍，碎星灵丝轻甲，利落如风。','银玉束冠，中央嵌碎星晶石。','银纹轻底战靴，刻破空纹。','银星指环，嵌陨星碎晶。'],lore:'上古星陨枪修传承，以穿刺和连击破除坚甲。',mods:[{atkPct:.33,pierce:.15},{atkPct:.24},{critDmg:.10},{follow:.12},{crit:.14}],tiers:[{count:2,bonus:{atk:15}},{count:4,bonus:{crit:5}},{count:5,bonus:{atk:40}}],mechanic:'2件：枪击有15%概率追加20%伤害；4件：枪击额外穿透30%防御；全套仙器：对满血敌人枪击伤害+35%，穿云贯日击杀恢复15%最大灵力。'},
       '万象玄霆':{family:'wand',color:'#c5a4ff',names:['九霄玄霆杖','万法霄宸袍','御雷宸冠','踏雷虚宸履','万象雷灵珠'],slots:['weapon','robe','head','boots','jade'],look:['万年雷击神木法杖，紫金雷纹，杖首托雷核宝珠。','紫黑渐变仙袍，广袖织雷纹星图。','紫金雷云法冠，嵌雷晶珠。','紫黑云纹法靴，靴底雷光印。','球形雷玉，内部电光流转。'],lore:'上古雷尊传承，聚天地雷力，以雷云持续轰击强敌。',mods:[{spellPct:.35,thunderPct:.22},{spellPct:.26,mpPct:.25,pierce:.12},{spellCrit:.12},{followSpell:.14},{mpRegen:.18,spellPct:.13}],tiers:[{count:2,bonus:{mp:40}},{count:4,bonus:{atk:20}},{count:5,bonus:{mp:120}}],mechanic:'2件：雷系伤害+15%；4件：雷系命中25%概率麻痹1回合；全套仙器：九霄雷云附加2次持续雷伤，攻击法术有20%概率追加30%伤害。'}
     };
-    const GRADES_V2790=[{name:'灵品',quality:'LING_PIN',level:2,scale:.4,cost:600},{name:'宝器',quality:'BAO_QI',level:3,scale:.7,cost:2400},{name:'仙器',quality:'IMMORTAL',level:7,scale:1,cost:9600}];
+    const GRADES_V2790=[{name:'灵品',quality:'LING_PIN',level:2,scale:.4,cost:600},{name:'宝器',quality:'BAO_QI',level:3,scale:.7,cost:2400},{name:'仙器',quality:'IMMORTAL',level:7,scale:1,cost:9600},
+      // Post-地仙 grades extend the existing curve: level 2/3/7 -> 10/12/14, mod scale +.3 per grade,
+      // old-set stat curve steps +.6/+.8 -> +1.0/+1.2/+1.4, price x4 per grade. Earlier grades are unchanged.
+      {name:'天器',quality:'TIAN_QI',level:10,scale:1.3,statScale:1.42,cost:38400},
+      {name:'圣器',quality:'SHENG_QI',level:12,scale:1.6,statScale:1.92,cost:153600},
+      {name:'道器',quality:'DAO_QI',level:14,scale:1.9,statScale:2.5,cost:614400}];
+    const GRADE_STAT_CURVE_V286838=[1,1.6,2.4,3.4,4.6,6];
     EQUIPMENT_QUALITIES.LING_PIN={name:'灵品',color:'#67e8b5',multiplier:1,icon:'◈'};
     EQUIPMENT_QUALITIES.BAO_QI={name:'宝器',color:'#cc9cff',multiplier:1,icon:'◆'};
     QUALITY_KEYS.splice(4,0,'LING_PIN','BAO_QI');
@@ -4153,10 +4162,10 @@
     const MOD_NAMES_V2790={atkPct:'攻击',defPct:'防御',hpPct:'最大气血',mpPct:'最大灵力',reducePct:'命中减伤',controlResist:'威压控制抵抗',hpRegen:'每次敌方回合结束回血',pierce:'本次攻击穿透',crit:'暴击率',critDmg:'暴击伤害',follow:'枪击追击概率',spellPct:'攻击法术伤害',thunderPct:'雷伤',spellCrit:'法术暴击率',followSpell:'法术追击概率',mpRegen:'每次敌方回合结束回灵'};
     for(const [name,set] of Object.entries(NEW_SETS_V2790)){
       const items=[];
-      for(let grade=1;grade<=3;grade++)for(let i=0;i<5;i++){
+      for(let grade=1;grade<=GRADES_V2790.length;grade++)for(let i=0;i<5;i++){
         const g=GRADES_V2790[grade-1],key=newGearNameV2790(name,i,grade),mods={};
         for(const [k,v] of Object.entries(set.mods[i]))mods[k]=v*g.scale;
-        const stats=i===0?{atk:Math.round(40*g.scale)}:i===1?{def:Math.round(25*g.scale),hp:Math.round(90*g.scale)}:i===2?{def:Math.round(12*g.scale)}:i===3?{def:Math.round(8*g.scale)}:{hp:Math.round(40*g.scale)};
+        const k=g.statScale??g.scale,stats=i===0?{atk:Math.round(40*k)}:i===1?{def:Math.round(25*k),hp:Math.round(90*k)}:i===2?{def:Math.round(12*k)}:i===3?{def:Math.round(8*k)}:{hp:Math.round(40*k)};
         EQUIPMENT_DB[key]={slot:set.slots[i],quality:g.quality,realmRequired:g.level,stats,modsV2790:mods,familyV2790:name,pieceV2790:i,gradeV2790:grade,weaponFamily:i===0?set.family:undefined,priceV2790:g.cost,desc:set.look[i]+' '+set.lore+' 实装：'+Object.entries(mods).map(([k,v])=>`${MOD_NAMES_V2790[k]}+${Math.round(v*100)}%`).join('、')+'。'};
         if(grade===3)items.push(key);
       }
@@ -4222,7 +4231,7 @@
     }
 
     function buyNewGearV2790(family,piece,grade){
-      if(gameState==='combat'||!NEW_SETS_V2790[family]||!Number.isInteger(piece)||piece<0||piece>4||!Number.isInteger(grade)||grade<1||grade>3)return;
+      if(gameState==='combat'||!NEW_SETS_V2790[family]||!Number.isInteger(piece)||piece<0||piece>4||!Number.isInteger(grade)||grade<1||grade>GRADES_V2790.length)return;
       const name=newGearNameV2790(family,piece,grade),d=EQUIPMENT_DB[name];if(!canEquipItem(name).ok||player.gold<d.priceV2790)return;
       if(!confirmGearPurchaseV2804(name,d.priceV2790))return;
       player.gold-=d.priceV2790;(player.equipmentInventory||=[]).push(name);autoSave();updateStats();showNewGearShopV2790(family,grade);
@@ -4244,9 +4253,9 @@
       OLD_SET_VERSIONS_V2792[family]=bases;
       for(let i=0;i<bases.length;i++){
         const baseName=bases[i],base=EQUIPMENT_DB[baseName],oldMult=getQualityInfo(base.quality).multiplier;
-        for(let grade=1;grade<=3;grade++){
+        for(let grade=1;grade<=GRADES_V2790.length;grade++){
           const g=GRADES_V2790[grade-1],qualityMult=getQualityInfo(g.quality).multiplier,stats={};
-          for(const [k,v] of Object.entries(base.stats||{}))stats[k]=Number((v*oldMult*[1,1.6,2.4][grade-1]/qualityMult).toFixed(6));
+          for(const [k,v] of Object.entries(base.stats||{}))stats[k]=Number((v*oldMult*GRADE_STAT_CURVE_V286838[grade-1]/qualityMult).toFixed(6));
           const name=baseName+'·'+g.name;
           EQUIPMENT_DB[name]={...base,quality:g.quality,stats,realmRequired:grade===1?base.realmRequired:Math.max(base.realmRequired,g.level),familyV2790:family,pieceV2790:i,gradeV2790:grade,priceV2790:g.cost,desc:base.desc+'；'+g.name+'版本，同套不同品级可混穿，按部位计件。'};
         }
@@ -4262,7 +4271,7 @@
     }
     function oldVersionNameV2792(family,piece,grade){return OLD_SET_VERSIONS_V2792[family]?.[piece]+'·'+GRADES_V2790[grade-1]?.name;}
     function showOldGearShopV2792(family='青云',grade=1){
-      if(gameState==='combat'||!OLD_SET_VERSIONS_V2792[family]||!Number.isInteger(grade)||grade<1||grade>3)return;
+      if(gameState==='combat'||!OLD_SET_VERSIONS_V2792[family]||!Number.isInteger(grade)||grade<1||grade>GRADES_V2790.length)return;
       let html='<h3>套装坊 · 三品级成套装备</h3><p>灵品青绿、宝器紫色、仙器金色。旧三套保留原件数与分段加成，混品级可凑套。宝器与仙器提升单件属性。</p>';
       for(const f of Object.keys(OLD_SET_VERSIONS_V2792))html+=`<button class="choice-btn" onclick="showOldGearShopV2792('${f}',${grade})">${f}套装</button>`;
       for(const f of Object.keys(NEW_SETS_V2790))html+=`<button class="choice-btn" onclick="showNewGearShopV2790('${f}',${grade})">${f}</button>`;
@@ -4272,7 +4281,7 @@
       showStory(html,[{text:'返回仙市',action:'market'}]);
     }
     function buyOldGearV2792(family,piece,grade){
-      if(gameState==='combat'||!OLD_SET_VERSIONS_V2792[family]||!Number.isInteger(piece)||piece<0||piece>=OLD_SET_VERSIONS_V2792[family].length||!Number.isInteger(grade)||grade<1||grade>3)return;
+      if(gameState==='combat'||!OLD_SET_VERSIONS_V2792[family]||!Number.isInteger(piece)||piece<0||piece>=OLD_SET_VERSIONS_V2792[family].length||!Number.isInteger(grade)||grade<1||grade>GRADES_V2790.length)return;
       const name=oldVersionNameV2792(family,piece,grade),d=EQUIPMENT_DB[name];if(player.gold<d.priceV2790||!canEquipItem(name).ok)return;
       if(!confirmGearPurchaseV2804(name,d.priceV2790))return;
       player.gold-=d.priceV2790;(player.equipmentInventory||=[]).push(name);autoSave();updateStats();showOldGearShopV2792(family,grade);
@@ -4306,8 +4315,8 @@
     }
     function forgeAllowedV2825(){return gameState!=='combat'&&gameState!=='combat-ending'&&!player.breakthrough?.isAnimating;}
     function forgeGradeV2825(data){
-      const declared=Number(data?.gradeV2790),qualityFloor=({BAO_QI:2,EXCELLENT:2,SPIRIT:2,IMMORTAL:3,GOD:3})[data?.quality]||1;
-      return Math.max(qualityFloor,Number.isInteger(declared)&&declared>=1&&declared<=3?declared:1);
+      const declared=Number(data?.gradeV2790),qualityFloor=({BAO_QI:2,EXCELLENT:2,SPIRIT:2,IMMORTAL:3,TIAN_QI:3,SHENG_QI:3,DAO_QI:3,GOD:3})[data?.quality]||1;
+      return Math.max(qualityFloor,Number.isInteger(declared)&&declared>=1?Math.min(3,declared):1);
     }
     function forgeAffixTextV2825(rows){return rows?.length?rows.map(a=>`${FORGE_STATS_V2825[a.stat].name} · ${FORGE_STATS_V2825[a.stat].label} +${a.value}${a.unit==='percent'?'%':''}`).join('；'):'暂无词条';}
     function forgeCurrentV2825(nonce){
@@ -6301,7 +6310,7 @@
         const pieces=new Map();
         if(set.familyV2790)for(const n of worn){const d=getEquipData(n);if(d?.familyV2790===set.familyV2790)pieces.set(d.pieceV2790,Math.max(pieces.get(d.pieceV2790)||0,d.gradeV2790));}
         const count=set.familyV2790?pieces.size:set.items.filter(n=>worn.has(n)).length,bonus={};
-        const immortal=!!set.familyV2790&&pieces.size===set.items.length&&[...pieces.values()].every(g=>g===3);
+        const immortal=!!set.familyV2790&&pieces.size===set.items.length&&[...pieces.values()].every(g=>g>=3);
         for(const tier of set.tiers)if(count>=tier.count)for(const [key,value] of Object.entries(tier.bonus))bonus[key]=(bonus[key]||0)+value;
         return {name,set,count,bonus,immortal,missing:set.items.filter((n,i)=>set.familyV2790?!pieces.has(i):!worn.has(n))};
       });
@@ -7225,22 +7234,24 @@
       const dropChance = Math.min(0.28, 0.08 + danger * 0.02 + (elite ? 0.08 : 0));
       if (Math.random() >= dropChance) return null;
 
-      let maxQualityIndex = 0;
-      if (realm >= 1) maxQualityIndex = 1;      // 良品
-      if (realm >= 2) maxQualityIndex = 2;      // 上品
-      if (realm >= 3) maxQualityIndex = 3;      // 精品
-      if (realm >= 6) maxQualityIndex = QUALITY_KEYS.indexOf('SPIRIT');      // 灵宝
-      if (realm >= 10) maxQualityIndex = QUALITY_KEYS.indexOf('IMMORTAL');     // 仙器
-      if (elite && Math.random() < 0.25) maxQualityIndex = Math.min(5, maxQualityIndex + 1);
-
+      // Drop tiers keep their original order and weights; shop-only grades never enter this pool.
+      const dropOrder = ['MORTAL','GOOD','FINE','EXCELLENT','SPIRIT','IMMORTAL'];
       const weights = [55, 28, 11, 4, 1.6, 0.4];
-      const availableQualities = QUALITY_KEYS.slice(0, maxQualityIndex + 1);
-      let total = availableQualities.reduce((sum, q) => sum + weights[QUALITY_KEYS.indexOf(q)], 0);
+      let maxDrop = 0;
+      if (realm >= 1) maxDrop = 1;      // 良品
+      if (realm >= 2) maxDrop = 2;      // 上品
+      if (realm >= 3) maxDrop = 3;      // 精品
+      if (realm >= 6) maxDrop = 4;      // 灵宝
+      if (realm >= 10) maxDrop = 5;     // 仙器
+      if (elite && Math.random() < 0.25) maxDrop = Math.min(5, maxDrop + 1);
+
+      const availableQualities = dropOrder.slice(0, maxDrop + 1);
+      let total = availableQualities.reduce((sum, q, i) => sum + weights[i], 0);
       let roll = Math.random() * total;
       let pickedQuality = availableQualities[0];
-      for (const q of availableQualities) {
-        roll -= weights[QUALITY_KEYS.indexOf(q)];
-        if (roll <= 0) { pickedQuality = q; break; }
+      for (let i = 0; i < availableQualities.length; i++) {
+        roll -= weights[i];
+        if (roll <= 0) { pickedQuality = availableQualities[i]; break; }
       }
 
       // 穿戴型法宝/飞行法器保持稀有来源，不纳入普通装备掉落。
@@ -7253,8 +7264,8 @@
 
       // 若抽到的品质当前没有可用装备，向低品质回退，避免空掉落。
       if (!candidates.length) {
-        for (let qi = maxQualityIndex; qi >= 0 && !candidates.length; qi--) {
-          const q = QUALITY_KEYS[qi];
+        for (let qi = maxDrop; qi >= 0 && !candidates.length; qi--) {
+          const q = dropOrder[qi];
           candidates = Object.entries(EQUIPMENT_DB).filter(([name, data]) =>
             data && data.quality === q &&
             (data.realmRequired || 0) <= realm + (elite ? 1 : 0) &&
@@ -8936,7 +8947,7 @@
         {text:'← 返回南域地图',action:'return_to_map'}]);
     }
     function marketGearItemsV2800(category,grade,family='all'){
-      if(!['weapon','armor'].includes(category)||!Number.isInteger(grade)||grade<1||grade>3)return [];
+      if(!['weapon','armor'].includes(category)||!Number.isInteger(grade)||grade<1||grade>GRADES_V2790.length)return [];
       return Object.entries(EQUIPMENT_DB).filter(([name,d])=>d.familyV2790&&d.gradeV2790===grade&&(family==='all'||d.familyV2790===family)&&(category==='weapon'?d.slot==='weapon':d.slot!=='weapon'));
     }
     function showMarketGearV2800(category='weapon',grade=1,family='all'){

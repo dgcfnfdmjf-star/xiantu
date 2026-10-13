@@ -159,8 +159,8 @@ function getProtectedBagCount(name){
 }
 function getSafeDismantleCountForName(name){if(getEquipData(name)?.forgeBaseV2825)return 0;return Math.max(0,getBagCountByName(name)-getProtectedBagCount(name));}
 function getDismantleValue(name){
-  const d=getEquipData(name);if(!d)return 0;const qi=Math.max(0,QUALITY_KEYS.indexOf(d.quality)),bases=[5,12,30,75,180,500,1500];
-  return Math.max(1,Math.round((bases[qi]||5)*(1+Math.max(0,Number(d.realmRequired)||0)*.12)));
+  const d=getEquipData(name);if(!d)return 0;const bases={MORTAL:5,GOOD:12,FINE:30,EXCELLENT:75,LING_PIN:180,BAO_QI:500,SPIRIT:180,IMMORTAL:500,TIAN_QI:500,SHENG_QI:500,DAO_QI:500,GOD:1500};
+  return Math.max(1,Math.round((bases[d.quality]||5)*(1+Math.max(0,Number(d.realmRequired)||0)*.12)));
 }
 function getBulkDismantlePreview(threshold=equipmentDismantleQuality){
   const maxIdx=Math.max(0,QUALITY_KEYS.indexOf(threshold)),counts={};for(const n of (player.equipmentInventory||[]))counts[n]=(counts[n]||0)+1;
