@@ -2,7 +2,9 @@
 import hashlib, pathlib, subprocess, sys
 root=pathlib.Path(__file__).resolve().parent.parent
 names=subprocess.check_output(['git','ls-files','--cached','--others','--exclude-standard','-z'],cwd=root).decode().split('\0')
-files=sorted({n for n in names if n and (root/n).is_file()})
+# Local review notes and diagnostics are never part of a release, even when left untracked.
+EXCLUDED=('artifacts/','output/','dist/','test-results/')
+files=sorted({n for n in names if n and (root/n).is_file() and not n.startswith(EXCLUDED)})
 manifests=['xiantu-v2831-scroll/checksums.sha256','checksums.sha256','handoff-checksums.sha256']
 def digest(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 if '--write' in sys.argv:

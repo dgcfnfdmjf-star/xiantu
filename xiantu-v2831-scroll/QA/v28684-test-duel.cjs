@@ -68,7 +68,7 @@ for(const profile of roster){
   drawn.length=0;tick(time+=100);
   a(f.ids.get('combatArena').classList.contains('duel25-active'),name);
   a.equal(f.c.document.querySelectorAll('.duel25-canvas').length,1,name);
-  a(drawn.some(src=>src.includes(profile.key==='wolf'?'duel-ink-poses':'v286811.png')),name+' uses action atlas');
+  a(drawn.some(src=>src.includes(profile.key==='wolf'?'duel-ink-poses':'v286811.webp')),name+' uses action atlas');
   const saved=f.run('JSON.stringify(player)');f.run('playAttackAnimation("enemy");showDamageNumber(5,"player");');
   for(let i=0;i<5;i++)tick(time+=50);
   a.equal(f.run('JSON.stringify(player)'),saved,name+' animation must not settle damage');

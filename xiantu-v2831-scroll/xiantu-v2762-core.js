@@ -76,7 +76,7 @@
         return `<div class="mobile-inventory-item"><span class="name">${icon} ${row.name}</span><span class="count">×${row.count}</span><span class="desc">${desc}</span></div>`;
       }).join(''):`<div class="mobile-inventory-empty">这一栏目前是空的</div>`;
       card.innerHTML=`
-        <div class="mobile-inventory-head"><div><div class="mobile-inventory-title">🎒 储物袋</div><div style="font-size:10px;color:#8f99a4;margin-top:2px">随身物资与修行资源</div></div><button class="mobile-inventory-close" onclick="closeMobileInventory()">✕</button></div>
+        <div class="mobile-inventory-head"><div><div class="mobile-inventory-title">🎒 储物袋</div><div style="font-size:10px;color:#8f99a4;margin-top:2px">随身物资与修行资源</div></div><button aria-label="关闭" class="mobile-inventory-close" onclick="closeMobileInventory()">✕</button></div>
         <div class="mobile-inventory-summary"><span>💰 灵石 ${player.gold||0}</span><span>💠 灵力 ${Math.max(0,Math.round(player.mp||0))} / ${typeof getMaxMp==='function'?getMaxMp():Math.max(0,Math.round(player.maxMp||0))}</span><span>🎐 物品 ${itemRows.reduce((a,b)=>a+b.count,0)}</span><span>🌿 材料 ${materialRows.reduce((a,b)=>a+Number(b.count||0),0)}</span><span>⚔️ 装备 ${equipmentRows.length}</span></div>
         <div class="mobile-inventory-tabs">${tabs.map(([id,label])=>`<button class="mobile-inventory-tab ${mobileInventoryTab===id?'active':''}" onclick="setMobileInventoryTab('${id}')">${label}</button>`).join('')}</div>
         <div class="mobile-inventory-grid">${htmlRows}</div>
@@ -388,8 +388,9 @@
     function toggleMute() {
       isMuted = !isMuted;
       const btn = document.getElementById('muteBtn');
-      btn.textContent = isMuted ? '🔇' : '🔊';
-      btn.classList.toggle('muted', isMuted);
+      if(btn){btn.textContent = isMuted ? '🔇' : '🔊';btn.classList.toggle('muted', isMuted);btn.setAttribute('aria-label',isMuted?'取消静音':'静音');}
+      const quick = document.getElementById('quickMuteV286838');
+      if(quick){quick.textContent = isMuted ? '🔇 取消静音' : '🔊 静音';quick.setAttribute('aria-pressed',String(isMuted));}
       if (isMuted) stopBGM();
     }
     
@@ -416,29 +417,31 @@
       monster_slayer_10: { name: '斩妖除魔', desc: '击败10只怪物', icon: '🗡️', type: 'combat', target: 10, reward: { gold: 100, exp: 50 } },
       monster_slayer_50: { name: '妖魔克星', desc: '击败50只怪物', icon: '⚔️', type: 'combat', target: 50, reward: { gold: 300, exp: 150 } },
       monster_slayer_100: { name: '屠魔真君', desc: '击败100只怪物', icon: '🔥', type: 'combat', target: 100, reward: { gold: 500, exp: 300, item: '天元丹' } },
-      boss_first: { name: '初战Boss', desc: '首次击败Boss', icon: '👹', type: 'boss', target: 1, reward: { gold: 200, exp: 100 } },
-      boss_master: { name: 'Boss猎手', desc: '击败所有Boss', icon: '👑', type: 'boss', target: 3, reward: { gold: 1000, exp: 500, item: '仙剑' } },
+      boss_first: { name: '初战首领', desc: '首次击败首领', icon: '👹', type: 'boss', target: 1, reward: { gold: 200, exp: 100 } },
+      boss_master: { name: '首领猎手', desc: '击败所有首领', icon: '👑', type: 'boss', target: 3, reward: { gold: 1000, exp: 500, item: '仙剑' } },
       
       // 成长成就（按大境界解锁）
       realm_qi: { name:'练气入门', desc:'达到练气境', icon:'✨', type:'realm', target:1, reward:{ gold:50 } },
       realm_foundation: { name:'筑基有成', desc:'达到筑基境', icon:'🌟', type:'realm', target:2, reward:{ gold:100, exp:50 } },
-      realm_kaiguang: { name:'灵台筑基', desc:'达到筑基境', icon:'🔆', type:'realm', target:2, reward:{ gold:140, exp:70 } },
-      realm_ronghe: { name:'灵脉筑基', desc:'达到筑基境', icon:'🌀', type:'realm', target:2, reward:{ gold:180, exp:90 } },
-      realm_xindong: { name:'筑基问道', desc:'达到筑基境', icon:'💗', type:'realm', target:2, reward:{ gold:220, exp:110 } },
+      realm_kaiguang: { name:'灵台筑基', desc:'达到筑基中期', icon:'🔆', type:'realm', target:2, phase:1, reward:{ gold:140, exp:70 } },
+      realm_ronghe: { name:'灵脉筑基', desc:'达到筑基后期', icon:'🌀', type:'realm', target:2, phase:2, reward:{ gold:180, exp:90 } },
+      realm_xindong: { name:'筑基问道', desc:'达到筑基圆满', icon:'💗', type:'realm', target:2, phase:3, reward:{ gold:220, exp:110 } },
       realm_golden: { name:'金丹大道', desc:'达到金丹境', icon:'💫', type:'realm', target:3, reward:{ gold:300, exp:150 } },
       realm_nascent: { name:'元婴诞生', desc:'达到元婴境', icon:'🔮', type:'realm', target:4, reward:{ gold:450, exp:220, item:'灵剑' } },
       realm_chuqiao: { name:'元神化神', desc:'达到化神境', icon:'👁️', type:'realm', target:5, reward:{ gold:550, exp:280 } },
       realm_fenshen: { name:'神念万千', desc:'达到炼虚境', icon:'🌌', type:'realm', target:6, reward:{ gold:700, exp:350 } },
       realm_heti: { name:'天人合体', desc:'达到合体境', icon:'☯️', type:'realm', target:7, reward:{ gold:850, exp:420 } },
-      realm_dongxu: { name:'合体见真', desc:'达到合体境', icon:'🕳️', type:'realm', target:7, reward:{ gold:1050, exp:520 } },
+      realm_dongxu: { name:'合体见真', desc:'达到合体圆满', icon:'🕳️', type:'realm', target:7, phase:3, reward:{ gold:1050, exp:520 } },
       realm_dacheng: { name:'大道将成', desc:'达到大乘境', icon:'🌠', type:'realm', target:8, reward:{ gold:1300, exp:650 } },
       realm_tribulation: { name:'渡劫问天', desc:'达到渡劫境', icon:'⚡', type:'realm', target:9, reward:{ gold:1800, exp:900, item:'仙甲' } },
+      realm_dixian: { name:'地仙证道', desc:'达到地仙境', icon:'🏔️', type:'realm', target:10, reward:{ gold:2000, exp:1000 } },
+      realm_tianxian: { name:'天仙御风', desc:'达到天仙境', icon:'🌤️', type:'realm', target:11, reward:{ gold:2300, exp:1150 } },
       realm_jinxian: { name:'金仙登临', desc:'达到金仙境', icon:'🌞', type:'realm', target:12, reward:{ gold:2600, exp:1400 } },
-      realm_xuanxian: { name:'金仙妙境', desc:'达到金仙境', icon:'🌙', type:'realm', target:12, reward:{ gold:3600, exp:1900 } },
+      realm_xuanxian: { name:'金仙妙境', desc:'达到金仙圆满', icon:'🌙', type:'realm', target:12, phase:3, reward:{ gold:3600, exp:1900 } },
       realm_taiyizhen: { name:'太乙凝道', desc:'达到太乙金仙境', icon:'🪷', type:'realm', target:13, reward:{ gold:5000, exp:2600 } },
-      realm_taiyijin: { name:'太乙金仙', desc:'达到太乙金仙境', icon:'☀️', type:'realm', target:13, reward:{ gold:7000, exp:3500 } },
+      realm_taiyijin: { name:'太乙金仙', desc:'达到太乙金仙圆满', icon:'☀️', type:'realm', target:13, phase:3, reward:{ gold:7000, exp:3500 } },
       realm_taiyixuan: { name:'大罗证道', desc:'达到大罗金仙境', icon:'🌀', type:'realm', target:14, reward:{ gold:9500, exp:4700 } },
-      realm_daluo: { name:'大罗不朽', desc:'达到大罗金仙境', icon:'🌌', type:'realm', target:14, reward:{ gold:13000, exp:6500 } },
+      realm_daluo: { name:'大罗不朽', desc:'达到大罗金仙圆满', icon:'🌌', type:'realm', target:14, phase:3, reward:{ gold:13000, exp:6500 } },
       realm_zhunsheng: { name:'准圣之境', desc:'达到准圣境', icon:'🔱', type:'realm', target:15, reward:{ gold:18000, exp:9000 } },
       realm_shengren: { name:'混元圣人', desc:'达到圣人境', icon:'👑', type:'realm', target:16, reward:{ gold:30000, exp:15000 } },
       
@@ -454,7 +457,7 @@
       alchemy_master: { name: '炼丹大师', desc: '成功炼制10次丹药', icon: '🔥', type: 'alchemy', target: 10, reward: { gold: 200, exp: 100 } },
       
       // 特殊成就
-      survivor: { name: '不屈意志', desc: '战斗中从1点生命存活', icon: '💪', type: 'special', target: 1, reward: { gold: 100, exp: 50 } },
+      survivor: { name: '不屈意志', desc: '战斗中从1点气血存活', icon: '💪', type: 'special', target: 1, reward: { gold: 100, exp: 50 } },
       rich: { name: '富甲一方', desc: '拥有5000灵石', icon: '💰', type: 'gold', target: 5000, reward: { exp: 200 } },
       story_complete: { name: '仙途圆满', desc: '完成所有主线剧情', icon: '📖', type: 'story', target: 1, reward: { gold: 2000, exp: 1000 } }
     };
@@ -543,6 +546,7 @@
             break;
           case 'realm':
             progress = player.level;
+            if (progress === ach.target && (player.phase || 0) < (ach.phase || 0)) progress = ach.target - 1;
             break;
           case 'collect':
             progress = Math.max(achievementProgress.weaponsCollected, achievementProgress.armorsCollected);
@@ -946,7 +950,7 @@
         effect: (p) => {
           const damage = Math.floor(p.hp * 0.2);
           p.hp = Math.max(1, p.hp - damage);
-          return { text: `损失生命 -${damage}`, type: 'damage' };
+          return { text: `损失气血 -${damage}`, type: 'damage' };
         }
       },
       '陷阱': {
@@ -957,7 +961,7 @@
         effect: (p) => {
           const damage = Math.floor(p.hp * 0.15);
           p.hp = Math.max(1, p.hp - damage);
-          return { text: `损失生命 -${damage}`, type: 'damage' };
+          return { text: `损失气血 -${damage}`, type: 'damage' };
         }
       },
       '被偷窃': {
@@ -1049,7 +1053,7 @@
           p.hp = getMaxHp();
           p.mp = getMaxMp();
           p.exp += 50;
-          return { text: `生命灵力全满！修为 +50`, type: 'heal' };
+          return { text: `气血灵力全满！修为 +50`, type: 'heal' };
         }
       },
       '古迹探索': {
@@ -1141,7 +1145,7 @@
       const record=document.createElement('div');record.className='combat-result-line-v2818 '+(isHeal?'result-heal':target==='enemy'?'result-outgoing':'result-incoming');
       const label=document.createElement('span');label.textContent=(target==='enemy'?'敌方':'己方')+' · '+title;
       const value=document.createElement('strong');value.textContent=result;
-      const meta=document.createElement('small');meta.textContent=Number(mpCost)>0?`灵力 −${mpCost}`:isHeal?'恢复生命':'伤害';
+      const meta=document.createElement('small');meta.textContent=Number(mpCost)>0?`灵力 −${mpCost}`:isHeal?'恢复气血':'伤害';
       record.append(label,value,meta);history.prepend(record);while(history.children.length>3)history.lastElementChild.remove();
       if(document.hidden)return;
       let layer=document.getElementById('combatValuesV2817');
@@ -3053,7 +3057,7 @@
       const a=ensureTournamentV2779(player.sectTournament.active);
       if(!a||a.round>=3)return showSectTournament();
       const enemy=a.enemiesV2779[a.round];autoSave();
-      showStory(`<h3>📯 第${a.century}年大比 · 第${a.round+1}/3轮</h3><p>${a.sect} 对阵 ${a.opponents[a.round]}</p><p>${enemy.name} · ${enemy.desc}</p><p>生命 ${enemy.maxHp} · 攻击 ${enemy.atk} · 防御 ${enemy.def}</p><p>登台前恢复全部生命与灵力。对手属性已锁定，可返回调整装备与技能。落败不扣灵石。</p>`,[
+      showStory(`<h3>📯 第${a.century}年大比 · 第${a.round+1}/3轮</h3><p>${a.sect} 对阵 ${a.opponents[a.round]}</p><p>${enemy.name} · ${enemy.desc}</p><p>气血 ${enemy.maxHp} · 攻击 ${enemy.atk} · 防御 ${enemy.def}</p><p>登台前恢复全部气血与灵力。对手属性已锁定，可返回调整装备与技能。落败不扣灵石。</p>`,[
         {text:'⚔️ 登台比武',action:'tournament_fight',enemy},
         {text:'返回大比 · 调整准备',action:'sect_tournament'}]);
     }
@@ -3246,7 +3250,7 @@
       const a=koActiveV2780();if(!a)return startTournamentRoundLegacyV2780();
       const m=koPlayerMatchV2780(a);if(!m)return showSectTournament();
       const e=koEnemyV2780(a,m);
-      showStory(`<h3>${m.kind==='bronze'?'季军争夺':KO_STAGES_V2780[a.stage]}</h3><p>${koEscapeV2780(e.name)}</p><p>${koEscapeV2780(e.desc)}</p><p>生命${e.maxHp} · 攻击${e.atk} · 防御${e.def}</p><p>登台恢复全部生命灵力。除半决赛败者进入季军赛外，落败即结束本届个人赛程。</p>`,[{text:'⚔️ 登台比武',action:'tournament_fight',enemy:e},{text:'返回名册与对阵',action:'sect_tournament'}]);
+      showStory(`<h3>${m.kind==='bronze'?'季军争夺':KO_STAGES_V2780[a.stage]}</h3><p>${koEscapeV2780(e.name)}</p><p>${koEscapeV2780(e.desc)}</p><p>气血${e.maxHp} · 攻击${e.atk} · 防御${e.def}</p><p>登台恢复全部气血灵力。除半决赛败者进入季军赛外，落败即结束本届个人赛程。</p>`,[{text:'⚔️ 登台比武',action:'tournament_fight',enemy:e},{text:'返回名册与对阵',action:'sect_tournament'}]);
     }
     function enterTournamentFightV2779(enemy){
       if(gameState==='combat')return;
@@ -3947,7 +3951,7 @@
         name: '幽冥鬼王', hp: 800, atk: 60, def: 30, gold: 600, exp: 1000, phases: 3,
         skills: [
           { name: '幽冥鬼嚎', damage: 2.0, mpCost: 0, phase: 1, desc: '鬼哭狼嚎，扰乱心智' },
-          { name: '噬魂爪', damage: 2.5, mpCost: 0, phase: 2, desc: '利爪攻击，吸取生命' },
+          { name: '噬魂爪', damage: 2.5, mpCost: 0, phase: 2, desc: '利爪攻击，吸取气血' },
           { name: '万鬼缠身', damage: 3.5, mpCost: 0, phase: 3, desc: '召唤万鬼，造成巨大伤害' }
         ],
         phaseMessages: ['鬼王身形变得模糊，阴气更盛！', '鬼王发出凄厉的嚎叫，无数冤魂浮现！', '鬼王完全释放了力量，恐怖的威压笼罩全场！']
@@ -3994,8 +3998,8 @@
       '养元丹': {type:'longevity',icon:'⏳',desc:'延寿10年；凡人可用，终身限5枚。仙市购买或炼制'},
       '延寿丹': {type:'longevity',icon:'⏳',desc:'延寿50年；筑基可用，终身限3枚。仙市购买或炼制'},
       '万寿丹': {type:'longevity',icon:'⏳',desc:'延寿200年；金丹可用，终身限2枚。仙市购买或炼制'},
-      '小还丹': { type: 'heal', value: 30, desc: '恢复30点生命' },
-      '大还丹': { type: 'heal', value: 80, desc: '恢复80点生命' },
+      '小还丹': { type: 'heal', value: 30, desc: '恢复30点气血' },
+      '大还丹': { type: 'heal', value: 80, desc: '恢复80点气血' },
       '聚灵丹': { type: 'mp', value: 30, desc: '恢复30点灵力' },
       '悟道丹': { type: 'exp', value: 100, desc: '增加100点修为' },
       '天元丹': { type: 'exp', value: 300, desc: '增加300点修为' },
@@ -4021,9 +4025,12 @@
       EXCELLENT:{name:'精品',color:'#9c27b0',multiplier:2.0,icon:'◒'},
       SPIRIT:{name:'灵宝',color:'#ff9800',multiplier:2.5,icon:'◕'},
       IMMORTAL:{name:'仙器',color:'#ffd700',multiplier:3.2,icon:'✦'},
-      GOD:{name:'神器',color:'#ff1744',multiplier:4.0,icon:'★'}
+      GOD:{name:'神器',color:'#ff1744',multiplier:4.0,icon:'★'},
+      TIAN_QI:{name:'天器',color:'#ffb347',multiplier:3.2,icon:'✧'},
+      SHENG_QI:{name:'圣器',color:'#ff7ab6',multiplier:3.2,icon:'✪'},
+      DAO_QI:{name:'道器',color:'#7fe3ff',multiplier:3.2,icon:'☯'}
     };
-    const QUALITY_KEYS=['MORTAL','GOOD','FINE','EXCELLENT','SPIRIT','IMMORTAL','GOD'];
+    const QUALITY_KEYS=['MORTAL','GOOD','FINE','EXCELLENT','SPIRIT','IMMORTAL','TIAN_QI','SHENG_QI','DAO_QI','GOD'];
 
     const EQUIPMENT_SLOTS = {
       head:{label:'头冠',icon:'👑',type:'armor'}, robe:{label:'法袍',icon:'👘',type:'armor'}, bracer:{label:'护腕',icon:'💪',type:'armor'},
@@ -4048,7 +4055,7 @@
 
       '素布道袍':{slot:'robe',quality:'MORTAL',realmRequired:0,stats:{hp:20,def:3,mp:10},desc:'粗布道袍，朴素无华'},
       '青云法袍':{slot:'robe',quality:'GOOD',realmRequired:1,stats:{hp:45,def:8,mp:25},desc:'青衫飘逸，灵气流转'},
-      '紫云袍':{slot:'robe',quality:'FINE',realmRequired:2,stats:{hp:90,def:16,mp:50},desc:'紫云织就，法力充盈'},
+      '紫云袍':{slot:'robe',quality:'FINE',realmRequired:2,stats:{hp:90,def:16,mp:50},desc:'紫云织就，灵力充盈'},
       '玄冰法袍':{slot:'robe',quality:'EXCELLENT',realmRequired:3,stats:{hp:160,def:28,mp:90},desc:'玄冰蚕丝所织，寒暑不侵'},
       '天星法袍':{slot:'robe',quality:'SPIRIT',realmRequired:6,stats:{hp:280,def:45,mp:160},desc:'天蚕吐丝，灵光自生'},
       '太虚仙袍':{slot:'robe',quality:'IMMORTAL',realmRequired:10,stats:{hp:500,def:80,mp:300},desc:'太虚之气凝结，诸法不侵'},
@@ -4076,7 +4083,7 @@
 
       '石珠链':{slot:'necklace',quality:'MORTAL',realmRequired:0,stats:{mp:10,crit:1},desc:'石珠串成，微有灵气'},
       '青玉链':{slot:'necklace',quality:'GOOD',realmRequired:1,stats:{mp:25,crit:3},desc:'青玉温润，灵气凝聚'},
-      '灵晶链':{slot:'necklace',quality:'FINE',realmRequired:2,stats:{mp:50,crit:6},desc:'灵晶璀璨，法力充沛'},
+      '灵晶链':{slot:'necklace',quality:'FINE',realmRequired:2,stats:{mp:50,crit:6},desc:'灵晶璀璨，灵力充沛'},
       '天星链':{slot:'necklace',quality:'EXCELLENT',realmRequired:3,stats:{mp:90,crit:12},desc:'龙魂残魄寄于其中'},
 
       '木镯':{slot:'bracelet',quality:'MORTAL',realmRequired:0,stats:{spirit:1,hit:1},desc:'木制手镯，简朴无华'},
@@ -4144,18 +4151,24 @@
       '裂星穿云':{family:'spear',color:'#f1cf9b',names:['九霄寂灭枪','逐星凌劲袍','破云束星冠','掠影追风靴','流星破戒'],slots:['weapon','robe','head','boots','ring'],look:['陨星玄金枪，菱形寒锋与赤金枪缨。','银白劲袍，碎星灵丝轻甲，利落如风。','银玉束冠，中央嵌碎星晶石。','银纹轻底战靴，刻破空纹。','银星指环，嵌陨星碎晶。'],lore:'上古星陨枪修传承，以穿刺和连击破除坚甲。',mods:[{atkPct:.33,pierce:.15},{atkPct:.24},{critDmg:.10},{follow:.12},{crit:.14}],tiers:[{count:2,bonus:{atk:15}},{count:4,bonus:{crit:5}},{count:5,bonus:{atk:40}}],mechanic:'2件：枪击有15%概率追加20%伤害；4件：枪击额外穿透30%防御；全套仙器：对满血敌人枪击伤害+35%，穿云贯日击杀恢复15%最大灵力。'},
       '万象玄霆':{family:'wand',color:'#c5a4ff',names:['九霄玄霆杖','万法霄宸袍','御雷宸冠','踏雷虚宸履','万象雷灵珠'],slots:['weapon','robe','head','boots','jade'],look:['万年雷击神木法杖，紫金雷纹，杖首托雷核宝珠。','紫黑渐变仙袍，广袖织雷纹星图。','紫金雷云法冠，嵌雷晶珠。','紫黑云纹法靴，靴底雷光印。','球形雷玉，内部电光流转。'],lore:'上古雷尊传承，聚天地雷力，以雷云持续轰击强敌。',mods:[{spellPct:.35,thunderPct:.22},{spellPct:.26,mpPct:.25,pierce:.12},{spellCrit:.12},{followSpell:.14},{mpRegen:.18,spellPct:.13}],tiers:[{count:2,bonus:{mp:40}},{count:4,bonus:{atk:20}},{count:5,bonus:{mp:120}}],mechanic:'2件：雷系伤害+15%；4件：雷系命中25%概率麻痹1回合；全套仙器：九霄雷云附加2次持续雷伤，攻击法术有20%概率追加30%伤害。'}
     };
-    const GRADES_V2790=[{name:'灵品',quality:'LING_PIN',level:2,scale:.4,cost:600},{name:'宝器',quality:'BAO_QI',level:3,scale:.7,cost:2400},{name:'仙器',quality:'IMMORTAL',level:7,scale:1,cost:9600}];
+    const GRADES_V2790=[{name:'灵品',quality:'LING_PIN',level:2,scale:.4,cost:600},{name:'宝器',quality:'BAO_QI',level:3,scale:.7,cost:2400},{name:'仙器',quality:'IMMORTAL',level:7,scale:1,cost:9600},
+      // Post-地仙 grades extend the existing curve: level 2/3/7 -> 10/12/14, mod scale +.3 per grade,
+      // old-set stat curve steps +.6/+.8 -> +1.0/+1.2/+1.4, price x4 per grade. Earlier grades are unchanged.
+      {name:'天器',quality:'TIAN_QI',level:10,scale:1.3,statScale:1.42,cost:38400},
+      {name:'圣器',quality:'SHENG_QI',level:12,scale:1.6,statScale:1.92,cost:153600},
+      {name:'道器',quality:'DAO_QI',level:14,scale:1.9,statScale:2.5,cost:614400}];
+    const GRADE_STAT_CURVE_V286838=[1,1.6,2.4,3.4,4.6,6];
     EQUIPMENT_QUALITIES.LING_PIN={name:'灵品',color:'#67e8b5',multiplier:1,icon:'◈'};
     EQUIPMENT_QUALITIES.BAO_QI={name:'宝器',color:'#cc9cff',multiplier:1,icon:'◆'};
     QUALITY_KEYS.splice(4,0,'LING_PIN','BAO_QI');
     function newGearNameV2790(set,i,grade){return `${set}·${NEW_SETS_V2790[set].names[i]}·${GRADES_V2790[grade-1].name}`;}
-    const MOD_NAMES_V2790={atkPct:'攻击',defPct:'防御',hpPct:'最大生命',mpPct:'最大灵力',reducePct:'命中减伤',controlResist:'威压控制抵抗',hpRegen:'每次敌方回合结束回血',pierce:'本次攻击穿透',crit:'暴击率',critDmg:'暴击伤害',follow:'枪击追击概率',spellPct:'攻击法术伤害',thunderPct:'雷伤',spellCrit:'法术暴击率',followSpell:'法术追击概率',mpRegen:'每次敌方回合结束回灵'};
+    const MOD_NAMES_V2790={atkPct:'攻击',defPct:'防御',hpPct:'最大气血',mpPct:'最大灵力',reducePct:'命中减伤',controlResist:'威压控制抵抗',hpRegen:'每次敌方回合结束回血',pierce:'本次攻击穿透',crit:'暴击率',critDmg:'暴击伤害',follow:'枪击追击概率',spellPct:'攻击法术伤害',thunderPct:'雷伤',spellCrit:'法术暴击率',followSpell:'法术追击概率',mpRegen:'每次敌方回合结束回灵'};
     for(const [name,set] of Object.entries(NEW_SETS_V2790)){
       const items=[];
-      for(let grade=1;grade<=3;grade++)for(let i=0;i<5;i++){
+      for(let grade=1;grade<=GRADES_V2790.length;grade++)for(let i=0;i<5;i++){
         const g=GRADES_V2790[grade-1],key=newGearNameV2790(name,i,grade),mods={};
         for(const [k,v] of Object.entries(set.mods[i]))mods[k]=v*g.scale;
-        const stats=i===0?{atk:Math.round(40*g.scale)}:i===1?{def:Math.round(25*g.scale),hp:Math.round(90*g.scale)}:i===2?{def:Math.round(12*g.scale)}:i===3?{def:Math.round(8*g.scale)}:{hp:Math.round(40*g.scale)};
+        const k=g.statScale??g.scale,stats=i===0?{atk:Math.round(40*k)}:i===1?{def:Math.round(25*k),hp:Math.round(90*k)}:i===2?{def:Math.round(12*k)}:i===3?{def:Math.round(8*k)}:{hp:Math.round(40*k)};
         EQUIPMENT_DB[key]={slot:set.slots[i],quality:g.quality,realmRequired:g.level,stats,modsV2790:mods,familyV2790:name,pieceV2790:i,gradeV2790:grade,weaponFamily:i===0?set.family:undefined,priceV2790:g.cost,desc:set.look[i]+' '+set.lore+' 实装：'+Object.entries(mods).map(([k,v])=>`${MOD_NAMES_V2790[k]}+${Math.round(v*100)}%`).join('、')+'。'};
         if(grade===3)items.push(key);
       }
@@ -4200,7 +4213,7 @@
     }
     function gearRestoreV2790(){
       if(player.hp<=0)return;const m=gearModsV2790();
-      for(const [key,ratio,max] of [['hp',m.hpRegen,getMaxHp()],['mp',m.mpRegen,getMaxMp()]])if(ratio){const n=Math.max(0,Math.min(max-player[key],Math.floor(max*Math.min(.2,ratio))));player[key]+=n;if(n)addCombatLog(`兵装滋养：${key==='hp'?'生命':'灵力'} +${n}`,'heal');}
+      for(const [key,ratio,max] of [['hp',m.hpRegen,getMaxHp()],['mp',m.mpRegen,getMaxMp()]])if(ratio){const n=Math.max(0,Math.min(max-player[key],Math.floor(max*Math.min(.2,ratio))));player[key]+=n;if(n)addCombatLog(`兵装滋养：${key==='hp'?'气血':'灵力'} +${n}`,'heal');}
     }
     function showNewGearShopV2790(family='镇岳禅心',grade=1){
       if(gameState==='combat'||!NEW_SETS_V2790[family]||!GRADES_V2790[grade-1])return;
@@ -4221,7 +4234,7 @@
     }
 
     function buyNewGearV2790(family,piece,grade){
-      if(gameState==='combat'||!NEW_SETS_V2790[family]||!Number.isInteger(piece)||piece<0||piece>4||!Number.isInteger(grade)||grade<1||grade>3)return;
+      if(gameState==='combat'||!NEW_SETS_V2790[family]||!Number.isInteger(piece)||piece<0||piece>4||!Number.isInteger(grade)||grade<1||grade>GRADES_V2790.length)return;
       const name=newGearNameV2790(family,piece,grade),d=EQUIPMENT_DB[name];if(!canEquipItem(name).ok||player.gold<d.priceV2790)return;
       if(!confirmGearPurchaseV2804(name,d.priceV2790))return;
       player.gold-=d.priceV2790;(player.equipmentInventory||=[]).push(name);autoSave();updateStats();showNewGearShopV2790(family,grade);
@@ -4243,9 +4256,9 @@
       OLD_SET_VERSIONS_V2792[family]=bases;
       for(let i=0;i<bases.length;i++){
         const baseName=bases[i],base=EQUIPMENT_DB[baseName],oldMult=getQualityInfo(base.quality).multiplier;
-        for(let grade=1;grade<=3;grade++){
+        for(let grade=1;grade<=GRADES_V2790.length;grade++){
           const g=GRADES_V2790[grade-1],qualityMult=getQualityInfo(g.quality).multiplier,stats={};
-          for(const [k,v] of Object.entries(base.stats||{}))stats[k]=Number((v*oldMult*[1,1.6,2.4][grade-1]/qualityMult).toFixed(6));
+          for(const [k,v] of Object.entries(base.stats||{}))stats[k]=Number((v*oldMult*GRADE_STAT_CURVE_V286838[grade-1]/qualityMult).toFixed(6));
           const name=baseName+'·'+g.name;
           EQUIPMENT_DB[name]={...base,quality:g.quality,stats,realmRequired:grade===1?base.realmRequired:Math.max(base.realmRequired,g.level),familyV2790:family,pieceV2790:i,gradeV2790:grade,priceV2790:g.cost,desc:base.desc+'；'+g.name+'版本，同套不同品级可混穿，按部位计件。'};
         }
@@ -4261,7 +4274,7 @@
     }
     function oldVersionNameV2792(family,piece,grade){return OLD_SET_VERSIONS_V2792[family]?.[piece]+'·'+GRADES_V2790[grade-1]?.name;}
     function showOldGearShopV2792(family='青云',grade=1){
-      if(gameState==='combat'||!OLD_SET_VERSIONS_V2792[family]||!Number.isInteger(grade)||grade<1||grade>3)return;
+      if(gameState==='combat'||!OLD_SET_VERSIONS_V2792[family]||!Number.isInteger(grade)||grade<1||grade>GRADES_V2790.length)return;
       let html='<h3>套装坊 · 三品级成套装备</h3><p>灵品青绿、宝器紫色、仙器金色。旧三套保留原件数与分段加成，混品级可凑套。宝器与仙器提升单件属性。</p>';
       for(const f of Object.keys(OLD_SET_VERSIONS_V2792))html+=`<button class="choice-btn" onclick="showOldGearShopV2792('${f}',${grade})">${f}套装</button>`;
       for(const f of Object.keys(NEW_SETS_V2790))html+=`<button class="choice-btn" onclick="showNewGearShopV2790('${f}',${grade})">${f}</button>`;
@@ -4271,7 +4284,7 @@
       showStory(html,[{text:'返回仙市',action:'market'}]);
     }
     function buyOldGearV2792(family,piece,grade){
-      if(gameState==='combat'||!OLD_SET_VERSIONS_V2792[family]||!Number.isInteger(piece)||piece<0||piece>=OLD_SET_VERSIONS_V2792[family].length||!Number.isInteger(grade)||grade<1||grade>3)return;
+      if(gameState==='combat'||!OLD_SET_VERSIONS_V2792[family]||!Number.isInteger(piece)||piece<0||piece>=OLD_SET_VERSIONS_V2792[family].length||!Number.isInteger(grade)||grade<1||grade>GRADES_V2790.length)return;
       const name=oldVersionNameV2792(family,piece,grade),d=EQUIPMENT_DB[name];if(player.gold<d.priceV2790||!canEquipItem(name).ok)return;
       if(!confirmGearPurchaseV2804(name,d.priceV2790))return;
       player.gold-=d.priceV2790;(player.equipmentInventory||=[]).push(name);autoSave();updateStats();showOldGearShopV2792(family,grade);
@@ -4305,8 +4318,8 @@
     }
     function forgeAllowedV2825(){return gameState!=='combat'&&gameState!=='combat-ending'&&!player.breakthrough?.isAnimating;}
     function forgeGradeV2825(data){
-      const declared=Number(data?.gradeV2790),qualityFloor=({BAO_QI:2,EXCELLENT:2,SPIRIT:2,IMMORTAL:3,GOD:3})[data?.quality]||1;
-      return Math.max(qualityFloor,Number.isInteger(declared)&&declared>=1&&declared<=3?declared:1);
+      const declared=Number(data?.gradeV2790),qualityFloor=({BAO_QI:2,EXCELLENT:2,SPIRIT:2,IMMORTAL:3,TIAN_QI:3,SHENG_QI:3,DAO_QI:3,GOD:3})[data?.quality]||1;
+      return Math.max(qualityFloor,Number.isInteger(declared)&&declared>=1?Math.min(3,declared):1);
     }
     function forgeAffixTextV2825(rows){return rows?.length?rows.map(a=>`${FORGE_STATS_V2825[a.stat].name} · ${FORGE_STATS_V2825[a.stat].label} +${a.value}${a.unit==='percent'?'%':''}`).join('；'):'暂无词条';}
     function forgeCurrentV2825(nonce){
@@ -4386,7 +4399,12 @@
       if(!Array.isArray(target.equipmentInventory))target.equipmentInventory=[];
       if(!Array.isArray(target.inventory))target.inventory=[];
       const keep=[];
-      for(const name of target.inventory){if(EQUIPMENT_DB[name])target.equipmentInventory.push(name);else keep.push(name);}
+      for(const raw of target.inventory){
+        const name=TASK_REWARD_LEGACY_V286838[raw]||raw;
+        if(EQUIPMENT_DB[name])target.equipmentInventory.push(name);
+        else if(name!==raw&&MATERIALS[name]){if(!target.materials||typeof target.materials!=='object')target.materials={};target.materials[name]=(Number(target.materials[name])||0)+1;}
+        else keep.push(name);
+      }
       target.inventory=keep;
       if(!target.equipment)target.equipment=createEmptyEquipmentSlots();
       for(const slot of Object.keys(EQUIPMENT_SLOTS)){
@@ -4396,7 +4414,7 @@
       checkSetBonuses(target);
     }
     function formatEquipStats(stats={}){
-      const labels={atk:'攻击',def:'防御',hp:'生命',mp:'灵力',crit:'暴击',critDmg:'爆伤',dodge:'闪避',block:'格挡',resistance:'抗性',dmgReduce:'减伤',speed:'速度',spirit:'神魂',hit:'命中',hpRegen:'回血',fireDmg:'火伤'};
+      const labels={atk:'攻击',def:'防御',hp:'气血',mp:'灵力',crit:'暴击',critDmg:'爆伤',dodge:'闪避',block:'格挡',resistance:'抗性',dmgReduce:'减伤',speed:'速度',spirit:'神魂',hit:'命中',hpRegen:'回血',fireDmg:'火伤'};
       return Object.entries(stats).map(([k,v])=>`${labels[k]||k}+${Number(Number(v).toFixed(2))}${['crit','critDmg','dodge','block','resistance','dmgReduce','hit','fireDmg'].includes(k)?'%':''}`).join(' · ');
     }
 
@@ -4405,7 +4423,7 @@
       { name: '雷法', mpCost: 20, damage: 2.0, desc: '消耗20灵力，造成2倍攻击伤害', element: 'thunder' },
       // 雷系进阶技能
       { name: '惊雷闪', mpCost: 25, damage: 2.2, desc: '消耗25灵力，造成2.2倍攻击伤害，概率封脉，使目标接下来2次行动无法施展术法或回生', element: 'thunder', effect: 'paralyze', statusChance: 0.42 },
-      { name: '裂地奔雷', mpCost: 38, damage: 2.7, desc: '消耗38灵力，造成2.7倍范围雷伤', element: 'thunder', effect: 'thunder_aoe', scope: 'aoe' },
+      { name: '裂地奔雷', mpCost: 38, damage: 2.7, desc: '消耗38灵力，造成2.7倍雷伤；当前战斗为单体对决，按单体结算', element: 'thunder', effect: 'thunder_aoe', scope: 'aoe' },
       { name: '紫霄落雷', mpCost: 52, damage: 3.4, desc: '消耗52灵力，造成3.4倍攻击伤害，并穿透45%防御', element: 'thunder', effect: 'armor_pierce', armorPierce: 0.45 },
       { name: '万雷噬狱', mpCost: 68, damage: 4.1, desc: '消耗68灵力，造成4.1倍攻击伤害，并形成持续3回合雷域', element: 'thunder', effect: 'thunder_domain', domainTurns: 3, domainRatio: 0.16, scope: 'aoe' },
       { name: '九天神雷', mpCost: 85, damage: 5.2, desc: '消耗85灵力，造成5.2倍巨额雷伤，并有较高概率眩晕', element: 'thunder', effect: 'stun', statusChance: 0.68, scope: 'all' },
@@ -4446,21 +4464,21 @@
       { name: '流火飞索', mpCost: 35, damage: 2.4, desc: '消耗35灵力，捆缚控制并持续灼烧', element: 'fire', effect: 'fireBind', duration: 2 },
       { name: '炎阳护盾', mpCost: 30, damage: 0, desc: '消耗30灵力，火焰护盾、反伤并提升火伤', element: 'fire', effect: 'fireShield', duration: 3 },
       // 治愈系技能
-      { name: '回春术', mpCost: 20, heal: 0.3, desc: '消耗20灵力，恢复30%最大生命值', element: 'heal' },
-      { name: '生生不息', mpCost: 40, heal: 0.5, desc: '消耗40灵力，恢复50%最大生命值', element: 'heal' },
-      { name: '起死回生', mpCost: 60, heal: 0.8, desc: '消耗60灵力，恢复80%最大生命值', element: 'heal' },
+      { name: '回春术', mpCost: 20, heal: 0.3, desc: '消耗20灵力，恢复30%最大气血', element: 'heal' },
+      { name: '生生不息', mpCost: 40, heal: 0.5, desc: '消耗40灵力，恢复50%最大气血', element: 'heal' },
+      { name: '起死回生', mpCost: 60, heal: 0.8, desc: '消耗60灵力，恢复80%最大气血', element: 'heal' },
 
       // V27.85：追加而不插队，保留旧技能索引；明确境界解锁。
       {name:'清风剑诀',element:'sword',mpCost:8,damage:1.35,unlockRealm:0,desc:'消耗8灵力，1.35倍剑伤；凡人自动领悟'},
       {name:'破甲剑罡',element:'sword',mpCost:24,damage:2.1,armorPierce:.5,unlockRealm:1,desc:'消耗24灵力，2.1倍剑伤，本次穿透50%防御；练气解锁'},
-      {name:'追魂一剑',element:'sword',mpCost:38,damage:2.8,executeBonus:.5,unlockRealm:2,desc:'消耗38灵力，2.8倍剑伤；目标生命不高于30%时本次伤害增加50%；筑基解锁'},
-      {name:'饮血剑诀',element:'sword',mpCost:42,damage:2.7,lifeSteal:.2,unlockRealm:2,desc:'消耗42灵力，2.7倍剑伤；按实际扣血的20%回血，单次最多恢复15%最大生命；筑基解锁'},
+      {name:'追魂一剑',element:'sword',mpCost:38,damage:2.8,executeBonus:.5,unlockRealm:2,desc:'消耗38灵力，2.8倍剑伤；目标气血不高于30%时本次伤害增加50%；筑基解锁'},
+      {name:'饮血剑诀',element:'sword',mpCost:42,damage:2.7,lifeSteal:.2,unlockRealm:2,desc:'消耗42灵力，2.7倍剑伤；按实际扣血的20%回血，单次最多恢复15%最大气血；筑基解锁'},
       {name:'玄罡护体剑',element:'sword',mpCost:50,damage:3.1,guardRatio:.35,unlockRealm:2,desc:'消耗50灵力，3.1倍剑伤；本场下一次命中伤害降低35%，不可叠加；筑基解锁'},
-      {name:'凝露诀',element:'heal',mpCost:8,heal:.15,unlockRealm:0,desc:'消耗8灵力，恢复15%最大生命；凡人自动领悟'},
-      {name:'青莲护心',element:'heal',mpCost:26,heal:.25,guardRatio:.3,unlockRealm:1,desc:'消耗26灵力，恢复25%最大生命；本场下一次命中伤害降低30%，不可叠加；练气解锁'},
-      {name:'灵泉归元',element:'heal',mpCost:35,heal:.3,mpRestore:12,unlockRealm:2,desc:'先消耗35灵力，恢复30%最大生命和12灵力（净耗23）；筑基解锁'},
-      {name:'逆命回元',element:'heal',mpCost:48,heal:.35,emergencyHeal:.65,unlockRealm:2,desc:'消耗48灵力，恢复35%最大生命；施法前生命不高于25%时改为恢复65%；不复活、不延寿；筑基解锁'},
-      {name:'莲华济世',element:'heal',mpCost:65,heal:.6,guardRatio:.4,unlockRealm:2,desc:'消耗65灵力，恢复60%最大生命；本场下一次命中伤害降低40%，不可叠加；筑基解锁'}
+      {name:'凝露诀',element:'heal',mpCost:8,heal:.15,unlockRealm:0,desc:'消耗8灵力，恢复15%最大气血；凡人自动领悟'},
+      {name:'青莲护心',element:'heal',mpCost:26,heal:.25,guardRatio:.3,unlockRealm:1,desc:'消耗26灵力，恢复25%最大气血；本场下一次命中伤害降低30%，不可叠加；练气解锁'},
+      {name:'灵泉归元',element:'heal',mpCost:35,heal:.3,mpRestore:12,unlockRealm:2,desc:'先消耗35灵力，恢复30%最大气血和12灵力（净耗23）；筑基解锁'},
+      {name:'逆命回元',element:'heal',mpCost:48,heal:.35,emergencyHeal:.65,unlockRealm:2,desc:'消耗48灵力，恢复35%最大气血；施法前气血不高于25%时改为恢复65%；不复活、不延寿；筑基解锁'},
+      {name:'莲华济世',element:'heal',mpCost:65,heal:.6,guardRatio:.4,unlockRealm:2,desc:'消耗65灵力，恢复60%最大气血；本场下一次命中伤害降低40%，不可叠加；筑基解锁'}
     ];
 
 
@@ -4528,7 +4546,7 @@
       combat_monster:{
         goal:'击败 3 只可计数的普通敌人',
         route:'推荐路线：前往【迷雾森林】寻找地图实体怪；南域也有少量低级怪，危险更低。',
-        sources:['地图实体普通怪：计数','普通试炼怪：计数','Boss、天劫、百年宗门大比对手：不计数'],
+        sources:['地图实体普通怪：计数','普通试炼怪：计数','首领、天劫、百年宗门大比对手：不计数'],
         tips:'击杀会自动更新，无需手动提交战利品；达到 3/3 后任务会自动完成并发奖。',
         poiId:'forest', poiName:'迷雾森林'
       },
@@ -4639,29 +4657,7 @@
       { skillName:'冰甲护身', contributionCost:80, requiredRank:'内门弟子' },
       { skillName:'冰魄封魂', contributionCost:180, requiredRank:'真传弟子' },
       { skillName:'万载寒晶', contributionCost:240, requiredRank:'长老' },
-
-      { skillName:'玄冰刺', contributionCost:35, requiredRank:'外门弟子' },
-      { skillName:'冰爆术', contributionCost:45, requiredRank:'外门弟子' },
-      { skillName:'霜寒结界', contributionCost:60, requiredRank:'内门弟子' },
-      { skillName:'冰蝶幻舞', contributionCost:70, requiredRank:'内门弟子' },
-      { skillName:'霜龙吐息', contributionCost:95, requiredRank:'内门弟子' },
-      { skillName:'冰河葬狱', contributionCost:120, requiredRank:'真传弟子' },
-      { skillName:'寒渊领域', contributionCost:150, requiredRank:'真传弟子' },
-      { skillName:'冰甲护身', contributionCost:80, requiredRank:'内门弟子' },
-      { skillName:'冰魄封魂', contributionCost:180, requiredRank:'真传弟子' },
-      { skillName:'万载寒晶', contributionCost:240, requiredRank:'长老' },
       { skillName:'烈焰斩', contributionCost:25, requiredRank:'外门弟子' },
-      { skillName:'炎爆术', contributionCost:35, requiredRank:'外门弟子' },
-      { skillName:'红莲业火', contributionCost:55, requiredRank:'外门弟子' },
-      { skillName:'火墙术', contributionCost:45, requiredRank:'外门弟子' },
-      { skillName:'三昧真火', contributionCost:85, requiredRank:'内门弟子' },
-      { skillName:'赤焰龙息', contributionCost:120, requiredRank:'真传弟子' },
-      { skillName:'焚心炎', contributionCost:145, requiredRank:'真传弟子' },
-      { skillName:'燎原火域', contributionCost:170, requiredRank:'真传弟子' },
-      { skillName:'太阳真火', contributionCost:250, requiredRank:'长老' },
-      { skillName:'流火飞索', contributionCost:65, requiredRank:'内门弟子' },
-      { skillName:'炎阳护盾', contributionCost:75, requiredRank:'内门弟子' },
-
       { skillName:'炎爆术', contributionCost:35, requiredRank:'外门弟子' },
       { skillName:'红莲业火', contributionCost:55, requiredRank:'外门弟子' },
       { skillName:'火墙术', contributionCost:45, requiredRank:'外门弟子' },
@@ -4685,8 +4681,8 @@
     ];
 
     const SECT_SHOP_ITEMS = [
-      { name:'小还丹', cost:10, type:'heal', value:30, desc:'恢复30点生命' },
-      { name:'大还丹', cost:30, type:'heal', value:80, desc:'恢复80点生命' },
+      { name:'小还丹', cost:10, type:'heal', value:30, desc:'恢复30点气血' },
+      { name:'大还丹', cost:30, type:'heal', value:80, desc:'恢复80点气血' },
       { name:'聚灵丹', cost:15, type:'mp', value:30, desc:'恢复30点灵力' },
       { name:'悟道丹', cost:50, type:'exp', value:100, desc:'增加100点修为' },
       { name:'天元丹', cost:120, type:'exp', value:300, desc:'增加300点修为' },
@@ -4747,7 +4743,7 @@
       '仙灵套装': {
         items: ['仙灵剑', '仙灵甲'],
         bonus: { atk: 60, def: 40, hp: 200, mp: 50 },
-        desc: '攻击+60，防御+40，生命+200，灵力+50'
+        desc: '攻击+60，防御+40，气血+200，灵力+50'
       },
       '神魔套装': {
         items: ['神魔剑', '神魔甲'],
@@ -4884,12 +4880,12 @@
     function showYeWujiV2810(){
       if(gameState==='combat'||gameState==='combat-ending')return;
       const e=createYeWujiV2810();
-      showStory(`${jevEntryV2846('jevRivalV2849()','Jev 宿敌应对')}<section class="yewuji-card-v2810"><img src="./portrait-yewuji-v2810.webp" alt="夜无疆，玄黑暗金长袍立于破碎仙阵前" width="640" height="960" loading="lazy"><div><p>魔族共尊 · 逆天魔典</p><h3>夜无疆</h3><p>${YEWUJI_LORE_V2810}</p></div></section><p>你的境界：${getCultivationName()}<br>夜无疆：<b>${getEnemyRealmNameV2811(e)}</b></p><p>生命 ${e.hp} · 攻击 ${e.atk} · 防御 ${e.def}</p><p>境界极限：半圣圆满（对应现有准圣），永久无法突破圣人；到达极限后，主角继续成长也不会再提高他的属性。</p><p>三阶段招式：破阵指 → 裂界掌 → 万法归寂，逐步加强伤害与破甲。</p><p>这是宿敌挑战，可自行决定何时尝试。胜利代表击退，夜无疆不会永久死亡；本次不发放灵石和修为。战败沿用普通战斗扣款规则。</p>`,[{text:'📜 宿敌纪事 · '+yeStateV2816().choices.length+'/8章',action:'yewuji_story_v2816'},{text:'⚔️ 挑战夜无疆',action:'challenge_yewuji_v2810'},{text:'☠️ 前往玄煞魔域',action:'travel_world_map',regionId:'demon_domain',condition:()=>isRegionUnlocked('demon_domain')},{text:'返回地图',action:'return_to_map'}]);
+      showStory(`${jevEntryV2846('jevRivalV2849()','Jev 宿敌应对')}<section class="yewuji-card-v2810"><img src="./portrait-yewuji-v2810.webp" alt="夜无疆，玄黑暗金长袍立于破碎仙阵前" width="640" height="960" loading="lazy"><div><p>魔族共尊 · 逆天魔典</p><h3>夜无疆</h3><p>${YEWUJI_LORE_V2810}</p></div></section><p>你的境界：${getCultivationName()}<br>夜无疆：<b>${getEnemyRealmNameV2811(e)}</b></p><p>气血 ${e.hp} · 攻击 ${e.atk} · 防御 ${e.def}</p><p>境界极限：半圣圆满（对应现有准圣），永久无法突破圣人；到达极限后，主角继续成长也不会再提高他的属性。</p><p>三阶段招式：破阵指 → 裂界掌 → 万法归寂，逐步加强伤害与破甲。</p><p>备战建议：先到北域灵泉补满气血与灵力；储物袋备好大还丹或玄玉护脉丹；功法栏放入青莲护心、莲华济世或玄罡护体剑，在「万法归寂」前抵挡一次重击。战败不影响主线进度，可整备后再试。</p><p>这是宿敌挑战，可自行决定何时尝试。胜利代表击退，夜无疆不会永久死亡；本次不发放灵石和修为。战败沿用普通战斗扣款规则。</p>`,[{text:'📜 宿敌纪事 · '+yeStateV2816().choices.length+'/8章',action:'yewuji_story_v2816'},{text:'⚔️ 挑战夜无疆',action:'challenge_yewuji_v2810'},{text:'☠️ 前往玄煞魔域',action:'travel_world_map',regionId:'demon_domain',condition:()=>isRegionUnlocked('demon_domain')},{text:'返回地图',action:'return_to_map'}]);
     }
     function challengeYeWujiV2810(){
       if(gameState==='combat'||gameState==='combat-ending'||COMBAT_FINISH_V2764.settling)return;
       const e=createYeWujiV2810();
-      if(!window.confirm(`挑战夜无疆（${getEnemyRealmNameV2811(e)}）？\n生命 ${e.hp} · 攻击 ${e.atk} · 防御 ${e.def}\n无灵石与修为奖励；战败按原规则扣款。`))return;
+      if(!window.confirm(`挑战夜无疆（${getEnemyRealmNameV2811(e)}）？\n气血 ${e.hp} · 攻击 ${e.atk} · 防御 ${e.def}\n无灵石与修为奖励；战败按原规则扣款。`))return;
       startCombat(e,true,false);
     }
 
@@ -4934,14 +4930,14 @@
         materials: { '灵草': 2 },
         baseSuccess: 0.9,
         result: '小还丹',
-        desc: '恢复30点生命',
+        desc: '恢复30点气血',
         alchemyLevelRequired: 1
       },
       '大还丹': {
         materials: { '灵草': 3, '仙果': 1 },
         baseSuccess: 0.8,
         result: '大还丹',
-        desc: '恢复80点生命',
+        desc: '恢复80点气血',
         alchemyLevelRequired: 2
       },
       '聚灵丹': {
@@ -5098,7 +5094,7 @@
         icon: '🔗',
         type: 'support',
         effect: { type: 'regen', value: 0.05 },
-        desc: '每回合恢复5%生命',
+        desc: '每回合恢复5%气血',
         maxLevel: 10,
         upgradeCost: { '仙果': 2, '灵石': 100 }
       }
@@ -5884,17 +5880,19 @@
 
 
     // ================== 完整主线 + 支线任务系统 V11 ==================
+    // Saves made before rewards matched the item tables may still hold these placeholder names.
+    const TASK_REWARD_LEGACY_V286838={基础剑袍:'素布道袍',基础剑诀:'木剑',新手药瓶:'小还丹',基础护符:'石佩',内门令牌:'青云佩·灵品',高阶灵药:'大还丹',天机洞察buff:'悟道丹',道心突破:'破障丹',炼丹材料:'灵草',功法残页:'悟道茶',灵宠进阶材料:'妖丹',阵法熟练度:'星辰砂',心境修为:'悟道丹',后期关键分支解锁:'天材地宝',心魔抗性永久提升:'玄玉护脉丹',魔抗:'魔核',高阶防御材料:'冰晶石'};
     const TASK_TYPES={MAIN:'main',SIDE:'side',DAILY:'daily',WEEKLY:'weekly',HIDDEN:'hidden'};
     const TASK_STATUS={AVAILABLE:'available',ACTIVE:'active',COMPLETED:'completed',FAILED:'failed',LOCKED:'locked'};
 
     const MAIN_TASKS=[
-      {id:'main_01',type:'main',title:'仙缘入世',desc:'凡尘少年在青云渡口得遇清玄真人，自此踏入凌霄宗仙途。',npc:'清玄真人',unlockRealm:0,nextTask:'main_02',rewards:{exp:100,gold:300,items:['基础剑袍','基础剑诀']},steps:[
+      {id:'main_01',type:'main',title:'仙缘入世',desc:'凡尘少年在青云渡口得遇清玄真人，自此踏入凌霄宗仙途。',npc:'清玄真人',unlockRealm:0,nextTask:'main_02',rewards:{exp:100,gold:300,items:['素布道袍','木剑']},steps:[
         {text:'跟随清玄真人走上凌霄山门石阶',action:'walk_to_sect'},
         {text:'观看入门仙光洗礼',action:'watch_ritual'},
         {text:'完成引气入体，踏入练气初期',action:'breakthrough_realm',targetRealm:1,targetPhase:0}]},
-      {id:'main_02',type:'main',title:'外门初修',desc:'正式成为凌霄宗外门弟子，熟悉宗门规矩与基础修行。',npc:'外门执事长老',unlockRealm:0,nextTask:'main_03',rewards:{exp:80,contribution:50,items:['新手药瓶']},steps:[
+      {id:'main_02',type:'main',title:'外门初修',desc:'正式成为凌霄宗外门弟子，熟悉宗门规矩与基础修行。',npc:'外门执事长老',unlockRealm:0,nextTask:'main_03',rewards:{exp:80,contribution:50,items:['小还丹']},steps:[
         {text:'前往外门演武场报到',action:'go_to_arena'},{text:'学习宗门基础吐纳法',action:'learn_breath'},{text:'完成一次基础修行打坐',action:'meditate'}]},
-      {id:'main_03',type:'main',title:'山门重逢',desc:'山门石桥再遇苏晚晴。多年后重逢，彼此都已不是当初的模样。',npc:'苏晚晴',unlockRealm:1,loveEvent:'cold_reunion',nextTask:'main_04',rewards:{exp:150,affection_su:8,items:['基础护符']},steps:[
+      {id:'main_03',type:'main',title:'山门重逢',desc:'山门石桥再遇苏晚晴。多年后重逢，彼此都已不是当初的模样。',npc:'苏晚晴',unlockRealm:1,loveEvent:'cold_reunion',nextTask:'main_04',rewards:{exp:150,affection_su:8,items:['石佩']},steps:[
         {text:'前往山门石桥',action:'go_to_bridge'},{text:'与苏晚晴对话',action:'talk_suwanqing'},{text:'平静完成初次重逢',action:'complete_reunion'}]},
       {id:'main_04',type:'main',title:'妖兽试炼',desc:'外门弟子需进入后山试炼林地，积累第一次真正的实战经验。',npc:'外门长老',unlockRealm:1,nextTask:'main_05',rewards:{exp:200,gold:150,contribution:30},steps:[
         {text:'进入后山试炼林地',action:'enter_forest'},
@@ -5907,17 +5905,17 @@
         {text:'前往宗门禁地筑基台',action:'go_to_platform'},
         {text:'扛过三重小天劫',action:'survive_tribulation',count:3},
         {text:'成功踏入筑基初期',action:'breakthrough_realm',targetRealm:2,targetPhase:0}]},
-      {id:'main_07',type:'main',title:'内门考核',desc:'筑基弟子可参与内门晋升考核，笔试、实战、心性三关缺一不可。',unlockRealm:2,loveEvent:'trial_side_by_side',nextTask:'main_08',rewards:{exp:400,contribution:80,affection_su:14,items:['内门令牌']},steps:[
+      {id:'main_07',type:'main',title:'内门考核',desc:'筑基弟子可参与内门晋升考核，笔试、实战、心性三关缺一不可。',unlockRealm:2,loveEvent:'trial_side_by_side',nextTask:'main_08',rewards:{exp:400,contribution:80,affection_su:14,items:['青云佩·灵品']},steps:[
         {text:'完成宗门道典笔试',action:'written_exam'},{text:'实战击败内门考核傀儡',action:'combat_puppet'},{text:'通过幻境心性测试',action:'mind_test'}]},
-      {id:'main_08',type:'main',title:'秘境同行',desc:'你与苏晚晴被安排一同入秘境历练。再度并肩后，旧日隔阂开始松动。',unlockRealm:2,nextTask:'main_09',rewards:{exp:600,gold:500,affection_su:20,items:['高阶灵药']},steps:[
+      {id:'main_08',type:'main',title:'秘境同行',desc:'你与苏晚晴被安排一同入秘境历练。再度并肩后，旧日隔阂开始松动。',unlockRealm:2,nextTask:'main_09',rewards:{exp:600,gold:500,affection_su:20,items:['大还丹']},steps:[
         {text:'与苏晚晴组队进入宗门秘境',action:'enter_secret_realm'},{text:'联手击败秘境妖王',action:'kill_secret_boss'},{text:'采集秘境灵材×3',action:'collect_task_materials',count:3},{text:'安全离开秘境',action:'exit_secret_realm'}]},
       {id:'main_09',type:'main',title:'药庐外的风',desc:'药庐外，顾承渊向苏晚晴示好。宗门里不少人都觉得他们十分般配。',unlockRealm:2,loveEvent:'courting_rival',nextTask:'main_10',rewards:{exp:200,affection_su:6},steps:[
         {text:'前往药庐外',action:'go_to_yaolu'},{text:'旁观顾承渊与苏晚晴对话',action:'watch_dialogue'},{text:'选择：默然离开 / 驻足观看',action:'choice',options:[['leave','默然离开'],['stay','驻足观看']]}]},
-      {id:'main_10',type:'main',title:'禁阁夜影',desc:'深夜里，顾承渊独自进入内门禁阁，大长老顾玄岳亲自接见了他。',unlockRealm:3,nextTask:'main_11',rewards:{exp:500,items:['天机洞察buff']},steps:[
+      {id:'main_10',type:'main',title:'禁阁夜影',desc:'深夜里，顾承渊独自进入内门禁阁，大长老顾玄岳亲自接见了他。',unlockRealm:3,nextTask:'main_11',rewards:{exp:500,items:['悟道丹']},steps:[
         {text:'深夜潜入禁阁外围',action:'go_to_jinge'},{text:'偷听禁阁内的密谈',action:'eavesdrop'},{text:'得知顾承渊是顾玄岳唯一嫡孙',action:'learn_secret'}]},
       {id:'main_11',type:'main',title:'无人知晓的身份',desc:'顾承渊私下找到你，希望你暂时不要公开他的真正身份。',unlockRealm:3,loveEvent:'rival_secret',nextTask:'main_12',rewards:{exp:300},steps:[
         {text:'与顾承渊私下对话',action:'talk_gu'},{text:'选择：答应保密 / 拒绝保密',action:'choice',options:[['promise','答应保密'],['refuse','拒绝保密']]}]},
-      {id:'main_12',type:'main',title:'那年真正的答案',desc:'金丹雨夜，苏晚晴拿出当年旧木牌，将青石桥分开的真正原因全部说了出来。',unlockRealm:3,loveEvent:'truth_and_apology',nextTask:'main_13',rewards:{exp:800,affection_su:30,items:['道心突破']},steps:[
+      {id:'main_12',type:'main',title:'那年真正的答案',desc:'金丹雨夜，苏晚晴拿出当年旧木牌，将青石桥分开的真正原因全部说了出来。',unlockRealm:3,loveEvent:'truth_and_apology',nextTask:'main_13',rewards:{exp:800,affection_su:30,items:['破障丹']},steps:[
         {text:'雨夜进入药庐',action:'enter_yaolu_rain'},{text:'倾听苏晚晴完整坦白',action:'listen_confession'},{text:'选择：释然 / 沉默',action:'choice',options:[['release','释然'],['silent','沉默']]}]},
       {id:'main_13',type:'main',title:'金丹大比前奏',desc:'百年宗门大比将至，凌霄宗内部暗流涌动。你需要开始为真正的宗门争锋做准备。',unlockRealm:3,nextTask:null,rewards:{exp:500,contribution:100},steps:[
         {text:'接取宗门大比预备任务',action:'accept_prep'},{text:'研习一门高阶功法',action:'learn_high_skill'},{text:'完成宗门大比备战',action:'prepare_tournament'}]}
@@ -5934,16 +5932,16 @@
     );
 
     const SIDE_TASKS=[
-      {id:'side_daily_01',type:'daily',title:'宗门采药',desc:'药庐童子需要新鲜灵草。',npc:'药庐童子',repeatable:true,dailyReset:true,rewards:{exp:50,gold:30,contribution:10,items:['炼丹材料']},steps:[{text:'采集灵草×5',action:'collect_materials',material:'灵草',count:5}]},
+      {id:'side_daily_01',type:'daily',title:'宗门采药',desc:'药庐童子需要新鲜灵草。',npc:'药庐童子',repeatable:true,dailyReset:true,rewards:{exp:50,gold:30,contribution:10,items:['灵草']},steps:[{text:'采集灵草×5',action:'collect_materials',material:'灵草',count:5}]},
       {id:'side_daily_02',type:'daily',title:'山门镇守',desc:'协助外门执事驱赶山门附近游荡的小妖。',npc:'外门执事',repeatable:true,dailyReset:true,rewards:{exp:60,gold:40,contribution:15},steps:[{text:'驱赶小妖×3',action:'kill_enemies',enemyCounts:{'小妖':3}}]},
-      {id:'side_daily_03',type:'daily',title:'典籍抄录',desc:'前往藏书阁抄录基础道典，磨炼心性。',npc:'藏书阁长老',repeatable:true,dailyReset:true,rewards:{exp:40,items:['功法残页']},steps:[{text:'完成一次道典抄录',action:'copy_text'}]},
-      {id:'side_weekly_01',type:'weekly',title:'妖兽清剿',desc:'宗门发布清剿令，要求处理边境妖兽巢穴。',repeatable:true,weeklyReset:true,rewards:{exp:300,gold:200,contribution:50,items:['灵宠进阶材料']},steps:[{text:'清剿边境妖兽巢穴',action:'clear_nest'}]},
-      {id:'side_weekly_02',type:'weekly',title:'阵法维护',desc:'护山大阵灵纹磨损，需要弟子协助修补。',repeatable:true,weeklyReset:true,rewards:{exp:250,contribution:60,items:['阵法熟练度']},steps:[{text:'修补宗门护山大阵',action:'repair_array'}]},
-      {id:'side_hidden_01',type:'hidden',title:'苏晚晴·月下谈心',desc:'月下庭院偶遇苏晚晴，两人安静谈心。',hidden:true,unlockCondition:{affection_su:50},rewards:{exp:200,affection_su:20,items:['心境修为']},steps:[{text:'夜晚前往庭院',action:'go_to_courtyard_night'},{text:'与苏晚晴月下谈心',action:'talk_su_night'}]},
-      {id:'side_hidden_02',type:'hidden',title:'顾承渊·君子之约',desc:'顾承渊与你约定，往后的竞争只凭各自本事。',hidden:true,unlockCondition:{questCompleted:['main_11'],choiceTask:'main_11',choice:'promise'},rewards:{exp:150,items:['后期关键分支解锁']},steps:[{text:'与顾承渊立下君子之约',action:'talk_gu_promise'}]},
-      {id:'side_hidden_03',type:'hidden',title:'清玄真人·道心指点',desc:'清玄真人看出你的道心已有变化，准备传授独门心境法。',hidden:true,unlockCondition:{heartDemon:'low',realm:2},rewards:{exp:300,items:['心魔抗性永久提升']},steps:[{text:'前往清玄真人处接受道心指点',action:'visit_master'}]},
-      {id:'side_war_01',type:'side',title:'边境探查',desc:'前往西域边境探查魔族营地与补给动向。',unlockCondition:{realm:3,warLevel:1},rewards:{exp:400,gold:300,contribution:80,items:['魔抗']},steps:[{text:'前往西域边境',action:'go_to_border'},{text:'探查魔族营地',action:'scout_camp'}]},
-      {id:'side_war_02',type:'side',title:'灵脉守护',desc:'守护人族边境灵脉，抵御魔修偷袭。',unlockCondition:{realm:4,warLevel:2},rewards:{exp:500,gold:400,contribution:100,items:['高阶防御材料']},steps:[{text:'前往边境灵脉',action:'go_to_spirit_vein'},{text:'击退偷袭灵脉的魔修',action:'defend_attack'}]}
+      {id:'side_daily_03',type:'daily',title:'典籍抄录',desc:'前往藏书阁抄录基础道典，磨炼心性。',npc:'藏书阁长老',repeatable:true,dailyReset:true,rewards:{exp:40,items:['悟道茶']},steps:[{text:'完成一次道典抄录',action:'copy_text'}]},
+      {id:'side_weekly_01',type:'weekly',title:'妖兽清剿',desc:'宗门发布清剿令，要求处理边境妖兽巢穴。',repeatable:true,weeklyReset:true,rewards:{exp:300,gold:200,contribution:50,items:['妖丹']},steps:[{text:'清剿边境妖兽巢穴',action:'clear_nest'}]},
+      {id:'side_weekly_02',type:'weekly',title:'阵法维护',desc:'护山大阵灵纹磨损，需要弟子协助修补。',repeatable:true,weeklyReset:true,rewards:{exp:250,contribution:60,items:['星辰砂']},steps:[{text:'修补宗门护山大阵',action:'repair_array'}]},
+      {id:'side_hidden_01',type:'hidden',title:'苏晚晴·月下谈心',desc:'月下庭院偶遇苏晚晴，两人安静谈心。',hidden:true,unlockCondition:{affection_su:50},rewards:{exp:200,affection_su:20,items:['悟道丹']},steps:[{text:'夜晚前往庭院',action:'go_to_courtyard_night'},{text:'与苏晚晴月下谈心',action:'talk_su_night'}]},
+      {id:'side_hidden_02',type:'hidden',title:'顾承渊·君子之约',desc:'顾承渊与你约定，往后的竞争只凭各自本事。',hidden:true,unlockCondition:{questCompleted:['main_11'],choiceTask:'main_11',choice:'promise'},rewards:{exp:150,items:['天材地宝']},steps:[{text:'与顾承渊立下君子之约',action:'talk_gu_promise'}]},
+      {id:'side_hidden_03',type:'hidden',title:'清玄真人·道心指点',desc:'清玄真人看出你的道心已有变化，准备传授独门心境法。',hidden:true,unlockCondition:{heartDemon:'low',realm:2},rewards:{exp:300,items:['玄玉护脉丹']},steps:[{text:'前往清玄真人处接受道心指点',action:'visit_master'}]},
+      {id:'side_war_01',type:'side',title:'边境探查',desc:'前往西域边境探查魔族营地与补给动向。',unlockCondition:{realm:3,warLevel:1},rewards:{exp:400,gold:300,contribution:80,items:['魔核']},steps:[{text:'前往西域边境',action:'go_to_border'},{text:'探查魔族营地',action:'scout_camp'}]},
+      {id:'side_war_02',type:'side',title:'灵脉守护',desc:'守护人族边境灵脉，抵御魔修偷袭。',unlockCondition:{realm:4,warLevel:2},rewards:{exp:500,gold:400,contribution:100,items:['冰晶石']},steps:[{text:'前往边境灵脉',action:'go_to_spirit_vein'},{text:'击退偷袭灵脉的魔修',action:'defend_attack'}]}
     ];
 
     const ALL_TASKS={}; MAIN_TASKS.forEach(t=>ALL_TASKS[t.id]=t); SIDE_TASKS.forEach(t=>ALL_TASKS[t.id]=t);
@@ -6013,8 +6011,14 @@
       if(inst.currentStep>=task.steps.length)completeTask(id);else{showFloatingText?.(`✓ ${step.text}`,'#9edcff');updateTaskTracker();autoSave?.();}
       return true;
     }
-    function addTaskRewardItem(name){if(!name)return;player.inventory.push(name);}
-    function formatTaskRewards(rewards={}){const a=[];if(rewards.exp)a.push(`修为+${rewards.exp}`);if(rewards.gold)a.push(`灵石+${rewards.gold}`);if(rewards.contribution)a.push(`宗门贡献+${rewards.contribution}`);if(rewards.affection_su)a.push(`苏晚晴好感+${rewards.affection_su}`);if(rewards.hp)a.push(`基础生命+${rewards.hp}`);if(rewards.atk)a.push(`基础攻击+${rewards.atk}`);if(rewards.def)a.push(`基础防御+${rewards.def}`);if(rewards.items?.length)a.push(rewards.items.join('、'));return a.join(' · ')||'无';}
+    function taskRewardKindV286838(name){return EQUIPMENT_DB[name]?'equipment':MATERIALS[name]?'material':(ITEMS[name]||LONGEVITY_PILLS[name])?'item':null;}
+    function addTaskRewardItem(name){
+      name=TASK_REWARD_LEGACY_V286838[name]||name;const kind=taskRewardKindV286838(name);if(!kind)return;
+      if(kind==='equipment'){if(!Array.isArray(player.equipmentInventory))player.equipmentInventory=[];player.equipmentInventory.push(name);}
+      else if(kind==='material'){if(!player.materials)player.materials={};player.materials[name]=(player.materials[name]||0)+1;}
+      else player.inventory.push(name);
+    }
+    function formatTaskRewards(rewards={}){const a=[];if(rewards.exp)a.push(`修为+${rewards.exp}`);if(rewards.gold)a.push(`灵石+${rewards.gold}`);if(rewards.contribution)a.push(`宗门贡献+${rewards.contribution}`);if(rewards.affection_su)a.push(`苏晚晴好感+${rewards.affection_su}`);if(rewards.hp)a.push(`基础气血+${rewards.hp}`);if(rewards.atk)a.push(`基础攻击+${rewards.atk}`);if(rewards.def)a.push(`基础防御+${rewards.def}`);if(rewards.items?.length)a.push(rewards.items.join('、'));return a.join(' · ')||'无';}
     function completeTask(id){
       const task=getTaskData(id),inst=getTaskInstance(id);if(!task||!inst||inst.completed||inst.failed||inst.currentStep<task.steps.length||(!task.repeatable&&player.tasks.completed.includes(id)))return;
       inst.completed=true;inst.currentStep=task.steps.length;const r=task.rewards||{};
@@ -6227,7 +6231,7 @@
     }
     function showTaskPanel(filter='main'){
       if(gameState!=='combat'&&gameState!=='combat-ending'&&!player.breakthrough?.isAnimating)checkTaskTriggers();
-      closeTaskPanel();const ov=document.createElement('div');ov.id='taskPanel';ov.className='task-panel-overlay';ov.innerHTML=`<div class="task-panel-box"><div class="task-panel-head"><div><div class="task-panel-title">📜 仙途任务志</div><div class="task-panel-sub">主线 · 三界游历 · 修行纪事</div></div><button class="task-close" onclick="closeTaskPanel()">✕</button></div><div class="task-tabs">${[['main','主线'],['journey','游历'],['journal','纪事'],['side','支线'],['daily','日常'],['weekly','周常'],['hidden','隐藏']].map(([id,n])=>`<button class="task-tab" data-tab="${id}" onclick="renderTaskList('${id}')">${n}</button>`).join('')}</div><div id="taskListContainer"></div></div>`;document.body.appendChild(ov);ov.addEventListener('pointerdown',e=>{if(e.target===ov)closeTaskPanel();});renderTaskList(filter);
+      closeTaskPanel();const ov=document.createElement('div');ov.id='taskPanel';ov.className='task-panel-overlay';ov.innerHTML=`<div class="task-panel-box"><div class="task-panel-head"><div><div class="task-panel-title">📜 仙途任务志</div><div class="task-panel-sub">主线 · 三界游历 · 修行纪事</div></div><button aria-label="关闭" class="task-close" onclick="closeTaskPanel()">✕</button></div><div class="task-tabs">${[['main','主线'],['journey','游历'],['journal','纪事'],['side','支线'],['daily','日常'],['weekly','周常'],['hidden','隐藏']].map(([id,n])=>`<button class="task-tab" data-tab="${id}" onclick="renderTaskList('${id}')">${n}</button>`).join('')}</div><div id="taskListContainer"></div></div>`;document.body.appendChild(ov);ov.addEventListener('pointerdown',e=>{if(e.target===ov)closeTaskPanel();});renderTaskList(filter);
     }
     function closeTaskPanel(){document.getElementById('taskPanel')?.remove();}
     function addTaskButton(){const actions=document.querySelector('.world-hud-top > div:last-child');if(!actions||document.getElementById('taskBtn'))return;const b=document.createElement('button');b.id='taskBtn';b.textContent='📜 任务';b.onclick=()=>showTaskPanel('main');actions.insertBefore(b,actions.firstChild);}
@@ -6309,7 +6313,7 @@
         const pieces=new Map();
         if(set.familyV2790)for(const n of worn){const d=getEquipData(n);if(d?.familyV2790===set.familyV2790)pieces.set(d.pieceV2790,Math.max(pieces.get(d.pieceV2790)||0,d.gradeV2790));}
         const count=set.familyV2790?pieces.size:set.items.filter(n=>worn.has(n)).length,bonus={};
-        const immortal=!!set.familyV2790&&pieces.size===set.items.length&&[...pieces.values()].every(g=>g===3);
+        const immortal=!!set.familyV2790&&pieces.size===set.items.length&&[...pieces.values()].every(g=>g>=3);
         for(const tier of set.tiers)if(count>=tier.count)for(const [key,value] of Object.entries(tier.bonus))bonus[key]=(bonus[key]||0)+value;
         return {name,set,count,bonus,immortal,missing:set.items.filter((n,i)=>set.familyV2790?!pieces.has(i):!worn.has(n))};
       });
@@ -6332,7 +6336,7 @@
       return after;
     }
     function describeSetBonusV2789(b){
-      const names={atk:'攻击',def:'防御',hp:'生命',mp:'灵力',crit:'暴击率',resist:'敌方命中减伤',damage:'攻击伤害'};
+      const names={atk:'攻击',def:'防御',hp:'气血',mp:'灵力',crit:'暴击率',resist:'敌方命中减伤',damage:'攻击伤害'};
       return Object.entries(b).map(([k,v])=>`${names[k]||k}+${k==='damage'?Math.round(v*100):v}${['crit','resist','damage'].includes(k)?'%':''}`).join('、')||'未激活';
     }
     function renderSetProgressV2789(){
@@ -6380,7 +6384,7 @@
     function getMaxMp(){const base=Math.max(0,Number(player.maxMp)||0)+Math.floor(player.level*12+(player.phase||0)*4);let max=base*2+getEquipMp();return Math.max(1,Math.floor(max*(1+(gearModsV2790().mpPct||0))));}
 
 
-    // ================== 生命/灵力下限保护 ==================
+    // ================== 气血/灵力下限保护 ==================
     // 所有界面与战斗统一：HP 最低为 0，绝不显示负数。
     function clampPlayerVitals() {
       if (!player) return;
@@ -6657,14 +6661,14 @@
       updateCombatUI();
       
       let logText = `⚔️ 战斗开始！你遇到了 <b>${enemy.name}</b>！`;
-      if (isBoss) logText = `👹 Boss战开始！<b>${enemy.name}</b>现身！`;
+      if (isBoss) logText = `👹 首领战开始！<b>${enemy.name}</b>现身！`;
       if (isTrib) logText = `⚡ 天劫降临！渡劫开始！`;
       
       document.getElementById('combatLog').innerHTML = `<div class="log-item">${logText}</div>`;
       const openingPressure = calculateRealmPressure(player.level, player.phase, currentEnemy._realmLevel || 0, currentEnemy._realmPhase || 0);
       const openingDesc = getPressureDisplay(openingPressure);
       addCombatLog(`⚖️ 境界对比：${getCultivationName()} vs ${getEnemyRealmNameV2811(currentEnemy)}${openingDesc ? ` · ${openingDesc}` : ''}`,'boss');
-      if(currentEnemy._balanceKeyV2802)addCombatLog(`🛡️ ${isTrib?'天劫':isBoss?'首领':currentEnemy._isElite?'精英':'普通'} · 生命 ${currentEnemy.maxHp} · 攻击 ${currentEnemy.atk} · 防御 ${currentEnemy.def}`,'boss');
+      if(currentEnemy._balanceKeyV2802)addCombatLog(`🛡️ ${isTrib?'天劫':isBoss?'首领':currentEnemy._isElite?'精英':'普通'} · 气血 ${currentEnemy.maxHp} · 攻击 ${currentEnemy.atk} · 防御 ${currentEnemy.def}`,'boss');
       if(currentEnemy._isElite) addCombatLog('⭐ 精英敌人：境界与基础属性更高，击败后更值得挑战。','boss');
       updateCombatChoices();
       autoSave();
@@ -6799,7 +6803,7 @@
       if (artType.effect.type === 'regen' && phase === 'start') {
         const heal = Math.floor(getMaxHp() * (artType.effect.value + art.level * 0.01));
         player.hp = Math.min(getMaxHp(), player.hp + heal);
-        addCombatLog(`长生锁恢复 ${heal} 点生命！`, 'heal');
+        addCombatLog(`长生锁恢复 ${heal} 点气血！`, 'heal');
       }
       
       // 遁光梭闪避
@@ -6939,7 +6943,7 @@
       const amount=Math.max(0,Math.min(max-before,Math.floor(max*ratio)));
       player.hp+=amount;
       showDamageNumber(amount,'player',true,false,false,false,skill.name,skill.mpCost);
-      addCombatLog(`施展【${skill.name}】，实际恢复 ${amount} 点生命！`,'heal');
+      addCombatLog(`施展【${skill.name}】，实际恢复 ${amount} 点气血！`,'heal');
       if(skill.mpRestore){
         const mp=Math.max(0,Math.min(getMaxMp()-player.mp,skill.mpRestore));
         player.mp+=mp;addCombatLog(`归元恢复 ${mp} 点灵力。`,'heal');
@@ -6951,7 +6955,7 @@
       if(skill.lifeSteal){
         const heal=Math.max(0,Math.min(getMaxHp()-player.hp,Math.floor(actualLoss*skill.lifeSteal),Math.floor(getMaxHp()*.15)));
         player.hp+=heal;showDamageNumber(heal,'player',true,false,false,false,skill.name+'·吸血');
-        addCombatLog(`饮血剑意实际恢复 ${heal} 点生命。`,'heal');
+        addCombatLog(`饮血剑意实际恢复 ${heal} 点气血。`,'heal');
       }
       applyGuardV2785(skill);
     }
@@ -7016,7 +7020,7 @@
         if (currentEnemy.burnTurns <= 0){currentEnemy.burnStacks=0;currentEnemy._burnHealBlockV286818=currentEnemy._burnWeakV286818=false;}
         updateCombatUI();
       }
-      // 万雷噬狱持续雷域：在玩家行动前结算一次，不会把生命扣成负数。
+      // 万雷噬狱持续雷域：在玩家行动前结算一次，不会把气血扣成负数。
       if (currentEnemy && currentEnemy.thunderDomainDamage > 0 && currentEnemy.thunderDomainTurns > 0) {
         const thunderTick=Math.max(1,Math.floor(currentEnemy.thunderDomainDamage));
         currentEnemy.hp=Math.max(0,currentEnemy.hp-thunderTick);
@@ -7191,7 +7195,7 @@
         
         showDamageNumber(ITEMS[item].value, 'player', true, false, false, false, item);
         playSound('heal');
-        addCombatLog(`使用${item}，恢复 ${ITEMS[item].value} 点生命！`, 'heal');
+        addCombatLog(`使用${item}，恢复 ${ITEMS[item].value} 点气血！`, 'heal');
         
         updateCombatUI();
         battleLaterV2838(() => enemyTurn(), 500);
@@ -7233,22 +7237,24 @@
       const dropChance = Math.min(0.28, 0.08 + danger * 0.02 + (elite ? 0.08 : 0));
       if (Math.random() >= dropChance) return null;
 
-      let maxQualityIndex = 0;
-      if (realm >= 1) maxQualityIndex = 1;      // 良品
-      if (realm >= 2) maxQualityIndex = 2;      // 上品
-      if (realm >= 3) maxQualityIndex = 3;      // 精品
-      if (realm >= 6) maxQualityIndex = QUALITY_KEYS.indexOf('SPIRIT');      // 灵宝
-      if (realm >= 10) maxQualityIndex = QUALITY_KEYS.indexOf('IMMORTAL');     // 仙器
-      if (elite && Math.random() < 0.25) maxQualityIndex = Math.min(5, maxQualityIndex + 1);
-
+      // Drop tiers keep their original order and weights; shop-only grades never enter this pool.
+      const dropOrder = ['MORTAL','GOOD','FINE','EXCELLENT','SPIRIT','IMMORTAL'];
       const weights = [55, 28, 11, 4, 1.6, 0.4];
-      const availableQualities = QUALITY_KEYS.slice(0, maxQualityIndex + 1);
-      let total = availableQualities.reduce((sum, q) => sum + weights[QUALITY_KEYS.indexOf(q)], 0);
+      let maxDrop = 0;
+      if (realm >= 1) maxDrop = 1;      // 良品
+      if (realm >= 2) maxDrop = 2;      // 上品
+      if (realm >= 3) maxDrop = 3;      // 精品
+      if (realm >= 6) maxDrop = 4;      // 灵宝
+      if (realm >= 10) maxDrop = 5;     // 仙器
+      if (elite && Math.random() < 0.25) maxDrop = Math.min(5, maxDrop + 1);
+
+      const availableQualities = dropOrder.slice(0, maxDrop + 1);
+      let total = availableQualities.reduce((sum, q, i) => sum + weights[i], 0);
       let roll = Math.random() * total;
       let pickedQuality = availableQualities[0];
-      for (const q of availableQualities) {
-        roll -= weights[QUALITY_KEYS.indexOf(q)];
-        if (roll <= 0) { pickedQuality = q; break; }
+      for (let i = 0; i < availableQualities.length; i++) {
+        roll -= weights[i];
+        if (roll <= 0) { pickedQuality = availableQualities[i]; break; }
       }
 
       // 穿戴型法宝/飞行法器保持稀有来源，不纳入普通装备掉落。
@@ -7261,8 +7267,8 @@
 
       // 若抽到的品质当前没有可用装备，向低品质回退，避免空掉落。
       if (!candidates.length) {
-        for (let qi = maxQualityIndex; qi >= 0 && !candidates.length; qi--) {
-          const q = QUALITY_KEYS[qi];
+        for (let qi = maxDrop; qi >= 0 && !candidates.length; qi--) {
+          const q = dropOrder[qi];
           candidates = Object.entries(EQUIPMENT_DB).filter(([name, data]) =>
             data && data.quality === q &&
             (data.realmRequired || 0) <= realm + (elite ? 1 : 0) &&
@@ -7342,7 +7348,7 @@
           }
           // Boss战胜利处理
           if (isBossFight) {
-            addCombatLog(`🏆 击败Boss【${currentEnemy.name}】！`, 'boss');
+            addCombatLog(`🏆 击败首领【${currentEnemy.name}】！`, 'boss');
             if(currentEnemy._nightRivalV2810&&player.level>=16)yeStateV2816().saintVictory=true;
             if(!currentEnemy._nightRivalV2810)player.bossesDefeated.push(currentEnemy.name);
             else addCombatLog('夜无疆退入界隙：“今日是你胜了。你的路还没到尽头……我的圣道，却已断了。”','boss');
@@ -7428,7 +7434,7 @@
             }
             
             // V27.9：击杀不再“随机自动捕获宠物”，避免与主动收服系统冲突。
-            // 改为小概率掉落培养丹；真正获得灵宠需要在其存活且生命≤25%时主动收服。
+            // 改为小概率掉落培养丹；真正获得灵宠需要在其存活且气血≤25%时主动收服。
             if (Math.random() < 0.12) {
               player.petMaterials['灵兽丹'] = (player.petMaterials['灵兽丹'] || 0) + 1;
               addCombatLog(`🍖 获得灵兽丹 ×1`, 'pet');
@@ -7511,7 +7517,7 @@
     
     function showBossSkillWarning(skillName) {
       const warning = document.getElementById('bossSkillWarning');
-      warning.textContent = `Boss准备施展【${skillName}】！`;
+      warning.textContent = `首领准备施展【${skillName}】！`;
       warning.classList.remove('hidden');
       setTimeout(() => warning.classList.add('hidden'), 1500);
     }
@@ -7623,7 +7629,7 @@
         const critText = isCrit ? '【暴击】' : '';
         addCombatLog(`${critText}${currentEnemy.name}对你造成 ${enemyDamage} 点伤害！`, 'damage');
 
-        // 雷神附体反伤：敌方实际命中后触发，最低不会把敌方生命扣成负数。
+        // 雷神附体反伤：敌方实际命中后触发，最低不会把敌方气血扣成负数。
         if ((player._thunderArmorTurns||0)>0 && (player._thunderReflectRatio||0)>0 && enemyDamage>0 && currentEnemy.hp>0) {
           const reflected=Math.max(1,Math.floor(enemyDamage*player._thunderReflectRatio));
           currentEnemy.hp=Math.max(0,currentEnemy.hp-reflected);
@@ -7661,7 +7667,7 @@
           autoSave();
           try { releaseCurrentMapMonster(false); }
           finally {
-            if (isBossFight) addCombatLog('Boss战失败，需要重新挑战...');
+            if (isBossFight) addCombatLog('首领战失败，需要重新挑战...');
             readyCombatFinishV2764({
               kind:'defeat', delay:650, skipReturn:true,
               afterReturn:() => showStory(`你被击败了，身受重伤回到村庄休养。损失身上灵石的20%（${defeatGoldLossV2777}灵石，不足1灵石部分舍去）。`, [{ text: '继续', action: 'village' }])
@@ -7670,7 +7676,7 @@
           return;
         }
         
-        // 检测存活成就（生命值很低时存活）
+        // 检测存活成就（气血值很低时存活）
         if (player.hp <= 10 && player.hp > 0) {
           updateAchievementProgress('survive');
         }
@@ -7770,13 +7776,13 @@
       if(result?.ascension){
         if(stage===1)return '天劫余威 · 仙门洞开';
         if(stage===2)return '凡躯洗炼 · 仙骨重塑';
-        return '金仙道果 · 飞升仙界';
+        return '地仙道果 · 飞升仙界';
       }
       const lv=result?.snapshot?.level||0;
       if(stage===1)return '灵气汇聚 · 经脉流转';
       if(stage===2){
         if(!success)return '灵机逆乱 · 经脉震荡';
-        if(lv>=4)return '金丹破而后立 · 道胎成形';
+        if(lv>=4)return `${CULTIVATION_REALMS[lv]?.name||'元婴'}破而后立 · 道体重铸`;
         if(lv>=3)return '丹田蜕变 · 道基凝实';
         return '骨骼重塑 · 经脉冲关';
       }
@@ -8053,7 +8059,7 @@
       syncUnlockedSkills();
       player.maxLifespan=getTotalMaxLifespan();
       player.hp=getMaxHp();player.mp=getMaxMp();
-      if(majorBreakthrough)updateAchievementProgress('realm');
+      updateAchievementProgress('realm');
       playSound?.('levelup');
       const after=createBreakthroughSnapshot();
       result.fromName=result.fromName||before.name;result.toName=getCultivationName();result.after=after;result.majorBreakthrough=majorBreakthrough;
@@ -8075,7 +8081,7 @@
           <div class="item"><span class="icon">⏳</span><span class="label">寿元上限</span><span class="value">${after.lifespan||getTotalMaxLifespan()}${d(after.lifespan,before.lifespan)?`（+${d(after.lifespan,before.lifespan)}）`:''}</span></div>
           <div class="item"><span class="icon">⚔️</span><span class="label">攻击</span><span class="value">${after.atk}${d(after.atk,before.atk)?`（+${d(after.atk,before.atk)}）`:''}</span></div>
           <div class="item"><span class="icon">🛡️</span><span class="label">防御</span><span class="value">${after.def}${d(after.def,before.def)?`（+${d(after.def,before.def)}）`:''}</span></div>
-          <div class="item"><span class="icon">❤️</span><span class="label">生命上限</span><span class="value">${after.hp}${d(after.hp,before.hp)?`（+${d(after.hp,before.hp)}）`:''}</span></div>
+          <div class="item"><span class="icon">❤️</span><span class="label">气血上限</span><span class="value">${after.hp}${d(after.hp,before.hp)?`（+${d(after.hp,before.hp)}）`:''}</span></div>
           ${newSkills.length?`<div class="item"><span class="icon">📖</span><span class="label">新功法</span><span class="value">${newSkills.join('、')}</span></div>`:''}
           ${regionText?`<div class="item"><span class="icon">🗺️</span><span class="label">新地域</span><span class="value">${regionText}已解锁</span></div>`:''}
         </div><hr class="divider"><button class="btn-continue" onclick="closeBreakthroughSuccess(false)">继续修仙</button><div class="auto-close-v2764">轻触按钮继续 · 5秒后自动收起</div></div>`;
@@ -8107,7 +8113,7 @@
 
     function showBreakthroughFailure(result,loss) {
       const html=`<div class="breakthrough-fail show" id="breakthroughFail"><div class="title">💔 突破失败</div><div class="subtitle">灵力反噬，经脉受损</div><hr class="divider">
-        <div class="fail-list"><div>📉 修为损失：<b>-${loss}</b></div><div>❤️ 当前生命：<b>${player.hp}/${getMaxHp()}</b></div><div>⏳ 调息时间：<b>${Math.ceil(player.breakthrough.cooldownDays)} 天</b></div><div class="hint">沉淀心境，稳固修为后再尝试。调息会随仙历流逝逐日消退。</div></div>
+        <div class="fail-list"><div>📉 修为损失：<b>-${loss}</b></div><div>❤️ 当前气血：<b>${player.hp}/${getMaxHp()}</b></div><div>⏳ 调息时间：<b>${Math.ceil(player.breakthrough.cooldownDays)} 天</b></div><div class="hint">沉淀心境，稳固修为后再尝试。调息会随仙历流逝逐日消退。</div></div>
         <button class="btn-retry" onclick="closeBreakthroughFail()">我明白了</button><div class="auto-close-v2764">轻触按钮关闭 · 5秒后自动收起</div></div>`;
       document.getElementById('breakthroughFail')?.remove();const wrap=document.createElement('div');wrap.innerHTML=html;const panel=wrap.firstElementChild;document.body.appendChild(panel);setTimeout(()=>{if(panel.isConnected)closeBreakthroughFail()},5200);
     }
@@ -8157,7 +8163,7 @@
 
     // ===== V27.6 装备智能优化：评分 / 对比 / 一键换装 =====
     const EQUIP_SCORE_WEIGHTS={damage:400,atk:2,def:1.5,hp:.15,mp:.1,crit:4,critDmg:2,dodge:3,block:3,resistance:2,resist:2,dmgReduce:4,speed:.15,spirit:.5,hit:2,hpRegen:.5,fireDmg:2};
-    const EQUIP_COMPARE_LABELS={atk:'攻击',def:'防御',hp:'生命',mp:'灵力',crit:'暴击',critDmg:'爆伤',dodge:'闪避',block:'格挡',resistance:'抗性',dmgReduce:'减伤',speed:'速度',spirit:'神魂',hit:'命中',hpRegen:'回血',fireDmg:'火伤'};
+    const EQUIP_COMPARE_LABELS={atk:'攻击',def:'防御',hp:'气血',mp:'灵力',crit:'暴击',critDmg:'爆伤',dodge:'闪避',block:'格挡',resistance:'抗性',dmgReduce:'减伤',speed:'速度',spirit:'神魂',hit:'命中',hpRegen:'回血',fireDmg:'火伤'};
     const EQUIP_PERCENT_STATS=new Set(['crit','critDmg','dodge','block','resistance','dmgReduce','hit','fireDmg']);
 
     function scoreEquipStats(stats={},multiplier=1){
@@ -8373,7 +8379,7 @@
       }).join('');
     }
 
-    function renderEquipStatsSummary(){const s=getCharacterStats();return `<div>⚔️ 攻击 <b style="color:#ffd700">${s.atk}</b></div><div>🛡️ 防御 <b style="color:#7ec9ff">${s.def}</b></div><div>❤️ 生命 <b style="color:#ff7b7b">${s.maxHp}</b></div><div>💠 灵力 <b style="color:#b89cff">${s.maxMp}</b></div><div>💥 暴击 <b style="color:#ffad55">${Math.round(s.crit*100)}%</b></div><div>⚡ 爆伤 <b style="color:#ffad55">${Math.round(s.critDmg*100)}%</b></div><div>💨 闪避 <b style="color:#69f0ae">${Math.round(s.dodge*100)}%</b></div><div>🛡️ 格挡 <b style="color:#4fc3f7">${Math.round(s.block*100)}%</b></div><div>🔥 抗性 <b style="color:#d9b5ec">${s.resist}</b></div>`;}
+    function renderEquipStatsSummary(){const s=getCharacterStats();return `<div>⚔️ 攻击 <b style="color:#ffd700">${s.atk}</b></div><div>🛡️ 防御 <b style="color:#7ec9ff">${s.def}</b></div><div>❤️ 气血 <b style="color:#ff7b7b">${s.maxHp}</b></div><div>💠 灵力 <b style="color:#b89cff">${s.maxMp}</b></div><div>💥 暴击 <b style="color:#ffad55">${Math.round(s.crit*100)}%</b></div><div>⚡ 爆伤 <b style="color:#ffad55">${Math.round(s.critDmg*100)}%</b></div><div>💨 闪避 <b style="color:#69f0ae">${Math.round(s.dodge*100)}%</b></div><div>🛡️ 格挡 <b style="color:#4fc3f7">${Math.round(s.block*100)}%</b></div><div>🔥 抗性 <b style="color:#d9b5ec">${s.resist}</b></div>`;}
 
     function getEquipQualitySummary(){let highest=-1;for(const slot of Object.keys(EQUIPMENT_SLOTS)){const d=getEquipData(player.equipment?.[slot]);if(!d)continue;highest=Math.max(highest,QUALITY_KEYS.indexOf(d.quality));}return highest<0?'无':EQUIPMENT_QUALITIES[QUALITY_KEYS[highest]].name;}
 
@@ -8381,7 +8387,7 @@
       toggleCharacterPanel?.(false);document.getElementById('equipmentPanel')?.remove();migrateLooseEquipmentToEquipmentInventory(player);checkSetBonuses();
       const panel=document.createElement('div');panel.id='equipmentPanel';panel.className='equipment-panel-overlay';
       const content=document.createElement('div');content.className='equipment-panel-content';
-      content.innerHTML=`<button onclick="document.getElementById('equipmentPanel')?.remove()" style="position:absolute;right:12px;top:10px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#ddd;font-size:16px">✕</button>
+      content.innerHTML=`<button aria-label="关闭" onclick="document.getElementById('equipmentPanel')?.remove()" style="position:absolute;right:12px;top:10px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#ddd;font-size:16px">✕</button>
         <div style="margin-bottom:14px"><span style="font-size:20px;font-weight:bold;color:#ffd700">🎒 角色装备</span><span style="font-size:12px;color:#aaa;margin-left:10px">最高品质：${getEquipQualitySummary()}</span></div>
         <div class="equipment-grid-primary"><div><div style="color:#ffd700;font-size:13px;font-weight:bold;margin-bottom:6px">🛡️ 防具 · 6件</div>${renderEquipSlots(['head','robe','bracer','belt','pants','boots'])}</div><div><div style="color:#ffd700;font-size:13px;font-weight:bold;margin-bottom:6px">💎 首饰 · 5件</div>${renderEquipSlots(['necklace','bracelet','ring1','ring2','jade'])}</div></div>
         <div style="margin-top:12px"><div style="color:#ffd700;font-size:13px;font-weight:bold;margin-bottom:6px">⚔️ 武器法宝</div>${renderEquipSlots(['weapon','offhand','artifact1','artifact2','artifact3','flying'])}</div>
@@ -8417,7 +8423,7 @@
       const now=performance.now();if(now-lastItemUseV2768<350)return;
       const def=ITEMS[itemName];
       if(def?.type==='breakthrough')return showFloatingText?.('请在修为圆满后的闭关突破预览中选用，此处不消耗','#ffd76a');
-      if(def?.type==='heal'&&player.hp>=getMaxHp())return showFloatingText?.('生命已满，未消耗丹药','#ffd76a');
+      if(def?.type==='heal'&&player.hp>=getMaxHp())return showFloatingText?.('气血已满，未消耗丹药','#ffd76a');
       if(def?.type==='mp'&&player.mp>=getMaxMp())return showFloatingText?.('灵力已满，未消耗丹药','#ffd76a');
       lastItemUseV2768=now;
       if(LONGEVITY_PILLS[itemName])return useLongevityPill(itemName);
@@ -8431,7 +8437,7 @@
       if (item.type === 'heal') {
         player.hp = Math.min(getMaxHp(), player.hp + item.value);
         removeItem(itemName);
-        showStory(`使用${itemName}，恢复${item.value}点生命！`, [{ text: '继续', action: player.location }]);
+        showStory(`使用${itemName}，恢复${item.value}点气血！`, [{ text: '继续', action: player.location }]);
       } else if (item.type === 'mp') {
         player.mp = Math.min(getMaxMp(), player.mp + item.value);
         removeItem(itemName);
@@ -8696,7 +8702,7 @@
       // 更新法宝列表
       const artifactList = document.getElementById('artifactList');
       if (player.artifacts.length === 0) {
-        artifactList.innerHTML = '<p style="color: #aaa; font-size: 12px;">暂无法宝，Boss掉落或探索发现可获得</p>';
+        artifactList.innerHTML = '<p style="color: #aaa; font-size: 12px;">暂无法宝，首领掉落或探索发现可获得</p>';
       } else {
         artifactList.innerHTML = player.artifacts.map((art, index) => {
           const artType = ARTIFACT_TYPES[art.type];
@@ -8944,7 +8950,7 @@
         {text:'← 返回南域地图',action:'return_to_map'}]);
     }
     function marketGearItemsV2800(category,grade,family='all'){
-      if(!['weapon','armor'].includes(category)||!Number.isInteger(grade)||grade<1||grade>3)return [];
+      if(!['weapon','armor'].includes(category)||!Number.isInteger(grade)||grade<1||grade>GRADES_V2790.length)return [];
       return Object.entries(EQUIPMENT_DB).filter(([name,d])=>d.familyV2790&&d.gradeV2790===grade&&(family==='all'||d.familyV2790===family)&&(category==='weapon'?d.slot==='weapon':d.slot!=='weapon'));
     }
     function showMarketGearV2800(category='weapon',grade=1,family='all'){
@@ -8979,8 +8985,8 @@
     function showHome() {
       const home=normalizeHomeV2812(player),furnitureBonus=calculateFurnitureBonus(),furn=home.furniture.length?home.furniture.filter(f=>f.active!==false).map(f=>f.name).join('、')||'暂无摆放':'暂无';
       const text=buildAreaSceneCard({icon:'🏠',title:`我的洞府 · Lv.${home.level}`,subtitle:'前庭 / 静室 / 灵脉歇息区 / 陈设区',desc:'洞府现在按真正居所的逻辑分区，不再只是一个功能入口。',accent:'#bce59b',chips:['闭关修炼','家具增益','状态恢复'],info:`家具增益：<b style="color:#ffd700">${furnitureBonus.desc||'无'}</b><br>当前陈设：${furn}`})+
-        buildInteriorStrip('洞府内室',[{icon:'🧘',name:'静修蒲团',desc:'一年修炼从这里开始。'},{icon:'🕯️',name:'闭关内室',desc:'十年闭关的核心区域。'},{icon:'🛏️',name:'灵脉歇息榻',desc:'恢复生命与灵力。'},{icon:'🪑',name:'家具陈设角',desc:'集中获得家具增益。'}]);
-      const choices=[{text:'🧭 游历派遣与流派羁绊',action:'trip_v286821'},{text:'🧘 短期修炼（最多一年）',action:'home_cultivate'},{text:'🕯️ 洞府闭关（最多十年）',action:'home_cultivate_decade'},{text:'💤 休息一天（恢复生命灵力）',action:'home_rest'},{text:'📋 管理家具',action:'home_manage'}];
+        buildInteriorStrip('洞府内室',[{icon:'🧘',name:'静修蒲团',desc:'一年修炼从这里开始。'},{icon:'🕯️',name:'闭关内室',desc:'十年闭关的核心区域。'},{icon:'🛏️',name:'灵脉歇息榻',desc:'恢复气血与灵力。'},{icon:'🪑',name:'家具陈设角',desc:'集中获得家具增益。'}]);
+      const choices=[{text:'🧭 游历派遣与流派羁绊',action:'trip_v286821'},{text:'🧘 短期修炼（最多一年）',action:'home_cultivate'},{text:'🕯️ 洞府闭关（最多十年）',action:'home_cultivate_decade'},{text:'💤 休息一天（恢复气血灵力）',action:'home_rest'},{text:'📋 管理家具',action:'home_manage'}];
       if(home.level<5)choices.push({text:`🏠 升级洞府 (${home.level*200}灵石)`,action:'home_upgrade',condition:()=>player.gold>=home.level*200});
       choices.push({text:'← 返回南域地图',action:'return_to_map'});showStory(text,choices);
     }
@@ -9342,7 +9348,7 @@
       if(!tabs[category]||gameState==='combat'||gameState==='combat-ending')return;
       let html=`<section class="market-hub-v2800"><span class="market-kicker-v2800">青云村 · 日常补给</span><h3>🧺 青云杂货铺</h3><p>灵石 <b>${player.gold}</b> · ${tabs[category]}</p><div class="market-filters-v2800">`;
       for(const [id,title] of Object.entries(tabs))html+=`<button type="button" aria-pressed="${category===id}" onclick="showShop('${id}')">${title}</button>`;
-      html+=`</div><p>${category==='pill'?'补充生命与灵力，购买后到物品栏使用。':category==='gear'?'基础过渡装备；成套装备请前往仙市。':category==='material'?'用于炼制、宗门任务及赠礼。': '灵兽丹用于培养；捕捉与契约道具按各自条件使用。'}</p></section>`;
+      html+=`</div><p>${category==='pill'?'补充气血与灵力，购买后到物品栏使用。':category==='gear'?'基础过渡装备；成套装备请前往仙市。':category==='material'?'用于炼制、宗门任务及赠礼。': '灵兽丹用于培养；捕捉与契约道具按各自条件使用。'}</p></section>`;
       if(notice)html+=`<p class="shop-notice-v2801" role="status">${notice}</p>`;
       for(const [index,item] of GENERAL_SHOP_V2801.entries()){
         if(item.category!==category)continue;
@@ -9493,7 +9499,7 @@
       }
       if (template.type === 'combat') {
         showStory(`<p>⚔️ <b>${template.name}</b></p>${getSectTaskGuideHtml(task)}
-          <p style="color:#aaa;font-size:12px">计数规则：地图实体普通怪和普通试炼怪胜利后自动 +1；Boss、天劫、百年宗门大比对手不计入。无需回宗门手动登记。</p>`, [
+          <p style="color:#aaa;font-size:12px">计数规则：地图实体普通怪和普通试炼怪胜利后自动 +1；首领、天劫、百年宗门大比对手不计入。无需回宗门手动登记。</p>`, [
           {text:`🧭 前往${guide.poiName}`,action:'sect_task_navigate',taskIndex:index},
           {text:'返回任务', action:'sect_tasks'}
         ]);
@@ -10009,7 +10015,7 @@
       const rows=[...npcRanks,{name:`${escapeGameText(player.name)}（你）`,contribution:player.sectTotalContribution||0,player:true}].sort((a,b)=>b.contribution-a.contribution);
       let html=`<p>📊 <b>${player.sect || '凌霄宗'} · 宗门贡献榜</b></p><p>当前职位：${rankInfo.icon} ${rankInfo.name}</p><div style="border:1px solid rgba(255,215,0,.3);border-radius:8px;padding:10px">`;
       rows.forEach((r,i)=>{ html += `<p style="${r.player?'color:#ffd700;font-weight:bold':'color:#ccc'}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`} ${r.name} · 累计贡献 ${r.contribution}</p>`; });
-      html += `</div><p style="font-size:11px;color:#888">宗门榜为本地模拟榜单，后续可接入更多NPC与宗门事件。</p>`;
+      html += `</div><p style="font-size:11px;color:#888">宗门榜为本地模拟榜单，按各宗势力与本地事件推算，不联网。</p>`;
       showStory(html,[{text:'← 返回宗门大殿',action:'sect_hall'}]);
     }
 
@@ -10145,7 +10151,7 @@
       const guardianWaiting=player.storyProgress===2&&!player.bossesDefeated.includes('宗门试炼守将');
       if(guardianWaiting)text+=`<div class="area-info-box" style="color:#ffd700">宗门试炼守将正在试炼场等待挑战者。请点「挑战宗门试炼守将」；「试炼场（普通难度）」只是日常练习。</div>`;
       text='<button class="choice-btn" onclick="showSectOverviewV2866()">宗门总览 · 待办与晋升</button>'+text;
-      const sectChoices=[{text:`👥 弟子事务${disciplePendingV2821()?` · ${disciplePendingV2821()} 项待领取`:' · 招募/培养/派遣'}`,action:'disciples_v2815'},{text:'💧 北域灵泉 · 恢复生命/灵力',action:'lingxiao_building',buildingId:'spirit_spring'},{text:'🏯 宗门建筑总览',action:'building_directory',story:true},{text:'🏛️ 宗门大殿',action:'sect_hall',story:true},{text:'📚 静修一年',action:'cultivate'},{text:'🧘 闭关（最多十年）',action:'cultivate_decade'},{text:pendingCentury?'📯 参加百年宗门大比':'📯 查看百年宗门大比',action:'sect_tournament'},{text:'⚔️ 试炼场（普通难度）',action:'sect_battle'},{text:'🌌 查看三界宗门势力',action:'factions_human'},{text:'← 返回北域地图',action:'return_to_map'}];
+      const sectChoices=[{text:`👥 弟子事务${disciplePendingV2821()?` · ${disciplePendingV2821()} 项待领取`:' · 招募/培养/派遣'}`,action:'disciples_v2815'},{text:'💧 北域灵泉 · 恢复气血/灵力',action:'lingxiao_building',buildingId:'spirit_spring'},{text:'🏯 宗门建筑总览',action:'building_directory',story:true},{text:'🏛️ 宗门大殿',action:'sect_hall',story:true},{text:isLingxiaoNight()?'☀️ 等到天明':'🌙 静候入夜 · 开放夜间建筑',action:'lingxiao_night_v286838'},{text:'📚 静修一年',action:'cultivate'},{text:'🧘 闭关（最多十年）',action:'cultivate_decade'},{text:pendingCentury?'📯 参加百年宗门大比':'📯 查看百年宗门大比',action:'sect_tournament'},{text:'⚔️ 试炼场（普通难度）',action:'sect_battle'},{text:'🌌 查看三界宗门势力',action:'factions_human'},{text:'← 返回北域地图',action:'return_to_map'}];
       if(guardianWaiting)sectChoices.unshift({text:'👹 挑战宗门试炼守将',action:'boss_guardian',boss:true});
       showStory(text,sectChoices);
     }
@@ -10536,7 +10542,14 @@
         case 'tournament_round':
           startTournamentRound();
           break;
+        case 'lingxiao_night_v286838':
+          toggleLingxiaoNightV286838();
+          break;
         case 'tournament_auto':
+          if(!choice.confirmed&&getTaskStatus('main_14')===TASK_STATUS.ACTIVE){
+            showStory('<h3>委托宗门代表参赛？</h3><p>主线《万宗争锋》要求亲自完成一届大比。委托参赛会结算本届名次，但<b>不计入主线</b>，需要等待下一届（约一百年）。</p>',[{text:'⚔️ 改为亲自报名',action:'tournament_start'},{text:'仍然委托（本届不计主线）',action:'tournament_auto',confirmed:true},{text:'返回大比',action:'sect_tournament'}]);
+            break;
+          }
           autoResolveSectTournament();
           break;
         case 'tournament_fight':
@@ -10781,7 +10794,7 @@
 
         case 'sect_battle':
           const sectEnemy = getEnemy();
-          // 宗门日常试炼以练习为主，不再额外增加20%生命
+          // 宗门日常试炼以练习为主，不再额外增加20%气血
           sectEnemy.hp = Math.floor(sectEnemy.hp * 1.05);
           sectEnemy.atk = Math.max(1, Math.floor(sectEnemy.atk * 0.9));
           sectEnemy.maxHp = sectEnemy.hp;
@@ -10819,7 +10832,7 @@
         case 'boss_fight': {
           const storyBossName=getStoryEvent()?.boss;
           const storyBoss=makeAuthoredBossV286835(storyBossName);
-          if(!storyBoss){showStory('<p>当前青云村地点剧情没有待挑战的 Boss。</p>',[{text:'返回村庄',action:'village'}]);break;}
+          if(!storyBoss){showStory('<p>当前青云村地点剧情没有待挑战的 首领。</p>',[{text:'返回村庄',action:'village'}]);break;}
           if(storyBossName==='宗门试炼守将')startCombat(storyBoss,true,false);
           else prepareStoryBossV286826(storyBoss);
           break;
@@ -11027,15 +11040,15 @@
         return showStory(text,[{text:'进入小秘境',action:'mini_enter_v2778',condition:()=>!wait&&player.gold>=30&&canAccessBuilding('mini_secret_realm').allowed},{text:'返回宗门大殿',action:'sect_hall'}]);
       }
       if(c.routeV2867===null)return showMiniRouteV2867(c);
-      const route=miniRouteV2867(c);text+=`<p>${route.name} · 取宝收益×${route.reward} · 守关生命×${route.hp} / 攻击×${route.atk}</p>`;
+      const route=miniRouteV2867(c);text+=`<p>${route.name} · 取宝收益×${route.reward} · 守关气血×${route.hp} / 攻击×${route.atk}</p>`;
       const labels=['采集灵材','灵泉休整','守关抉择','守关待战','通关宝箱'];
       text+=`<p>当前：${labels[c.step]} · 已保存进度</p><p>待带回：${c.herbs}灵草、${c.fruit}仙果、${c.insight}悟道修为</p>`;
       let choices=[];
       if(c.step===0)choices=[{text:'🌿 采集灵草×4',pick:'herb'},{text:'🍎 采集仙果×2',pick:'fruit'}];
-      if(c.step===1)choices=[{text:'💧 调息：恢复30%最大生命和灵力',pick:'rest'},{text:'📖 悟道：离境时额外120修为',pick:'insight'}];
+      if(c.step===1)choices=[{text:'💧 调息：恢复30%最大气血和灵力',pick:'rest'},{text:'📖 悟道：离境时额外120修为',pick:'insight'}];
       if(c.step===1)choices.push({text:'救援受伤同门：消耗小还丹×1，带回灵草×2、悟道修为80',pick:'rescue',condition:()=>player.inventory.includes('小还丹')});
       if(c.step===2)choices=[{text:`📦 安全取宝：${Math.floor(240*route.reward)}灵石、${Math.floor(180*route.reward)}修为并离境`,pick:'safe'},{text:`⚔️ 查看守关敌情（胜利后${Math.floor(450*route.reward)}灵石、${Math.floor(320*route.reward)}修为）`,pick:'challenge'}];
-      if(c.step===3){text+=`<p>守关傀儡：生命${c.enemy.maxHp}，攻击${c.enemy.atk}，防御${c.enemy.def}。可先返回宗门补给，再继续挑战。</p>`;choices=[{text:'⚔️ 挑战守关傀儡',pick:'fight'}];}
+      if(c.step===3){text+=`<p>守关傀儡：气血${c.enemy.maxHp}，攻击${c.enemy.atk}，防御${c.enemy.def}。可先返回宗门补给，再继续挑战。</p>`;choices=[{text:'⚔️ 挑战守关傀儡',pick:'fight'}];}
       if(c.step===4)choices=[{text:'🏆 领取通关宝箱并离境',pick:'claim'}];
       choices=choices.map(x=>({text:x.text,condition:x.condition,action:'mini_choice_v2778',pick:x.pick,step:c.step,runId:c.id}));
       if(c.step<4)choices.push({text:'🚪 提前撤离（只带回已采材料和悟道修为）',action:'mini_choice_v2778',pick:'leave',step:c.step,runId:c.id});
@@ -11062,7 +11075,7 @@
       else if(step===2&&pick==='challenge'){
         const e=getEnemy();c.enemy={name:'秘境守关傀儡',hp:Math.ceil(e.maxHp*1.15),maxHp:Math.ceil(e.maxHp*1.15),atk:Math.ceil(e.atk*1.1),def:e.def,gold:0,exp:0,_realmLevel:e._realmLevel||0,_realmPhase:e._realmPhase||0,_miniRunV2778:c.id};const route=miniRouteV2867(c);c.enemy.hp=c.enemy.maxHp=Math.ceil(c.enemy.maxHp*route.hp);c.enemy.atk=Math.ceil(c.enemy.atk*route.atk);c.step=3;
       }
-      else if(step===3&&pick==='fight'){if(player.hp<=1)return showFloatingText?.('请先恢复生命，再挑战守关傀儡。','#ffd76a');autoSave();startCombat({...c.enemy},false,false,null);return;}
+      else if(step===3&&pick==='fight'){if(player.hp<=1)return showFloatingText?.('请先恢复气血，再挑战守关傀儡。','#ffd76a');autoSave();startCombat({...c.enemy},false,false,null);return;}
       else if(step===4&&pick==='claim')return finishMiniRealmV2778('clear');
       else return;
       updateStats();autoSave();showMiniRealmV2778();
@@ -11253,7 +11266,7 @@
       if(p.remaining<=1)choices.push({text:'查看延寿办法',action:'retreat_longevity_v2782'});
       if(getPendingTournamentCentury())choices.push({text:'📯 已有大比可参加',action:'sect_tournament'});
       choices.push({text:'返回',action:home?'home':'sect'});
-      showStory(`<h3>🧘 ${home?'洞府':'宗门'}闭关 · 最多${p.maxYears===1?'一年':'十年'}</h3><p>修为：${p.exp} / ${p.need}</p><p>预计耗时：${p.days}天（约${years}年）<br>预计修为：+${p.gain}<br>当前剩余寿元：${Math.max(0,p.remaining)}年</p><p style="color:#ffd98a">${p.reason}</p><p>修为满即出关；不连续跨境界，超额修为不清零。保留至少一年寿元，遇下届百年大比开启即停。修为收益受当前修炼加成${home?'和洞府家具':''}影响。</p><p>出关恢复生命和灵力；突破另行点击，成功率与失败冷却照常生效。</p>`,choices);
+      showStory(`<h3>🧘 ${home?'洞府':'宗门'}闭关 · 最多${p.maxYears===1?'一年':'十年'}</h3><p>修为：${p.exp} / ${p.need}</p><p>预计耗时：${p.days}天（约${years}年）<br>预计修为：+${p.gain}<br>当前剩余寿元：${Math.max(0,p.remaining)}年</p><p style="color:#ffd98a">${p.reason}</p><p>修为满即出关；不连续跨境界，超额修为不清零。保留至少一年寿元，遇下届百年大比开启即停。修为收益受当前修炼加成${home?'和洞府家具':''}影响。</p><p>出关恢复气血和灵力；突破另行点击，成功率与失败冷却照常生效。</p>`,choices);
     }
     function executeRetreatV2782(id){
       if(gameState==='combat'||gameState==='combat-ending'||player.breakthrough?.isAnimating)return;
@@ -11273,7 +11286,7 @@
       if(player.breakthrough.pendingBreakthrough)choices.push({text:'✨ 出关 · 尝试突破（无需动画）',action:'retreat_breakthrough_v2782'});
       if(getPendingTournamentCentury())choices.push({text:'📯 查看百年大比',action:'sect_tournament'});
       choices.push({text:'返回',action:p.home?'home':'sect'});
-      showStory(`<h3>🌤️ 闭关结束</h3><p>实际耗时：${p.days}天（约${(p.days/GAME_DAYS_PER_YEAR).toFixed(2)}年）<br>修为 +${p.gain}<br>生命与灵力已恢复。</p><p>${p.reason}</p><p>现年${player.age}岁，剩余寿元${Math.max(0,getTotalMaxLifespan()-player.age)}年。</p><p>${getGameDateLabel()}</p>`,choices);
+      showStory(`<h3>🌤️ 闭关结束</h3><p>实际耗时：${p.days}天（约${(p.days/GAME_DAYS_PER_YEAR).toFixed(2)}年）<br>修为 +${p.gain}<br>气血与灵力已恢复。</p><p>${p.reason}</p><p>现年${player.age}岁，剩余寿元${Math.max(0,getTotalMaxLifespan()-player.age)}年。</p><p>${getGameDateLabel()}</p>`,choices);
     }
 
     function handleHomeCultivateDecade(){showRetreatV2782(true);}
@@ -11287,7 +11300,7 @@
       player.hp = getMaxHp();
       player.mp = getMaxMp();
       
-      showStory(`<p>你在洞府中休息，身心舒畅。</p><p style="color: #69f0ae;">生命和灵力完全恢复！</p>`, [{ text: '继续', action: 'home' }]);
+      showStory(`<p>你在洞府中休息，身心舒畅。</p><p style="color: #69f0ae;">气血和灵力完全恢复！</p>`, [{ text: '继续', action: 'home' }]);
     }
     
     // 洞府管理
@@ -11514,7 +11527,7 @@
       north:{message:'❄️ 寒风刺骨，你踏入北域极寒仙疆……',debuff:{type:'cold',desc:'灵力恢复速度 -20%'}},
       south:{message:'🌤️ 暖风拂面，你回到南域繁华人间。',debuff:null},
       east:{message:'🌲 古木遮天，你进入东域灵兽森林……',debuff:null},
-      west:{message:'☠️ 魔气侵体，你踏入危险的西域魔渊！',debuff:{type:'corruption',desc:'生命上限 -10%'}}
+      west:{message:'☠️ 魔气侵体，你踏入危险的西域魔渊！',debuff:{type:'corruption',desc:'气血上限 -10%'}}
     };
 
 
@@ -12132,7 +12145,7 @@
       {id:'array_core',name:'护宗大阵核心台',shortName:'大阵核心台',tier:'core',desc:'掌控护宗结界，是宗门防御中枢。',functions:['阵法维护','魔灾防御'],x:1080,y:200,icon:'🌀'},
       {id:'ancestor_cave',name:'老祖静修洞天',shortName:'老祖洞天',tier:'forbidden',desc:'隐世老祖闭关之所，仅宗门覆灭级危机才会解封。',functions:['宗门底牌'],x:1450,y:360,icon:'🔒'},
       {id:'back_forest',name:'后山试炼森林',shortName:'后山试炼林',tier:'back',desc:'由低阶到高阶妖兽分层盘踞的宗门试炼林。',functions:['妖兽试炼','材料获取','灵兽捕捉'],x:250,y:500,icon:'🌲'},
-      {id:'spirit_spring',name:'北域灵泉',shortName:'北域灵泉',tier:'back',desc:'位于宗门地图西侧、后山试炼林以南。可免费恢复全部气血与灵力；不限次数、无冷却、不消耗游戏时间。',functions:['恢复生命灵力','静修'],x:250,y:720,icon:'💧'},
+      {id:'spirit_spring',name:'北域灵泉',shortName:'北域灵泉',tier:'back',desc:'位于宗门地图西侧、后山试炼林以南。可免费恢复全部气血与灵力；不限次数、无冷却、不消耗游戏时间。',functions:['恢复气血灵力','静修'],x:250,y:720,icon:'💧'},
       {id:'cliff_bridge',name:'后山断崖·青石桥',shortName:'青石桥',tier:'back',desc:'感情线核心地标，旧缘与最终选择都与此处有关。',functions:['感情剧情','回忆'],events:['情断青云','第二次选择'],x:480,y:720,icon:'🌉'},
       {id:'hidden_caves',name:'隐秘洞府区',shortName:'隐秘洞府区',tier:'back',desc:'后山深处散落着机缘洞府、宝箱与奇遇点。',functions:['机缘探索','隐藏宝箱'],x:480,y:300,icon:'🕳️'},
       {id:'border_towers',name:'边境哨塔群',shortName:'边境哨塔',tier:'function',desc:'人族防线前哨，承担魔灾探查与边境镇守。',functions:['魔灾探查','边境镇守'],x:120,y:880,icon:'🗼'},
@@ -12159,12 +12172,13 @@
     };
     function getBuildingData(id){return LINGXIAO_BUILDINGS.find(b=>b.id===id)||null;}
     function getBuildingsByTier(tier){return LINGXIAO_BUILDINGS.filter(b=>b.tier===tier);}
-    function isLingxiaoNight(){const h=new Date().getHours();return h>=18||h<=6;}
+    function isLingxiaoNight(){return player?.worldTime?.night===true;}
+    function toggleLingxiaoNightV286838(){if(!player)return;if(!player.worldTime)player.worldTime={totalDays:0};player.worldTime.night=!isLingxiaoNight();showFloatingText?.(isLingxiaoNight()?'🌙 夜色降临，夜间建筑已开放':'☀️ 天光已明','#c9d6ff');updateWorldHUD?.();autoSave?.();showSect();}
     function isLingxiaoRainy(){const d=getGameDate?.();return !!d && ((d.totalDays%9)===3||(d.totalDays%9)===4);}
     function canAccessBuilding(id){
       const b=getBuildingData(id);if(!b)return {allowed:false,reason:'建筑不存在'};
       if(id==='spirit_spring')return {allowed:true};
-      if(b.nightOnly&&!isLingxiaoNight())return {allowed:false,reason:'仅夜间开放'};
+      if(b.nightOnly&&!isLingxiaoNight())return {allowed:false,reason:'仅夜间开放（可在宗门选择「静候入夜」）'};
       if(b.tier==='forbidden'){
         const plotOpen=(player?.storyProgress||0)>=5;
         return plotOpen?{allowed:true}:{allowed:false,reason:'仅宗门危机剧情开放'};
@@ -12456,7 +12470,7 @@
       const region=getRegionInfo(regionId), effect=REGION_ENTRY_EFFECTS[regionId];
       activeRegionDebuff=effect?.debuff?{regionId,...effect.debuff}:null;
       activeRegionBuff=effect?.buff?{regionId,...effect.buff}:null;
-      // 西域降低最大生命后立即夹紧当前生命，离开西域不会自动补血。
+      // 西域降低最大气血后立即夹紧当前气血，离开西域不会自动补血。
       player.hp=Math.min(player.hp,getMaxHp());
       player.mp=Math.min(player.mp,getMaxMp());
       if(!silent) showRegionEntryNotification(region,effect?.message||'');
@@ -12679,7 +12693,7 @@
         monster.inCombat = false;
         monster.alive = true;
         monster.battleCooldown = 8;
-        // 逃跑/战败后保留本次已造成的伤害，但至少留1点生命。
+        // 逃跑/战败后保留本次已造成的伤害，但至少留1点气血。
         if (currentEnemy && Number.isFinite(currentEnemy.hp)) {
           monster.enemy.hp = Math.max(1, Math.min(monster.enemy.maxHp || currentEnemy.maxHp || currentEnemy.hp, currentEnemy.hp));
         }
@@ -13489,7 +13503,7 @@
         img.src='./'+file;
       };
       request('regions','scroll-regions-v2834.webp',true);
-      for(const [key,file] of [['smallBeastsV28682','monster-small-beasts-v28682.png'],['palace','scroll-palace-v2831.webp'],['buildings','scroll-buildings-v2832.webp'],['monstersV2853','monster-map-v2853.webp?v=2868-sect-stories-20260930'],['regionalBuildings','region-buildings-v2835.webp']])request(key,file);
+      for(const [key,file] of [['smallBeastsV28682','monster-small-beasts-v28682.webp'],['palace','scroll-palace-v2831.webp'],['buildings','scroll-buildings-v2832.webp'],['monstersV2853','monster-map-v2853.webp?v=2868-elements-20261013'],['regionalBuildings','region-buildings-v2835.webp']])request(key,file);
     }
     function scrollRegionCellV2834(region=currentRegion){
       const n=['south','east','west','north','human_peaks','human_valleys','demon_domain','immortal_domain'].indexOf(region);return n<0?0:n;
@@ -13959,7 +13973,7 @@
       document.getElementById('worldGold').textContent=player.gold;
       document.getElementById('worldAtk').textContent=getAtk();document.getElementById('worldDef').textContent=getDef();
       const timeHud=document.getElementById('worldTime');
-      if(timeHud) timeHud.textContent=getGameDateLabel();
+      if(timeHud) timeHud.textContent=getGameDateLabel()+(isLingxiaoNight()?' · 夜':'');
       updateRegionStatusHUD?.();
       const cp=document.getElementById('characterPanel'); if(cp && !cp.classList.contains('hidden')) updateCharacterPanelDeep();
       const tournamentHud=document.getElementById('worldTournament');
@@ -14057,7 +14071,7 @@
         localStorage.setItem('xiantu_battle_speed_v2756','1');
       } catch (_) {}
 
-      // 拉满生命和灵力必须放在境界赋值之后。
+      // 拉满气血和灵力必须放在境界赋值之后。
       try { p.hp = getMaxHp.call({}); } catch (_) { p.hp = Math.max(9999, Number(p.hp)||100); }
       try { p.mp = getMaxMp.call({}); } catch (_) { p.mp = Math.max(9999, Number(p.mp)||50); }
 
@@ -14087,11 +14101,15 @@
       }
     }
 
+    function devToolsAllowedV286838(){
+      const loc=typeof location==='undefined'?{}:location,host=String(loc.hostname||'');
+      return loc.protocol==='file:'||host==='localhost'||host==='127.0.0.1'||host==='[::1]'||host.endsWith('.localhost');
+    }
     function startGame() {
       const rawName = document.getElementById('playerName').value.trim();
       const name = rawName || '无名';
       try{validateSaveTextV2869({name});}catch(e){alert('道号请使用文字、数字或空格，不要包含代码符号');return;}
-      const isTest999 = rawName === '999';
+      const isTest999 = rawName === '999' && devToolsAllowedV286838();
       resetRuntimeState();
 
       if (isTest999) {
@@ -14370,7 +14388,7 @@
         menu.innerHTML = `
           <button type="button" onclick="manualSave();document.getElementById('mobileQuickMenu').classList.remove('show')">💾 记档</button><button type="button" onclick="showSaveManagerV2768();document.getElementById('mobileQuickMenu').classList.remove('show')">📁 存档管理</button>
           <button type="button" onclick="showAchievements();document.getElementById('mobileQuickMenu').classList.remove('show')">🏆 成就录</button>
-          <button type="button" onclick="toggleMute()">🔊 静音</button>
+          <button type="button" id="quickMuteV286838" onclick="toggleMute()" aria-pressed="${isMuted}">${isMuted?'🔇 取消静音':'🔊 静音'}</button>
           <button type="button" onclick="toggleBGM()">🎵 音乐</button>
           <button type="button" onclick="showSectTasks();document.getElementById('mobileQuickMenu').classList.remove('show')">📜 宗门任务</button>
           <button type="button" onclick="showEquipmentPanel();document.getElementById('mobileQuickMenu').classList.remove('show')">🎒 装备</button>
@@ -14462,7 +14480,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.35";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.38";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
@@ -14610,7 +14628,7 @@ function showDiscipleEventV2867(id){if(!discipleAllowedV2815())return;const d=di
 function resolveDiscipleEventV2867(id,eventId,choice){if(!discipleAllowedV2815()||![0,1].includes(choice))return;const d=discipleRosterV2815().members.find(d=>d.id===id);if(!d||!discipleEventReadyV2867(d)||d.job.eventV2867.id!==eventId)return;const j=d.job,e=j.eventV2867,t=discipleTraitsV2867(d),ctx=discipleEventContextV2867;if(!ctx||ctx.owner!==player||ctx.sect!==player.sect||ctx.event!==e||!document.getElementById('discipleEventTitleV2867')||document.getElementById('storyPanel')?.classList.contains('hidden'))return;discipleEventContextV2867=null;e.resolved=true;if(choice===1){if(e.kind===0){j.end++;t.loyalty+=t.personality===2?10:8;}else if(e.kind===1){j.end+=2;j.gold=Math.floor(j.gold*1.25);t.loyalty+=3;}else{j.end=discipleDayV2815();j.gold=Math.floor(j.gold*.5);j.count=0;j.withdrawnV2867=true;t.loyalty-=3;}}d.traitsV2867={...t,loyalty:Math.max(0,Math.min(100,t.loyalty))};lifeEventV2868(d,e,choice);autoSave();showDisciplesV2815('指令已传回，本次来信处理完毕。');}
 const MINI_ROUTES_V2867=[{name:'稳妥 · 外围药径',reward:1,hp:1,atk:1},{name:'遗迹 · 古修洞天',reward:1.15,hp:1.2,atk:1.1},{name:'险境 · 断剑深谷',reward:1.5,hp:1.6,atk:1.25}];
 function miniRouteV2867(c){return MINI_ROUTES_V2867[c?.routeV2867]||MINI_ROUTES_V2867[0];}
-function showMiniRouteV2867(c){if(!sectCanManageV2866())return;showStory(`<section class="sect-board-v2866"><h3>秘境岔路</h3><p>穿过山门后的云雾，三条小径通向不同深处。选定后，本次路线不会变化。</p>${MINI_ROUTES_V2867.map((r,i)=>`<article><h4>${r.name}</h4><p>取宝灵石/修为×${r.reward}；守关生命×${r.hp}，攻击×${r.atk}。</p>${i===1?'<p>完成首层采集额外积累80悟道修为。</p>':''}<button class="choice-btn" onclick="selectMiniRouteV2867(${c.id},${i})">选择此路</button></article>`).join('')}<p>途中可撤离，带回已采材料与悟道修为；守关战败失去未结算收获，并扣身上20%灵石。</p></section>`,[{text:'暂离 · 返回宗门',action:'sect_hall'}]);}
+function showMiniRouteV2867(c){if(!sectCanManageV2866())return;showStory(`<section class="sect-board-v2866"><h3>秘境岔路</h3><p>穿过山门后的云雾，三条小径通向不同深处。选定后，本次路线不会变化。</p>${MINI_ROUTES_V2867.map((r,i)=>`<article><h4>${r.name}</h4><p>取宝灵石/修为×${r.reward}；守关气血×${r.hp}，攻击×${r.atk}。</p>${i===1?'<p>完成首层采集额外积累80悟道修为。</p>':''}<button class="choice-btn" onclick="selectMiniRouteV2867(${c.id},${i})">选择此路</button></article>`).join('')}<p>途中可撤离，带回已采材料与悟道修为；守关战败失去未结算收获，并扣身上20%灵石。</p></section>`,[{text:'暂离 · 返回宗门',action:'sect_hall'}]);}
 function selectMiniRouteV2867(id,route){if(!sectCanManageV2866()||!Number.isInteger(route)||!MINI_ROUTES_V2867[route])return;const c=miniRunV2778();if(!c||c.id!==id||c.step!==0||c.routeV2867!==null)return;c.routeV2867=route;autoSave();showMiniRealmV2778();}
 
 // V28.68.29: bounded elemental openings, equipment/loadout synergies and timed expeditions.
@@ -14691,7 +14709,7 @@ function claimTripV286821(){
 function showTripV286821(){
  if(gameState!=='exploring')return;
  const s=tripStateV286821(),y=tripYieldV286821(),r=TRIP_ROUTES_V286821.find(r=>r.key===s.active?.key);
- let html='<h3>游历派遣</h3><p>派遣后可离线，也可继续修行。按现实时间每10分钟结算一段，上限8小时；提前领取结束本趟，未满10分钟不结算。不消耗灵石，不掉落Boss或突破材料。</p>';
+ let html='<h3>游历派遣</h3><p>派遣后可离线，也可继续修行。按现实时间每10分钟结算一段，上限8小时；提前领取结束本趟，未满10分钟不结算。不消耗灵石，不掉落首领或突破材料。</p>';
  if(r)html+=`<p>${r.name} · 已积累${y.units*10}分钟 / 480分钟，灵石${y.gold}、灵草${y.herbs}。${Date.now()<s.active.started?'设备时间早于出发时间，暂不累计收益。':''}</p><button class="choice-btn" onclick="claimTripV286821()" ${y.units?'':'disabled'}>领取并结束本趟</button><button class="choice-btn" onclick="showTripV286821()">刷新游历进度</button>`;
  else html+=TRIP_ROUTES_V286821.map((r,i)=>{const n=s.wins[r.key],ok=Number.isInteger(n)&&player.level>=n+1;return `<p>${r.name}：每10分钟${r.gold}灵石，每小时1灵草。${n===undefined?'需先击败该类普通怪':ok?'可派遣':'需高于已击败敌人至少一个大境界'}</p><button class="choice-btn" onclick="startTripV286821(${i})" ${ok?'':'disabled'}>派遣 · ${r.name}</button>`;}).join('');
  showStory(html+buildGuideV286821(),[{text:'返回洞府',action:'home'}]);

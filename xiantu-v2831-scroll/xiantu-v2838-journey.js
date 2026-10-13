@@ -111,7 +111,7 @@ const SCENES_V2838={
 };
 function journeyIntroductionV2838(){
  const esc=discipleEscV2815;
- return `<section class="main-overview-v2822"><h3>三界游历 · 八章</h3><p>炼虚至渡劫、天仙至大罗金仙逐章开放。这八章已接入主线顺序，可在主线页继续；不替代真正的飞升天劫。战斗失败保留已读步骤，可补给后重试；章节奖励仅发一次。</p><details><summary>查看开放条件</summary>${JOURNEYS_V2838.map(j=>`<p>${esc(j.title)}：${esc(CULTIVATION_REALMS[j.level].name)}初期，完成「${esc(getTaskData(j.requires)?.title||j.requires)}」</p>`).join('')}</details></section>`;
+ return `<section class="main-overview-v2822"><h3>三界游历 · 八章</h3><p>炼虚至渡劫、天仙至大罗金仙逐章开放。这八章已接入主线顺序，可在主线页继续；不替代真正的飞升天劫。战斗失败保留已读步骤，可补给后重试；章节奖励仅发一次。</p><details><summary>查看开放条件</summary>${JOURNEYS_V2838.map(j=>`<p>${esc(j.title)}：${esc(CULTIVATION_REALMS[j.level].name)}初期，完成「${esc(getTaskData(j.requires)?.title||j.requires)}」</p>`).join('')}</details>${player?.tasks?.completed?.includes('main_19')?'<button type="button" class="choice-btn" onclick="showEpilogueV286838()">📜 终章回顾 · 道途圆满</button>':''}</section>`;
 }
 function scenePagesV2838(id,action){
  const j=JOURNEYS_V2838.find(x=>x.id===id);
@@ -210,7 +210,8 @@ onChoiceMade=function(id,option){
  return result;
 };
 function journeyEnemyV2838(j){
- const lv=j.level,hp=300+lv*60;const enemy=balanceEnemyV2802({name:j.enemy,hp,maxHp:hp,atk:25+lv*7,def:10+lv*4,gold:80+lv*20,exp:80+lv*25,_realmLevel:lv,_realmPhase:0,_taskId:j.id,_taskAction:'journey_battle_v2838',_isTaskBattle:true});
+ // balanceEnemyV2802 derives hp/atk/def from the realm; only gold and exp come from the chapter.
+ const lv=j.level;const enemy=balanceEnemyV2802({name:j.enemy,hp:1,maxHp:1,atk:1,def:1,gold:80+lv*20,exp:80+lv*25,_realmLevel:lv,_realmPhase:0,_taskId:j.id,_taskAction:'journey_battle_v2838',_isTaskBattle:true});
  if(journeyPrepV286823(j.id).plan==='breach')enemy.def=Math.floor(enemy.def*.85);return enemy;
 }
 function launchJourneyBattleV2838(id){
@@ -260,7 +261,7 @@ function exportPreviousV2838(){
   const url=URL.createObjectURL(new Blob([raw],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='xiantu-previous-character.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
  }catch(e){alert('导出失败：'+e.message);}
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.35';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.38';
 
 // Small non-combat encounters, two per region and character. Persist choice and reward together.
 const ROAMING_KINDS_V286818=['traveler','ruins'];
@@ -636,7 +637,7 @@ function sceneContextV286827(id){
 function showExpansionSceneV286827(id){
  const d=EXPANSION_SCENES_V286827.find(x=>x.id===id),s=expansionStateV286827(),chosen=s.scenes[id];if(!taskInteractionAllowedV2822()||!d||(!chosen&&!sceneUnlockedV286827(d)))return;
  const body=`<p>${escapeGameText(d.body)}</p><p>${escapeGameText(sceneContextV286827(id))}</p>${chosen?`<p>你的选择：${escapeGameText(d.choices.find(c=>c[0]===chosen)?.[1])}</p><p>${escapeGameText(d.choices.find(c=>c[0]===chosen)?.[2])}</p>`:`<p>【心境抉择】记入行纪，不改变公共主线。${d.exp?'完成一次获得修为'+d.exp+'。':'无额外数值奖励。'}</p>`}`;
- expansionModalV286827(d.title,storyIllustrationV286828("extra",id)+body,chosen?[['back','返回拾遗']]:d.choices.map(c=>c.slice(0,2)),k=>{if(k==='back')showExpansionV286827();else{const next=expansionStateV286827();if(next.scenes[id]||!sceneUnlockedV286827(d)||!d.choices.some(c=>c[0]===k))return;next.scenes[id]=k;if(expansionSaveV286827(next,d.exp||0))showExpansionSceneV286827(id);}});
+ expansionModalV286827(d.title,storyIllustrationV286828("extra",id)+body,chosen?[['back','返回拾遗']]:d.choices.map(c=>c.slice(0,2)),k=>{if(k==='back')showExpansionV286827();else{const next=expansionStateV286827();if(next.scenes[id]||!sceneUnlockedV286827(d)||!d.choices.some(c=>c[0]===k))return;next.scenes[id]=k;if(expansionSaveV286827(next,d.exp||0)){if((id==='after_guard'||id==='after_wander')&&!player.tasks?.epilogueShownV286838)showEpilogueV286838();else showExpansionSceneV286827(id);}}});
 }
 const RAIN_TWO_TITLES_V286827=['残信再至','寻访幸存者','雷海船队','各方来信','执印使的两道封令','守渡执印使','三个人的去向','把哪一条路留住','渡牌东流 · 结案','卷二完'];
 const RAIN_TWO_ENDINGS_V286827={arrest:['扣住执行者，三方封存卷宗','你扣下执印使及这一段船队的转运册，先让归人离船，再封住泊位。三方分别收存副本。船队在此中断，远处另一处接货点却已撤空；被捕者只能说出经手的印号，不能证明最高层是谁。'],rescue:['先救船中人，舍弃追捕窗口','你把仅有的两条小艇用于接人。押船者趁退潮带走部分原册，留下的抄件不足以锁定下一处泊位。归人活着踏上岸，不代表失去的记忆已经回来；这段转运线还需要重查。'],seal:['保全云阙痕迹，等待交叉核验','封蜡的旧版印谱指向云阙一处档案机构，但印章可以被盗用。你将拓片交三方密存，请不同来源继续核验，暂不公开指认。质疑因此落到你身上：为何找到线索，却还不给家属一个名字？你只能如实解释证据边界。']};
@@ -730,4 +731,16 @@ function showMentorV286827(){
  if(!taskInteractionAllowedV2822())return;
  const text=player.level>=16?'清玄真人不再问你修为到了哪一步。他把新来的求援信放在桌上：“你如今能被人称作仙。可何为仙，仍要从这一封封信里回答。”':player.level>=3?'清玄真人看过你带回的卷宗：“金丹已成，不等于每件事都看得比别人清楚。强者的猜测，更该容别人质疑。”':'清玄真人等你把呼吸调匀：“先学会走自己的路，也看一看路旁的人。入山不是从此与凡尘两清。”';
  expansionModalV286827('清玄真人 · 此刻的问道',`<p>${text}</p><p>这是当下的相谈，旧日纪事仍保留当年的称谓。</p>`,[['back','返回拾遗']],k=>{if(k==='back')showExpansionV286827();});
+}
+
+function showEpilogueV286838(){
+ if(!player?.tasks?.completed?.includes('main_19')||!taskInteractionAllowedV2822())return;
+ const esc=escapeGameText,mains=MAIN_TASKS.filter(t=>player.tasks.completed.includes(t.id)).length;
+ const achieved=typeof completedAchievements!=='undefined'?completedAchievements.size:0,allAch=Object.keys(ACHIEVEMENTS||{}).length;
+ const path=player.tasks.choices?.main_19==='guard'?'你选择留在凌霄宗，守着山门与荒原来的人。':'你选择辞行远游，把答案带往更远的地方。';
+ if(!player.tasks.epilogueShownV286838){player.tasks.epilogueShownV286838=true;autoSave?.();}
+ const body=`<p>旧日高悬一境的宿敌终于停在身后。三万年的战争没有因你成圣而结束，但这一程，你已经用自己的道作答。</p><p>${esc(path)}</p>`+
+  `<dl class="epilogue-stats-v286838"><dt>道号</dt><dd>${esc(player.name||'无名')}</dd><dt>境界</dt><dd>${esc(getCultivationName())}</dd><dt>仙历</dt><dd>${esc(getGameDateLabel())}</dd><dt>主线</dt><dd>${mains} / ${MAIN_TASKS.length} 章</dd><dt>成就</dt><dd>${achieved} / ${allAch}</dd></dl>`+
+  '<p>《仙途》主线到此完结，感谢一路同行。之后仍可继续修炼、游历、参加宗门大比，或在「拾遗」中回看番外。</p>';
+ expansionModalV286827('终章 · 道途圆满',body,[['continue','继续自由修炼'],['expansion','查看拾遗与番外']],k=>{if(k==='continue'){document.getElementById('expansionV286827')?.remove();expansionSessionV286827=null;}else if(k==='expansion')showExpansionV286827();});
 }

@@ -131,7 +131,7 @@ function showEquipmentPanel(){
   const panel=document.createElement('div');panel.id='equipmentPanel';panel.className='equipment-panel-overlay';
   const content=document.createElement('div');content.className='equipment-panel-content';
   const power=Math.round(getEquippedPower()),lockedEquipped=Object.values(player.equipment||{}).filter(n=>n&&isEquipmentLocked(n)).length,upgradeCount=getEquipmentUpgradeCount();
-  content.innerHTML=`<button onclick="document.getElementById('equipmentPanel')?.remove()" style="position:absolute;right:12px;top:10px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#ddd;font-size:16px">✕</button>
+  content.innerHTML=`<button aria-label="关闭" onclick="document.getElementById('equipmentPanel')?.remove()" style="position:absolute;right:12px;top:10px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#ddd;font-size:16px">✕</button>
     <div style="margin-bottom:14px"><span style="font-size:20px;font-weight:bold;color:#ffd700">🎒 角色装备</span><span class="equip-power-chip">⚡ 装备战力 ${power}</span><span style="font-size:12px;color:#aaa;margin-left:8px">最高品质：${getEquipQualitySummary()}${lockedEquipped?` · 🔒${lockedEquipped}`:''}</span></div>
     <div class="equipment-grid-primary"><div><div style="color:#ffd700;font-size:13px;font-weight:bold;margin-bottom:6px">🛡️ 防具 · 6件</div>${renderEquipSlots(['head','robe','bracer','belt','pants','boots'])}</div><div><div style="color:#ffd700;font-size:13px;font-weight:bold;margin-bottom:6px">💎 首饰 · 5件</div>${renderEquipSlots(['necklace','bracelet','ring1','ring2','jade'])}</div></div>
     <div style="margin-top:12px"><div style="color:#ffd700;font-size:13px;font-weight:bold;margin-bottom:6px">⚔️ 武器法宝</div>${renderEquipSlots(['weapon','offhand','artifact1','artifact2','artifact3','flying'])}</div>
@@ -159,8 +159,8 @@ function getProtectedBagCount(name){
 }
 function getSafeDismantleCountForName(name){if(getEquipData(name)?.forgeBaseV2825)return 0;return Math.max(0,getBagCountByName(name)-getProtectedBagCount(name));}
 function getDismantleValue(name){
-  const d=getEquipData(name);if(!d)return 0;const qi=Math.max(0,QUALITY_KEYS.indexOf(d.quality)),bases=[5,12,30,75,180,500,1500];
-  return Math.max(1,Math.round((bases[qi]||5)*(1+Math.max(0,Number(d.realmRequired)||0)*.12)));
+  const d=getEquipData(name);if(!d)return 0;const bases={MORTAL:5,GOOD:12,FINE:30,EXCELLENT:75,LING_PIN:180,BAO_QI:500,SPIRIT:180,IMMORTAL:500,TIAN_QI:500,SHENG_QI:500,DAO_QI:500,GOD:1500};
+  return Math.max(1,Math.round((bases[d.quality]||5)*(1+Math.max(0,Number(d.realmRequired)||0)*.12)));
 }
 function getBulkDismantlePreview(threshold=equipmentDismantleQuality){
   const maxIdx=Math.max(0,QUALITY_KEYS.indexOf(threshold)),counts={};for(const n of (player.equipmentInventory||[]))counts[n]=(counts[n]||0)+1;
@@ -220,4 +220,4 @@ function showEquipmentInventory(){
 // 初始化锁定字段；旧存档无需迁移结构，下一次保存会自动写入 player。
 try{ensureEquipmentManagerState();}catch(_){ }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-12-v277equipmentmanager.js"]="28.68.35";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-12-v277equipmentmanager.js"]="28.68.38";

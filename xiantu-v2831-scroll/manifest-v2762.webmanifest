@@ -1,9 +1,9 @@
 {
-  "name": "仙途 · V28.68.4 青绿绘妖",
+  "name": "仙途 · V28.68.38 雷剑疗特效",
   "short_name": "仙途",
   "description": "仙侠荒野探索、宗门经营、弟子培养与小说式动画演武游戏",
   "lang": "zh-CN",
-  "start_url": "./game-v2762.html?v=2868-duel-20261005",
+  "start_url": "./game-v2762.html?v=2868-elements-20261013",
   "scope": "./",
   "display": "fullscreen",
   "display_override": [

@@ -47,10 +47,10 @@ test('rabbit turtle and bat use the new artwork in map and battle',async({page})
   canvas.style.cssText='position:fixed;inset:0;z-index:999999;width:720px;height:250px;background:#e7dec3';document.body.appendChild(canvas);
   const ctx=canvas.getContext('2d');ctx.fillStyle='#e7dec3';ctx.fillRect(0,0,720,250);ctx.scale(2.5,2.5);
   names.forEach((name,i)=>{ctx.save();ctx.translate(46+i*94,70);drawInkEnemyV2833(ctx,{enemy:{name},regionId:'south'});ctx.restore();});
-  return {keys:names.map(n=>scrollMonsterKeyV2853(n)),unchanged:JSON.stringify(player)===before,loaded:performance.getEntriesByType('resource').filter(r=>r.name.includes('monster-small-beasts-v28682.png')).length};
+  return {keys:names.map(n=>scrollMonsterKeyV2853(n)),unchanged:JSON.stringify(player)===before,loaded:performance.getEntriesByType('resource').filter(r=>r.name.includes('monster-small-beasts-v28682.webp')).length};
  });
  expect(result).toEqual({keys:['rabbit','turtle','bat'],unchanged:true,loaded:1});
  await page.locator('#beastPreview').screenshot({path:'test-results/beasts-preview.png'});
- await page.route('**/monster-small-beasts-v28682.png',r=>r.abort());await page.reload();await page.locator('#xiantuSafeBootButton').click();await page.locator('#introSkipV2860').click();await expect(page.locator('html')).toHaveClass(/xiantu-v2762-ready/);await page.evaluate(()=>{loadAndStart();closeWorldOverlay();});
+ await page.route('**/monster-small-beasts-v28682.webp',r=>r.abort());await page.reload();await page.locator('#xiantuSafeBootButton').click();await page.locator('#introSkipV2860').click();await expect(page.locator('html')).toHaveClass(/xiantu-v2762-ready/);await page.evaluate(()=>{loadAndStart();closeWorldOverlay();});
  expect(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=180;c.height=225;return ['rabbit','turtle','bat'].every(key=>drawScrollMonsterPortraitV2853(c,key));})).toBe(true);
 });

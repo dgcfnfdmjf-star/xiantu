@@ -73,7 +73,7 @@ function showEarlyEconomyV2773(){
 
  html+=`<h4>📦 村务跑腿</h4><p>凡人至筑基可接；每次450灵石，耗时1游戏日，完成后冷却2日。</p><button class="choice-btn" onclick="completeVillageDeliveryV2773()" ${wait||player.level>2?'disabled':''}>${player.level>2?'境界已超出村务范围':wait?'还需'+wait+'天':'帮助村民送货（+450灵石）'}</button><h4>🌿 富余材料回收</h4><p>每次最多出售20份，自动保留任务材料。回收后材料会减少。</p>`;
  for(const [name,r] of Object.entries(EARLY_BUYBACK_V2773)){const have=player.materials?.[name]||0;html+=`<p>${name}：库存${have}，单价${r.price}灵石，保留${r.keep}份</p><button class="choice-btn" onclick="sellSpareMaterialV2773('${name}')" ${have<=r.keep?'disabled':''}>出售富余${name}（最多20份）</button>`;}
- html+='<p>⚔️ 普通战斗额外补贴：凡人最多+120、练气+180、筑基+260，之后逐境界增加，金丹及以上最多+500；不超过敌人原始灵石奖励的3倍。教程、Boss和大比不适用。</p>';
+ html+='<p>⚔️ 普通战斗额外补贴：凡人最多+120、练气+180、筑基+260，之后逐境界增加，金丹及以上最多+500；不超过敌人原始灵石奖励的3倍。教程、首领和大比不适用。</p>';
  html+=renderLivelihoodV2788();
  showStory(html,[{text:'⚔️ 南域历练',action:'explore'},{text:'🏪 购买补给',action:'shop'},{text:'← 返回青云村',action:'village'}]);
 }
@@ -120,4 +120,4 @@ function renderLivelihoodV2788(){
  return html;
 }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2773-economy.js"]="28.68.35";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2773-economy.js"]="28.68.38";
