@@ -135,7 +135,7 @@ function create(host,read,enemyKey='wolf'){
   const pose=attack?(age<.16?1:age<.58?2:age<.8?1:0):0;
   const px=242+(attack?.side==='player'?move:0),ex=493-(attack?.side==='enemy'?move:0);
   const ink=window.InkSkillFxV2854,fxJobs=[];
-  tails=tails.filter(a=>elapsed-a.at<900);
+  tails=tails.filter(a=>elapsed-a.at<(['烈焰斩','炎爆术','焚天烈焰','红莲业火','火墙术','三昧真火'].includes(a.name)?1100:900));
   if(ink?.draw&&ink?.profile){
    for(const a of [...tails,attack].filter(Boolean)){
     if(!a.fxProfile)a.fxProfile=ink.profile(a.name||(a.side==='player'?'普通攻击':profile.action),a.element);
@@ -147,13 +147,13 @@ function create(host,read,enemyKey='wolf'){
     }
     const from={x:a.side==='player'?260:475,y:225},to=a.fxProfile.self?from:{x:a.side==='player'?493:242,y:225};
     // Heart-fire is a torso brand: use the illustrated species' height, never its foot ring.
-    if(a.fxProfile.kind==='heart'){
+    if(a.fxProfile.kind==='heart'||['烈焰斩','炎爆术','三昧真火'].includes(a.name)){
      const enemyFoot=profile.key==='wolf'?278:profile.height>200?315:/fly|float/.test(profile.motion)?306:292;
      const torso={x:ex,y:enemyFoot-profile.height*(profile.motion==='human'?.58:.43)};
      const hero={x:px+8,y:205};
      Object.assign(from,a.side==='player'?hero:torso);Object.assign(to,a.side==='player'?torso:hero);
     }
-    fxJobs.push({action:a,job:{id:a.side==='player'?1:2,profile:a.fxProfile,from,to,...a.anchors,width:W,clipBottom:355,scale:1.05,light:fxSettings.light,reduced,duration:900,arriveAt:contactTime(a),hitAt:a.impactAt??null,groundDrawn:!!ink.drawGround}});
+    fxJobs.push({action:a,job:{id:a.side==='player'?1:2,profile:a.fxProfile,from,to,...a.anchors,width:W,clipBottom:355,scale:1.05,light:fxSettings.light,reduced,duration:['烈焰斩','炎爆术','焚天烈焰','红莲业火','火墙术','三昧真火'].includes(a.name)?1100:900,arriveAt:contactTime(a),hitAt:a.impactAt??null,detonationAt:a.detonationAt??null,groundDrawn:!!ink.drawGround}});
    }
   }
   for(const {action:a,job} of fxJobs)ink.drawGround?.(ctx,job,elapsed-a.at);
@@ -180,10 +180,18 @@ function create(host,read,enemyKey='wolf'){
    if(a.side==='player')illustratedActor(ctx,a.x-recoil,a.y,t,attacking?(cast?(age<.58?1:0):pose):0,data.playerHp<=0&&!awaitingHit,0);
    else monsterActor(ctx,a.x+recoil,a.y-lift,t,attacking?pose:0,data.enemyHp<=0&&!awaitingHit);
    ctx.restore();
-   if(a.side==='enemy'&&!fallen&&data.burnTurns>0&&data.burnDamage>0){
-    // Suppress the small status mark while an authored fire impact owns the torso.
-    const heartImpact=fxJobs.some(({action,job})=>job.profile.kind==='heart'&&action.side==='player'&&action.impactAt!=null&&elapsed-action.at-action.impactAt<540);
-    if(!heartImpact)ink?.heart?.drawStatus?.(ctx,a.x+recoil,a.y-lift-profile.height*(profile.motion==='human'?.58:.43),elapsed,Math.max(0,1-(elapsed-burnPulseAt)/260),reduced);
+   if(a.side==='enemy'&&!fallen&&data.enemyHp>0&&data.burnTurns>0&&data.burnDamage>0){
+    // One owner: short authored fire art first, then the live burn's status mark.
+    const heartImpact=fxJobs.some(({action,job})=>{
+     if(action.side!=='player')return false;
+     if(action.impactAt==null)return action.name==='红莲业火';
+     if(job.profile.kind==='heart'&&elapsed-action.at-action.impactAt<540)return true;
+     return ink?.fireBatch?.ready?.(job.profile.name)&&ink.fireBatch.sample(job,elapsed-action.at).some(p=>['telegraph','impact','body','residue','detonation'].includes(p.layer));
+    });
+    if(!heartImpact){
+     const lotus=ink?.fireBatch2?.statusActive?.(data)&&ink.fireBatch2.drawStatus(ctx,a.x+recoil,a.y-lift,elapsed,reduced,1.05);
+     if(!lotus)ink?.heart?.drawStatus?.(ctx,a.x+recoil,a.y-lift-profile.height*(profile.motion==='human'?.58:.43),elapsed,Math.max(0,1-(elapsed-burnPulseAt)/260),reduced);
+    }
    }
    if(fallen&&!reduced&&!fxSettings.light&&dissolve<1){
     ctx.save();ctx.globalAlpha=(1-dissolve)*.65;
@@ -233,7 +241,7 @@ function create(host,read,enemyKey='wolf'){
   cancelAnimationFrame(raf);raf=0;
   // Authored solar and butterfly one-shots expire on backgrounding instead of replaying a frozen burst
   // on return. This drops presentation records only; damage is already engine-owned.
-  const authored=a=>['太阳真火','冰蝶幻舞','焚心炎','绝对零度'].includes(a?.name);
+  const authored=a=>['太阳真火','冰蝶幻舞','焚心炎','绝对零度','烈焰斩','炎爆术','焚天烈焰','红莲业火','火墙术','三昧真火'].includes(a?.name);
   if(authored(attack))attack=null;
   queue=queue.filter(a=>!authored(a));tails=tails.filter(a=>!authored(a));
  }else wake();}
@@ -256,7 +264,7 @@ function create(host,read,enemyKey='wolf'){
  function contactTime(action){return action.side==='player'&&action.name&&action.element!=='heal'?310:/^(sword|heal|thunder)$/.test(action.element)?155:310;}
  function emitHit(h,action=null){
   if(h.pet&&!h.heal)petHitAt=elapsed-110; // Contact event starts at the pounce apex; existing damage is authoritative.
-  if(action){action.impactAt??=elapsed-action.at;if(!h.heal&&!h.pet){action.holdAt=action.impactAt;action.holdMs=h.crit?70:42;}}
+  if(action){action.impactAt??=elapsed-action.at;if(action.name==='炎爆术'&&h.skillName==='灼烧引爆')action.detonationAt??=elapsed-action.at+60;if(!h.heal&&!h.pet){action.holdAt=action.impactAt;action.holdMs=h.crit?70:42;}}
   const color=action?.fxProfile?.palette?.[0];
   if(!h.heal)hits.push({side:h.side,crit:h.crit,color,at:elapsed});
   const lane=floats.filter(f=>f.side===h.side&&elapsed-f.at<850).length%3;
@@ -264,10 +272,10 @@ function create(host,read,enemyKey='wolf'){
  }
  function flushHits(action){for(const h of action.pendingHits)emitHit(h,action);action.pendingHits=[];}
  return {get ready(){return ready()&&!dead;},act,burnTick(){if(!dead&&!document.hidden)burnPulseAt=elapsed;},
-  hit(side,amount,heal=false,crit=false,pet=false){
+  hit(side,amount,heal=false,crit=false,pet=false,skillName=''){
    if(dead)return;
    amount=Number(amount);if(!Number.isFinite(amount)||amount<=0)return;
-   const h={side,amount,heal,crit,pet},source=heal?side:side==='enemy'?'player':'enemy';
+   const h={side,amount,heal,crit,pet,skillName},source=heal?side:side==='enemy'?'player':'enemy';
    const action=pet?null:[...queue].reverse().find(a=>a.side===source)||(attack?.side===source?attack:null);
    if(action&&(action!==attack||elapsed-action.at<contactTime(action)))action.pendingHits.push(h);
    else emitHit(h,action);
@@ -283,12 +291,12 @@ if(typeof window.startCombat==='function'){
   try{return combatBase.apply(this,arguments);}finally{casting=previous;}
  };
  const stop=()=>{scene?.destroy();scene=null;document.getElementById('combatArena')?.classList.remove('duel25-active');};
- const start=window.startCombat;window.startCombat=function(...args){const result=start.apply(this,args);if(typeof currentEnemy!=='undefined'&&currentEnemy===args[0]&&gameState==='combat'){stop();const key=typeof scrollMonsterKeyV2853==='function'?scrollMonsterKeyV2853(currentEnemy.name):null;if(ROSTER.some(p=>p.key===key)){owner=player;foe=currentEnemy;scene=create(document.getElementById('combatArena'),()=>({active:player===owner&&currentEnemy===foe&&(gameState==='combat'||gameState==='combat-ending'),compact:!!document.getElementById('battleVitalsV286816'),pet:owner.activePet,playerName:owner.name,enemyName:foe.name,playerHp:owner.hp,playerMax:getMaxHp(),enemyHp:foe.hp,enemyMax:foe.maxHp,burnTurns:foe.burnTurns,burnDamage:foe.burnStacks}),key);}}return result;};
+ const start=window.startCombat;window.startCombat=function(...args){const result=start.apply(this,args);if(typeof currentEnemy!=='undefined'&&currentEnemy===args[0]&&gameState==='combat'){stop();const key=typeof scrollMonsterKeyV2853==='function'?scrollMonsterKeyV2853(currentEnemy.name):null;if(ROSTER.some(p=>p.key===key)){owner=player;foe=currentEnemy;scene=create(document.getElementById('combatArena'),()=>({active:player===owner&&currentEnemy===foe&&(gameState==='combat'||gameState==='combat-ending'),compact:!!document.getElementById('battleVitalsV286816'),pet:owner.activePet,playerName:owner.name,enemyName:foe.name,playerHp:owner.hp,playerMax:getMaxHp(),enemyHp:foe.hp,enemyMax:foe.maxHp,burnTurns:foe.burnTurns,burnDamage:foe.burnStacks,burnHealBlock:!!foe._burnHealBlockV286818}),key);}}return result;};
  for(const name of ['resetRuntimeState','endCombatAfterCapture']){const base=window[name];if(typeof base==='function')window[name]=function(...args){stop();return base.apply(this,args);};}
  const attack=window.playAttackAnimation;window.playAttackAnimation=function(side){if(scene?.ready){scene.act(side,side==='player'&&casting?casting.element||'sword':side==='enemy'?undefined:'sword',side==='player'&&casting?casting.name:'');return;}return attack.apply(this,arguments);};
  const skill=window.playSkillEffect;window.playSkillEffect=function(name,element,source){if(scene?.ready){scene.act('player',element||'sword',name,true);return;}return skill.apply(this,arguments);};
  const bossSkill=window.playBossSkillEffect;if(typeof bossSkill==='function')window.playBossSkillEffect=function(name){if(scene?.ready){scene.act('enemy',window.InkSkillFxV2854?.profile(name).family||'sword',name,true);return;}return bossSkill.apply(this,arguments);};
- const damage=window.showDamageNumber;window.showDamageNumber=function(amount,side,heal,crit,boss,pet){if(scene?.ready){scene.hit(side,amount,heal,crit,pet);return;}return damage.apply(this,arguments);};
+ const damage=window.showDamageNumber;window.showDamageNumber=function(amount,side,heal,crit,boss,pet,skillName){if(scene?.ready){scene.hit(side,amount,heal,crit,pet,skillName);return;}if(skillName==='灼烧引爆'&&Number(amount)>0)window.InkSkillFxV2854?.fireBatch?.detonate(side);return damage.apply(this,arguments);};
  const log=window.addCombatLog;if(typeof log==='function')window.addCombatLog=function(text){
   const result=log.apply(this,arguments);if(/^灼烧造成\s*[1-9]\d* 点伤害/.test(String(text)))scene?.burnTick();return result;
  };

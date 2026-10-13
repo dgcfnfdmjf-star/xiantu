@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-13",
+  "status": "visual-design-approved",
+  "tool": "image_gen.imagegen",
+  "baseline": "V28.68.35 + locally integrated fire batch1",
+  "skills": [
+    "红莲业火",
+    "火墙术",
+    "三昧真火"
+  ],
+  "inputs": {
+    "output/playwright/skill-vfx-expansion/stage-reference.webp": "f60f880c0af47119a62ffc50c7d21e3a16ccebb93f683ced7810d6e05835cee3",
+    "art/fire-skills-batch1/design/approved-storyboard.png": "867183e3b6f12cbe9b530e310f659a1c3c75774d148b48f9091b8d089e7917a1",
+    "xiantu-v2831-scroll/xiantu-v2762-core.js": "44ec740c25f2af28a5d641a96c40a086017a63c79713c56cb39c93ab1a2264fe",
+    "xiantu-v2831-scroll/xiantu-v2844-monster-jev.js": "aa9e74fc069cda57ec1f2c551468fb25bb50fa54d8f0ebbbf2c942bb9efea2b5",
+    "xiantu-v2831-scroll/xiantu-v2855-skill-fx.js": "64bb3bd7693bf43f55e46ad231e009374ac3821b525e284a50ccd8c4ba1140be"
+  },
+  "originals": {
+    "karmic_lotus-draft": "exec-62de6554-77ea-4f75-aede-d2f52e4e8685.png",
+    "ember_wall-draft": "exec-b9f02c80-142d-4109-994f-2ff212ca7d44.png",
+    "samadhi_fire-draft": "exec-0e22e188-ff32-4827-8cb7-264b61e20479.png",
+    "samadhi_fire-storyboard": "exec-563456e8-1bc2-4786-b5fd-766feede9569.png",
+    "karmic_lotus-storyboard": "exec-77e9bc8c-cd3f-415c-9308-258fa5b7926f.png",
+    "ember_wall-storyboard": "exec-e5883073-044c-44a8-b509-2d89bdd6085d.png"
+  },
+  "outputs": {
+    "ember_wall-storyboard.png": "475e27581424bd9f91b5ada9a3540f76794e6e3803d675f6d0c5b15104e084c8",
+    "ember_wall-draft.png": "d5a7f0a6d7c5b1cf805be319bc7bd85c8db249090e80de00e0b471cdb546c195",
+    "samadhi_fire-draft.png": "b8b53d6009a244d7e66f6038ccb81662ad4a30fbea6cf192f9120359d06c6f8d",
+    "samadhi_fire-storyboard.png": "ac7324ffad4dc242ca99ecac17d09e6f818ef77988a94d80990cf235fecce750",
+    "karmic_lotus-storyboard.png": "2f7083c6c04327e200f0852f0036b43bddec0e26913e1795492aca4b09b49a9b",
+    "karmic_lotus-draft.png": "91e1c163144d9319e65e04251e821288573bb96afc2e88a21480cbc269976c9e"
+  },
+  "mechanicsHash": "647c43dde13baf3d588857493f8c1f2dc161f046d84bd7c69143e6e6d00a5e2d",
+  "adjustments": [
+    "Reduced lotus and wall footprint; preserved characters and HUD",
+    "Reduced and detached samadhi projectile from caster beam",
+    "Corrected batch2 subtitles and ground-eruption directions"
+  ],
+  "limitations": [
+    "Storyboards remain design references; measured transparent assets are in ../asset-audit.json",
+    "Resource preview approval and actual game integration remain separate gates"
+  ],
+  "gameFilesUnchangedThisTurn": true,
+  "approval": {
+    "date": "2026-10-13",
+    "userMessage": "确定",
+    "scope": "Three corrected storyboards; proceed with transparent assets and resource preview"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-13",
+  "baseline": "a1aad0bc9ce6245a3b9d2597a3b2a263a914f05e",
+  "status": "visual-design-approved-by-user",
+  "priority": [
+    "fire",
+    "thunder",
+    "ice"
+  ],
+  "first_batch": [
+    "烈焰斩",
+    "炎爆术",
+    "焚天烈焰"
+  ],
+  "generated_with": "image_gen",
+  "reference": "actual 720x420 battle stage; Absolute Zero quality contract",
+  "adjustment": "Reduced second-panel slash footprint; unchanged combat mechanics",
+  "sha256": {
+    "art/fire-skills-batch1/design/flame-slash-storyboard.png": "867183e3b6f12cbe9b530e310f659a1c3c75774d148b48f9091b8d089e7917a1",
+    "art/fire-skills-batch1/design/flame-slash-storyboard-draft.png": "27a8493ad68cce2cc67fc8c1d10f08eac2c8af52f9e93c06a4bbee8031eafb4b",
+    "docs/vfx/skill-vfx-inventory-20261013.json": "16ee493788cea7a43e5f3f5c8805d472866d44db5c920422da6aa88f47e00b22",
+    "art/ice-skills-batch1/design/ice-spike-deferred-draft.png": "30c234903fd627102372adaab05c8798229df4dfb323de35fe8c8a58bceb6603"
+  },
+  "approval": "User replied 确定 on 2026-10-13"
+}

@@ -1,0 +1,431 @@
+{
+  "date": "2026-10-13",
+  "status": "integrated-locally",
+  "tool": "image_gen.imagegen",
+  "approval": "用户“确定”批准三张设计；资源预览后回复“记入”，按接入执行。",
+  "exportCommand": "python3 scripts/build-fire-skills-batch2-vfx.py",
+  "samplerCommand": "node scripts/check-fire-skills-batch2-vfx.cjs",
+  "inputs": {
+    "art/fire-skills-batch2/source/ember_wall/keyplates-original.png": "9fca6693209958ff384af790c2091c32b7bd6f896c81cad68e4f0fc8c4b5520a",
+    "art/fire-skills-batch2/source/ember_wall/keyplates-safe.png": "945bc6b1dbac8996b74ea3a06d27405bf2a633ff3eff4a9ce5a0e4e7c0c785a6",
+    "art/fire-skills-batch2/source/ember_wall/master-safe.png": "93567f8394d732699fbf49cf2fd4652e2827a611420735f67343747d10da8213",
+    "art/fire-skills-batch2/source/ember_wall/previous-runtime.png": "79581d73b5a430cc3cf2d42459be660b64de1fd473c28bfaf7c835306cf056f6",
+    "art/fire-skills-batch2/source/ember_wall/master-original.png": "5c17a2feb89363aaa342957179c1a0679322c8d0e453a9143a475c76ed03b3e3",
+    "art/fire-skills-batch2/source/samadhi_fire/master-long-rejected.png": "9c7a1700e8457135d15075666aaac53593ddefd4193ba19d7c4fd271bb820238",
+    "art/fire-skills-batch2/source/samadhi_fire/keyplates-original.png": "34954791806942d0e51454b72a436ac7758dd38558e2a429e53e8789dbd4f69b",
+    "art/fire-skills-batch2/source/samadhi_fire/body-original.png": "0308f90a104ec4b34b6695ad9f8a29015f97ac3db0abc8281a5433f7b2a88030",
+    "art/fire-skills-batch2/source/samadhi_fire/keyplates-safe.png": "84a69f0ec6354860dd7f03e6c00be8e34f0909fd9f6cb860c344440e1c93017e",
+    "art/fire-skills-batch2/source/samadhi_fire/master-safe.png": "1dc5e66c90bafc9ce79c35369b236ca20b224302b9f5f5762aa9f4842f7da0a5",
+    "art/fire-skills-batch2/source/samadhi_fire/previous-runtime.png": "5c7633e5e6e75996bb9c7501d8b7b0c7281d49e4554b8d8211bd1ecbbb30c15f",
+    "art/fire-skills-batch2/source/samadhi_fire/body-safe.png": "78edccd1f8d7ce71744f5acabd35c0b222500e6ba7da5cb21abc825940bde967",
+    "art/fire-skills-batch2/source/samadhi_fire/master-original.png": "86f6504891547599b7e7d54f03bb22d00b4c9d4430de3c53bddab47db9dbe283",
+    "art/fire-skills-batch2/source/karmic_lotus/keyplates-original.png": "adccea320d3944fe9c769e2b39f86625d991b404d0db10af3c07f14ae56dea2f",
+    "art/fire-skills-batch2/source/karmic_lotus/body-correction-rejected.png": "3672d344b84eaf5e90475a84528ff544eb1ca3b18a88632449d0a9573f8cddf8",
+    "art/fire-skills-batch2/source/karmic_lotus/keyplates-safe.png": "9e6e87e8aeb93db699223033538cdbbef7b78a99949aed6cfeb72e5aa9d20fce",
+    "art/fire-skills-batch2/source/karmic_lotus/master-safe.png": "badba5d23c110cb5e15c7f1f0403922820b66e1c029394db6fd76e7bca5ce625",
+    "art/fire-skills-batch2/source/karmic_lotus/previous-runtime.png": "2590f1438cb7d650f21c68717bcdaa57603f39f70ad7f16d3e230faebb807fb1",
+    "art/fire-skills-batch2/source/karmic_lotus/master-original.png": "2d92dc9fa8bd57654eb40e63a38dce216c964ba50bb8944bd3e3a3dd374d3f92"
+  },
+  "decisions": [
+    "Three independent material masters, no recoloring or reshaping shared effect",
+    "Original 9-cell plates pass 2% boundary audit before complete-cell expansion; expanded grid passes 18% before export",
+    "Lotus late high-spark draft poses excluded from body; accepted low first pose and own validated complete master blend into 8 body frames",
+    "Lotus body correction grid rejected for frame0 right boundary; never sliced or exported",
+    "Samadhi long master rejected; new compact master and separately validated 3-pose body used",
+    "Decorative/residue opacity measured separately from colored-midtone coverage; dark cinders intentionally lower midtone threshold",
+    "Uniform raster resizing, whole-plate pivot registration, blending only; no effect painting or aspect stretch"
+  ],
+  "testStatus": {
+    "samplerSamples": 36000,
+    "gameRegressionScripts": 41,
+    "rateLimit": "passed",
+    "browserRegressionTests": 7,
+    "gameFilesUnchanged": 511,
+    "browserValidation": "evidence/browser-validation.json"
+  },
+  "layers": {
+    "karmic_lotus": {
+      "telegraph": 4,
+      "body": 8,
+      "impact": 6,
+      "residue": 6,
+      "status": 8
+    },
+    "ember_wall": {
+      "telegraph": 4,
+      "body": 8,
+      "impact": 6,
+      "residue": 6
+    },
+    "samadhi_fire": {
+      "telegraph": 4,
+      "body": 8,
+      "impact": 6,
+      "residue": 6
+    }
+  },
+  "visiblePixels": {
+    "karmic_lotus": {
+      "telegraph": [
+        [
+          49.41,
+          51.66
+        ],
+        [
+          51.66,
+          51.66
+        ],
+        [
+          51.66,
+          51.66
+        ],
+        [
+          51.66,
+          51.66
+        ]
+      ],
+      "body": [
+        [
+          168.11,
+          71.25
+        ],
+        [
+          168.11,
+          71.25
+        ],
+        [
+          168.11,
+          71.25
+        ],
+        [
+          168.11,
+          73.48
+        ],
+        [
+          168.11,
+          73.48
+        ],
+        [
+          166.99,
+          74.59
+        ],
+        [
+          166.99,
+          74.59
+        ],
+        [
+          168.11,
+          74.59
+        ]
+      ],
+      "impact": [
+        [
+          143.55,
+          85.18
+        ],
+        [
+          142.6,
+          85.18
+        ],
+        [
+          142.6,
+          85.18
+        ],
+        [
+          143.55,
+          85.18
+        ],
+        [
+          143.55,
+          84.22
+        ],
+        [
+          143.55,
+          67.95
+        ]
+      ],
+      "residue": [
+        [
+          143.55,
+          55.51
+        ],
+        [
+          142.6,
+          55.51
+        ],
+        [
+          141.64,
+          54.55
+        ],
+        [
+          141.64,
+          54.55
+        ],
+        [
+          140.68,
+          53.59
+        ],
+        [
+          142.6,
+          39.24
+        ]
+      ],
+      "status": [
+        [
+          21.05,
+          22.01
+        ],
+        [
+          21.82,
+          22.01
+        ],
+        [
+          22.01,
+          22.01
+        ],
+        [
+          22.01,
+          22.01
+        ],
+        [
+          22.01,
+          22.01
+        ],
+        [
+          22.01,
+          22.01
+        ],
+        [
+          22.01,
+          22.01
+        ],
+        [
+          21.82,
+          22.01
+        ]
+      ]
+    },
+    "ember_wall": {
+      "telegraph": [
+        [
+          203.71,
+          30.08
+        ],
+        [
+          205.08,
+          45.12
+        ],
+        [
+          205.08,
+          46.48
+        ],
+        [
+          205.08,
+          47.85
+        ]
+      ],
+      "body": [
+        [
+          215.29,
+          72.71
+        ],
+        [
+          215.29,
+          75.57
+        ],
+        [
+          213.87,
+          75.57
+        ],
+        [
+          213.87,
+          78.42
+        ],
+        [
+          213.87,
+          78.42
+        ],
+        [
+          213.87,
+          75.57
+        ],
+        [
+          213.87,
+          75.57
+        ],
+        [
+          213.87,
+          75.57
+        ]
+      ],
+      "impact": [
+        [
+          181.64,
+          83.55
+        ],
+        [
+          180.43,
+          82.34
+        ],
+        [
+          180.43,
+          82.34
+        ],
+        [
+          180.43,
+          82.34
+        ],
+        [
+          181.64,
+          81.13
+        ],
+        [
+          181.64,
+          67.81
+        ]
+      ],
+      "residue": [
+        [
+          192.07,
+          43.83
+        ],
+        [
+          190.78,
+          43.83
+        ],
+        [
+          192.07,
+          43.83
+        ],
+        [
+          192.07,
+          43.83
+        ],
+        [
+          193.36,
+          43.83
+        ],
+        [
+          193.36,
+          25.78
+        ]
+      ]
+    },
+    "samadhi_fire": {
+      "telegraph": [
+        [
+          83.2,
+          82.03
+        ],
+        [
+          87.3,
+          82.03
+        ],
+        [
+          87.3,
+          82.03
+        ],
+        [
+          88.48,
+          70.31
+        ]
+      ],
+      "body": [
+        [
+          123.05,
+          59.88
+        ],
+        [
+          123.05,
+          64.8
+        ],
+        [
+          123.05,
+          65.62
+        ],
+        [
+          123.05,
+          65.62
+        ],
+        [
+          122.23,
+          65.62
+        ],
+        [
+          122.23,
+          65.62
+        ],
+        [
+          123.05,
+          64.8
+        ],
+        [
+          123.05,
+          57.42
+        ]
+      ],
+      "impact": [
+        [
+          110.59,
+          47.5
+        ],
+        [
+          110.59,
+          54.18
+        ],
+        [
+          111.33,
+          54.92
+        ],
+        [
+          111.33,
+          54.92
+        ],
+        [
+          111.33,
+          54.92
+        ],
+        [
+          111.33,
+          54.92
+        ]
+      ],
+      "residue": [
+        [
+          116.41,
+          67.19
+        ],
+        [
+          114.84,
+          67.19
+        ],
+        [
+          114.84,
+          67.19
+        ],
+        [
+          114.84,
+          66.41
+        ],
+        [
+          114.84,
+          66.41
+        ],
+        [
+          115.62,
+          62.5
+        ]
+      ]
+    }
+  },
+  "limits": [
+    "Cloud Chromium emulation, not physical-phone GPU validation",
+    "No GitHub upload or release"
+  ],
+  "gameBaseline": {
+    "manifest": "xiantu-v2831-scroll/checksums.sha256",
+    "sha256": "fbb2b02f31565090cc64b8ad9e4f1693495b93f94248120e236087842873c0c2",
+    "matchedFiles": 511
+  },
+  "integration": "runtime-promotion-audit.json"
+}
