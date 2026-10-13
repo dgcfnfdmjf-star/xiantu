@@ -26,7 +26,9 @@ const authored=f.run(`(()=>{
   balanceEnemyV2802(generic,false,false);
   return {rows,scaled:generic.maxHp>30,stable:once===JSON.stringify(generic)};
 })()`);
-for(const row of authored.rows){a.deepEqual(row.slice(0,6),row.slice(6));}
+for(const row of authored.rows){
+ a.equal(row[0],row[6]);a.equal(row[1],row[6]);a.equal(row[2],row[7]);a.equal(row[3],row[8]);a.equal(row[4],row[9]);a.equal(row[5],row[10]);
+}
 a.equal(authored.scaled,true);a.equal(authored.stable,true);
 
 fresh();f.run("player.level=16;player.phase=3;startCombat(makeAuthoredBossV286835('天劫'),false,true)");
