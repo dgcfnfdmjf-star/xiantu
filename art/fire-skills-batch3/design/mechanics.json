@@ -1,0 +1,118 @@
+{
+  "baseline": "d9cb3a18e4545739071c01ddea5b778e623471e3",
+  "skills": [
+    {
+      "name": "天火焚世",
+      "mpCost": 75,
+      "damage": 4.5,
+      "desc": "消耗75灵力，4.5倍伤害；灼烧每次20%本次伤害，持续2次主动出招，期间防御降低15%，同类取最高",
+      "element": "fire",
+      "effect": "burn"
+    },
+    {
+      "name": "赤焰龙息",
+      "mpCost": 58,
+      "damage": 3.9,
+      "desc": "消耗58灵力，3.9倍伤害；灼烧每次20%本次伤害，持续3次主动出招，期间防御降低15%，同类取最高",
+      "element": "fire",
+      "effect": "dragonBurn",
+      "duration": 3
+    },
+    {
+      "name": "燎原火域",
+      "mpCost": 72,
+      "damage": 4.4,
+      "desc": "消耗72灵力，4.4倍伤害；灼烧每次20%本次伤害，持续3次主动出招，期间防御降低15%，同类取最高",
+      "element": "fire",
+      "effect": "fireDomain",
+      "duration": 3
+    }
+  ],
+  "source": [
+    "xiantu-v2762-core.js",
+    "xiantu-v2762-03-virtual-joystick-script.js",
+    "xiantu-v2762-04-tutorial-guide-script.js",
+    "xiantu-v2762-05-mobile-dedicated-script.js",
+    "xiantu-v2762-06-local-test-bootstrap.js",
+    "xiantu-v2762-07-v12-stable-map-ui-script.js",
+    "xiantu-v2762-08-feature-08.js",
+    "xiantu-v2762-09-control-mode-switch-script.js",
+    "xiantu-v2762-10-upgrade-material-hint-script.js",
+    "xiantu-v2762-11-feature-11.js",
+    "xiantu-v2762-12-v277equipmentmanager.js",
+    "xiantu-v2762-13-feature-13.js",
+    "xiantu-v2762-14-v279-pet-capture-system.js",
+    "xiantu-v2762-15-petgrowthsystemv210.js",
+    "xiantu-v2762-16-petguidemapv211script.js",
+    "xiantu-v2762-17-combatskillloadoutv212.js",
+    "xiantu-v2762-18-skillswapmenuv213.js",
+    "xiantu-v2762-19-v27-15-enemy-portrait-script.js",
+    "xiantu-v2762-20-v27-16-enemy-batch1-script.js",
+    "xiantu-v2762-21-v27-17-enemy-batch2-script.js",
+    "xiantu-v2762-22-v2756-cinematic-combat-script.js",
+    "xiantu-v2768-systems.js",
+    "xiantu-v2770-avatar.js",
+    "xiantu-v2773-economy.js",
+    "xiantu-v2838-journey.js",
+    "xiantu-v2839-war.js",
+    "xiantu-v2840-war-map.js",
+    "xiantu-v2841-dharma-war.js",
+    "xiantu-v2842-jev-forge.js",
+    "xiantu-v2850-jev-friends.js",
+    "xiantu-v2844-monster-jev.js",
+    "xiantu-v2846-world-jev.js",
+    "xiantu-v2849-npc-jev.js",
+    "xiantu-v2852-relationship-stories.js",
+    "xiantu-v2852-relationships.js",
+    "xiantu-v2853-monster-art.js",
+    "xiantu-v2855-skill-fx.js",
+    "xiantu-v2856-battle-clarity.js",
+    "xiantu-v2868-sect-life.js",
+    "xiantu-v28684-duel.js"
+  ],
+  "rendererProfiles": [
+    {
+      "name": "天火焚世",
+      "family": "fire",
+      "kind": "meteor",
+      "self": false,
+      "tier": 3,
+      "source": "active",
+      "palette": [
+        "#d88b57",
+        "#f8dda3",
+        "#824b43"
+      ],
+      "guard": false
+    },
+    {
+      "name": "赤焰龙息",
+      "family": "fire",
+      "kind": "breath",
+      "self": false,
+      "tier": 2,
+      "source": "active",
+      "palette": [
+        "#d88b57",
+        "#f8dda3",
+        "#824b43"
+      ],
+      "guard": false
+    },
+    {
+      "name": "燎原火域",
+      "family": "fire",
+      "kind": "field",
+      "self": false,
+      "tier": 2,
+      "source": "active",
+      "palette": [
+        "#d88b57",
+        "#f8dda3",
+        "#824b43"
+      ],
+      "guard": false
+    }
+  ],
+  "scope": "Design only; runtime unchanged"
+}

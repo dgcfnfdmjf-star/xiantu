@@ -8,7 +8,7 @@
 
 ## 开发分支：火系两批特效
 
-烈焰斩、炎爆术、焚天烈焰已接入开发分支，保留原伤害、耗蓝和灼烧规则。红莲业火、火墙术、三昧真火也已接入，红莲莲印由真实禁疗灼烧状态控制。试剑坪支持六招、炎爆引爆和灼烧清除试播。尚未发布，验收记录见 `docs/vfx/fire-skills-batch1-integration.md` 与 `docs/vfx/fire-skills-batch2-integration.md`。
+烈焰斩、炎爆术、焚天烈焰已接入开发分支，保留原伤害、耗蓝和灼烧规则。红莲业火、火墙术、三昧真火也已接入，红莲莲印由真实禁疗灼烧状态控制。天火焚世、赤焰龙息、燎原火域完成本地接入；火域由本场确认命中及持续灼烧共同驱动。试剑坪支持九招、炎爆引爆和灼烧清除试播。尚未发布，验收记录见 `docs/vfx/fire-skills-batch1-integration.md` 、`docs/vfx/fire-skills-batch2-integration.md` 与 `docs/vfx/fire-skills-batch3-integration.md`。
 
 ## V28.68.35 绝对零度
 
@@ -38,7 +38,7 @@ npm test
 npm run test:browser
 ```
 
-`npm test` 运行选定的 42 个当前功能回归脚本与限流测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
+`npm test` 运行选定的 43 个当前功能回归脚本与限流测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
 
 浏览器测试覆盖恶意存档拒绝且原主档/备份不变、正常导入与刷新恢复、360/390/430/1366px 导航入口可达性、预加载去重与版本错误提示。外部请求被拦截，不调用付费服务。已有 Chromium 的云环境可使用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`。
 

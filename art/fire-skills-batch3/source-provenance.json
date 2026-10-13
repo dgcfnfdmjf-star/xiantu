@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-13",
+  "tool": "image_gen.imagegen",
+  "designApproval": "用户：确认",
+  "sources": {
+    "source/wildfire_domain/keyplates-original.png": {
+      "sha256": "348ce00bd95a1fee75a838f4f85cfaec10cd09b45183eaa2fc21ebdbe81502cb",
+      "generatedOriginals": [
+        "exec-c2b795e3-9638-487d-9840-35b0c5b8c166.png"
+      ]
+    },
+    "source/wildfire_domain/impact-0-original.png": {
+      "sha256": "b657731a8a07a3b80c2ed6ff16142cbfd37606b25cf6256be1740b463776e0eb",
+      "generatedOriginals": [
+        "exec-c64238b5-c982-4c4c-b74a-bd04b8b10130.png"
+      ]
+    },
+    "source/wildfire_domain/impact-1-original.png": {
+      "sha256": "819ddd141f09a37037909e34aee57978c2720a083a499c005f295d3476c5dda3",
+      "generatedOriginals": [
+        "exec-24948dfe-21c2-4948-b42d-4331bb26ab75.png"
+      ]
+    },
+    "source/wildfire_domain/master-original.png": {
+      "sha256": "32b57bd52386609424dad89794253cf67f510a27b013d72026ac65b6f28cf537",
+      "generatedOriginals": [
+        "exec-90044362-c3c6-4dc0-b8b7-00eea70d3ff9.png"
+      ]
+    },
+    "source/dragon_breath/keyplates-original.png": {
+      "sha256": "072073b5db719ced20b9833d4cba2de3bafda0478c449aaee3c1f501406e754e",
+      "generatedOriginals": [
+        "exec-4534ff65-60fd-4368-b3e8-cdefe64f2487.png"
+      ]
+    },
+    "source/dragon_breath/master-original.png": {
+      "sha256": "b734d29a1d9164858552e2b0969e752e0bbd8ff25456bc37665cf4f57d72847d",
+      "generatedOriginals": [
+        "exec-f0b5b9e3-56b9-4f9d-a9f9-8cfaf8406df7.png"
+      ]
+    },
+    "source/heaven_meteor/keyplates-original.png": {
+      "sha256": "3ee072820c6b53f0ce96cf35e49bb7ad9432721d78cb62f0470aa57bea156219",
+      "generatedOriginals": [
+        "exec-fd98880c-5843-4612-8514-d94d9bb5da2d.png"
+      ]
+    },
+    "source/heaven_meteor/master-original.png": {
+      "sha256": "d34ba04d385e4a25e631e0cb116583f011793b5eaefb8e04d31b2ec48dbd7cdb",
+      "generatedOriginals": [
+        "exec-5411c8a7-b44e-4361-901e-5e166ed07316.png"
+      ]
+    }
+  },
+  "processing": "Independent material master and key plates per spell; expand complete source cells, validate then uniformly normalize and blend accepted rasters. No procedural effect body drawing.",
+  "rejected": "Crowded first grids, high impact/domain plates, and two-cell impact drafts with divider lines are preserved but excluded from final export."
+}
