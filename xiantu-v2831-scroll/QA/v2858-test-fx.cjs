@@ -17,7 +17,7 @@ function game(){
 }
 const f=game(),inspect=()=>f.run('InkSkillFxV2854.inspect()');
 f.run("playSkillEffect('御剑术','sword')");a.equal(inspect().active,1);a.equal(inspect().jobs[0].hitAt,null);a(inspect().jobs[0].from.x<inspect().jobs[0].to.x);a(inspect().pixels<=400000);a.equal(f.ids.get('skillEffect').children.length,1);
-f.step(150);f.run("playHitEffect('enemy')");a.equal(inspect().jobs[0].hitAt,150);f.step(500);f.step(300);a.equal(inspect().active,0);a.equal(inspect().pixels,0);a.equal(f.frames.size,0);
+f.step(150);f.run("playHitEffect('enemy')");a.equal(inspect().jobs[0].hitAt,150);f.step(500);f.step(300);f.step(250);a.equal(inspect().active,0);a.equal(inspect().pixels,0);a.equal(f.frames.size,0);
 f.run("playBossSkillEffect('寒霜吐息')");a.equal(inspect().jobs[0].family,'ice');a(inspect().jobs[0].from.x>inspect().jobs[0].to.x);f.step(150);a.equal(inspect().jobs[0].hitAt,null);f.run("playHitEffect('player')");a.equal(inspect().jobs[0].hitAt,150);
 f.run("playSkillEffect('凝露诀','heal')");a.equal(inspect().active,2);const heal=inspect().jobs.find(j=>j.side==='player');a.deepEqual(heal.from,heal.to);a(heal.self);
 f.run("playSkillEffect('雷神附体','thunder')");a.equal(inspect().active,2);a(inspect().jobs.find(j=>j.side==='player').self);

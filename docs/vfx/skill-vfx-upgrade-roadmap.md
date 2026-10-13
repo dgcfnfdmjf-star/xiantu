@@ -23,25 +23,27 @@
 
 ## 当前进度
 
+雷系、剑系、治疗系已按火系流程补上家族共享的独立资源：每系一张 AI 绘制的 3×3 阶段原图（`art/element-skills-v286838/source/`），经 `python3 scripts/build-element-skills-vfx.py` 黑底抠透明、边界校验、按层统一缩放后导出四层帧条到 `xiantu-v2831-scroll/element-skills-v286838/`。雷系 `thunder_strike`（落雷，目标脚下）、剑系 `sword_qi`（飞剑投射）、治疗 `jade_lotus_heal`（施法者脚下青莲）。同一系所有技能共用一套纹理，未改动技能倍率、耗蓝或命中逻辑；回归见 `QA/v286838-test-element-vfx.cjs`。按招式逐个定制（如闪电链连锁、万剑归宗剑阵）仍属后续；设计稿与资源预览两个确认节点本轮未单独经过用户确认。镇岳山河震（earth）与穿云贯日（spear）不属于这三套资源，仍为程序绘制。
+
 火系首批三招已完成透明资源、真实战斗接入、41 个游戏回归脚本及 7 项浏览器回归，尚未合并 main 或发布线上。第二批红莲业火、火墙术、三昧真火也已完成真实状态接入，42 组游戏回归与 7 项浏览器回归通过；见 `fire-skills-batch2-integration.md`。雷系、冰系保持随后顺序。
 
 ## 技能清单
 
 | 技能 | 系别 | 灵力 | 倍率 | 当前形态 | 独立动画资源 |
 | --- | --- | ---: | ---: | --- | --- |
-| 御剑术 | sword | 10 | 1.5 | blade | 待升级 |
-| 雷法 | thunder | 20 | 2 | bolt | 待升级 |
-| 惊雷闪 | thunder | 25 | 2.2 | dart | 待升级 |
-| 裂地奔雷 | thunder | 38 | 2.7 | ground | 待升级 |
-| 紫霄落雷 | thunder | 52 | 3.4 | bolt | 待升级 |
-| 万雷噬狱 | thunder | 68 | 4.1 | cage | 待升级 |
-| 九天神雷 | thunder | 85 | 5.2 | storm | 待升级 |
-| 闪电链 | thunder | 30 | 2.4 | chain | 待升级 |
-| 雷神附体 | thunder | 45 | 0 | armor | 待升级 |
-| 无音神雷 | thunder | 60 | 3.8 | silent | 待升级 |
-| 剑气纵横 | sword | 35 | 2.5 | fan | 待升级 |
-| 万剑归宗 | sword | 50 | 3.5 | rain | 待升级 |
-| 天地一剑 | sword | 80 | 5 | great | 待升级 |
+| 御剑术 | sword | 10 | 1.5 | blade | 家族共享资源 `sword_qi`，本地已接入，未发布 |
+| 雷法 | thunder | 20 | 2 | bolt | 家族共享资源 `thunder_strike`，本地已接入，未发布 |
+| 惊雷闪 | thunder | 25 | 2.2 | dart | 家族共享资源 `thunder_strike`，本地已接入，未发布 |
+| 裂地奔雷 | thunder | 38 | 2.7 | ground | 家族共享资源 `thunder_strike`，本地已接入，未发布 |
+| 紫霄落雷 | thunder | 52 | 3.4 | bolt | 家族共享资源 `thunder_strike`，本地已接入，未发布 |
+| 万雷噬狱 | thunder | 68 | 4.1 | cage | 家族共享资源 `thunder_strike`，本地已接入，未发布 |
+| 九天神雷 | thunder | 85 | 5.2 | storm | 家族共享资源 `thunder_strike`，本地已接入，未发布 |
+| 闪电链 | thunder | 30 | 2.4 | chain | 家族共享资源 `thunder_strike`，本地已接入，未发布 |
+| 雷神附体 | thunder | 45 | 0 | armor | 家族共享资源 `thunder_strike`，本地已接入，未发布 |
+| 无音神雷 | thunder | 60 | 3.8 | silent | 家族共享资源 `thunder_strike`，本地已接入，未发布 |
+| 剑气纵横 | sword | 35 | 2.5 | fan | 家族共享资源 `sword_qi`，本地已接入，未发布 |
+| 万剑归宗 | sword | 50 | 3.5 | rain | 家族共享资源 `sword_qi`，本地已接入，未发布 |
+| 天地一剑 | sword | 80 | 5 | great | 家族共享资源 `sword_qi`，本地已接入，未发布 |
 | 寒冰掌 | ice | 15 | 1.6 | frost | 待升级 |
 | 冰封千里 | ice | 40 | 2.8 | field | 待升级 |
 | 绝对零度 | ice | 70 | 4 | prison | 已有，本轮保留 |
@@ -68,19 +70,19 @@
 | 太阳真火 | fire | 88 | 5.3 | sun | 已有，本轮保留 |
 | 流火飞索 | fire | 35 | 2.4 | bind | 待升级 |
 | 炎阳护盾 | fire | 30 | 0 | armor | 待升级 |
-| 回春术 | heal | 20 | — | dew | 待升级 |
-| 生生不息 | heal | 40 | — | lotus | 待升级 |
-| 起死回生 | heal | 60 | — | revive | 待升级 |
-| 清风剑诀 | sword | 8 | 1.35 | blade | 待升级 |
-| 破甲剑罡 | sword | 24 | 2.1 | pierce | 待升级 |
-| 追魂一剑 | sword | 38 | 2.8 | pierce | 待升级 |
-| 饮血剑诀 | sword | 42 | 2.7 | return | 待升级 |
-| 玄罡护体剑 | sword | 50 | 3.1 | guardblade | 待升级 |
-| 凝露诀 | heal | 8 | — | dew | 待升级 |
-| 青莲护心 | heal | 26 | — | lotus | 待升级 |
-| 灵泉归元 | heal | 35 | — | spring | 待升级 |
-| 逆命回元 | heal | 48 | — | revive | 待升级 |
-| 莲华济世 | heal | 65 | — | lotus | 待升级 |
+| 回春术 | heal | 20 | — | dew | 家族共享资源 `jade_lotus_heal`，本地已接入，未发布 |
+| 生生不息 | heal | 40 | — | lotus | 家族共享资源 `jade_lotus_heal`，本地已接入，未发布 |
+| 起死回生 | heal | 60 | — | revive | 家族共享资源 `jade_lotus_heal`，本地已接入，未发布 |
+| 清风剑诀 | sword | 8 | 1.35 | blade | 家族共享资源 `sword_qi`，本地已接入，未发布 |
+| 破甲剑罡 | sword | 24 | 2.1 | pierce | 家族共享资源 `sword_qi`，本地已接入，未发布 |
+| 追魂一剑 | sword | 38 | 2.8 | pierce | 家族共享资源 `sword_qi`，本地已接入，未发布 |
+| 饮血剑诀 | sword | 42 | 2.7 | return | 家族共享资源 `sword_qi`，本地已接入，未发布 |
+| 玄罡护体剑 | sword | 50 | 3.1 | guardblade | 家族共享资源 `sword_qi`，本地已接入，未发布 |
+| 凝露诀 | heal | 8 | — | dew | 家族共享资源 `jade_lotus_heal`，本地已接入，未发布 |
+| 青莲护心 | heal | 26 | — | lotus | 家族共享资源 `jade_lotus_heal`，本地已接入，未发布 |
+| 灵泉归元 | heal | 35 | — | spring | 家族共享资源 `jade_lotus_heal`，本地已接入，未发布 |
+| 逆命回元 | heal | 48 | — | revive | 家族共享资源 `jade_lotus_heal`，本地已接入，未发布 |
+| 莲华济世 | heal | 65 | — | lotus | 家族共享资源 `jade_lotus_heal`，本地已接入，未发布 |
 | 镇岳山河震 | sword | 35 | 2.8 | mountain | 待升级 |
 | 穿云贯日 | sword | 32 | 3 | lance | 待升级 |
-| 九霄雷云 | thunder | 55 | 3.8 | storm | 待升级 |
+| 九霄雷云 | thunder | 55 | 3.8 | storm | 家族共享资源 `thunder_strike`，本地已接入，未发布 |

@@ -135,7 +135,7 @@ function create(host,read,enemyKey='wolf'){
   const pose=attack?(age<.16?1:age<.58?2:age<.8?1:0):0;
   const px=242+(attack?.side==='player'?move:0),ex=493-(attack?.side==='enemy'?move:0);
   const ink=window.InkSkillFxV2854,fxJobs=[];
-  tails=tails.filter(a=>elapsed-a.at<(['烈焰斩','炎爆术','焚天烈焰','红莲业火','火墙术','三昧真火'].includes(a.name)?1100:900));
+  tails=tails.filter(a=>elapsed-a.at<(ink?.authoredDuration?.(a.name)||900));
   if(ink?.draw&&ink?.profile){
    for(const a of [...tails,attack].filter(Boolean)){
     if(!a.fxProfile)a.fxProfile=ink.profile(a.name||(a.side==='player'?'普通攻击':profile.action),a.element);
@@ -147,13 +147,13 @@ function create(host,read,enemyKey='wolf'){
     }
     const from={x:a.side==='player'?260:475,y:225},to=a.fxProfile.self?from:{x:a.side==='player'?493:242,y:225};
     // Heart-fire is a torso brand: use the illustrated species' height, never its foot ring.
-    if(a.fxProfile.kind==='heart'||['烈焰斩','炎爆术','三昧真火'].includes(a.name)){
+    if(a.fxProfile.kind==='heart'||['烈焰斩','炎爆术','三昧真火'].includes(a.name)||(!a.fxProfile.self&&ink.elementBatch?.definition?.(a.name)?.visualArchetype==='projectile')){
      const enemyFoot=profile.key==='wolf'?278:profile.height>200?315:/fly|float/.test(profile.motion)?306:292;
      const torso={x:ex,y:enemyFoot-profile.height*(profile.motion==='human'?.58:.43)};
      const hero={x:px+8,y:205};
      Object.assign(from,a.side==='player'?hero:torso);Object.assign(to,a.side==='player'?torso:hero);
     }
-    fxJobs.push({action:a,job:{id:a.side==='player'?1:2,profile:a.fxProfile,from,to,...a.anchors,width:W,clipBottom:355,scale:1.05,light:fxSettings.light,reduced,duration:['烈焰斩','炎爆术','焚天烈焰','红莲业火','火墙术','三昧真火'].includes(a.name)?1100:900,arriveAt:contactTime(a),hitAt:a.impactAt??null,detonationAt:a.detonationAt??null,groundDrawn:!!ink.drawGround}});
+    fxJobs.push({action:a,job:{id:a.side==='player'?1:2,profile:a.fxProfile,from,to,...a.anchors,width:W,clipBottom:355,scale:1.05,light:fxSettings.light,reduced,duration:ink.authoredDuration?.(a.name)||900,arriveAt:contactTime(a),hitAt:a.impactAt??null,detonationAt:a.detonationAt??null,groundDrawn:!!ink.drawGround}});
    }
   }
   for(const {action:a,job} of fxJobs)ink.drawGround?.(ctx,job,elapsed-a.at);
@@ -241,7 +241,7 @@ function create(host,read,enemyKey='wolf'){
   cancelAnimationFrame(raf);raf=0;
   // Authored solar and butterfly one-shots expire on backgrounding instead of replaying a frozen burst
   // on return. This drops presentation records only; damage is already engine-owned.
-  const authored=a=>['太阳真火','冰蝶幻舞','焚心炎','绝对零度','烈焰斩','炎爆术','焚天烈焰','红莲业火','火墙术','三昧真火'].includes(a?.name);
+  const authored=a=>['太阳真火','冰蝶幻舞','焚心炎','绝对零度'].includes(a?.name)||!!window.InkSkillFxV2854?.authoredDuration?.(a?.name);
   if(authored(attack))attack=null;
   queue=queue.filter(a=>!authored(a));tails=tails.filter(a=>!authored(a));
  }else wake();}
