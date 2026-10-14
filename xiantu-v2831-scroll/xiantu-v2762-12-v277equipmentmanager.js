@@ -139,7 +139,7 @@ function showEquipmentPanel(){
     <div style="margin-top:12px;padding:10px;border:1px solid rgba(255,255,255,.08);border-radius:9px"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(95px,1fr));gap:7px;font-size:12px">${renderEquipStatsSummary()}</div></div>
     <p style="font-size:12px;color:#aaa">单件属性已含品质倍率。角色总属性另计境界、套装等加成并取整；闪避面板上限30%，格挡面板上限25%。</p>
     ${renderSetProgressV2789()}
-    <div class="equip-toolbar"><button class="panel-action-btn" onclick="showForgeV2825()">⚒️ 强化 / 洗练</button><button class="panel-action-btn equip-auto-btn" onclick="autoEquipBest()">⚡ 一键装备最佳${upgradeCount?` ↑${upgradeCount}`:''}</button><button class="panel-action-btn" onclick="showEquipmentInventory()">📦 背包装备（${player.equipmentInventory.length}）</button><button class="panel-action-btn equip-danger-btn" onclick="unequipAllGear()">↩️ 一键卸下未锁定</button><button class="panel-action-btn" onclick="document.getElementById('equipmentPanel')?.remove()">关闭</button></div>`;
+    <div class="equip-toolbar"><button class="panel-action-btn" id="gradeUpgradeBtnV2869" onclick="showGradeUpgradePanelV2869()">⬆️ 升品 / 继承</button><button class="panel-action-btn" onclick="showForgeV2825()">⚒️ 强化 / 洗练</button><button class="panel-action-btn equip-auto-btn" onclick="autoEquipBest()">⚡ 一键装备最佳${upgradeCount?` ↑${upgradeCount}`:''}</button><button class="panel-action-btn" onclick="showEquipmentInventory()">📦 背包装备（${player.equipmentInventory.length}）</button><button class="panel-action-btn equip-danger-btn" onclick="unequipAllGear()">↩️ 一键卸下未锁定</button><button class="panel-action-btn" onclick="document.getElementById('equipmentPanel')?.remove()">关闭</button></div>`;
   panel.appendChild(content);document.body.appendChild(panel);
 }
 
@@ -213,8 +213,114 @@ function showEquipmentInventory(){
     const d=getEquipData(name);if(!d)continue;const q=getQualityInfo(d.quality),check=canEquipItem(name),slotLabel=d.slot==='ring'?'戒指':d.slot==='artifact'?'法宝':d.slot==='life_artifact'?'本命法宝':(EQUIPMENT_SLOTS[d.slot]?.label||d.slot),upgrade=isInventoryEquipUpgrade(name),itemLocked=isEquipmentLocked(name),setNames=getEquipmentSetNames(name),compare=check.ok?getEquipStatComparisonHtml(name):'',safeCount=getSafeDismantleCountForName(name),enc=encodeURIComponent(name);
     html+=`<div class="equipment-bag-card ${check.ok?'can-equip':''} ${upgrade?'upgrade':''} ${itemLocked?'item-locked':''}" style="border-left:4px solid ${q.color};border-top:1px solid ${itemLocked?'rgba(255,215,0,.45)':upgrade?'rgba(105,240,174,.55)':q.color+'55'};${check.ok?'':'opacity:.58'}" ${check.ok?`onclick="equipItemFromEncoded('${enc}')"`:''}>${upgrade?'<span class="equip-upgrade-badge">↑ 更优</span>':''}<div style="font-size:20px;color:${q.color}">${q.icon}</div><div style="font-size:12px;color:${q.color};font-weight:bold;padding-right:${upgrade?'42px':'0'}">${name}${count>1?` ×${count}`:''}</div><div style="font-size:10px;color:#999">${slotLabel} · <span class="gear-grade-badge-v2791" style="--gear-color:${q.color}">${q.icon} ${q.name}</span> · 需${CULTIVATION_REALMS[d.realmRequired]?.name||'凡人'}</div><div style="font-size:10px;color:#bbb;margin-top:3px">${formatEquipItemStatsV286813(name)}${d.forgeBaseV2825?`<br>强化 +${d.forgeLevelV2825} · 铭器保护`:""}</div><div class="equip-item-power">⚡ 单件战力 ${getItemPowerDisplay(name)}</div><div style="margin-top:4px">${itemLocked?'<span class="equip-lock-badge">🔒 已锁定</span>':''}${setNames.length?`<span class="equip-set-badge">🎯 ${setNames.join(' / ')}</span>`:''}</div>${compare}${!check.ok?`<div style="font-size:9px;color:#ff7b7b;margin-top:3px">${check.reason}</div>`:''}<div class="equip-card-actions"><button class="equip-card-mini ${itemLocked?'locked':''}" onclick="event.stopPropagation();toggleEquipmentLockEncoded('${enc}')">${itemLocked?'🔓 解锁':'🔒 锁定'}</button><button class="equip-card-mini dismantle" ${safeCount?'':'disabled'} onclick="event.stopPropagation();dismantleOneEquipmentEncoded('${enc}')">🧩 分解1件${safeCount?` (${safeCount}可分)`:''}</button></div></div>`;
   }
-  html+=`</div><div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="choice-btn" style="flex:1;min-width:150px;background:linear-gradient(135deg,#237a52,#14543a);border-color:#69f0ae" onclick="autoEquipBest()">⚡ 一键装备最佳</button><button class="choice-btn" style="flex:1;min-width:150px" onclick="showEquipmentPanel()">← 返回装备栏</button></div>`;showStory(html,[]);
+  html+=`</div><div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="choice-btn" onclick="showGradeUpgradePanelV2869()">⬆️ 升品 / 继承</button><button class="choice-btn" style="flex:1;min-width:150px;background:linear-gradient(135deg,#237a52,#14543a);border-color:#69f0ae" onclick="autoEquipBest()">⚡ 一键装备最佳</button><button class="choice-btn" style="flex:1;min-width:150px" onclick="showEquipmentPanel()">← 返回装备栏</button></div>`;showStory(html,[]);
   const panel=document.getElementById('storyPanel');panel?.classList.add('equipment-bag-view-v2803');syncEquipmentBagSizeV2803();if(panel)panel.scrollTop=0;
+}
+
+// Grade upgrades use the same set catalogue, prices and forge serializer as the shop/workshop.
+let gradeUpgradeSessionV2869=null,gradeUpgradeNonceV2869=0;
+function gradeUpgradeIndexV2869(){
+  const index=new Map();
+  for(const name of Object.keys(EQUIPMENT_DB)){
+    const d=EQUIPMENT_DB[name];
+    if(d.familyV2790&&Number.isInteger(d.pieceV2790)&&Number.isInteger(d.gradeV2790)&&!d.forgeBaseV2825)
+      index.set(JSON.stringify([d.familyV2790,d.pieceV2790,d.slot,d.gradeV2790]),name);
+  }
+  return index;
+}
+function findNextGradeEquipV2869(itemName,index=gradeUpgradeIndexV2869()){
+  const d=getEquipData(itemName);if(!d)return null;
+  const storedBase=d.forgeBaseV2825||itemName,baseName=OLD_GEAR_ALIASES_V2792[storedBase]||storedBase,baseData=EQUIPMENT_DB[baseName];
+  const record=d.forgeBaseV2825?player.forgeV2825?.items?.[itemName]:null;
+  if(!baseData||!baseData.familyV2790||!Number.isInteger(baseData.gradeV2790)||d.forgeBaseV2825&&record?.base!==storedBase)return null;
+  const nextBaseName=index.get(JSON.stringify([baseData.familyV2790,baseData.pieceV2790,baseData.slot,baseData.gradeV2790+1]));
+  const nextBaseData=EQUIPMENT_DB[nextBaseName];if(!nextBaseData)return null;
+  const currentPrice=baseData.priceV2790,nextPrice=nextBaseData.priceV2790;
+  if(!Number.isSafeInteger(currentPrice)||!Number.isSafeInteger(nextPrice)||nextPrice<=currentPrice)return null;
+  const fodderIndex=(player.equipmentLocks||[]).includes(nextBaseName)?-1:(player.equipmentInventory||[]).indexOf(nextBaseName);
+  return {itemName,baseName,nextBaseName,baseData,nextBaseData,record,isForged:!!record,forgeLevel:record?.level||0,
+    goldDiff:nextPrice-currentPrice,hasBagFodder:fodderIndex>=0,fodderIndex,actualGoldCost:fodderIndex>=0?0:nextPrice-currentPrice,realmRequired:nextBaseData.realmRequired||0};
+}
+function gradeUpgradeFingerprintV2869(){
+  return JSON.stringify([player.equipment,player.equipmentInventory,player.equipmentLocks,player.forgeV2825,player.gold,player.level]);
+}
+function gradeUpgradeCurrentV2869(source,nonce){
+  const s=gradeUpgradeSessionV2869,panel=document.getElementById('gradeUpgradePanelV2869');
+  if(!s||s.owner!==player||s.nonce!==nonce||s.panel!==panel||!panel||!forgeAllowedV2825()||gameState!=='exploring'||
+    document.getElementById('storyPanel')?.classList.contains('hidden')||document.getElementById('equipmentPanel')||
+    document.getElementById('characterPanel')?.classList.contains('hidden')===false||
+    gradeUpgradeFingerprintV2869()!==s.fingerprint)return null;
+  const row=s.rows.get(source);if(!row)return null;
+  const name=row.kind==='slot'?player.equipment?.[row.index]:player.equipmentInventory?.[row.index];
+  const info=findNextGradeEquipV2869(name,s.index);
+  if(name!==row.name||!info||info.nextBaseName!==row.info.nextBaseName||info.actualGoldCost!==row.info.actualGoldCost||info.fodderIndex!==row.info.fodderIndex)return null;
+  if(row.kind==='slot'&&!canEquipItem(info.nextBaseName).ok)return null;
+  if(!Number.isFinite(player.gold)||player.gold<info.actualGoldCost)return null;
+  // A forged key represents one item; reject malformed archives that alias one key into multiple slots.
+  if(info.isForged&&getBagCountByName(name)+getEquippedCountByName(name)!==1)return null;
+  return {...row,info};
+}
+function executeGradeUpgradeV2869(source,nonce){
+  const session=gradeUpgradeSessionV2869;if(session?.busy)return false;
+  const row=gradeUpgradeCurrentV2869(source,nonce);if(!row){showFloatingText?.('装备或状态已变化，请重新打开升品面板。','#ffd76a');return false;}
+  session.busy=true;
+  try{
+    const {info}=row,locked=(player.equipmentLocks||[]).includes(row.name);
+    const cost=info.hasBagFodder?`消耗未锁定的【${info.nextBaseName}】×1，不扣灵石`:`消耗 ${info.actualGoldCost} 灵石，剩余 ${player.gold-info.actualGoldCost}`;
+    const inherit=info.isForged?`\n保留强化 +${info.forgeLevel}、当前洗练词条${info.record.pending?'及待选词条':''}。`:'';
+    if(!window.confirm(`将【${row.name}】升为【${info.nextBaseName}】？\n${cost}\n穿戴需${CULTIVATION_REALMS[info.realmRequired]?.name||'对应境界'}。${inherit}${locked?'\n原装备锁定将保留。':''}`))return false;
+    if(!gradeUpgradeCurrentV2869(source,nonce)){showFloatingText?.('确认期间装备或状态已变化，未扣除资源。','#ffd76a');return false;}
+    const owner=player,previous={equipment:owner.equipment,equipmentInventory:owner.equipmentInventory,equipmentLocks:owner.equipmentLocks,
+      forgeV2825:owner.forgeV2825,gold:owner.gold,hp:owner.hp,mp:owner.mp,activeSetBonuses:owner.activeSetBonuses};
+    const bag=[...owner.equipmentInventory],equipment={...owner.equipment};let nextName=info.nextBaseName,newForge=owner.forgeV2825,registered=false;
+    const oldDefinition=info.isForged?EQUIPMENT_DB[row.name]:null;
+    if(info.isForged){
+      let n=Number.isSafeInteger(owner.forgeV2825.next)&&owner.forgeV2825.next>0?owner.forgeV2825.next:1;
+      do{nextName=info.nextBaseName+'〔铭器'+n+'〕';n=n>=Number.MAX_SAFE_INTEGER?1:n+1;}while(EQUIPMENT_DB[nextName]||owner.forgeV2825.items[nextName]);
+      const record={...JSON.parse(JSON.stringify(info.record)),base:info.nextBaseName};
+      const items={...owner.forgeV2825.items,[nextName]:record};delete items[row.name];newForge={...owner.forgeV2825,next:n,items};
+    }
+    if(row.kind==='slot')equipment[row.index]=nextName;else bag[row.index]=nextName;
+    if(info.hasBagFodder)bag.splice(info.fodderIndex,1);
+    const locks=[...(owner.equipmentLocks||[])];
+    if(info.isForged){const i=locks.indexOf(row.name);if(i>=0)locks.splice(i,1);}
+    if(locked&&!locks.includes(nextName))locks.push(nextName);
+    try{
+      if(info.isForged){registered=true;forgeRegisterV2825(nextName,newForge.items[nextName]);delete EQUIPMENT_DB[row.name];FORGE_KEYS_V2825.delete(row.name);}
+      Object.assign(owner,{equipment,equipmentInventory:bag,equipmentLocks:locks,forgeV2825:newForge,gold:owner.gold-info.actualGoldCost});
+      checkSetBonuses();owner.hp=Math.min(owner.hp,getMaxHp());owner.mp=Math.min(owner.mp,getMaxMp());
+      if(!saveGame())throw Error('save failed');
+    }catch(_){
+      Object.assign(owner,previous);
+      if(registered){delete EQUIPMENT_DB[nextName];FORGE_KEYS_V2825.delete(nextName);Object.defineProperty(EQUIPMENT_DB,row.name,{configurable:true,writable:true,enumerable:false,value:oldDefinition});FORGE_KEYS_V2825.add(row.name);}
+      showFloatingText?.('升品未保存，装备和消耗已恢复，请稍后重试。','#ff8a80');return false;
+    }
+    gradeUpgradeSessionV2869=null;forgeSelectionV2825=null;
+    updateStats();updateWorldHUD?.();showFloatingText?.(`升品成功：${info.nextBaseName}${info.isForged?' · 强化与词条已继承':''}`,'#ffd700');
+    showGradeUpgradePanelV2869();return true;
+  }finally{session.busy=false;}
+}
+function showGradeUpgradePanelV2869(){
+  if(!forgeAllowedV2825()||gameState!=='exploring')return showFloatingText?.('请先结束战斗或突破。','#ffd76a');
+  toggleCharacterPanel?.(false);document.getElementById('equipmentPanel')?.remove();
+  migrateLooseEquipmentToEquipmentInventory(player);forgeRestoreV2825(player);ensureEquipmentManagerState();
+  const index=gradeUpgradeIndexV2869(),rows=new Map(),nonce=++gradeUpgradeNonceV2869,esc=discipleEscV2815;
+  const add=(name,kind,i)=>{const info=findNextGradeEquipV2869(name,index);if(info)rows.set(`${kind}:${i}`,{name,kind,index:i,info});};
+  for(const [slot,name] of Object.entries(player.equipment||{}))if(name)add(name,'slot',slot);
+  const seen=new Set();(player.equipmentInventory||[]).forEach((name,i)=>{if(!seen.has(name)){seen.add(name);add(name,'bag',i);}});
+  let html='<section id="gradeUpgradePanelV2869" class="grade-upgrade-panel"><div class="equipment-bag-toolbar-v2803"><strong>装备升品 · 铭器继承</strong><button type="button" onclick="closeWorldOverlay()" aria-label="关闭装备升品">关闭 ✕</button></div><p>每次升至同套装、同部位的下一品级。优先消耗背包中一件未锁定的同名高阶胚子；没有可用胚子时，按现有商店价格补差价。</p><p>铭器保留强化等级、当前及待选词条。锁定胚子不会被消耗；主动升品的装备保留锁定。背包装备可提前升品，穿戴时仍需满足境界。</p>';
+  if(!rows.size)html+='<p class="equip-empty-filter">暂无可升品的套装装备；最高品级和无对应高阶版本的装备不列入。</p>';
+  for(const [source,row] of rows){
+    const {info,name,kind}=row,q=getQualityInfo(info.nextBaseData.quality),realm=canEquipItem(info.nextBaseName),realmOk=kind==='bag'||realm.ok;
+    const enough=player.gold>=info.actualGoldCost,unique=!info.isForged||getBagCountByName(name)+getEquippedCountByName(name)===1;
+    const where=kind==='slot'?`已穿戴 · ${EQUIPMENT_SLOTS[row.index]?.label||row.index}`:`背包 · 持有${getBagCountByName(name)}件（本次1件）`;
+    const cost=info.hasBagFodder?`消耗【${info.nextBaseName}】×1 · 不扣灵石`:`补差价 ${info.actualGoldCost} 灵石`;
+    html+=`<article class="grade-upgrade-card" style="--grade-color:${q.color}"><small>${esc(where)}</small><h4>${esc(name)}</h4><p class="grade-upgrade-target">→ ${esc(info.nextBaseName)}</p><p>当前：${esc(formatEquipItemStatsV286813(name))}</p>${info.isForged?`<p>继承强化 +${info.forgeLevel} · ${esc(forgeAffixTextV2825(info.record.affixes))}${info.record.pending?`<br>待选词条亦保留：${esc(forgeAffixTextV2825(info.record.pending))}`:''}</p>`:''}<p>穿戴需${esc(CULTIVATION_REALMS[info.realmRequired]?.name||'对应境界')}${!realm.ok?(kind==='bag'?' · 升品后先存放背包':' · 当前境界不足'):''}</p><p>${esc(cost)}${!enough?` · 现有${player.gold}灵石`:''}${!unique?' · 铭器记录重复，请先恢复有效存档':''}</p><button type="button" class="choice-btn" ${realmOk&&enough&&unique?'':'disabled'} onclick="executeGradeUpgradeV2869('${source}',${nonce})">${info.hasBagFodder?'消耗胚子升品':'补差价升品'}${info.isForged?'并继承':''}</button></article>`;
+  }
+  html+='<div class="grade-upgrade-actions"><button class="choice-btn" onclick="closeWorldOverlay();showEquipmentPanel()">返回装备栏</button><button class="choice-btn" onclick="showForgeV2825()">强化 / 洗练</button><button class="choice-btn" onclick="closeWorldOverlay()">返回地图</button></div></section>';
+  showStory(html,[]);
+  const story=document.getElementById('storyPanel');story?.classList.add('equipment-bag-view-v2803','equipment-bag-expanded-v2803');if(story)story.scrollTop=0;
+  gradeUpgradeSessionV2869={owner:player,nonce,index,rows,panel:document.getElementById('gradeUpgradePanelV2869'),fingerprint:gradeUpgradeFingerprintV2869(),busy:false};
 }
 
 // 初始化锁定字段；旧存档无需迁移结构，下一次保存会自动写入 player。

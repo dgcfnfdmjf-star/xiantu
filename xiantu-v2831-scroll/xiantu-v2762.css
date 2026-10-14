@@ -4414,3 +4414,14 @@ html.xiantu-mobile-dedicated .world-location-card{top:auto!important;bottom:calc
  html.xiantu-mobile-dedicated .world-location-card{bottom:calc(var(--mx-safe-b) + 148px)!important}
 }
 html.xiantu-mobile-dedicated #mobileQuickMenu{left:calc(var(--mx-safe-l) + 8px)!important;right:auto!important;top:calc(var(--mx-safe-t) + 112px)!important;max-height:calc(100dvh - var(--mx-safe-t) - var(--mx-safe-b) - 128px);overflow:auto;overscroll-behavior:contain;box-sizing:border-box;z-index:210!important}
+
+/* Grade inheritance keeps names, costs and actions readable on narrow screens. */
+.grade-upgrade-panel{line-height:1.65;overflow-wrap:anywhere;min-width:0}
+.grade-upgrade-panel>.equipment-bag-toolbar-v2803{margin:0 0 12px;top:-12px}
+.grade-upgrade-panel>.equipment-bag-toolbar-v2803 strong{min-width:0}
+.grade-upgrade-panel>.equipment-bag-toolbar-v2803 button{flex-shrink:0}
+.grade-upgrade-card{margin:12px 0;padding:14px;border:1px solid #bca57344;border-left:4px solid var(--grade-color);border-radius:10px;background:#162c24}
+.grade-upgrade-card small{color:#aab8ad}.grade-upgrade-card h4{margin:6px 0;color:#eee2bf;font-size:15px}
+.grade-upgrade-card p{margin:7px 0;font-size:13px}.grade-upgrade-target{color:var(--grade-color)}
+.grade-upgrade-panel .choice-btn{min-height:44px;white-space:normal;max-width:100%;margin:6px 0!important}
+.grade-upgrade-actions{display:flex;gap:8px;flex-wrap:wrap}.grade-upgrade-actions button{flex:1 1 130px}

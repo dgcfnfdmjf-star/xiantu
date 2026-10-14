@@ -2,6 +2,10 @@
 
 静态网页修仙游戏。网站目录沿用 `xiantu-v2831-scroll`，云函数源码在 `tencent-jev-function`。
 
+## 装备升品与铭器继承
+
+装备栏和装备背包新增「升品 / 继承」：同套装同部位逐档升级，优先使用未锁定的高阶胚子，否则补商店差价；强化、已有及待选洗练词条可随铭器保存和重载。规则与验收见 [装备升品与铭器继承](docs/equipment-grade-upgrade.md)。
+
 ## HUD 入口分组
 
 主屏保留任务、角色、物品；地图与探索入口集中到小地图的「探索」抽屉，指引、移动模式、Jev、版本和宗门待办收进「角色 → 修行与设置」。手机状态卡与小地图分开摆放。界面调整说明见 [HUD 入口分组](docs/hud-navigation.md)。
@@ -50,7 +54,7 @@ npm test
 npm run test:browser
 ```
 
-`npm test` 运行选定的 49 个当前功能回归脚本与限流测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
+`npm test` 运行选定的 50 个当前功能回归脚本与限流测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
 
 浏览器测试覆盖恶意存档拒绝且原主档/备份不变、正常导入与刷新恢复、360/390/430/1366px 导航入口可达性、预加载去重与版本错误提示。外部请求被拦截，不调用付费服务。已有 Chromium 的云环境可使用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`。
 
