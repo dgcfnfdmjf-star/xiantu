@@ -75,7 +75,7 @@
   window.applyControlMoveMode=applyControlMoveMode;
 
   function ensureControlModeButton(){
-    const host=document.querySelector('.world-hud-actions');
+    const host=document.getElementById('characterUtilityActions');
     if(!host) return false;
     if(document.getElementById('controlModeSwitchBtn')) return true;
     const btn=document.createElement('button');
@@ -106,7 +106,7 @@
         const now=Date.now();
         if(now-lastModeTipAt>1600 && typeof showFloatingText==='function'){
           lastModeTipAt=now;
-          showFloatingText('🕹️ 当前为摇杆移动，点左上按钮可切换为点触模式', '#7ec9ff');
+          showFloatingText('🕹️ 当前为摇杆移动，在「角色 → 摇杆移动」切换为点触模式', '#7ec9ff');
         }
       }
     };
@@ -116,10 +116,39 @@
     canvas.addEventListener('touchend', guard, {capture:true, passive:false});
   }
 
+  function installGroupedNavigation(){
+    const drawer=document.getElementById('worldExploreDrawer');
+    const utilities=document.getElementById('characterUtilityActions');
+    if(!drawer||!utilities||drawer.dataset.installed) return;
+    drawer.dataset.installed='1';
+    const summary=drawer.querySelector('summary');
+    drawer.addEventListener('toggle',()=>{if(drawer.open)clearControlMoveState();});
+    drawer.addEventListener('click',e=>{
+      if(e.target.closest('button')){drawer.open=false;summary.focus({preventScroll:true});}
+    },true);
+    drawer.addEventListener('keydown',e=>{
+      e.stopPropagation();
+      if(e.key==='Escape'){e.preventDefault();drawer.open=false;summary.focus({preventScroll:true});}
+    });
+    drawer.addEventListener('focusout',e=>{if(e.relatedTarget&&!drawer.contains(e.relatedTarget))drawer.open=false;});
+    document.addEventListener('pointerdown',e=>{if(!drawer.contains(e.target))drawer.open=false;},{passive:true});
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)drawer.open=false;});
+    window.addEventListener('resize',()=>{drawer.open=false;},{passive:true});
+    utilities.addEventListener('click',e=>{
+      const button=e.target.closest('button');
+      if(button&&!['controlModeSwitchBtn','xiantuBuildBadgeV2814'].includes(button.id)){toggleCharacterPanel(false);document.getElementById('panelToggleBtn')?.focus({preventScroll:true});}
+    },true);
+    utilities.parentElement.addEventListener('keydown',e=>{
+      e.stopPropagation();
+      if(e.key==='Escape'){e.preventDefault();toggleCharacterPanel(false);document.getElementById('panelToggleBtn')?.focus();}
+    });
+  }
+
   function boot(){
     const p=getPlayer();
     if(p && !VALID_MODES.includes(p.controlMode)) p.controlMode='joystick';
     ensureControlModeButton();
+    installGroupedNavigation();
     installCanvasModeGuard();
     updateControlModeUI();
     // V27.6 装备优化：一键最佳、套装评分保护、属性对比、更优提示、一键卸下。

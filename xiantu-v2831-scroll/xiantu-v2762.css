@@ -4376,3 +4376,41 @@ html body #gameScreen #combatPanel.battle-clean-v286816>#battleProseHistoryV2868
  html body #gameScreen #combatPanel.battle-clean-v286816>#cinemaNarrationV2756{grid-column:2;grid-row:6;}
  html body #gameScreen #combatPanel.battle-clean-v286816>#battleProseHistoryV286834{grid-column:2;grid-row:7;}
 }
+
+/* Group secondary navigation beside the map and inside the character sheet. */
+.world-hud-actions{overflow:visible;flex-wrap:wrap;touch-action:manipulation;padding:3px 0;gap:4px}
+.world-hud-actions>button{min-height:44px}
+#worldMinimap{overflow:visible!important}
+#worldMinimap:has(.world-explore-drawer[open]){z-index:200!important}
+.world-explore-drawer{margin-top:6px;pointer-events:auto}
+.world-explore-drawer>summary{display:flex;align-items:center;justify-content:center;gap:10px;min-height:44px;list-style:none;cursor:pointer;color:#f0dfa9;background:#172b23;border:1px solid #a9986266;border-radius:10px;font-size:13px;touch-action:manipulation}
+.world-explore-drawer>summary::-webkit-details-marker{display:none}
+.world-explore-drawer[open]>summary span{transform:rotate(180deg)}
+#worldExploreActions{position:absolute;right:calc(100% + 8px);top:0;width:min(210px,calc(100vw - 156px));max-height:calc(100dvh - 32px);overflow:auto;overscroll-behavior:contain;box-sizing:border-box;padding:8px;display:grid;gap:6px;background:#142820;box-shadow:0 8px 24px #0006;border:1px solid #a9986280;border-radius:12px}
+.world-explore-drawer:not([open])>#worldExploreActions{display:none}
+#worldExploreActions button,#characterUtilityActions button{min-height:44px;min-width:0;padding:8px 10px;border:1px solid #a9986255;border-radius:8px;color:#eee2be;background:#21392e;font:inherit;font-size:13px;line-height:1.4;white-space:normal;text-align:left;touch-action:manipulation;cursor:pointer}
+#worldExploreActions button:disabled,#characterUtilityActions button:disabled{opacity:.5;cursor:default}
+.world-explore-drawer>summary:focus-visible,#worldExploreActions button:focus-visible,#characterUtilityActions button:focus-visible{outline:2px solid #f1d186;outline-offset:2px}
+.character-utilities{margin:10px 0 16px;padding:12px;border:1px solid #a9986244;border-radius:12px;background:#15291f}
+.character-utilities>summary{font-size:14px;color:#d9c48c;min-height:44px;line-height:1.5;padding:10px 0;box-sizing:border-box;cursor:pointer;touch-action:manipulation}
+.character-utilities>summary small{font-size:11px;color:#aebbad;margin-left:6px}
+.character-utilities[open]>summary{margin-bottom:8px}
+.character-utilities:not([open])>#characterUtilityActions{display:none}
+.character-utilities>summary:focus-visible{outline:2px solid #f1d186;outline-offset:2px}
+#characterUtilityActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+#characterUtilityActions #firstJourneyV28687{order:-1;grid-column:1/-1;color:#f4d78c}
+#characterUtilityActions button[hidden]{display:none!important}
+html.xiantu-mobile-dedicated .world-hud{width:calc(100% - var(--mx-safe-l) - var(--mx-safe-r) - 140px)!important}
+html.xiantu-mobile-dedicated .world-hud-top{align-items:stretch!important;gap:4px!important}
+html.xiantu-mobile-dedicated .world-hud-top>div:first-child{position:relative;padding-right:34px;box-sizing:border-box}
+html.xiantu-mobile-dedicated #mobileHudToggle{position:absolute;right:-4px;top:-4px;min-width:36px!important;height:44px!important;padding:0!important}
+html.xiantu-mobile-dedicated .world-hud-actions{display:flex;flex-wrap:nowrap;gap:3px!important;padding:3px 0!important;overflow:visible!important}
+html.xiantu-mobile-dedicated .world-hud-actions>button{flex:1 1 0;min-width:0!important;min-height:44px!important;padding:4px 2px!important;font-size:11px!important;white-space:nowrap}
+html.xiantu-mobile-dedicated .world-bars{grid-template-columns:1fr!important}
+html.xiantu-mobile-dedicated .world-minimap{top:calc(var(--mx-safe-t) + 8px)!important}
+html.xiantu-mobile-dedicated .world-location-card{top:auto!important;bottom:calc(var(--mx-safe-b) + 164px)!important;max-width:calc(100% - 168px)!important}
+@media(orientation:landscape){
+ html.xiantu-mobile-dedicated .world-hud{width:min(310px,calc(100% - 164px))!important}
+ html.xiantu-mobile-dedicated .world-location-card{bottom:calc(var(--mx-safe-b) + 148px)!important}
+}
+html.xiantu-mobile-dedicated #mobileQuickMenu{left:calc(var(--mx-safe-l) + 8px)!important;right:auto!important;top:calc(var(--mx-safe-t) + 112px)!important;max-height:calc(100dvh - var(--mx-safe-t) - var(--mx-safe-b) - 128px);overflow:auto;overscroll-behavior:contain;box-sizing:border-box;z-index:210!important}

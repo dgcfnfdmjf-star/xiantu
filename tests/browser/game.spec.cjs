@@ -29,7 +29,16 @@ for(const width of [360,390,430,1366])test(`navigation remains reachable at ${wi
   const button=buttons.nth(i);if(!await button.isVisible())continue;
   await button.scrollIntoViewIfNeeded();await button.click({trial:true});
  }
- const map=actions.getByRole('button',{name:/山河图/});await map.scrollIntoViewIfNeeded();await map.click();await expect(page.locator('#scrollTitleV2837')).toBeVisible();
+ expect(await actions.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+ await expect(actions.locator('#guideHudBtn,#controlModeSwitchBtn,#xiantuBuildBadgeV2814,#scrollMapButtonV2831,#explorationButtonV2829')).toHaveCount(0);
+ await page.locator('#panelToggleBtn').click();await expect(page.locator('#characterUtilityActions')).toBeHidden();await page.locator('.character-utilities>summary').press('Space');await expect(page.locator('#characterUtilityActions')).toBeVisible();
+ const mode=await page.locator('#controlModeSwitchBtn').getAttribute('data-mode');await page.locator('#controlModeSwitchBtn').click();
+ await expect(page.locator('#controlModeSwitchBtn')).not.toHaveAttribute('data-mode',mode);
+ await page.locator('#guideHudBtn').click();await expect(page.locator('#helpManual')).toBeVisible();await expect(page.locator('#characterPanel')).toBeHidden();await page.locator('#helpManual').getByRole('button',{name:'返回仙途',exact:true}).click();
+ const drawer=page.locator('#worldExploreDrawer');await drawer.locator('summary').click();await expect(page.locator('#worldExploreActions')).toBeVisible();
+ await page.keyboard.press('Escape');await expect(page.locator('#worldExploreActions')).toBeHidden();await expect(drawer.locator('summary')).toBeFocused();
+ await page.keyboard.press('Enter');await expect(page.locator('#worldExploreActions')).toBeVisible();
+ await page.locator('#scrollMapButtonV2831').click();await expect(page.locator('#scrollTitleV2837')).toBeVisible();await expect(page.locator('#worldExploreActions')).toBeHidden();
 });
 test('parallel preload keeps evaluation order and version failure remains actionable',async({page})=>{
  await boot(page);const resources=await page.evaluate(()=>performance.getEntriesByType('resource').filter(r=>r.name.includes('.js?')).map(r=>({name:r.name,start:r.startTime,end:r.responseEnd})));

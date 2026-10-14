@@ -13472,9 +13472,9 @@
       return `${dirs[index]} · ${distance}步距`;
     }
     function ensureExplorationButtonV2829(){
-      const actions=document.querySelector('.world-hud-top > div:last-child');if(!actions)return;
+      const actions=document.getElementById('worldExploreActions');if(!actions)return;
       let b=document.getElementById('explorationButtonV2829');if(!b){b=document.createElement('button');b.id='explorationButtonV2829';b.onclick=showExplorationJournalV2829;actions.appendChild(b);}
-      const p=markedExplorationV2829(),label=p?`🧭 ${explorationDirectionV2829(p)}`:'🧭 探索手册';if(b.textContent!==label)b.textContent=label;
+      const p=markedExplorationV2829(),label=p?`🧭 探索手册 · ${explorationDirectionV2829(p)}`:'🧭 探索手册';if(b.textContent!==label)b.textContent=label;
       b.title=p?`${p.name} · ${explorationDirectionV2829(p)}`:'查看地图探索进度和补给点';
     }
     function markExplorationV2829(id){
@@ -13577,7 +13577,7 @@
       return `<i>${p.icon||'◇'}</i>`;
     }
     function ensureScrollButtonV2831(){
-      const host=document.querySelector('.world-hud-top > div:last-child');if(!host||document.getElementById('scrollMapButtonV2831'))return;
+      const host=document.getElementById('worldExploreActions');if(!host||document.getElementById('scrollMapButtonV2831'))return;
       const b=document.createElement('button');b.id='scrollMapButtonV2831';b.textContent='卷 山河图';b.onclick=showScrollMapV2831;host.appendChild(b);
     }
     function scrollPoiGroupV2837(p){
@@ -14363,7 +14363,7 @@
             btn.textContent = collapsed ? '▾' : '▴';
             navigator.vibrate?.(12);
           };
-          actions.appendChild(btn);
+          hud.querySelector('.world-hud-top > div:first-child').appendChild(btn);
         }
         if (!document.getElementById('mobileMenuBtn')) {
           const btn = document.createElement('button');

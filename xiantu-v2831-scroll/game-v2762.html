@@ -140,7 +140,7 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
         <div class="world-hud">
           <div class="world-hud-top">
             <div><div class="world-name" id="worldPlayerName">无名</div><div class="world-realm" id="worldRealm">凡人</div></div>
-            <div class="world-hud-actions" tabindex="0" role="region" aria-label="游戏操作，可左右滑动查看更多"><button id="panelToggleBtn" onclick="toggleCharacterPanel()">📋 角色</button><button id="inventoryToggleBtn" onclick="showMobileInventory()">🎒 物品</button><button onclick="showJevHubV2846()">☯ Jev</button></div>
+            <div class="world-hud-actions" role="group" aria-label="常用操作"><button id="panelToggleBtn" onclick="toggleCharacterPanel()">📋 角色</button><button id="inventoryToggleBtn" onclick="showMobileInventory()">🎒 物品</button></div>
           </div>
           <div class="world-bars">
             <div class="world-bar-row"><span>气血</span><div class="world-bar"><i id="worldHpBar" style="width:100%"></i></div><span id="worldHpText">100 / 100</span></div>
@@ -160,6 +160,10 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
             <span id="minimapZoomLabel">1.0×</span>
             <button type="button" id="minimapZoomIn" onclick="changeMinimapZoom(0.5);event.stopPropagation()" aria-label="放大小地图">＋</button>
           </div>
+          <details id="worldExploreDrawer" class="world-explore-drawer">
+            <summary>探索 <span aria-hidden="true">▾</span></summary>
+            <nav id="worldExploreActions" aria-label="地图与探索"></nav>
+          </details>
           <div class="world-minimap-note">点选方位寻路 · ±缩放</div>
         </div>
         <div class="world-interact" id="worldInteract"><span class="key">E</span><span id="worldInteractText">交互</span></div>
@@ -174,7 +178,10 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
       <!-- 深度角色面板 -->
       <div id="characterPanel" class="character-panel hidden" aria-hidden="true">
         <div class="character-panel-content">
-<div class="char-toolbar-v2799"><span>人物 · 修行录</span><button type="button" onclick="toggleCharacterPanel(false)" aria-label="关闭角色面板">关闭 ✕</button></div>          <div class="deep-panel-header">
+<div class="char-toolbar-v2799"><span>人物 · 修行录</span><button type="button" onclick="toggleCharacterPanel(false)" aria-label="关闭角色面板">关闭 ✕</button></div>          <details class="character-utilities">
+            <summary>修行与设置 <small>指引 · 操作 · 版本</small></summary>
+            <div id="characterUtilityActions"><button type="button" onclick="showJevHubV2846()">☯ Jev 中心</button></div>
+          </details><div class="deep-panel-header">
             <div class="deep-panel-avatar">
               <canvas id="panelAvatar" aria-label="男主立绘" width="1" height="1" data-v2762-width="180" data-v2762-height="240"></canvas>
               <div class="panel-titles" id="panelTitles"></div>
@@ -462,7 +469,7 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
       bootJevFriendsV2850();
       var buildBadge=document.createElement('button');buildBadge.id='xiantuBuildBadgeV2814';buildBadge.textContent='V28.68.38 ✓';buildBadge.title='查看实际加载版本';
       buildBadge.onclick=function(){alert('当前实际版本：V28.68.38\n界面样式与 '+files.length+' 个脚本版本均已核对一致。\n本次更新：雷系、剑系、治疗系技能补上序列帧特效；地仙之后新增天器、圣器、道器三档装备；对战图集改为 WebP，首次加载更快。已有技能与敌人数值不变，无需更新Jev。\n这表示当前页面文件一致，不代表已查询服务器是否有更新。');};
-      (document.querySelector('.world-hud-actions')||document.body).appendChild(buildBadge);
+      document.getElementById('characterUtilityActions').appendChild(buildBadge);
       document.body.classList.remove('xiantu-v2762-booting');
       document.getElementById('xiantuSafeBoot').remove();
       document.documentElement.classList.add('xiantu-v2762-ready');

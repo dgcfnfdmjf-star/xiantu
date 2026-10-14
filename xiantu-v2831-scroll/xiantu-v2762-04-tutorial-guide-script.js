@@ -119,14 +119,14 @@ function handleTutorialAction(action,stepId){
   if(action==='training'){tutorialState.compactStepId=null;return startTutorialTraining();}
   if(action==='equipment'){tutorialState.compactStepId=null;completeTutorialStep(stepId);closeTutorialBubble();showEquipmentPanel();setTimeout(()=>{showTutorialToast('📦 点【背包装备】，再点【布衣】即可穿戴',4600)},260);return}
   if(action==='tasks'){tutorialState.compactStepId=null;completeTutorialStep(stepId);closeTutorialBubble();showSectTasks();showTutorialToast('📜 接取差事后可查看【详细指引】与【任务追踪】',4300);setTimeout(()=>triggerTutorial('cultivation',true),1100);return}
-  if(action==='finish'){if(!firstJourneyV28687()&&player.level<2){player.firstJourneyV28687={step:0};const owner=player;setTimeout(()=>{if(player===owner&&forgeAllowedV2825())showFirstJourneyV28687()},600);}tutorialState.compactStepId=null;completeTutorialStep(stepId);closeTutorialBubble();hideTutorialSkipBtn();clearTutorialStepClasses();showTutorialToast('✅ 基础引路已完成。现在可以自由行走四域，更多内容可随时从【修行指引】查看。',4300);return}
+  if(action==='finish'){if(!firstJourneyV28687()&&player.level<2){player.firstJourneyV28687={step:0};const owner=player;setTimeout(()=>{if(player===owner&&forgeAllowedV2825())showFirstJourneyV28687()},600);}tutorialState.compactStepId=null;completeTutorialStep(stepId);closeTutorialBubble();hideTutorialSkipBtn();clearTutorialStepClasses();showTutorialToast('✅ 基础引路已完成。现在可以自由行走四域，更多内容可随时从【角色 → 修行指引】查看。',4300);return}
 }
 function skipAllTutorial(){
-  const t=ensureTutorialState();if(!t)return;if(!confirm('略过新手引路？基础说明仍可在【修行指引】中随时查看。'))return;
+  const t=ensureTutorialState();if(!t)return;if(!confirm('略过新手引路？基础说明仍可在【角色 → 修行指引】中随时查看。'))return;
   t.skipped=true;for(const id of TUTORIAL_ORDER)if(!t.completedSteps.includes(id))t.completedSteps.push(id);
   // 只补发尚未取得的演武基础物资，避免重复领奖。
   if(!t.readPopups.includes('training_reward')){t.readPopups.push('training_reward');player.gold+=120;if(!playerOwnsEquipment('布衣'))player.equipmentInventory.push('布衣');}
-  tutorialState.compactStepId=null;closeTutorialBubble();hideTutorialSkipBtn();clearTutorialStepClasses();updateStats?.();autoSave?.();showTutorialToast('引路已略过。自由探索已开放，修行所需说明仍收录在【修行指引】中。',4000)
+  tutorialState.compactStepId=null;closeTutorialBubble();hideTutorialSkipBtn();clearTutorialStepClasses();updateStats?.();autoSave?.();showTutorialToast('引路已略过。自由探索已开放，修行所需说明仍收录在【角色 → 修行指引】中。',4000)
 }
 function checkAndStartTutorial(force=false){const t=ensureTutorialState();if(!t)return;if(t.skipped&&!force){clearTutorialStepClasses();return}if(force&&t.skipped)t.skipped=false;if(t.completedSteps.length>=TUTORIAL_ORDER.length){clearTutorialStepClasses();return}const resume=t.activeStep&&TUTORIAL_STEPS[t.activeStep]?t.activeStep:TUTORIAL_ORDER.find(id=>!t.completedSteps.includes(id));if(resume){syncTutorialStage(resume);setTimeout(()=>triggerTutorial(resume,true),260)}}
 function restartTutorial(){const t=ensureTutorialState();t.skipped=false;t.completedSteps=[];t.activeStep=null;t.readPopups=t.readPopups.filter(x=>x!=='training_reward');tutorialState.compactStepId=null;closeHelpManual();closeTutorialBubble();syncTutorialStage('welcome');showTutorialSkipBtn();setTimeout(()=>triggerTutorial('welcome',true),180);autoSave?.()}
@@ -184,7 +184,7 @@ function createTooltipLabel(label,text){return `${label}<span class="tooltip-tri
 function toggleTutorialTooltips(){const t=ensureTutorialState();t.showTooltips=!t.showTooltips;installTutorialTooltips(true);autoSave?.();showHelpManual()}
 function installTutorialTooltips(refresh=false){const t=ensureTutorialState();if(!t)return;const specs=[['statExp','修为达到当前瓶颈后会进入突破流程；闭关十年最多推进一个小段。'],['statGold','灵石可用于购买丹药装备、宗门与洞府等多种消耗。'],['statAtk','攻击由境界、装备、套装、灵宠等共同决定。'],['statDef','防御由境界、装备、套装、灵宠与部分状态共同决定。']];for(const [id,tip] of specs){const value=document.getElementById(id),box=value?.closest?.('.stat');if(!box)continue;box.querySelector('.tooltip-trigger')?.remove();if(t.showTooltips){const lab=box.querySelector('.stat-name');if(lab)lab.insertAdjacentHTML('beforeend',`<span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">${tip}</span></span>`)}}}
 function installGuideEntry(){
-  const actions=document.querySelector('.world-hud-top > div:last-child');if(actions&&!document.getElementById('guideHudBtn')){const b=document.createElement('button');b.id='guideHudBtn';b.textContent='📖';b.title='修行指引';b.setAttribute('aria-label','修行指引');b.style.cssText='width:34px;height:30px;border-radius:8px;border:1px solid rgba(242,210,122,.28);background:rgba(242,210,122,.07);color:#e4c977;font-size:14px';b.onclick=showHelpManual;actions.insertBefore(b,actions.firstChild)}
+  const actions=document.getElementById('characterUtilityActions');if(actions&&!document.getElementById('guideHudBtn')){const b=document.createElement('button');b.id='guideHudBtn';b.textContent='📖 修行指引';b.title='修行指引';b.setAttribute('aria-label','修行指引');b.onclick=showHelpManual;actions.insertBefore(b,actions.firstChild)}
 }
 
 window.addEventListener('load',()=>setTimeout(()=>{installTutorialInteractionHooks();installGuideEntry();installTutorialTooltips()},650));
@@ -203,7 +203,7 @@ function beginFirstJourneyV28687(){
   autoSave();showFirstJourneyV28687();
 }
 function syncFirstJourneyV28687(){
-  const host=document.querySelector('.world-hud-actions');if(!host)return;
+  const host=document.getElementById('characterUtilityActions');if(!host)return;
   let b=document.getElementById('firstJourneyV28687');
   const s=firstJourneyV28687(),eligible=!!s||player.level<2;
   if(!eligible){b?.remove();return;}
