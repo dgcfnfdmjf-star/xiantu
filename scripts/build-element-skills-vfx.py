@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build thunder, sword and heal strips from authored 3x3 keyplate grids, without painting effects.
+"""Build thunder, sword, heal, ice, fire-ward, earth and spear strips from authored 3x3 keyplate grids, without painting effects.
 
 Plate order in every grid: 0-2 body, 3-4 telegraph, 5-6 impact, 7-8 residue.
 """
@@ -25,6 +25,51 @@ EFFECTS = [
     dict(key='jade_lotus_heal', source='heal', element='heal', archetype='ground-eruption',
          hue=(40, 170), sizes=dict(telegraph=200, body=290, impact=250, residue=210),
          skills=['回春术', '治愈术', '生生不息', '起死回生', '凝露诀', '青莲护心', '灵泉归元', '逆命回元', '莲华济世']),
+    dict(key='frost_palm', source='ice_palm', element='ice', archetype='projectile',
+         hue=(170, 235), sizes=dict(telegraph=160, body=210, impact=230, residue=190),
+         skills=['寒冰掌']),
+    dict(key='ice_spike', source='ice_spike', element='ice', archetype='projectile',
+         hue=(170, 235), sizes=dict(telegraph=160, body=220, impact=230, residue=200),
+         skills=['玄冰刺']),
+    dict(key='ice_burst', source='ice_burst', element='ice', archetype='ground-eruption',
+         hue=(170, 235), sizes=dict(telegraph=190, body=250, impact=290, residue=220),
+         skills=['冰爆术']),
+    dict(key='frost_dragon_breath', source='ice_dragon', element='ice', archetype='projectile',
+         hue=(170, 235), sizes=dict(telegraph=170, body=250, impact=250, residue=210),
+         skills=['霜龙吐息']),
+    dict(key='frozen_expanse', source='ice_expanse', element='ice', archetype='ground-eruption',
+         hue=(170, 235), sizes=dict(telegraph=260, body=340, impact=300, residue=270),
+         skills=['冰封千里']),
+    dict(key='frost_barrier', source='ice_barrier', element='ice', archetype='ground-eruption',
+         hue=(170, 235), sizes=dict(telegraph=220, body=280, impact=260, residue=230),
+         skills=['霜寒结界']),
+    dict(key='glacier_prison', source='ice_glacier', element='ice', archetype='ground-eruption',
+         hue=(170, 235), sizes=dict(telegraph=220, body=310, impact=280, residue=230),
+         skills=['冰河葬狱']),
+    dict(key='abyss_domain', source='ice_abyss', element='ice', archetype='ground-eruption',
+         hue=(185, 265), sizes=dict(telegraph=240, body=320, impact=280, residue=240),
+         skills=['寒渊领域']),
+    dict(key='soul_seal', source='ice_soulseal', element='ice', archetype='ground-eruption',
+         hue=(170, 235), sizes=dict(telegraph=220, body=300, impact=270, residue=230),
+         skills=['冰魄封魂']),
+    dict(key='eternal_crystal', source='ice_crystal', element='ice', archetype='ground-eruption',
+         hue=(170, 235), sizes=dict(telegraph=220, body=320, impact=270, residue=230),
+         skills=['万载寒晶']),
+    dict(key='frost_armor', source='ice_armor', element='ice', archetype='ground-eruption',
+         hue=(170, 235), sizes=dict(telegraph=200, body=270, impact=250, residue=210),
+         skills=['冰甲护身']),
+    dict(key='solar_aegis', source='fire_shield', element='fire', archetype='ground-eruption',
+         hue=(0, 50), sizes=dict(telegraph=200, body=270, impact=250, residue=210),
+         skills=['炎阳护盾']),
+    dict(key='flame_bind', source='fire_bind', element='fire', archetype='projectile',
+         hue=(0, 50), sizes=dict(telegraph=160, body=220, impact=230, residue=200),
+         skills=['流火飞索']),
+    dict(key='mountain_quake', source='mountain', element='earth', archetype='ground-eruption',
+         hue=(20, 60), sizes=dict(telegraph=220, body=320, impact=280, residue=230),
+         skills=['镇岳山河震']),
+    dict(key='sun_spear', source='spear', element='spear', archetype='projectile',
+         hue=(20, 60), sizes=dict(telegraph=160, body=240, impact=240, residue=200),
+         skills=['穿云贯日']),
 ]
 LAYERS = [('telegraph', [3, 4], 4), ('body', [0, 1, 2], 8), ('impact', [5, 6], 6), ('residue', [7, 8], 6)]
 

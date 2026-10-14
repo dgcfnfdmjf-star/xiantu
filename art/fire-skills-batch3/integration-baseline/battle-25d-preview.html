@@ -1,0 +1,37 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>仙途 · 2.5D试剑坪</title><style>
+*{box-sizing:border-box}body{margin:0;background:#102321;color:#e6e5cb;font:16px system-ui}main{max-width:1000px;margin:auto;padding:32px 18px}header{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:24px}h1{font:32px serif;margin:8px 0}small{color:#abb99b;letter-spacing:3px}p{color:#aebcb0;line-height:1.7}#stage{border:1px solid #80946d;border-radius:18px;overflow:hidden;box-shadow:0 20px 80px #0005}.duel25-stage{position:relative;width:100%;isolation:isolate}.duel25-backdrop{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.duel25-stage>.duel25-canvas{position:relative;margin:0!important}.duel25-canvas{display:block;width:100%;height:auto;aspect-ratio:12/7}.controls{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0}select{font:inherit;color:#e9e7ce;background:#284d42;border:1px solid #80966d;border-radius:8px;padding:10px;margin:0 0 16px;max-width:100%}button,a{font:inherit;color:#e9e7ce;background:#284d42;border:1px solid #80966d;border-radius:10px;padding:13px 18px;min-height:48px;text-decoration:none}button:hover{background:#3b6250}button:disabled{opacity:.45}footer{border-top:1px solid #526847;padding-top:16px;font-size:14px}@media(max-width:600px){main{padding:20px 10px}h1{font-size:25px}header{display:block}.controls button{flex:1 0 28%;padding:12px 8px}}</style>
+<main><header><div><small>仙途 / 水墨动作群妖演武</small><h1>青云试剑坪</h1></div><p>沿用角色立绘外观 · 23 类敌人动作预览</p></header><label for="enemySelect">选择对手</label> <select id="enemySelect" aria-label="选择对手"></select><label for="petSelect">同行灵宠</label> <select id="petSelect" aria-label="同行灵宠"><option value="">无</option><option>灵狐</option><option>玄龟</option><option>雷鹰</option><option>仙鹤</option><option>火凤</option><option>冰龙</option><option>灵纹野兔</option><option>魔渊蝙蝠</option></select><div id="stage"></div><p><label for="skillSelect">逐招试演</label> <select id="skillSelect" aria-label="选择技能"></select> <button id="castSelected">施放所选技能</button> <button id="inkFxQualityV2854">特效：自动</button></p><div class="controls"><button data-act="attack">挥剑突进</button><button data-act="wolf">敌方出招</button><button data-act="thunder">九天神雷</button><button data-act="ice">玄冰刺</button><button data-act="fire">天火焚世</button><button data-act="heal">回春</button><button data-act="pet">灵宠追击</button><button data-act="finish">击倒对手</button><button data-act="reset">重新演示</button></div><p id="status" role="status">点击招式，查看移动、受击与回位动作。</p><footer>这是动作与画面预览，不读取或修改游戏存档。正式游戏中的对应怪物会使用同一场景，数值仍由原战斗系统结算。</footer><p><a href="./index.html">进入仙途</a></p></main>
+<label style="display:block;margin:12px 18px"><input id="burnFixture" type="checkbox"> 对手带灼烧（炎爆术引爆试播）</label><button id="clearBurn" style="margin:0 18px 16px">清除灼烧 / 莲印</button>
+<script src="./xiantu-v2855-skill-fx.js?v=286835"></script><script src="./xiantu-v28684-duel.js?v=286835"></script><script>
+const state={playerName:'青云剑修',enemyName:'苍山野狼',playerHp:720,playerMax:720,enemyHp:980,enemyMax:980};let scene;const selector=document.getElementById('enemySelect');XiantuDuel25D.roster.forEach(p=>{const option=document.createElement('option');option.value=p.key;option.textContent=p.name;selector.appendChild(option);});let timer=0,busy=false;const status=document.getElementById('status');
+function clearBurn(){state.burnTurns=0;state.burnDamage=0;state.burnHealBlock=false;}
+document.getElementById("clearBurn").onclick=clearBurn;
+function selectEnemy(){clearBurn();clearTimeout(timer);busy=false;scene?.destroy();state.playerHp=720;state.enemyHp=980;state.enemyName=XiantuDuel25D.roster.find(p=>p.key===selector.value).name;scene=XiantuDuel25D.create(document.getElementById('stage'),()=>state,selector.value);status.textContent='当前对手：'+state.enemyName+'。点击敌方出招查看动作。';}selector.onchange=selectEnemy;selectEnemy();
+const skills=InkSkillFxV2854.catalog(),skillSelect=document.getElementById('skillSelect');
+for(const p of skills){const option=document.createElement('option');option.value=p.name;option.textContent=p.name;skillSelect.appendChild(option)}
+const requestedSkill=new URLSearchParams(location.search).get('skill');if(skills.some(p=>p.name===requestedSkill))skillSelect.value=requestedSkill;
+document.getElementById('petSelect').onchange=e=>{const name=e.target.value;state.pet=name?{name,type:({'灵纹野兔':'灵狐','魔渊蝙蝠':'雷鹰'}[name]||name)}:null};
+function perform(action,selected=null){
+ if(action==='reset'){clearTimeout(timer);busy=false;clearBurn();scene.reset();state.playerHp=720;state.enemyHp=980;status.textContent='双方回到试剑坪。';return;}
+ if(busy)return;
+ if(!scene?.ready){status.textContent='动作素材加载中，请稍候。';return;}
+ if(state.enemyHp<=0||state.playerHp<=0){status.textContent='演示已结束，请点击重新演示。';return;}
+ if(action==='pet'){if(!state.pet){status.textContent='请先选择同行灵宠。';return;}state.enemyHp=Math.max(0,state.enemyHp-35);scene.hit('enemy',35,false,false,true);status.textContent=state.pet.name+'协同追击';return;}
+ const preset={thunder:'九天神雷',ice:'玄冰刺',fire:'天火焚世',heal:'青莲护心'};
+ const effect=selected|| (preset[action]?InkSkillFxV2854.profile(preset[action]):null);
+ const side=action==='wolf'?'enemy':'player',target=side==='player'?'enemy':'player',heal=effect?.family==='heal',self=effect?.self;
+ const amount=action==='finish'?state.enemyHp:heal?120:effect?210:96;
+ busy=true;
+ scene.act(side,side==='enemy'?undefined:effect?.family||'sword',effect?.name||'');
+ status.textContent=effect?effect.name+' · 起势、命中与余韵':side==='enemy'?state.enemyName+' 正在出招。':'剑修踏步出剑。';
+ timer=setTimeout(()=>{
+  if(heal){state.playerHp=Math.min(state.playerHp,state.playerMax-120);state.playerHp+=120;scene.hit('player',120,true);}
+  else if(!self){state[target+'Hp']=Math.max(0,state[target+'Hp']-amount);scene.hit(target,amount);if(effect?.name==='炎爆术'&&document.getElementById('burnFixture').checked){state[target+'Hp']=Math.max(0,state[target+'Hp']-60);scene.hit(target,60,false,false,false,'灼烧引爆');clearBurn();}}
+  if(target==='enemy'&&['红莲业火','火墙术','三昧真火'].includes(effect?.name)){state.burnTurns=effect.name==='三昧真火'?2:3;state.burnDamage=42;state.burnHealBlock=!!state.burnHealBlock||effect.name==='红莲业火';}
+  timer=setTimeout(()=>{busy=false;},590);
+ },effect&&!heal?310:155);
+}
+document.querySelector('.controls').onclick=e=>{if(e.target.dataset.act)perform(e.target.dataset.act)};
+document.getElementById('castSelected').onclick=()=>{if(busy)return;state.playerHp=720;state.enemyHp=980;clearBurn();scene.reset();perform('selected',skills.find(p=>p.name===skillSelect.value))};
+window.addEventListener('pagehide',()=>{clearTimeout(timer);scene.destroy();});
+</script></html>

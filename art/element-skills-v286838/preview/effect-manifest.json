@@ -391,6 +391,1836 @@
           }
         }
       }
+    },
+    {
+      "key": "frost_palm",
+      "name": "寒冰掌",
+      "element": "ice",
+      "visualArchetype": "projectile",
+      "skills": [
+        "寒冰掌"
+      ],
+      "layers": {
+        "telegraph": {
+          "file": "frost_palm_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "frost_palm_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "frost_palm_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "frost_palm_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "timing": {
+        "arrivalMs": 310,
+        "gatherMs": 100,
+        "crossfadeMs": 40,
+        "bodyMs": 360,
+        "impactMs": 180,
+        "aftermathMs": 440,
+        "durationMs": 1100
+      },
+      "display": {
+        "telegraph": 160,
+        "body": 210,
+        "impact": 230,
+        "residue": 190
+      },
+      "acceptance": [
+        "Independent authored 3x3 stage plates per family; source-over",
+        "Impact waits for the authoritative hit event; self casts anchor on the caster foot",
+        "Shared textures per family; no combat, RNG or timer writes"
+      ],
+      "preview": {
+        "displayMode": "projectile",
+        "durationMs": 1100,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0.0,
+            "end": 0.12727272727272726,
+            "anchor": "origin",
+            "width": 160,
+            "height": 160,
+            "fadeIn": 0.2857142857142857,
+            "fadeOut": 0.2857142857142857
+          },
+          "body": {
+            "start": 0.09090909090909091,
+            "end": 0.3181818181818182,
+            "anchor": "moving",
+            "width": 210,
+            "height": 210,
+            "fadeIn": 0.16,
+            "fadeOut": 0.16
+          },
+          "impact": {
+            "start": 0.2818181818181818,
+            "end": 0.44545454545454544,
+            "anchor": "target",
+            "width": 230,
+            "height": 230,
+            "fadeIn": 0.2222222222222222,
+            "fadeOut": 0.2222222222222222
+          },
+          "residue": {
+            "start": 0.4090909090909091,
+            "end": 0.6818181818181818,
+            "anchor": "target",
+            "width": 190,
+            "height": 190,
+            "fadeIn": 0.13333333333333333,
+            "fadeOut": 0.13333333333333333
+          }
+        }
+      }
+    },
+    {
+      "key": "ice_spike",
+      "name": "玄冰刺",
+      "element": "ice",
+      "visualArchetype": "projectile",
+      "skills": [
+        "玄冰刺"
+      ],
+      "layers": {
+        "telegraph": {
+          "file": "ice_spike_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "ice_spike_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "ice_spike_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "ice_spike_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "timing": {
+        "arrivalMs": 310,
+        "gatherMs": 100,
+        "crossfadeMs": 40,
+        "bodyMs": 360,
+        "impactMs": 180,
+        "aftermathMs": 440,
+        "durationMs": 1100
+      },
+      "display": {
+        "telegraph": 160,
+        "body": 220,
+        "impact": 230,
+        "residue": 200
+      },
+      "acceptance": [
+        "Independent authored 3x3 stage plates per family; source-over",
+        "Impact waits for the authoritative hit event; self casts anchor on the caster foot",
+        "Shared textures per family; no combat, RNG or timer writes"
+      ],
+      "preview": {
+        "displayMode": "projectile",
+        "durationMs": 1100,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0.0,
+            "end": 0.12727272727272726,
+            "anchor": "origin",
+            "width": 160,
+            "height": 160,
+            "fadeIn": 0.2857142857142857,
+            "fadeOut": 0.2857142857142857
+          },
+          "body": {
+            "start": 0.09090909090909091,
+            "end": 0.3181818181818182,
+            "anchor": "moving",
+            "width": 220,
+            "height": 220,
+            "fadeIn": 0.16,
+            "fadeOut": 0.16
+          },
+          "impact": {
+            "start": 0.2818181818181818,
+            "end": 0.44545454545454544,
+            "anchor": "target",
+            "width": 230,
+            "height": 230,
+            "fadeIn": 0.2222222222222222,
+            "fadeOut": 0.2222222222222222
+          },
+          "residue": {
+            "start": 0.4090909090909091,
+            "end": 0.6818181818181818,
+            "anchor": "target",
+            "width": 200,
+            "height": 200,
+            "fadeIn": 0.13333333333333333,
+            "fadeOut": 0.13333333333333333
+          }
+        }
+      }
+    },
+    {
+      "key": "ice_burst",
+      "name": "冰爆术",
+      "element": "ice",
+      "visualArchetype": "ground-eruption",
+      "skills": [
+        "冰爆术"
+      ],
+      "layers": {
+        "telegraph": {
+          "file": "ice_burst_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "ice_burst_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "ice_burst_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "ice_burst_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "timing": {
+        "arrivalMs": 310,
+        "gatherMs": 100,
+        "crossfadeMs": 40,
+        "bodyMs": 360,
+        "impactMs": 180,
+        "aftermathMs": 600,
+        "durationMs": 1100
+      },
+      "display": {
+        "telegraph": 190,
+        "body": 250,
+        "impact": 290,
+        "residue": 220
+      },
+      "acceptance": [
+        "Independent authored 3x3 stage plates per family; source-over",
+        "Impact waits for the authoritative hit event; self casts anchor on the caster foot",
+        "Shared textures per family; no combat, RNG or timer writes"
+      ],
+      "preview": {
+        "displayMode": "ground-eruption",
+        "durationMs": 1100,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0.0,
+            "end": 0.3181818181818182,
+            "anchor": "target",
+            "width": 190,
+            "height": 190,
+            "fadeIn": 0.11428571428571428,
+            "fadeOut": 0.11428571428571428
+          },
+          "body": {
+            "start": 0.2818181818181818,
+            "end": 0.6090909090909091,
+            "anchor": "target",
+            "width": 250,
+            "height": 250,
+            "fadeIn": 0.1111111111111111,
+            "fadeOut": 0.1111111111111111
+          },
+          "impact": {
+            "start": 0.2818181818181818,
+            "end": 0.44545454545454544,
+            "anchor": "target",
+            "width": 290,
+            "height": 290,
+            "fadeIn": 0.2222222222222222,
+            "fadeOut": 0.2222222222222222
+          },
+          "residue": {
+            "start": 0.5545454545454546,
+            "end": 0.8272727272727273,
+            "anchor": "target",
+            "width": 220,
+            "height": 220,
+            "fadeIn": 0.13333333333333333,
+            "fadeOut": 0.13333333333333333
+          }
+        }
+      }
+    },
+    {
+      "key": "frost_dragon_breath",
+      "name": "霜龙吐息",
+      "element": "ice",
+      "visualArchetype": "projectile",
+      "skills": [
+        "霜龙吐息"
+      ],
+      "layers": {
+        "telegraph": {
+          "file": "frost_dragon_breath_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "frost_dragon_breath_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "frost_dragon_breath_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "frost_dragon_breath_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "timing": {
+        "arrivalMs": 310,
+        "gatherMs": 100,
+        "crossfadeMs": 40,
+        "bodyMs": 360,
+        "impactMs": 180,
+        "aftermathMs": 440,
+        "durationMs": 1100
+      },
+      "display": {
+        "telegraph": 170,
+        "body": 250,
+        "impact": 250,
+        "residue": 210
+      },
+      "acceptance": [
+        "Independent authored 3x3 stage plates per family; source-over",
+        "Impact waits for the authoritative hit event; self casts anchor on the caster foot",
+        "Shared textures per family; no combat, RNG or timer writes"
+      ],
+      "preview": {
+        "displayMode": "projectile",
+        "durationMs": 1100,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0.0,
+            "end": 0.12727272727272726,
+            "anchor": "origin",
+            "width": 170,
+            "height": 170,
+            "fadeIn": 0.2857142857142857,
+            "fadeOut": 0.2857142857142857
+          },
+          "body": {
+            "start": 0.09090909090909091,
+            "end": 0.3181818181818182,
+            "anchor": "moving",
+            "width": 250,
+            "height": 250,
+            "fadeIn": 0.16,
+            "fadeOut": 0.16
+          },
+          "impact": {
+            "start": 0.2818181818181818,
+            "end": 0.44545454545454544,
+            "anchor": "target",
+            "width": 250,
+            "height": 250,
+            "fadeIn": 0.2222222222222222,
+            "fadeOut": 0.2222222222222222
+          },
+          "residue": {
+            "start": 0.4090909090909091,
+            "end": 0.6818181818181818,
+            "anchor": "target",
+            "width": 210,
+            "height": 210,
+            "fadeIn": 0.13333333333333333,
+            "fadeOut": 0.13333333333333333
+          }
+        }
+      }
+    },
+    {
+      "key": "frozen_expanse",
+      "name": "冰封千里",
+      "element": "ice",
+      "visualArchetype": "ground-eruption",
+      "skills": [
+        "冰封千里"
+      ],
+      "layers": {
+        "telegraph": {
+          "file": "frozen_expanse_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "frozen_expanse_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "frozen_expanse_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "frozen_expanse_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "timing": {
+        "arrivalMs": 310,
+        "gatherMs": 100,
+        "crossfadeMs": 40,
+        "bodyMs": 360,
+        "impactMs": 180,
+        "aftermathMs": 600,
+        "durationMs": 1100
+      },
+      "display": {
+        "telegraph": 260,
+        "body": 340,
+        "impact": 300,
+        "residue": 270
+      },
+      "acceptance": [
+        "Independent authored 3x3 stage plates per family; source-over",
+        "Impact waits for the authoritative hit event; self casts anchor on the caster foot",
+        "Shared textures per family; no combat, RNG or timer writes"
+      ],
+      "preview": {
+        "displayMode": "ground-eruption",
+        "durationMs": 1100,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0.0,
+            "end": 0.3181818181818182,
+            "anchor": "target",
+            "width": 260,
+            "height": 260,
+            "fadeIn": 0.11428571428571428,
+            "fadeOut": 0.11428571428571428
+          },
+          "body": {
+            "start": 0.2818181818181818,
+            "end": 0.6090909090909091,
+            "anchor": "target",
+            "width": 340,
+            "height": 340,
+            "fadeIn": 0.1111111111111111,
+            "fadeOut": 0.1111111111111111
+          },
+          "impact": {
+            "start": 0.2818181818181818,
+            "end": 0.44545454545454544,
+            "anchor": "target",
+            "width": 300,
+            "height": 300,
+            "fadeIn": 0.2222222222222222,
+            "fadeOut": 0.2222222222222222
+          },
+          "residue": {
+            "start": 0.5545454545454546,
+            "end": 0.8272727272727273,
+            "anchor": "target",
+            "width": 270,
+            "height": 270,
+            "fadeIn": 0.13333333333333333,
+            "fadeOut": 0.13333333333333333
+          }
+        }
+      }
+    },
+    {
+      "key": "frost_barrier",
+      "name": "霜寒结界",
+      "element": "ice",
+      "visualArchetype": "ground-eruption",
+      "skills": [
+        "霜寒结界"
+      ],
+      "layers": {
+        "telegraph": {
+          "file": "frost_barrier_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "frost_barrier_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "frost_barrier_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "frost_barrier_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "timing": {
+        "arrivalMs": 310,
+        "gatherMs": 100,
+        "crossfadeMs": 40,
+        "bodyMs": 360,
+        "impactMs": 180,
+        "aftermathMs": 600,
+        "durationMs": 1100
+      },
+      "display": {
+        "telegraph": 220,
+        "body": 280,
+        "impact": 260,
+        "residue": 230
+      },
+      "acceptance": [
+        "Independent authored 3x3 stage plates per family; source-over",
+        "Impact waits for the authoritative hit event; self casts anchor on the caster foot",
+        "Shared textures per family; no combat, RNG or timer writes"
+      ],
+      "preview": {
+        "displayMode": "ground-eruption",
+        "durationMs": 1100,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0.0,
+            "end": 0.3181818181818182,
+            "anchor": "target",
+            "width": 220,
+            "height": 220,
+            "fadeIn": 0.11428571428571428,
+            "fadeOut": 0.11428571428571428
+          },
+          "body": {
+            "start": 0.2818181818181818,
+            "end": 0.6090909090909091,
+            "anchor": "target",
+            "width": 280,
+            "height": 280,
+            "fadeIn": 0.1111111111111111,
+            "fadeOut": 0.1111111111111111
+          },
+          "impact": {
+            "start": 0.2818181818181818,
+            "end": 0.44545454545454544,
+            "anchor": "target",
+            "width": 260,
+            "height": 260,
+            "fadeIn": 0.2222222222222222,
+            "fadeOut": 0.2222222222222222
+          },
+          "residue": {
+            "start": 0.5545454545454546,
+            "end": 0.8272727272727273,
+            "anchor": "target",
+            "width": 230,
+            "height": 230,
+            "fadeIn": 0.13333333333333333,
+            "fadeOut": 0.13333333333333333
+          }
+        }
+      }
+    },
+    {
+      "key": "glacier_prison",
+      "name": "冰河葬狱",
+      "element": "ice",
+      "visualArchetype": "ground-eruption",
+      "skills": [
+        "冰河葬狱"
+      ],
+      "layers": {
+        "telegraph": {
+          "file": "glacier_prison_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "glacier_prison_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "glacier_prison_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "glacier_prison_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "timing": {
+        "arrivalMs": 310,
+        "gatherMs": 100,
+        "crossfadeMs": 40,
+        "bodyMs": 360,
+        "impactMs": 180,
+        "aftermathMs": 600,
+        "durationMs": 1100
+      },
+      "display": {
+        "telegraph": 220,
+        "body": 310,
+        "impact": 280,
+        "residue": 230
+      },
+      "acceptance": [
+        "Independent authored 3x3 stage plates per family; source-over",
+        "Impact waits for the authoritative hit event; self casts anchor on the caster foot",
+        "Shared textures per family; no combat, RNG or timer writes"
+      ],
+      "preview": {
+        "displayMode": "ground-eruption",
+        "durationMs": 1100,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0.0,
+            "end": 0.3181818181818182,
+            "anchor": "target",
+            "width": 220,
+            "height": 220,
+            "fadeIn": 0.11428571428571428,
+            "fadeOut": 0.11428571428571428
+          },
+          "body": {
+            "start": 0.2818181818181818,
+            "end": 0.6090909090909091,
+            "anchor": "target",
+            "width": 310,
+            "height": 310,
+            "fadeIn": 0.1111111111111111,
+            "fadeOut": 0.1111111111111111
+          },
+          "impact": {
+            "start": 0.2818181818181818,
+            "end": 0.44545454545454544,
+            "anchor": "target",
+            "width": 280,
+            "height": 280,
+            "fadeIn": 0.2222222222222222,
+            "fadeOut": 0.2222222222222222
+          },
+          "residue": {
+            "start": 0.5545454545454546,
+            "end": 0.8272727272727273,
+            "anchor": "target",
+            "width": 230,
+            "height": 230,
+            "fadeIn": 0.13333333333333333,
+            "fadeOut": 0.13333333333333333
+          }
+        }
+      }
+    },
+    {
+      "key": "abyss_domain",
+      "name": "寒渊领域",
+      "element": "ice",
+      "visualArchetype": "ground-eruption",
+      "skills": [
+        "寒渊领域"
+      ],
+      "layers": {
+        "telegraph": {
+          "file": "abyss_domain_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "abyss_domain_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "abyss_domain_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "abyss_domain_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "timing": {
+        "arrivalMs": 310,
+        "gatherMs": 100,
+        "crossfadeMs": 40,
+        "bodyMs": 360,
+        "impactMs": 180,
+        "aftermathMs": 600,
+        "durationMs": 1100
+      },
+      "display": {
+        "telegraph": 240,
+        "body": 320,
+        "impact": 280,
+        "residue": 240
+      },
+      "acceptance": [
+        "Independent authored 3x3 stage plates per family; source-over",
+        "Impact waits for the authoritative hit event; self casts anchor on the caster foot",
+        "Shared textures per family; no combat, RNG or timer writes"
+      ],
+      "preview": {
+        "displayMode": "ground-eruption",
+        "durationMs": 1100,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0.0,
+            "end": 0.3181818181818182,
+            "anchor": "target",
+            "width": 240,
+            "height": 240,
+            "fadeIn": 0.11428571428571428,
+            "fadeOut": 0.11428571428571428
+          },
+          "body": {
+            "start": 0.2818181818181818,
+            "end": 0.6090909090909091,
+            "anchor": "target",
+            "width": 320,
+            "height": 320,
+            "fadeIn": 0.1111111111111111,
+            "fadeOut": 0.1111111111111111
+          },
+          "impact": {
+            "start": 0.2818181818181818,
+            "end": 0.44545454545454544,
+            "anchor": "target",
+            "width": 280,
+            "height": 280,
+            "fadeIn": 0.2222222222222222,
+            "fadeOut": 0.2222222222222222
+          },
+          "residue": {
+            "start": 0.5545454545454546,
+            "end": 0.8272727272727273,
+            "anchor": "target",
+            "width": 240,
+            "height": 240,
+            "fadeIn": 0.13333333333333333,
+            "fadeOut": 0.13333333333333333
+          }
+        }
+      }
+    },
+    {
+      "key": "soul_seal",
+      "name": "冰魄封魂",
+      "element": "ice",
+      "visualArchetype": "ground-eruption",
+      "skills": [
+        "冰魄封魂"
+      ],
+      "layers": {
+        "telegraph": {
+          "file": "soul_seal_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "soul_seal_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "soul_seal_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "soul_seal_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "timing": {
+        "arrivalMs": 310,
+        "gatherMs": 100,
+        "crossfadeMs": 40,
+        "bodyMs": 360,
+        "impactMs": 180,
+        "aftermathMs": 600,
+        "durationMs": 1100
+      },
+      "display": {
+        "telegraph": 220,
+        "body": 300,
+        "impact": 270,
+        "residue": 230
+      },
+      "acceptance": [
+        "Independent authored 3x3 stage plates per family; source-over",
+        "Impact waits for the authoritative hit event; self casts anchor on the caster foot",
+        "Shared textures per family; no combat, RNG or timer writes"
+      ],
+      "preview": {
+        "displayMode": "ground-eruption",
+        "durationMs": 1100,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0.0,
+            "end": 0.3181818181818182,
+            "anchor": "target",
+            "width": 220,
+            "height": 220,
+            "fadeIn": 0.11428571428571428,
+            "fadeOut": 0.11428571428571428
+          },
+          "body": {
+            "start": 0.2818181818181818,
+            "end": 0.6090909090909091,
+            "anchor": "target",
+            "width": 300,
+            "height": 300,
+            "fadeIn": 0.1111111111111111,
+            "fadeOut": 0.1111111111111111
+          },
+          "impact": {
+            "start": 0.2818181818181818,
+            "end": 0.44545454545454544,
+            "anchor": "target",
+            "width": 270,
+            "height": 270,
+            "fadeIn": 0.2222222222222222,
+            "fadeOut": 0.2222222222222222
+          },
+          "residue": {
+            "start": 0.5545454545454546,
+            "end": 0.8272727272727273,
+            "anchor": "target",
+            "width": 230,
+            "height": 230,
+            "fadeIn": 0.13333333333333333,
+            "fadeOut": 0.13333333333333333
+          }
+        }
+      }
+    },
+    {
+      "key": "eternal_crystal",
+      "name": "万载寒晶",
+      "element": "ice",
+      "visualArchetype": "ground-eruption",
+      "skills": [
+        "万载寒晶"
+      ],
+      "layers": {
+        "telegraph": {
+          "file": "eternal_crystal_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "eternal_crystal_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "eternal_crystal_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "eternal_crystal_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "timing": {
+        "arrivalMs": 310,
+        "gatherMs": 100,
+        "crossfadeMs": 40,
+        "bodyMs": 360,
+        "impactMs": 180,
+        "aftermathMs": 600,
+        "durationMs": 1100
+      },
+      "display": {
+        "telegraph": 220,
+        "body": 320,
+        "impact": 270,
+        "residue": 230
+      },
+      "acceptance": [
+        "Independent authored 3x3 stage plates per family; source-over",
+        "Impact waits for the authoritative hit event; self casts anchor on the caster foot",
+        "Shared textures per family; no combat, RNG or timer writes"
+      ],
+      "preview": {
+        "displayMode": "ground-eruption",
+        "durationMs": 1100,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0.0,
+            "end": 0.3181818181818182,
+            "anchor": "target",
+            "width": 220,
+            "height": 220,
+            "fadeIn": 0.11428571428571428,
+            "fadeOut": 0.11428571428571428
+          },
+          "body": {
+            "start": 0.2818181818181818,
+            "end": 0.6090909090909091,
+            "anchor": "target",
+            "width": 320,
+            "height": 320,
+            "fadeIn": 0.1111111111111111,
+            "fadeOut": 0.1111111111111111
+          },
+          "impact": {
+            "start": 0.2818181818181818,
+            "end": 0.44545454545454544,
+            "anchor": "target",
+            "width": 270,
+            "height": 270,
+            "fadeIn": 0.2222222222222222,
+            "fadeOut": 0.2222222222222222
+          },
+          "residue": {
+            "start": 0.5545454545454546,
+            "end": 0.8272727272727273,
+            "anchor": "target",
+            "width": 230,
+            "height": 230,
+            "fadeIn": 0.13333333333333333,
+            "fadeOut": 0.13333333333333333
+          }
+        }
+      }
+    },
+    {
+      "key": "frost_armor",
+      "name": "冰甲护身",
+      "element": "ice",
+      "visualArchetype": "ground-eruption",
+      "skills": [
+        "冰甲护身"
+      ],
+      "layers": {
+        "telegraph": {
+          "file": "frost_armor_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "frost_armor_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "frost_armor_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "frost_armor_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "timing": {
+        "arrivalMs": 310,
+        "gatherMs": 100,
+        "crossfadeMs": 40,
+        "bodyMs": 360,
+        "impactMs": 180,
+        "aftermathMs": 600,
+        "durationMs": 1100
+      },
+      "display": {
+        "telegraph": 200,
+        "body": 270,
+        "impact": 250,
+        "residue": 210
+      },
+      "acceptance": [
+        "Independent authored 3x3 stage plates per family; source-over",
+        "Impact waits for the authoritative hit event; self casts anchor on the caster foot",
+        "Shared textures per family; no combat, RNG or timer writes"
+      ],
+      "preview": {
+        "displayMode": "ground-eruption",
+        "durationMs": 1100,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0.0,
+            "end": 0.3181818181818182,
+            "anchor": "target",
+            "width": 200,
+            "height": 200,
+            "fadeIn": 0.11428571428571428,
+            "fadeOut": 0.11428571428571428
+          },
+          "body": {
+            "start": 0.2818181818181818,
+            "end": 0.6090909090909091,
+            "anchor": "target",
+            "width": 270,
+            "height": 270,
+            "fadeIn": 0.1111111111111111,
+            "fadeOut": 0.1111111111111111
+          },
+          "impact": {
+            "start": 0.2818181818181818,
+            "end": 0.44545454545454544,
+            "anchor": "target",
+            "width": 250,
+            "height": 250,
+            "fadeIn": 0.2222222222222222,
+            "fadeOut": 0.2222222222222222
+          },
+          "residue": {
+            "start": 0.5545454545454546,
+            "end": 0.8272727272727273,
+            "anchor": "target",
+            "width": 210,
+            "height": 210,
+            "fadeIn": 0.13333333333333333,
+            "fadeOut": 0.13333333333333333
+          }
+        }
+      }
+    },
+    {
+      "key": "solar_aegis",
+      "name": "炎阳护盾",
+      "element": "fire",
+      "visualArchetype": "ground-eruption",
+      "skills": [
+        "炎阳护盾"
+      ],
+      "layers": {
+        "telegraph": {
+          "file": "solar_aegis_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "solar_aegis_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "solar_aegis_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "solar_aegis_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "timing": {
+        "arrivalMs": 310,
+        "gatherMs": 100,
+        "crossfadeMs": 40,
+        "bodyMs": 360,
+        "impactMs": 180,
+        "aftermathMs": 600,
+        "durationMs": 1100
+      },
+      "display": {
+        "telegraph": 200,
+        "body": 270,
+        "impact": 250,
+        "residue": 210
+      },
+      "acceptance": [
+        "Independent authored 3x3 stage plates per family; source-over",
+        "Impact waits for the authoritative hit event; self casts anchor on the caster foot",
+        "Shared textures per family; no combat, RNG or timer writes"
+      ],
+      "preview": {
+        "displayMode": "ground-eruption",
+        "durationMs": 1100,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0.0,
+            "end": 0.3181818181818182,
+            "anchor": "target",
+            "width": 200,
+            "height": 200,
+            "fadeIn": 0.11428571428571428,
+            "fadeOut": 0.11428571428571428
+          },
+          "body": {
+            "start": 0.2818181818181818,
+            "end": 0.6090909090909091,
+            "anchor": "target",
+            "width": 270,
+            "height": 270,
+            "fadeIn": 0.1111111111111111,
+            "fadeOut": 0.1111111111111111
+          },
+          "impact": {
+            "start": 0.2818181818181818,
+            "end": 0.44545454545454544,
+            "anchor": "target",
+            "width": 250,
+            "height": 250,
+            "fadeIn": 0.2222222222222222,
+            "fadeOut": 0.2222222222222222
+          },
+          "residue": {
+            "start": 0.5545454545454546,
+            "end": 0.8272727272727273,
+            "anchor": "target",
+            "width": 210,
+            "height": 210,
+            "fadeIn": 0.13333333333333333,
+            "fadeOut": 0.13333333333333333
+          }
+        }
+      }
+    },
+    {
+      "key": "flame_bind",
+      "name": "流火飞索",
+      "element": "fire",
+      "visualArchetype": "projectile",
+      "skills": [
+        "流火飞索"
+      ],
+      "layers": {
+        "telegraph": {
+          "file": "flame_bind_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "flame_bind_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "flame_bind_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "flame_bind_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "timing": {
+        "arrivalMs": 310,
+        "gatherMs": 100,
+        "crossfadeMs": 40,
+        "bodyMs": 360,
+        "impactMs": 180,
+        "aftermathMs": 440,
+        "durationMs": 1100
+      },
+      "display": {
+        "telegraph": 160,
+        "body": 220,
+        "impact": 230,
+        "residue": 200
+      },
+      "acceptance": [
+        "Independent authored 3x3 stage plates per family; source-over",
+        "Impact waits for the authoritative hit event; self casts anchor on the caster foot",
+        "Shared textures per family; no combat, RNG or timer writes"
+      ],
+      "preview": {
+        "displayMode": "projectile",
+        "durationMs": 1100,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0.0,
+            "end": 0.12727272727272726,
+            "anchor": "origin",
+            "width": 160,
+            "height": 160,
+            "fadeIn": 0.2857142857142857,
+            "fadeOut": 0.2857142857142857
+          },
+          "body": {
+            "start": 0.09090909090909091,
+            "end": 0.3181818181818182,
+            "anchor": "moving",
+            "width": 220,
+            "height": 220,
+            "fadeIn": 0.16,
+            "fadeOut": 0.16
+          },
+          "impact": {
+            "start": 0.2818181818181818,
+            "end": 0.44545454545454544,
+            "anchor": "target",
+            "width": 230,
+            "height": 230,
+            "fadeIn": 0.2222222222222222,
+            "fadeOut": 0.2222222222222222
+          },
+          "residue": {
+            "start": 0.4090909090909091,
+            "end": 0.6818181818181818,
+            "anchor": "target",
+            "width": 200,
+            "height": 200,
+            "fadeIn": 0.13333333333333333,
+            "fadeOut": 0.13333333333333333
+          }
+        }
+      }
+    },
+    {
+      "key": "mountain_quake",
+      "name": "镇岳山河震",
+      "element": "earth",
+      "visualArchetype": "ground-eruption",
+      "skills": [
+        "镇岳山河震"
+      ],
+      "layers": {
+        "telegraph": {
+          "file": "mountain_quake_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "mountain_quake_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "mountain_quake_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "mountain_quake_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "timing": {
+        "arrivalMs": 310,
+        "gatherMs": 100,
+        "crossfadeMs": 40,
+        "bodyMs": 360,
+        "impactMs": 180,
+        "aftermathMs": 600,
+        "durationMs": 1100
+      },
+      "display": {
+        "telegraph": 220,
+        "body": 320,
+        "impact": 280,
+        "residue": 230
+      },
+      "acceptance": [
+        "Independent authored 3x3 stage plates per family; source-over",
+        "Impact waits for the authoritative hit event; self casts anchor on the caster foot",
+        "Shared textures per family; no combat, RNG or timer writes"
+      ],
+      "preview": {
+        "displayMode": "ground-eruption",
+        "durationMs": 1100,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0.0,
+            "end": 0.3181818181818182,
+            "anchor": "target",
+            "width": 220,
+            "height": 220,
+            "fadeIn": 0.11428571428571428,
+            "fadeOut": 0.11428571428571428
+          },
+          "body": {
+            "start": 0.2818181818181818,
+            "end": 0.6090909090909091,
+            "anchor": "target",
+            "width": 320,
+            "height": 320,
+            "fadeIn": 0.1111111111111111,
+            "fadeOut": 0.1111111111111111
+          },
+          "impact": {
+            "start": 0.2818181818181818,
+            "end": 0.44545454545454544,
+            "anchor": "target",
+            "width": 280,
+            "height": 280,
+            "fadeIn": 0.2222222222222222,
+            "fadeOut": 0.2222222222222222
+          },
+          "residue": {
+            "start": 0.5545454545454546,
+            "end": 0.8272727272727273,
+            "anchor": "target",
+            "width": 230,
+            "height": 230,
+            "fadeIn": 0.13333333333333333,
+            "fadeOut": 0.13333333333333333
+          }
+        }
+      }
+    },
+    {
+      "key": "sun_spear",
+      "name": "穿云贯日",
+      "element": "spear",
+      "visualArchetype": "projectile",
+      "skills": [
+        "穿云贯日"
+      ],
+      "layers": {
+        "telegraph": {
+          "file": "sun_spear_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "sun_spear_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "sun_spear_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "sun_spear_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.78125,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "timing": {
+        "arrivalMs": 310,
+        "gatherMs": 100,
+        "crossfadeMs": 40,
+        "bodyMs": 360,
+        "impactMs": 180,
+        "aftermathMs": 440,
+        "durationMs": 1100
+      },
+      "display": {
+        "telegraph": 160,
+        "body": 240,
+        "impact": 240,
+        "residue": 200
+      },
+      "acceptance": [
+        "Independent authored 3x3 stage plates per family; source-over",
+        "Impact waits for the authoritative hit event; self casts anchor on the caster foot",
+        "Shared textures per family; no combat, RNG or timer writes"
+      ],
+      "preview": {
+        "displayMode": "projectile",
+        "durationMs": 1100,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0.0,
+            "end": 0.12727272727272726,
+            "anchor": "origin",
+            "width": 160,
+            "height": 160,
+            "fadeIn": 0.2857142857142857,
+            "fadeOut": 0.2857142857142857
+          },
+          "body": {
+            "start": 0.09090909090909091,
+            "end": 0.3181818181818182,
+            "anchor": "moving",
+            "width": 240,
+            "height": 240,
+            "fadeIn": 0.16,
+            "fadeOut": 0.16
+          },
+          "impact": {
+            "start": 0.2818181818181818,
+            "end": 0.44545454545454544,
+            "anchor": "target",
+            "width": 240,
+            "height": 240,
+            "fadeIn": 0.2222222222222222,
+            "fadeOut": 0.2222222222222222
+          },
+          "residue": {
+            "start": 0.4090909090909091,
+            "end": 0.6818181818181818,
+            "anchor": "target",
+            "width": 200,
+            "height": 200,
+            "fadeIn": 0.13333333333333333,
+            "fadeOut": 0.13333333333333333
+          }
+        }
+      }
     }
   ]
 }

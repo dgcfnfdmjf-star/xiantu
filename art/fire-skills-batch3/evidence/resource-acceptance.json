@@ -1,0 +1,536 @@
+{
+  "status": "resource-preview-awaiting-approval; not integrated, committed or uploaded",
+  "designApproval": "用户：确认",
+  "effects": 3,
+  "layers": 14,
+  "frames": 88,
+  "textureBytes": 1997969,
+  "sampler": {
+    "passed": true,
+    "samples": 37440,
+    "effects": 3,
+    "checks": "determinism, events, fixed size, falling path, crossfades, final frames, burn ownership and cleanup"
+  },
+  "browser": {
+    "passed": true,
+    "checks": [
+      "ready heaven_meteor",
+      "pause heaven_meteor",
+      "step heaven_meteor",
+      "quality light heaven_meteor",
+      "quality reduced heaven_meteor",
+      "no hit heaven_meteor",
+      "ready dragon_breath",
+      "pause dragon_breath",
+      "step dragon_breath",
+      "quality light dragon_breath",
+      "quality reduced dragon_breath",
+      "no hit dragon_breath",
+      "ready wildfire_domain",
+      "pause wildfire_domain",
+      "step wildfire_domain",
+      "quality light wildfire_domain",
+      "quality reduced wildfire_domain",
+      "no hit wildfire_domain",
+      "live domain",
+      "domain clear expired",
+      "domain clear detonated",
+      "domain clear ordinary",
+      "domain clear lotus",
+      "domain clear dead",
+      "domain clear changed",
+      "tuning controls",
+      "switch resets overrides",
+      "no overflow 390",
+      "no overflow 844",
+      "60fps step",
+      "slow playback control",
+      "delayed hit gating",
+      "delayed hit contact",
+      "one shot stops",
+      "loop restarts",
+      "restart",
+      "zero page errors",
+      "missing atlas blocks only dragon",
+      "other effects remain usable"
+    ],
+    "errors": [],
+    "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+  },
+  "browserCheckCount": 39,
+  "browserConditions": {
+    "headless": true,
+    "viewportSizes": [
+      [
+        1000,
+        1000
+      ],
+      [
+        390,
+        844
+      ],
+      [
+        844,
+        390
+      ]
+    ],
+    "deviceScaleFactor": 1,
+    "externalServices": "blocked",
+    "physicalDeviceTest": false
+  },
+  "runtime": {
+    "baselineFileCount": 533,
+    "changedFiles": []
+  },
+  "material": {
+    "heaven_meteor": {
+      "maxWhiteFraction": 0.0009946949602122016,
+      "visiblePixels": {
+        "telegraph": [
+          [
+            146.48,
+            70.31
+          ],
+          [
+            145.51,
+            72.27
+          ],
+          [
+            145.51,
+            73.24
+          ],
+          [
+            146.48,
+            74.22
+          ]
+        ],
+        "body": [
+          [
+            75.62,
+            120.31
+          ],
+          [
+            75.62,
+            119.45
+          ],
+          [
+            77.34,
+            118.59
+          ],
+          [
+            78.2,
+            119.45
+          ],
+          [
+            78.2,
+            119.45
+          ],
+          [
+            78.2,
+            118.59
+          ],
+          [
+            76.48,
+            119.45
+          ],
+          [
+            76.48,
+            120.31
+          ]
+        ],
+        "impact": [
+          [
+            190.43,
+            74.9
+          ],
+          [
+            190.43,
+            76.17
+          ],
+          [
+            190.43,
+            74.9
+          ],
+          [
+            190.43,
+            74.9
+          ],
+          [
+            189.16,
+            73.63
+          ],
+          [
+            189.16,
+            73.63
+          ]
+        ],
+        "residue": [
+          [
+            105.47,
+            39.38
+          ],
+          [
+            105.47,
+            39.38
+          ],
+          [
+            105.47,
+            39.38
+          ],
+          [
+            105.47,
+            39.38
+          ],
+          [
+            104.77,
+            38.67
+          ],
+          [
+            104.77,
+            32.34
+          ]
+        ]
+      }
+    },
+    "dragon_breath": {
+      "maxWhiteFraction": 0.004672389438226665,
+      "visiblePixels": {
+        "telegraph": [
+          [
+            52.09,
+            44.71
+          ],
+          [
+            52.09,
+            44.71
+          ],
+          [
+            51.27,
+            44.71
+          ],
+          [
+            50.04,
+            45.12
+          ]
+        ],
+        "body": [
+          [
+            74.77,
+            38.16
+          ],
+          [
+            74.77,
+            38.16
+          ],
+          [
+            74.25,
+            37.64
+          ],
+          [
+            73.73,
+            37.64
+          ],
+          [
+            73.73,
+            38.16
+          ],
+          [
+            74.25,
+            38.67
+          ],
+          [
+            74.77,
+            39.19
+          ],
+          [
+            74.77,
+            39.7
+          ]
+        ],
+        "impact": [
+          [
+            90.82,
+            64.18
+          ],
+          [
+            90.82,
+            64.18
+          ],
+          [
+            90.21,
+            64.18
+          ],
+          [
+            90.82,
+            62.97
+          ],
+          [
+            90.82,
+            62.36
+          ],
+          [
+            90.82,
+            61.76
+          ]
+        ],
+        "residue": [
+          [
+            105.47,
+            37.97
+          ],
+          [
+            105.47,
+            37.27
+          ],
+          [
+            104.77,
+            37.27
+          ],
+          [
+            105.47,
+            36.56
+          ],
+          [
+            105.47,
+            35.86
+          ],
+          [
+            105.47,
+            35.16
+          ]
+        ],
+        "source": [
+          [
+            52.09,
+            44.71
+          ],
+          [
+            52.09,
+            44.71
+          ],
+          [
+            52.09,
+            44.71
+          ],
+          [
+            51.27,
+            44.71
+          ],
+          [
+            50.04,
+            45.12
+          ],
+          [
+            51.27,
+            44.71
+          ],
+          [
+            51.68,
+            44.71
+          ],
+          [
+            52.09,
+            44.71
+          ]
+        ]
+      }
+    },
+    "wildfire_domain": {
+      "maxWhiteFraction": 0.002911208151382824,
+      "visiblePixels": {
+        "telegraph": [
+          [
+            140.62,
+            38.44
+          ],
+          [
+            140.62,
+            37.5
+          ],
+          [
+            139.69,
+            37.5
+          ],
+          [
+            140.62,
+            37.5
+          ]
+        ],
+        "body": [
+          [
+            175.78,
+            52.73
+          ],
+          [
+            175.78,
+            51.56
+          ],
+          [
+            175.78,
+            49.22
+          ],
+          [
+            175.78,
+            48.05
+          ],
+          [
+            175.78,
+            48.05
+          ],
+          [
+            174.61,
+            48.05
+          ],
+          [
+            174.61,
+            48.05
+          ],
+          [
+            176.95,
+            49.22
+          ]
+        ],
+        "impact": [
+          [
+            149.41,
+            41.84
+          ],
+          [
+            149.41,
+            41.84
+          ],
+          [
+            149.41,
+            41.84
+          ],
+          [
+            150.41,
+            40.84
+          ],
+          [
+            150.41,
+            40.84
+          ],
+          [
+            150.41,
+            40.84
+          ]
+        ],
+        "residue": [
+          [
+            176.95,
+            63.28
+          ],
+          [
+            158.2,
+            56.25
+          ],
+          [
+            137.11,
+            48.05
+          ],
+          [
+            119.53,
+            42.19
+          ],
+          [
+            100.78,
+            33.98
+          ],
+          [
+            80.86,
+            25.78
+          ]
+        ],
+        "status": [
+          [
+            75.66,
+            26.91
+          ],
+          [
+            75.66,
+            26.91
+          ],
+          [
+            76.17,
+            26.41
+          ],
+          [
+            76.17,
+            25.9
+          ],
+          [
+            76.17,
+            24.38
+          ],
+          [
+            76.17,
+            25.9
+          ],
+          [
+            76.17,
+            26.41
+          ],
+          [
+            75.66,
+            26.41
+          ]
+        ]
+      }
+    }
+  },
+  "visualInspection": [
+    "Actual browser captures and sampler composites inspected",
+    "Meteor starts above locked ground mark, descends at fixed size, one contact/outro",
+    "Dragon source head and clipped fixed-size flame segments target lower torso",
+    "Domain low ellipse and separate sparks crossfade to small status ember; removed state clears immediately",
+    "Mobile controls accessible; heads and health bars readable"
+  ],
+  "limitations": [
+    "Resource preview only; final combat event wiring and regression remain pending",
+    "Generic preview validates geometry; dedicated preview is authoritative for this batch choreography",
+    "No physical phone GPU performance claim"
+  ],
+  "commands": [
+    "python3 scripts/build-fire-skills-batch3-vfx.py",
+    "node scripts/check-fire-skills-batch3-vfx.cjs",
+    "node .agents/skills/creating-game-combat-vfx/scripts/validate_effect_manifest.mjs art/fire-skills-batch3/preview/effect-manifest.json",
+    "python3 scripts/render-fire-skills-batch3-evidence.py",
+    "scripts/browser-cli.sh -s=fire-batch3 run-code <contents of art/fire-skills-batch3/qa/preview-browser.js>"
+  ],
+  "evidenceHashes": {
+    "output/playwright/fire-skills-batch3/browser-final.json": "7861b971bdf66cbecdeff547b7b635d0eb49692a8cee257fa417d3e1c6c6ad45",
+    "output/playwright/fire-skills-batch3/sampler-final.json": "4d3324ba87614d3388df89a5d41f0478ea9164525da6e1110022e0ede6303f4e",
+    "art/fire-skills-batch3/asset-audit.json": "bad71162d11bdc739a0847e0ff79a843ebb4b28c970d9a66d35c2cc3891669ca",
+    "art/fire-skills-batch3/qa/preview-browser.js": "7e6c073afa8e93e251b08f812db23ce52c7cddb89c5a29be07a94eee4e35db43",
+    "art/fire-skills-batch3/preview/wildfire_domain_telegraph.png": "964adf0be383465710c1739149065e9e24447342057b3bc37d65a2185a4a15e5",
+    "art/fire-skills-batch3/preview/dragon_breath_telegraph.png": "1ccef142e2932b7fab53ace859013d3f007109ab9c2d3647f8f7f0637d1a9717",
+    "art/fire-skills-batch3/preview/wildfire_domain_residue.png": "631d7cac41bcc4ab9f68a65015e5c6bb4858b605dbbd3568b6c77650398914aa",
+    "art/fire-skills-batch3/preview/dragon_breath_residue.png": "2ed61d9d78eae925e4ad439db21dee1e2d6abb242ffdf22ad8cb31ebaf052aa3",
+    "art/fire-skills-batch3/preview/heaven_meteor_body.png": "40d307b9d9df2b51d99a6a1b27e308f2638f9a907df90aaa3deb3a8ebc3ad83f",
+    "art/fire-skills-batch3/preview/dragon_breath_body.png": "6efeb16bdaae88c40bbf6ab9b1728a3d549a6b2c4dc30eb1b809a06b5aa416cb",
+    "art/fire-skills-batch3/preview/wildfire_domain_impact.png": "8dd96179073501dedeaba572b6c5f876f7302a078479d26885b4abee630f2af2",
+    "art/fire-skills-batch3/preview/heaven_meteor_impact.png": "c18b5e37cc19aec58dd9d8850b91c83a4b53694461f6b5194ea584c3265c797f",
+    "art/fire-skills-batch3/preview/heaven_meteor_residue.png": "26d23c5c251c398c2fbdfb926b863a24b2728f35679212b4cf0bf1ecebc5e858",
+    "art/fire-skills-batch3/preview/dragon_breath_impact.png": "ffe6bc4b2c5dd2a295f6945f00ea054dfa0eaef79d13c22572eaa817bb1f8f53",
+    "art/fire-skills-batch3/preview/heaven_meteor_telegraph.png": "ac7e07b8fe39da1f0306445b8b6ef15f865983096bd7037b431568ed1dfc036b",
+    "art/fire-skills-batch3/preview/wildfire_domain_status.png": "df642c5d3c3593063aecfe5213538a450e26e720016821314cb96d55181c0383",
+    "art/fire-skills-batch3/preview/dragon_breath_source.png": "49daca31de492770fe648c3234c4f5e857c24958fad696753e3d35957cb63594",
+    "art/fire-skills-batch3/preview/wildfire_domain_body.png": "ef106662df44b03d73f64e7aa882471e68cfc49a7b1b9fa70c3986b5192e9bfc"
+  },
+  "deliverableHashes": {
+    "wildfire_domain.webp": "0e023438ea73e1984698a05d5eb6072f6934515c296fb5a80206794c212b5027",
+    "heaven_meteor-overlaps.jpg": "d086acb30db1b7bbab97d5194223e84bb6aac65fa8c33ee252355ba465372713",
+    "wildfire_domain-overlaps.jpg": "f053a2c6297b0543f7cc9b82ca9f4fa151d57c1033924146a5c41f91ae420b99",
+    "dragon_breath-overlaps.jpg": "39b0e48b3f3a65fcec02237405a582a17e2d1eed5257952c6d77517ffc3213d4",
+    "fire-batch-preview.mp4": "c990d6f0b701ef20ee9434141f3457824bcd962bfcd5e4b482b45b8b7ad9b59a",
+    "comparison.jpg": "969a3de1b9d75032b83202865ebd513a14bc5f0e385677785bb1b6f0e4c8893a",
+    "dragon_breath.webp": "f9e651ae5ae1506bd861c5427a2ce148a7d1be108d10802298217315619611ef",
+    "heaven_meteor.webp": "9e27986852c41a46521064a8e543f64dd6824e9e98ffc13bcd1fbaa38c621e4b",
+    "fire-batch-animation.webp": "5b791c2691c4db5b2a7653ec9270f914b3b769b114da492d4f91432c7a31f7ea"
+  },
+  "video": {
+    "duration": "15.600000",
+    "size": "387556"
+  }
+}

@@ -32,7 +32,8 @@ function create(host,read,enemyKey='wolf'){
  bg.className='duel25-backdrop';bg.setAttribute('aria-hidden','true');stage.appendChild(bg);stage.appendChild(canvas);
  let raf=0,last=0,dead=false,elapsed=0,attack=null,queue=[],tails=[],hits=[],floats=[],label="",paintedLandscape=false;
  const deaths={player:null,enemy:null};
- let burnPulseAt=-1000;
+ let burnPulseAt=-1000,domainSource=null;
+ function syncDomain(data=read()){if(data.active===false||data.enemyHp<=0||!(data.burnTurns>0&&data.burnDamage>0)||domainSource&&domainSource.target!==data.targetToken)domainSource=null;}
  let petHitAt=-1000,petKey=null,petProfile=null,petAtlas=null;
  let reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
  function poly(c,pts,fill,stroke){c.beginPath();pts.forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p));c.closePath();c.fillStyle=fill;c.fill();if(stroke){c.strokeStyle=stroke;c.stroke();}}
@@ -103,6 +104,7 @@ function create(host,read,enemyKey='wolf'){
  }
  function draw(now){
   if(dead)return;raf=0;if(artFailed||atlas?.failed||(!ready()&&performance.now()-started>10000)){destroy();return;}const data=read();if(data.active===false){destroy();return;}if(document.hidden)return;
+  syncDomain(data);
   const fxSettings=window.InkSkillFxV2854?.settings?.()||{reduced,light:true};reduced=fxSettings.reduced;
   if(landscapeReady&&!paintedLandscape)backdrop();
   const animating=attack||queue.length||tails.length||hits.length||floats.length||elapsed-petHitAt<320||
@@ -147,7 +149,7 @@ function create(host,read,enemyKey='wolf'){
     }
     const from={x:a.side==='player'?260:475,y:225},to=a.fxProfile.self?from:{x:a.side==='player'?493:242,y:225};
     // Heart-fire is a torso brand: use the illustrated species' height, never its foot ring.
-    if(a.fxProfile.kind==='heart'||['烈焰斩','炎爆术','三昧真火'].includes(a.name)||(!a.fxProfile.self&&ink.elementBatch?.definition?.(a.name)?.visualArchetype==='projectile')){
+    if(a.fxProfile.kind==='heart'||['烈焰斩','炎爆术','三昧真火','赤焰龙息'].includes(a.name)||(!a.fxProfile.self&&ink.elementBatch?.definition?.(a.name)?.visualArchetype==='projectile')){
      const enemyFoot=profile.key==='wolf'?278:profile.height>200?315:/fly|float/.test(profile.motion)?306:292;
      const torso={x:ex,y:enemyFoot-profile.height*(profile.motion==='human'?.58:.43)};
      const hero={x:px+8,y:205};
@@ -184,13 +186,16 @@ function create(host,read,enemyKey='wolf'){
     // One owner: short authored fire art first, then the live burn's status mark.
     const heartImpact=fxJobs.some(({action,job})=>{
      if(action.side!=='player')return false;
-     if(action.impactAt==null)return action.name==='红莲业火';
+     if(action.impactAt==null)return ['红莲业火','燎原火域'].includes(action.name);
+     if(action===domainSource?.action&&!data.burnHealBlock&&ink?.fireBatch3?.ready?.('燎原火域')&&elapsed-action.at>=action.impactAt+560)return false;
      if(job.profile.kind==='heart'&&elapsed-action.at-action.impactAt<540)return true;
      return ink?.fireBatch?.ready?.(job.profile.name)&&ink.fireBatch.sample(job,elapsed-action.at).some(p=>['telegraph','impact','body','residue','detonation'].includes(p.layer));
     });
     if(!heartImpact){
      const lotus=ink?.fireBatch2?.statusActive?.(data)&&ink.fireBatch2.drawStatus(ctx,a.x+recoil,a.y-lift,elapsed,reduced,1.05);
-     if(!lotus)ink?.heart?.drawStatus?.(ctx,a.x+recoil,a.y-lift-profile.height*(profile.motion==='human'?.58:.43),elapsed,Math.max(0,1-(elapsed-burnPulseAt)/260),reduced);
+     const ground=domainSource?.action.anchors?.toGround;
+     const domain=!lotus&&ground&&ink?.fireBatch3?.statusActive?.({...data,domainConfirmed:!!domainSource})&&ink.fireBatch3.drawStatus(ctx,ground.x,ground.y,elapsed,reduced,1.05,Math.min(1,Math.max(0,(elapsed-domainSource.action.at-domainSource.action.impactAt-560)/60)));
+     if(!lotus&&!domain)ink?.heart?.drawStatus?.(ctx,a.x+recoil,a.y-lift-profile.height*(profile.motion==='human'?.58:.43),elapsed,Math.max(0,1-(elapsed-burnPulseAt)/260),reduced);
     }
    }
    if(fallen&&!reduced&&!fxSettings.light&&dissolve<1){
@@ -245,10 +250,11 @@ function create(host,read,enemyKey='wolf'){
   if(authored(attack))attack=null;
   queue=queue.filter(a=>!authored(a));tails=tails.filter(a=>!authored(a));
  }else wake();}
- function destroy(){if(dead)return;dead=true;attack=null;queue=[];tails=[];hits=[];floats=[];cancelAnimationFrame(raf);raf=0;document.removeEventListener('visibilitychange',visibility);stage.remove();canvas.width=canvas.height=1;bg.width=bg.height=1;host.classList.remove('duel25-active');if(host.id==='combatArena')document.getElementById('combatPanel')?.classList.remove('duel25-panel');}
+ function destroy(){if(dead)return;dead=true;domainSource=null;attack=null;queue=[];tails=[];hits=[];floats=[];cancelAnimationFrame(raf);raf=0;document.removeEventListener('visibilitychange',visibility);stage.remove();canvas.width=canvas.height=1;bg.width=bg.height=1;host.classList.remove('duel25-active');if(host.id==='combatArena')document.getElementById('combatPanel')?.classList.remove('duel25-panel');}
  document.addEventListener('visibilitychange',visibility);wake();
  function act(side,element,name='',enhance=false){
   if(dead)return;
+  syncDomain();
   element=element||(side==='enemy'?profile.element:'sword');
   if(side==='enemy'&&!name)name=profile.name+' · '+profile.action;
   // The engine emits attack first, then its skill effect 150ms later: enrich that
@@ -264,6 +270,7 @@ function create(host,read,enemyKey='wolf'){
  function contactTime(action){return action.side==='player'&&action.name&&action.element!=='heal'?310:/^(sword|heal|thunder)$/.test(action.element)?155:310;}
  function emitHit(h,action=null){
   if(h.pet&&!h.heal)petHitAt=elapsed-110; // Contact event starts at the pounce apex; existing damage is authoritative.
+  if(action&&action.name==='燎原火域'&&h.side==='enemy'&&!h.heal&&!h.pet)domainSource={action,target:read().targetToken};
   if(action){action.impactAt??=elapsed-action.at;if(action.name==='炎爆术'&&h.skillName==='灼烧引爆')action.detonationAt??=elapsed-action.at+60;if(!h.heal&&!h.pet){action.holdAt=action.impactAt;action.holdMs=h.crit?70:42;}}
   const color=action?.fxProfile?.palette?.[0];
   if(!h.heal)hits.push({side:h.side,crit:h.crit,color,at:elapsed});
@@ -279,7 +286,7 @@ function create(host,read,enemyKey='wolf'){
    const action=pet?null:[...queue].reverse().find(a=>a.side===source)||(attack?.side===source?attack:null);
    if(action&&(action!==attack||elapsed-action.at<contactTime(action)))action.pendingHits.push(h);
    else emitHit(h,action);
-  },reset(){if(dead)return;burnPulseAt=-1000;petHitAt=-1000;deaths.player=deaths.enemy=null;attack=null;queue=[];tails=[];hits=[];floats=[];},destroy,canvas};
+  },reset(){if(dead)return;domainSource=null;burnPulseAt=-1000;petHitAt=-1000;deaths.player=deaths.enemy=null;attack=null;queue=[];tails=[];hits=[];floats=[];},destroy,canvas};
 }
 window.XiantuDuel25D={create,petKey:petVisualKeyV286818,roster:ROSTER.map(({key,name})=>({key,name}))};
 // Shared species mapping includes elite variants; named story people and tribulations keep their own art.
@@ -291,7 +298,7 @@ if(typeof window.startCombat==='function'){
   try{return combatBase.apply(this,arguments);}finally{casting=previous;}
  };
  const stop=()=>{scene?.destroy();scene=null;document.getElementById('combatArena')?.classList.remove('duel25-active');};
- const start=window.startCombat;window.startCombat=function(...args){const result=start.apply(this,args);if(typeof currentEnemy!=='undefined'&&currentEnemy===args[0]&&gameState==='combat'){stop();const key=typeof scrollMonsterKeyV2853==='function'?scrollMonsterKeyV2853(currentEnemy.name):null;if(ROSTER.some(p=>p.key===key)){owner=player;foe=currentEnemy;scene=create(document.getElementById('combatArena'),()=>({active:player===owner&&currentEnemy===foe&&(gameState==='combat'||gameState==='combat-ending'),compact:!!document.getElementById('battleVitalsV286816'),pet:owner.activePet,playerName:owner.name,enemyName:foe.name,playerHp:owner.hp,playerMax:getMaxHp(),enemyHp:foe.hp,enemyMax:foe.maxHp,burnTurns:foe.burnTurns,burnDamage:foe.burnStacks,burnHealBlock:!!foe._burnHealBlockV286818}),key);}}return result;};
+ const start=window.startCombat;window.startCombat=function(...args){const result=start.apply(this,args);if(typeof currentEnemy!=='undefined'&&currentEnemy===args[0]&&gameState==='combat'){stop();const key=typeof scrollMonsterKeyV2853==='function'?scrollMonsterKeyV2853(currentEnemy.name):null;if(ROSTER.some(p=>p.key===key)){owner=player;foe=currentEnemy;scene=create(document.getElementById('combatArena'),()=>({targetToken:foe,active:player===owner&&currentEnemy===foe&&(gameState==='combat'||gameState==='combat-ending'),compact:!!document.getElementById('battleVitalsV286816'),pet:owner.activePet,playerName:owner.name,enemyName:foe.name,playerHp:owner.hp,playerMax:getMaxHp(),enemyHp:foe.hp,enemyMax:foe.maxHp,burnTurns:foe.burnTurns,burnDamage:foe.burnStacks,burnHealBlock:!!foe._burnHealBlockV286818}),key);}}return result;};
  for(const name of ['resetRuntimeState','endCombatAfterCapture']){const base=window[name];if(typeof base==='function')window[name]=function(...args){stop();return base.apply(this,args);};}
  const attack=window.playAttackAnimation;window.playAttackAnimation=function(side){if(scene?.ready){scene.act(side,side==='player'&&casting?casting.element||'sword':side==='enemy'?undefined:'sword',side==='player'&&casting?casting.name:'');return;}return attack.apply(this,arguments);};
  const skill=window.playSkillEffect;window.playSkillEffect=function(name,element,source){if(scene?.ready){scene.act('player',element||'sword',name,true);return;}return skill.apply(this,arguments);};
