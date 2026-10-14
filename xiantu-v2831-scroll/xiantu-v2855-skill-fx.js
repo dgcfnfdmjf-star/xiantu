@@ -392,7 +392,19 @@ function sampleAbsoluteZero(D,j,age){
     }
   }
   function fireBatchReady(name){const D=fireDefinition(name),textures=D&&fireBatchTextures.get(D.key);return !!D&&textures?.size===Object.keys(D.layers).length&&[...textures.values()].every(t=>t.ready)}
-  function fireBatchSample(j,age){const D=fireDefinition(j.profile.name);return D?(FIRE_BATCH3.includes(D)?sampleFireBatch3(D,j,age):FIRE_BATCH.includes(D)?sampleFireBatch(D,j,age):sampleFireBatch2(D,j,age)):[]}
+  function fireBatchSample(j,age){const D=fireDefinition(j.profile.name);return D?(D.key==='solar_aegis'?sampleSolarAegis(D,j,age):FIRE_BATCH3.includes(D)?sampleFireBatch3(D,j,age):FIRE_BATCH.includes(D)?sampleFireBatch(D,j,age):sampleFireBatch2(D,j,age)):[]}
+  // The shield's formation belongs to the cast; its continuing dome belongs to the live pool.
+  function sampleSolarAegis(D,j,age){
+    if(age<0||age>=j.duration||j.hidden||j.exited||j.alive===false||j.sameTarget===false||j.guardActive===false)return [];
+    const hit=Number.isFinite(j.hitAt)&&j.hitAt>=0?j.hitAt:null,H=hit??j.arriveAt??310,foot=j.toGround||j.to,scale=j.scale??1,out=[];
+    function add(layer,start,end,fi,fo){
+      if(age<start||age>=end)return;const L=D.layers[layer],opacity=Math.min(1,(age-start)/fi,(end-age)/fo);if(opacity<=0)return;
+      out.push({id:layer,layer,anchor:'target',x:foot.x+D.offsetX+(j.offsetX??0),y:foot.y+D.offsetY+(j.offsetY??0),width:D.display[layer]*scale*D.scale,height:D.display[layer]*scale*D.scale,pivotX:L.pivotX,pivotY:L.pivotY,frame:j.reduced?2:Math.min(L.frames-1,Math.floor((age-start)/(end-start)*L.frames)),opacity,rotation:0});
+    }
+    add('telegraph',0,H+40,40,40);
+    if(hit!==null){add('body',H,H+360,40,40);add('impact',H+320,H+540,40,40);add('residue',H+500,H+700,40,80);}
+    return out;
+  }
   function drawFireBatch(c,j,age){
     prepareFireBatch(j.profile.name);if(!fireBatchReady(j.profile.name))return false;
     const D=fireDefinition(j.profile.name),textures=fireBatchTextures.get(D.key);
@@ -421,6 +433,24 @@ function sampleAbsoluteZero(D,j,age){
   }
   const fireBatch2={definitions:FIRE_BATCH2,prepare:prepareFireBatch,ready:fireBatchReady,sample:fireBatchSample,statusActive:lotusStatusActive,drawStatus:drawLotusStatus};
   const elementBatch={definitions:ELEMENT_BATCH,definition:elementDefinition,prepare:prepareFireBatch,ready:fireBatchReady,sample:fireBatchSample};
+  const fireFinale={
+    bindActive:d=>d.active!==false&&d.playerHp>0&&d.enemyHp>0&&d.bindConfirmed===true&&d.chillTurns>0,
+    guardActive:d=>d.active!==false&&d.playerHp>0&&d.enemyHp>0&&d.guardElement==='fire'&&d.guardPool>0&&d.guardTurns>0,
+    drawStatus(c,kind,x,y,age,reduced,scale=1,opacity=1,pulse=0){
+      const name=kind==='bind'?'流火飞索':'炎阳护盾',D=elementDefinition(name);prepareFireBatch(name);
+      c.save();c.globalCompositeOperation='source-over';c.globalAlpha=Math.max(0,Math.min(1,opacity));
+      if(!fireBatchReady(name)){
+        // A small outline remains readable if the authored texture failed to load.
+        c.strokeStyle='#ed8d36';c.lineWidth=2*scale;c.beginPath();c.ellipse(x,y-(kind==='bind'?0:30)*scale,(kind==='bind'?42:52)*scale,(kind==='bind'?16:44)*scale,0,0,Math.PI*2);c.stroke();c.restore();return true;
+      }
+      const layer=kind==='bind'?'telegraph':kind==='break'?'residue':'body',L=D.layers[layer];
+      const phase=Math.floor(Math.max(0,age)*8/1000)%(2*L.frames-2);
+      const frame=kind==='break'?Math.min(L.frames-1,Math.floor(age/180*L.frames)):reduced?Math.min(2,L.frames-1):phase<L.frames?phase:2*L.frames-2-phase;
+      const size=(kind==='bind'?190:210)*scale;
+      if(kind==='guard')c.globalAlpha*=.85+.15*Math.max(0,Math.min(1,pulse));
+      c.drawImage(fireBatchTextures.get(D.key).get(layer).image,frame*L.frameWidth,0,L.frameWidth,L.frameHeight,x-size*L.pivotX,y-size*L.pivotY,size,size);c.restore();return true;
+    }
+  };
   function domainStatusActive(data){return data.domainConfirmed===true&&data.enemyHp>0&&data.burnTurns>0&&data.burnDamage>0&&!data.burnHealBlock}
   function drawDomainStatus(c,x,y,age,reduced,scale=1,opacity=1){
     prepareFireBatch('燎原火域');if(!fireBatchReady('燎原火域'))return false;
@@ -761,7 +791,7 @@ function sampleAbsoluteZero(D,j,age){
   W.playInkSkillV2854=play;
   const solar={definition:SOLAR,prepare:prepareSolar,ready:solarReady,sample:solarSample};
   const butterfly={definition:ICE_BUTTERFLY,prepare:prepareButterfly,ready:butterflyReady,sample:butterflySample};
-  W.InkSkillFxV2854={profile,draw,drawGround,sample,solar,butterfly,heart,absoluteZero,fireBatch,fireBatch2,fireBatch3,elementBatch,authoredDuration:name=>fireDefinition(name)?1100:0,catalog:()=>[...new Set([...Object.keys(styles),...Object.keys(forms),...(typeof SKILLS!=='undefined'?SKILLS.map(s=>s.name):[])])].map(name=>profile(name)),play,hit,clear,finish,cinemaClear,install,cycle,settings,inspect:()=>({version:'28.68',quality,finishing:finishUntil>now(),active:jobs.length,raf:!!raf,pixels:canvas?canvas.width*canvas.height:0,jobs:jobs.map(j=>({name:j.profile.name,kind:j.profile.kind,family:j.profile.family,side:j.side,self:j.profile.self,hitAt:j.hitAt,from:{...j.from},to:{...j.to}}))})};
+  W.InkSkillFxV2854={profile,draw,drawGround,sample,solar,butterfly,heart,absoluteZero,fireBatch,fireBatch2,fireBatch3,elementBatch,fireFinale,authoredDuration:name=>fireDefinition(name)?1100:0,catalog:()=>[...new Set([...Object.keys(styles),...Object.keys(forms),...(typeof SKILLS!=='undefined'?SKILLS.map(s=>s.name):[])])].map(name=>profile(name)),play,hit,clear,finish,cinemaClear,install,cycle,settings,inspect:()=>({version:'28.68',quality,finishing:finishUntil>now(),active:jobs.length,raf:!!raf,pixels:canvas?canvas.width*canvas.height:0,jobs:jobs.map(j=>({name:j.profile.name,kind:j.profile.kind,family:j.profile.family,side:j.side,self:j.profile.self,hitAt:j.hitAt,from:{...j.from},to:{...j.to}}))})};
   install();
 })();
 ;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2855-skill-fx.js']='28.68.38';

@@ -1,0 +1,16 @@
+async page=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());await page.goto('http://127.0.0.1:8773/xiantu-v2831-scroll/game-v2762.html');await page.locator('#xiantuSafeBootButton').click();await page.locator('#introSkipV2860').click();await page.waitForFunction(()=>document.documentElement.classList.contains('xiantu-v2762-ready'));
+ await page.evaluate(()=>{startGame();closeWorldOverlay();resetRuntimeState();player=createDefaultPlayer();player.name='火系收尾验收';window.liveMarks=[];const base=InkSkillFxV2854.fireFinale.drawStatus;InkSkillFxV2854.fireFinale.drawStatus=function(c,kind,x,y,age,reduced,scale,opacity,pulse){if(opacity>0)liveMarks.push({kind,opacity,pulse});return base.apply(this,arguments)};['流火飞索','炎阳护盾'].forEach(n=>InkSkillFxV2854.elementBatch.prepare(n));});await page.waitForFunction(()=>['流火飞索','炎阳护盾'].every(n=>InkSkillFxV2854.elementBatch.ready(n)));
+ const rows=[];
+ for(const name of ['流火飞索','炎阳护盾']){
+  await page.evaluate(name=>{resetRuntimeState();player.mp=300;player.hp=200;player.skills=[{...SKILLS.find(s=>s.name===name)}];player.skillLoadoutV212={fire:[name]};player.skillLoadoutInitializedV212=true;setBattlePresentationV2756('report');startCombat({name:'苍山野狼',hp:50000,maxHp:50000,atk:1,def:10,gold:1,exp:1,_realmLevel:0,_realmPhase:0});currentEnemy.atk=1;currentEnemy.def=10;liveMarks.length=0;},name);
+  await page.waitForTimeout(180);const before=await page.evaluate(()=>({mp:player.mp,hp:currentEnemy.hp}));await page.evaluate(()=>combat('skill',0));await page.waitForTimeout(380);
+  const early=await page.evaluate(()=>({mp:player.mp,hp:currentEnemy.hp,burn:currentEnemy.burnTurns,...XiantuDuel25D.readCombatElements(currentEnemy,player)}));
+  await page.waitForTimeout(1100);const marks=await page.evaluate(()=>liveMarks);const kind=name==='流火飞索'?'bind':'guard';if(!marks.some(m=>m.kind===kind))throw Error('normal combat missing '+kind);
+  await page.locator('#combatArena').screenshot({path:'/workspace/xiantu/output/playwright/fire-finale/combat-'+kind+'.png'});
+  if(name==='炎阳护盾'){
+   const remaining=await page.evaluate(()=>elementGuardsV286818.get(currentEnemy)?.pool||0);await page.evaluate(()=>absorbElementGuardV286818(999));await page.waitForTimeout(300);await page.evaluate(()=>liveMarks.length=0);await page.waitForTimeout(200);if(await page.evaluate(()=>liveMarks.length))throw Error('depleted shield still visible');rows.push({name,spent:before.mp-early.mp,damage:before.hp-early.hp,early,marks:marks.length,remaining,depletionClean:true});
+  }else{await page.evaluate(()=>liveMarks.length=0);await page.waitForTimeout(300);const state=await page.evaluate(()=>({chill:currentEnemy._chillTurnsV286818,burn:currentEnemy.burnTurns,bindStillVisible:liveMarks.some(m=>m.kind==='bind')}));if(state.chill===0&&state.bindStillVisible)throw Error('bind not cleared after enemy action');rows.push({name,spent:before.mp-early.mp,damage:before.hp-early.hp,early,marks:marks.length,afterEnemy:state});}
+ }
+ if(rows[0].spent!==35||rows[1].spent!==30||rows[1].damage!==0||errors.length)throw Error(JSON.stringify({rows,errors}));await page.evaluate(()=>resetRuntimeState());return {rows,errors,afterResetStages:await page.locator('.duel25-stage').count()};
+}

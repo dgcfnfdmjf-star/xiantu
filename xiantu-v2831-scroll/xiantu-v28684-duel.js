@@ -21,6 +21,11 @@ function petVisualKeyV286818(pet){
  const key=typeof scrollMonsterKeyV2853==='function'?scrollMonsterKeyV2853(captured):ROSTER.find(p=>p.name===captured)?.key;
  return ROSTER.some(p=>p.key===key)?key:({'灵狐':'fox','玄龟':'turtle','雷鹰':'eagle','火凤':'phoenix','冰龙':'dragon','仙鹤':'crane'}[pet.type]||null);
 }
+// Copy only presentation primitives; never expose the writable WeakMap record.
+function readCombatElements(enemy,owner){
+ const g=typeof elementGuardsV286818!=='undefined'?elementGuardsV286818.get(enemy):null;
+ return {chillTurns:enemy?._chillTurnsV286818||0,guardPool:g?.owner===owner?g.pool:0,guardTurns:g?.owner===owner?g.turns:0,guardElement:g?.owner===owner?g.element:null};
+}
 function create(host,read,enemyKey='wolf'){
  const profile=ROSTER.find(p=>p.key===enemyKey);if(!host||!profile)return null;
  const atlas=profile.group?getAtlas(profile.group):null,started=performance.now();
@@ -33,6 +38,20 @@ function create(host,read,enemyKey='wolf'){
  let raf=0,last=0,dead=false,elapsed=0,attack=null,queue=[],tails=[],hits=[],floats=[],label="",paintedLandscape=false;
  const deaths={player:null,enemy:null};
  let burnPulseAt=-1000,domainSource=null;
+ let bindSource=null,guardIntro=null,previousGuard=null,guardBreakAt=-1000,guardPulseAt=-1000;
+ function clearElements(){bindSource=null;guardIntro=null;previousGuard=null;guardBreakAt=guardPulseAt=-1000;}
+ function syncElements(data=read()){
+  if(data.active===false||data.playerHp<=0||data.enemyHp<=0){clearElements();return;}
+  if(bindSource&&(data.chillTurns<=0||bindSource.target!==data.targetToken))bindSource=null;
+  if(previousGuard&&previousGuard.target!==data.targetToken){clearElements();return;}
+  const active=window.InkSkillFxV2854?.fireFinale?.guardActive(data);
+  if(previousGuard?.active){
+   if(active&&data.guardPool<previousGuard.pool)guardPulseAt=elapsed;
+   if(!active&&data.guardElement!=='ice')guardBreakAt=elapsed;
+  }
+  if(active||data.guardElement==='ice')guardBreakAt=-1000;
+  previousGuard={active,pool:data.guardPool,target:data.targetToken};
+ }
  function syncDomain(data=read()){if(data.active===false||data.enemyHp<=0||!(data.burnTurns>0&&data.burnDamage>0)||domainSource&&domainSource.target!==data.targetToken)domainSource=null;}
  let petHitAt=-1000,petKey=null,petProfile=null,petAtlas=null;
  let reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -105,6 +124,7 @@ function create(host,read,enemyKey='wolf'){
  function draw(now){
   if(dead)return;raf=0;if(artFailed||atlas?.failed||(!ready()&&performance.now()-started>10000)){destroy();return;}const data=read();if(data.active===false){destroy();return;}if(document.hidden)return;
   syncDomain(data);
+  syncElements(data);
   const fxSettings=window.InkSkillFxV2854?.settings?.()||{reduced,light:true};reduced=fxSettings.reduced;
   if(landscapeReady&&!paintedLandscape)backdrop();
   const animating=attack||queue.length||tails.length||hits.length||floats.length||elapsed-petHitAt<320||
@@ -155,7 +175,7 @@ function create(host,read,enemyKey='wolf'){
      const hero={x:px+8,y:205};
      Object.assign(from,a.side==='player'?hero:torso);Object.assign(to,a.side==='player'?torso:hero);
     }
-    fxJobs.push({action:a,job:{id:a.side==='player'?1:2,profile:a.fxProfile,from,to,...a.anchors,width:W,clipBottom:355,scale:1.05,light:fxSettings.light,reduced,duration:ink.authoredDuration?.(a.name)||900,arriveAt:contactTime(a),hitAt:a.impactAt??(a.fxProfile.self?contactTime(a):null),detonationAt:a.detonationAt??null,groundDrawn:!!ink.drawGround}});
+    fxJobs.push({action:a,job:{id:a.side==='player'?1:2,profile:a.fxProfile,from,to,...a.anchors,width:W,clipBottom:355,scale:1.05,light:fxSettings.light,reduced,duration:ink.authoredDuration?.(a.name)||900,arriveAt:contactTime(a),hitAt:a.impactAt??(a.fxProfile.self?contactTime(a):null),guardActive:a.name==='炎阳护盾'?ink.fireFinale?.guardActive(data):undefined,detonationAt:a.detonationAt??null,groundDrawn:!!ink.drawGround}});
    }
   }
   for(const {action:a,job} of fxJobs)ink.drawGround?.(ctx,job,elapsed-a.at);
@@ -182,6 +202,22 @@ function create(host,read,enemyKey='wolf'){
    if(a.side==='player')illustratedActor(ctx,a.x-recoil,a.y,t,attacking?(cast?(age<.58?1:0):pose):0,data.playerHp<=0&&!awaitingHit,0);
    else monsterActor(ctx,a.x+recoil,a.y-lift,t,attacking?pose:0,data.enemyHp<=0&&!awaitingHit);
    ctx.restore();
+   if(!fallen&&ink?.fireFinale){
+    if(a.side==='enemy'&&ink.fireFinale.bindActive({...data,bindConfirmed:!!bindSource})){
+     const action=bindSource.action;
+     if(action?.impactAt!=null){const alpha=Math.max(0,Math.min(1,(elapsed-action.at-action.impactAt-140)/40));
+      ink.fireFinale.drawStatus(ctx,'bind',a.x+recoil,a.y-lift-profile.height*(profile.motion==='human'?.58:.43),elapsed,reduced,1.05,alpha);
+     }
+    }
+    if(a.side==='player'){
+     if(ink.fireFinale.guardActive(data)){
+      const alpha=guardIntro?Math.max(0,Math.min(1,(elapsed-guardIntro.at-contactTime(guardIntro)-620)/80)):1;
+      ink.fireFinale.drawStatus(ctx,'guard',a.x-recoil,a.y,elapsed,reduced,1.05,alpha,Math.max(0,1-(elapsed-guardPulseAt)/220));
+     }else if(elapsed-guardBreakAt<180&&data.playerHp>0&&data.enemyHp>0){
+      ink.fireFinale.drawStatus(ctx,'break',a.x-recoil,a.y,elapsed-guardBreakAt,reduced,1.05,1-(elapsed-guardBreakAt)/180);
+     }
+    }
+   }
    if(a.side==='enemy'&&!fallen&&data.enemyHp>0&&data.burnTurns>0&&data.burnDamage>0){
     // One owner: short authored fire art first, then the live burn's status mark.
     const heartImpact=fxJobs.some(({action,job})=>{
@@ -243,6 +279,7 @@ function create(host,read,enemyKey='wolf'){
  function wake(){if(!dead&&!document.hidden&&!raf){last=performance.now();raf=requestAnimationFrame(draw);}}
  function visibility(){if(document.hidden){
   burnPulseAt=-1000;
+  previousGuard=null;guardIntro=null;guardBreakAt=guardPulseAt=-1000;
   cancelAnimationFrame(raf);raf=0;
   // Authored solar and butterfly one-shots expire on backgrounding instead of replaying a frozen burst
   // on return. This drops presentation records only; damage is already engine-owned.
@@ -250,20 +287,22 @@ function create(host,read,enemyKey='wolf'){
   if(authored(attack))attack=null;
   queue=queue.filter(a=>!authored(a));tails=tails.filter(a=>!authored(a));
  }else wake();}
- function destroy(){if(dead)return;dead=true;domainSource=null;attack=null;queue=[];tails=[];hits=[];floats=[];cancelAnimationFrame(raf);raf=0;document.removeEventListener('visibilitychange',visibility);stage.remove();canvas.width=canvas.height=1;bg.width=bg.height=1;host.classList.remove('duel25-active');if(host.id==='combatArena')document.getElementById('combatPanel')?.classList.remove('duel25-panel');}
+ function destroy(){if(dead)return;dead=true;clearElements();domainSource=null;attack=null;queue=[];tails=[];hits=[];floats=[];cancelAnimationFrame(raf);raf=0;document.removeEventListener('visibilitychange',visibility);stage.remove();canvas.width=canvas.height=1;bg.width=bg.height=1;host.classList.remove('duel25-active');if(host.id==='combatArena')document.getElementById('combatPanel')?.classList.remove('duel25-panel');}
  document.addEventListener('visibilitychange',visibility);wake();
  function act(side,element,name='',enhance=false){
   if(dead)return;
   syncDomain();
+  syncElements();
   element=element||(side==='enemy'?profile.element:'sword');
   if(side==='enemy'&&!name)name=profile.name+' · '+profile.action;
   // The engine emits attack first, then its skill effect 150ms later: enrich that
   // same action instead of restarting the lunge or queuing a duplicate turn.
   const latest=queue.length?queue[queue.length-1]:attack;
   if(enhance&&latest?.side===side&&(queue.length||elapsed-latest.at<350)){
-   latest.element=element;latest.name=name;latest.fxProfile=null;latest.anchors=null;return;
+   latest.element=element;latest.name=name;latest.fxProfile=null;latest.anchors=null;if(name==='炎阳护盾'&&side==='player')guardIntro=latest;return;
   }
   const next={side,element,name,at:elapsed,pendingHits:[]};
+  if(name==='炎阳护盾'&&side==='player')guardIntro=next;
   if(!attack||elapsed-attack.at>=620)attack=next;
   else {if(queue.length>=4)flushHits(queue.shift());queue.push(next);}
  }
@@ -279,6 +318,15 @@ function create(host,read,enemyKey='wolf'){
  }
  function flushHits(action){for(const h of action.pendingHits)emitHit(h,action);action.pendingHits=[];}
  return {get ready(){return ready()&&!dead;},act,burnTick(){if(!dead&&!document.hidden)burnPulseAt=elapsed;},
+  elementApplied(skill){
+   if(dead)return;syncElements();
+   // Ice uses the same chill counter: it replaces fire-bind provenance, never its mechanics.
+   if(skill.element==='ice')bindSource=null;
+   if(skill.effect==='fireBind'){
+    const data=read(),action=[...queue].reverse().find(a=>a.side==='player'&&a.name==='流火飞索')||(attack?.side==='player'&&attack.name==='流火飞索'?attack:null);
+    if(data.enemyHp>0&&data.chillTurns>0&&action)bindSource={action,target:data.targetToken};
+   }
+  },
   hit(side,amount,heal=false,crit=false,pet=false,skillName=''){
    if(dead)return;
    amount=Number(amount);if(!Number.isFinite(amount)||amount<=0)return;
@@ -286,9 +334,9 @@ function create(host,read,enemyKey='wolf'){
    const action=pet?null:[...queue].reverse().find(a=>a.side===source)||(attack?.side===source?attack:null);
    if(action&&(action!==attack||elapsed-action.at<contactTime(action)))action.pendingHits.push(h);
    else emitHit(h,action);
-  },reset(){if(dead)return;domainSource=null;burnPulseAt=-1000;petHitAt=-1000;deaths.player=deaths.enemy=null;attack=null;queue=[];tails=[];hits=[];floats=[];},destroy,canvas};
+  },reset(){if(dead)return;clearElements();domainSource=null;burnPulseAt=-1000;petHitAt=-1000;deaths.player=deaths.enemy=null;attack=null;queue=[];tails=[];hits=[];floats=[];},destroy,canvas};
 }
-window.XiantuDuel25D={create,petKey:petVisualKeyV286818,roster:ROSTER.map(({key,name})=>({key,name}))};
+window.XiantuDuel25D={create,readCombatElements,petKey:petVisualKeyV286818,roster:ROSTER.map(({key,name})=>({key,name}))};
 // Shared species mapping includes elite variants; named story people and tribulations keep their own art.
 if(typeof window.startCombat==='function'){
  let scene=null,owner=null,foe=null,casting=null;
@@ -297,8 +345,10 @@ if(typeof window.startCombat==='function'){
   const previous=casting;casting=action==='skill'?player.skills?.[index]:null;
   try{return combatBase.apply(this,arguments);}finally{casting=previous;}
  };
+ const elementHit=window.applyElementHitV286818;
+ if(typeof elementHit==='function')window.applyElementHitV286818=function(skill,damage){const result=elementHit.apply(this,arguments);scene?.elementApplied(skill);return result;};
  const stop=()=>{scene?.destroy();scene=null;document.getElementById('combatArena')?.classList.remove('duel25-active');};
- const start=window.startCombat;window.startCombat=function(...args){const result=start.apply(this,args);if(typeof currentEnemy!=='undefined'&&currentEnemy===args[0]&&gameState==='combat'){stop();const key=typeof scrollMonsterKeyV2853==='function'?scrollMonsterKeyV2853(currentEnemy.name):null;if(ROSTER.some(p=>p.key===key)){owner=player;foe=currentEnemy;scene=create(document.getElementById('combatArena'),()=>({targetToken:foe,active:player===owner&&currentEnemy===foe&&(gameState==='combat'||gameState==='combat-ending'),compact:!!document.getElementById('battleVitalsV286816'),pet:owner.activePet,playerName:owner.name,enemyName:foe.name,playerHp:owner.hp,playerMax:getMaxHp(),enemyHp:foe.hp,enemyMax:foe.maxHp,burnTurns:foe.burnTurns,burnDamage:foe.burnStacks,burnHealBlock:!!foe._burnHealBlockV286818}),key);}}return result;};
+ const start=window.startCombat;window.startCombat=function(...args){const result=start.apply(this,args);if(typeof currentEnemy!=='undefined'&&currentEnemy===args[0]&&gameState==='combat'){stop();const key=typeof scrollMonsterKeyV2853==='function'?scrollMonsterKeyV2853(currentEnemy.name):null;if(ROSTER.some(p=>p.key===key)){owner=player;foe=currentEnemy;scene=create(document.getElementById('combatArena'),()=>({...readCombatElements(foe,owner),targetToken:foe,active:player===owner&&currentEnemy===foe&&(gameState==='combat'||gameState==='combat-ending'),compact:!!document.getElementById('battleVitalsV286816'),pet:owner.activePet,playerName:owner.name,enemyName:foe.name,playerHp:owner.hp,playerMax:getMaxHp(),enemyHp:foe.hp,enemyMax:foe.maxHp,burnTurns:foe.burnTurns,burnDamage:foe.burnStacks,burnHealBlock:!!foe._burnHealBlockV286818}),key);}}return result;};
  for(const name of ['resetRuntimeState','endCombatAfterCapture']){const base=window[name];if(typeof base==='function')window[name]=function(...args){stop();return base.apply(this,args);};}
  const attack=window.playAttackAnimation;window.playAttackAnimation=function(side){if(scene?.ready){scene.act(side,side==='player'&&casting?casting.element||'sword':side==='enemy'?undefined:'sword',side==='player'&&casting?casting.name:'');return;}return attack.apply(this,arguments);};
  const skill=window.playSkillEffect;window.playSkillEffect=function(name,element,source){if(scene?.ready){scene.act('player',element||'sword',name,true);return;}return skill.apply(this,arguments);};

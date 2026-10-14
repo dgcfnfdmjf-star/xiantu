@@ -1,0 +1,233 @@
+{
+  "date": "2026-10-14",
+  "baseCommit": "7f992f9fc53c1301556d1506f7623695f209c461",
+  "status": "implementation and validation complete; cloud deployment not performed",
+  "scope": [
+    "流火飞索 persistent bind in 2.5D combat",
+    "炎阳护盾 persistent guard, hit feedback and expiry in 2.5D combat"
+  ],
+  "validation": {
+    "gameRegressionScripts": 49,
+    "rateLimitSuite": "passed",
+    "browserRegressionTests": 7,
+    "targetedRegression": "passed"
+  },
+  "browserEvidence": {
+    "gm": {
+      "rows": [
+        {
+          "name": "流火飞索",
+          "kind": "bind",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "marks": 27,
+          "chill": 1,
+          "pool": 0,
+          "turns": 0,
+          "burn": 2,
+          "overflow": false
+        },
+        {
+          "name": "炎阳护盾",
+          "kind": "guard",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "marks": 12,
+          "chill": 0,
+          "pool": 144,
+          "turns": 3,
+          "burn": 0,
+          "overflow": false
+        },
+        {
+          "name": "流火飞索",
+          "kind": "bind",
+          "viewport": {
+            "width": 844,
+            "height": 390
+          },
+          "marks": 16,
+          "chill": 1,
+          "pool": 0,
+          "turns": 0,
+          "burn": 2,
+          "overflow": false
+        },
+        {
+          "name": "炎阳护盾",
+          "kind": "guard",
+          "viewport": {
+            "width": 844,
+            "height": 390
+          },
+          "marks": 14,
+          "chill": 0,
+          "pool": 144,
+          "turns": 3,
+          "burn": 0,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "reduced": {
+        "settings": {
+          "reduced": true,
+          "fps": 30,
+          "pixels": 900000,
+          "dpr": 1.5
+        },
+        "pool": 144
+      }
+    },
+    "combat": {
+      "rows": [
+        {
+          "name": "流火飞索",
+          "spent": 35,
+          "damage": 89,
+          "early": {
+            "mp": 65,
+            "hp": 49911,
+            "burn": 2,
+            "chillTurns": 1,
+            "guardPool": 0,
+            "guardTurns": 0,
+            "guardElement": null
+          },
+          "marks": 23,
+          "afterEnemy": {
+            "chill": 0,
+            "burn": 2,
+            "bindStillVisible": false
+          }
+        },
+        {
+          "name": "炎阳护盾",
+          "spent": 30,
+          "damage": 0,
+          "early": {
+            "mp": 70,
+            "hp": 50000,
+            "burn": 0,
+            "chillTurns": 0,
+            "guardPool": 50,
+            "guardTurns": 3,
+            "guardElement": "fire"
+          },
+          "marks": 17,
+          "remaining": 26,
+          "depletionClean": true
+        }
+      ],
+      "errors": [],
+      "afterResetStages": 0
+    },
+    "fallback": {
+      "rows": [
+        {
+          "name": "流火飞索",
+          "ready": false,
+          "visible": true,
+          "light": true
+        },
+        {
+          "name": "炎阳护盾",
+          "ready": false,
+          "visible": true,
+          "light": true
+        }
+      ],
+      "legacy": [
+        {
+          "name": "流火飞索",
+          "raf": false
+        },
+        {
+          "name": "炎阳护盾",
+          "raf": false
+        }
+      ],
+      "errors": []
+    }
+  },
+  "performance": {
+    "before": {
+      "draw": {
+        "流火飞索": {
+          "samples": 240,
+          "median": 0,
+          "p95": 0.30000000074505806
+        },
+        "炎阳护盾": {
+          "samples": 240,
+          "median": 0,
+          "p95": 0.2000000011175871
+        }
+      },
+      "raf": {
+        "median": 16.699999999999818,
+        "p95": 16.799999999999955
+      },
+      "viewport": [
+        844,
+        390
+      ],
+      "dpr": 2,
+      "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    },
+    "after": {
+      "draw": {
+        "流火飞索": {
+          "samples": 240,
+          "median": 0,
+          "p95": 0.10000000149011612
+        },
+        "炎阳护盾": {
+          "samples": 240,
+          "median": 0,
+          "p95": 0.19999999925494194
+        }
+      },
+      "raf": {
+        "median": 16.699999999999818,
+        "p95": 16.700000000000273
+      },
+      "viewport": [
+        844,
+        390
+      ],
+      "dpr": 2,
+      "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    },
+    "limitations": "Headless Chromium microbenchmark; zero median reflects timer precision, not zero cost. RAF interval is not GPU time. No physical phone measurements or optimization claim."
+  },
+  "runtimeSha256": {
+    "xiantu-v2831-scroll/xiantu-v2855-skill-fx.js": "f6524964e25fd73287c2a4b367431ac4fe465f9f4c9c088c446da9fd1305a065",
+    "xiantu-v2831-scroll/xiantu-v28684-duel.js": "a8868bfd065df08dabce16f3f78a7a517195be1cb1fe75d09b65be151eb0aef4",
+    "xiantu-v2831-scroll/battle-25d-preview.html": "12c3dd6e3bb95636390acbda41030d2eb0649cbd6189e285e3deb6777fa7b527",
+    "xiantu-v2831-scroll/xiantu-v2762-core.js": "8a06a2947272686e3043db4179e5c4982de1aa9f6fd842903e82d63912581a08"
+  },
+  "reusedSpriteSha256": {
+    "xiantu-v2831-scroll/element-skills-v286838/flame_bind_body.png": "6f6fc6cfedf43d5767e5aba954c03c8457760eed5ac16e28ea4d55d8bfb7e128",
+    "xiantu-v2831-scroll/element-skills-v286838/flame_bind_impact.png": "e2d5f060bae8c96a3524f0da9b8921088f9c75280ea6e6c4c742daf077aea8fa",
+    "xiantu-v2831-scroll/element-skills-v286838/flame_bind_residue.png": "c333b67d9dafa03f5ae55020924adee14fe15bc707e8026f34de1021b602a3e4",
+    "xiantu-v2831-scroll/element-skills-v286838/flame_bind_telegraph.png": "90b58ce7ab5b45590e29c0a55ea937b66bdf44adc4e8220e56d00b5958687afb",
+    "xiantu-v2831-scroll/element-skills-v286838/solar_aegis_body.png": "b892341066ce33198b7e32d491c4ece1d2829d420f37cac486176c5a93d2467f",
+    "xiantu-v2831-scroll/element-skills-v286838/solar_aegis_impact.png": "1a5029646f663b92cec5733c7d2245343b50c99c5e2fcf0613b3fd0cfb7ccf39",
+    "xiantu-v2831-scroll/element-skills-v286838/solar_aegis_residue.png": "4b257bcf6651968d922fc1b30d4fc096c7ad0ee8466ed0ec48b3eb9fc540ae82",
+    "xiantu-v2831-scroll/element-skills-v286838/solar_aegis_telegraph.png": "3a8eb667a5101e5a8a57e3d6b5304776ed3eac1b0a444a0e4b805b5d87316b6b"
+  },
+  "originalSpritesUnchanged": true,
+  "coreUnchanged": true,
+  "limitations": [
+    "Persistent status rendering applies to the 2.5D stage; legacy DOM battle retains short animations.",
+    "390x844 and 844x390 were browser emulations, not physical phones."
+  ],
+  "evidenceDirectory": "art/fire-finale/evidence",
+  "replayScripts": "art/fire-finale/qa",
+  "rawLogsIgnored": "output/playwright/fire-finale"
+}
