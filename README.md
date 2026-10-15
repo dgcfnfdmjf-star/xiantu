@@ -1,4 +1,20 @@
-## 最新完整游戏包：V28.68.39
+## 最新完整游戏包：V28.68.40
+
+[下载完整游戏文件夹](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.40-game-folder.zip)
+
+宗门小秘境加入万象迷阵：两层随机事件、两轮祝福三选一、守关与离境。事件和选项随存档保存，祝福仅限本局守关战。读档显示归来简报，汇总真实游历收益、弟子来信及宗门待办；手机横竖屏使用独立大面板。
+
+316个运行文件，包含当前main完整内容；目录仍为 `xiantu-v2831-scroll`，整文件夹覆盖上传。无需更新Jev，勿清除网站存档。本次未部署腾讯云。
+
+来源 main：`f9c38fb77f48a6beda37a41c20338d59d36fa5af`。52组游戏回归、限流测试、7项浏览器测试通过；390×844和844×390浏览器模拟检查选择、刷新恢复与一次性领取（非实体手机）。SHA-256清单及ZIP逐文件比对通过。
+
+大小：43285764字节。SHA-256：`2e40990e72a318c02713d88119b629e66deb4103e19439af81bf96a11a36d93f`。
+
+[玩法与验证说明](mini-return-v286840.md)。私有仓库需登录有权限的GitHub账号下载。
+
+---
+
+## 历史完整游戏包：V28.68.39
 
 [下载完整游戏文件夹](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.39-game-folder.zip)
 
