@@ -4435,3 +4435,4 @@ html #storyPanel.loop-panel-v286840 .choice-btn{min-height:44px!important;font-s
 html #storyPanel.loop-panel-v286840 .choices{flex-shrink:0;margin-top:12px;}
 html #storyPanel.loop-panel-v286840 article{padding:10px!important;margin:8px 0!important;}
 html #storyPanel.loop-panel-v286840 article h4,html #storyPanel.loop-panel-v286840 article p{margin:4px 0!important;}
+body:has(#storyPanel.loop-panel-v286840:not(.hidden)) .save-controls,body:has(#storyPanel.loop-panel-v286840:not(.hidden)) .audio-controls{visibility:hidden!important;}
