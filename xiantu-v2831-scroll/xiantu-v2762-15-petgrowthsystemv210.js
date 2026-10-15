@@ -50,6 +50,7 @@ function ensurePetGrowthStateV210(pet){
   pet.mutationCount=Math.max(0,Math.floor(Number(pet.mutationCount)||0));pet.mutationTier=String(pet.mutationTier||'none');pet.mutationPerfect=!!pet.mutationPerfect;pet.mutationTraits=Array.isArray(pet.mutationTraits)?pet.mutationTraits:[];pet.skillDamageBonus=Math.max(0,Number(pet.skillDamageBonus)||0);pet.baseStatMultiplier=Math.max(1,Number(pet.baseStatMultiplier)||1);
   pet.evolutionStage=Math.max(0,Math.min(2,Math.floor(Number(pet.evolutionStage)||0)));pet.bloodlineValue=Math.max(0,Math.min(100,Number(pet.bloodlineValue)||0));pet.bloodlineUnlocked=!!pet.bloodlineUnlocked||pet.evolutionStage>0;pet.perfectEvolution=!!pet.perfectEvolution||pet.evolutionStage>=2;
   pet.ancestralAwakened=!!pet.ancestralAwakened;pet.abyssForm=!!pet.abyssForm;pet.divineAncestryDone=!!pet.divineAncestryDone;pet.stagePassive=pet.stagePassive||PET_STAGE_PASSIVES_V210[pet.growthStage];pet.visualForm=Math.max(0,Math.floor(Number(pet.visualForm)||0));
+  pet.ancestryPity=Number.isFinite(Number(pet.ancestryPity))?Math.max(0,Math.min(3,Math.floor(Number(pet.ancestryPity)))):0;
   pet.advanceCooldownUntilDay=Math.max(0,Number(pet.advanceCooldownUntilDay)||0);pet.evolutionCooldownUntilDay=Math.max(0,Number(pet.evolutionCooldownUntilDay)||0);pet.cultivationLockUntilDay=Math.max(0,Number(pet.cultivationLockUntilDay)||0);
   if(pet.isDemon&&!pet.mutationTraits.some(t=>t?.name==='嗜血'))pet.mutationTraits.push({name:'嗜血',desc:'魔宠天生词条：伤害+12%',key:'damage',value:.12,tier:'demon'});
   pet.quality=PET_GROWTH_STAGES_V210[pet.growthStage]?.quality||pet.quality||'common';return pet
@@ -95,12 +96,49 @@ function canAncestryPetV210(pet){ensurePetGrowthStateV210(pet);if(pet.ancestralA
   if(isDivinePetV210(pet)){const cap=getPetLevelCapV210(pet);if((pet.level||1)<cap||pet.growthValue<100||pet.proficiency<100)return{ok:false,reason:'神兽需满级、满成长、满熟练'};if(petMatCountV210('上古返祖灵珠')<1)return{ok:false,reason:'缺少上古返祖灵珠'};return{ok:true,material:'上古返祖灵珠',divine:true}}
   if(!pet.mutationPerfect||pet.evolutionStage<2)return{ok:false,reason:'需完美变异 + 完全进化'};if(petMatCountV210('上古返祖灵珠')<1)return{ok:false,reason:'缺少上古返祖灵珠'};return{ok:true,material:'上古返祖灵珠'}
 }
-function ancestryPetByIdV210(id){const pet=getPetById?.(id);if(!pet)return;const c=canAncestryPetV210(pet);if(!c.ok){showFloatingText?.(`❌ ${c.reason}`,'#ff7878');return}if(c.demon){consumePetMatsV210({'深渊魔核':1,'魔魂晶':3})}else consumePetMatsV210({'上古返祖灵珠':1});const intimacyBonus=Math.min(.08,(pet.intimacy/100)*.08),rate=Math.min(.20,.12+intimacyBonus+.02);const success=Math.random()<rate;if(success){if(c.demon)pet.abyssForm=true;else pet.ancestralAwakened=true;pet.divineAncestryDone=!!c.divine;pet.visualForm+=3;pet.baseStatMultiplier*=1.55;pet.skillDamageBonus+=.80;pet.bloodlineValue=100;const name=getAncestryNameV210(pet);showPetGrowthResultV210(pet,true,c.demon?'深渊魔化':'返祖',c.demon?`【深渊魔躯觉醒！】<br>${pet.name} 完成终极魔化，获得「${name}」，全部技能倍率永久 +0.8。`:`【万古血脉苏醒！灵宠触发返祖异象！】<br>${pet.name} 激活「${name}」，全部技能倍率永久 +0.8。`,'🌟');flashPetCardV210(id,'pet-ancestor-flare-v210')}else{if(!isDivinePetV210(pet)){pet.evolutionStage=Math.max(0,pet.evolutionStage-1);pet.perfectEvolution=false;pet.mutationTraits=[];pet.mutationPerfect=false;pet.mutationTier='none'}pet.cultivationLockUntilDay=petGameDayV210()+7;showPetGrowthResultV210(pet,false,c.demon?'深渊魔化':'返祖',isDivinePetV210(pet)?'【血脉觉醒失败】<br>神兽本源稳定，不退化、不掉阶；但7天内禁止继续培养。':'【返祖失败！】<br>形态退化一阶、随机词条清零；7个仙历日内禁止一切培养操作。','🌑')}autoSave?.();updatePetPanel?.();updateStats?.()}
+// 保底按灵宠独立记录；仙历日调息不使用现实时间。
+function getPetAncestryRateV210(pet){ensurePetGrowthStateV210(pet);return pet?.ancestryPity>=3?1:.20+(pet?.ancestryPity||0)*.25}
+let petAncestryBusyV210=false;
+function ancestryPetByIdV210(id){
+  if(petAncestryBusyV210)return false;
+  // 战斗存档保存的是开战前快照，不允许在此时提交养成消耗。
+  if(!['exploring','pets'].includes(gameState)||player.breakthrough?.isAnimating){showFloatingText?.('请在战斗或突破结束后进行血脉觉醒','#ff7878');return false}
+  const pet=getPetById?.(id);if(!pet)return false;
+  const c=canAncestryPetV210(pet);if(!c.ok){showFloatingText?.(`❌ ${c.reason}`,'#ff7878');return false}
+  const before=JSON.parse(JSON.stringify(pet)),materials={...player.petMaterials};
+  const cost=c.demon?{'深渊魔核':1,'魔魂晶':3}:{'上古返祖灵珠':1};
+  let success=false;petAncestryBusyV210=true;
+  try{
+    if(!consumePetMatsV210(cost))return false;
+    const rate=getPetAncestryRateV210(pet);success=rate>=1||Math.random()<rate;
+    if(success){
+      if(c.demon)pet.abyssForm=true;else pet.ancestralAwakened=true;
+      pet.divineAncestryDone=!!c.divine;pet.ancestryPity=0;pet.visualForm+=3;
+      pet.baseStatMultiplier*=1.55;pet.skillDamageBonus+=.80;pet.bloodlineValue=100;
+    }else{
+      pet.ancestryPity=Math.min(3,pet.ancestryPity+1);
+      pet.cultivationLockUntilDay=petGameDayV210()+3;
+    }
+    if(!saveGame())throw new Error('ancestry save failed');
+  }catch(err){
+    for(const key of Object.keys(pet))delete pet[key];Object.assign(pet,before);
+    for(const key of Object.keys(player.petMaterials))delete player.petMaterials[key];Object.assign(player.petMaterials,materials);
+    showFloatingText?.('本次觉醒未保存，材料与灵宠状态已恢复，请稍后重试','#ff7878');return false;
+  }finally{petAncestryBusyV210=false}
+  const title=c.demon?'深渊魔化':'返祖';
+  if(success){
+    showPetGrowthResultV210(pet,true,title,`【${c.demon?'深渊魔躯觉醒':'万古血脉苏醒'}！】<br>${pet.name} 激活「${getAncestryNameV210(pet)}」，全部技能倍率永久 +0.8。`,'🌟');
+    flashPetCardV210(id,'pet-ancestor-flare-v210');
+  }else{
+    showPetGrowthResultV210(pet,false,title,`【血脉感悟积累 ${pet.ancestryPity}/3】<br>进化形态、变异词条与养成属性全部保留；调息3个仙历日后可继续培养。<br>${pet.ancestryPity>=3?'下次觉醒必定成功':`下次成功率 ${Math.round(getPetAncestryRateV210(pet)*100)}%`}。`,'🌑');
+  }
+  updatePetPanel?.();updateStats?.();return true;
+}
 
 function getPetGraduationV210(pet){ensurePetGrowthStateV210(pet);if(pet.ancestralAwakened||pet.abyssForm||pet.divineAncestryDone)return'终极毕业';if(isDivinePetV210(pet))return'神兽·待极致返祖';if(pet.growthStage>=4&&pet.perfectEvolution)return'完美进化';if(pet.growthStage>=2&&pet.evolutionStage>=2&&pet.mutationTier==='epic')return'极品变异·进化';if(pet.evolutionStage>=2)return'进化封顶';return'养成中'}
 function getPetCooldownTextV210(pet){const arr=[];const a=getPetSpecificCooldownV210(pet,'advanceCooldownUntilDay');if(a)arr.push(`进阶${Math.ceil(a)}天`);const e=getPetSpecificCooldownV210(pet,'evolutionCooldownUntilDay');if(e)arr.push(`进化${Math.ceil(e)}天`);const l=getPetCultivationLockV210(pet);if(l)arr.push(`培养封禁${l}天`);return arr.join(' · ')}
 function renderPetTraitListV210(pet){if(!pet.mutationTraits.length)return'';return `<div class="pet-trait-list-v210">${pet.mutationTraits.map(t=>`<span class="pet-trait-v210 ${t.tier==='epic'?'epic':t.tier==='supreme'?'supreme':''}">${escapePetText(t.name)} · ${escapePetText(t.desc)}</span>`).join('')}</div>`}
-function renderPetGrowthMenuV210(pet){const a=canPetAdvanceV210(pet),m=canMutatePetV210(pet),anc=canAncestryPetV210(pet),openEvo=petEvolutionOpenIdV210===pet._petId;const eNote=pet.evolutionStage>=2?'完全进化':pet.evolutionStage===1?`血脉值 ${Math.floor(pet.bloodlineValue)}/100`:'需王阶+且至少变异1次';return `<div class="pet-growth-menu-v210"><div class="pet-growth-menu-title-v210"><span>🧬 深度养成</span><span>${getPetGraduationV210(pet)}</span></div><div class="pet-growth-menu-note-v210">进阶：${a.ok?`成功率 ${Math.round(a.rate*100)}% · ${formatPetMatCostV210(a.cost.materials)} · ${a.cost.gold}灵石`:a.reason}<br>变异：${m.ok?`基础成功池 38.5% · 主角+3%${getMutationWeatherBonusV210()?` · 天时+8%`:''}`:m.reason}<br>进化：${eNote}<br>${pet.isDemon?'深渊魔化':isDivinePetV210(pet)?'神兽极致返祖':'血脉返祖'}：${anc.ok?'条件已齐备 · 成功率最高20%':anc.reason}</div><div class="pet-growth-actions-v210"><button class="pet-growth-action-v210 gold" ${a.ok?'':'disabled'} onclick="advancePetByIdV210('${pet._petId}')">🌈 进阶</button><button class="pet-growth-action-v210 purple" ${m.ok?'':'disabled'} onclick="mutatePetByIdV210('${pet._petId}')">🧬 变异</button><button class="pet-growth-action-v210 blue" ${(!isDivinePetV210(pet)&&pet.evolutionStage<2)?'':'disabled'} onclick="togglePetEvolutionV210('${pet._petId}')">🪽 ${pet.evolutionStage?'继续进化':'形态进化'}</button><button class="pet-growth-action-v210 gold" ${anc.ok?'':'disabled'} onclick="ancestryPetByIdV210('${pet._petId}')">🌟 ${pet.isDemon?'深渊魔化':'血脉返祖'}</button></div>${openEvo?renderEvolutionChoicesV210(pet):''}${renderPetTraitListV210(pet)}${getPetCooldownTextV210(pet)?`<div class="pet-growth-lock-v210">⏳ ${getPetCooldownTextV210(pet)}</div>`:''}</div>`}
+function renderPetGrowthMenuV210(pet){const a=canPetAdvanceV210(pet),m=canMutatePetV210(pet),anc=canAncestryPetV210(pet),openEvo=petEvolutionOpenIdV210===pet._petId;const eNote=pet.evolutionStage>=2?'完全进化':pet.evolutionStage===1?`血脉值 ${Math.floor(pet.bloodlineValue)}/100`:'需王阶+且至少变异1次';return `<div class="pet-growth-menu-v210"><div class="pet-growth-menu-title-v210"><span>🧬 深度养成</span><span>${getPetGraduationV210(pet)}</span></div><div class="pet-growth-menu-note-v210">进阶：${a.ok?`成功率 ${Math.round(a.rate*100)}% · ${formatPetMatCostV210(a.cost.materials)} · ${a.cost.gold}灵石`:a.reason}<br>变异：${m.ok?`基础成功池 38.5% · 主角+3%${getMutationWeatherBonusV210()?` · 天时+8%`:''}`:m.reason}<br>进化：${eNote}<br>${pet.isDemon?'深渊魔化':isDivinePetV210(pet)?'神兽极致返祖':'血脉返祖'}：${anc.ok?'条件已齐备':anc.reason} · 成功率 ${Math.round(getPetAncestryRateV210(pet)*100)}% · 感悟 ${pet.ancestryPity}/3${pet.ancestryPity>=3?'（本次必成）':''}<br>材料：${formatPetMatCostV210(pet.isDemon?{'深渊魔核':1,'魔魂晶':3}:{'上古返祖灵珠':1})}<br>失败保留形态与词条，调息3个仙历日；每次失败成功率+25个百分点，最多4次必成</div><div class="pet-growth-actions-v210"><button class="pet-growth-action-v210 gold" ${a.ok?'':'disabled'} onclick="advancePetByIdV210('${pet._petId}')">🌈 进阶</button><button class="pet-growth-action-v210 purple" ${m.ok?'':'disabled'} onclick="mutatePetByIdV210('${pet._petId}')">🧬 变异</button><button class="pet-growth-action-v210 blue" ${(!isDivinePetV210(pet)&&pet.evolutionStage<2)?'':'disabled'} onclick="togglePetEvolutionV210('${pet._petId}')">🪽 ${pet.evolutionStage?'继续进化':'形态进化'}</button><button class="pet-growth-action-v210 gold" ${anc.ok?'':'disabled'} onclick="ancestryPetByIdV210('${pet._petId}')">🌟 ${pet.isDemon?'深渊魔化':'血脉返祖'}</button></div>${openEvo?renderEvolutionChoicesV210(pet):''}${renderPetTraitListV210(pet)}${getPetCooldownTextV210(pet)?`<div class="pet-growth-lock-v210">⏳ ${getPetCooldownTextV210(pet)}</div>`:''}</div>`}
 function renderEvolutionChoicesV210(pet){return `<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:7px">${Object.entries(PET_EVOLUTION_ESSENCES_V210).map(([n,d])=>{const c=canEvolvePetV210(pet,n);return `<button class="pet-growth-action-v210" ${c.ok?'':'disabled'} onclick="evolvePetByIdV210('${pet._petId}','${n}')">${d.label}<br>${Math.round(d.rate*100)}% · ×${petMatCountV210(n)}</button>`}).join('')}</div>`}
 function togglePetGrowthV210(id){petGrowthOpenIdV210=petGrowthOpenIdV210===id?null:id;if(petGrowthOpenIdV210!==id)petEvolutionOpenIdV210=null;updatePetPanel?.()}
 function togglePetEvolutionV210(id){petEvolutionOpenIdV210=petEvolutionOpenIdV210===id?null:id;updatePetPanel?.()}
@@ -142,4 +180,4 @@ const v210BondBase=window.startBondingProcess;if(typeof v210BondBase==='function
 // 每次打开灵宠界面时都进行旧档迁移；旧存档无需重开。
 const v210ShowPetsBase=window.showPets;window.showPets=function(){ensureAllPetGrowthV210();const r=v210ShowPetsBase?.apply(this,arguments);updatePetPanel?.();return r};
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-15-petgrowthsystemv210.js"]="28.68.38";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-15-petgrowthsystemv210.js"]="28.68.39";
