@@ -142,7 +142,9 @@
       if(validOld && old!==raw)localStorage.setItem(SAVE_BACKUP_KEY,old);
       localStorage.setItem(SAVE_KEY,raw);
     }
+    let miniSaveDeferredV286840=false;
     function saveGame() {
+      if(miniSaveDeferredV286840)return true;
       if(player?.testAccount999) return saveTest999V2760();
       try {
         writeSaveV2768(JSON.stringify(createSaveDataV2768()));
@@ -6365,14 +6367,14 @@
     function getAtk(){
       let atk=player.baseAtk+getPhaseScaledBonus('atkBonus')+getEquipAtk()+calculateFurnitureBonus().atk;
       if(player.activePet){const t=PET_TYPES[player.activePet.type];if(t?.bonus?.type==='atk')atk+=t.bonus.value+player.activePet.level*2;}
-      return Math.floor(atk*(1+(gearModsV2790().atkPct||0)));
+      return Math.floor(atk*(1+(gearModsV2790().atkPct||0))*(1+miniBoonV286840('atk')));
     }
     
     function getDef(){
       let def=player.baseDef+getPhaseScaledBonus('defBonus')+getEquipDef()+calculateFurnitureBonus().def;
       if(player.activePet){const t=PET_TYPES[player.activePet.type];if(t?.bonus?.type==='def')def+=t.bonus.value+player.activePet.level*3;}
       if(hasStatusEffect('guyuan'))def=Math.floor(def*1.10);
-      return Math.floor(def*(1+(gearModsV2790().defPct||0)));
+      return Math.floor(def*(1+(gearModsV2790().defPct||0))*(1+miniBoonV286840('def')));
     }
     
     function getCritRateWithSet(){return getCritRate();}
@@ -6411,7 +6413,7 @@
     function getCritRate(){let crit=.10+getEquipCrit()/100+(gearModsV2790().crit||0);if(player.activePet){const t=PET_TYPES[player.activePet.type];if(t?.bonus?.type==='crit')crit+=t.bonus.value+player.activePet.level*.01;}return Math.min(crit,.60);}
     
 
-    function getCritDamage(){return 1.5+getEquipCritDmg()/100+(gearModsV2790().critDmg||0);}
+    function getCritDamage(){return 1.5+getEquipCritDmg()/100+(gearModsV2790().critDmg||0)+miniBoonV286840('crit');}
     function getDodgeRate(){return Math.min(.30,getEquipDodge()/100);}
     function getBlockRate(){return Math.min(.25,getEquipBlock()/100);}
     function getCharacterStats(){return {atk:getAtk(),def:getDef(),maxHp:getMaxHp(),maxMp:getMaxMp(),crit:getCritRate(),critDmg:getCritDamage(),dodge:getDodgeRate(),block:getBlockRate(),resist:getEquipResist()};}
@@ -6526,6 +6528,7 @@
       document.getElementById('petPanel').classList.add('hidden');
       document.getElementById('artifactPanel').classList.add('hidden');
       document.getElementById('storyText').innerHTML = text;
+      document.getElementById('storyPanel').classList.toggle('loop-panel-v286840',!!document.getElementById('storyText').querySelector('.loop-board-v286840'));
       
       const choicesDiv = document.getElementById('choices');
       choicesDiv.innerHTML = choices.map((c, i) => {
@@ -6608,6 +6611,8 @@
       gearBattleV2790.delete(currentEnemy);
       setupTacticsV286821();
       gameState = 'combat';
+      player.hp=Math.min(getMaxHp(),player.hp+Math.ceil(getMaxHp()*miniBoonV286840('hp')));
+      player.mp=Math.min(getMaxMp(),player.mp+Math.ceil(getMaxMp()*miniBoonV286840('mp')));
       isPlayerTurn = true;
       isBossFight = isBoss;
       isTribulation = isTrib;
@@ -7619,6 +7624,7 @@
         enemyDamage=gearIncomingV2790(enemyDamage);
         enemyDamage=reduceSetDamageV2789(enemyDamage);
         enemyDamage=defendTacticsV286821(enemyDamage);
+        enemyDamage=Math.floor(enemyDamage*(1-Math.min(.2,miniBoonV286840('reduce'))));
         enemyDamage=consumeGuardV2785(enemyDamage);
         if(typeof companionGuardV2849==='function')enemyDamage=companionGuardV2849(enemyDamage);
         enemyDamage=absorbElementGuardV286818(enemyDamage);
@@ -11034,12 +11040,14 @@
     function showMiniRealmV2778(){
       if(!sectCanManageV2866())return;
       const c=miniRunV2778(),wait=getBuildingWaitV2768('mini_secret');
-      let text='<h3>🌟 宗门小秘境</h3><p>采集灵材 → 灵泉休整 → 守关抉择</p>';
+      let text='<h3>🌟 宗门小秘境</h3><p>万象迷阵：随机事件 → 祝福三选一 → 守关抉择</p>';
       if(!c){
         text+=`<p>入境30灵石，耗时1游戏日，之后冷却7日。${wait?`还需${wait}日可再次进入。`:''}</p><p>入境后选择稳妥、遗迹或险境路线。基础取宝240灵石、180修为；守关450灵石、320修为。遗迹收益×1.15，险境×1.5，守关敌人随之增强。另带回本次采集材料与悟道修为。</p><p>首次击败守关傀儡并领取宝箱：额外300灵石、小还丹×2。</p><p>中途撤离只带回已采材料和悟道修为；守关战败丢失未结算收获，并扣身上灵石20%。</p>`;
         return showStory(text,[{text:'进入小秘境',action:'mini_enter_v2778',condition:()=>!wait&&player.gold>=30&&canAccessBuilding('mini_secret_realm').allowed},{text:'返回宗门大殿',action:'sect_hall'}]);
       }
       if(c.routeV2867===null)return showMiniRouteV2867(c);
+      if(showMiniWeaveV286840(c))return;
+      text+=miniWeaveTextV286840(c);
       const route=miniRouteV2867(c);text+=`<p>${route.name} · 取宝收益×${route.reward} · 守关气血×${route.hp} / 攻击×${route.atk}</p>`;
       const labels=['采集灵材','灵泉休整','守关抉择','守关待战','通关宝箱'];
       text+=`<p>当前：${labels[c.step]} · 已保存进度</p><p>待带回：${c.herbs}灵草、${c.fruit}仙果、${c.insight}悟道修为</p>`;
@@ -11057,16 +11065,20 @@
     function enterMiniRealmV2778(){
       if(!sectCanManageV2866()||!canAccessBuilding('mini_secret_realm').allowed)return;
       if(miniRunV2778())return showMiniRealmV2778();
-      if(!beginBuildingOpV2768('mini_secret','mini_secret_realm'))return;
-      player.sectData.miniSeqV2778=(player.sectData.miniSeqV2778||0)+1;
-      player.sectData.miniRealmV2778={id:player.sectData.miniSeqV2778,step:0,herbs:0,fruit:0,insight:0,enemy:null,routeV2867:null};
-      autoSave();showMiniRealmV2778();
+      if(getBuildingWaitV2768('mini_secret')||player.gold<30)return;
+      const ok=commitMiniWeaveV286840(()=>{
+        if(!beginBuildingOpV2768('mini_secret','mini_secret_realm'))throw Error('entry unavailable');
+        player.sectData.miniSeqV2778=(player.sectData.miniSeqV2778||0)+1;
+        player.sectData.miniRealmV2778={id:player.sectData.miniSeqV2778,step:0,herbs:0,fruit:0,insight:0,enemy:null,routeV2867:null,weaveV286840:createMiniWeaveV286840()};
+      });
+      if(ok)showMiniRealmV2778();
     }
     let miniClickAtV2778=0;
     function chooseMiniRealmV2778(pick,step,runId){
       if(!sectCanManageV2866()||Date.now()-miniClickAtV2778<400)return;
       const c=miniRunV2778();if(!c||c.id!==runId||c.step!==step||c.routeV2867===null)return;
       if(pick==='leave'&&step<4)return finishMiniRealmV2778('leave');
+      const weave=miniWeaveV286840(c);if(weave&&(weave.pending||step<2))return;
       miniClickAtV2778=Date.now();
       if(step===0&&(pick==='herb'||pick==='fruit')){if(pick==='herb')c.herbs=4;else c.fruit=2;if(c.routeV2867===1)c.insight+=80;c.step=1;}
       else if(step===1&&(pick==='rest'||pick==='insight')){if(pick==='rest'){player.hp=Math.min(getMaxHp(),player.hp+Math.ceil(getMaxHp()*.3));player.mp=Math.min(getMaxMp(),player.mp+Math.ceil(getMaxMp()*.3));}else c.insight+=120;c.step=2;}
@@ -11075,12 +11087,13 @@
       else if(step===2&&pick==='challenge'){
         const e=getEnemy();c.enemy={name:'秘境守关傀儡',hp:Math.ceil(e.maxHp*1.15),maxHp:Math.ceil(e.maxHp*1.15),atk:Math.ceil(e.atk*1.1),def:e.def,gold:0,exp:0,_realmLevel:e._realmLevel||0,_realmPhase:e._realmPhase||0,_miniRunV2778:c.id};const route=miniRouteV2867(c);c.enemy.hp=c.enemy.maxHp=Math.ceil(c.enemy.maxHp*route.hp);c.enemy.atk=Math.ceil(c.enemy.atk*route.atk);c.step=3;
       }
-      else if(step===3&&pick==='fight'){if(player.hp<=1)return showFloatingText?.('请先恢复气血，再挑战守关傀儡。','#ffd76a');autoSave();startCombat({...c.enemy},false,false,null);return;}
+      else if(step===3&&pick==='fight'){if(player.hp<=1)return showFloatingText?.('请先恢复气血，再挑战守关傀儡。','#ffd76a');if(!saveGame())return;startCombat({...c.enemy},false,false,null);return;}
       else if(step===4&&pick==='claim')return finishMiniRealmV2778('clear');
       else return;
       updateStats();autoSave();showMiniRealmV2778();
     }
     function finishMiniRealmV2778(kind){
+      if(finishMiniWeaveV286840(kind))return;
       if(!sectCanManageV2866())return;
       const c=miniRunV2778();if(!c||(kind==='safe'&&c.step!==2)||(kind==='clear'&&c.step!==4)||!['safe','clear','leave'].includes(kind))return;
       if(kind==='leave'&&c.step>=4)return;
@@ -13503,7 +13516,7 @@
         img.src='./'+file;
       };
       request('regions','scroll-regions-v2834.webp',true);
-      for(const [key,file] of [['smallBeastsV28682','monster-small-beasts-v28682.webp'],['palace','scroll-palace-v2831.webp'],['buildings','scroll-buildings-v2832.webp'],['monstersV2853','monster-map-v2853.webp?v=2868-pet-pity-20261015'],['regionalBuildings','region-buildings-v2835.webp']])request(key,file);
+      for(const [key,file] of [['smallBeastsV28682','monster-small-beasts-v28682.webp'],['palace','scroll-palace-v2831.webp'],['buildings','scroll-buildings-v2832.webp'],['monstersV2853','monster-map-v2853.webp?v=2868-mini-return-20261015'],['regionalBuildings','region-buildings-v2835.webp']])request(key,file);
     }
     function scrollRegionCellV2834(region=currentRegion){
       const n=['south','east','west','north','human_peaks','human_valleys','demon_domain','immortal_domain'].indexOf(region);return n<0?0:n;
@@ -14218,6 +14231,7 @@
         <p>欢迎回来，<b>${escapeGameText(player.name)}</b>！</p>
         <p>当前境界：${getCultivationName()}</p>
         <p>记录时间：${formatSaveTime(saveData.timestamp)}</p>
+        ${returnBriefHtmlV286840(saveData.timestamp)}
         ${saveData.interruptedBattleV286812?'<p>上次战斗尚未结算，已恢复到开战前；当场消耗的丹药、气血和灵力已恢复，未发放战利品。</p>':''}
       `, [
         { text: '续行仙途', action: 'village' }
@@ -14480,7 +14494,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.39";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.40";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
@@ -14629,7 +14643,7 @@ function resolveDiscipleEventV2867(id,eventId,choice){if(!discipleAllowedV2815()
 const MINI_ROUTES_V2867=[{name:'稳妥 · 外围药径',reward:1,hp:1,atk:1},{name:'遗迹 · 古修洞天',reward:1.15,hp:1.2,atk:1.1},{name:'险境 · 断剑深谷',reward:1.5,hp:1.6,atk:1.25}];
 function miniRouteV2867(c){return MINI_ROUTES_V2867[c?.routeV2867]||MINI_ROUTES_V2867[0];}
 function showMiniRouteV2867(c){if(!sectCanManageV2866())return;showStory(`<section class="sect-board-v2866"><h3>秘境岔路</h3><p>穿过山门后的云雾，三条小径通向不同深处。选定后，本次路线不会变化。</p>${MINI_ROUTES_V2867.map((r,i)=>`<article><h4>${r.name}</h4><p>取宝灵石/修为×${r.reward}；守关气血×${r.hp}，攻击×${r.atk}。</p>${i===1?'<p>完成首层采集额外积累80悟道修为。</p>':''}<button class="choice-btn" onclick="selectMiniRouteV2867(${c.id},${i})">选择此路</button></article>`).join('')}<p>途中可撤离，带回已采材料与悟道修为；守关战败失去未结算收获，并扣身上20%灵石。</p></section>`,[{text:'暂离 · 返回宗门',action:'sect_hall'}]);}
-function selectMiniRouteV2867(id,route){if(!sectCanManageV2866()||!Number.isInteger(route)||!MINI_ROUTES_V2867[route])return;const c=miniRunV2778();if(!c||c.id!==id||c.step!==0||c.routeV2867!==null)return;c.routeV2867=route;autoSave();showMiniRealmV2778();}
+function selectMiniRouteV2867(id,route){if(!sectCanManageV2866()||!Number.isInteger(route)||!MINI_ROUTES_V2867[route])return;const c=miniRunV2778();if(!c||c.id!==id||c.step!==0||c.routeV2867!==null)return;if(miniWeaveV286840(c)){if(commitMiniWeaveV286840(()=>{c.routeV2867=route}))showMiniRealmV2778();}else{c.routeV2867=route;autoSave();showMiniRealmV2778();}}
 
 // V28.68.29: bounded elemental openings, equipment/loadout synergies and timed expeditions.
 const tacticsV286821=new WeakMap();
@@ -14712,5 +14726,5 @@ function showTripV286821(){
  let html='<h3>游历派遣</h3><p>派遣后可离线，也可继续修行。按现实时间每10分钟结算一段，上限8小时；提前领取结束本趟，未满10分钟不结算。不消耗灵石，不掉落首领或突破材料。</p>';
  if(r)html+=`<p>${r.name} · 已积累${y.units*10}分钟 / 480分钟，灵石${y.gold}、灵草${y.herbs}。${Date.now()<s.active.started?'设备时间早于出发时间，暂不累计收益。':''}</p><button class="choice-btn" onclick="claimTripV286821()" ${y.units?'':'disabled'}>领取并结束本趟</button><button class="choice-btn" onclick="showTripV286821()">刷新游历进度</button>`;
  else html+=TRIP_ROUTES_V286821.map((r,i)=>{const n=s.wins[r.key],ok=Number.isInteger(n)&&player.level>=n+1;return `<p>${r.name}：每10分钟${r.gold}灵石，每小时1灵草。${n===undefined?'需先击败该类普通怪':ok?'可派遣':'需高于已击败敌人至少一个大境界'}</p><button class="choice-btn" onclick="startTripV286821(${i})" ${ok?'':'disabled'}>派遣 · ${r.name}</button>`;}).join('');
- showStory(html+buildGuideV286821(),[{text:'返回洞府',action:'home'}]);
+ showStory(html+'<button class="choice-btn" onclick="showReturnBriefV286840()">归来简报 · 宗门与洞府</button>'+buildGuideV286821(),[{text:'返回洞府',action:'home'}]);
 }

@@ -3899,7 +3899,7 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 /* V28.12 洞府管理 */
 .home-board-v2812{padding:16px;border:1px solid #9eb781;border-radius:16px;background:linear-gradient(135deg,#14251e,#18202b);color:#e9eee3;line-height:1.65}.home-board-v2812 h3{color:#ead592;margin:0 0 12px}.home-grid-v2812{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-grid-v2812 article{padding:14px;border:1px solid #526454;border-radius:12px;background:#ffffff08}.home-grid-v2812 h4{margin:0;color:#e8d594}.home-grid-v2812 p{color:#d0dbd1}.home-grid-v2812 strong{color:#83ddb6}.home-notice-v2812{padding:12px;background:#31534066;border-radius:10px}@media(max-width:600px){.home-grid-v2812{grid-template-columns:1fr}.home-board-v2812{padding:12px;font-size:14px}}
 
-:root{--xiantu-build:286839;}
+:root{--xiantu-build:286840;}
 #xiantuBuildBadgeV2814{font-size:11px;min-height:32px;padding:5px 9px;white-space:nowrap;color:#b4d4bd;background:#18251f;border:1px solid #718475;border-radius:8px;}
 
 /* V28.68 战斗数值可视层 */
@@ -4425,3 +4425,13 @@ html.xiantu-mobile-dedicated #mobileQuickMenu{left:calc(var(--mx-safe-l) + 8px)!
 .grade-upgrade-card p{margin:7px 0;font-size:13px}.grade-upgrade-target{color:var(--grade-color)}
 .grade-upgrade-panel .choice-btn{min-height:44px;white-space:normal;max-width:100%;margin:6px 0!important}
 .grade-upgrade-actions{display:flex;gap:8px;flex-wrap:wrap}.grade-upgrade-actions button{flex:1 1 130px}
+
+/* Room for comparing run blessings and reading the return brief on phones. */
+html #gameScreen.world-mode #storyPanel.loop-panel-v286840:not(.hidden),html #storyPanel.loop-panel-v286840:not(.hidden){position:fixed!important;z-index:12000!important;inset:calc(env(safe-area-inset-top,0px) + 12px) 12px calc(env(safe-area-inset-bottom,0px) + 12px)!important;width:auto!important;max-width:900px!important;height:auto!important;max-height:none!important;margin:0 auto!important;transform:none!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;background:#10251e!important;padding:16px!important;}
+html #storyPanel.loop-panel-v286840 .story-protagonist-card{display:none!important;}
+html #storyPanel.loop-panel-v286840 .story-with-protagonist{display:block!important;flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;}
+html #storyPanel.loop-panel-v286840 #storyText{max-height:none!important;height:auto!important;overflow:visible!important;font-size:14px!important;line-height:1.65!important;}
+html #storyPanel.loop-panel-v286840 .choice-btn{min-height:44px!important;font-size:14px!important;}
+html #storyPanel.loop-panel-v286840 .choices{flex-shrink:0;margin-top:12px;}
+html #storyPanel.loop-panel-v286840 article{padding:10px!important;margin:8px 0!important;}
+html #storyPanel.loop-panel-v286840 article h4,html #storyPanel.loop-panel-v286840 article p{margin:4px 0!important;}

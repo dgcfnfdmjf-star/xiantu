@@ -54,4 +54,85 @@ function showSectTodoV2868(){
 }
 function drawSectTodoV2868(ctx,o){if(!sectTodoCacheV2868.total||!player?.sect)return;const own=(o.action==='faction_gate_v2806'&&o.factionName===player.sect)||(player.sect==='凌霄宗'&&(o.action==='sect'||o.buildingId==='main_hall'));if(!own)return;ctx.save();ctx.fillStyle='#263d31';ctx.fillRect(-42,-o.r-22,84,22);ctx.fillStyle='#f1d89b';ctx.font='12px Microsoft YaHei';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(`待办 ${sectTodoCacheV2868.total}`,0,-o.r-11);ctx.restore();}
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.39';
+window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.40';
+
+
+// V28.68.40: saved random encounters and run-scoped blessings.
+const MINI_BOONS_V286840=[
+ {name:'锋芒剑意',desc:'本次守关战攻击提高15%',key:'atk',value:.15},
+ {name:'玄岩护体',desc:'本次守关战防御提高20%',key:'def',value:.20},
+ {name:'破阵灵光',desc:'本次守关战暴击伤害倍率+0.30',key:'crit',value:.30},
+ {name:'归元甘露',desc:'守关开战时恢复最大气血15%',key:'hp',value:.15},
+ {name:'聚灵回响',desc:'守关开战时恢复最大灵力20%',key:'mp',value:.20},
+ {name:'静水守心',desc:'本次守关战直接受击伤害减少10%',key:'reduce',value:.10}
+];
+const MINI_EVENTS_V286840=[
+ {name:'隐秘药园',text:'藤蔓后藏着一畦无人照看的灵植。药香虽淡，根脉仍在。',options:[['采集灵草 ×4','herb',4],['摘取仙果 ×2','fruit',2]]},
+ {name:'上古残阵',text:'残缺阵纹在石壁上明灭。你可以记下运转之理，也可以带走阵脚旁的灵草。',options:[['参悟残阵 · 离境修为+100','insight',100],['采集阵脚灵草 ×3','herb',3]]},
+ {name:'濒伤前辈',text:'老修士已自行稳住伤势，请你替他护法片刻。临别时，他愿以灵息或心得相赠。',options:[['接受灵息 · 恢复20%气血和灵力','rest',.20],['请教心得 · 离境修为+120','insight',120]]},
+ {name:'心魔幻境',text:'旧日的遗憾化作镜中人。这次不必与它争胜：你可以静坐听完，也可以沿着果香离开。',options:[['照见本心 · 离境修为+120','insight',120],['离开幻境 · 摘取仙果 ×2','fruit',2]]}
+];
+function createMiniWeaveV286840(){
+ const shuffled=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+ return {events:shuffled([0,1,2,3]).slice(0,2),offers:[shuffled([0,1,2,3,4,5]).slice(0,3),shuffled([0,1,2,3,4,5]).slice(0,3)],boons:[],pending:false};
+}
+function miniWeaveV286840(c){
+ const w=c?.weaveV286840;
+ if(!w||!Array.isArray(w.events)||w.events.length!==2||!w.events.every(i=>Number.isInteger(i)&&MINI_EVENTS_V286840[i])||!Array.isArray(w.offers)||w.offers.length!==2||!w.offers.every(a=>Array.isArray(a)&&a.length===3&&new Set(a).size===3&&a.every(i=>Number.isInteger(i)&&MINI_BOONS_V286840[i]))||!Array.isArray(w.boons)||w.boons.length>2||!w.boons.every((b,i)=>w.offers[i].includes(b)))return null;
+ return w;
+}
+function miniBoonV286840(key){
+ const c=miniRunV2778(),w=miniWeaveV286840(c);
+ if(gameState!=='combat'||!w||c.step!==3||currentEnemy?._miniRunV2778!==c.id)return 0;
+ return w.boons.reduce((sum,id)=>sum+(MINI_BOONS_V286840[id].key===key?MINI_BOONS_V286840[id].value:0),0);
+}
+function miniWeaveTextV286840(c){const w=miniWeaveV286840(c);return w?`<p>万象迷阵 · 药径与幻境 → 三选一祝福 → 守关</p><p>本局祝福：${w.boons.map(i=>MINI_BOONS_V286840[i].name).join('、')||'尚未选择'}。仅在本次守关战生效，离境后消散。</p>`:'';}
+let miniWeaveBusyV286840=false;
+function commitMiniWeaveV286840(change){
+ if(miniWeaveBusyV286840||!sectCanManageV2866())return false;
+ const owner=player,before=JSON.stringify(player),progress={...achievementProgress},completed=new Set(completedAchievements);miniWeaveBusyV286840=true;miniSaveDeferredV286840=true;
+ try{change();miniSaveDeferredV286840=false;if(!saveGame())throw Error('mini save failed');return true}
+ catch(e){for(const key of Object.keys(owner))delete owner[key];Object.assign(owner,JSON.parse(before));player=owner;if(player.activePet?._petId)player.activePet=player.pets.find(p=>p._petId===player.activePet._petId)||null;achievementProgress=progress;completedAchievements=completed;showFloatingText('记录未保存，本次操作已恢复，请重试','#ff8a80');return false}
+ finally{miniWeaveBusyV286840=false;miniSaveDeferredV286840=false}
+}
+function showMiniWeaveV286840(c){
+ const w=miniWeaveV286840(c);if(!w||(!w.pending&&c.step>=2))return false;
+ const floor=w.pending?c.step-1:c.step;if(floor<0||floor>1)return false;
+ let html=`<section class="sect-board-v2866 loop-board-v286840"><h3>万象迷阵 · 第${floor+1}/3层</h3>${miniWeaveTextV286840(c)}<p>随机事件与备选祝福已经保存；刷新不会重抽。可暂离补给。</p>`;
+ if(w.pending){html+='<h4>残阵赠礼 · 三选一</h4>';html+=w.offers[floor].map(i=>`<article><h4>${MINI_BOONS_V286840[i].name}</h4><p>${MINI_BOONS_V286840[i].desc}</p><button class="choice-btn" onclick="chooseMiniBoonV286840(${c.id},${floor},${i})">选择此祝福</button></article>`).join('');}
+ else{const event=MINI_EVENTS_V286840[w.events[floor]];html+=`<h4>${event.name}</h4><p>${event.text}</p>`+event.options.map((o,i)=>`<button class="choice-btn" onclick="chooseMiniEventV286840(${c.id},${floor},${i})">${o[0]}</button>`).join('');}
+ html+='</section>';showStory(html,[{text:'提前撤离 · 带回已获材料与悟道',action:'mini_choice_v2778',pick:'leave',step:c.step,runId:c.id},{text:'暂离 · 返回宗门',action:'sect_hall'}]);return true;
+}
+function chooseMiniEventV286840(id,floor,index){
+ if(!sectCanManageV2866())return false;const c=miniRunV2778(),w=miniWeaveV286840(c);
+ if(!w||c.id!==id||c.step!==floor||w.pending||w.boons.length!==floor||![0,1].includes(floor)||![0,1].includes(index))return false;
+ const o=MINI_EVENTS_V286840[w.events[floor]].options[index];
+ const ok=commitMiniWeaveV286840(()=>{if(o[1]==='herb')c.herbs+=o[2];if(o[1]==='fruit')c.fruit+=o[2];if(o[1]==='insight')c.insight+=o[2];if(o[1]==='rest'){player.hp=Math.min(getMaxHp(),player.hp+Math.ceil(getMaxHp()*o[2]));player.mp=Math.min(getMaxMp(),player.mp+Math.ceil(getMaxMp()*o[2]));}if(floor===0&&c.routeV2867===1)c.insight+=80;c.step++;w.pending=true;});
+ if(ok)showMiniRealmV2778();return ok;
+}
+function chooseMiniBoonV286840(id,floor,index){
+ if(!sectCanManageV2866())return false;const c=miniRunV2778(),w=miniWeaveV286840(c);
+ if(!w||c.id!==id||c.step!==floor+1||!w.pending||w.boons.length!==floor||!w.offers[floor]?.includes(index))return false;
+ const ok=commitMiniWeaveV286840(()=>{w.boons.push(index);w.pending=false});if(ok)showMiniRealmV2778();return ok;
+}
+function finishMiniWeaveV286840(kind){
+ const c=miniRunV2778(),w=miniWeaveV286840(c);if(!w)return false;
+ if(!sectCanManageV2866()||!['safe','clear','leave'].includes(kind)||(kind==='safe'&&(c.step!==2||w.pending))||(kind==='clear'&&c.step!==4)||(kind==='leave'&&c.step>=4))return true;
+ const first=kind==='clear'&&!player.sectData.miniFirstV2778,route=miniRouteV2867(c);
+ const gold=Math.floor((kind==='clear'?450:kind==='safe'?240:0)*route.reward)+(first?300:0),exp=Math.floor((kind==='clear'?320:kind==='safe'?180:0)*route.reward)+c.insight;
+ const ok=commitMiniWeaveV286840(()=>{player.sectData.miniRealmV2778=null;if(first){player.sectData.miniFirstV2778=true;player.inventory.push('小还丹','小还丹')}player.gold+=gold;player.exp+=exp;player.materials['灵草']=(player.materials['灵草']||0)+c.herbs;player.materials['仙果']=(player.materials['仙果']||0)+c.fruit;if(c.herbs)onCollectMaterial?.('灵草',c.herbs);if(c.fruit)onCollectMaterial?.('仙果',c.fruit);});
+ if(ok){checkLevelUp();updateStats();showStory(`<h3>万象迷阵 · 离境结算</h3><p>灵石+${gold} · 修为+${exp}</p><p>灵草×${c.herbs} · 仙果×${c.fruit}</p>${first?'<p>已含首通300灵石，另获小还丹×2。</p>':''}<p>本局祝福已消散。材料与结算记录已保存。</p>`,[{text:'返回秘境',action:'mini_realm_v2778'},{text:'返回宗门',action:'sect_hall'}]);}return true;
+}
+
+// Read-only return brief: existing reward transactions remain the only claim path.
+function returnBriefHtmlV286840(timestamp=0){
+ const elapsed=Number.isFinite(timestamp)?Math.max(0,Date.now()-timestamp):0,y=tripYieldV286821(),t=tripStateV286821(),route=TRIP_ROUTES_V286821.find(r=>r.key===t.active?.key),todo=sectTodoReadV2868();
+ let html=`<section class="sect-board-v2866 loop-board-v286840"><h3>归来简报</h3><p>${timestamp&&elapsed>=60000?`距上次存档约${Math.floor(elapsed/60000)}分钟。`:'修行与宗门近况。'}游历按现实时间累计，弟子派遣按仙历推进。</p>`;
+ if(route){const lines=['队伍刚踏上山道，尚未走完一段路。','沿途清点所得，灵石与灵草已记入行囊。','经过几处旧驿，队伍正沿熟悉的路线归拢收获。','行囊已满，队伍在归途等候你的消息。'];html+=`<article><h4>${escapeGameText(route.name)} · 游历</h4><p>${lines[y.units===48?3:y.units>=6?2:y.units?1:0]}</p><p>已累计${y.units*10}/480分钟 · 待领${y.gold}灵石、${y.herbs}灵草</p><button class="choice-btn" onclick="claimReturnTripV286840()" ${y.units?'':'disabled'}>领取游历收获并结束本趟</button><button class="choice-btn" onclick="showTripV286821()">查看游历</button></article>`;}
+ else html+='<p>暂无进行中的游历，可在洞府安排下一趟。</p><button class="choice-btn" onclick="showTripV286821()">安排游历</button>';
+ if(todo.total)html+=`<article><h4>山门来讯</h4><p>弟子成果${todo.jobs.length}项 · 途中来信${todo.mails.length}封 · 同门答谢${todo.thanks.length}份</p><button class="choice-btn" onclick="showSectTodoV2868()">查看宗门待办 · ${todo.total}</button></article>`;
+ if(miniRunV2778())html+='<button class="choice-btn" onclick="showMiniRealmV2778()">续行秘境 · 已保存进度</button>';
+ return html+'<p>简报只汇总已有记录；领取前不会自动发放或扣除资源。</p></section>';
+}
+function showReturnBriefV286840(){if(gameState==='exploring')showStory(returnBriefHtmlV286840(),[{text:'继续修行',action:'return_to_map'}]);}
+function claimReturnTripV286840(){const ok=claimTripV286821();if(ok)showReturnBriefV286840();return ok;}
