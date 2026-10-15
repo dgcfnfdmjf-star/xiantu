@@ -1,4 +1,20 @@
-## 最新完整游戏包：V28.68.35
+## 最新完整游戏包：V28.68.39
+
+[下载完整游戏文件夹](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.39-game-folder.zip)
+
+灵宠返祖、神兽觉醒与深渊魔化新增独立保底：20% → 45% → 70% → 100%。失败保留进化、变异词条和养成属性，调息3个仙历日。面板与指引同步，保存失败回退材料和本次状态。包含当前 main 的完整内容。
+
+316个运行文件；解压后目录仍为 `xiantu-v2831-scroll`，整文件夹覆盖上传。无需更新Jev，勿清除网站存档。本次未部署腾讯云。
+
+来源 main：`bdbe0a0eed2de850b2090f010064e9ddf354174f`。51组游戏回归、限流测试与7项浏览器测试通过；390×844模拟浏览器验证返祖按钮、保护结果与保底落档（非实机）。SHA-256清单及ZIP逐文件比对通过。
+
+大小：43281318字节。SHA-256：`72afc8259e540e927bb868de98522e5543762371b906931a55131e276de735a7`。
+
+[规则说明](pet-ancestry-pity.md)。私有仓库需登录有权限的GitHub账号下载。
+
+---
+
+## 历史完整游戏包：V28.68.35
 
 [下载完整游戏文件夹](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/downloads-v28.68.1/xiantu-v2868.35-game-folder.zip)
 
