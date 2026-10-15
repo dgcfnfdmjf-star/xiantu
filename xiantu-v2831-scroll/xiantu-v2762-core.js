@@ -7002,6 +7002,7 @@
         const usable=typeof getCombatSkillAvailabilityV2769==='function'?getCombatSkillAvailabilityV2769(skillIndex):{ok:false,reason:'技能配置尚未就绪'};
         if(!usable.ok){showFloatingText?.(usable.reason,'#ffd76a');updateCombatChoices?.();return;}
       }
+      if(currentEnemy._warV2839)currentEnemy._warV2839.awaitingAction=true;
       if(playerPressureStun && Math.random()<Math.min(.6,gearModsV2790().controlResist||0)){playerPressureStun=false;addCombatLog('禅冠稳神，抵抗本次威压控制。','heal');}
       if(playerPressureStun && action !== 'flee' && action !== 'escapeScroll'){
         playerPressureStun=false;
@@ -7529,9 +7530,14 @@
     
     function enemyTurn() {
       if (!currentEnemy || gameState!=='combat' || isPlayerTurn || COMBAT_FINISH_V2764.settling) return;
-      if(typeof runCompanionTurnV2849==='function')return runCompanionTurnV2849(()=>runMonsterTurnV2844(resolveEnemyTurnV2844));
-      if(typeof runMonsterTurnV2844==='function')return runMonsterTurnV2844(resolveEnemyTurnV2844);
-      return resolveEnemyTurnV2844();
+      const owner=player,enemy=currentEnemy,token=COMBAT_FINISH_V2764.token;
+      const next=()=>{
+        if(player!==owner||currentEnemy!==enemy||gameState!=='combat'||isPlayerTurn||COMBAT_FINISH_V2764.token!==token)return;
+        if(enemy.hp<=0)return checkBattleEnd();
+        if(typeof warDuelLimitV286841==='function'&&warDuelLimitV286841())return;
+        return typeof runMonsterTurnV2844==='function'?runMonsterTurnV2844(resolveEnemyTurnV2844):resolveEnemyTurnV2844();
+      };
+      return typeof runCompanionTurnV2849==='function'?runCompanionTurnV2849(next):next();
     }
     function resolveEnemyTurnV2844(decision=null, done=()=>{}) {
       if (!currentEnemy || gameState!=='combat') { done(); return; }
@@ -10070,15 +10076,18 @@
     }
     function assignDiscipleV2815(id,type,tier=0){
       if(!discipleAllowedV2815())return showDisciplesV2815('当前无法处理宗门事务。');
-      const d=discipleRosterV2815().members.find(x=>x.id===id);if(!d||d.job)return;
+      const d=discipleRosterV2815().members.find(x=>x.id===id);if(!d||d.job||warDiscipleBusyV286841(id))return;
+      const owner=player;
       if(type==='train'){
         if(d.level>=10)return;const cost=d.level*100;if(player.gold<cost)return showDisciplesV2815('培养灵石不足。');
         if(!window.confirm(`培养 ${d.name}：消耗 ${cost} 灵石，需${discipleTrainDaysV2867(d)}个游戏日，完成后 Lv.${d.level} → Lv.${d.level+1}。`))return;
+        if(player!==owner||!discipleAllowedV2815()||d.job||warDiscipleBusyV286841(id)||player.gold<cost)return;
         player.gold-=cost;d.job={type:'train',end:discipleDayV2815()+discipleTrainDaysV2867(d)};
       }else{
         const plan=disciplePlanV2824(d,type,tier);if(!plan)return;
         if(!plan.allowed)return showDisciplesV2815(`该难度需要弟子 Lv.${plan.requiredLevel}。`);
         if(!window.confirm(`派遣 ${d.name} · ${plan.name}\n耗时 ${plan.days} 个游戏日；完成领取 ${plan.gold} 灵石、${plan.material}×${plan.count}。\n已计入等级与专长加成，无派遣费用。`))return;
+        if(player!==owner||!discipleAllowedV2815()||d.job||warDiscipleBusyV286841(id))return;
         d.job=discipleNewJobV2867(d,plan);d.lastMissionV2824={type,tier};
       }
       autoSave();showDisciplesV2815('已安排，推进游戏日期后回来结算。');
@@ -10123,7 +10132,7 @@
       let pendingGold=0,training=0;const pendingMaterials=new Map();
       for(const d of ready){const j=d.job;if(j.type==='train')training++;else{pendingGold+=j.gold;pendingMaterials.set(j.material,(pendingMaterials.get(j.material)||0)+j.count);}}
       const summary=[pendingGold?`${pendingGold} 灵石`:'',...Array.from(pendingMaterials,([name,count])=>`${name} ×${count}`),training?`${training} 项培养成果`:''].filter(Boolean).join(' · ');
-      html+=`<div class="disciple-claim-v2821"><strong>待领取 ${ready.length} · 进行中 ${busy.length} · 空闲 ${r.members.length-ready.length-busy.length}</strong><p>${ready.length?esc(summary):busy.length?`最近一项还需 ${Math.min(...busy.map(d=>Math.max(0,d.job.end-day)))} 个游戏日`:'暂无待领取事务，可安排培养或派遣。'}</p><button class="choice-btn" onclick="claimAllDisciplesV2821()" ${!allowed||!ready.length?'disabled':''}>${ready.length?`一键领取全部 · ${ready.length} 项`:'暂无可领取成果'}</button></div>`;
+      html+=`<div class="disciple-claim-v2821"><strong>待领取 ${ready.length} · 进行中 ${busy.length} · 随军 ${r.members.filter(d=>warDiscipleBusyV286841(d.id)).length} · 空闲 ${r.members.filter(d=>!d.job&&!warDiscipleBusyV286841(d.id)).length}</strong><p>${ready.length?esc(summary):busy.length?`最近一项还需 ${Math.min(...busy.map(d=>Math.max(0,d.job.end-day)))} 个游戏日`:'暂无待领取事务，可安排培养或派遣。'}</p><button class="choice-btn" onclick="claimAllDisciplesV2821()" ${!allowed||!ready.length?'disabled':''}>${ready.length?`一键领取全部 · ${ready.length} 项`:'暂无可领取成果'}</button></div>`;
 
       html+=`<details ${r.members.length?'':'open'}><summary>招募候选 · ${30-day%30} 个游戏日后换批</summary><div class="home-grid-v2812">`;
       for(const d of discipleCandidatesV2815())html+=`<article><h4>${d.name}</h4><p>${d.age}岁 · ${special[d.specialty]}专长</p>${discipleTraitsHtmlV2867(d)}<p> · 同类派遣灵石 +20%</p><button class="choice-btn" onclick="recruitDiscipleV2815(${d.id},${d.batch})" ${!allowed||r.hired.includes(d.id)||r.members.length>=12||player.gold<d.cost?'disabled':''}>${r.hired.includes(d.id)?'已招募':`招募 · ${d.cost}灵石`}</button></article>`;
@@ -10132,7 +10141,8 @@
       const sorted=r.members.slice().sort((a,b)=>order(a)-order(b)||(a.job?.end||0)-(b.job?.end||0)||a.id-b.id);
       for(const d of sorted){
         html+=`<article class="${discipleReadyV2821(d)?'disciple-ready-v2821':''}"><h4>${esc(d.name)} · Lv.${d.level}</h4><p>${special[d.specialty]}专长 · 战力 +${d.level*2}</p>${discipleTraitsHtmlV2867(d)}${discipleEventButtonV2867(d)}${lifeCardV2868(d)}`;
-        if(d.job){const left=Math.max(0,d.job.end-day);html+=`<p>${d.job.type==='train'?'修行培养':esc(d.job.name)} · ${left?`还需 ${left} 个游戏日`:'✅ 已完成，待领取'}</p><p>${esc(discipleRewardTextV2821(d.job))}</p><button class="choice-btn" onclick="claimDiscipleV2815(${d.id})" ${left||!allowed?'disabled':''}>${left?'进行中':d.job.type==='train'?'完成培养':'领取奖励'}</button>`;}
+        if(warDiscipleBusyV286841(d.id)){html+='<p>随军统领 · 战役结束后解任，当前不能培养或派遣。</p>';}
+        else if(d.job){const left=Math.max(0,d.job.end-day);html+=`<p>${d.job.type==='train'?'修行培养':esc(d.job.name)} · ${left?`还需 ${left} 个游戏日`:'✅ 已完成，待领取'}</p><p>${esc(discipleRewardTextV2821(d.job))}</p><button class="choice-btn" onclick="claimDiscipleV2815(${d.id})" ${left||!allowed?'disabled':''}>${left?'进行中':d.job.type==='train'?'完成培养':'领取奖励'}</button>`;}
         else{
           html+=`<button class="choice-btn" onclick="assignDiscipleV2815(${d.id},'train')" ${!allowed||d.level>=10||player.gold<d.level*100?'disabled':''}>${d.level>=10?'培养已满级':`培养 · ${d.level*100}灵石 / ${discipleTrainDaysV2867(d)}天`}</button><details><summary>安排派遣</summary>`;
           for(let i=0;i<3;i++){
@@ -14494,7 +14504,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.40";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.41";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
@@ -14602,7 +14612,7 @@ function sectPromotionViewV2866(){
 }
 function showSectOverviewV2866(notice=''){
  if(!sectCanManageV2866())return;
- const esc=discipleEscV2815,r=discipleRosterV2815(),ready=r.members.filter(discipleReadyV2821),idle=r.members.filter(d=>!d.job),busy=r.members.filter(d=>d.job&&!discipleReadyV2821(d));
+ const esc=discipleEscV2815,r=discipleRosterV2815(),ready=r.members.filter(discipleReadyV2821),idle=r.members.filter(d=>!d.job&&!warDiscipleBusyV286841(d.id)),busy=r.members.filter(d=>d.job&&!discipleReadyV2821(d));
  const active=player.sectTasks.filter(t=>!t.completed),rank=getCurrentRankInfo(),allowed=discipleAllowedV2815();
  let html=`<section class="sect-board-v2866"><header><small>${esc(getGameDateLabel())}</small><h3>${esc(player.sect)} · 宗门总览</h3><button class="choice-btn" onclick="showSectTodoV2868()">待办直达 · ${sectTodoReadV2868().total}</button><p>${rank.icon} ${rank.name}</p></header>${notice?`<p role="status">${esc(notice)}</p>`:''}<div class="sect-stats-v2866"><div>可用贡献<b>${player.sectContribution||0}</b></div><div>累计贡献<b>${player.sectTotalContribution||0}</b></div><div>空闲弟子<b>${idle.length}</b></div><div>待领成果<b>${ready.length}</b></div></div><article>${sectPromotionViewV2866()}</article><article><h4>我的委托 · ${active.length}</h4>`;
  for(const t of active){const progress=getSectTaskProgressInfo(t),idx=player.sectTasks.indexOf(t);html+=`<p>${esc(t.template.name)} · ${progress.ready?'可以交付':'进行中'}</p><button class="choice-btn" onclick="${progress.ready&&t.template.type!=='combat'?`updateSectTaskProgress(${idx})`:'showSectTasks()'}">${progress.ready&&t.template.type!=='combat'?'交付委托':'查看目标与去向'}</button>`;}
@@ -14611,12 +14621,12 @@ function showSectOverviewV2866(notice=''){
  showStory(html,[{text:'返回宗门',action:'sect'},{text:'返回地图',action:'return_to_map'}]);
 }
 let discipleBatchV2866=null,discipleBatchSerialV2866=0;
-function discipleBatchSignatureV2866(){return JSON.stringify([player.sect,discipleDayV2815(),getCurrentRankInfo().name,discipleRosterV2815().members]);}
+function discipleBatchSignatureV2866(){return JSON.stringify([player.sect,discipleDayV2815(),getCurrentRankInfo().name,discipleRosterV2815().members,player.warState?.campaignV2775?.officersV286841]);}
 function showDiscipleBatchV2866(tier=0,notice=''){
  if(!discipleAllowedV2815()||!Number.isInteger(tier)||tier<0||tier>2)return;
- const entries=discipleRosterV2815().members.filter(d=>!d.job).map(d=>{const type=Number.isInteger(d.specialty)&&d.specialty>=0&&d.specialty<=2?d.specialty:0;let target=tier;while(target>0&&!disciplePlanV2824(d,type,target).allowed)target--;return {id:d.id,name:d.name,plan:disciplePlanV2824(d,type,target)};});
+ const entries=discipleRosterV2815().members.filter(d=>!d.job&&!warDiscipleBusyV286841(d.id)).map(d=>{const type=Number.isInteger(d.specialty)&&d.specialty>=0&&d.specialty<=2?d.specialty:0;let target=tier;while(target>0&&!disciplePlanV2824(d,type,target).allowed)target--;return {id:d.id,name:d.name,plan:disciplePlanV2824(d,type,target)};});
  const token=++discipleBatchSerialV2866;discipleBatchV2866={token,owner:player,signature:discipleBatchSignatureV2866(),entries};
- const esc=discipleEscV2815;let html=`<section class="sect-board-v2866"><h3>派遣预览 · ${entries.length} 位空闲弟子</h3><p>按专长安排；等级不足会选用较低难度。已在执行事务的弟子不变。</p>${notice?`<p role="status">${esc(notice)}</p>`:''}<div class="sect-actions-v2866">${DISCIPLE_TIERS_V2824.map((t,i)=>`<button class="choice-btn" onclick="showDiscipleBatchV2866(${i})" aria-pressed="${i===tier}">${t.name}${i===tier?' ✓':''}</button>`).join('')}</div>`;
+ const esc=discipleEscV2815;let html=`<section class="sect-board-v2866"><h3>派遣预览 · ${entries.length} 位空闲弟子</h3><p>按专长安排；等级不足会选用较低难度。已在执行事务或随军的弟子不参与。</p>${notice?`<p role="status">${esc(notice)}</p>`:''}<div class="sect-actions-v2866">${DISCIPLE_TIERS_V2824.map((t,i)=>`<button class="choice-btn" onclick="showDiscipleBatchV2866(${i})" aria-pressed="${i===tier}">${t.name}${i===tier?' ✓':''}</button>`).join('')}</div>`;
  for(const e of entries)html+=`<article><b>${esc(e.name)}</b><p>${esc(e.plan.name)} · ${e.plan.days} 个游戏日</p><p>${e.plan.gold} 灵石 · ${esc(e.plan.material)} ×${e.plan.count}</p></article>`;
  html+=`<p>${entries.length?'无派遣费用，成果到期后领取。':'没有空闲弟子。'}</p><button class="choice-btn" id="discipleBatchConfirmV2866" data-token="${token}" onclick="confirmDiscipleBatchV2866(${token})" ${entries.length?'':'disabled'}>确认派遣 ${entries.length} 位</button><button class="choice-btn" onclick="cancelDiscipleBatchV2866()">取消并返回</button></section>`;showStory(html,[]);
 }
@@ -14627,6 +14637,7 @@ function confirmDiscipleBatchV2866(token){
  if(batch.signature!==discipleBatchSignatureV2866()){discipleBatchV2866=null;return showDiscipleBatchV2866(0,'弟子或日期已变化，请重新确认。');}
  discipleBatchV2866=null;
  const roster=discipleRosterV2815();
+ if(batch.entries.some(e=>{const d=roster.members.find(x=>x.id===e.id);return !d||d.job||warDiscipleBusyV286841(e.id)}))return showDiscipleBatchV2866(0,'弟子状态已变化，请重新确认。');
  for(const e of batch.entries){const d=roster.members.find(x=>x.id===e.id);d.job=discipleNewJobV2867(d,e.plan);d.lastMissionV2824={type:e.plan.missionType,tier:e.plan.tier};}
  autoSave();showSectOverviewV2866(`已派遣 ${batch.entries.length} 位弟子。`);
 }

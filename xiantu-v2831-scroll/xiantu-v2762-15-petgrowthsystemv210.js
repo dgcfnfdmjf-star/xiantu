@@ -180,4 +180,4 @@ const v210BondBase=window.startBondingProcess;if(typeof v210BondBase==='function
 // 每次打开灵宠界面时都进行旧档迁移；旧存档无需重开。
 const v210ShowPetsBase=window.showPets;window.showPets=function(){ensureAllPetGrowthV210();const r=v210ShowPetsBase?.apply(this,arguments);updatePetPanel?.();return r};
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-15-petgrowthsystemv210.js"]="28.68.40";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-15-petgrowthsystemv210.js"]="28.68.41";

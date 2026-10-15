@@ -1,6 +1,6 @@
 {
   "name": "xiantu",
-  "version": "28.68.40",
+  "version": "28.68.41",
   "private": true,
   "engines": {
     "node": ">=22"

@@ -11,7 +11,7 @@ oldDialog.onclick({target:stale});a.equal(c(f).step,0);
 // Three personal wins use actual combat hooks; no per-duel gold/exp and a single final payout.
 for(let stage=0;stage<3;stage++){
  f.run(`chooseWarTacticV2775(warCampaignV2839().reports[${stage}],${stage})`);const gold=f.run('player.gold'),exp=f.run('player.exp'),beforeSupply=c(f).supplies;
- press(f,'亲自交锋');a.equal(f.run('gameState'),'combat');a.equal(c(f).supplies,beforeSupply-1);a(!f.ids.has('warPanelV2839'));a(c(f).pending);
+ press(f,stage===2?'主将阵前单挑':'亲自交锋');a.equal(f.run('gameState'),'combat');a.equal(c(f).supplies,beforeSupply-1);a(!f.ids.has('warPanelV2839'));a(c(f).pending);
  f.run('currentEnemy.hp=1;combat("attack")');f.flush(150);a.equal(f.run('gameState'),'combat-ending');a.equal(c(f).step,stage+1);a.equal(c(f).pending,null);a.equal(f.run('player.gold'),gold);a.equal(f.run('player.exp'),exp);
  f.run('finishWarDuelV2839(true)');a.equal(c(f).step,stage+1);f.run('completeCombatFinishV2764()');f.flush(380);a(f.ids.has('warPanelV2839'));
 }
@@ -22,7 +22,7 @@ console.log('PASS real personal battles -> one settlement; score, roster snapsho
 // Mid-fight restore resumes the paid encounter with no duplicate supply cost.
 const r=game();prep(r);r.run('executeWar(target);chooseWarTacticV2775(0,0)');idStep(r,'startWarDuelV2839');r.run('saveGame()');const paid=c(r).supplies,pendingId=c(r).pending.id;r.run('loadAndStart();showWarCampaignV2775()');a.equal(c(r).pending.id,pendingId);press(r,'继续未结算交锋');a.equal(c(r).supplies,paid);a.equal(r.run('gameState'),'combat');
 // Real defeat leaves 1 HP, no wallet loss, unchanged stage; restoration has explicit cost and cap.
-r.run('player.hp=1;currentEnemy.atk=999999999;Math.random=()=>.9;enemyTurn()');const wallet=r.run('player.gold');r.flush(150);a.equal(r.run('gameState'),'combat-ending');a.equal(r.run('player.gold'),wallet);a.equal(r.run('player.hp'),1);a.equal(c(r).step,0);a.equal(c(r).morale,50);a.equal(c(r).pending,null);r.run('completeCombatFinishV2764()');r.flush(380);
+r.run('player.hp=1;currentEnemy.atk=999999999;Math.random=()=>.9;isPlayerTurn=false;resolveEnemyTurnV2844()');const wallet=r.run('player.gold');r.flush(150);a.equal(r.run('gameState'),'combat-ending');a.equal(r.run('player.gold'),wallet);a.equal(r.run('player.hp'),1);a.equal(c(r).step,0);a.equal(c(r).morale,50);a.equal(c(r).pending,null);r.run('completeCombatFinishV2764()');r.flush(380);
 r.c.confirm=()=>false;idStep(r,'restWarV2839');a.equal(r.run('player.gold'),wallet);r.c.confirm=()=>true;idStep(r,'restWarV2839');a.equal(r.run('player.gold'),wallet-(80+2*30));a.equal(r.run('player.hp'),r.run('getMaxHp()'));a.equal(c(r).rests,1);
 r.run('saveGame();loadAndStart();showWarCampaignV2775()');a.equal(c(r).step,0);a.equal(c(r).rests,1);a.equal(c(r).morale,50);
 console.log('PASS interrupted encounter restore, defeat without double charge, retryable stage, paid rest cancel/cost/save');
