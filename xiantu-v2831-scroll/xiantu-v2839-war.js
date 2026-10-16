@@ -271,7 +271,7 @@ function showWarMeritV2839(){
  if(!warAllowedV2839())return;const w=warStateV2839();
  openWarPanelV2839('军功补给处',()=>`<div class="war-stats-v2839"><div><small>可用军功</small><b>${w.meritV2839}</b></div><div><small>累计所得</small><b>${w.meritEarnedV2839}</b></div></div><p>完成会战获得军功；每次亲自交锋获胜另计10军功，随战役胜利统一发放。</p>${WAR_GOODS_V2839.map((g,i)=>`<article class="war-history-v2839"><h3>${g.name}</h3><p>${g.desc}</p>${warButtonV2839(`兑换 · ${g.cost}军功`,()=>exchangeWarMeritV2839(i),w.meritV2839<g.cost)}</article>`).join('')}<p class="war-muted-v2839">点兑换后仍需确认，取消不会扣除军功。</p>`,()=>warButtonV2839('返回军务',showWarHubV2839)+warButtonV2839('历次战报',showWarHistory));
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2839-war.js']='28.68.41';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2839-war.js']='28.68.46';
 
 // V28.68: one readable entry for the long war, existing story and campaign routes.
 function showAncientWarV2859(){
@@ -300,7 +300,7 @@ function showAncientWarV2859(){
 }
 function renderWorldPowerLoreV2859(){return '<section class="war-notice-v2839"><h3>三界当前基础战力</h3><p>仙族 5000 · 魔族 4000 · 人族 2000</p><p>这是现有设定的人族增强版本。单场战役按参战宗门、盟军与地利计算，不等于三族全军同时出动。</p></section>';}
 
-// V28.68.41: realm-locked rewards, commander pressure and assigned disciples.
+// V28.68.46: realm-locked rewards, commander pressure and assigned disciples.
 const WAR_SCALE_V286841=[1,1,1.2,1.5,1.8,2.2,2.6,3,3.6,4.2,5,5.8,6.6,7.4,8.2,9,10];
 const WAR_POSTS_V286841=['前哨先锋','攻坚统领','护阵统领'];
 function warRewardScaleV286841(c){return c?.rulesV286841===1?WAR_SCALE_V286841[warIntV2839(c.realm,0,16)]:1;}

@@ -153,6 +153,10 @@
 
   function hasMaterials(req){return Object.entries(req||{}).every(([n,c])=>(player.materials?.[n]||0)>=c);}
   function consumeMaterials(req){for(const [n,c] of Object.entries(req||{})){player.materials[n]=(player.materials[n]||0)-c;if(player.materials[n]<=0)delete player.materials[n];}}
+  function maxPetCraftsV286846(r){
+    const counts=Object.entries(r.materials).map(([n,c])=>Math.floor(Math.max(0,Number(player.materials?.[n])||0)/c));
+    const max=Math.min(...counts);return Number.isSafeInteger(max)?max:0;
+  }
   function matText(req){return Object.entries(req||{}).map(([n,c])=>{const h=player.materials?.[n]||0;return `<span style="color:${h>=c?'#69f0ae':'#ff8a80'}">${MATERIALS?.[n]?.icon||'🌿'} ${n} ${h}/${c}</span>`;}).join(' · ');}
 
   window.showMaterialWorkshop=function(filter='all'){
@@ -166,8 +170,7 @@
     if(filter==='all'||filter==='pet'){
       html+='<p style="color:#76e0d0;font-weight:800;margin-top:10px">🐾 灵宠培养材料</p>';
       for(const [id,r] of Object.entries(PET_MATERIAL_RECIPES)){
-        const ok=hasMaterials(r.materials);html+=`<div style="padding:7px 8px;margin:5px 0;border:1px solid rgba(118,224,208,.16);border-radius:9px"><b>${r.name}</b> · <span style="font-size:10px;color:#aaa">${r.desc}</span><div style="font-size:10px;margin-top:3px">${matText(r.materials)}</div></div>`;
-        choices.push({text:`${ok?'🧪':'🔒'} 炼制 ${r.name}`,action:'material_pet_craft',recipeId:id,condition:()=>hasMaterials(PET_MATERIAL_RECIPES[id].materials)});
+        const max=maxPetCraftsV286846(r);html+=`<div class="pet-craft-card-v286846" style="padding:7px 8px;margin:5px 0;border:1px solid rgba(118,224,208,.16);border-radius:9px"><b>${r.name}</b> · <span style="font-size:10px;color:#aaa">${r.desc}</span><div style="font-size:10px;margin-top:3px">每份：${matText(r.materials)}</div><p>持有 ${Number(player.petMaterials?.[r.output])||0} · 可炼 ${max} 份</p><div style="display:flex;flex-wrap:wrap;gap:6px">${[1,5,'all'].map(n=>`<button class="panel-action-btn" ${max>=(n==='all'?1:n)?'':'disabled'} onclick="craftPetMaterialBatchV286846('${id}',${n==='all'?"'all'":n})">${n==='all'?`全部（${max}）`:`×${n}`}</button>`).join('')}</div></div>`;
       }
     }
     if(filter==='all'||filter==='forge'){
@@ -182,11 +185,17 @@
     showStory(html,choices);
   };
 
-  window.craftPetMaterialRecipe=function(id){
-    const r=PET_MATERIAL_RECIPES[id];if(!r||!hasMaterials(r.materials)){showFloatingText?.('❌ 培养材料不足','#ff6b6b');return showMaterialWorkshop('pet');}
-    consumeMaterials(r.materials);player.petMaterials=player.petMaterials||{};player.petMaterials[r.output]=(player.petMaterials[r.output]||0)+(r.count||1);
-    showFloatingText?.(`🧪 炼制 ${r.output} ×${r.count||1}`,'#69f0ae');autoSave?.();showMaterialWorkshop('pet');
+  window.craftPetMaterialBatchV286846=function(id,mode=1){
+    if(gameState==='start'||!forgeAllowedV2825()||![1,5,'all'].includes(mode)||!Object.hasOwn(PET_MATERIAL_RECIPES,id))return false;
+    unifyLegacyMaterialPools();const r=PET_MATERIAL_RECIPES[id],max=maxPetCraftsV286846(r),count=mode==='all'?max:mode;
+    if(count<1||max<count){showFloatingText?.('❌ 培养材料不足','#ff6b6b');showMaterialWorkshop('pet');return false;}
+    const output=(r.count||1)*count,have=Number(player.petMaterials?.[r.output])||0;
+    if(!Number.isSafeInteger(have+output))return false;
+    consumeMaterials(Object.fromEntries(Object.entries(r.materials).map(([n,c])=>[n,c*count])));
+    player.petMaterials=player.petMaterials||{};player.petMaterials[r.output]=have+output;
+    showFloatingText?.(`🧪 炼制 ${r.output} ×${output}`,'#69f0ae');playSound?.('item');autoSave?.();showMaterialWorkshop('pet');return true;
   };
+  window.craftPetMaterialRecipe=function(id){return craftPetMaterialBatchV286846(id,1);};
   window.forgeMaterialEquipment=function(id){
     const r=MATERIAL_FORGE_RECIPES[id];if(!r)return;
     if((player.level||0)<r.realm){showFloatingText?.(`🔒 需要 ${CULTIVATION_REALMS?.[r.realm]?.name||'更高境界'}`,'#ff8a80');return showMaterialWorkshop('forge');}
@@ -201,4 +210,4 @@
   window.enableWorldMode=function(){unifyLegacyMaterialPools();const out=oldEnableWorldMode?.apply(this,arguments);updateWorldHUD?.();return out;};
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-08-feature-08.js"]="28.68.41";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-08-feature-08.js"]="28.68.46";
