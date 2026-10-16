@@ -130,7 +130,7 @@ function handleTutorialAction(action,stepId){
   if(action==='training'){tutorialState.compactStepId=null;return startTutorialTraining();}
   if(action==='equipment'){tutorialState.compactStepId=null;completeTutorialStep(stepId);closeTutorialBubble();showEquipmentPanel();setTimeout(()=>{showTutorialToast('📦 点【背包装备】，再点【布衣】即可穿戴',4600)},260);return}
   if(action==='tasks'){tutorialState.compactStepId=null;completeTutorialStep(stepId);closeTutorialBubble();showSectTasks();showTutorialToast('📜 接取差事后可查看【详细指引】与【任务追踪】',4300);setTimeout(()=>triggerTutorial('cultivation',true),1100);return}
-  if(action==='finish'){if(!firstJourneyV28687()&&player.level<2){player.firstJourneyV28687={step:0};const owner=player;setTimeout(()=>{if(player===owner&&forgeAllowedV2825())showFirstJourneyV28687()},600);}tutorialState.compactStepId=null;completeTutorialStep(stepId);closeTutorialBubble();hideTutorialSkipBtn();clearTutorialStepClasses();showTutorialToast('✅ 基础引路已完成。现在可以自由行走四域，更多内容可随时从【角色 → 修行指引】查看。',4300);return}
+  if(action==='finish'){if(!firstJourneyV28687()&&player.level<2){player.firstJourneyV28687={step:0};const owner=player;setTimeout(()=>{if(player===owner&&!firstJourneyV28687()?.paused&&firstJourneyV28687()?.step===0&&forgeAllowedV2825())showFirstJourneyV28687()},600);}tutorialState.compactStepId=null;completeTutorialStep(stepId);closeTutorialBubble();hideTutorialSkipBtn();clearTutorialStepClasses();showTutorialToast('✅ 基础引路已完成。现在可以自由行走四域，更多内容可随时从【角色 → 修行指引】查看。',4300);return}
 }
 function skipAllTutorial(){
   const t=ensureTutorialState();if(!t)return;if(!confirm('略过新手引路？基础说明仍可在【角色 → 修行指引】中随时查看。'))return;
@@ -188,7 +188,7 @@ function showHelpManual(){
   <div class="help-section"><h4>⚔️ 战斗</h4><p>高境界会对低境界形成威压和伤害优势，越级战斗更危险，但成功时可能获得额外收益。</p><p>功法会随修为逐步解锁；冰冻、灼烧、治疗等效果各有用途。装备还能提供暴击、爆伤、闪避、格挡与抗性。</p></div>
   <div class="help-section"><h4>🐾 灵宠与法宝</h4><p>东域灵兽谷可查看、培养与选择出战灵宠。野外遇到可收服灵兽时，将其气血压到25%以下即可使用灵兽绳、缚灵玉、御灵葫芦等道具尝试收服；魔宠与王兽/神兽需要特殊契具。</p><p>灵宠拥有品质、等级上限与契约类型；御兽功法可提升收服成功率。西域法宝台可查看与强化已有法宝。</p></div>
   <div class="help-section"><h4>🌸 剧情与宗门</h4><p>主线会随着境界与战斗推进；与苏晚晴相识后，你的抉择也将改变这段尘缘的归宿。宗门还有任务、职位、百年大比与战争等长期玩法。</p><p>百年宗门大比前三的人类宗门，可获得本世纪进入万宗秘境的资格。</p></div>
-  </div><div class="help-manual-actions"><button onclick="restartTutorial()">🌅 重走新手引路</button><button onclick="toggleTutorialTooltips()">${t?.showTooltips?'关闭':'开启'}问号提示</button><button onclick="closeHelpManual()">返回仙途</button></div></div>`;document.body.appendChild(el)
+  </div><div class="help-manual-actions">${firstJourneyV28687()?.step<5?'<button onclick="beginFirstJourneyV28687()">继续初入仙途</button>':''}<button onclick="restartTutorial()">🌅 重走新手引路</button><button onclick="toggleTutorialTooltips()">${t?.showTooltips?'关闭':'开启'}问号提示</button><button onclick="closeHelpManual()">返回仙途</button></div></div>`;document.body.appendChild(el)
 }
 function closeHelpManual(){document.getElementById('helpManual')?.remove()}
 function createTooltipLabel(label,text){return `${label}<span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">${text}</span></span>`}
@@ -200,7 +200,7 @@ function installGuideEntry(){
 
 window.addEventListener('load',()=>setTimeout(()=>{installTutorialInteractionHooks();installGuideEntry();installTutorialTooltips()},650));
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-04-tutorial-guide-script.js"]="28.68.41";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-04-tutorial-guide-script.js"]="28.68.46";
 
 // 初入仙途：只突出下一步，奖励随进度一次性保存。
 function firstJourneyV28687(){
@@ -211,12 +211,12 @@ function firstJourneyV28687(){
 function beginFirstJourneyV28687(){
   if(!forgeAllowedV2825())return;
   if(!firstJourneyV28687())player.firstJourneyV28687={step:0};
-  autoSave();showFirstJourneyV28687();
+  firstJourneyV28687().paused=false;closeHelpManual();autoSave();syncFirstJourneyV28687();showFirstJourneyV28687();
 }
 function syncFirstJourneyV28687(){
   const host=document.getElementById('characterUtilityActions');if(!host)return;
   let b=document.getElementById('firstJourneyV28687');
-  const s=firstJourneyV28687(),eligible=!!s||player.level<2;
+  const s=firstJourneyV28687(),eligible=player.level<2&&(!s||(s.step<5&&!s.paused));
   if(!eligible){b?.remove();return;}
   if(!b){b=document.createElement('button');b.id='firstJourneyV28687';b.onclick=beginFirstJourneyV28687;host.insertBefore(b,host.firstChild);}
   const names=['弱敌试手','装备木剑','配置功法','山道挑战','查看来信','引导已完成'];
@@ -238,7 +238,7 @@ function showFirstJourneyV28687(){
   const [title,body,reward,action]=descriptions[s.step];
   showStory(`<h3>初入仙途 · ${Math.min(s.step+1,5)}/5 · ${title}</h3><p>${body}</p><p style="color:#e5cf87">${reward}</p><button class="choice-btn" onclick="actFirstJourneyV28687(${s.step})">${action}</button><button class="choice-btn" onclick="closeWorldOverlay()">返回地图 · 稍后继续</button>${s.step>=4?'<button class="choice-btn" onclick="showRainChapterV286822()">追查来信 · 雨夜命牌案</button><button class="choice-btn" onclick="showEarlyEconomyV2773()">查看并领取入世补助</button>':''}<button class="choice-btn" onclick="leaveFirstJourneyV28687()">结束引导，自由探索</button>`,[]);
 }
-function leaveFirstJourneyV28687(){if(!forgeAllowedV2825())return;const s=firstJourneyV28687();if(s)s.paused=true;autoSave();closeWorldOverlay();showFloatingText('可从“下一步”继续引导。','#e5cf87');}
+function leaveFirstJourneyV28687(){if(!forgeAllowedV2825())return;const s=firstJourneyV28687();if(s)s.paused=true;syncFirstJourneyV28687();autoSave();closeWorldOverlay();showFloatingText('已收起引导，可从角色 → 修行指引继续。','#e5cf87');}
 function actFirstJourneyV28687(expected){
   if(!forgeAllowedV2825())return;const s=firstJourneyV28687();if(!s||s.step!==expected)return;s.paused=false;
   if(s.step===0||s.step===3){
@@ -256,15 +256,15 @@ function actFirstJourneyV28687(expected){
     const slots=ensureSkillLoadoutV212().sword;if(!slots.includes('御剑术')){if(slots.length>=3){showFloatingText('兵刃系已携带3个技能，请换入御剑术，再回来继续。','#ffd76a');showSkillLoadoutPanelV212('sword');return;}slots.push('御剑术');}s.step=3;
   }else if(s.step===4){s.step=5;s.letterRead=true;}
   else {showTaskPanel();return;}
-  autoSave();updateStats();showFirstJourneyV28687();
+  autoSave();syncFirstJourneyV28687();updateStats();showFirstJourneyV28687();
 }
 function finishFirstJourneyBattleV28687(enemy){
   const s=firstJourneyV28687(),step=enemy?._firstJourneyStepV28687;
   if(!s||!enemy||enemy.hp>0||![0,3].includes(step)||s.step!==step)return;
   if(step===0){if(!playerOwnsEquipment('木剑'))player.equipmentInventory.push('木剑');s.step=1;}
   else {player.gold+=120;s.step=4;}
-  autoSave();const owner=player;
-  setTimeout(()=>{if(player===owner&&forgeAllowedV2825()){closeWorldOverlay();showFirstJourneyV28687();}},1800);
+  autoSave();const owner=player,nextStep=s.step;
+  setTimeout(()=>{if(player===owner&&firstJourneyV28687()===s&&!s.paused&&s.step===nextStep&&forgeAllowedV2825()){closeWorldOverlay();showFirstJourneyV28687();}},1800);
 }
 
 {const reset=window.resetRuntimeState;if(typeof reset==='function')window.resetRuntimeState=function(...args){cancelTutorialTrainingV286845();return reset.apply(this,args);};}
