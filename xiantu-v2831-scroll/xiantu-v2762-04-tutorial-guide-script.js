@@ -6,7 +6,7 @@ const TUTORIAL_STEPS={
   combat:{title:'⚔️ 演武入门',desc:'先用一具低阶演武傀儡熟悉战斗。战斗中可以使用<b>普通攻击</b>或已掌握的功法，灵力不足时要留意恢复。',placement:'center',actions:[{text:'开始演武',action:'training'}]},
   combat_attack:{title:'⚔️ 先出一剑',desc:'点击<b>【普通攻击】</b>完成第一击。之后自由应战，击败演武傀儡即可。',compact:'点击【普通攻击】完成第一击',target:'#combatChoices .choice-btn',placement:'left',waitFor:'attack'},
   equipment:{title:'🎒 穿戴所得',desc:'演武奖励已经放入<b>装备背包</b>。打开装备栏，点击【背包装备】，再点【布衣】穿到法袍位。<br><br>装备有品质与境界要求，高阶装备必须达到相应境界才能使用。',placement:'left',actions:[{text:'打开装备栏',action:'equipment'}]},
-  tasks:{title:'📜 宗门差事',desc:'宗门任务是稳定获取<b>修为、贡献与灵石</b>的途径。接取后可以查看详细指引与任务追踪；采集、清剿与捐献都有各自的真实获取路线。',placement:'center',actions:[{text:'查看宗门任务',action:'tasks'},{text:'继续了解修炼',action:'next',nextStep:'cultivation'}]},
+  tasks:{title:'📜 宗门差事',desc:'宗门任务是稳定获取<b>修为、贡献与灵石</b>的途径。接取后可以查看详细指引与任务追踪；可循指引采药、猎妖，或将珍材捐入宗门。',placement:'center',actions:[{text:'查看宗门任务',action:'tasks'},{text:'继续了解修炼',action:'next',nextStep:'cultivation'}]},
   cultivation:{title:'🧘 修炼与突破',desc:'修为达到当前瓶颈后，会进入突破流程，突破存在失败风险。失败后需要调息，时间会随仙历流逝而减少。<br><br><b>闭关十年最多推进一个小段</b>，不会连续跨越多个境界；渡劫圆满必须真正渡过飞升天劫，方能进入地仙。',placement:'center',actions:[{text:'我已明白',action:'finish'}]}
 };
 const TUTORIAL_ORDER=['welcome','movement','interaction','combat','combat_attack','equipment','tasks','cultivation'];
@@ -92,26 +92,37 @@ function grantTutorialTrainingReward(){
   showTutorialToast('🎉 演武通过：灵石 +120 · 修为 +30 · 获得【布衣】 · 自由探索已开放',5200);
   updateStats?.();autoSave?.();
 }
+// A tutorial run owns its watcher and delayed rewards; a loaded role cannot inherit them.
+let tutorialTrainingRunV286845=null;
+function cancelTutorialTrainingV286845(){
+  const run=tutorialTrainingRunV286845;tutorialTrainingRunV286845=null;
+  clearInterval(tutorialState.trainingWatcher);tutorialState.trainingWatcher=null;
+  if(run)for(const timer of run.timers)clearTimeout(timer);
+}
 function startTutorialTraining(){
-  tutorialState.compactStepId=null;
-  completeTutorialStep('combat');closeTutorialBubble();
-  const enemy={name:'演武傀儡',hp:26,maxHp:26,atk:4,def:1,gold:0,exp:0,_realmLevel:0,_realmPhase:0,_isTutorial:true};
+  cancelTutorialTrainingV286845();
+  tutorialState.compactStepId=null;completeTutorialStep('combat');closeTutorialBubble();
+  const owner=player,enemy={name:'演武傀儡',hp:26,maxHp:26,atk:4,def:1,gold:0,exp:0,_realmLevel:0,_realmPhase:0,_isTutorial:true};
   startCombat(enemy,false,false,null);
-  setTimeout(()=>triggerTutorial('combat_attack',true),260);
-  clearInterval(tutorialState.trainingWatcher);
+  if(player!==owner||currentEnemy!==enemy||gameState!=='combat')return;
+  const run={owner,enemy,victoryToken:null,timers:new Set()};tutorialTrainingRunV286845=run;
+  const valid=()=>tutorialTrainingRunV286845===run&&player===owner&&!owner.tutorial?.skipped&&(currentEnemy===enemy||(run.victoryToken!==null&&COMBAT_FINISH_V2764.token===run.victoryToken&&!currentEnemy&&gameState==='exploring'));
+  function later(fn,delay){const id=setTimeout(()=>{run.timers.delete(id);if(valid())fn();else if(tutorialTrainingRunV286845===run)cancelTutorialTrainingV286845();},delay);run.timers.add(id);}
+  later(()=>triggerTutorial('combat_attack',true),260);
   tutorialState.trainingWatcher=setInterval(()=>{
-    if(currentEnemy?._isTutorial&&currentEnemy.hp<=0){
+    if(tutorialTrainingRunV286845!==run)return;
+    if(!valid()||(enemy.hp>0&&gameState!=='combat'&&gameState!=='combat-ending')){cancelTutorialTrainingV286845();return;}
+    if(enemy.hp<=0){
       clearInterval(tutorialState.trainingWatcher);tutorialState.trainingWatcher=null;
       completeTutorialStep('combat_attack');closeTutorialBubble();
-      // 先让胜利文字短暂显示，再收起战斗层；之后才开放自由探索和装备教学。
-      setTimeout(()=>{
-        closeWorldOverlay?.();
-        grantTutorialTrainingReward();
-        setTimeout(()=>triggerTutorial('equipment',true),760);
-      },900);
+      later(()=>{closeWorldOverlay?.();grantTutorialTrainingReward();later(()=>{triggerTutorial('equipment',true);tutorialTrainingRunV286845=null;},760);},900);
     }
   },150);
 }
+window.addEventListener('xiantu:combat-finishing',()=>{
+  const run=tutorialTrainingRunV286845;
+  if(run&&player===run.owner&&currentEnemy===run.enemy&&run.enemy.hp<=0&&COMBAT_FINISH_V2764.pending?.kind==='victory')run.victoryToken=COMBAT_FINISH_V2764.token;
+});
 function handleTutorialAction(action,stepId){
   if(action==='dock'){tutorialState.compactStepId=stepId;closeTutorialBubble();setTimeout(()=>triggerTutorial(stepId,true),40);return}
   if(action==='next'){const a=TUTORIAL_STEPS[stepId]?.actions?.find(x=>x.action==='next');return goTutorialNext(stepId,a?.nextStep)}
@@ -123,13 +134,13 @@ function handleTutorialAction(action,stepId){
 }
 function skipAllTutorial(){
   const t=ensureTutorialState();if(!t)return;if(!confirm('略过新手引路？基础说明仍可在【角色 → 修行指引】中随时查看。'))return;
-  t.skipped=true;for(const id of TUTORIAL_ORDER)if(!t.completedSteps.includes(id))t.completedSteps.push(id);
+  cancelTutorialTrainingV286845();t.skipped=true;for(const id of TUTORIAL_ORDER)if(!t.completedSteps.includes(id))t.completedSteps.push(id);
   // 只补发尚未取得的演武基础物资，避免重复领奖。
   if(!t.readPopups.includes('training_reward')){t.readPopups.push('training_reward');player.gold+=120;if(!playerOwnsEquipment('布衣'))player.equipmentInventory.push('布衣');}
   tutorialState.compactStepId=null;closeTutorialBubble();hideTutorialSkipBtn();clearTutorialStepClasses();updateStats?.();autoSave?.();showTutorialToast('引路已略过。自由探索已开放，修行所需说明仍收录在【角色 → 修行指引】中。',4000)
 }
 function checkAndStartTutorial(force=false){const t=ensureTutorialState();if(!t)return;if(t.skipped&&!force){clearTutorialStepClasses();return}if(force&&t.skipped)t.skipped=false;if(t.completedSteps.length>=TUTORIAL_ORDER.length){clearTutorialStepClasses();return}const resume=t.activeStep&&TUTORIAL_STEPS[t.activeStep]?t.activeStep:TUTORIAL_ORDER.find(id=>!t.completedSteps.includes(id));if(resume){syncTutorialStage(resume);setTimeout(()=>triggerTutorial(resume,true),260)}}
-function restartTutorial(){const t=ensureTutorialState();t.skipped=false;t.completedSteps=[];t.activeStep=null;t.readPopups=t.readPopups.filter(x=>x!=='training_reward');tutorialState.compactStepId=null;closeHelpManual();closeTutorialBubble();syncTutorialStage('welcome');showTutorialSkipBtn();setTimeout(()=>triggerTutorial('welcome',true),180);autoSave?.()}
+function restartTutorial(){cancelTutorialTrainingV286845();const t=ensureTutorialState();t.skipped=false;t.completedSteps=[];t.activeStep=null;tutorialState.compactStepId=null;closeHelpManual();closeTutorialBubble();syncTutorialStage('welcome');showTutorialSkipBtn();setTimeout(()=>triggerTutorial('welcome',true),180);autoSave?.()}
 
 // 手机交互按钮和桌面 E/空格共用同一教学完成判定。
 function handleTutorialInteractionV28685(){
@@ -169,14 +180,14 @@ function checkTutorialRealm(level){
 function showHelpManual(){
   document.getElementById('helpManual')?.remove();const t=ensureTutorialState();const el=document.createElement('div');el.id='helpManual';el.className='help-manual-overlay active';el.onclick=e=>{if(e.target===el)closeHelpManual()};
   el.innerHTML=`<div class="help-manual-content" onclick="event.stopPropagation()"><div class="help-manual-title"><span>📖 仙途 · 修行指引</span><button aria-label="关闭" class="help-manual-close" onclick="closeHelpManual()">✕</button></div><div class="help-manual-grid">
-  <div class="help-section"><h4>🕹️ 行走与交互</h4><p>左下摇杆可自由控制方向；也可轻点地面自动前往落点。走进地点外圈后，右下【交互】进入。</p><p>右上小地图可查看周围地点，也可点选地图位置寻路。☰中可打开角色、装备、宗门任务与记档。</p></div>
+  <div class="help-section"><h4>🕹️ 行走与交互</h4><p>左下摇杆可自由控制方向；也可轻点地面自动前往落点。走进地点外圈后，右下【交互】进入。</p><p>右上小地图可查看周围地点，也可点选地图位置寻路。小地图旁的【探索】可展开山河图与探索手册；【角色】中可查看装备、宗门待办与修行设置。</p></div>
   <div class="help-section"><h4>🧘 修炼与突破</h4><p>修为达到瓶颈后会进入突破流程，成功率会受境界、丹药、宗门状态与心境影响。</p><p><b>闭关十年最多推进一个小段</b>。突破失败会损失部分修为并进入调息期；渡劫圆满必须渡过飞升天劫才能进入地仙。</p></div>
   <div class="help-section"><h4>🎒 装备</h4><p>装备分防具、首饰、武器法宝等槽位，并有凡品至神器的品质差异。装备品质会放大其基础属性。</p><p>高阶装备有境界要求。戒指有两格、法宝有三格；<b>本命法宝位在金丹境开启</b>。成套装备可激活额外加成。</p></div>
   <div class="help-section"><h4>🗺️ 四域行路</h4><p><span class="help-tag">南域 初始</span><span class="help-tag">东域 筑基</span><span class="help-tag">北域 筑基</span><span class="help-tag">西域 金丹</span></p><p>通过四方驿道或行路选择前往其他地域。不同地域拥有不同地点与危险。</p></div>
-  <div class="help-section"><h4>📜 宗门差事</h4><p>宗门任务包含采集灵草、妖丹、仙果，清剿妖兽，以及灵石/珍材捐献。任务面板提供真实获取路线与任务追踪。</p><p>宗门贡献可用于职位与宗门玩法；累计贡献不会因消费当前贡献而倒退。</p></div>
+  <div class="help-section"><h4>📜 宗门差事</h4><p>宗门任务包含采集灵草、妖丹、仙果，清剿妖兽，以及灵石/珍材捐献。可在任务面板查看寻访线索，并追踪未竟的差事。</p><p>宗门贡献可用于职位与宗门玩法；累计贡献不会因消费当前贡献而倒退。</p></div>
   <div class="help-section"><h4>⚔️ 战斗</h4><p>高境界会对低境界形成威压和伤害优势，越级战斗更危险，但成功时可能获得额外收益。</p><p>功法会随修为逐步解锁；冰冻、灼烧、治疗等效果各有用途。装备还能提供暴击、爆伤、闪避、格挡与抗性。</p></div>
   <div class="help-section"><h4>🐾 灵宠与法宝</h4><p>东域灵兽谷可查看、培养与选择出战灵宠。野外遇到可收服灵兽时，将其气血压到25%以下即可使用灵兽绳、缚灵玉、御灵葫芦等道具尝试收服；魔宠与王兽/神兽需要特殊契具。</p><p>灵宠拥有品质、等级上限与契约类型；御兽功法可提升收服成功率。西域法宝台可查看与强化已有法宝。</p></div>
-  <div class="help-section"><h4>🌸 剧情与宗门</h4><p>主线会随着境界与战斗推进；苏晚晴相关剧情存在独立进展与结局。宗门还有任务、职位、百年大比与战争等长期玩法。</p><p>百年宗门大比前三的人类宗门，可获得本世纪进入万宗秘境的资格。</p></div>
+  <div class="help-section"><h4>🌸 剧情与宗门</h4><p>主线会随着境界与战斗推进；与苏晚晴相识后，你的抉择也将改变这段尘缘的归宿。宗门还有任务、职位、百年大比与战争等长期玩法。</p><p>百年宗门大比前三的人类宗门，可获得本世纪进入万宗秘境的资格。</p></div>
   </div><div class="help-manual-actions"><button onclick="restartTutorial()">🌅 重走新手引路</button><button onclick="toggleTutorialTooltips()">${t?.showTooltips?'关闭':'开启'}问号提示</button><button onclick="closeHelpManual()">返回仙途</button></div></div>`;document.body.appendChild(el)
 }
 function closeHelpManual(){document.getElementById('helpManual')?.remove()}
@@ -255,3 +266,5 @@ function finishFirstJourneyBattleV28687(enemy){
   autoSave();const owner=player;
   setTimeout(()=>{if(player===owner&&forgeAllowedV2825()){closeWorldOverlay();showFirstJourneyV28687();}},1800);
 }
+
+{const reset=window.resetRuntimeState;if(typeof reset==='function')window.resetRuntimeState=function(...args){cancelTutorialTrainingV286845();return reset.apply(this,args);};}

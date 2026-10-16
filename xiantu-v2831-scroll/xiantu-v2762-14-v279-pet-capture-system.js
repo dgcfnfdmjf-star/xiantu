@@ -106,7 +106,14 @@ function getCaptureRate(enemy,itemName){
 }
 function consumeInventoryItem(name){const i=player.inventory.indexOf(name);if(i>=0){player.inventory.splice(i,1);return true}return false}
 function attemptCapture(enemy=currentEnemy){
-  const pc=ensurePetCaptureState();if(pc.isCapturing){showFloatingText?.('⏳ 正在收服中…','#ffd700');return}const c=canCaptureTarget(enemy);if(!c.ok){showFloatingText?.(`❌ ${c.reason}`,'#ff6b6b');return}
+  if(gameState!=='combat'||enemy!==currentEnemy||!isPlayerTurn||player?.breakthrough?.isAnimating)return false;
+  const owner=player;let pc=ensurePetCaptureState();if(pc.isCapturing){showFloatingText?.('⏳ 正在收服中…','#ffd700');return}const c=canCaptureTarget(enemy);if(!c.ok){showFloatingText?.(`❌ ${c.reason}`,'#ff6b6b');return}
+  if(c.bestItem==='御灵葫芦'&&(PET_QUALITY_RANK[c.petData.quality]||1)<=2){
+    if(!confirm(`即将消耗【御灵葫芦】（价值500灵石）收服${getPetQualityInfo(c.petData.quality).label}【${enemy.name}】。是否继续？`))return false;
+    if(player!==owner||currentEnemy!==enemy||gameState!=='combat'||!isPlayerTurn)return false;
+    const check=canCaptureTarget(enemy);if(!check.ok||check.bestItem!==c.bestItem)return false;
+  }
+  pc=player.petCapture;
   pc.isCapturing=true;pc.captureTarget=enemy;pc.usedItem=c.bestItem;isPlayerTurn=false;updateCombatChoices?.();
   if(c.petData?.canBond){startBondingProcess(enemy,c.bestItem);return}const rate=getCaptureRate(enemy,c.bestItem);addCombatLog?.(`🌀 使用【${c.bestItem}】尝试收服 ${enemy.name}（成功率 ${Math.round(rate*100)}%）`,'pet');showCaptureProgress(rate,()=>{Math.random()<rate?captureSuccess(enemy,c.bestItem,!!c.petData?.isDemon):captureFail(enemy,c.bestItem,!!c.petData?.isDemon)})
 }

@@ -64,6 +64,30 @@
     window.playSound?.('item');window.updateArtifactPanel?.();window.updateStats?.();window.updateWorldHUD?.();window.autoSave?.();
   };
 
+  window.getArtifactUpgradePlanV286845=function(art){
+    ensureUnified();const type=art&&ARTIFACT_TYPES[art.type],costs={};let levels=0;
+    if(!type)return {levels,costs};
+    for(let level=Math.max(1,Number(art.level)||1);level<type.maxLevel;level++){
+      const requirements=Object.entries(type.upgradeCost||{}).map(([mat,base])=>({mat,need:Math.max(0,Number(base)||0)*level}));
+      if(requirements.some(({mat,need})=>(costs[mat]||0)+need>Math.max(0,Number(mat==='灵石'?player.gold:player.materials?.[mat])||0)))break;
+      for(const {mat,need}of requirements)costs[mat]=(costs[mat]||0)+need;
+      levels++;
+    }
+    return {levels,costs};
+  };
+  window.upgradeArtifactMaxV286845=function(index){
+    if(!Number.isInteger(index)||!forgeAllowedV2825())return false;
+    const art=player?.artifacts?.[index],plan=getArtifactUpgradePlanV286845(art);
+    if(!plan.levels){if(art)showUpgradeMissing(art,getArtifactUpgradeCheck(art));return false;}
+    for(const [mat,need]of Object.entries(plan.costs)){
+      if(mat==='灵石')player.gold-=need;
+      else {player.materials[mat]-=need;if(player.materials[mat]<=0)delete player.materials[mat];}
+    }
+    art.level=(Number(art.level)||1)+plan.levels;
+    window.showFloatingText?.(`✨ ${art.name} 连续强化 ${plan.levels} 级 → +${art.level}`,'#ffd76a');
+    window.playSound?.('item');window.updateArtifactPanel?.();window.updateStats?.();window.updateWorldHUD?.();window.autoSave?.();return true;
+  };
+
   const prevUpdate=window.updateArtifactPanel;
   window.updateArtifactPanel=function(){
     ensureUnified();
@@ -82,9 +106,15 @@
         btn.textContent=check.max?'已满级':(check.ok?'强化':'材料不足');
         btn.title=check.max?'已达到最高强化等级':upgradeRequirementText(check,false);
       }
+      const plan=getArtifactUpgradePlanV286845(art);
+      const maxBtn=document.createElement('button');maxBtn.className='artifact-btn artifact-max-btn-v286845';
+      maxBtn.textContent=plan.levels?`一键强化 · +${plan.levels}级`:'一键强化';maxBtn.disabled=!plan.levels;
+      maxBtn.title=plan.levels?'合计消耗：'+Object.entries(plan.costs).map(([mat,count])=>`${mat} ×${count}`).join('、'):'材料不足或已满级';
+      maxBtn.onclick=()=>{if(player.artifacts?.[index]===art)upgradeArtifactMaxV286845(index);};
+      card.querySelector('.artifact-max-btn-v286845')?.remove();const actions=btn?.parentNode||card;actions.classList.add('artifact-batch-actions-v286845');actions.appendChild(maxBtn);
       let hint=card.querySelector('.artifact-upgrade-cost-hint');
-      if(!hint){hint=document.createElement('div');hint.className='artifact-upgrade-cost-hint';card.appendChild(hint);}
-      hint.innerHTML=check.max?'<span class="max">✨ 已达到最高强化等级</span>':`本次强化：${upgradeRequirementText(check,true)}`;
+      if(!hint){hint=document.createElement('div');hint.className='artifact-upgrade-cost-hint';(card.querySelector('.artifact-info')||card).appendChild(hint);}
+      hint.innerHTML=check.max?'<span class="max">✨ 已达到最高强化等级</span>':`本次强化：${upgradeRequirementText(check,true)}${plan.levels?'<br>连续强化共需：'+Object.entries(plan.costs).map(([mat,count])=>`${mat} ×${count}`).join(' · '):''}`;
     });
     return out;
   };
