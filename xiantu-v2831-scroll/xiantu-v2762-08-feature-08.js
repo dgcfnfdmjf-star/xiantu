@@ -79,7 +79,7 @@
         if(footer&&!card.querySelector('#materialWorkshopBtn')){
           const btn=document.createElement('button');
           btn.id='materialWorkshopBtn';btn.className='choice-btn';btn.style.cssText='width:100%;margin:10px 0 0';
-          btn.textContent='🧰 打开材料工坊';
+          btn.textContent='🧰 打开百艺工坊';
           btn.onclick=()=>{closeMobileInventory();showMaterialWorkshop('all');};
           footer.before(btn);
         }
@@ -119,7 +119,7 @@
     if(inv&&player){
       const names=['星辰砂','血玉','万年寒玉','冰晶石','灵木','魔核','妖丹','仙灵草','千年灵芝','仙果'];
       const chips=names.filter(n=>(player.materials?.[n]||0)>0).map(n=>`<span class="material-tag material-${MATERIALS?.[n]?.type||'stone'}">${MATERIALS?.[n]?.icon||'💎'} ${n} x${player.materials[n]}</span>`).join('');
-      inv.innerHTML=`<span class="material-tag material-stone">💰 灵石 x${player.gold||0}</span>${chips||'<span style="color:#888;margin-left:6px">暂无可用强化材料</span>'}<div style="font-size:10px;color:#8f99a4;margin-top:6px">强化现在直接消耗储物袋材料，不再使用独立材料库存。</div>`;
+      inv.innerHTML=`<span class="material-tag material-stone">💰 灵石 x${player.gold||0}</span>${chips||'<span style="color:#888;margin-left:6px">储物袋中暂无对应淬炼灵材</span>'}`;
     }
     return out;
   };
@@ -157,10 +157,10 @@
 
   window.showMaterialWorkshop=function(filter='all'){
     unifyLegacyMaterialPools();
-    let html='<p style="font-size:18px;font-weight:850;color:#f2d68d">🧰 材料工坊</p><p style="font-size:11px;color:#9ca8b6">所有基础材料统一放在储物袋中。炼丹、御兽、炼器、法宝强化、宗门任务会真正消耗对应材料。</p>';
+    let html='<p style="font-size:18px;font-weight:850;color:#f2d68d">🧰 百艺工坊</p><p style="font-size:11px;color:#9ca8b6">集四域天材地宝，于此炉中炼丹、育兽、铸器。</p>';
     const choices=[];
     if(filter==='all'){
-      html+='<div style="padding:8px;border:1px solid rgba(126,201,255,.18);border-radius:10px;margin:8px 0"><b style="color:#7ec9ff">🔥 丹药炼制</b><div style="font-size:11px;color:#9ca8b6;margin-top:3px">普通材料与四域珍材均已加入丹方，包括冰魄丹、玄玉护脉丹、幽冥悟道丹、血玉淬体丹。</div></div>';
+      html+='<div style="padding:8px;border:1px solid rgba(126,201,255,.18);border-radius:10px;margin:8px 0"><b style="color:#7ec9ff">🔥 丹道炉火</b><div style="font-size:11px;color:#9ca8b6;margin-top:3px">以四域灵草珍材入药，可炼制冰魄丹、玄玉护脉丹、幽冥悟道丹、血玉淬体丹等灵丹。</div></div>';
       choices.push({text:'🔥 前往炼丹',action:'alchemy'});
     }
     if(filter==='all'||filter==='pet'){

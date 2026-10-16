@@ -180,7 +180,7 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
         <div class="character-panel-content">
 <div class="char-toolbar-v2799"><span>人物 · 修行录</span><button type="button" onclick="toggleCharacterPanel(false)" aria-label="关闭角色面板">关闭 ✕</button></div>          <details class="character-utilities">
             <summary>修行与设置 <small>指引 · 操作 · 版本</small></summary>
-            <div id="characterUtilityActions"><button type="button" onclick="showJevHubV2846()">☯ Jev 中心</button></div>
+            <div id="characterUtilityActions"><button type="button" onclick="showJevHubV2846()" title="天机参详 · 灵枢推演">☯ 天机</button></div>
           </details><div class="deep-panel-header">
             <div class="deep-panel-avatar">
               <canvas id="panelAvatar" aria-label="男主立绘" width="1" height="1" data-v2762-width="180" data-v2762-height="240"></canvas>
@@ -467,8 +467,8 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
       setTimeout(function(){try{if(typeof window.installTutorialInteractionHooks==='function')window.installTutorialInteractionHooks();if(typeof window.installGuideEntry==='function')window.installGuideEntry();if(typeof window.installTutorialTooltips==='function')window.installTutorialTooltips();}catch(_){}},650);
       addInstallLinks();
       bootJevFriendsV2850();
-      var buildBadge=document.createElement('button');buildBadge.id='xiantuBuildBadgeV2814';buildBadge.textContent='V28.68.41 ✓';buildBadge.title='查看实际加载版本';
-      buildBadge.onclick=function(){alert('当前实际版本：V28.68.41\n界面样式与 '+files.length+' 个脚本版本均已核对一致。\n本次更新：会战奖励随出征境界增长；决战新增8次行动主将战；空闲弟子可担任三阶段统领，性格影响战果并记录履历。无需更新Jev。\n这表示当前页面文件一致，不代表已查询服务器是否有更新。');};
+      var buildBadge=document.createElement('button');buildBadge.id='xiantuBuildBadgeV2814';buildBadge.textContent='版本信息';buildBadge.title='查看当前版本';
+      buildBadge.onclick=function(){alert('仙途 · V28.68.41\n遇到问题时，可提供此版本号与画面截图。');};
       document.getElementById('characterUtilityActions').appendChild(buildBadge);
       document.body.classList.remove('xiantu-v2762-booting');
       document.getElementById('xiantuSafeBoot').remove();
