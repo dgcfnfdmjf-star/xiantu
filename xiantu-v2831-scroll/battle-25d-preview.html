@@ -3,22 +3,27 @@
 <main><header><div><small>仙途 / 水墨动作群妖演武</small><h1>青云试剑坪</h1></div><p>沿用角色立绘外观 · 23 类敌人动作预览</p></header><label for="enemySelect">选择对手</label> <select id="enemySelect" aria-label="选择对手"></select><label for="petSelect">同行灵宠</label> <select id="petSelect" aria-label="同行灵宠"><option value="">无</option><option>灵狐</option><option>玄龟</option><option>雷鹰</option><option>仙鹤</option><option>火凤</option><option>冰龙</option><option>灵纹野兔</option><option>魔渊蝙蝠</option></select><div id="stage"></div><p><label for="skillSelect">逐招试演</label> <select id="skillSelect" aria-label="选择技能"></select> <button id="castSelected">施放所选技能</button> <button id="inkFxQualityV2854">特效：自动</button></p><div class="controls"><button data-act="attack">挥剑突进</button><button data-act="wolf">敌方出招</button><button data-act="thunder">九天神雷</button><button data-act="ice">玄冰刺</button><button data-act="fire">天火焚世</button><button data-act="heal">回春</button><button data-act="pet">灵宠追击</button><button data-act="finish">击倒对手</button><button data-act="reset">重新演示</button></div><p id="status" role="status">点击招式，查看移动、受击与回位动作。</p><footer>这是动作与画面预览，不读取或修改游戏存档。正式游戏中的对应怪物会使用同一场景，数值仍由原战斗系统结算。</footer><p><a href="./index.html">进入仙途</a></p></main>
 <label style="display:block;margin:12px 18px"><input id="burnFixture" type="checkbox"> 对手带灼烧（炎爆术引爆试播）</label><button id="clearBurn" style="margin:0 18px 16px">清除灼烧 / 火域 / 莲印</button>
 <div class="controls" style="margin:0 18px 16px"><button id="elementTurn">推进敌方回合</button><button id="guardHit">护盾承伤 30 点</button><button id="clearElements">清除缠绕与护盾</button></div>
+<div class="controls" style="margin:0 18px 16px"><label><input id="cloudDomain" type="checkbox"> 九霄雷云套装雷域</label><button id="thunderTurn">雷域推进一回合</button><button id="reflectHit">模拟承伤反噬</button><button id="clearThunder">清除雷域与雷铠</button></div>
 <script src="./xiantu-v2855-skill-fx.js?v=286838"></script><script src="./xiantu-v28684-duel.js?v=286838"></script><script>
 const state={playerName:'青云剑修',enemyName:'苍山野狼',playerHp:720,playerMax:720,enemyHp:980,enemyMax:980};let scene;const selector=document.getElementById('enemySelect');XiantuDuel25D.roster.forEach(p=>{const option=document.createElement('option');option.value=p.key;option.textContent=p.name;selector.appendChild(option);});let timer=0,busy=false;const status=document.getElementById('status');
+function clearThunder(){state.thunderDomainTurns=0;state.thunderDomainDamage=0;state.thunderArmorTurns=0;}
+document.getElementById('clearThunder').onclick=clearThunder;
+document.getElementById('thunderTurn').onclick=()=>{if(!busy&&state.thunderDomainTurns>0&&state.enemyHp>0){const damage=state.thunderDomainDamage;state.enemyHp=Math.max(0,state.enemyHp-damage);scene.thunderEvent('tick');state.thunderDomainTurns--;if(!state.thunderDomainTurns)state.thunderDomainDamage=0;status.textContent='雷域结算一次，剩余 '+state.thunderDomainTurns+' 回合。';}};
+document.getElementById('reflectHit').onclick=()=>{if(!busy&&state.thunderArmorTurns>0&&state.enemyHp>0){state.playerHp=Math.max(0,state.playerHp-40);state.enemyHp=Math.max(0,state.enemyHp-10);scene.thunderEvent('reflect');scene.hit('enemy',10,false,false,false,'雷神附体·反噬');state.thunderArmorTurns--;status.textContent='实际承伤 40，反噬 10；雷铠剩余 '+state.thunderArmorTurns+' 回合。';}};
 function clearElements(){state.chillTurns=0;state.guardPool=0;state.guardTurns=0;state.guardElement=null;}
-function finishElementTurn(){state.chillTurns=Math.max(0,(state.chillTurns||0)-1);state.guardTurns=Math.max(0,(state.guardTurns||0)-1);if(!state.guardTurns)state.guardPool=0;}
+function finishElementTurn(){state.thunderArmorTurns=Math.max(0,(state.thunderArmorTurns||0)-1);state.chillTurns=Math.max(0,(state.chillTurns||0)-1);state.guardTurns=Math.max(0,(state.guardTurns||0)-1);if(!state.guardTurns)state.guardPool=0;}
 document.getElementById('elementTurn').onclick=()=>{if(!busy){finishElementTurn();status.textContent='敌方回合结束，缠绕与护盾按剩余回合更新。';}};
 document.getElementById('guardHit').onclick=()=>{if(!busy){state.guardPool=Math.max(0,(state.guardPool||0)-30);status.textContent='护盾剩余 '+state.guardPool+' 点。';}};
 document.getElementById('clearElements').onclick=clearElements;
 function clearBurn(){state.burnTurns=0;state.burnDamage=0;state.burnHealBlock=false;}
 document.getElementById("clearBurn").onclick=clearBurn;
-function selectEnemy(){clearBurn();clearElements();clearTimeout(timer);busy=false;scene?.destroy();state.playerHp=720;state.enemyHp=980;state.enemyName=XiantuDuel25D.roster.find(p=>p.key===selector.value).name;scene=XiantuDuel25D.create(document.getElementById('stage'),()=>state,selector.value);status.textContent='当前对手：'+state.enemyName+'。点击敌方出招查看动作。';}selector.onchange=selectEnemy;selectEnemy();
-const skills=InkSkillFxV2854.catalog(),skillSelect=document.getElementById('skillSelect');
+function selectEnemy(){clearBurn();clearElements();clearThunder();clearTimeout(timer);busy=false;scene?.destroy();state.playerHp=720;state.enemyHp=980;state.enemyName=XiantuDuel25D.roster.find(p=>p.key===selector.value).name;scene=XiantuDuel25D.create(document.getElementById('stage'),()=>state,selector.value);status.textContent='当前对手：'+state.enemyName+'。点击敌方出招查看动作。';}selector.onchange=selectEnemy;selectEnemy();
+const skills=InkSkillFxV2854.catalog().filter(p=>p.name!=='雷神附体·反噬'),skillSelect=document.getElementById('skillSelect');
 for(const p of skills){const option=document.createElement('option');option.value=p.name;option.textContent=p.name;skillSelect.appendChild(option)}
 const requestedSkill=new URLSearchParams(location.search).get('skill');if(skills.some(p=>p.name===requestedSkill))skillSelect.value=requestedSkill;
 document.getElementById('petSelect').onchange=e=>{const name=e.target.value;state.pet=name?{name,type:({'灵纹野兔':'灵狐','魔渊蝙蝠':'雷鹰'}[name]||name)}:null};
 function perform(action,selected=null){
- if(action==='reset'){clearTimeout(timer);busy=false;clearBurn();clearElements();scene.reset();state.playerHp=720;state.enemyHp=980;status.textContent='双方回到试剑坪。';return;}
+ if(action==='reset'){clearTimeout(timer);busy=false;clearBurn();clearElements();clearThunder();scene.reset();state.playerHp=720;state.enemyHp=980;status.textContent='双方回到试剑坪。';return;}
  if(busy)return;
  if(!scene?.ready){status.textContent='动作素材加载中，请稍候。';return;}
  if(state.enemyHp<=0||state.playerHp<=0){status.textContent='演示已结束，请点击重新演示。';return;}
@@ -29,17 +34,20 @@ function perform(action,selected=null){
  const amount=action==='finish'?state.enemyHp:heal?120:effect?210:96;
  busy=true;
  if(effect?.name==='炎阳护盾'){state.guardPool=Math.max(state.guardPool||0,Math.floor(state.playerMax*.2));state.guardTurns=3;state.guardElement='fire';}
+ if(effect?.name==='雷神附体')state.thunderArmorTurns=3;
  scene.act(side,side==='enemy'?undefined:effect?.family||'sword',effect?.name||'');
+ if(effect?.name==='雷神附体')scene.thunderEvent('armor',{name:effect.name});
  status.textContent=effect?effect.name+' · 起势、命中与余韵':side==='enemy'?state.enemyName+' 正在出招。':'剑修踏步出剑。';
  timer=setTimeout(()=>{
   if(heal){state.playerHp=Math.min(state.playerHp,state.playerMax-120);state.playerHp+=120;scene.hit('player',120,true);}
-  else if(!self){let loss=amount;if(target==='player'&&state.guardPool>0&&state.guardTurns>0){const absorbed=Math.min(loss,state.guardPool);state.guardPool-=absorbed;loss-=absorbed;}state[target+'Hp']=Math.max(0,state[target+'Hp']-loss);scene.hit(target,loss);if(side==='enemy')finishElementTurn();if(effect?.name==='炎爆术'&&document.getElementById('burnFixture').checked){state[target+'Hp']=Math.max(0,state[target+'Hp']-60);scene.hit(target,60,false,false,false,'灼烧引爆');clearBurn();}}
+  else if(!self){let loss=amount;if(target==='player'&&state.guardPool>0&&state.guardTurns>0){const absorbed=Math.min(loss,state.guardPool);state.guardPool-=absorbed;loss-=absorbed;}state[target+'Hp']=Math.max(0,state[target+'Hp']-loss);scene.hit(target,loss);if(side==='enemy'){if(state.thunderArmorTurns>0&&loss>0&&state.enemyHp>0){const reflected=Math.max(1,Math.floor(loss*.25));state.enemyHp=Math.max(0,state.enemyHp-reflected);scene.thunderEvent('reflect');scene.hit('enemy',reflected,false,false,false,'雷神附体·反噬');}finishElementTurn();}if(effect?.name==='炎爆术'&&document.getElementById('burnFixture').checked){state[target+'Hp']=Math.max(0,state[target+'Hp']-60);scene.hit(target,60,false,false,false,'灼烧引爆');clearBurn();}}
   if(target==='enemy'&&['红莲业火','火墙术','三昧真火','天火焚世','赤焰龙息','燎原火域','流火飞索'].includes(effect?.name)){state.burnTurns=['三昧真火','天火焚世','流火飞索'].includes(effect.name)?2:3;state.burnDamage=42;state.burnHealBlock=!!state.burnHealBlock||effect.name==='红莲业火';}
+  if(effect?.name==='万雷噬狱'||effect?.name==='九霄雷云'&&document.getElementById('cloudDomain').checked){state.thunderDomainTurns=effect.name==='万雷噬狱'?3:2;state.thunderDomainDamage=34;scene.thunderEvent('domain',{name:effect.name});}
   if(effect?.name==='流火飞索'){state.chillTurns=1;scene.elementApplied({element:'fire',effect:'fireBind'});}
   timer=setTimeout(()=>{busy=false;},590);
  },effect&&!heal?310:155);
 }
 document.querySelector('.controls').onclick=e=>{if(e.target.dataset.act)perform(e.target.dataset.act)};
-document.getElementById('castSelected').onclick=()=>{if(busy)return;state.playerHp=720;state.enemyHp=980;clearBurn();clearElements();scene.reset();perform('selected',skills.find(p=>p.name===skillSelect.value))};
+document.getElementById('castSelected').onclick=()=>{if(busy)return;state.playerHp=720;state.enemyHp=980;clearBurn();clearElements();clearThunder();scene.reset();perform('selected',skills.find(p=>p.name===skillSelect.value))};
 window.addEventListener('pagehide',()=>{clearTimeout(timer);scene.destroy();});
 </script></html>

@@ -1,0 +1,538 @@
+{
+  "schemaVersion": 1,
+  "effects": [
+    {
+      "key": "chain_lightning",
+      "name": "闪电链",
+      "element": "thunder",
+      "visualArchetype": "target-beam",
+      "layers": {
+        "telegraph": {
+          "file": "chain_lightning_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 25,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "chain_lightning_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 10,
+          "loop": false,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "chain_lightning_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 25,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "chain_lightning_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 25,
+          "loop": false,
+          "holdLast": false
+        },
+        "event": {
+          "file": "chain_lightning_event.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 25,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "display": {
+        "telegraph": 100,
+        "body": 400,
+        "impact": 120,
+        "residue": 110,
+        "event": 110
+      },
+      "timing": {
+        "arrivalMs": 340,
+        "gatherRatio": 0.45,
+        "crossfadeMs": 80,
+        "impactMs": 240,
+        "aftermathMs": 520,
+        "durationMs": 3400,
+        "loopMs": 800,
+        "outroMs": 300,
+        "cloudHeight": 145
+      },
+      "acceptance": [
+        "Independent authored master and six stage plates; source-over",
+        "State lifetime and event timestamps supplied by caller; no gameplay writes",
+        "Shared domain ownership must be resolved during integration; no invented chain targets"
+      ],
+      "preview": {
+        "displayMode": "target-beam",
+        "durationMs": 3400,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0.0,
+            "end": 0.06852941176470588,
+            "anchor": "origin",
+            "width": 100,
+            "height": 100,
+            "fadeIn": 0.34334763948497854,
+            "fadeOut": 0.34334763948497854
+          },
+          "body": {
+            "start": 0.045,
+            "end": 0.12352941176470589,
+            "anchor": "moving",
+            "width": 400,
+            "height": 400,
+            "fadeIn": 0.299625468164794,
+            "fadeOut": 0.299625468164794
+          },
+          "impact": {
+            "start": 0.1,
+            "end": 0.17058823529411765,
+            "anchor": "target",
+            "width": 120,
+            "height": 120,
+            "fadeIn": 0.3333333333333333,
+            "fadeOut": 0.3333333333333333
+          },
+          "residue": {
+            "start": 0.14705882352941177,
+            "end": 0.2529411764705882,
+            "anchor": "target",
+            "width": 110,
+            "height": 110,
+            "fadeIn": 0.2222222222222222,
+            "fadeOut": 0.2222222222222222
+          }
+        }
+      }
+    },
+    {
+      "key": "thunder_prison",
+      "name": "万雷噬狱",
+      "element": "thunder",
+      "visualArchetype": "persistent-zone",
+      "layers": {
+        "telegraph": {
+          "file": "thunder_prison_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.71875,
+          "fps": 25,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "thunder_prison_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.71875,
+          "fps": 10,
+          "loop": true,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "thunder_prison_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.71875,
+          "fps": 25,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "thunder_prison_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.71875,
+          "fps": 25,
+          "loop": false,
+          "holdLast": false
+        },
+        "event": {
+          "file": "thunder_prison_event.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.71875,
+          "fps": 25,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "display": {
+        "telegraph": 300,
+        "body": 350,
+        "impact": 310,
+        "residue": 280,
+        "event": 270
+      },
+      "timing": {
+        "arrivalMs": 430,
+        "gatherRatio": 0.45,
+        "crossfadeMs": 80,
+        "impactMs": 240,
+        "aftermathMs": 520,
+        "durationMs": 3400,
+        "loopMs": 800,
+        "outroMs": 300,
+        "cloudHeight": 145
+      },
+      "acceptance": [
+        "Independent authored master and six stage plates; source-over",
+        "State lifetime and event timestamps supplied by caller; no gameplay writes",
+        "Shared domain ownership must be resolved during integration; no invented chain targets"
+      ],
+      "preview": {
+        "displayMode": "persistent-zone",
+        "durationMs": 3400,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0.0,
+            "end": 0.08044117647058824,
+            "anchor": "target",
+            "width": 300,
+            "height": 300,
+            "fadeIn": 0.29250457038391225,
+            "fadeOut": 0.29250457038391225
+          },
+          "body": {
+            "start": 0.056911764705882356,
+            "end": 0.788235294117647,
+            "anchor": "target",
+            "width": 350,
+            "height": 350,
+            "fadeIn": 0.03217373818620551,
+            "fadeOut": 0.03217373818620551
+          },
+          "impact": {
+            "start": 0.1264705882352941,
+            "end": 0.19705882352941176,
+            "anchor": "target",
+            "width": 310,
+            "height": 310,
+            "fadeIn": 0.3333333333333333,
+            "fadeOut": 0.3333333333333333
+          },
+          "residue": {
+            "start": 0.7647058823529411,
+            "end": 0.8529411764705882,
+            "anchor": "target",
+            "width": 280,
+            "height": 280,
+            "fadeIn": 0.26666666666666666,
+            "fadeOut": 0.26666666666666666
+          }
+        }
+      }
+    },
+    {
+      "key": "thunder_mantle",
+      "name": "雷神附体",
+      "element": "thunder",
+      "visualArchetype": "shield-orbit",
+      "layers": {
+        "telegraph": {
+          "file": "thunder_mantle_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.71875,
+          "fps": 25,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "thunder_mantle_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 10,
+          "loop": true,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "thunder_mantle_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 25,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "thunder_mantle_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 25,
+          "loop": false,
+          "holdLast": false
+        },
+        "event": {
+          "file": "thunder_mantle_event.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 25,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "display": {
+        "telegraph": 150,
+        "body": 270,
+        "impact": 210,
+        "residue": 200,
+        "event": 150,
+        "reflectImpact": 70
+      },
+      "timing": {
+        "arrivalMs": 360,
+        "gatherRatio": 0.45,
+        "crossfadeMs": 80,
+        "impactMs": 240,
+        "aftermathMs": 520,
+        "durationMs": 3400,
+        "loopMs": 800,
+        "outroMs": 300,
+        "cloudHeight": 145
+      },
+      "acceptance": [
+        "Independent authored master and six stage plates; source-over",
+        "State lifetime and event timestamps supplied by caller; no gameplay writes",
+        "Shared domain ownership must be resolved during integration; no invented chain targets"
+      ],
+      "preview": {
+        "displayMode": "shield-orbit",
+        "durationMs": 3400,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0.0,
+            "end": 0.0711764705882353,
+            "anchor": "origin",
+            "width": 150,
+            "height": 150,
+            "fadeIn": 0.3305785123966942,
+            "fadeOut": 0.3305785123966942
+          },
+          "body": {
+            "start": 0.04764705882352941,
+            "end": 0.788235294117647,
+            "anchor": "origin",
+            "width": 270,
+            "height": 270,
+            "fadeIn": 0.03177124702144559,
+            "fadeOut": 0.03177124702144559
+          },
+          "impact": {
+            "start": 0.10588235294117647,
+            "end": 0.17647058823529413,
+            "anchor": "origin",
+            "width": 210,
+            "height": 210,
+            "fadeIn": 0.3333333333333333,
+            "fadeOut": 0.3333333333333333
+          },
+          "residue": {
+            "start": 0.7647058823529411,
+            "end": 0.8529411764705882,
+            "anchor": "origin",
+            "width": 200,
+            "height": 200,
+            "fadeIn": 0.26666666666666666,
+            "fadeOut": 0.26666666666666666
+          }
+        }
+      }
+    },
+    {
+      "key": "high_cloud",
+      "name": "九霄雷云",
+      "element": "thunder",
+      "visualArchetype": "persistent-zone",
+      "layers": {
+        "telegraph": {
+          "file": "high_cloud_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 25,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "high_cloud_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 10,
+          "loop": true,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "high_cloud_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.71875,
+          "fps": 25,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "high_cloud_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 25,
+          "loop": false,
+          "holdLast": false
+        },
+        "event": {
+          "file": "high_cloud_event.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.71875,
+          "fps": 25,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "display": {
+        "telegraph": 140,
+        "body": 260,
+        "impact": 230,
+        "residue": 200,
+        "event": 270
+      },
+      "timing": {
+        "arrivalMs": 460,
+        "gatherRatio": 0.45,
+        "crossfadeMs": 80,
+        "impactMs": 240,
+        "aftermathMs": 520,
+        "durationMs": 3400,
+        "loopMs": 800,
+        "outroMs": 300,
+        "cloudHeight": 145
+      },
+      "acceptance": [
+        "Independent authored master and six stage plates; source-over",
+        "State lifetime and event timestamps supplied by caller; no gameplay writes",
+        "Shared domain ownership must be resolved during integration; no invented chain targets"
+      ],
+      "preview": {
+        "displayMode": "persistent-zone",
+        "durationMs": 3400,
+        "distance": 233,
+        "layers": {
+          "telegraph": {
+            "start": 0.0,
+            "end": 0.08441176470588235,
+            "anchor": "target",
+            "width": 140,
+            "height": 140,
+            "fadeIn": 0.2787456445993031,
+            "fadeOut": 0.2787456445993031
+          },
+          "body": {
+            "start": 0.06088235294117647,
+            "end": 0.788235294117647,
+            "anchor": "target",
+            "width": 260,
+            "height": 260,
+            "fadeIn": 0.03234937323089365,
+            "fadeOut": 0.03234937323089365
+          },
+          "impact": {
+            "start": 0.13529411764705881,
+            "end": 0.20588235294117646,
+            "anchor": "target",
+            "width": 230,
+            "height": 230,
+            "fadeIn": 0.3333333333333333,
+            "fadeOut": 0.3333333333333333
+          },
+          "residue": {
+            "start": 0.7647058823529411,
+            "end": 0.8529411764705882,
+            "anchor": "target",
+            "width": 200,
+            "height": 200,
+            "fadeIn": 0.26666666666666666,
+            "fadeOut": 0.26666666666666666
+          }
+        }
+      }
+    }
+  ]
+}

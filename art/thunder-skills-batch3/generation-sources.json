@@ -1,0 +1,40 @@
+{
+  "chain_lightning": {
+    "master": "bcdc88d8-205f-49b0-be5c-f880d245ac51",
+    "keyplates": "8cd31378-6773-474d-96f5-12446db6cf1c",
+    "rejected": "891e6aee-f175-4a18-ad99-4ffe1f254c5f: tether crosses 2% cell boundary",
+    "contract": "单一水平折线电索；单目标首击，不画虚构弹射。母版尖端向右、带短分叉；关键板为聚电、两张主体变化、终端电结、碎电、短电梭。",
+    "method": "image_gen independent material master, then referenced_image_paths=[that master] for six isolated 3x2 key plates; transparent_background=true",
+    "palette": "Indigo shadows, cobalt body, cyan thin cores, white under 8% of visible pixels",
+    "approved_design": "docs/vfx/thunder-skills-design.md",
+    "style_reference": "art/thunder-skills-batch3/design/style-reference.png (visually inspected quality bar, not a shared material master)"
+  },
+  "thunder_prison": {
+    "master": "4f65846e-88a6-4427-bb69-144882210e66",
+    "keyplates": "2a818d32-44ec-4a52-beb1-e78f7a76fd91",
+    "contract": "四根细雷柱围成开放雷笼，中央透明、无屋顶；关键板为短雷钉、两张电流变化、低位电冠、残余雷钉和地面脉冲。",
+    "method": "image_gen independent material master, then referenced_image_paths=[that master] for six isolated 3x2 key plates; transparent_background=true",
+    "palette": "Indigo shadows, cobalt body, cyan thin cores, white under 8% of visible pixels",
+    "approved_design": "docs/vfx/thunder-skills-design.md",
+    "style_reference": "art/thunder-skills-batch3/design/style-reference.png (visually inspected quality bar, not a shared material master)"
+  },
+  "thunder_mantle": {
+    "master": "8b84a5ae-7e7c-4893-82d9-27c883b9afac",
+    "keyplates": "86db575b-6f5a-48b8-aa6d-96e3c668d520",
+    "contract": "中空肩臂与腰侧电纹，无人物或实体铠甲；关键板为脚下印、两张电纹变化、腕侧闪光、散电和向右的反噬电梭。",
+    "method": "image_gen independent material master, then referenced_image_paths=[that master] for six isolated 3x2 key plates; transparent_background=true",
+    "palette": "Indigo shadows, cobalt body, cyan thin cores, white under 8% of visible pixels",
+    "approved_design": "docs/vfx/thunder-skills-design.md",
+    "style_reference": "art/thunder-skills-batch3/design/style-reference.png (visually inspected quality bar, not a shared material master)"
+  },
+  "high_cloud": {
+    "master": "489c7454-22ac-44b2-a415-a68f69a238ee",
+    "keyplates": "b876e55d-1f6f-45cd-8606-2c34ac056a4c",
+    "contract": "紧凑靛蓝水墨雷云，云内钴蓝电纹；关键板为雷核、两张旋云变化、地面电冠、散云和独立垂直落雷。",
+    "method": "image_gen independent material master, then referenced_image_paths=[that master] for six isolated 3x2 key plates; transparent_background=true",
+    "palette": "Indigo shadows, cobalt body, cyan thin cores, white under 8% of visible pixels",
+    "approved_design": "docs/vfx/thunder-skills-design.md",
+    "style_reference": "art/thunder-skills-batch3/design/style-reference.png (visually inspected quality bar, not a shared material master)"
+  },
+  "reproduction": "Raster sources are preserved with generation IDs. Deterministic export: python3 scripts/build-thunder-skills-batch3-vfx.py; generation itself is not deterministic."
+}

@@ -23,7 +23,7 @@ for(const D of b.definitions){
  if(D.visualArchetype!=='falling'){flips.length=0;fx.draw(ctx,{...j,from:{x:493,y:210},to:{x:260,y:205},fromGround:{x:493,y:278},toGround:{x:242,y:305}},280);assert(flips.some(([x,y])=>x===-1&&y===1),'mirror horizontally, not upside down');}
  textures[0].onerror();assert(!b.ready(D.name));assert.doesNotThrow(()=>fx.draw(ctx,j,400));textures[0].onload();
 }
-for(const n of ['万雷噬狱','闪电链','雷神附体','九霄雷云'])assert.equal(fx.elementBatch.definition(n).key,'thunder_strike','other thunder skills unchanged');
+for(const n of ['万雷噬狱','闪电链','雷神附体','九霄雷云'])assert(fx.thunderBatch3.definition(n),'remaining thunder skills have their own validated resources');
 console.log('PASS dedicated thunder textures, events, fixed dimensions, anchors, mirrored travel, fallback and pure rendering');
 function actual(name,suppress,randomValue){
  const g=fixture(root);let rng=0;g.c.Math=Object.create(Math);g.c.Math.random=()=>{rng++;return randomValue};for(const file of files)g.load(file);

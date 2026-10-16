@@ -4201,11 +4201,12 @@
       }
       if(skill?.element==='thunder'&&wand.count>=4&&Math.random()<.25){sealEnemySpellsV286817(2);}
       damage=Math.max(1,Math.floor(damage));
-      if(skill?.name==='九霄雷云'&&wand.immortal){currentEnemy.thunderDomainDamage=Math.max(currentEnemy.thunderDomainDamage||0,Math.floor(damage*.15));currentEnemy.thunderDomainTurns=Math.max(currentEnemy.thunderDomainTurns||0,2);addCombatLog('九霄雷云：未来两次行动前各结算15%持续雷伤。','damage');}
+      if(skill?.name==='九霄雷云'&&wand.immortal){currentEnemy.thunderDomainDamage=Math.max(currentEnemy.thunderDomainDamage||0,Math.floor(damage*.15));currentEnemy.thunderDomainTurns=Math.max(currentEnemy.thunderDomainTurns||0,2);addCombatLog('九霄雷云：未来两次行动前各结算15%持续雷伤。','damage');notifyThunderVfxV286844('domain','九霄雷云');}
       if(isSpear&&spear.immortal&&skill?.requiredWeapon==='spear'&&damage>=currentEnemy.hp){const before=player.mp;player.mp=Math.min(getMaxMp(),before+Math.floor(getMaxMp()*.15));addCombatLog(`穿云收势，恢复${player.mp-before}灵力。`,'heal');}
       if(f&& !skill)playSkillEffect(f==='staff'?'镇岳山河震':f==='spear'?'穿云贯日':'九霄雷云',f==='wand'?'thunder':'sword','passive');
       return damage;
     }
+    function notifyThunderVfxV286844(kind,name,amount=0){try{window.InkSkillFxV2854?.thunderBatch3?.notify(kind,{name,amount,owner:player,target:currentEnemy});}catch(_){}}
     function gearIncomingV2790(damage){
       const state=battleGearStateV2790(),m=gearModsV2790(),t=familyStateV2790('镇岳禅心');
       if(damage<=0)return damage;
@@ -7030,6 +7031,7 @@
       if (currentEnemy && currentEnemy.thunderDomainDamage > 0 && currentEnemy.thunderDomainTurns > 0) {
         const thunderTick=Math.max(1,Math.floor(currentEnemy.thunderDomainDamage));
         currentEnemy.hp=Math.max(0,currentEnemy.hp-thunderTick);
+        notifyThunderVfxV286844('tick','雷域',thunderTick);
         currentEnemy.thunderDomainTurns--;
         addCombatLog(`⚡ 万雷噬狱雷域轰击，造成 ${thunderTick} 点持续雷伤！`, 'damage');
         if(currentEnemy.thunderDomainTurns<=0){currentEnemy.thunderDomainDamage=0;addCombatLog('⚡ 雷域渐渐消散。','pet');}
@@ -7091,6 +7093,7 @@
           player._thunderDamageBonus=Math.max(0,Number(skill.thunderBonus)||.35);
           player._thunderReflectRatio=Math.max(0,Number(skill.reflectRatio)||.25);
           playSkillEffect(skill.name, skill.element);
+          notifyThunderVfxV286844('armor',skill.name);
           playSound('skill');
           addCombatLog(`⚡ 施展【雷神附体】：${player._thunderArmorTurns}回合内雷系伤害 +${Math.round(player._thunderDamageBonus*100)}%，受击反伤 ${Math.round(player._thunderReflectRatio*100)}%！`, 'heal');
           updateCombatUI();
@@ -7163,6 +7166,7 @@
             if (skill.effect === 'thunder_domain') {
               currentEnemy.thunderDomainDamage=Math.max(1,Math.floor(damage*(skill.domainRatio||.16)));
               currentEnemy.thunderDomainTurns=Math.max(1,Number(skill.domainTurns)||3);
+              notifyThunderVfxV286844('domain',skill.name);
               addCombatLog(`⚡ 雷域成形：未来 ${currentEnemy.thunderDomainTurns} 回合持续轰击，每回合约 ${currentEnemy.thunderDomainDamage} 点雷伤。`, 'damage');
             }
             if (skill.effect === 'armor_pierce') {
@@ -7645,6 +7649,7 @@
         if ((player._thunderArmorTurns||0)>0 && (player._thunderReflectRatio||0)>0 && enemyDamage>0 && currentEnemy.hp>0) {
           const reflected=Math.max(1,Math.floor(enemyDamage*player._thunderReflectRatio));
           currentEnemy.hp=Math.max(0,currentEnemy.hp-reflected);
+          notifyThunderVfxV286844('reflect','雷神附体·反噬',reflected);
           showDamageNumber(reflected,'enemy',false,false,false,false,'雷神附体·反噬');
           addCombatLog(`⚡ 雷纹铠甲反噬，回敬 ${reflected} 点雷电伤害！`, 'pet');
           try{playSkillEffect('雷神附体·反噬','thunder','passive');}catch(_){ }

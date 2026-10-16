@@ -34,6 +34,10 @@
 
 紫霄落雷、无音神雷、九天神雷已在本地接入真实命中与试剑坪，保留原穿甲、耗蓝、眩晕和无音规则。56组游戏回归、7项浏览器回归通过；开发分支待合并，尚未部署。见 [第二批接入记录](docs/vfx/thunder-skills-batch2-integration.md)。
 
+## 雷系收尾四招接入
+
+闪电链、万雷噬狱、雷神附体、九霄雷云已接入独立透明素材、真实战斗和青云试剑坪。持续雷域共用原伤害池；雷铠反噬由真实承伤事件触发，普通雷云一次性收尾。伤害、耗蓝与存档规则不变。见 [接入与验证记录](docs/vfx/thunder-skills-batch3-integration.md) 及 [资源制作记录](docs/vfx/thunder-skills-batch3-resource-preview.md)。
+
 ## 火系收尾
 
 流火飞索与炎阳护盾复用已有素材，补齐同台战场的持续缠绕、护盾承伤与状态结束清理；数值和存档机制不变。试剑坪可推进回合、模拟承伤与清除状态。接入与验收记录见 `docs/vfx/fire-finale-integration.md`。
