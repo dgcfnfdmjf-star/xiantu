@@ -1,0 +1,149 @@
+{
+  "rows": [
+    {
+      "q": "rich",
+      "name": "雷法",
+      "side": "player",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "rich",
+      "name": "雷法",
+      "side": "enemy",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "rich",
+      "name": "惊雷闪",
+      "side": "player",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "rich",
+      "name": "惊雷闪",
+      "side": "enemy",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "rich",
+      "name": "裂地奔雷",
+      "side": "player",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "rich",
+      "name": "裂地奔雷",
+      "side": "enemy",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "light",
+      "name": "雷法",
+      "side": "player",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "light",
+      "name": "雷法",
+      "side": "enemy",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "light",
+      "name": "惊雷闪",
+      "side": "player",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "light",
+      "name": "惊雷闪",
+      "side": "enemy",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "light",
+      "name": "裂地奔雷",
+      "side": "player",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "light",
+      "name": "裂地奔雷",
+      "side": "enemy",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "reduced",
+      "name": "雷法",
+      "side": "player",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "reduced",
+      "name": "雷法",
+      "side": "enemy",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "reduced",
+      "name": "惊雷闪",
+      "side": "player",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "reduced",
+      "name": "惊雷闪",
+      "side": "enemy",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "reduced",
+      "name": "裂地奔雷",
+      "side": "player",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "reduced",
+      "name": "裂地奔雷",
+      "side": "enemy",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    }
+  ],
+  "errors": []
+}

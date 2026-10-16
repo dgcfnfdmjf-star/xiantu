@@ -1,0 +1,29 @@
+{
+  "command": "python3 scripts/render-thunder-skills-batch2-evidence.py",
+  "inputs": {
+    "art/thunder-skills-batch2/preview/effect-manifest.json": "1e2ae9e39c186eea6f99d69c6a2067b8a0eb92a0ef068618ac53b63e3f8eace5",
+    "art/thunder-skills-batch2/sampler.js": "ca388ad2b3050da437be4bdc2a4d06bd282c843eb847555e0831275b09cd545b",
+    "art/thunder-skills-batch2/preview/stage-reference.webp": "f60f880c0af47119a62ffc50c7d21e3a16ccebb93f683ced7810d6e05835cee3",
+    "art/thunder-skills-batch2/design/style-reference.png": "77c81e81653c199b5a60b4c7ab30ad29ef56f5aa3f5aee3f8d2daebdc2a7776e",
+    "art/element-skills-v286838/preview/effect-manifest.json": "64ab0e8d897ca0b7a67e78123a11cdfd0ceacffa53bf8de0e2bb2cd64cd149f0",
+    "xiantu-v2831-scroll/element-skills-v286838/thunder_strike_body.png": "2914d414303e6dae3ebddd402c6823631d5f484a2bc3d5c69a5728c38825845a",
+    "art/thunder-skills-batch2/preview/silent_thunder_telegraph.png": "21e65f29850da2035d639b7b706ee5a7137ae6636a739ec0bf040e2c25e01f9e",
+    "art/thunder-skills-batch2/preview/violet_judgement_telegraph.png": "4c72e52ea14ae32aa8c5336d1befe4a4e5147cedcb43b5e3e29b5a32c25f2bd4",
+    "art/thunder-skills-batch2/preview/violet_judgement_residue.png": "59b9e21a1a7753cae558b7a5c99fbe9d7369d1ca1bebb5c88a40abd7244b6a04",
+    "art/thunder-skills-batch2/preview/heavenly_thunder_impact.png": "4ed1b26c0d4399bf2970fb321394eaaf0cd3421d99034fde3eecf5851a88f2e3",
+    "art/thunder-skills-batch2/preview/silent_thunder_body.png": "76735978899e3cb42780fba0a0b86a3c94d3025acdae22d76812566b5402ccae",
+    "art/thunder-skills-batch2/preview/heavenly_thunder_body.png": "d1a93475d800ef412b887c2a144aca01e00d722a8692932dbb8459e30cc86b9a",
+    "art/thunder-skills-batch2/preview/silent_thunder_impact.png": "e5bd9b67692c9e8133ca4c83569a0e907558ccbb9e26b492796dbca21e1a2047",
+    "art/thunder-skills-batch2/preview/heavenly_thunder_telegraph.png": "7eb1fac9b72580b6e83142e0cf21631919881ae1476f86b841b6b680cf1b2c23",
+    "art/thunder-skills-batch2/preview/heavenly_thunder_residue.png": "1ce20971fe17b41145b497ddcb2bc2c8f4451e7d99c35eda9c6d7be332eb4500",
+    "art/thunder-skills-batch2/preview/violet_judgement_impact.png": "398b766d1836d48033e6b2d79d1e0374f22a1f1843672e772b6c614bd37ab84e",
+    "art/thunder-skills-batch2/preview/violet_judgement_body.png": "8e39cc7bc529a1035d27cc5cb85735207ebd2e479d56f11faa65fe048314a383",
+    "art/thunder-skills-batch2/preview/silent_thunder_residue.png": "49700db9d0da8cc22aa1b2674d4b59ab57bb7f89c5611a0f82d91e1673546852",
+    "art/thunder-skills-batch2/source/silent_thunder/master-original.png": "575cc0a3dd24b4978f27796929ddd410dba2e4c5bdfe54ff0d29e5b38a54f566",
+    "art/thunder-skills-batch2/source/violet_judgement/master-original.png": "0abf6a9fe6ee86bd7b761833f694f1b5ec6d32e3eab0d29885e8ee9cdfad5271",
+    "art/thunder-skills-batch2/source/heavenly_thunder/master-original.png": "6539f104b762ef843fff42bd2a903d15c18d6e559b4f6b296b682c0117ff95d6"
+  },
+  "scope": "Offline composition from pure sampler and real exported strips; not runtime combat footage",
+  "videoCommand": "ffmpeg -framerate 25 -stream_loop 3 -i output/playwright/thunder-batch2/video-frames/%03d.png -c:v libx264 -pix_fmt yuv420p -movflags +faststart art/thunder-skills-batch2/evidence/thunder-batch-animation.mp4",
+  "videoSha256": "f9c275d8c3b97d7bddd420d55fae53bafd16f1b4c96b91eb32f38525d5ac3afd"
+}

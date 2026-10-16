@@ -1,0 +1,149 @@
+{
+  "rows": [
+    {
+      "q": "rich",
+      "name": "紫霄落雷",
+      "side": "player",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "rich",
+      "name": "紫霄落雷",
+      "side": "enemy",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "rich",
+      "name": "无音神雷",
+      "side": "player",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "rich",
+      "name": "无音神雷",
+      "side": "enemy",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "rich",
+      "name": "九天神雷",
+      "side": "player",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "rich",
+      "name": "九天神雷",
+      "side": "enemy",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "light",
+      "name": "紫霄落雷",
+      "side": "player",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "light",
+      "name": "紫霄落雷",
+      "side": "enemy",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "light",
+      "name": "无音神雷",
+      "side": "player",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "light",
+      "name": "无音神雷",
+      "side": "enemy",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "light",
+      "name": "九天神雷",
+      "side": "player",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "light",
+      "name": "九天神雷",
+      "side": "enemy",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "reduced",
+      "name": "紫霄落雷",
+      "side": "player",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "reduced",
+      "name": "紫霄落雷",
+      "side": "enemy",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "reduced",
+      "name": "无音神雷",
+      "side": "player",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "reduced",
+      "name": "无音神雷",
+      "side": "enemy",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "reduced",
+      "name": "九天神雷",
+      "side": "player",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    },
+    {
+      "q": "reduced",
+      "name": "九天神雷",
+      "side": "enemy",
+      "human": "bandit",
+      "impact": true,
+      "anchor": true
+    }
+  ],
+  "errors": []
+}

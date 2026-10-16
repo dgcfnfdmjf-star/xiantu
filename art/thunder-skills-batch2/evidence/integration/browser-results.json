@@ -1,0 +1,245 @@
+{
+  "rows": [
+    {
+      "name": "紫霄落雷",
+      "width": 1000,
+      "height": 900,
+      "spent": 52,
+      "damage": 128,
+      "hitAt": [
+        null,
+        333.4000000000001
+      ],
+      "layers": [
+        "telegraph",
+        "body",
+        "impact",
+        "residue"
+      ],
+      "overflow": false
+    },
+    {
+      "name": "无音神雷",
+      "width": 1000,
+      "height": 900,
+      "spent": 60,
+      "damage": 135,
+      "hitAt": [
+        null,
+        366.5999999999999
+      ],
+      "layers": [
+        "telegraph",
+        "body",
+        "impact",
+        "residue"
+      ],
+      "overflow": false
+    },
+    {
+      "name": "九天神雷",
+      "width": 1000,
+      "height": 900,
+      "spent": 85,
+      "damage": 144,
+      "hitAt": [
+        null,
+        316.6999999999998
+      ],
+      "layers": [
+        "telegraph",
+        "body",
+        "impact",
+        "residue"
+      ],
+      "overflow": false
+    },
+    {
+      "name": "紫霄落雷",
+      "width": 390,
+      "height": 844,
+      "spent": 52,
+      "damage": 112,
+      "hitAt": [
+        null,
+        333.3000000000002
+      ],
+      "layers": [
+        "telegraph",
+        "body",
+        "impact"
+      ],
+      "overflow": false
+    },
+    {
+      "name": "无音神雷",
+      "width": 390,
+      "height": 844,
+      "spent": 60,
+      "damage": 126,
+      "hitAt": [
+        null,
+        316.59999999999945
+      ],
+      "layers": [
+        "telegraph",
+        "body",
+        "impact"
+      ],
+      "overflow": false
+    },
+    {
+      "name": "九天神雷",
+      "width": 390,
+      "height": 844,
+      "spent": 85,
+      "damage": 151,
+      "hitAt": [
+        null,
+        316.60000000000036
+      ],
+      "layers": [
+        "telegraph",
+        "body",
+        "impact"
+      ],
+      "overflow": false
+    },
+    {
+      "name": "紫霄落雷",
+      "width": 844,
+      "height": 390,
+      "spent": 52,
+      "damage": 108,
+      "hitAt": [
+        null,
+        316.7000000000007
+      ],
+      "layers": [
+        "telegraph",
+        "body",
+        "impact",
+        "residue"
+      ],
+      "overflow": false
+    },
+    {
+      "name": "无音神雷",
+      "width": 844,
+      "height": 390,
+      "spent": 60,
+      "damage": 132,
+      "hitAt": [
+        null,
+        316.6999999999989
+      ],
+      "layers": [
+        "telegraph",
+        "body",
+        "impact",
+        "residue"
+      ],
+      "overflow": false
+    },
+    {
+      "name": "九天神雷",
+      "width": 844,
+      "height": 390,
+      "spent": 85,
+      "damage": 233,
+      "hitAt": [
+        null,
+        350.09999999999854
+      ],
+      "layers": [
+        "telegraph",
+        "body",
+        "impact",
+        "residue"
+      ],
+      "overflow": false
+    }
+  ],
+  "quality": [
+    {
+      "name": "紫霄落雷",
+      "q": "rich",
+      "layers": [
+        "telegraph",
+        "body",
+        "impact",
+        "residue"
+      ]
+    },
+    {
+      "name": "紫霄落雷",
+      "q": "light",
+      "layers": [
+        "telegraph",
+        "body",
+        "impact"
+      ]
+    },
+    {
+      "name": "紫霄落雷",
+      "q": "reduced",
+      "layers": [
+        "telegraph",
+        "impact"
+      ]
+    },
+    {
+      "name": "无音神雷",
+      "q": "rich",
+      "layers": [
+        "impact",
+        "residue"
+      ]
+    },
+    {
+      "name": "无音神雷",
+      "q": "light",
+      "layers": [
+        "impact"
+      ]
+    },
+    {
+      "name": "无音神雷",
+      "q": "reduced",
+      "layers": [
+        "impact"
+      ]
+    },
+    {
+      "name": "九天神雷",
+      "q": "rich",
+      "layers": [
+        "telegraph",
+        "body",
+        "impact",
+        "residue"
+      ]
+    },
+    {
+      "name": "九天神雷",
+      "q": "light",
+      "layers": [
+        "telegraph",
+        "body",
+        "impact"
+      ]
+    },
+    {
+      "name": "九天神雷",
+      "q": "reduced",
+      "layers": [
+        "telegraph",
+        "impact"
+      ]
+    }
+  ],
+  "errors": [],
+  "resetClean": true,
+  "missingTextureFallback": true,
+  "scope": "Chromium emulation; real equipped casts on disposable saves; external requests blocked"
+}

@@ -1,0 +1,49 @@
+{
+  "status": "user confirmed preview; local integration and acceptance checks passed; not committed/uploaded/deployed",
+  "source": "art/thunder-skills-batch2/preview",
+  "destination": "xiantu-v2831-scroll/thunder-skills-batch2",
+  "command": "python3 scripts/promote-thunder-skills-batch2-vfx.py",
+  "sha256": {
+    "choreography.js": "ca388ad2b3050da437be4bdc2a4d06bd282c843eb847555e0831275b09cd545b",
+    "definition.js": "1224f3cf11bccc5400aef08322f2fb4cda5bc85ef3d88e89489685cd79535099",
+    "effect-manifest.json": "1e2ae9e39c186eea6f99d69c6a2067b8a0eb92a0ef068618ac53b63e3f8eace5",
+    "effect-manifest.preview.json": "1e2ae9e39c186eea6f99d69c6a2067b8a0eb92a0ef068618ac53b63e3f8eace5",
+    "heavenly_thunder_body.png": "d1a93475d800ef412b887c2a144aca01e00d722a8692932dbb8459e30cc86b9a",
+    "heavenly_thunder_impact.png": "4ed1b26c0d4399bf2970fb321394eaaf0cd3421d99034fde3eecf5851a88f2e3",
+    "heavenly_thunder_residue.png": "1ce20971fe17b41145b497ddcb2bc2c8f4451e7d99c35eda9c6d7be332eb4500",
+    "heavenly_thunder_telegraph.png": "7eb1fac9b72580b6e83142e0cf21631919881ae1476f86b841b6b680cf1b2c23",
+    "index.html": "486d6773f786f9bc1dcf3e765e51f6b2b21db2ed585bc39cde032a3bfe64a227",
+    "preview.js": "5afa21180e5d2bae1b1406f2fb94778ddf51cdfc4303dc5cc04e368d963baf9c",
+    "silent_thunder_body.png": "76735978899e3cb42780fba0a0b86a3c94d3025acdae22d76812566b5402ccae",
+    "silent_thunder_impact.png": "e5bd9b67692c9e8133ca4c83569a0e907558ccbb9e26b492796dbca21e1a2047",
+    "silent_thunder_residue.png": "49700db9d0da8cc22aa1b2674d4b59ab57bb7f89c5611a0f82d91e1673546852",
+    "silent_thunder_telegraph.png": "21e65f29850da2035d639b7b706ee5a7137ae6636a739ec0bf040e2c25e01f9e",
+    "stage-reference.webp": "f60f880c0af47119a62ffc50c7d21e3a16ccebb93f683ced7810d6e05835cee3",
+    "violet_judgement_body.png": "8e39cc7bc529a1035d27cc5cb85735207ebd2e479d56f11faa65fe048314a383",
+    "violet_judgement_impact.png": "398b766d1836d48033e6b2d79d1e0374f22a1f1843672e772b6c614bd37ab84e",
+    "violet_judgement_residue.png": "59b9e21a1a7753cae558b7a5c99fbe9d7369d1ca1bebb5c88a40abd7244b6a04",
+    "violet_judgement_telegraph.png": "4c72e52ea14ae32aa8c5336d1befe4a4e5147cedcb43b5e3e29b5a32c25f2bd4"
+  },
+  "existingFilesChanged": [
+    "xiantu-v2855-skill-fx.js",
+    "QA/v286838-test-element-vfx.cjs",
+    "QA/v286842-test-thunder-batch.cjs"
+  ],
+  "unchangedExistingImages": 240,
+  "unchangedFirstBatch": true,
+  "previewLabelChange": {
+    "file": "index.html",
+    "before": "5279c88af11a371d76d07d419f50b3152809baee086439fac51f3923920de5f4",
+    "after": "486d6773f786f9bc1dcf3e765e51f6b2b21db2ed585bc39cde032a3bfe64a227",
+    "reason": "update preview status after integration; no asset/config/sampler edits"
+  },
+  "checks": {
+    "gameRegressionScripts": 56,
+    "rateLimitSuite": true,
+    "existingBrowserCases": 7,
+    "actualCombatViewportCases": 9,
+    "humanDirectionQualityCases": 18,
+    "pureSamples": 162000
+  },
+  "evidence": "art/thunder-skills-batch2/evidence/integration"
+}

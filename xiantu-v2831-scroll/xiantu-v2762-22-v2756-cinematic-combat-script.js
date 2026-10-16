@@ -32,7 +32,7 @@
   function ensureStrategyUiV2819(panel){
     if(document.getElementById('autoStrategyV2819'))return;
     const box=document.createElement('details');box.id='autoStrategyV2819';
-    box.innerHTML='<summary>⚙️ 自动战斗策略</summary><button type="button" onclick="showJevHubV2846()">☯ Jev 选招 / 今日用量</button><label>出招偏好<select data-pref="mode"><option value="burst">全力输出</option><option value="save">节省灵力</option><option value="survive">保命优先</option></select></label><label>气血≤ <input data-pref="healAt" type="number" min="10" max="90" step="5"> % 时尝试治疗</label><label>节省模式保留 <input data-pref="reserve" type="number" min="0" max="80" step="5"> % 灵力</label><p>全力输出优先高倍率伤害；节省灵力优先每点灵力的伤害倍率，并保留设定比例；保命优先护体与治疗，攻击时预留一次治疗灵力。三种策略都会在设定血线尝试治疗。</p><p>只使用已携带且灵力足够的技能。没有可用治疗时继续攻击；不会自动吃药或逃跑。修改从下一次自动选招生效。</p><small data-status></small>';
+    box.innerHTML='<summary>⚙️ 自动战斗策略</summary><button type="button" onclick="showJevHubV2846()">☯ 天机选招 / 今日用量</button><label>出招偏好<select data-pref="mode"><option value="burst">全力输出</option><option value="save">节省灵力</option><option value="survive">保命优先</option></select></label><label>气血≤ <input data-pref="healAt" type="number" min="10" max="90" step="5"> % 时尝试治疗</label><label>节省模式保留 <input data-pref="reserve" type="number" min="0" max="80" step="5"> % 灵力</label><p>全力输出优先高倍率伤害；节省灵力优先每点灵力的伤害倍率，并保留设定比例；保命优先护体与治疗，攻击时预留一次治疗灵力。三种策略都会在设定血线尝试治疗。</p><p>只使用已携带且灵力足够的技能。没有可用治疗时继续攻击；不会自动吃药或逃跑。修改从下一次自动选招生效。</p><small data-status></small>';
     for(const el of box.querySelectorAll('[data-pref]')){
       const key=el.dataset.pref;el.value=strategyV2819[key];
       el.onchange=()=>{

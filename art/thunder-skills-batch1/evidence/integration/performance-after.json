@@ -1,0 +1,32 @@
+{
+  "draw": {
+    "雷法": {
+      "samples": 240,
+      "median": 0,
+      "p95": 0.10000000055879354
+    },
+    "惊雷闪": {
+      "samples": 240,
+      "median": 0,
+      "p95": 0.09999999962747097
+    },
+    "裂地奔雷": {
+      "samples": 240,
+      "median": 0,
+      "p95": 0.09999999962747097
+    }
+  },
+  "raf": {
+    "samples": 60,
+    "median": 16.699999999999818,
+    "p95": 16.799999999999727
+  },
+  "viewport": [
+    390,
+    844
+  ],
+  "dpr": 1,
+  "assets": "warm",
+  "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+  "scene": "720x420 draw-only canvas, same wolf origin/ground positions; RAF on idle duel preview, no physical device or GPU timing"
+}

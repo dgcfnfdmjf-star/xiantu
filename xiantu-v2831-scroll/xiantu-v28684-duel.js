@@ -24,7 +24,7 @@ function petVisualKeyV286818(pet){
 // Copy only presentation primitives; never expose the writable WeakMap record.
 function readCombatElements(enemy,owner){
  const g=typeof elementGuardsV286818!=='undefined'?elementGuardsV286818.get(enemy):null;
- return {chillTurns:enemy?._chillTurnsV286818||0,guardPool:g?.owner===owner?g.pool:0,guardTurns:g?.owner===owner?g.turns:0,guardElement:g?.owner===owner?g.element:null};
+ return {...window.InkSkillFxV2854?.thunderBatch3?.readState(enemy,owner),chillTurns:enemy?._chillTurnsV286818||0,guardPool:g?.owner===owner?g.pool:0,guardTurns:g?.owner===owner?g.turns:0,guardElement:g?.owner===owner?g.element:null};
 }
 function create(host,read,enemyKey='wolf'){
  const profile=ROSTER.find(p=>p.key===enemyKey);if(!host||!profile)return null;
@@ -36,6 +36,15 @@ function create(host,read,enemyKey='wolf'){
  const stage=document.createElement('div');stage.className='duel25-stage';host.insertBefore(stage,canvas);
  bg.className='duel25-backdrop';bg.setAttribute('aria-hidden','true');stage.appendChild(bg);stage.appendChild(canvas);
  let raf=0,last=0,dead=false,elapsed=0,attack=null,queue=[],tails=[],hits=[],floats=[],label="",paintedLandscape=false;
+ const thunder=window.InkSkillFxV2854?.thunderBatch3?.createState(read,()=>elapsed);
+ let thunderFloats=[];
+ function thunderEvent(kind,detail={}){
+  if(dead||document.hidden)return false;
+  const data=read();if(detail.target&&detail.target!==data.targetToken||detail.owner&&detail.owner!==data.ownerToken)return false;
+  const a=[...queue].reverse().find(a=>a.name===detail.name)||(attack?.name===detail.name?attack:null);
+  thunder?.notify(kind,detail,a);return ready();
+ }
+ const unsubscribeThunder=window.InkSkillFxV2854?.thunderBatch3?.subscribe(thunderEvent);
  const deaths={player:null,enemy:null};
  let burnPulseAt=-1000,domainSource=null;
  let bindSource=null,guardIntro=null,previousGuard=null,guardBreakAt=-1000,guardPulseAt=-1000;
@@ -125,6 +134,7 @@ function create(host,read,enemyKey='wolf'){
   if(dead)return;raf=0;if(artFailed||atlas?.failed||(!ready()&&performance.now()-started>10000)){destroy();return;}const data=read();if(data.active===false){destroy();return;}if(document.hidden)return;
   syncDomain(data);
   syncElements(data);
+  thunder?.sync();
   const fxSettings=window.InkSkillFxV2854?.settings?.()||{reduced,light:true};reduced=fxSettings.reduced;
   if(landscapeReady&&!paintedLandscape)backdrop();
   const animating=attack||queue.length||tails.length||hits.length||floats.length||elapsed-petHitAt<320||
@@ -137,9 +147,11 @@ function create(host,read,enemyKey='wolf'){
   if(!ready()){ctx.fillStyle='#e5e3cc';ctx.font='18px serif';ctx.textAlign='center';ctx.fillText('画卷展开中…',W/2,H/2);}
   // Presentation clock only. Damage and turn timers remain owned by the combat engine.
   while(attack&&elapsed-attack.at>=620){
-   flushHits(attack);tails.push(attack);if(tails.length>2)tails.shift();const nextAt=attack.at+620;attack=queue.shift()||null;if(attack)attack.at=nextAt;
+   flushHits(attack);tails.push(attack);if(tails.length>2)tails.shift();const nextAt=attack.at+620;attack=queue.shift()||null;if(attack){attack.at=nextAt;attack.waiting=false;}
   }
   if(attack&&elapsed-attack.at>=contactTime(attack))flushHits(attack);
+  for(const h of thunderFloats.filter(h=>elapsed>=h.when))emitHit(h,null);
+  thunderFloats=thunderFloats.filter(h=>elapsed<h.when);
   ctx.save();
   const heavyHit=[...hits].reverse().find(h=>h.crit&&elapsed-h.at<120);
   if(heavyHit&&!reduced&&!fxSettings.light){const age=elapsed-heavyHit.at,amp=4*(1-age/120);ctx.translate(Math.sin(age*.17)*amp,Math.cos(age*.13)*amp*.55);}
@@ -160,6 +172,7 @@ function create(host,read,enemyKey='wolf'){
   tails=tails.filter(a=>elapsed-a.at<(ink?.authoredDuration?.(a.name)||900));
   if(ink?.draw&&ink?.profile){
    for(const a of [...tails,attack].filter(Boolean)){
+    if(a.thunderOwned)continue;
     if(!a.fxProfile)a.fxProfile=ink.profile(a.name||(a.side==='player'?'普通攻击':profile.action),a.element);
     if(!a.anchors){
      const enemyFoot=profile.key==='wolf'?278:profile.height>200?315:/fly|float/.test(profile.motion)?306:292;
@@ -169,7 +182,7 @@ function create(host,read,enemyKey='wolf'){
     }
     const from={x:a.side==='player'?260:475,y:225},to=a.fxProfile.self?from:{x:a.side==='player'?493:242,y:225};
     // Heart-fire is a torso brand: use the illustrated species' height, never its foot ring.
-    if(a.fxProfile.kind==='heart'||['烈焰斩','炎爆术','三昧真火','赤焰龙息'].includes(a.name)||(!a.fxProfile.self&&ink.elementBatch?.definition?.(a.name)?.visualArchetype==='projectile')){
+    if(a.fxProfile.kind==='heart'||['烈焰斩','炎爆术','三昧真火','赤焰龙息'].includes(a.name)||(!a.fxProfile.self&&(ink.thunderBatch?.definition?.(a.name)||ink.elementBatch?.definition?.(a.name))?.visualArchetype==='projectile')){
      const enemyFoot=profile.key==='wolf'?278:profile.height>200?315:/fly|float/.test(profile.motion)?306:292;
      const torso={x:ex,y:enemyFoot-profile.height*(profile.motion==='human'?.58:.43)};
      const hero={x:px+8,y:205};
@@ -178,6 +191,11 @@ function create(host,read,enemyKey='wolf'){
     fxJobs.push({action:a,job:{id:a.side==='player'?1:2,profile:a.fxProfile,from,to,...a.anchors,width:W,clipBottom:355,scale:1.05,light:fxSettings.light,reduced,duration:ink.authoredDuration?.(a.name)||900,arriveAt:contactTime(a),hitAt:a.impactAt??(a.fxProfile.self?contactTime(a):null),guardActive:a.name==='炎阳护盾'?ink.fireFinale?.guardActive(data):undefined,detonationAt:a.detonationAt??null,groundDrawn:!!ink.drawGround}});
    }
   }
+  const thunderJobs=thunder?.collect((name,a)=>{
+   const enemyFoot=profile.key==='wolf'?278:profile.height>200?315:/fly|float/.test(profile.motion)?306:292;
+   a.thunderGround??={x:493,y:enemyFoot};
+   return {profile:ink.profile(name),from:{x:px+8,y:205},to:{x:ex,y:enemyFoot-profile.height*(profile.motion==='human'?.58:.43)},fromGround:{x:px,y:305},toGround:a.thunderGround,width:W,clipBottom:355,scale:1.05,light:fxSettings.light,reduced,arriveAt:contactTime(a)};
+  })||[];
   for(const {action:a,job} of fxJobs)ink.drawGround?.(ctx,job,elapsed-a.at);
   petActor(data,t);
   const actors=[{side:'player',x:px,y:305},{side:'enemy',x:ex,y:profile.key==='wolf'?278:profile.height>200?315:/fly|float/.test(profile.motion)?306:292}].sort((a,b)=>a.y-b.y);
@@ -242,6 +260,7 @@ function create(host,read,enemyKey='wolf'){
   }
   if(ink?.draw&&ink?.profile){
    for(const {action:a,job} of fxJobs)ink.draw(ctx,job,elapsed-a.at);
+   for(const {job,age} of thunderJobs)ink.thunderBatch3.drawState(ctx,job,age);
   }else if(attack){
    const k=Math.sin(age*Math.PI),from=attack.side==='player'?px:ex,to=attack.side==='player'?ex:px;
    if(attack.element==='heal'){
@@ -278,6 +297,7 @@ function create(host,read,enemyKey='wolf'){
  }
  function wake(){if(!dead&&!document.hidden&&!raf){last=performance.now();raf=requestAnimationFrame(draw);}}
  function visibility(){if(document.hidden){
+  thunder?.pause();thunderFloats=[];
   burnPulseAt=-1000;
   previousGuard=null;guardIntro=null;guardBreakAt=guardPulseAt=-1000;
   cancelAnimationFrame(raf);raf=0;
@@ -287,10 +307,11 @@ function create(host,read,enemyKey='wolf'){
   if(authored(attack))attack=null;
   queue=queue.filter(a=>!authored(a));tails=tails.filter(a=>!authored(a));
  }else wake();}
- function destroy(){if(dead)return;dead=true;clearElements();domainSource=null;attack=null;queue=[];tails=[];hits=[];floats=[];cancelAnimationFrame(raf);raf=0;document.removeEventListener('visibilitychange',visibility);stage.remove();canvas.width=canvas.height=1;bg.width=bg.height=1;host.classList.remove('duel25-active');if(host.id==='combatArena')document.getElementById('combatPanel')?.classList.remove('duel25-panel');}
+ function destroy(){if(dead)return;dead=true;thunder?.clear();unsubscribeThunder?.();thunderFloats=[];clearElements();domainSource=null;attack=null;queue=[];tails=[];hits=[];floats=[];cancelAnimationFrame(raf);raf=0;document.removeEventListener('visibilitychange',visibility);stage.remove();canvas.width=canvas.height=1;bg.width=bg.height=1;host.classList.remove('duel25-active');if(host.id==='combatArena')document.getElementById('combatPanel')?.classList.remove('duel25-panel');}
  document.addEventListener('visibilitychange',visibility);wake();
  function act(side,element,name='',enhance=false){
   if(dead)return;
+  if(name==='雷神附体·反噬')return; // The acknowledged reflect event owns its own moving effect.
   syncDomain();
   syncElements();
   element=element||(side==='enemy'?profile.element:'sword');
@@ -304,7 +325,7 @@ function create(host,read,enemyKey='wolf'){
   const next={side,element,name,at:elapsed,pendingHits:[]};
   if(name==='炎阳护盾'&&side==='player')guardIntro=next;
   if(!attack||elapsed-attack.at>=620)attack=next;
-  else {if(queue.length>=4)flushHits(queue.shift());queue.push(next);}
+  else {if(queue.length>=4)flushHits(queue.shift());next.waiting=true;queue.push(next);}
  }
  function contactTime(action){return action.side==='player'&&action.name&&action.element!=='heal'?310:/^(sword|heal|thunder)$/.test(action.element)?155:310;}
  function emitHit(h,action=null){
@@ -317,7 +338,7 @@ function create(host,read,enemyKey='wolf'){
   floats.push({...h,text:(h.pet?'灵宠 ':h.crit?'暴击 ':'')+(h.heal?'+':'−')+Math.round(h.amount),lane,at:elapsed});
  }
  function flushHits(action){for(const h of action.pendingHits)emitHit(h,action);action.pendingHits=[];}
- return {get ready(){return ready()&&!dead;},act,burnTick(){if(!dead&&!document.hidden)burnPulseAt=elapsed;},
+ return {get ready(){return ready()&&!dead;},act,thunderEvent,burnTick(){if(!dead&&!document.hidden)burnPulseAt=elapsed;},
   elementApplied(skill){
    if(dead)return;syncElements();
    // Ice uses the same chill counter: it replaces fire-bind provenance, never its mechanics.
@@ -331,10 +352,11 @@ function create(host,read,enemyKey='wolf'){
    if(dead)return;
    amount=Number(amount);if(!Number.isFinite(amount)||amount<=0)return;
    const h={side,amount,heal,crit,pet,skillName},source=heal?side:side==='enemy'?'player':'enemy';
+   if(skillName==='雷神附体·反噬'){thunderFloats.push({...h,when:elapsed+240});return;}
    const action=pet?null:[...queue].reverse().find(a=>a.side===source)||(attack?.side===source?attack:null);
    if(action&&(action!==attack||elapsed-action.at<contactTime(action)))action.pendingHits.push(h);
    else emitHit(h,action);
-  },reset(){if(dead)return;clearElements();domainSource=null;burnPulseAt=-1000;petHitAt=-1000;deaths.player=deaths.enemy=null;attack=null;queue=[];tails=[];hits=[];floats=[];},destroy,canvas};
+  },reset(){if(dead)return;thunder?.clear();thunderFloats=[];clearElements();domainSource=null;burnPulseAt=-1000;petHitAt=-1000;deaths.player=deaths.enemy=null;attack=null;queue=[];tails=[];hits=[];floats=[];},destroy,canvas};
 }
 window.XiantuDuel25D={create,readCombatElements,petKey:petVisualKeyV286818,roster:ROSTER.map(({key,name})=>({key,name}))};
 // Shared species mapping includes elite variants; named story people and tribulations keep their own art.

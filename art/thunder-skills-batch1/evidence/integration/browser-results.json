@@ -1,0 +1,244 @@
+{
+  "rows": [
+    {
+      "name": "雷法",
+      "width": 1000,
+      "height": 900,
+      "spent": 20,
+      "damage": 79,
+      "hitAt": [
+        null,
+        366.5999999999999
+      ],
+      "layers": [
+        "telegraph",
+        "body",
+        "impact",
+        "residue"
+      ],
+      "overflow": false
+    },
+    {
+      "name": "惊雷闪",
+      "width": 1000,
+      "height": 900,
+      "spent": 25,
+      "damage": 75,
+      "hitAt": [
+        null,
+        350
+      ],
+      "layers": [
+        "telegraph",
+        "body",
+        "impact",
+        "residue"
+      ],
+      "overflow": false
+    },
+    {
+      "name": "裂地奔雷",
+      "width": 1000,
+      "height": 900,
+      "spent": 38,
+      "damage": 85,
+      "hitAt": [
+        null,
+        316.6999999999998
+      ],
+      "layers": [
+        "telegraph",
+        "body",
+        "impact",
+        "residue"
+      ],
+      "overflow": false
+    },
+    {
+      "name": "雷法",
+      "width": 390,
+      "height": 844,
+      "spent": 20,
+      "damage": 75,
+      "hitAt": [
+        null,
+        316.6999999999998
+      ],
+      "layers": [
+        "telegraph",
+        "body",
+        "impact"
+      ],
+      "overflow": false
+    },
+    {
+      "name": "惊雷闪",
+      "width": 390,
+      "height": 844,
+      "spent": 25,
+      "damage": 90,
+      "hitAt": [
+        null,
+        316.60000000000036
+      ],
+      "layers": [
+        "telegraph",
+        "body",
+        "impact"
+      ],
+      "overflow": false
+    },
+    {
+      "name": "裂地奔雷",
+      "width": 390,
+      "height": 844,
+      "spent": 38,
+      "damage": 99,
+      "hitAt": [
+        null,
+        316.6999999999998
+      ],
+      "layers": [
+        "telegraph",
+        "body",
+        "impact"
+      ],
+      "overflow": false
+    },
+    {
+      "name": "雷法",
+      "width": 844,
+      "height": 390,
+      "spent": 20,
+      "damage": 84,
+      "hitAt": [
+        null,
+        316.6999999999989
+      ],
+      "layers": [
+        "telegraph",
+        "body",
+        "impact",
+        "residue"
+      ],
+      "overflow": false
+    },
+    {
+      "name": "惊雷闪",
+      "width": 844,
+      "height": 390,
+      "spent": 25,
+      "damage": 80,
+      "hitAt": [
+        null,
+        316.60000000000036
+      ],
+      "layers": [
+        "telegraph",
+        "body",
+        "impact",
+        "residue"
+      ],
+      "overflow": false
+    },
+    {
+      "name": "裂地奔雷",
+      "width": 844,
+      "height": 390,
+      "spent": 38,
+      "damage": 85,
+      "hitAt": [
+        null,
+        316.60000000000036
+      ],
+      "layers": [
+        "telegraph",
+        "body",
+        "impact",
+        "residue"
+      ],
+      "overflow": false
+    }
+  ],
+  "quality": [
+    {
+      "name": "雷法",
+      "q": "rich",
+      "layers": [
+        "telegraph",
+        "body",
+        "impact",
+        "residue"
+      ]
+    },
+    {
+      "name": "雷法",
+      "q": "light",
+      "layers": [
+        "telegraph",
+        "body",
+        "impact"
+      ]
+    },
+    {
+      "name": "雷法",
+      "q": "reduced",
+      "layers": [
+        "telegraph",
+        "impact"
+      ]
+    },
+    {
+      "name": "惊雷闪",
+      "q": "rich",
+      "layers": [
+        "body",
+        "impact",
+        "residue"
+      ]
+    },
+    {
+      "name": "惊雷闪",
+      "q": "light",
+      "layers": [
+        "body",
+        "impact"
+      ]
+    },
+    {
+      "name": "惊雷闪",
+      "q": "reduced",
+      "layers": [
+        "impact"
+      ]
+    },
+    {
+      "name": "裂地奔雷",
+      "q": "rich",
+      "layers": [
+        "body",
+        "impact",
+        "residue"
+      ]
+    },
+    {
+      "name": "裂地奔雷",
+      "q": "light",
+      "layers": [
+        "body",
+        "impact"
+      ]
+    },
+    {
+      "name": "裂地奔雷",
+      "q": "reduced",
+      "layers": [
+        "impact"
+      ]
+    }
+  ],
+  "errors": [],
+  "resetClean": true,
+  "missingTextureFallback": true,
+  "scope": "Chromium emulation; real equipped casts on disposable saves; external requests blocked"
+}

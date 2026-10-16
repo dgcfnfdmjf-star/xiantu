@@ -1,0 +1,42 @@
+{
+  "status": "user approved resource integration; local runtime validation passed; not committed or deployed",
+  "source": "art/thunder-skills-batch1/preview",
+  "destination": "xiantu-v2831-scroll/thunder-skills-batch1",
+  "command": "python3 scripts/promote-thunder-skills-batch1-vfx.py",
+  "sha256": {
+    "choreography.js": "ca388ad2b3050da437be4bdc2a4d06bd282c843eb847555e0831275b09cd545b",
+    "definition.js": "fa691941a584f574bfec8981bb38bd94e8826ad056985da221007a37bcca7de7",
+    "effect-manifest.json": "21339c6dd660c4230641d2f2111fea14c3ebb2b40c11a5c0ccaef4fb457b50f7",
+    "effect-manifest.preview.json": "21339c6dd660c4230641d2f2111fea14c3ebb2b40c11a5c0ccaef4fb457b50f7",
+    "ground_thunder_body.png": "c7df4e3d5e1633bba2d8f38a25cd109cbeb016704af25668984d3560e4f285e7",
+    "ground_thunder_impact.png": "346e9f0cfd6027ee9b808b8140f0aa699d3c6bfa0a89c0b840f56de6f18dcfe6",
+    "ground_thunder_residue.png": "577973f3f44c32285e0c1fbdd4a5bc115153c9b4a3fee093a6ebc4bae2384db9",
+    "ground_thunder_telegraph.png": "6bdfaa925fa7fe5cfda3c791a340bca48952280932e0c0a0345936d83557fd77",
+    "index.html": "e6e72c0d2cc7f41cabc35e2cc85d74bf3353c1d77eda7895ac5ca88091a98695",
+    "preview.js": "5afa21180e5d2bae1b1406f2fb94778ddf51cdfc4303dc5cc04e368d963baf9c",
+    "stage-reference.webp": "f60f880c0af47119a62ffc50c7d21e3a16ccebb93f683ced7810d6e05835cee3",
+    "thunder_flash_body.png": "c2e891b0287dc8b244eb52ac6c79c6c3a19fe66ced291910af5f0f9d053dfb54",
+    "thunder_flash_impact.png": "d3cc72f2e8d7847e0a9111b70159e1e5ccaecd601598b7ef2d51a3fe92869522",
+    "thunder_flash_residue.png": "eca911ce5fcf620ce0c730211c82505021bd8e29d3f87b7d5681bcb4bd341ebe",
+    "thunder_flash_telegraph.png": "8b0c14d5cd5570f4bb2dc80e90e25c035829654717c8f587c12b590d8e1d6543",
+    "thunder_strike_unique_body.png": "cf5442463349f6a6dbbb8da19d6b76f7b44ee7cc5e1df05ec4651c9720d31233",
+    "thunder_strike_unique_impact.png": "19068f1acd83a2b185efd75bc5d672432fc8ac5b04571e795d4c2b2169ea842d",
+    "thunder_strike_unique_residue.png": "884205ee6902a0997724cef4187559633f8c57d79b0996f39d3bf1dc18612ff0",
+    "thunder_strike_unique_telegraph.png": "38ed363765a6196c340a0a47be5015f7fb80c0b45e6552f2d02b5bc7e00ede5f"
+  },
+  "existingGameFilesChanged": [
+    "xiantu-v2855-skill-fx.js",
+    "xiantu-v28684-duel.js",
+    "QA/v286838-test-element-vfx.cjs"
+  ],
+  "unchangedExistingImages": 227,
+  "checks": {
+    "gameRegressionScripts": 55,
+    "rateLimitSuite": true,
+    "existingBrowserCases": 7,
+    "realCombatViewportCases": 9,
+    "humanDirectionQualityCases": 18,
+    "pureSamples": 162000
+  },
+  "evidence": "art/thunder-skills-batch1/evidence/integration"
+}

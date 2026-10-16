@@ -1,0 +1,27 @@
+{
+  "command": "python3 scripts/render-thunder-skills-batch1-evidence.py",
+  "inputs": {
+    "art/thunder-skills-batch1/preview/effect-manifest.json": "21339c6dd660c4230641d2f2111fea14c3ebb2b40c11a5c0ccaef4fb457b50f7",
+    "art/thunder-skills-batch1/sampler.js": "ca388ad2b3050da437be4bdc2a4d06bd282c843eb847555e0831275b09cd545b",
+    "art/thunder-skills-batch1/preview/stage-reference.webp": "f60f880c0af47119a62ffc50c7d21e3a16ccebb93f683ced7810d6e05835cee3",
+    "art/thunder-skills-batch1/design/thunder-strike-storyboard-draft.png": "77c81e81653c199b5a60b4c7ab30ad29ef56f5aa3f5aee3f8d2daebdc2a7776e",
+    "art/element-skills-v286838/preview/effect-manifest.json": "64ab0e8d897ca0b7a67e78123a11cdfd0ceacffa53bf8de0e2bb2cd64cd149f0",
+    "xiantu-v2831-scroll/element-skills-v286838/thunder_strike_body.png": "2914d414303e6dae3ebddd402c6823631d5f484a2bc3d5c69a5728c38825845a",
+    "art/thunder-skills-batch1/preview/thunder_flash_telegraph.png": "8b0c14d5cd5570f4bb2dc80e90e25c035829654717c8f587c12b590d8e1d6543",
+    "art/thunder-skills-batch1/preview/thunder_flash_impact.png": "d3cc72f2e8d7847e0a9111b70159e1e5ccaecd601598b7ef2d51a3fe92869522",
+    "art/thunder-skills-batch1/preview/thunder_strike_unique_impact.png": "19068f1acd83a2b185efd75bc5d672432fc8ac5b04571e795d4c2b2169ea842d",
+    "art/thunder-skills-batch1/preview/thunder_strike_unique_body.png": "cf5442463349f6a6dbbb8da19d6b76f7b44ee7cc5e1df05ec4651c9720d31233",
+    "art/thunder-skills-batch1/preview/thunder_flash_body.png": "c2e891b0287dc8b244eb52ac6c79c6c3a19fe66ced291910af5f0f9d053dfb54",
+    "art/thunder-skills-batch1/preview/ground_thunder_residue.png": "577973f3f44c32285e0c1fbdd4a5bc115153c9b4a3fee093a6ebc4bae2384db9",
+    "art/thunder-skills-batch1/preview/thunder_flash_residue.png": "eca911ce5fcf620ce0c730211c82505021bd8e29d3f87b7d5681bcb4bd341ebe",
+    "art/thunder-skills-batch1/preview/thunder_strike_unique_telegraph.png": "38ed363765a6196c340a0a47be5015f7fb80c0b45e6552f2d02b5bc7e00ede5f",
+    "art/thunder-skills-batch1/preview/ground_thunder_impact.png": "346e9f0cfd6027ee9b808b8140f0aa699d3c6bfa0a89c0b840f56de6f18dcfe6",
+    "art/thunder-skills-batch1/preview/ground_thunder_body.png": "c7df4e3d5e1633bba2d8f38a25cd109cbeb016704af25668984d3560e4f285e7",
+    "art/thunder-skills-batch1/preview/ground_thunder_telegraph.png": "6bdfaa925fa7fe5cfda3c791a340bca48952280932e0c0a0345936d83557fd77",
+    "art/thunder-skills-batch1/preview/thunder_strike_unique_residue.png": "884205ee6902a0997724cef4187559633f8c57d79b0996f39d3bf1dc18612ff0",
+    "art/thunder-skills-batch1/source/thunder_strike_unique/master-original.png": "1e74ed46d12dc9bac13de3c85c4fd35c56de2df3ce3aaa8e277c83b530293c88",
+    "art/thunder-skills-batch1/source/thunder_flash/master-original.png": "daf7231c2a2b293f035535dab0c32bd70700af1fe531247592e97ebf2d389f5e",
+    "art/thunder-skills-batch1/source/ground_thunder/master-original.png": "0cf0a1c190b56c57d539562d757209cf8f789198bc046ad9bc77b47bd868267f"
+  },
+  "scope": "Offline composition from pure sampler and real exported strips; not runtime combat footage"
+}

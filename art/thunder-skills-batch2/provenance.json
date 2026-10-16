@@ -1,0 +1,38 @@
+{
+  "status": "user confirmed preview; locally integrated; not uploaded or deployed",
+  "approvedDesign": "docs/vfx/thunder-skills-design.md: second batch violet/silent/heavenly; continuation authorized by user",
+  "styleReference": "art/thunder-skills-batch2/design/style-reference.png",
+  "imageGenerationSources": {
+    "violet_judgement": [
+      "d720f134-f092-4f3d-9946-bf3dfca616e7",
+      "66119e5a-c2be-48c1-9aa3-70d90c32aeb2"
+    ],
+    "silent_thunder": [
+      "dbe3a4f0-9278-4143-9438-5158e2043a6b",
+      "2b676825-456b-422c-9eca-14dbbb4a704e"
+    ],
+    "heavenly_thunder": [
+      "4e6fc882-e42f-4770-b7d5-c152bcbdc31c",
+      "226367d6-4858-4461-8660-b9ea8b9e1833"
+    ]
+  },
+  "inputs": {
+    "art/thunder-skills-batch2/source/silent_thunder/master-original.png": "575cc0a3dd24b4978f27796929ddd410dba2e4c5bdfe54ff0d29e5b38a54f566",
+    "art/thunder-skills-batch2/source/silent_thunder/keyplates-original.png": "a7236990fe3aec8934704f232d0e125ec2072acd7c6669eadd344fd002b6091c",
+    "art/thunder-skills-batch2/source/violet_judgement/master-original.png": "0abf6a9fe6ee86bd7b761833f694f1b5ec6d32e3eab0d29885e8ee9cdfad5271",
+    "art/thunder-skills-batch2/source/violet_judgement/keyplates-original.png": "da19c6402664cb370731c979ce9f5a57e849c6f5495c06f25c507c5043959eaf",
+    "art/thunder-skills-batch2/source/heavenly_thunder/master-original.png": "6539f104b762ef843fff42bd2a903d15c18d6e559b4f6b296b682c0117ff95d6",
+    "art/thunder-skills-batch2/source/heavenly_thunder/keyplates-original.png": "a54d2d96cecde1d33b5178da04660405a86e8c7eb5d7d7550c2b9d10e7d09e93"
+  },
+  "rejectedSources": {
+    "violet_judgement": [
+      "exec-3673da5e-847c-457d-a131-cc74a6f83cd9.png"
+    ],
+    "heavenly_thunder": [
+      "exec-29c62f2f-6559-46bf-a5aa-c0d6a17ea080.png",
+      "exec-39336b4e-5d1c-406c-9754-4942864a1e28.png"
+    ]
+  },
+  "workflow": "Independent generated masters and authored keyplates; no procedural effect body. Only whole-cell padding, uniform scale/pivot normalization, raster blending and alpha expansion. Accepted sources pass no-clipping before 18% padded-cell audit.",
+  "integrationRecord": "docs/vfx/thunder-skills-batch2-integration.md"
+}

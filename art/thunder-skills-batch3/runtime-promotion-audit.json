@@ -1,0 +1,60 @@
+{
+  "status": "integration validated; GitHub upload authorized; no cloud deployment",
+  "command": "python3 scripts/promote-thunder-skills-batch3-vfx.py",
+  "sha256": {
+    "choreography.js": "b25ee2957f725101d298fa30181adddd11f8ad3e0f3b6a76b853c280090635c3",
+    "thunder_prison_telegraph.png": "ffd020bc3b17a4e9f400857564beae2c58829d3989fc631f0fda8d6b6ffe35e0",
+    "thunder_prison_body.png": "1b2b73e6e31927c42aeb927107e87760faf03e9d7f9c0d5a58768f27af7ab57d",
+    "thunder_mantle_telegraph.png": "a079b7e78292e2341bf559dddc7a76a59e058876ecffcd00d3c6468dc53422cf",
+    "stage-reference.webp": "f60f880c0af47119a62ffc50c7d21e3a16ccebb93f683ced7810d6e05835cee3",
+    "high_cloud_impact.png": "728b83fae06f6009d3d6194d9e3b218821300eff7f0e4300c10a616af99b7b37",
+    "thunder_prison_event.png": "efcf07dc38c51264f5aba3dd066bb55d62b3a535673a6a45494ad94078169f1b",
+    "effect-manifest.json": "22e20844d9a6be37e45950db3ceccb48fcce68775000809f1a79d098a224207a",
+    "chain_lightning_body.png": "8c966edcf22e3c57f2c8996459d2d855396866c564671117054814bf413ed218",
+    "chain_lightning_impact.png": "d75810316478964bb40dd6422098d7e360e0871120f3621cb01e2abac80a89c8",
+    "chain_lightning_event.png": "c809f1cfd75114342667c3c2d043808bcf7d4fc35f8eb033070b00063f2c64eb",
+    "definition.js": "5079c7ae1a497e3c2a004554af76f6ebacd2632b8b4f8dcee3cf8b8c00876d22",
+    "thunder_prison_residue.png": "1968c5af750c8f6315662d0219dd67c5ec76038fbcb39bcc7508b7b37b23235a",
+    "thunder_prison_impact.png": "e268cb5bfdf21423affcc717cd03411bae192a7d246c1e9a63f7504ee6ffed81",
+    "high_cloud_residue.png": "42f8b68b69bcc94dcdc4a41224c7f2e30bec2ad964eaf7f63114ca1961b7c554",
+    "chain_lightning_residue.png": "69360d3320291a9baeefd217114c924f2a56ae79708e15546a7d7692f16507e6",
+    "thunder_mantle_residue.png": "dc827b177a14fe91b480b797799354a78381615a0f4eb41ad889f4e72813b4dd",
+    "high_cloud_telegraph.png": "c0b3e5797c22a399b7f8579642e36212ac9e394c22391c6459f01f6b05b1b9fc",
+    "high_cloud_body.png": "e20072007cfb7322fae82b751016ef2a049fedd9bcd76cde22164c043070ba2b",
+    "thunder_mantle_event.png": "eebd9aa43b1fc31d69b3069db6dd2708409ac05302f056706e7463a92bcebafe",
+    "high_cloud_event.png": "227af5101bbc9f73118f85026a6127438b1f563c1455def80c8c298905f9c8ff",
+    "index.html": "5ef5f8ddc4f513034170ebf18f5b92d6b6dc9107e3f2bb05fabfe181023e90b0",
+    "chain_lightning_telegraph.png": "20d7a3fc64b7bfaadbab4221ae055062a0ca13a7bf2e8a9e8ac5b22313ffed02",
+    "thunder_mantle_impact.png": "070682f4eebb01b8b10ab4c342f5103fde9ffa5a8d267d2b86fc4bdb41bb6e54",
+    "effect-manifest.preview.json": "22e20844d9a6be37e45950db3ceccb48fcce68775000809f1a79d098a224207a",
+    "preview.js": "feb38912f9412710582a981c54961562a80b652347cf7c10f31fa561a0231b41",
+    "thunder_mantle_body.png": "4aa3362d36fa5e82eb7b8d1f52588f2133386148359f7ec78a9d5ea90668374c"
+  },
+  "baseline": {
+    "files": 677,
+    "changed": [
+      "xiantu-v2831-scroll/QA/v286838-test-element-vfx.cjs",
+      "xiantu-v2831-scroll/QA/v286842-test-thunder-batch.cjs",
+      "xiantu-v2831-scroll/QA/v286843-test-thunder-batch2.cjs",
+      "xiantu-v2831-scroll/battle-25d-preview.html",
+      "xiantu-v2831-scroll/xiantu-v2762-core.js",
+      "xiantu-v2831-scroll/xiantu-v2855-skill-fx.js",
+      "xiantu-v2831-scroll/xiantu-v28684-duel.js"
+    ],
+    "generatedManifestExcluded": [
+      "xiantu-v2831-scroll/checksums.sha256"
+    ],
+    "unchangedVerified": 669
+  },
+  "validation": {
+    "pureSamples": 504000,
+    "gameRegressionScripts": 57,
+    "browserCases": 7,
+    "actualEquippedCasts": 12,
+    "ordinaryAndSetCloud": true,
+    "portraitLifecycle": true,
+    "duelResumeSingleLoop": true,
+    "missingTextureFallback": true,
+    "record": "docs/vfx/thunder-skills-batch3-integration.md"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "file": "index.html",
+  "before": "5279c88af11a371d76d07d419f50b3152809baee086439fac51f3923920de5f4",
+  "after": "486d6773f786f9bc1dcf3e765e51f6b2b21db2ed585bc39cde032a3bfe64a227",
+  "reason": "update preview status after integration; no asset/config/sampler edits"
+}

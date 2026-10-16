@@ -1,0 +1,1 @@
+PASS: master-original.png — 1 frame(s), 1 column(s), 1 row(s), 2% clean margin.
