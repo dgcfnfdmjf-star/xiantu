@@ -169,7 +169,7 @@ function create(host,read,enemyKey='wolf'){
     }
     const from={x:a.side==='player'?260:475,y:225},to=a.fxProfile.self?from:{x:a.side==='player'?493:242,y:225};
     // Heart-fire is a torso brand: use the illustrated species' height, never its foot ring.
-    if(a.fxProfile.kind==='heart'||['烈焰斩','炎爆术','三昧真火','赤焰龙息'].includes(a.name)||(!a.fxProfile.self&&ink.elementBatch?.definition?.(a.name)?.visualArchetype==='projectile')){
+    if(a.fxProfile.kind==='heart'||['烈焰斩','炎爆术','三昧真火','赤焰龙息'].includes(a.name)||(!a.fxProfile.self&&(ink.thunderBatch?.definition?.(a.name)||ink.elementBatch?.definition?.(a.name))?.visualArchetype==='projectile')){
      const enemyFoot=profile.key==='wolf'?278:profile.height>200?315:/fly|float/.test(profile.motion)?306:292;
      const torso={x:ex,y:enemyFoot-profile.height*(profile.motion==='human'?.58:.43)};
      const hero={x:px+8,y:205};

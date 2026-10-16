@@ -191,8 +191,12 @@ for E in EFFECTS:
 manifest = dict(schemaVersion=1, effects=effects)
 (ART / 'preview/effect-manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
 (ART / 'asset-audit.json').write_text(json.dumps(dict(command='python3 scripts/build-element-skills-vfx.py', effects=reports), indent=2) + '\n')
-block = '  // BEGIN ELEMENT BATCH GENERATED\n  const ELEMENT_BATCH=' + json.dumps(effects, ensure_ascii=False, separators=(',', ':')) + ';\n  // END ELEMENT BATCH GENERATED\n'
 text = FX.read_text()
+# Preserve ownership of approved dedicated thunder effects when regenerating old sheets.
+thunder = re.findall(r'const THUNDER_BATCH\d*=(.*?);\n', text)
+dedicated = {d['name'] for batch in thunder for d in json.loads(batch)}
+runtime_effects = [{**d, 'skills': [n for n in d['skills'] if n not in dedicated]} for d in effects]
+block = '  // BEGIN ELEMENT BATCH GENERATED\n  const ELEMENT_BATCH=' + json.dumps(runtime_effects, ensure_ascii=False, separators=(',', ':')) + ';\n  // END ELEMENT BATCH GENERATED\n'
 pattern = re.compile(r'  // BEGIN ELEMENT BATCH GENERATED\n.*?  // END ELEMENT BATCH GENERATED\n', re.S)
 text = pattern.sub(lambda _: block, text) if pattern.search(text) else text.replace('  // BEGIN SOLAR GENERATED CONFIG\n', block + '  // BEGIN SOLAR GENERATED CONFIG\n', 1)
 FX.write_text(text)

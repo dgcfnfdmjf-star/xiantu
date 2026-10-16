@@ -1,0 +1,40 @@
+{
+  "browser": "151.0.7922.173",
+  "errors": [],
+  "records": [
+    {
+      "key": "thunder_strike_unique",
+      "controls": true,
+      "miss": true
+    },
+    {
+      "key": "thunder_flash",
+      "controls": true,
+      "miss": true
+    },
+    {
+      "key": "ground_thunder",
+      "controls": true,
+      "miss": true
+    }
+  ],
+  "sizes": [
+    {
+      "width": 390,
+      "height": 844,
+      "noOverflow": true
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "noOverflow": true
+    }
+  ],
+  "pacing": {
+    "samples": 60,
+    "median": 16.69999999999891,
+    "p95": 16.700000000000728
+  },
+  "resourceFailureIsolation": true,
+  "scope": "Isolated DOM sprite resource preview; not game integration or real phone GPU"
+}

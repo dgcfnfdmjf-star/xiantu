@@ -1,0 +1,3 @@
+FAIL: master-original.png has 2 safe-margin violation(s).
+  - frame 0 left: 1262 foreground pixels inside the 226px safe margin (limit 11)
+  - frame 0 right: 3329 foreground pixels inside the 226px safe margin (limit 11)

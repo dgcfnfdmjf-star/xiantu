@@ -1,0 +1,16 @@
+{
+  "source": "output/playwright/thunder-batch2-integration/combat-recording.webm",
+  "sourceSha256": "62f3ae2e646b611eae2dd515a07b24e5ae5ca330cbd6e6e9198489dc90f72893",
+  "scope": "real equipped casts; video crop/transcode only; no composited VFX",
+  "clipSeconds": [
+    1.4,
+    5.2
+  ],
+  "crop": "570:380:27:28",
+  "screenshotsAtSeconds": {
+    "violet": 1.64,
+    "silent": 3.08,
+    "heavenly": 4.4
+  },
+  "videoSha256": "18835d546b813294973fc5dbc66a02196e358392670b135e2075faff02885b87"
+}

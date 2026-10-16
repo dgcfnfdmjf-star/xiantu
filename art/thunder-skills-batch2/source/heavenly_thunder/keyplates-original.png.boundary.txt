@@ -1,0 +1,1 @@
+PASS: keyplates-original.png — 4 frame(s), 2 column(s), 2 row(s), 2% clean margin.

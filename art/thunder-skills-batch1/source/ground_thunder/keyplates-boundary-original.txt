@@ -1,0 +1,11 @@
+FAIL: keyplates-original.png has 10 safe-margin violation(s).
+  - frame 0 left: 254 foreground pixels inside the 93px safe margin (limit 11)
+  - frame 0 right: 472 foreground pixels inside the 93px safe margin (limit 11)
+  - frame 1 left: 702 foreground pixels inside the 93px safe margin (limit 11)
+  - frame 1 right: 1463 foreground pixels inside the 93px safe margin (limit 11)
+  - frame 2 left: 517 foreground pixels inside the 93px safe margin (limit 11)
+  - frame 2 right: 2004 foreground pixels inside the 93px safe margin (limit 11)
+  - frame 3 right: 25 foreground pixels inside the 93px safe margin (limit 11)
+  - frame 4 right: 17 foreground pixels inside the 93px safe margin (limit 11)
+  - frame 5 left: 138 foreground pixels inside the 93px safe margin (limit 11)
+  - frame 5 right: 218 foreground pixels inside the 93px safe margin (limit 11)

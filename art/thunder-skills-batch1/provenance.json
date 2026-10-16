@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-16",
+  "designApprovedBy": "用户回复“确认”",
+  "approvedReference": "art/thunder-skills-batch1/design/thunder-strike-storyboard-draft.png",
+  "workflow": "Independent image-generation masters per skill, then stage plates per master. First 3x2 grids rejected for unsafe margins; regenerated 2x2 isolated layers. No effect body procedurally drawn. Whole-cell expansion after no-clipping audit; raster interpolation, opacity and uniform normalization only.",
+  "masterSources": {
+    "thunder_strike_unique": "exec-17f1f6ad-41a6-4dad-ac0b-fdf7ded3771e.png",
+    "thunder_flash": "exec-4448e1bd-3805-4779-81c9-9c1f952b6051.png",
+    "ground_thunder": "exec-c41c55e9-37a7-4a8b-9854-ac194eeaa943.png"
+  },
+  "acceptedPlateSources": {
+    "thunder_strike_unique": "exec-2af08955-aba4-4a52-ab36-a45b78810cc7.png",
+    "thunder_flash": "exec-954706cc-765b-494e-90b0-c475f2a2e6a5.png",
+    "ground_thunder": "exec-d317961b-9a08-4f49-a645-061f1d27a4dd.png"
+  },
+  "inputs": {
+    "art/thunder-skills-batch1/source/thunder_strike_unique/master-original.png": "1e74ed46d12dc9bac13de3c85c4fd35c56de2df3ce3aaa8e277c83b530293c88",
+    "art/thunder-skills-batch1/source/thunder_strike_unique/keyplates-original.png": "b47271b03c1acb27a9d9f9b07bb1d7fa0fcdff3b1f31fbe0c9b697d5c6f40d52",
+    "art/thunder-skills-batch1/source/thunder_flash/master-original.png": "daf7231c2a2b293f035535dab0c32bd70700af1fe531247592e97ebf2d389f5e",
+    "art/thunder-skills-batch1/source/thunder_flash/keyplates-original.png": "1ee56902e53e0682dabba41a4028a30e4b51529da25a526ec6be63636d3ffd7a",
+    "art/thunder-skills-batch1/source/ground_thunder/master-original.png": "0cf0a1c190b56c57d539562d757209cf8f789198bc046ad9bc77b47bd868267f",
+    "art/thunder-skills-batch1/source/ground_thunder/keyplates-original.png": "e7d41f3f72bac72573bb23822b42875c237b4b0d918fd825d87fd5df9ed8b224"
+  },
+  "status": "resource-preview-awaiting-user-acceptance"
+}
