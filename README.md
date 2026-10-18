@@ -92,7 +92,7 @@ npm test
 npm run test:browser
 ```
 
-`npm test` 运行选定的 59 个当前功能回归脚本与限流测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
+`npm test` 运行选定的 59 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
 
 浏览器测试覆盖恶意存档拒绝且原主档/备份不变、正常导入与刷新恢复、360/390/430/1366px 导航入口可达性、预加载去重与版本错误提示。外部请求被拦截，不调用付费服务。已有 Chromium 的云环境可使用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`。
 
@@ -256,3 +256,7 @@ npm run package:cloud
 ## 开发技能
 
 项目内已接入网页游戏开发、官方 Playwright 浏览器操作、Canvas 性能检查三项工作流。入口为 `AGENTS.md`，来源和本轮实测结果见 [开发技能与验证记录](docs/development-skills.md)。它们供开发时使用，不需要重新上传腾讯云游戏文件。
+
+## 函数覆盖关系排查
+
+`npm run audit:wrappers` 按加载器中实际的 40 个脚本顺序，输出函数定义、包装与覆盖的静态候选关系。支持 `--list-only`、`--all`、`--json` 和 `--md`；完整用法与识别边界见 [扫描器说明](docs/wrapper-audit.md)。运行 `npm run test:wrappers` 可单独验证工具。扫描提示须结合调用路径人工核对，不能直接当成漏洞清单。开发工具变更无需重传腾讯云游戏包。
