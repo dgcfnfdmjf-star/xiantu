@@ -1,6 +1,6 @@
 {
   "name": "xiantu",
-  "version": "28.68.41",
+  "version": "28.68.46",
   "private": true,
   "engines": {
     "node": ">=22"
@@ -11,7 +11,9 @@
     "test:browser": "playwright test",
     "test:all": "npm test && npm run test:browser",
     "package:cloud": "python3 scripts/package-cloud.py",
-    "package:game": "python3 scripts/package-game.py"
+    "package:game": "python3 scripts/package-game.py",
+    "audit:wrappers": "node scripts/map-wrappers.cjs",
+    "test:wrappers": "node --test tests/map-wrappers.cjs"
   },
   "devDependencies": {
     "@playwright/test": "1.62.1"
