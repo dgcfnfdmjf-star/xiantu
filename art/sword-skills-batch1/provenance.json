@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-19",
+  "designApprovedBy": "User confirmation",
+  "status": "integrated-locally-runtime-validation",
+  "authoritativeReference": "art/sword-skills-batch1/design/storyboard-draft.png",
+  "production": "Independent image-generated masters and stage plates; validated whole-cell padding, raster interpolation, opacity and uniform normalization only. Rejected grids excluded.",
+  "inputs": {
+    "art/sword-skills-batch1/source/sword_flight/master-original.png": "127a146d94dba556925f43aa96c1ebbdfe478756a126bd8eb181b97d03b98c8a",
+    "art/sword-skills-batch1/source/myriad_swords/master-original.png": "99235189664430ae8393907ed1d3a3ee1a3d815cf3e28084567fee6ff3a9eb5f",
+    "art/sword-skills-batch1/source/heaven_earth_blade/master-original.png": "9b81de388fe28322414e43285883e6b90b560629e283af8ecce614c981c8df45",
+    "art/sword-skills-batch1/source/sword_flight/keyplates-original.png": "99f9836174e0c13529cad2e31ef3632af6de6bce7c89394d86efa2a3326308a4",
+    "art/sword-skills-batch1/source/myriad_swords/keyplates-original.png": "374ad275b7ce77ea8f576384594d41bd1a83569b11d8ceeaaa88ab66447e7108",
+    "art/sword-skills-batch1/source/heaven_earth_blade/keyplates-original.png": "5b730f0fa8726288bf88d3256717e419087f858b2015c50bc83b8582a727b086",
+    "art/sword-skills-batch1/design/storyboard-draft.png": "66461fb8a692feb4c21b0383b73447d3830fc04296943f0c0bb1732f9a843414"
+  },
+  "resourceApprovedBy": "User requested 接入 after resource preview"
+}

@@ -1,0 +1,26 @@
+剑系第一批：资源预览记录（已确认并接入）
+
+完成范围：御剑术、万剑归宗、天地一剑。每招独立母版、四阶段素材与透明图集，合计12图集/72帧。
+已确认的设计参考：design/storyboard-draft.png；用户确认日期2026-10-19。
+动态预览：evidence/sword-batch-animation.webp；单招预览为同目录对应名称的webp。
+交互预览：preview/index.html；需通过本地HTTP服务器打开。三招可切换、暂停、逐帧、重播、改变速度/缩放/偏移、轻量模式。
+
+制作方法
+独立生成每招剑体母版，再以其作为参考生成分阶段关键画面。御剑术与万剑归宗首轮分格边界不足，保留为keyplates-rejected.png，未用于导出。最终源图先通过原始边界无裁切检查，完整扩展单格透明边距，再通过18%安全边距检查，之后切片。输出帧由作者绘制的母版/关键画面插值及淡出组成；不以程序几何代替剑体。
+
+检查
+python3 scripts/build-sword-skills-batch1-vfx.py
+node .agents/skills/creating-game-combat-vfx/scripts/validate_effect_manifest.mjs art/sword-skills-batch1/preview/effect-manifest.json
+node scripts/check-sword-skills-batch1-vfx.cjs
+python3 scripts/render-sword-skills-batch1-evidence.py
+源图/输出哈希与透明度、颜色、白色覆盖、逐帧唯一性记录于asset-audit.json。
+检查了三招关键重叠窗口和设计/旧共享素材/新素材对照。浏览器预览在桌面与390×844视口检查；这不是实体手机测试。
+
+语义约束
+飞剑定长移动，拖尾保存在同一移动素材中。万剑归宗7柄剑为同次伤害的视觉分解，轻量/减少动态模式3柄；不得增加扣血次数。天地一剑固定地面点与下降剑体分离，效果绘制区域避开血条。
+预览以hitAt=310ms模拟命中，未来接入必须使用真实动作命中。采样器不修改游戏对象，取消/隐藏/目标死亡/换敌返回空图层。
+
+当前边界
+这是资源制作与预览阶段，正式游戏仍使用原剑系素材。没有更新版本、部署包、GitHub或腾讯云。游戏运行代码未改，因此本轮没有重跑完整游戏回归。正式接入后还需验证原10/50/80耗蓝、1.5/3.5/5倍伤害、命中与暂停恢复，以及真实战场手机遮挡。
+
+更新：用户确认接入后，三招已在V28.68.47本地接入；上文为资源阶段历史边界。最新结果见docs/vfx/sword-skills-batch1-integration.txt。

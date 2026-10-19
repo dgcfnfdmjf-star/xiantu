@@ -4,7 +4,7 @@
 <label style="display:block;margin:12px 18px"><input id="burnFixture" type="checkbox"> 对手带灼烧（炎爆术引爆试播）</label><button id="clearBurn" style="margin:0 18px 16px">清除灼烧 / 火域 / 莲印</button>
 <div class="controls" style="margin:0 18px 16px"><button id="elementTurn">推进敌方回合</button><button id="guardHit">护盾承伤 30 点</button><button id="clearElements">清除缠绕与护盾</button></div>
 <div class="controls" style="margin:0 18px 16px"><label><input id="cloudDomain" type="checkbox"> 九霄雷云套装雷域</label><button id="thunderTurn">雷域推进一回合</button><button id="reflectHit">模拟承伤反噬</button><button id="clearThunder">清除雷域与雷铠</button></div>
-<script src="./xiantu-v2855-skill-fx.js?v=286838"></script><script src="./xiantu-v28684-duel.js?v=286838"></script><script>
+<script src="./xiantu-v2855-skill-fx.js?v=286847-sword-20261019"></script><script src="./xiantu-v28684-duel.js?v=286847-sword-20261019"></script><script>
 const state={playerName:'青云剑修',enemyName:'苍山野狼',playerHp:720,playerMax:720,enemyHp:980,enemyMax:980};let scene;const selector=document.getElementById('enemySelect');XiantuDuel25D.roster.forEach(p=>{const option=document.createElement('option');option.value=p.key;option.textContent=p.name;selector.appendChild(option);});let timer=0,busy=false;const status=document.getElementById('status');
 function clearThunder(){state.thunderDomainTurns=0;state.thunderDomainDamage=0;state.thunderArmorTurns=0;}
 document.getElementById('clearThunder').onclick=clearThunder;
