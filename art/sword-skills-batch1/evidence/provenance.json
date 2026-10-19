@@ -1,0 +1,27 @@
+{
+  "command": "python3 scripts/render-sword-skills-batch1-evidence.py",
+  "inputs": {
+    "art/sword-skills-batch1/preview/effect-manifest.json": "451f947d61179b4e41b2a9a6b0e123aa61564fe4756257ffe8e1ecbae5ec8a7d",
+    "art/sword-skills-batch1/sampler.js": "29f6c68a40442b17e86f79d5c3efdce81daa43d9dd38db99f20b4c69afe3c149",
+    "art/sword-skills-batch1/preview/stage-reference.webp": "d88933abbf05d2c3506b73545dde8fcb030583304d55781bcdc491d8514361b3",
+    "art/sword-skills-batch1/design/storyboard-draft.png": "66461fb8a692feb4c21b0383b73447d3830fc04296943f0c0bb1732f9a843414",
+    "art/element-skills-v286838/preview/effect-manifest.json": "64ab0e8d897ca0b7a67e78123a11cdfd0ceacffa53bf8de0e2bb2cd64cd149f0",
+    "xiantu-v2831-scroll/element-skills-v286838/sword_qi_body.png": "149330393923b43c0d75ee42b81d6e23fb6e1828b72845e980e1999f495c35d7",
+    "art/sword-skills-batch1/preview/heaven_earth_blade_telegraph.png": "0b01f84516756070401ef01b1e03382057de1e169a4ecbea6e52365c197ec23b",
+    "art/sword-skills-batch1/preview/myriad_swords_body.png": "56b3197a8c218ed0e163672c57659224a430331dd9b32e955612edb2c3def5fb",
+    "art/sword-skills-batch1/preview/myriad_swords_telegraph.png": "fe60d37d301f03ced35c63387cf084cb844b5fd41b216d409cf883f1e2b6df63",
+    "art/sword-skills-batch1/preview/sword_flight_residue.png": "98d611e5da3ab4116430458f3a5ee9581a4eab12e21b0b0d228eddb1c0699ece",
+    "art/sword-skills-batch1/preview/heaven_earth_blade_residue.png": "a3b5893d33ac1694ea158fc31da5dc3254f4b75b6ea329bebfeb6cee4e52d5de",
+    "art/sword-skills-batch1/preview/myriad_swords_impact.png": "2363c47b78e88192ef228c56f985d3c61536c354eb9e53cb39887bec2d18b81c",
+    "art/sword-skills-batch1/preview/sword_flight_impact.png": "613ea6b1bd2d1fb56699c7a000cce990de3b42bc7a80a9aedc27c4b3e5686249",
+    "art/sword-skills-batch1/preview/sword_flight_body.png": "5df980b314086d36515fa0b23f238977fdc245d69b01c86ef2398505ac05c646",
+    "art/sword-skills-batch1/preview/heaven_earth_blade_body.png": "d5b4a0948c9e10e1d56c8c924e43892c2a5bac657fa12efc66e66e2272be9278",
+    "art/sword-skills-batch1/preview/heaven_earth_blade_impact.png": "d2cffcd1b90147c8d7bb65e1351b2c05f1f236c5195b1c2197681448da92a615",
+    "art/sword-skills-batch1/preview/myriad_swords_residue.png": "a0c635024632cf84490ef8ec0d8b374f8606048029a5374e9ab189c563edc9d3",
+    "art/sword-skills-batch1/preview/sword_flight_telegraph.png": "2ca36dfbf88c671e93ed279223a7c83e6f0ab0bc3c751be9f65ad6c51a8a14f8",
+    "art/sword-skills-batch1/source/sword_flight/master-original.png": "127a146d94dba556925f43aa96c1ebbdfe478756a126bd8eb181b97d03b98c8a",
+    "art/sword-skills-batch1/source/myriad_swords/master-original.png": "99235189664430ae8393907ed1d3a3ee1a3d815cf3e28084567fee6ff3a9eb5f",
+    "art/sword-skills-batch1/source/heaven_earth_blade/master-original.png": "9b81de388fe28322414e43285883e6b90b560629e283af8ecce614c981c8df45"
+  },
+  "scope": "Resource choreography on actual stage reference; not live combat footage"
+}
