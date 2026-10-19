@@ -1,0 +1,27 @@
+{
+  "command": "python3 scripts/render-sword-skills-batch2-evidence.py",
+  "inputs": {
+    "art/sword-skills-batch2/preview/effect-manifest.json": "be409c289df120e36caa4f7f1a2687343056095bd1409b5c87f22f4b98442011",
+    "art/sword-skills-batch2/sampler.js": "b453430a54be15a4d034c37e493fa238d17a56bead69fd77e673266e2b7d94eb",
+    "art/sword-skills-batch2/preview/stage-reference.webp": "d88933abbf05d2c3506b73545dde8fcb030583304d55781bcdc491d8514361b3",
+    "art/sword-skills-batch2/design/storyboard-draft.png": "1bbf614294309ff21f24f2baf6477282b2eb47d8c153ed36692326f618cbc2c3",
+    "art/element-skills-v286838/preview/effect-manifest.json": "64ab0e8d897ca0b7a67e78123a11cdfd0ceacffa53bf8de0e2bb2cd64cd149f0",
+    "xiantu-v2831-scroll/element-skills-v286838/sword_qi_body.png": "149330393923b43c0d75ee42b81d6e23fb6e1828b72845e980e1999f495c35d7",
+    "art/sword-skills-batch2/preview/crossing_sword_qi_body.png": "374556e070d432f3893251241b706c524aec4e618cc7d6cc379c0f814de22604",
+    "art/sword-skills-batch2/preview/breeze_slash_residue.png": "b56b9c174961cd68dff4b3bee24a170536dff0d0831f094a09fc460eede65ec9",
+    "art/sword-skills-batch2/preview/armor_piercing_edge_residue.png": "ffe9204b7da3aaebf34b9f223c402b33f6dd1bee0c7931b1b33886525a499a3c",
+    "art/sword-skills-batch2/preview/crossing_sword_qi_impact.png": "ff938d7157e50d8cc27fc81e62c427b285e751298dd4718bd1419aa8e23c0cf4",
+    "art/sword-skills-batch2/preview/breeze_slash_impact.png": "657074182c3afbda759a5076323a6bd90131d5090920132139c20876c3cc2412",
+    "art/sword-skills-batch2/preview/crossing_sword_qi_telegraph.png": "a682192851a8b5766d7e83636d1a7f0285fd2456d42634dc0f553309e233a6ba",
+    "art/sword-skills-batch2/preview/armor_piercing_edge_impact.png": "e551a7774a4feaf1d38c0600770ab1ed28a5680275e89ebff49ed2527ba5274a",
+    "art/sword-skills-batch2/preview/armor_piercing_edge_telegraph.png": "8a300a2a3d8e310af9d398fb00cdf532b4116e7113d263f11a170bf3fe294db4",
+    "art/sword-skills-batch2/preview/crossing_sword_qi_residue.png": "887ea467373f9c1caed2e18f2ed0d67c14b4f7bb8ca89216abbfef1a44198cf0",
+    "art/sword-skills-batch2/preview/breeze_slash_body.png": "fb2f51cf039d55448a9ad7a31930d3cec0c0d625b0f4dd6602e81244ce8d6bcd",
+    "art/sword-skills-batch2/preview/breeze_slash_telegraph.png": "adc872b8553443237d66ec6accfb2236fd0c2435d614a3bdbc946a86afe60d5e",
+    "art/sword-skills-batch2/preview/armor_piercing_edge_body.png": "34edfb331987275ded023f3691127e0784c033e3c84cb456b2b72beee3519c8d",
+    "art/sword-skills-batch2/source/armor_piercing_edge/master-original.png": "9b0ebc2c65d6ba58b2ac278277ec74bdca61a241e63804fb7b00c928faac9320",
+    "art/sword-skills-batch2/source/breeze_slash/master-original.png": "d4598fcfbff32634ae874bced119884bd5021106325cdbbe804e9c4335f7880a",
+    "art/sword-skills-batch2/source/crossing_sword_qi/master-original.png": "c2d5a8846e09f3db6a85ba845abd8d0f8199898f3303fd891fd153534a27e107"
+  },
+  "scope": "Resource choreography on actual stage reference; not live combat footage"
+}

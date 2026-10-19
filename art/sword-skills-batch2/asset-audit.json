@@ -1,0 +1,954 @@
+{
+  "command": "python3 scripts/build-sword-skills-batch2-vfx.py",
+  "sourcePolicy": "Check originals for clipping at 2%, expand complete cells, validate 18% safe margins BEFORE slicing. Rejected originals never used.",
+  "effects": {
+    "breeze_slash": {
+      "inputs": {
+        "art/sword-skills-batch2/source/breeze_slash/keyplates-original.png": "ddce934c4bb56f77b0754f58c08695f70291d264a9609ae563eb149635acaae9",
+        "art/sword-skills-batch2/source/breeze_slash/master-original.png": "d4598fcfbff32634ae874bced119884bd5021106325cdbbe804e9c4335f7880a"
+      },
+      "checks": [
+        "PASS: keyplates-original.png \u2014 4 frame(s), 2 column(s), 2 row(s), 2% clean margin.",
+        "PASS: master-original.png \u2014 1 frame(s), 1 column(s), 1 row(s), 2% clean margin.",
+        "PASS: keyplates-safe.png \u2014 4 frame(s), 2 column(s), 2 row(s), 18% clean margin.",
+        "PASS: master-safe.png \u2014 1 frame(s), 1 column(s), 1 row(s), 18% clean margin."
+      ],
+      "frames": {
+        "telegraph": [
+          {
+            "bounds": [
+              60,
+              97,
+              198,
+              160
+            ],
+            "white": 0.027868852459016394,
+            "dominant": 0.9775956284153006,
+            "opaque": 0.0,
+            "hash": "2b5deace361a69e3cc59e9055faf8c7996e997e74e4b2104784e09ea7cee9a1b"
+          },
+          {
+            "bounds": [
+              59,
+              97,
+              199,
+              160
+            ],
+            "white": 0.02478134110787172,
+            "dominant": 0.9800777453838678,
+            "opaque": 0.14188532555879493,
+            "hash": "a736da9bb5c396e8d032fc484489cf275875016f43c98fc02eabd63cb26aa36d"
+          },
+          {
+            "bounds": [
+              59,
+              97,
+              199,
+              160
+            ],
+            "white": 0.022747546833184657,
+            "dominant": 0.9817127564674398,
+            "opaque": 0.20294380017841213,
+            "hash": "70ceb49349316af392661b54a063668e9efb23bc66acf639584dce4446cd78dc"
+          },
+          {
+            "bounds": [
+              59,
+              97,
+              199,
+              160
+            ],
+            "white": 0.02156448202959831,
+            "dominant": 0.9826638477801268,
+            "opaque": 0.22452431289640593,
+            "hash": "08734d2dfb12fa9394bc78290324149d6524ff53116abb8754c1c5aa4dd59ef0"
+          }
+        ],
+        "body": [
+          {
+            "bounds": [
+              41,
+              85,
+              195,
+              173
+            ],
+            "white": 0.020910913778287025,
+            "dominant": 0.9813806932111143,
+            "opaque": 0.6863362933256947,
+            "hash": "35c59d0bf65e59f8193dd09b0d7a19c4f92674b0cb716fd351ceb5fc6ba38f20"
+          },
+          {
+            "bounds": [
+              41,
+              85,
+              195,
+              173
+            ],
+            "white": 0.010638297872340425,
+            "dominant": 0.9914431082331174,
+            "opaque": 0.5409343200740055,
+            "hash": "6a7933ad62a005354921265a7cdb020910f4b59575370686a5f43712601e29a9"
+          },
+          {
+            "bounds": [
+              41,
+              85,
+              195,
+              173
+            ],
+            "white": 0.003955860920258172,
+            "dominant": 0.9950031230480949,
+            "opaque": 0.44867790963980847,
+            "hash": "afe87219c3c85f6fb23272a537d0def9ec1bcf22d82c841eb9dad67321d4a975"
+          },
+          {
+            "bounds": [
+              41,
+              85,
+              195,
+              173
+            ],
+            "white": 0.009041939207387457,
+            "dominant": 0.9892266256252404,
+            "opaque": 0.42862639476721814,
+            "hash": "a9f15f3ff0b49eec8728c7f693bd593fb17cea1ba587a327fe4be329b9c50828"
+          },
+          {
+            "bounds": [
+              41,
+              85,
+              193,
+              173
+            ],
+            "white": 0.01636631114380287,
+            "dominant": 0.981059212945936,
+            "opaque": 0.4692901802133137,
+            "hash": "c89d6b7e1a36b8c6378cde7701f537b43d1c9e719a50acadf1d80bc67dc71c7c"
+          },
+          {
+            "bounds": [
+              41,
+              85,
+              195,
+              173
+            ],
+            "white": 0.010712272129299004,
+            "dominant": 0.987220447284345,
+            "opaque": 0.4531103176094719,
+            "hash": "44115b2529277181e1df7b7655d8039a7ebe297e11b7be1ff3d91079326e04d3"
+          },
+          {
+            "bounds": [
+              41,
+              85,
+              195,
+              173
+            ],
+            "white": 0.005296394377673661,
+            "dominant": 0.9942961906701976,
+            "opaque": 0.4347117539213689,
+            "hash": "cab51b8b8283d15a5ad18a82988fa3c16fe7a2a9e506740b9b1c20ff6baf5f3f"
+          },
+          {
+            "bounds": [
+              41,
+              85,
+              195,
+              173
+            ],
+            "white": 0.0065256525652565255,
+            "dominant": 0.9952745274527453,
+            "opaque": 0.5222772277227723,
+            "hash": "089ab42d1104a47e47f336611d3412afa826cfec0577252fc8801ae05450f4f2"
+          }
+        ],
+        "impact": [
+          {
+            "bounds": [
+              54,
+              91,
+              202,
+              167
+            ],
+            "white": 0.02920395666509656,
+            "dominant": 0.9769194536033914,
+            "opaque": 0.2687235044747998,
+            "hash": "8973d0818d5db150141363189c73d26b64f408c59495d0ede05d225ef88c48d9"
+          },
+          {
+            "bounds": [
+              55,
+              91,
+              202,
+              167
+            ],
+            "white": 0.02991556091676719,
+            "dominant": 0.976357056694813,
+            "opaque": 0.25838359469240046,
+            "hash": "abea0ff8a312bb851a1c712eeae6fb12068e408d2e7e7c715cc30fba2184efc9"
+          },
+          {
+            "bounds": [
+              55,
+              91,
+              202,
+              166
+            ],
+            "white": 0.03202479338842975,
+            "dominant": 0.9746900826446281,
+            "opaque": 0.2112603305785124,
+            "hash": "7750dcdfa93b425744297b9e8b1f43c6fdfb6d278893a38178c41781f54c749c"
+          },
+          {
+            "bounds": [
+              56,
+              92,
+              201,
+              165
+            ],
+            "white": 0.03657817109144543,
+            "dominant": 0.9710914454277286,
+            "opaque": 0.0,
+            "hash": "0a085d9cefe3ae12db085ec1ce45fcaf33a9b32ae7f89deb149c82a9ddc59756"
+          },
+          {
+            "bounds": [
+              57,
+              92,
+              201,
+              164
+            ],
+            "white": 0.04579025110782865,
+            "dominant": 0.9638109305760709,
+            "opaque": 0.0,
+            "hash": "29624597613df66665d4461d039172f21c94ac7d92d479a04d763ab0875a28d5"
+          },
+          {
+            "bounds": [
+              58,
+              93,
+              201,
+              163
+            ],
+            "white": 0.06775956284153005,
+            "dominant": 0.946448087431694,
+            "opaque": 0.0,
+            "hash": "2d1c3657274d3539f4622c140f745eb16cfeefeafd6eac8233e95513b61f4c68"
+          }
+        ],
+        "residue": [
+          {
+            "bounds": [
+              59,
+              101,
+              197,
+              156
+            ],
+            "white": 0.012547735951991271,
+            "dominant": 0.9923622476813966,
+            "opaque": 0.28477905073649756,
+            "hash": "708d6e465b96b60df4567fad7bec46fb6f72a5c8f71c99d09c275311dd67483d"
+          },
+          {
+            "bounds": [
+              59,
+              102,
+              197,
+              156
+            ],
+            "white": 0.013939393939393939,
+            "dominant": 0.9915151515151515,
+            "opaque": 0.23757575757575758,
+            "hash": "89ee24d981b3410e2bec26d4aa41213ced5961e5c011cc3b2d52d8c7ab788949"
+          },
+          {
+            "bounds": [
+              60,
+              102,
+              196,
+              155
+            ],
+            "white": 0.01563562202583277,
+            "dominant": 0.990482664853841,
+            "opaque": 0.0,
+            "hash": "4d33aab6d39319dc7f4fbe309a84bc267f303aaad516ad9f9697b3dd3030f38d"
+          },
+          {
+            "bounds": [
+              60,
+              102,
+              196,
+              154
+            ],
+            "white": 0.018668831168831168,
+            "dominant": 0.9886363636363636,
+            "opaque": 0.0,
+            "hash": "444b47e7c4f35723c0c914c20ed5009f2b677810a4dda556cf7cd7f6856b9844"
+          },
+          {
+            "bounds": [
+              61,
+              103,
+              195,
+              154
+            ],
+            "white": 0.02320887991927346,
+            "dominant": 0.9858728557013118,
+            "opaque": 0.0,
+            "hash": "f468ed7585c88780dc2d7aa79faadaf1e1e8fcb841a1265a0d41294c1739331c"
+          },
+          {
+            "bounds": [
+              65,
+              104,
+              194,
+              153
+            ],
+            "white": 0.03571428571428571,
+            "dominant": 0.9782608695652174,
+            "opaque": 0.0,
+            "hash": "3b5f8a3d80cfd29da2a521742b4a5286d0d2e4a3a35b56e47555ab913dcb1db3"
+          }
+        ]
+      },
+      "outputHashes": {
+        "breeze_slash_telegraph.png": "adc872b8553443237d66ec6accfb2236fd0c2435d614a3bdbc946a86afe60d5e",
+        "breeze_slash_body.png": "fb2f51cf039d55448a9ad7a31930d3cec0c0d625b0f4dd6602e81244ce8d6bcd",
+        "breeze_slash_impact.png": "657074182c3afbda759a5076323a6bd90131d5090920132139c20876c3cc2412",
+        "breeze_slash_residue.png": "b56b9c174961cd68dff4b3bee24a170536dff0d0831f094a09fc460eede65ec9"
+      }
+    },
+    "crossing_sword_qi": {
+      "inputs": {
+        "art/sword-skills-batch2/source/crossing_sword_qi/keyplates-original.png": "53feea1a62dafe91a4a3dc0f622c8dea58b58ac7ef5fdf1d48d4610b1c28d574",
+        "art/sword-skills-batch2/source/crossing_sword_qi/master-original.png": "c2d5a8846e09f3db6a85ba845abd8d0f8199898f3303fd891fd153534a27e107"
+      },
+      "checks": [
+        "PASS: keyplates-original.png \u2014 4 frame(s), 2 column(s), 2 row(s), 2% clean margin.",
+        "PASS: master-original.png \u2014 1 frame(s), 1 column(s), 1 row(s), 2% clean margin.",
+        "PASS: keyplates-safe.png \u2014 4 frame(s), 2 column(s), 2 row(s), 18% clean margin.",
+        "PASS: master-safe.png \u2014 1 frame(s), 1 column(s), 1 row(s), 18% clean margin."
+      ],
+      "frames": {
+        "telegraph": [
+          {
+            "bounds": [
+              58,
+              65,
+              199,
+              192
+            ],
+            "white": 0.0,
+            "dominant": 1.0,
+            "opaque": 0.0,
+            "hash": "694437c4e87a6062511cd4b53369eac1c8748cac53f9618d0314309ef671f73b"
+          },
+          {
+            "bounds": [
+              58,
+              65,
+              199,
+              192
+            ],
+            "white": 0.0,
+            "dominant": 1.0,
+            "opaque": 0.5779325120514194,
+            "hash": "a53ad7750e7ac021cc5b1461652e56e9260f0b64713f8f2bf47ed06afc20fcc4"
+          },
+          {
+            "bounds": [
+              58,
+              65,
+              199,
+              192
+            ],
+            "white": 0.0,
+            "dominant": 1.0,
+            "opaque": 0.6805263157894736,
+            "hash": "4f68d7227d639cd281c8fc2713b2018b24b0df21fcb1d509b98a4c67e99abe7d"
+          },
+          {
+            "bounds": [
+              58,
+              65,
+              199,
+              192
+            ],
+            "white": 0.0,
+            "dominant": 1.0,
+            "opaque": 0.7097446586763939,
+            "hash": "8a718464f75c0cbeb22cff7666e4babeaf560d88d3b15b17b688b60ef86ad450"
+          }
+        ],
+        "body": [
+          {
+            "bounds": [
+              52,
+              83,
+              206,
+              175
+            ],
+            "white": 0.0006335797254487857,
+            "dominant": 0.9993664202745512,
+            "opaque": 0.7060190073917635,
+            "hash": "2d4d8c3767a05d48d3925153931317628bfdd45b7bcf82c5b1b5baf6f19f6d27"
+          },
+          {
+            "bounds": [
+              51,
+              70,
+              206,
+              188
+            ],
+            "white": 0.0,
+            "dominant": 0.9994663108739159,
+            "opaque": 0.4304202801867912,
+            "hash": "3b243856f68697937e0d80d09380bd3cded1c43101451886cbd9c75a0323b263"
+          },
+          {
+            "bounds": [
+              51,
+              70,
+              206,
+              188
+            ],
+            "white": 0.0,
+            "dominant": 0.9996116504854369,
+            "opaque": 0.3264724919093851,
+            "hash": "7c69b7336e8cae1bad9aee7870b4e938ffb45f05d09abee286df5a8aecc18306"
+          },
+          {
+            "bounds": [
+              51,
+              70,
+              206,
+              188
+            ],
+            "white": 0.0,
+            "dominant": 0.9994789631366419,
+            "opaque": 0.37306239416438713,
+            "hash": "7d105a2d12e0d95d9c05c4b2f6ed838a0430e39f8e722daf91e7c991a7787e15"
+          },
+          {
+            "bounds": [
+              51,
+              70,
+              205,
+              188
+            ],
+            "white": 0.008305136880959704,
+            "dominant": 0.9910796677945247,
+            "opaque": 0.7992925253768072,
+            "hash": "0bddbf9b38b013667da6e94687f0e234b204afb82d3c0d9b2e34a06d7bf642fc"
+          },
+          {
+            "bounds": [
+              51,
+              70,
+              206,
+              188
+            ],
+            "white": 0.0,
+            "dominant": 0.9993412384716732,
+            "opaque": 0.6511198945981554,
+            "hash": "3957c5c9f765adc111496347c339701ee8fc429c4c17fad5b5864f601637dabf"
+          },
+          {
+            "bounds": [
+              51,
+              70,
+              206,
+              188
+            ],
+            "white": 0.0,
+            "dominant": 0.9996122528111672,
+            "opaque": 0.32893886519322735,
+            "hash": "ff77c31c261db2f535995aa0f8a874d377aa20d8eca0f6cb5c098425335b0069"
+          },
+          {
+            "bounds": [
+              51,
+              70,
+              206,
+              188
+            ],
+            "white": 0.0,
+            "dominant": 0.9994719471947194,
+            "opaque": 0.41914191419141916,
+            "hash": "a517bbf4f2422f941e1e89f639556e308cc21d30759eb4af85990f0ef73f3d8b"
+          }
+        ],
+        "impact": [
+          {
+            "bounds": [
+              59,
+              54,
+              197,
+              203
+            ],
+            "white": 0.012954966070326958,
+            "dominant": 0.987045033929673,
+            "opaque": 0.7581739666872301,
+            "hash": "da753aa7283a097b3ee27622000055c01f5aed925ea72709e584abbdfd8b5e28"
+          },
+          {
+            "bounds": [
+              59,
+              54,
+              197,
+              203
+            ],
+            "white": 0.013003095975232198,
+            "dominant": 0.9869969040247678,
+            "opaque": 0.7450980392156863,
+            "hash": "8a704b3d0a3fbb7aae60c02214851809218580876553f624b8e1db36d3f9b7f1"
+          },
+          {
+            "bounds": [
+              59,
+              54,
+              197,
+              203
+            ],
+            "white": 0.013114071606994172,
+            "dominant": 0.9868859283930058,
+            "opaque": 0.6877601998334721,
+            "hash": "2ea0db28742910fef19629a9bc9d93184fefd3d61ac576bc76524cf4f7002510"
+          },
+          {
+            "bounds": [
+              59,
+              54,
+              197,
+              203
+            ],
+            "white": 0.013390010626992561,
+            "dominant": 0.9866099893730075,
+            "opaque": 0.0,
+            "hash": "3958a45fd494fbbba599f9884fca2a77c55d175c3c4757cb68eaab7a3d348e20"
+          },
+          {
+            "bounds": [
+              59,
+              54,
+              196,
+              203
+            ],
+            "white": 0.013755458515283843,
+            "dominant": 0.9862445414847162,
+            "opaque": 0.0,
+            "hash": "c39c101ede711f3a63f8f18f74ddf6038121b1ea7a69e2671ef5c7cd5f5f2768"
+          },
+          {
+            "bounds": [
+              59,
+              55,
+              196,
+              203
+            ],
+            "white": 0.01487954652810581,
+            "dominant": 0.9851204534718941,
+            "opaque": 0.0,
+            "hash": "68e82eff22fb387516883e5dcce1cfd7edcbf543144ca2e9b7af3e2b260b8bf7"
+          }
+        ],
+        "residue": [
+          {
+            "bounds": [
+              59,
+              88,
+              197,
+              170
+            ],
+            "white": 0.0,
+            "dominant": 1.0,
+            "opaque": 0.8149964961457603,
+            "hash": "1fef78aa2f6c4bc8aec2346f8b0da316eeb491271664f6f4fdb5e510bea2b7d3"
+          },
+          {
+            "bounds": [
+              59,
+              88,
+              197,
+              170
+            ],
+            "white": 0.0,
+            "dominant": 1.0,
+            "opaque": 0.7769936485532816,
+            "hash": "7fbb2553d90ad4797c1a910f300d5799eca1d114feb40014148191c032a34a29"
+          },
+          {
+            "bounds": [
+              59,
+              88,
+              197,
+              170
+            ],
+            "white": 0.0,
+            "dominant": 1.0,
+            "opaque": 0.0,
+            "hash": "75374c68c8664b5a60b5a72cd024a74ad0930eab22b87450e4e9dc9d2bd04ade"
+          },
+          {
+            "bounds": [
+              59,
+              88,
+              197,
+              169
+            ],
+            "white": 0.0,
+            "dominant": 1.0,
+            "opaque": 0.0,
+            "hash": "90e1c542e87f5fbf72ada313debb1c7cfa46340f20027f14f55758c790211824"
+          },
+          {
+            "bounds": [
+              59,
+              88,
+              197,
+              169
+            ],
+            "white": 0.0,
+            "dominant": 1.0,
+            "opaque": 0.0,
+            "hash": "63defc836c8c999475e63ee838918772d5e017b5c9b21b7d032c2447efbbfb02"
+          },
+          {
+            "bounds": [
+              60,
+              88,
+              197,
+              169
+            ],
+            "white": 0.0,
+            "dominant": 1.0,
+            "opaque": 0.0,
+            "hash": "9790c11d52b079dfc5b9bcb5fe754e06fbf616f74181f28a37594fba49685445"
+          }
+        ]
+      },
+      "outputHashes": {
+        "crossing_sword_qi_telegraph.png": "a682192851a8b5766d7e83636d1a7f0285fd2456d42634dc0f553309e233a6ba",
+        "crossing_sword_qi_body.png": "374556e070d432f3893251241b706c524aec4e618cc7d6cc379c0f814de22604",
+        "crossing_sword_qi_impact.png": "ff938d7157e50d8cc27fc81e62c427b285e751298dd4718bd1419aa8e23c0cf4",
+        "crossing_sword_qi_residue.png": "887ea467373f9c1caed2e18f2ed0d67c14b4f7bb8ca89216abbfef1a44198cf0"
+      }
+    },
+    "armor_piercing_edge": {
+      "inputs": {
+        "art/sword-skills-batch2/source/armor_piercing_edge/keyplates-original.png": "ae7bf64bcc06c3cba1240287e475ac8e7fc72eac50be43de1ced1e5c9ec8947b",
+        "art/sword-skills-batch2/source/armor_piercing_edge/master-original.png": "9b0ebc2c65d6ba58b2ac278277ec74bdca61a241e63804fb7b00c928faac9320"
+      },
+      "checks": [
+        "PASS: keyplates-original.png \u2014 4 frame(s), 2 column(s), 2 row(s), 2% clean margin.",
+        "PASS: master-original.png \u2014 1 frame(s), 1 column(s), 1 row(s), 2% clean margin.",
+        "PASS: keyplates-safe.png \u2014 4 frame(s), 2 column(s), 2 row(s), 18% clean margin.",
+        "PASS: master-safe.png \u2014 1 frame(s), 1 column(s), 1 row(s), 18% clean margin."
+      ],
+      "frames": {
+        "telegraph": [
+          {
+            "bounds": [
+              58,
+              63,
+              198,
+              193
+            ],
+            "white": 0.005622622788159418,
+            "dominant": 0.9907392095253845,
+            "opaque": 0.0,
+            "hash": "3a45e2595f0309474b583c7db4fe7b8129c2a3cd4e7d18b38907d259b98d29d7"
+          },
+          {
+            "bounds": [
+              58,
+              63,
+              198,
+              193
+            ],
+            "white": 0.005498059508408797,
+            "dominant": 0.9909443725743855,
+            "opaque": 0.7920439844760673,
+            "hash": "97860a4dd782b948af34c3b458e003acc69d834393ecd6e6475de5b69e0cf8ee"
+          },
+          {
+            "bounds": [
+              58,
+              63,
+              198,
+              193
+            ],
+            "white": 0.0053993965380339844,
+            "dominant": 0.9911068762902969,
+            "opaque": 0.8234079720501827,
+            "hash": "8c16e0dbbef105f1555a6b39f277599a150fae09737f53dd5f7f3778f19d3124"
+          },
+          {
+            "bounds": [
+              58,
+              63,
+              198,
+              193
+            ],
+            "white": 0.005328318445384736,
+            "dominant": 0.9912239460899546,
+            "opaque": 0.8262027895314215,
+            "hash": "b36034decf45e0bc8e992954e0be061208a77f1c732f850807b5914d409f7c79"
+          }
+        ],
+        "body": [
+          {
+            "bounds": [
+              41,
+              96,
+              195,
+              161
+            ],
+            "white": 0.0,
+            "dominant": 0.9988399071925754,
+            "opaque": 0.8097447795823666,
+            "hash": "f276c825f5dba3880d3858038f9e838e8f4722ebbef1115948cce8b8db6824a6"
+          },
+          {
+            "bounds": [
+              41,
+              88,
+              195,
+              168
+            ],
+            "white": 0.00034065746891500596,
+            "dominant": 0.9896099471980924,
+            "opaque": 0.47555782660534834,
+            "hash": "b3e4b66a75f8f0474fbb03af33b42a3f264634bbece9c483a1c3d472685d3b12"
+          },
+          {
+            "bounds": [
+              41,
+              88,
+              195,
+              169
+            ],
+            "white": 0.0001649620587264929,
+            "dominant": 0.989937314417684,
+            "opaque": 0.4305509732761465,
+            "hash": "145e532a866144e2ce34394f3e8c3adbb6f4182d9c7dedfadb5400478f2375c4"
+          },
+          {
+            "bounds": [
+              42,
+              88,
+              195,
+              169
+            ],
+            "white": 0.00016233766233766234,
+            "dominant": 0.9899350649350649,
+            "opaque": 0.4719155844155844,
+            "hash": "8e74ce3ee6c015f25364af743c2103a8648da5c1f6f09a4eaf078177bf33de9f"
+          },
+          {
+            "bounds": [
+              43,
+              88,
+              195,
+              169
+            ],
+            "white": 0.009075907590759076,
+            "dominant": 0.981023102310231,
+            "opaque": 0.8351485148514851,
+            "hash": "c0aa441774959d621a90f4f525512849ba0ae3f2047359608161c58d8baaafed"
+          },
+          {
+            "bounds": [
+              42,
+              88,
+              195,
+              169
+            ],
+            "white": 0.00016147263038914905,
+            "dominant": 0.989181333763927,
+            "opaque": 0.7878249636686582,
+            "hash": "2eac82d634774b91b330851746e84f67aeadeb3b5dcf89024ec2411227a4319a"
+          },
+          {
+            "bounds": [
+              41,
+              88,
+              195,
+              169
+            ],
+            "white": 0.0,
+            "dominant": 0.9896602658788775,
+            "opaque": 0.43525356967011325,
+            "hash": "120578f890fd549df651256a7244a1c55e901ee72b28010193fbb8fca0b45587"
+          },
+          {
+            "bounds": [
+              41,
+              88,
+              195,
+              169
+            ],
+            "white": 0.000168321831341525,
+            "dominant": 0.9892274027941425,
+            "opaque": 0.47113280592492845,
+            "hash": "63133096c8318cf65b1d64eba5327a5a3b0f5432176666031ea55a8099869819"
+          }
+        ],
+        "impact": [
+          {
+            "bounds": [
+              55,
+              56,
+              203,
+              202
+            ],
+            "white": 0.01259753689950174,
+            "dominant": 0.983453981385729,
+            "opaque": 0.5619065525994171,
+            "hash": "1a75ea6cd514c32e38e137a26ee79c409f2bf854b9aa3d4edf8a5b66aa4382f5"
+          },
+          {
+            "bounds": [
+              55,
+              56,
+              203,
+              202
+            ],
+            "white": 0.012803363271545957,
+            "dominant": 0.9831836422702083,
+            "opaque": 0.5539843302121155,
+            "hash": "682956de29dc27069e1300a3f887304d809cef12c85136fe3ed2b1bb3dd5ab2c"
+          },
+          {
+            "bounds": [
+              55,
+              56,
+              203,
+              202
+            ],
+            "white": 0.013314785373608903,
+            "dominant": 0.9825119236883942,
+            "opaque": 0.5169912559618441,
+            "hash": "90d99b8a3dbbc13e5a32a8e7d8fc30e4a8fa15547ea89526f20b8ef1bfed1d81"
+          },
+          {
+            "bounds": [
+              55,
+              56,
+              203,
+              202
+            ],
+            "white": 0.01415891800507185,
+            "dominant": 0.981403212172443,
+            "opaque": 0.0,
+            "hash": "8c4ec06f3e1ba414368b64dc56889cc80b6dad729078968b564d24d39feaca67"
+          },
+          {
+            "bounds": [
+              55,
+              56,
+              203,
+              202
+            ],
+            "white": 0.015398758905998622,
+            "dominant": 0.979774764421972,
+            "opaque": 0.0,
+            "hash": "a4342979dcdbb50e3580953e87ffd31a4ba2a428bfaea541acbe3d0212241bd3"
+          },
+          {
+            "bounds": [
+              55,
+              56,
+              202,
+              201
+            ],
+            "white": 0.01807879114948732,
+            "dominant": 0.9762547220723151,
+            "opaque": 0.0,
+            "hash": "739d432f250dc8ed52f4132bef52c8f0ab9d5a2c718c078d22ffbc6546c00670"
+          }
+        ],
+        "residue": [
+          {
+            "bounds": [
+              59,
+              101,
+              197,
+              157
+            ],
+            "white": 0.005190952910641453,
+            "dominant": 0.9899888765294772,
+            "opaque": 0.8557656655543197,
+            "hash": "ba1eb94b9c25d68a25dbeb007436a7ccc9f9ba30c7e18e80bd19842ad0802bf0"
+          },
+          {
+            "bounds": [
+              59,
+              101,
+              197,
+              156
+            ],
+            "white": 0.0052750565184626974,
+            "dominant": 0.9898266767143934,
+            "opaque": 0.8383571966842502,
+            "hash": "46b102a28d25cb33bf9ac1cd188df5b89928e901cd67d1e2e4619098a5bad9ec"
+          },
+          {
+            "bounds": [
+              59,
+              101,
+              197,
+              156
+            ],
+            "white": 0.005325218714340053,
+            "dominant": 0.9897299353366299,
+            "opaque": 0.0,
+            "hash": "720fdbd46dcc3cf56b0f119f0a9ac02d973d20ba8cbe807f958cc918ec2502c6"
+          },
+          {
+            "bounds": [
+              59,
+              101,
+              197,
+              156
+            ],
+            "white": 0.005403319181783096,
+            "dominant": 0.9895793130065612,
+            "opaque": 0.0,
+            "hash": "f23c2459f6e5f46ddfe93f41ec9593b0e0e56221c03fb269ab8d685564d8a0db"
+          },
+          {
+            "bounds": [
+              59,
+              101,
+              197,
+              156
+            ],
+            "white": 0.005527043031977891,
+            "dominant": 0.9893407027240426,
+            "opaque": 0.0,
+            "hash": "bcba7172aacdfba01a0ad4d9979626a4b78c01b9100640f8ece943bf05a80845"
+          },
+          {
+            "bounds": [
+              59,
+              102,
+              196,
+              156
+            ],
+            "white": 0.005865102639296188,
+            "dominant": 0.9886887306242145,
+            "opaque": 0.0,
+            "hash": "ad62ef6ea364b3d4caef5343fb413005be977c15e1b2455212ed63b0e39d4b4f"
+          }
+        ]
+      },
+      "outputHashes": {
+        "armor_piercing_edge_telegraph.png": "8a300a2a3d8e310af9d398fb00cdf532b4116e7113d263f11a170bf3fe294db4",
+        "armor_piercing_edge_body.png": "34edfb331987275ded023f3691127e0784c033e3c84cb456b2b72beee3519c8d",
+        "armor_piercing_edge_impact.png": "e551a7774a4feaf1d38c0600770ab1ed28a5680275e89ebff49ed2527ba5274a",
+        "armor_piercing_edge_residue.png": "ffe9204b7da3aaebf34b9f223c402b33f6dd1bee0c7931b1b33886525a499a3c"
+      }
+    }
+  }
+}

@@ -1,6 +1,10 @@
-# 仙途 V28.68.47
+# 仙途 V28.68.48
 
-部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.47）；[上传步骤](downloads/README.md)。
+部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.48）；[上传步骤](downloads/README.md)。
+
+## 剑系第二批独立特效
+
+清风剑诀、剑气纵横、破甲剑罡接入独立翠色风刃、靛蓝交叉剑气、铜金短楔特效，保持原伤害、耗蓝及本次穿甲。见 [接入验证](docs/vfx/sword-skills-batch2-integration.txt)。
 
 ## 剑系第一批独立特效
 
@@ -96,7 +100,7 @@ npm test
 npm run test:browser
 ```
 
-`npm test` 运行选定的 60 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
+`npm test` 运行选定的 61 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
 
 浏览器测试覆盖恶意存档拒绝且原主档/备份不变、正常导入与刷新恢复、360/390/430/1366px 导航入口可达性、预加载去重与版本错误提示。外部请求被拦截，不调用付费服务。已有 Chromium 的云环境可使用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`。
 
