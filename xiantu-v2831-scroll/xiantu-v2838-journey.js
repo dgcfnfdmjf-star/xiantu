@@ -87,7 +87,7 @@ const INVESTIGATIONS_V286823=[
  {clues:[['清点旧关归人','归人带着各地不同的牌子，却被写进同一份无名册。先前每一段归路，都汇入了这道裂口。'],['与夜无疆核对残页','“有人借我的残篇造桥，拿活人的记忆填缝。”夜无疆只能封住上方。你可借余阵护身，或切断下方魂链削弱残响。']],plans:['借余阵护住归路','斩断维系残响的魂链'],hook:'残响散去，三方接过各自的名册。幕后造桥者仍未现身，而夜无疆的本源裂痕，留给你下一场问道。'}
 ];
 function investigationV286823(id){return INVESTIGATIONS_V286823[JOURNEYS_V2838.findIndex(j=>j.id===id)];}
-function journeyPrepV286823(id){const p=getTaskInstance(id)?.progress?.investigationV286823;return {clues:[0,1].filter(n=>p?.clues?.includes(n)),plan:['guard','breach'].includes(p?.plan)?p.plan:null};}
+function journeyPrepV286823(id){const p=getTaskInstance(id)?.progress?.investigationV286823;return {clues:[0,1].filter(n=>p?.clues?.includes(n)),plan:[0,1].every(n=>p?.clues?.includes(n))&&['guard','breach'].includes(p?.plan)?p.plan:null};}
 function setJourneyPrepV286823(id,kind,value){
  const i=getTaskInstance(id);if(!i||i.completed||i.failed||getCurrentTaskStep(id)?.action!=='journey_battle_v2838'||!taskInteractionAllowedV2822())return false;
  const next=journeyPrepV286823(id);
@@ -100,7 +100,7 @@ function setJourneyPrepV286823(id,kind,value){
 }
 function investigationPanelV286823(id){
  const d=investigationV286823(id),p=journeyPrepV286823(id),esc=discipleEscV2815;
- return `<section><h3>战术部署 · 战前调查 ${p.clues.length}/2</h3>${d.clues.map((c,n)=>`<button type="button" data-journey="clue${n}" ${p.clues.includes(n)?'disabled':''}>${p.clues.includes(n)?'✓ ':''}${esc(c[0])}</button>${p.clues.includes(n)?`<p>${esc(c[1])}</p>`:''}`).join('')}<p>调查两处后决定应对方式，可在开战前更改。</p>${['guard','breach'].map((plan,n)=>`<button type="button" data-journey="${plan}" aria-pressed="${p.plan===plan}" ${p.clues.length<2?'disabled':''}>${p.plan===plan?'✓ ':''}${esc(d.plans[n])} · ${n?'敌方防御降低15%':'前两回合获得最大气血12%的护盾'}</button>`).join('')}</section>`;
+ return `<section><h3>战术部署 · 战前调查 ${p.clues.length}/2</h3>${d.clues.map((c,n)=>`<button type="button" data-journey="clue${n}" ${p.clues.includes(n)?'disabled':''}>${p.clues.includes(n)?'✓ ':''}${esc(c[0])}</button>${p.clues.includes(n)?`<p>${esc(c[1])}</p>`:''}`).join('')}<p id="journeyPrepHintV2870" role="status" style="color:#ffd76a;font-weight:700">${p.clues.length<2?`请先调查两处线索（已完成 ${p.clues.length}/2），再选择战术方案。`:p.plan?'战术已选定，可以开始挑战；开战前仍可更改。':'两处线索已调查，请选择下方战术方案以开启挑战。'}</p>${['guard','breach'].map((plan,n)=>`<button type="button" data-journey="${plan}" aria-pressed="${p.plan===plan}" ${p.clues.length<2?'disabled':''}>${p.plan===plan?'✓ ':''}${esc(d.plans[n])} · ${n?'敌方防御降低15%':'前两回合获得最大气血12%的护盾'}</button>`).join('')}</section>`;
 }
 const SCENES_V2838={
  walk_to_sect:[['清玄真人','“上了这阶，不代表从此便高人一等。”他在山门前停下，等你把气喘匀。'],['你','云海在脚下翻涌。你看见扫阶弟子袖口磨出的毛边，也看见远处一盏未熄的夜灯。'],['清玄真人','“路很长。先学会自己走，再谈走到哪里。”古钟响起，你迈过凌霄山门。']],
@@ -221,7 +221,7 @@ function launchJourneyBattleV2838(id){
  el.innerHTML=`<section class="journey-prepare-v2838"><small>${esc(j.place)}</small><h2 id="journeyEnemyV2838">${esc(j.enemy)}</h2><p>${esc(weaknessTextV286821(enemy))}</p><p>${esc(CULTIVATION_REALMS[j.level].name)}初期 · 气血 ${enemy.maxHp} · 攻击 ${enemy.atk} · 防御 ${enemy.def}</p><p><b>${enemyRiskV286817(enemy).label}</b> · 仅按境界与精英标记评估；装备、招式和剩余气血仍影响胜负。</p><div class="journey-vitals-v2838"><span>气血 <b>${Math.floor(player.hp)} / ${getMaxHp()}</b></span><span>灵力 <b>${Math.floor(player.mp)} / ${getMaxMp()}</b></span></div>${investigationPanelV286823(id)}<p>这是中后期主线战：请升级到当前境界可用的武器、防具，并携带高阶功法；木剑与入门招式不足以应对。调查方案提供助力，不能替代装备准备。获胜推进本章，失败扣除身上灵石的20%，已读剧情保留。</p><button type="button" data-journey="fight" class="primary-v2838" ${player.hp<=1||!journeyPrepV286823(id).plan?'disabled':''}>准备好了 · 开始挑战</button><button type="button" data-journey="back">先补给 · 返回任务</button></section>`;
  el.onclick=e=>{const act=e.target.closest('[data-journey]')?.dataset.journey;if(!act)return;if(owner!==player||document.getElementById('journeyPrepareV2838')!==el||i!==getTaskInstance(id)||i.currentStep!==step){el.remove();return;}if(act.startsWith('clue')||['guard','breach'].includes(act)){if(setJourneyPrepV286823(id,act.startsWith('clue')?'clue':'plan',act.startsWith('clue')?Number(act.slice(4)):act))launchJourneyBattleV2838(id);return;}if(act==='back'){el.remove();showTaskPanel('main');return;}
   if(act==='fight'&&i===getTaskInstance(id)&&i.currentStep===step&&!i.completed&&!i.failed&&taskInteractionAllowedV2822()&&player.hp>1&&journeyPrepV286823(id).plan){el.remove();startCombat(enemy,false,false,null);if(gameState==='combat'&&currentEnemy===enemy&&journeyPrepV286823(id).plan==='guard')elementGuardsV286818.set(enemy,{owner:player,pool:Math.floor(getMaxHp()*.12),turns:2});}};
- el.onkeydown=e=>{e.stopPropagation();if(e.key==='Escape'){el.remove();if(owner===player)showTaskPanel('main');}else trapJourneyFocusV2838(e,el);};document.body.appendChild(el);el.querySelector('[data-journey="back"]')?.focus();
+ el.onkeydown=e=>{e.stopPropagation();if(e.key==='Escape'){el.remove();if(owner===player)showTaskPanel('main');}else trapJourneyFocusV2838(e,el);};document.body.appendChild(el);const prep=journeyPrepV286823(id),next=prep.clues.length<2?'clue'+[0,1].find(n=>!prep.clues.includes(n)):!prep.plan?'guard':player.hp>1?'fight':'back';el.querySelector(`[data-journey="${next}"]`)?.focus();
 }
 // Compact battle receipt; rewards have already been settled by the core.
 let lastBattleV2838=null;

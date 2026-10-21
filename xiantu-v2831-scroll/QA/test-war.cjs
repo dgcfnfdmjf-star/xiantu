@@ -51,3 +51,18 @@ const aid=game();aid.run('window.target=Object.keys(DEMON_FACTION_POWER)[0];show
 aid.run('player.demonInvasionLevel=2;for(const f of IMMORTAL_SECTS_FULL)player.factionReputation[f.name]=100;requestWarImmortalV2839(target)');const beforeAid=aid.run('player.sectContribution'),immortal=aid.run('IMMORTAL_SECTS_FULL.find(f=>f.name!=="太岁书院"&&canRequestAid(f.name)).name');aid.c.confirm=()=>false;press(aid,'请求'+immortal+'支援');a.equal(aid.run('player.sectContribution'),beforeAid);aid.c.confirm=()=>true;aid.run('Math.random=()=>0');press(aid,'请求'+immortal+'支援');a.equal(aid.run('player.sectContribution'),beforeAid-150);a.equal(aid.run('player.warState.immortalAlly'),immortal);a(aid.run('getImmortalWarSupportV2807()')>0);
 aid.run('player.warState.immortalSupport=false;player.warState.immortalAlly=null;requestWarImmortalV2839(target);Math.random=()=>.99');const failBudget=aid.run('player.sectContribution');press(aid,'请求'+immortal+'支援');a.equal(aid.run('player.sectContribution'),failBudget-75);a(!aid.run('player.warState.immortalSupport'));a.equal(aid.errors.length,0,JSON.stringify(aid.errors));
 console.log('PASS ally confirmation and exact cost; named immortal aid success/failure prices and support strength');
+// Recover damaged resume metadata without discarding a paid valid duel or rerolling it.
+const recovery=game();prep(recovery);recovery.run('executeWar(target);chooseWarTacticV2775(1,0)');idStep(recovery,'startWarDuelV2839');
+const ticket=c(recovery).pending.id,paidSupply=c(recovery).supplies;
+recovery.run('window.savedCampaign=JSON.stringify(player.warState.campaignV2775);gameState="exploring";warCampaignV2839().selected[0]=null;normalizeWarV2839(player)');
+a.equal(c(recovery).pending.id,ticket);a.equal(c(recovery).selected[0],1);a.equal(c(recovery).supplies,paidSupply);
+recovery.run('normalizeWarV2839(player);normalizeWarV2839(player)');a.equal(c(recovery).pending.id,ticket);
+for(const broken of [{id:42,stage:0,tactic:1},{id:' ',stage:0,tactic:1},{id:'x',stage:1,tactic:1},{id:'x',stage:0,tactic:5}]){
+ recovery.c.brokenTicket=broken;
+ recovery.run('player.warState.campaignV2775=JSON.parse(savedCampaign);player.warState.campaignV2775.pending=brokenTicket;normalizeWarV2839(player)');
+ a.equal(c(recovery).pending,null);a.equal(c(recovery).supplies,paidSupply);const logs=c(recovery).log.length;
+ recovery.run('normalizeWarV2839(player)');a.equal(c(recovery).log.length,logs);
+}
+recovery.run('player.warState.campaignV2775=JSON.parse(savedCampaign);Object.assign(player.warState.campaignV2775,{step:2,pending:null,commanderV286841:"fighting",selected:[1,1,1]});normalizeWarV2839(player)');
+a.equal(c(recovery).commanderV286841,'failed');idStep(recovery,'commandWarStageV2839');a.equal(c(recovery).step,3);
+console.log('PASS paid resume repairs missing tactic; malformed tickets and orphan commander recover idempotently without refunds');
