@@ -14188,8 +14188,14 @@
       saveGame();
     }
     
-    function loadAndStart() {
-      const saveData = loadGame();
+    function loadAndStart(prepared) {
+      let saveData=prepared;
+      if(!saveData){
+        for(const key of [SAVE_KEY,SAVE_BACKUP_KEY]){
+          try{const raw=localStorage.getItem(key);if(!raw)continue;saveData=dryRunLoadV2870(raw);if(key===SAVE_BACKUP_KEY)saveData._recoveredFromBackup=true;break;}
+          catch(e){console.warn('存档预加载失败：',e);}
+        }
+      }
       if (!saveData) {
         alert('存档无法读取，请在存档管理中导入或恢复备份。原记录未删除。');
         showSaveManagerV2768();
@@ -14197,9 +14203,12 @@
       }
       
       if(saveData._recoveredFromBackup)alert('主存档无法读取，已使用最近一次有效备用档恢复。');
+      // Loading may initialize tasks; do not overwrite either recovery candidate during setup.
+      const wasSaveDeferred=miniSaveDeferredV286840;miniSaveDeferredV286840=true;
+      try{
       // 恢复玩家数据
       resetRuntimeState();
-      player = normalizePlayer(saveData.player);
+      player = saveData.player;
       
       // 恢复成就数据
       if (saveData.achievements) {
@@ -14243,6 +14252,8 @@
         { text: '续行仙途', action: 'village' }
       ]);
       recoverPendingBreakthroughV28683();
+      }finally{miniSaveDeferredV286840=wasSaveDeferred;}
+      return true;
     }
     
     function newGame() {

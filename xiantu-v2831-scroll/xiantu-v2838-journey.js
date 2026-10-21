@@ -251,15 +251,14 @@ function prepareNewGameV2838(){
 }
 function restorePreviousV2838(){
  if(!saveChangeAllowedV2838()){alert('请先结束战斗或突破。');return;}
- try{const raw=localStorage.getItem(PREVIOUS_SAVE_V2838);if(!raw)throw Error('尚无上一位角色');const data=parseSaveV2768(raw);
-  if(!confirm(`恢复上一位角色「${data.player.name||'无名'}」？当前主档将成为滚动备份。`))return;
-  writeSaveV2768(raw);document.getElementById('saveManagerV2768')?.remove();loadAndStart();
+ try{const raw=localStorage.getItem(PREVIOUS_SAVE_V2838);if(!raw)throw Error('尚无上一位角色');const data=dryRunLoadV2870(raw);
+  if(!confirm(`恢复上一位角色「${data.player.name||'无名'}」？将与当前角色互换，当前角色保存在“上一位角色”。`))return;
+  replaceSaveV2870(raw,data,PREVIOUS_SAVE_V2838);
  }catch(e){alert('未恢复：'+e.message);}
 }
-function exportPreviousV2838(){
- try{const raw=localStorage.getItem(PREVIOUS_SAVE_V2838);if(!raw)throw Error('尚无上一位角色');parseSaveV2768(raw);
-  const url=URL.createObjectURL(new Blob([raw],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='xiantu-previous-character.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
- }catch(e){alert('导出失败：'+e.message);}
+async function exportPreviousV2838(){
+ try{await exportRawSaveV2870(localStorage.getItem(PREVIOUS_SAVE_V2838),'xiantu-previous-character.json');}
+ catch(e){alert('导出失败：'+e.message);}
 }
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.50';
 
