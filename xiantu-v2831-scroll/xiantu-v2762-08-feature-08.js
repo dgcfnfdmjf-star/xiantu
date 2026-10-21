@@ -182,6 +182,7 @@
       }
     }
     choices.push({text:'← 返回地图',action:'return_to_map'});
+    if(filter==='all')html+=renderMaterialRefineV2870();
     showStory(html,choices);
   };
 
@@ -196,13 +197,23 @@
     showFloatingText?.(`🧪 炼制 ${r.output} ×${output}`,'#69f0ae');playSound?.('item');autoSave?.();showMaterialWorkshop('pet');return true;
   };
   window.craftPetMaterialRecipe=function(id){return craftPetMaterialBatchV286846(id,1);};
+  window.getOwnedEquipTotalV2870=function(name){
+    const canonical=n=>OLD_GEAR_ALIASES_V2792[n]||n;
+    return [...(player.equipmentInventory||[]),...Object.values(player.equipment||{})].filter(n=>n&&canonical(getEquipData(n)?.forgeBaseV2825||n)===canonical(name)).length;
+  };
   window.forgeMaterialEquipment=function(id){
+    if(!petBatchAllowedV286845())return false;
     const r=MATERIAL_FORGE_RECIPES[id];if(!r)return;
     if((player.level||0)<r.realm){showFloatingText?.(`🔒 需要 ${CULTIVATION_REALMS?.[r.realm]?.name||'更高境界'}`,'#ff8a80');return showMaterialWorkshop('forge');}
     if(!hasMaterials(r.materials)||(player.gold||0)<r.gold){showFloatingText?.('❌ 锻造材料或灵石不足','#ff6b6b');return showMaterialWorkshop('forge');}
     if(typeof EQUIPMENT_DB!=='undefined'&&!EQUIPMENT_DB[r.result]){showFloatingText?.('❌ 装备数据不存在','#ff6b6b');return;}
+    const owner=player;
+    if(!confirm(`确定铸造【${r.name}】×1？\n已持有 ${getOwnedEquipTotalV2870(r.result)} 件（含穿戴及同底材铭器）\n材料：${Object.entries(r.materials).map(([n,c])=>n+'×'+c).join('、')}\n灵石：${r.gold}，铸造后剩余 ${player.gold-r.gold}`))return false;
+    if(player!==owner||!petBatchAllowedV286845()||player.level<r.realm||!hasMaterials(r.materials)||player.gold<r.gold)return false;
+    const gold=player.gold,materials={...player.materials},equipment=player.equipmentInventory.slice();
     consumeMaterials(r.materials);player.gold-=r.gold;player.equipmentInventory=player.equipmentInventory||[];player.equipmentInventory.push(r.result);
-    showFloatingText?.(`⚒️ 锻造成功：${r.result}`,'#ffd76a');playSound?.('item');updateStats?.();updateWorldHUD?.();autoSave?.();showMaterialWorkshop('forge');
+    if(!saveGame()){player.gold=gold;player.materials=materials;player.equipmentInventory=equipment;return false;}
+    showFloatingText?.(`⚒️ 锻造成功：${r.result}`,'#ffd76a');playSound?.('item');updateStats?.();updateWorldHUD?.();showMaterialWorkshop('forge');return true;
   };
 
   // 进入世界或打开相关面板时自动迁移旧档中的法宝材料。
@@ -211,3 +222,16 @@
 })();
 
 ;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-08-feature-08.js"]="28.68.50";
+
+const MAT_REFINE_RECIPES_V2870={
+ '仙灵草':{'灵草':5,'仙果':1},'千年灵芝':{'灵草':6,'兽骨':2},'星辰砂':{'妖丹':2,'灵木':2},'万年寒玉':{'冰晶石':3,'雪莲':1},'龙血果':{'仙果':3,'血玉':1}
+};
+function refineMaterialV2870(name){
+ if(!petBatchAllowedV286845()||!Object.hasOwn(MAT_REFINE_RECIPES_V2870,name))return false;
+ const inputs=MAT_REFINE_RECIPES_V2870[name],old=player.materials||{};
+ if(!Object.entries(inputs).every(([n,c])=>Number.isFinite(old[n])&&old[n]>=c))return false;
+ player.materials={...old};for(const [n,c] of Object.entries(inputs)){player.materials[n]-=c;if(!player.materials[n])delete player.materials[n];}
+ player.materials[name]=(Number(player.materials[name])||0)+1;
+ if(!saveGame()){player.materials=old;return false;}updateStats();showMaterialWorkshop('all');return true;
+}
+function renderMaterialRefineV2870(){return '<section id="matRefineBoxV2870"><h3>灵材萃炼</h3>'+Object.entries(MAT_REFINE_RECIPES_V2870).map(([n,inputs])=>`<p>${n} ×1 · 持有${Number(player.materials?.[n])||0}<br>${Object.entries(inputs).map(([k,c])=>`${k} ${Number(player.materials?.[k])||0}/${c}`).join(' + ')} <button class="panel-action-btn" style="min-height:44px" ${Object.entries(inputs).every(([k,c])=>player.materials?.[k]>=c)?'':'disabled'} onclick="refineMaterialV2870('${n}')">萃炼×1</button></p>`).join('')+'</section>';}

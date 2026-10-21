@@ -32,7 +32,9 @@ function bootJevFriendsV2850(){
   s.paused=jevFriendPreferenceV2850('xiantu_jev_paused_v2850',false);
   if(s.paused){FORGE_ADVICE_V2842.access='';jevFriendsStatusV2850('本设备 Jev 已停止，继续使用本地策略。');return Promise.resolve(false);}
   FORGE_ADVICE_V2842.access=JEV_PUBLIC_MARKER_V2850;jevFriendsDefaultsV2850();
-  return ensureJevFriendSessionV2850().then(()=>true,()=>false);
+  // Prepare local controls only; the first decision request obtains its own session.
+  if(!s.token)jevFriendsStatusV2850('Jev 已准备，首次使用时连接；暂不可用时使用本地策略。');
+  return Promise.resolve(true);
 }
 function retryJevFriendsV2850(){
   const s=JEV_FRIENDS_V2850,wasPaused=s.paused;s.paused=false;s.retryAt=0;s.failuresV286838=0;

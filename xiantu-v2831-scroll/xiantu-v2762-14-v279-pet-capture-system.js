@@ -140,8 +140,8 @@ function showCaptureProgress(rate,callback){
     if(p>=1){clearInterval(run.timer);run.timer=null;run.finishTimer=setTimeout(()=>{if(!valid()){cancelCaptureV286846(run);return;}captureRunV286846=null;el.remove();callback?.();},220);}
   },40);
 }
-{const reset=window.resetRuntimeState;if(typeof reset==='function')window.resetRuntimeState=function(...args){cancelCaptureV286846();return reset.apply(this,args);};}
-window.addEventListener('xiantu:combat-finishing',()=>cancelCaptureV286846());
+{const reset=window.resetRuntimeState;if(typeof reset==='function')window.resetRuntimeState=function(...args){cancelCaptureV286846();clearPetCaptureCooldownV2870();return reset.apply(this,args);};}
+window.addEventListener('xiantu:combat-finishing',()=>{cancelCaptureV286846();clearPetCaptureCooldownV2870();});
 function makeCapturedPet(enemy,pd,{bondType='blood',isBonded=false}={}){const t=PET_TYPES[pd.baseType]||PET_TYPES['灵狐'];return{_petId:typeof createPetRuntimeId==='function'?createPetRuntimeId():`pet_${Date.now()}`,type:pd.baseType||'灵狐',speciesV286818:enemy.name,name:enemy.name,level:1,exp:0,quality:pd.quality||'common',isDemon:!!pd.isDemon,bondType,bondLevel:1,stats:{...(pd.baseStats||{})},capturedAt:typeof getGameDateLabel==='function'?getGameDateLabel():'',isBonded:!!isBonded}}
 function applyDemonPetReputationPenalty(){ensurePetCaptureState().demonPetsCount++;if(!player.factionReputation||typeof player.factionReputation!=='object')player.factionReputation={};for(const sect of Object.keys(HUMAN_FACTION_POWER||{}))player.factionReputation[sect]=(player.factionReputation[sect]||0)-5;showFloatingText?.('⚠️ 魔宠入契，正道宗门声望下降','#ff7474')}
 function captureSuccess(enemy,itemName,isDemon){
@@ -160,6 +160,7 @@ function startBondingProcess(enemy,itemName){
   showCaptureProgress(1,()=>{const pc=ensurePetCaptureState();consumeInventoryItem(itemName);const pet=makeCapturedPet(enemy,pd,{bondType:'soul',isBonded:true});player.pets.push(pet);pc.bondedBeasts.push(enemy.name);pc.isCapturing=false;pc.captureTarget=null;pc.usedItem=null;player.activePet=pet;setPetCaptureCooldown(30);updateAchievementProgress?.('pet');updateAchievementProgress?.('special');playSound?.('levelup');showFloatingText?.('🌟 神兽自愿结缘，缔结【神魂本命契】！','#ffd700');showCaptureResultUI(true,pet,true);autoSave?.();updateStats?.();endCombatAfterCapture()})
 }
 function endCombatAfterCapture(){
+  clearPetCaptureCooldownV2870();
   battleCheckpointV286812=null;
   const returnMode=currentCombatReturnMode,returnLoc=currentCombatReturnLocation||player.location;if(currentMonsterRef)releaseCurrentMapMonster(true);document.getElementById('combatPanel')?.classList.add('hidden');gameState='exploring';currentEnemy=null;isPlayerTurn=true;isBossFight=false;isTribulation=false;currentCombatReturnMode='location';currentCombatReturnLocation=null;updateStats?.();updateWorldHUD?.();
   // 关键：地图怪战斗必须回大地图，绝不 showLocation(player.location)，避免再次弹回灵宠面板。
@@ -174,10 +175,28 @@ function openCapturedPetPanelV29(){document.getElementById('captureResultV29')?.
 const v279CombatChoicesBase=window.updateCombatChoices;
 window.updateCombatChoices=function(){v279CombatChoicesBase?.apply(this,arguments);if(!isPlayerTurn||!currentEnemy||player?.petCapture?.isCapturing)return;const pd=getPetData(currentEnemy.name);if(!pd||currentEnemy.hp<=0||currentEnemy.hp/Math.max(1,currentEnemy.maxHp)>.25)return;const div=document.getElementById('combatChoices');if(!div)return;const c=canCaptureTarget(currentEnemy),b=document.createElement('button');b.className='choice-btn capture-choice-v29';b.disabled=!c.ok;b.innerHTML=c.ok?`🪄 ${pd.canBond?'结缘':'收服'}（${c.bestItem}）`:`🔒 ${pd.canBond?'结缘':'收服'}（${escapePetText(c.reason)}）`;b.onclick=()=>attemptCapture(currentEnemy);div.appendChild(b)};
 const v279CheckBattleEndBase=window.checkBattleEnd;
-window.checkBattleEnd=function(){ensurePetCaptureState();if(player.petCapture.isCapturing)return;if(currentEnemy?.hp<=0){const pd=getPetData(currentEnemy.name);if(pd?.isBaby&&!player.petCapture.killedBabyBeast){player.petCapture.killedBabyBeast=true;addCombatLog?.('🌫️ 你斩杀了幼兽，这份因果会影响未来的神兽结缘。','boss')}}return v279CheckBattleEndBase?.apply(this,arguments)};
+window.checkBattleEnd=function(){if(mercyBabyV2870())return false;ensurePetCaptureState();if(player.petCapture.isCapturing)return;if(currentEnemy?.hp<=0){const pd=getPetData(currentEnemy.name);if(pd?.isBaby&&!player.petCapture.killedBabyBeast){player.petCapture.killedBabyBeast=true;addCombatLog?.('🌫️ 你斩杀了幼兽，这份因果会影响未来的神兽结缘。','boss')}}return v279CheckBattleEndBase?.apply(this,arguments)};
 
 function upgradeBeastTaming(){const pc=ensurePetCaptureState(),lv=pc.beastTamingLevel;if(lv>=10){showFloatingText?.('✅ 御兽功法已满级','#69f0ae');return}const gold=lv*100+50,exp=lv*50;if(player.gold<gold){showFloatingText?.(`❌ 灵石不足，需要 ${gold}`,'#ff6b6b');return}if(player.exp<exp){showFloatingText?.(`❌ 修为不足，需要 ${exp}`,'#ff6b6b');return}player.gold-=gold;player.exp-=exp;pc.beastTamingLevel++;showFloatingText?.(`📈 御兽功法升至 ${pc.beastTamingLevel} 级！`,'#ffd700');autoSave?.();updateStats?.();updatePetPanel?.()}
-function changePetBondById(id,newType){ensurePetSystemState?.();ensurePetCaptureState();const pet=typeof getPetById==='function'?getPetById(id):null;if(!pet)return;if(pet.bondType==='soul'){showFloatingText?.('❌ 神魂本命契不可更改','#ff6b6b');return}if(!['blood','equal','soul'].includes(newType))return;if(newType==='blood'){pet.bondType='blood'}else{const item=newType==='equal'?'平等契约符':'本命契约石';if(!player.inventory.includes(item)){showFloatingText?.(`❌ 需要【${item}】`,'#ff6b6b');return}consumeInventoryItem(item);pet.bondType=newType;if(newType==='soul')pet.isSoulBonded=true}showFloatingText?.(`✅ 契约变更为【${getPetBondLabel(newType)}】`,'#69f0ae');autoSave?.();updatePetPanel?.();updateStats?.()}
+function changePetBondById(id,newType){
+ if(!petBatchAllowedV286845())return false;
+ ensurePetSystemState();ensurePetCaptureState();const pet=getPetById(id);
+ if(!pet||!['equal','soul'].includes(newType)||pet.bondType===newType||pet.bondType==='soul')return false;
+ const item=newType==='equal'?'平等契约符':'本命契约石';
+ if(!player.inventory.includes(item)){showFloatingText(`❌ 需要【${item}】`,'#ff6b6b');return false;}
+ const owner=player,oldType=pet.bondType;
+ const warning=newType==='soul'?'契约不可更改；强行放生会使气血降至最大值的30%。':'平等契不可退回滴血契。';
+ if(!confirm(`消耗【${item}】×1，与「${pet.name}」缔结【${getPetBondLabel(newType)}】？\n${warning}`))return false;
+ if(player!==owner||!petBatchAllowedV286845()||getPetById(id)!==pet||pet.bondType!==oldType||!player.inventory.includes(item))return false;
+ const inventory=player.inventory.slice(),hadSoul=Object.hasOwn(pet,'isSoulBonded'),soul=pet.isSoulBonded;
+ consumeInventoryItem(item);pet.bondType=newType;if(newType==='soul')pet.isSoulBonded=true;
+ if(!saveGame()){player.inventory.splice(0,player.inventory.length,...inventory);pet.bondType=oldType;if(hadSoul)pet.isSoulBonded=soul;else delete pet.isSoulBonded;return false;}
+ showFloatingText(`✅ 契约变更为【${getPetBondLabel(newType)}】`,'#69f0ae');updatePetPanel();updateStats();return true;
+}
+function clearPetCaptureCooldownV2870(){
+ if(player?.petCapture){player.petCapture.captureCooldown=0;player.petCapture.captureCooldownUntil=0;}
+}
+
 function releasePetById(id){
   if(!petBatchAllowedV286845())return false;
   ensurePetSystemState();const owner=player,pet=getPetById(id);if(!pet)return false;
@@ -214,3 +233,16 @@ window.updatePetPanel=function(){
 window.feedPet=function(index,foodName){ensurePetSystemState?.();ensurePetCaptureState();const pet=player.pets[index],food=PET_FOOD[foodName],count=Math.max(0,Number(player.petMaterials?.[foodName])||0);if(!pet||!food||count<=0)return;const maxLv=getPetQualityInfo(pet.quality).maxLevel;if((pet.level||1)>=maxLv){showFloatingText?.(`✅ ${pet.name} 已达到${getPetQualityInfo(pet.quality).label}等级上限 Lv.${maxLv}`,'#69f0ae');return}player.petMaterials[foodName]=count-1;if(player.petMaterials[foodName]<=0)delete player.petMaterials[foodName];pet.exp=Math.max(0,Number(pet.exp)||0)+Number(food.exp||0);let gained=0,safe=0;while(safe++<50&&(pet.level||1)<maxLv){const need=Math.max(1,Number(pet.level||1)*30);if(pet.exp<need)break;pet.exp-=need;pet.level=Math.min(maxLv,Math.max(1,Number(pet.level)||1)+1);gained++}if((pet.level||1)>=maxLv)pet.exp=0;if(gained){playSound?.('levelup');showFloatingText?.(`🎉 ${pet.name} 提升 ${gained} 级 → Lv.${pet.level}`,'#8ff0cf')}else showFloatingText?.(`🍖 ${pet.name} 经验 +${food.exp}`,'#d9c98e');updatePetPanel?.();updateStats?.();autoSave?.()};
 
 ;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-14-v279-pet-capture-system.js"]="28.68.50";
+
+function fieldEncounterV2870(enemy,boss,trib,monster){return !!monster&&!!enemy&&!boss&&!trib&&!enemy._isTutorial&&!enemy._isTaskBattle&&!enemy._taskId&&!enemy._warV2839&&!enemy.tournamentFight&&!enemy._nightRivalV2810&&!authoredStoryCombatV286835(enemy);}
+function mercyBabyV2870(){
+ const enemy=currentEnemy;
+ if(player.fieldAidV2870?.mercy!==true||gameState!=='combat'||player.hp<=0||COMBAT_FINISH_V2764.settling||!fieldEncounterV2870(enemy,isBossFight,isTribulation,currentMonsterRef)||enemy.hp>0||enemy._mercySavedV2870||(player.pets||[]).length>=5||!getPetData(enemy.name)?.isBaby)return false;
+ enemy._mercySavedV2870=true;enemy.hp=1;isPlayerTurn=true;
+ addCombatLog('🌿 护幼留手：保留1点气血，可尝试收服；再次致死不再保护。','pet');updateCombatUI();updateCombatChoices();return true;
+}
+function emergencyFieldHealV2870(enemy,boss,trib,monster){
+ if(player.fieldAidV2870?.heal!==true||!fieldEncounterV2870(enemy,boss,trib,monster)||player.hp<=0||player.hp/getMaxHp()>=.30)return null;
+ const candidates=(player.inventory||[]).filter(n=>ITEMS[n]?.type==='heal'&&Number.isFinite(ITEMS[n].value)&&ITEMS[n].value>0).sort((a,b)=>ITEMS[a].value-ITEMS[b].value);
+ const name=candidates[0];if(!name)return null;const before=player.hp;consumeInventoryItem(name);player.hp=Math.min(getMaxHp(),before+ITEMS[name].value);return {name,heal:player.hp-before};
+}
