@@ -1,11 +1,20 @@
-// 手机离线版启动保护：运行时若出现异常，不再白屏，直接显示错误信息。
+// 启动错误保留恢复提示；运行期错误提供可关闭提示，并保留控制台诊断。
     window.addEventListener('error', function(e){
+      const ready=document.documentElement.classList.contains('xiantu-v2762-ready');
+      console.error(ready?'运行异常：':'启动异常：', e.message||e);
       try {
-        const box=document.getElementById('mobileBootError') || document.createElement('div');
-        box.id='mobileBootError';
+        const id=ready?'mobileRuntimeError':'mobileBootError';
+        if(document.getElementById(id))return;
+        const box=document.createElement('div');box.id=id;
+        box.setAttribute('role',ready?'status':'alert');
         box.style.cssText='position:fixed;z-index:999999;left:12px;right:12px;top:12px;padding:12px;border-radius:10px;background:#2a1116;color:#ffd7dc;font:13px/1.5 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;white-space:pre-wrap';
-        console.error('启动异常：', e.message||e); box.textContent='仙途暂未能启程，请重新打开页面。';
-        if(!box.parentNode) document.body.appendChild(box);
+        box.textContent=ready?'部分功能遇到异常；若操作无响应，请导出存档后刷新。':'仙途暂未能启程，请重新打开页面。';
+        if(ready){
+          const close=document.createElement('button');close.type='button';close.textContent='关闭提示';
+          close.style.cssText='margin-left:12px;min-height:44px;padding:6px 12px';
+          close.onclick=()=>box.remove();box.appendChild(close);
+        }
+        document.body.appendChild(box);
       } catch(_) {}
     });
     window.addEventListener('unhandledrejection', function(e){
@@ -166,7 +175,12 @@
     }
 
     function deleteSave() {
-      try { localStorage.removeItem(SAVE_KEY); } catch(e) { console.warn('无法访问本地存储：', e); }
+      try {
+        // 先删备用档：若失败保留主档，避免只删主档后又从备用档恢复。
+        localStorage.removeItem(SAVE_BACKUP_KEY);
+        localStorage.removeItem(SAVE_KEY);
+        return true;
+      } catch(e) { console.warn('无法删除本地存档：', e); return false; }
     }
     
     function showSaveIndicator() {
