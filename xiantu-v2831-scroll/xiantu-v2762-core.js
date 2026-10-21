@@ -10122,7 +10122,7 @@
     }
     function claimDiscipleV2815(id){settleDisciplesV2821(id);}
     function claimAllDisciplesV2821(){settleDisciplesV2821();}
-    function settleDisciplesV2821(id){
+    function settleDisciplesV2821(id,silent=false){
       if(!discipleAllowedV2815())return;
       const ready=discipleRosterV2815().members.filter(d=>discipleReadyV2821(d)&&(id===undefined||d.id===id));
       if(!ready.length){showDisciplesV2815('暂无可领取成果，已领取的事务不会重复发奖。');return;}
@@ -10139,6 +10139,7 @@
       player.gold+=gold;player.materials ||= {};
       for(const [name,count] of materials)player.materials[name]=(player.materials[name]||0)+count;
       for(const [name,count] of materials)onCollectMaterial?.(name,count);
+      if(silent)return ready.length;
       autoSave();updateStats();
       const rewards=[gold?`${gold} 灵石`:'',...Array.from(materials,([name,count])=>`${name} ×${count}`),trained?`${trained} 位弟子培养完成`:''].filter(Boolean).join('；');
       showDisciplesV2815(`已领取 ${ready.length} 项事务：${rewards}。弟子已空闲，可重新安排。`);
@@ -14685,7 +14686,7 @@ function showDiscipleEventV2867(id){if(!discipleAllowedV2815())return;const d=di
 function resolveDiscipleEventV2867(id,eventId,choice){if(!discipleAllowedV2815()||![0,1].includes(choice))return;const d=discipleRosterV2815().members.find(d=>d.id===id);if(!d||!discipleEventReadyV2867(d)||d.job.eventV2867.id!==eventId)return;const j=d.job,e=j.eventV2867,t=discipleTraitsV2867(d),ctx=discipleEventContextV2867;if(!ctx||ctx.owner!==player||ctx.sect!==player.sect||ctx.event!==e||!document.getElementById('discipleEventTitleV2867')||document.getElementById('storyPanel')?.classList.contains('hidden'))return;discipleEventContextV2867=null;e.resolved=true;if(choice===1){if(e.kind===0){j.end++;t.loyalty+=t.personality===2?10:8;}else if(e.kind===1){j.end+=2;j.gold=Math.floor(j.gold*1.25);t.loyalty+=3;}else{j.end=discipleDayV2815();j.gold=Math.floor(j.gold*.5);j.count=0;j.withdrawnV2867=true;t.loyalty-=3;}}d.traitsV2867={...t,loyalty:Math.max(0,Math.min(100,t.loyalty))};lifeEventV2868(d,e,choice);autoSave();showDisciplesV2815('指令已传回，本次来信处理完毕。');}
 const MINI_ROUTES_V2867=[{name:'稳妥 · 外围药径',reward:1,hp:1,atk:1},{name:'遗迹 · 古修洞天',reward:1.15,hp:1.2,atk:1.1},{name:'险境 · 断剑深谷',reward:1.5,hp:1.6,atk:1.25}];
 function miniRouteV2867(c){return MINI_ROUTES_V2867[c?.routeV2867]||MINI_ROUTES_V2867[0];}
-function showMiniRouteV2867(c){if(!sectCanManageV2866())return;showStory(`<section class="sect-board-v2866"><h3>秘境岔路</h3><p>穿过山门后的云雾，三条小径通向不同深处。选定后，本次路线不会变化。</p>${MINI_ROUTES_V2867.map((r,i)=>`<article><h4>${r.name}</h4><p>取宝灵石/修为×${r.reward}；守关气血×${r.hp}，攻击×${r.atk}。</p>${i===1?'<p>完成首层采集额外积累80悟道修为。</p>':''}<button class="choice-btn" onclick="selectMiniRouteV2867(${c.id},${i})">选择此路</button></article>`).join('')}<p>途中可撤离，带回已采材料与悟道修为；守关战败失去未结算收获，并扣身上20%灵石。</p></section>`,[{text:'暂离 · 返回宗门',action:'sect_hall'}]);}
+function showMiniRouteV2867(c){if(!sectCanManageV2866())return;showStory(`<section class="sect-board-v2866"><h3>秘境岔路</h3><p>穿过山门后的云雾，三条小径通向不同深处。选定后，本次路线不会变化。</p>${miniWeaveTextV286840(c)}${MINI_ROUTES_V2867.map((r,i)=>`<article><h4>${r.name}</h4><p>取宝灵石/修为×${r.reward}${Number.isInteger(c.weaveV286840?.rewardRealmV2870)?`；守关通关额外${['普通血脉精元','变异灵晶','优质血脉精元'][i]}×1`: ''}；守关气血×${r.hp}，攻击×${r.atk}。</p>${i===1?`<p>完成首层事件额外积累${Math.floor(80*(miniWeaveV286840(c)?miniRewardV2870(c,'leave').scale:1))}悟道修为。</p>`:''}<button class="choice-btn" onclick="selectMiniRouteV2867(${c.id},${i})">选择此路</button></article>`).join('')}<p>途中可撤离，带回已采材料与悟道修为；守关战败失去未结算收获，并扣身上20%灵石。</p></section>`,[{text:'暂离 · 返回宗门',action:'sect_hall'}]);}
 function selectMiniRouteV2867(id,route){if(!sectCanManageV2866()||!Number.isInteger(route)||!MINI_ROUTES_V2867[route])return;const c=miniRunV2778();if(!c||c.id!==id||c.step!==0||c.routeV2867!==null)return;if(miniWeaveV286840(c)){if(commitMiniWeaveV286840(()=>{c.routeV2867=route}))showMiniRealmV2778();}else{c.routeV2867=route;autoSave();showMiniRealmV2778();}}
 
 // V28.68.29: bounded elemental openings, equipment/loadout synergies and timed expeditions.
@@ -14758,10 +14759,10 @@ function startTripV286821(index){
  const ok=commitTripV286821(()=>{player.expeditionV286821={wins:s.wins,active:{key:r.key,started:Date.now(),level:s.wins[r.key]}};});
  if(ok)showTripV286821();return ok;
 }
-function claimTripV286821(){
+function claimTripV286821(silent=false){
  const s=tripStateV286821(),y=tripYieldV286821();if(!s.active||!y.units)return false;
  const ok=commitTripV286821(()=>{player.expeditionV286821={wins:s.wins,active:null};player.gold+=y.gold;player.materials={...player.materials,'灵草':(Number(player.materials?.['灵草'])||0)+y.herbs};});
- if(ok){showFloatingText(`游历归来：灵石+${y.gold}，灵草+${y.herbs}`);updateStats();showTripV286821();}return ok;
+ if(ok&&!silent){showFloatingText(`游历归来：灵石+${y.gold}，灵草+${y.herbs}`);updateStats();showTripV286821();}return ok;
 }
 function showTripV286821(){
  if(gameState!=='exploring')return;

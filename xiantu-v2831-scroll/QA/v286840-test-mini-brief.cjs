@@ -7,7 +7,7 @@ function fresh(){run("resetRuntimeState();player=createDefaultPlayer();player.se
 function enter(){run('enterMiniRealmV2778();globalThis.id=miniRunV2778().id;selectMiniRouteV2867(id,0)')}
 function events(){for(let n=0;n<2;n++){a.equal(run(`chooseMiniEventV286840(id,${n},0)`),true);a.equal(run(`chooseMiniEventV286840(id,${n},1)`),false);const before=run('JSON.stringify(player)');run('miniClickAtV2778=0;chooseMiniRealmV2778("safe",2,id)');a.equal(run('JSON.stringify(player)'),before);a.equal(run(`chooseMiniBoonV286840(id,${n},miniRunV2778().weaveV286840.offers[${n}][0])`),true);a.equal(run(`chooseMiniBoonV286840(id,${n},miniRunV2778().weaveV286840.offers[${n}][1])`),false)}}
 fresh();enter();a.equal(run('player.gold'),9970);a.equal(run('player.worldTime.totalDays'),11);a.equal(run('getBuildingWaitV2768("mini_secret")'),7);
-const plan=run('JSON.stringify(miniRunV2778().weaveV286840)');run('player=normalizePlayer(loadGame().player);showMiniRealmV2778()');a.equal(run('JSON.stringify(miniRunV2778().weaveV286840)'),plan);events();const before=run('player.gold');run('finishMiniRealmV2778("safe")');a.equal(run('player.gold'),before+240);a.equal(run('miniRunV2778()'),null);run('finishMiniRealmV2778("safe")');a.equal(run('player.gold'),before+240);
+const plan=run('JSON.stringify(miniRunV2778().weaveV286840)');run('player=normalizePlayer(loadGame().player);showMiniRealmV2778()');a.equal(run('JSON.stringify(miniRunV2778().weaveV286840)'),plan);events();const before=run('player.gold');run('finishMiniRealmV2778("safe")');a.equal(run('player.gold'),before+432);a.equal(run('miniRunV2778()'),null);run('finishMiniRealmV2778("safe")');a.equal(run('player.gold'),before+432);
 // All four authored events resolve and survive reload; choices do not reset offers.
 for(let e=0;e<4;e++)for(let choice=0;choice<2;choice++){
  fresh();enter();run(`miniRunV2778().weaveV286840.events[0]=${e}`);a.equal(run(`chooseMiniEventV286840(id,0,${choice})`),true);run('player=normalizePlayer(loadGame().player)');a.equal(run('miniRunV2778().step'),1);a.equal(run('miniRunV2778().weaveV286840.pending'),true);
@@ -35,3 +35,25 @@ a.equal(run('expected.units'),48);a(run('returnBriefHtmlV286840(Date.now()-9*360
 run('globalThis.gold=player.gold');a.equal(run('claimReturnTripV286840()'),true);a.equal(run('player.gold'),run('gold+expected.gold'));a.equal(run('claimReturnTripV286840()'),false);a.equal(run('tripStateV286821().active'),null);
 fresh();run("player.expeditionV286821={wins:{},active:{key:TRIP_ROUTES_V286821[0].key,started:Date.now()+10000,level:0}}");a.equal(run('tripYieldV286821().units'),0);a.equal(run('claimReturnTripV286840()'),false);
 console.log('PASS randomized encounters; saved choices; two boon rounds; battle scoping; old-route compatibility in existing suite; quota rollback; read-only brief; bounded one-time expedition claim');
+// Reward realm is snapshotted at entry; old runs retain original settlement.
+fresh();enter();run('player.level=16;saveGame();player=normalizePlayer(loadGame().player)');a.equal(run('miniRewardV2870(miniRunV2778(),"clear").scale'),1.8);
+for(const route of [0,1,2]){
+ fresh();run('player.level=16;enterMiniRealmV2778();globalThis.id=miniRunV2778().id');run(`selectMiniRouteV2867(id,${route});miniRunV2778().step=4;miniRunV2778().insight=100;globalThis.wallet=player.gold`);
+ a.equal(run('miniRewardV2870(miniRunV2778(),"clear").scale'),10);
+ const expected=[7500,8175,9750][route],pet=['普通血脉精元','变异灵晶','优质血脉精元'][route];
+ run('finishMiniWeaveV286840("clear")');a.equal(run('player.gold-wallet'),expected);a.equal(run(`player.petMaterials['${pet}']`),1);run('finishMiniWeaveV286840("clear")');a.equal(run(`player.petMaterials['${pet}']`),1);
+}
+fresh();enter();run('delete miniRunV2778().weaveV286840.rewardRealmV2870;miniRunV2778().step=4;globalThis.wallet=player.gold;globalThis.petsBefore=JSON.stringify(player.petMaterials);finishMiniWeaveV286840("clear")');a.equal(run('player.gold-wallet'),750);a.equal(run('JSON.stringify(player.petMaterials)'),run('petsBefore'));
+// Full-payout rollback includes new pet material and first-clear gifts.
+fresh();enter();run('miniRunV2778().step=4;globalThis.before=JSON.stringify(player);globalThis.savedSet=localStorage.setItem;localStorage.setItem=()=>{throw Error("quota")};finishMiniWeaveV286840("clear");localStorage.setItem=savedSet');a.equal(run('JSON.stringify(player)'),run('before'));
+function readyTodo(){fresh();run(`discipleRosterV2815().members=[{id:1,name:'甲',level:2,specialty:0,job:{type:'mission',name:'古洞寻踪',end:0,gold:240,material:'妖丹',count:2},lifeV2868:{thanks:{state:'waiting',due:0},trail:{state:'ready'}}}];player.expeditionV286821={wins:{},active:{key:TRIP_ROUTES_V286821[0].key,started:Date.now()-3600000,level:0}};globalThis.wallet=player.gold;globalThis.tripGold=tripYieldV286821().gold`)}
+readyTodo();a.equal(run('claimAllSectTodoV2870()'),true);a.equal(run('player.gold-wallet'),run('240+tripGold'));a.equal(run('sectTodoReadV2868().thanks.length'),0);a.equal(run('sectMembersReadV2868()[0].job'),null);a.equal(run('lifeReadV2868(sectMembersReadV2868()[0]).trail.state'),'ready');a.equal(run('claimAllSectTodoV2870()'),false);
+f.c.confirm=()=>false;a.equal(run('startAllSectTrailsV2870()'),false);f.c.confirm=()=>true;a.equal(run('startAllSectTrailsV2870()'),true);a.equal(run('startAllSectTrailsV2870()'),false);
+readyTodo();run('globalThis.before=JSON.stringify(player);globalThis.savedSet=localStorage.setItem;localStorage.setItem=()=>{throw Error("quota")}');a.equal(run('claimAllSectTodoV2870()'),false);run('localStorage.setItem=savedSet');a.equal(run('JSON.stringify(player)'),run('before'));
+readyTodo();run('gameState="combat"');a.equal(run('claimAllSectTodoV2870()'),false);a.equal(run('startAllSectTrailsV2870()'),false);
+readyTodo();run('player.breakthrough.isAnimating=true');a.equal(run('claimAllSectTodoV2870()'),false);
+console.log('PASS locked reward realm, route pet drops, legacy payout, atomic batch claims, repeat/blocked claims and separate confirmed dispatch');
+readyTodo();run('showSectTodoV2868();globalThis.oldToken=sectQuickContextV2870.token;player={...player}');a.equal(run('claimAllSectTodoV2870(oldToken)'),false);
+readyTodo();run('sectMembersReadV2868()[0].job=null;globalThis.before=JSON.stringify(player);globalThis.savedSet=localStorage.setItem;localStorage.setItem=()=>{throw Error("quota")}');a.equal(run('startAllSectTrailsV2870()'),false);run('localStorage.setItem=savedSet');a.equal(run('JSON.stringify(player)'),run('before'));
+readyTodo();run('sectMembersReadV2868()[0].job=null');f.c.confirm=()=>{run('player={...player}');return true};a.equal(run('startAllSectTrailsV2870()'),false);
+console.log('PASS stale owner callbacks and dispatch save rollback');
