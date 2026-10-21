@@ -1,0 +1,30 @@
+剑系第二批：透明资源预览交付
+状态：设计已确认；资源制作及本地预览完成，资源预览已获用户确认，后续已接入；接入验证见docs/vfx/sword-skills-batch2-integration.txt。
+范围：清风剑诀 / 剑气纵横 / 破甲剑罡。本记录描述接入前资源阶段；发布状态以接入验证记录为准。
+
+输出
+三套独立母版、四阶段关键画面、12张RGBA序列图（每招起势4、主体8、命中6、消散6帧），共72个帧内容不同的输出帧。
+预览入口：preview/index.html。动画：evidence/sword-batch-animation.webp。
+逐招叠加检查、设计/旧共享剑气/新资源对比及输入哈希见evidence/与asset-audit.json。
+动画为模拟命中的资源预览，不是实战录屏；角色背景固定。
+
+修正记录
+剑气纵横初稿命中层包含完整X，已重绘为接触火花与碎芒，避免看起来再次攻击。
+破甲剑罡初稿源图边界校验失败，已重新生成更短的楔形主体和独立碎片。
+原始图先经2%边界检查排除断边，完整单元格扩展后经18%安全边界检查，再切帧；没有裁掉越界部分掩盖断边。
+规范化只做等比缩放、锚点配准、源板混合及透明衰减，未以程序绘制替代素材主体。
+原始与拒绝稿保留于source；母版和关键帧独立绘制，不从上一批换色。
+每帧按alpha>16测量：近白像素最大占比清风6.78%、纵横1.49%、破甲1.81%；主色覆盖最小94.64%、98.51%、97.63%。
+整体主体固定尺寸移动，交错蓝刃属于同次攻击的单视觉对象。最终战斗命中时间仍须由正式接入验证。
+
+验证
+python3 scripts/build-sword-skills-batch2-vfx.py：12 strips / 72 distinct frames，边界、颜色、alpha检查通过。
+node scripts/check-sword-skills-batch2-vfx.cjs：所有帧可播放、双向固定尺寸移动、无命中不显示冲击、输入只读及取消清理通过。
+node .agents/skills/creating-game-combat-vfx/scripts/validate_effect_manifest.mjs art/sword-skills-batch2/preview/effect-manifest.preview.json：3 effects valid。
+python3 scripts/render-sword-skills-batch2-evidence.py：从当前素材和共享采样函数导出动画、相邻阶段叠加图、对比图、provenance输入哈希。
+浏览器：系统Chromium，390×844，新临时会话，预览页仅加载本地素材。三招ready=true、无资源错误、无横向溢出；1100ms无残留图层。
+播放、暂停、重播、逐帧、背景切换、15FPS/半速、缩放/偏移重置、轻量及减少动态控件可用。截图位于output/playwright/sword-batch2/。
+未运行正式战斗回归，因本阶段未接入游戏；未测实体手机性能，浏览器窄屏检查不能替代手机验收。
+
+下一步
+用户通过资源预览后：接入真实命中事件及试剑坪，保留8/35/24灵力、1.35/2.5/2.1倍率和本次50%穿甲；再做实战回归与发布校验。

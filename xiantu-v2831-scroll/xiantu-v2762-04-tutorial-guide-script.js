@@ -164,7 +164,7 @@ function installTutorialInteractionHooks(){
 (function(){
   const oldEquip=window.equipItem;if(typeof oldEquip==='function')window.equipItem=function(name){const ok=oldEquip.apply(this,arguments);if(ok&&tutorialState.currentStepId==='equipment'&&player.equipment?.robe==='布衣'){tutorialState.compactStepId=null;completeTutorialStep('equipment');closeTutorialBubble();showTutorialToast('✅ 布衣已穿戴。装备属性会立即计入角色实力。',2600);setTimeout(()=>triggerTutorial('tasks',true),850)}return ok};
   const oldCloseBt=window.closeBreakthroughSuccess;if(typeof oldCloseBt==='function')window.closeBreakthroughSuccess=function(){const r=oldCloseBt.apply(this,arguments);setTimeout(()=>checkTutorialRealm(player.level),520);return r};
-  const oldLoad=window.loadAndStart;if(typeof oldLoad==='function')window.loadAndStart=function(){const r=oldLoad.apply(this,arguments);setTimeout(()=>{ensureTutorialState();installGuideEntry();installTutorialTooltips();if(!player.tutorial?.skipped&&player.tutorial?.activeStep)checkAndStartTutorial(false)},950);return r};
+  const oldLoad=window.loadAndStart;if(typeof oldLoad==='function')window.loadAndStart=function(){const r=oldLoad.apply(this,arguments);if(!r)return r;setTimeout(()=>{ensureTutorialState();installGuideEntry();installTutorialTooltips();if(!player.tutorial?.skipped&&player.tutorial?.activeStep)checkAndStartTutorial(false)},950);return r};
 })();
 
 // ===== 境界解锁提示：只讲真实开放内容 =====
@@ -200,7 +200,7 @@ function installGuideEntry(){
 
 window.addEventListener('load',()=>setTimeout(()=>{installTutorialInteractionHooks();installGuideEntry();installTutorialTooltips()},650));
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-04-tutorial-guide-script.js"]="28.68.47";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-04-tutorial-guide-script.js"]="28.68.50";
 
 // 初入仙途：只突出下一步，奖励随进度一次性保存。
 function firstJourneyV28687(){

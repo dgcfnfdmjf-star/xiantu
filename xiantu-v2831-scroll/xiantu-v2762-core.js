@@ -1,11 +1,20 @@
-// 手机离线版启动保护：运行时若出现异常，不再白屏，直接显示错误信息。
+// 启动错误保留恢复提示；运行期错误提供可关闭提示，并保留控制台诊断。
     window.addEventListener('error', function(e){
+      const ready=document.documentElement.classList.contains('xiantu-v2762-ready');
+      console.error(ready?'运行异常：':'启动异常：', e.message||e);
       try {
-        const box=document.getElementById('mobileBootError') || document.createElement('div');
-        box.id='mobileBootError';
+        const id=ready?'mobileRuntimeError':'mobileBootError';
+        if(document.getElementById(id))return;
+        const box=document.createElement('div');box.id=id;
+        box.setAttribute('role',ready?'status':'alert');
         box.style.cssText='position:fixed;z-index:999999;left:12px;right:12px;top:12px;padding:12px;border-radius:10px;background:#2a1116;color:#ffd7dc;font:13px/1.5 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;white-space:pre-wrap';
-        console.error('启动异常：', e.message||e); box.textContent='仙途暂未能启程，请重新打开页面。';
-        if(!box.parentNode) document.body.appendChild(box);
+        box.textContent=ready?'部分功能遇到异常；若操作无响应，请导出存档后刷新。':'仙途暂未能启程，请重新打开页面。';
+        if(ready){
+          const close=document.createElement('button');close.type='button';close.textContent='关闭提示';
+          close.style.cssText='margin-left:12px;min-height:44px;padding:6px 12px';
+          close.onclick=()=>box.remove();box.appendChild(close);
+        }
+        document.body.appendChild(box);
       } catch(_) {}
     });
     window.addEventListener('unhandledrejection', function(e){
@@ -27,9 +36,22 @@
     }
 
     function groupInventoryItems() {
-      const bucket = {};
+      const bucket = Object.create(null);
       (player?.inventory || []).forEach(name => { bucket[name] = (bucket[name] || 0) + 1; });
       return Object.entries(bucket).map(([name,count]) => ({name,count,data:ITEMS?.[name] || null}));
+    }
+
+    function sortAndConsolidateBagV2870(){
+      if(!Array.isArray(player?.inventory)||gameState!=='exploring'||player.breakthrough?.isAnimating||COMBAT_FINISH_V2764.settling)return false;
+      const priority={heal:1,mp:2,exp:3,pet:4,capture:5,pet_contract:6};
+      const original=player.inventory;
+      const sorted=[...original].sort((a,b)=>(priority[ITEMS[a]?.type]||9)-(priority[ITEMS[b]?.type]||9)||a.localeCompare(b,'zh-CN'));
+      if(sorted.some((name,i)=>name!==original[i])){
+        player.inventory=sorted;
+        if(!saveGame()){player.inventory=original;return false;}
+      }
+      renderMobileInventory();
+      showFloatingText('🎒 已按品类和名称整理，物品数量不变','#8fe3c4');return true;
     }
 
     function showMobileInventory() {
@@ -66,22 +88,30 @@
         rows=itemRows;
         footer='可使用的丹药/物品可直接点击；战斗中请使用战斗背包。';
       }
-      const htmlRows=rows.length?rows.map(row=>{
+      const htmlRows=rows.length?rows.map((row,index)=>{
         const d=row.data||{};
         const icon=d.icon || (d.type==='heal'?'💊':d.type==='mp'?'🔹':mobileInventoryTab==='materials'?'🌿':mobileInventoryTab==='equipment'?'⚔️':'🎐');
         const desc=d.desc || (mobileInventoryTab==='materials'?'修仙材料':mobileInventoryTab==='equipment'?'装备物品':'储物袋物品');
         if(mobileInventoryTab==='items'){
-          return `<button class="mobile-inventory-item usable" onclick="useItem('${row.name.replace(/'/g,"\\'")}');renderMobileInventory();"><span class="name">${icon} ${row.name}</span><span class="count">×${row.count}</span><span class="desc">${desc}</span></button>`;
+          return `<button class="mobile-inventory-item usable" data-bag-index="${index}"><span class="name">${escapeGameText(icon)} ${escapeGameText(row.name)}</span><span class="count">×${row.count}</span><span class="desc">${escapeGameText(desc)}</span></button>`;
         }
-        return `<div class="mobile-inventory-item"><span class="name">${icon} ${row.name}</span><span class="count">×${row.count}</span><span class="desc">${desc}</span></div>`;
+        return `<div class="mobile-inventory-item"><span class="name">${escapeGameText(icon)} ${escapeGameText(row.name)}</span><span class="count">×${row.count}</span><span class="desc">${escapeGameText(desc)}</span></div>`;
       }).join(''):`<div class="mobile-inventory-empty">这一栏目前是空的</div>`;
       card.innerHTML=`
         <div class="mobile-inventory-head"><div><div class="mobile-inventory-title">🎒 储物袋</div><div style="font-size:10px;color:#8f99a4;margin-top:2px">随身物资与修行资源</div></div><button aria-label="关闭" class="mobile-inventory-close" onclick="closeMobileInventory()">✕</button></div>
         <div class="mobile-inventory-summary"><span>💰 灵石 ${player.gold||0}</span><span>💠 灵力 ${Math.max(0,Math.round(player.mp||0))} / ${typeof getMaxMp==='function'?getMaxMp():Math.max(0,Math.round(player.maxMp||0))}</span><span>🎐 物品 ${itemRows.reduce((a,b)=>a+b.count,0)}</span><span>🌿 材料 ${materialRows.reduce((a,b)=>a+Number(b.count||0),0)}</span><span>⚔️ 装备 ${equipmentRows.length}</span></div>
         <div class="mobile-inventory-tabs">${tabs.map(([id,label])=>`<button class="mobile-inventory-tab ${mobileInventoryTab===id?'active':''}" onclick="setMobileInventoryTab('${id}')">${label}</button>`).join('')}</div>
+        ${mobileInventoryTab==='items'?'<button id="sortBagBtnV2870" class="choice-btn" style="width:100%;margin:8px 0" onclick="sortAndConsolidateBagV2870()">🔄 按品类整理物品</button>':''}
         <div class="mobile-inventory-grid">${htmlRows}</div>
         ${mobileInventoryTab==='equipment'?`<button class="choice-btn" style="margin-top:10px;width:100%" onclick="closeMobileInventory();showEquipmentPanel();">📦 打开完整装备栏</button>`:''}
         <div class="mobile-inventory-footer">${footer}</div>`;
+      const owner=player;
+      card.onclick=e=>{
+        const button=e.target.closest('[data-bag-index]');
+        if(!button||!card.contains(button)||player!==owner||gameState!=='exploring'||player.breakthrough?.isAnimating||COMBAT_FINISH_V2764.settling)return;
+        const row=rows[Number(button.dataset.bagIndex)];if(!row||mobileInventoryTab!=='items')return;
+        useItem(row.name);renderMobileInventory();
+      };
     }
 
     // ================== 存档系统 ==================
@@ -166,7 +196,12 @@
     }
 
     function deleteSave() {
-      try { localStorage.removeItem(SAVE_KEY); } catch(e) { console.warn('无法访问本地存储：', e); }
+      try {
+        // 先删备用档：若失败保留主档，避免只删主档后又从备用档恢复。
+        localStorage.removeItem(SAVE_BACKUP_KEY);
+        localStorage.removeItem(SAVE_KEY);
+        return true;
+      } catch(e) { console.warn('无法删除本地存档：', e); return false; }
     }
     
     function showSaveIndicator() {
@@ -4211,7 +4246,7 @@
       const state=battleGearStateV2790(),m=gearModsV2790(),t=familyStateV2790('镇岳禅心');
       if(damage<=0)return damage;
       if(state.guard){state.guard=false;addCombatLog('镇岳霸体抵挡本次命中！','heal');return 0;}
-      const ratio=Math.min(.6,(m.reducePct||0)+(t.immortal?.1*player.hp/getMaxHp():0));
+      const ratio=Math.min(.6,(m.reducePct||0)+ownerPetTraitBonusV286849('reduce')+(t.immortal?.1*player.hp/getMaxHp():0));
       const out=Math.max(0,Math.floor(damage*(1-ratio)*(1-state.weaken)));state.weaken=0;return out;
     }
     function gearRestoreV2790(){
@@ -6260,6 +6295,7 @@
     let playerPressureStun = false;
 
     function resetRuntimeState() {
+      document.getElementById('sectCeremonyV2870')?.remove();
       if(typeof closeExpansionV286827==='function')closeExpansionV286827();
       document.getElementById('postCaseV286826')?.remove();document.getElementById('storyBossPrepV286826')?.remove();
       if(typeof rainCloseV286822==='function')rainCloseV286822();
@@ -6365,6 +6401,8 @@
     function getEquipBlock(){return getEquipmentStat('block',['bracer','offhand','lifeArtifact']);}
     function getEquipResist(){return getEquipmentStat('resistance',['jade','head','lifeArtifact'])+(getSetBonusStats().resist||0);}
 
+    function ownerPetTraitBonusV286849(key){return typeof getOwnerPetTraitBonusV286849==='function'?getOwnerPetTraitBonusV286849(key):0;}
+    function getControlResistanceV286849(){return Math.min(.6,(gearModsV2790().controlResist||0)+ownerPetTraitBonusV286849('resistance'));}
     function getAtk(){
       let atk=player.baseAtk+getPhaseScaledBonus('atkBonus')+getEquipAtk()+calculateFurnitureBonus().atk;
       if(player.activePet){const t=PET_TYPES[player.activePet.type];if(t?.bonus?.type==='atk')atk+=t.bonus.value+player.activePet.level*2;}
@@ -6375,14 +6413,14 @@
       let def=player.baseDef+getPhaseScaledBonus('defBonus')+getEquipDef()+calculateFurnitureBonus().def;
       if(player.activePet){const t=PET_TYPES[player.activePet.type];if(t?.bonus?.type==='def')def+=t.bonus.value+player.activePet.level*3;}
       if(hasStatusEffect('guyuan'))def=Math.floor(def*1.10);
-      return Math.floor(def*(1+(gearModsV2790().defPct||0))*(1+miniBoonV286840('def')));
+      return Math.floor(def*(1+(gearModsV2790().defPct||0))*(1+miniBoonV286840('def'))*(1+ownerPetTraitBonusV286849('def')));
     }
     
     function getCritRateWithSet(){return getCritRate();}
     
     function getDamageBonusWithSet(){return getSetBonusStats().damage||0;}
     
-    function getMaxHp(){let max=player.maxHp+getPhaseScaledBonus('hpBonus')+getEquipHp();if(activeRegionDebuff?.type==='corruption')max=Math.floor(max*.90);return Math.max(1,Math.floor(max*(1+(gearModsV2790().hpPct||0))));}
+    function getMaxHp(){let max=player.maxHp+getPhaseScaledBonus('hpBonus')+getEquipHp();if(activeRegionDebuff?.type==='corruption')max=Math.floor(max*.90);return Math.max(1,Math.floor(max*(1+(gearModsV2790().hpPct||0))*(1+ownerPetTraitBonusV286849('hp'))));}
     
     function getMaxMp(){const base=Math.max(0,Number(player.maxMp)||0)+Math.floor(player.level*12+(player.phase||0)*4);let max=base*2+getEquipMp();return Math.max(1,Math.floor(max*(1+(gearModsV2790().mpPct||0))));}
 
@@ -7004,7 +7042,7 @@
         if(!usable.ok){showFloatingText?.(usable.reason,'#ffd76a');updateCombatChoices?.();return;}
       }
       if(currentEnemy._warV2839)currentEnemy._warV2839.awaitingAction=true;
-      if(playerPressureStun && Math.random()<Math.min(.6,gearModsV2790().controlResist||0)){playerPressureStun=false;addCombatLog('禅冠稳神，抵抗本次威压控制。','heal');}
+      if(playerPressureStun && Math.random()<getControlResistanceV286849()){playerPressureStun=false;addCombatLog('护持稳神，抵抗本次威压控制。','heal');}
       if(playerPressureStun && action !== 'flee' && action !== 'escapeScroll'){
         playerPressureStun=false;
         playerPressureTurns=Math.max(0,playerPressureTurns-1);
@@ -8482,8 +8520,8 @@
       document.getElementById('petPanel').classList.add('hidden');
       document.getElementById('artifactPanel').classList.add('hidden');
       
-      updateAlchemyPanel();
       gameState = 'alchemy';
+      updateAlchemyPanel();
     }
     
     function updateAlchemyPanel() {
@@ -8506,9 +8544,6 @@
       // 更新丹方列表
       const recipeList = document.getElementById('recipeList');
       recipeList.innerHTML = Object.entries(RECIPES).map(([name, recipe]) => {
-        const canCraft = player.alchemyLevel >= recipe.alchemyLevelRequired && 
-          Object.entries(recipe.materials).every(([mat, count]) => (player.materials[mat] || 0) >= count) &&
-          (!LONGEVITY_PILLS[name] || normalizeLongevity(player.longevity).uses[name]+player.inventory.filter(n=>n===name).length<LONGEVITY_PILLS[name].limit);
         const successRate = Math.min(1, recipe.baseSuccess + successBonus / 100);
         
         const materialText = Object.entries(recipe.materials)
@@ -8525,70 +8560,48 @@
               <div class="recipe-materials">${materialText}</div>
               <div class="recipe-success">成功率: ${Math.floor(successRate * 100)}% | ${recipe.desc}</div>
             </div>
-            <button class="craft-btn" onclick="craftPill('${name}')" ${canCraft ? '' : 'disabled'}>
-              炼制
-            </button>
+            <div class="alchemy-batch-actions" style="display:flex;gap:6px;flex-wrap:wrap">
+              ${[1,5,10].map(n=>{const plan=getAlchemyPlanV286850(name,n);return `<button class="craft-btn" style="min-height:40px" onclick="craftPill('${name}',${n})" ${plan.count?'':'disabled'} title="${plan.reason||'按实际材料逐炉炼制，达到延寿上限停炉'}">×${n}${plan.count&&plan.count<n?'（可炼'+plan.count+'）':''}</button>`}).join('')}
+            </div>
           </div>
         `;
       }).join('');
     }
     
-    function craftPill(recipeName) {
-      const recipe = RECIPES[recipeName];
-      if (!recipe) return;
-      if(gameState==='combat')return;
-      if(player.alchemyLevel<recipe.alchemyLevelRequired){alert(`需要炼丹等级 ${recipe.alchemyLevelRequired}！`);return;}
-      if(LONGEVITY_PILLS[recipeName]) {
-        const used=normalizeLongevity(player.longevity).uses[recipeName];
-        const owned=player.inventory.filter(n=>n===recipeName).length;
-        if(used+owned>=LONGEVITY_PILLS[recipeName].limit){alert('库存与已服用数量已足够达到终身上限，无需再炼制。');return;}
-      }
-      
-      // 检查材料
-      for (const [mat, count] of Object.entries(recipe.materials)) {
-        if ((player.materials[mat] || 0) < count) {
-          alert('材料不足！');
-          return;
-        }
-      }
-      
-      // 消耗材料
-      for (const [mat, count] of Object.entries(recipe.materials)) {
-        player.materials[mat] -= count;
-        if (player.materials[mat] <= 0) delete player.materials[mat];
-      }
-      
-      // 计算成功率
-      const successBonus = Math.floor((player.alchemyLevel - 1) * 3);
-      const successRate = Math.min(1, recipe.baseSuccess + successBonus / 100);
-      
-      player.alchemyCount++;
-      
-      if (Math.random() < successRate) {
-        player.inventory.push(recipe.result);
-        alert(`🎉 炼制成功！获得 ${recipe.result}！`);
-        playSound('item');
-        
-        // 炼丹经验
-        player.alchemyExp += 10;
-        if (player.alchemyExp >= player.alchemyLevel * 50) {
-          player.alchemyExp = 0;
-          player.alchemyLevel++;
-          alert(`🔥 炼丹等级提升至 ${player.alchemyLevel}！`);
-          playSound('levelup');
-        }
-        
-        // 更新炼丹成就
-        updateAchievementProgress('alchemy');
-      } else {
-        alert('💥 炼制失败，材料已消耗...');
-      }
-      
-      updateAlchemyPanel();
-      updateStats();
-      autoSave();
+    function getAlchemyPlanV286850(recipeName,times=1){
+      const recipe=Object.prototype.hasOwnProperty.call(RECIPES,recipeName)?RECIPES[recipeName]:null;
+      if(!recipe||![1,5,10].includes(times))return {count:0,reason:'无效丹方或炉数'};
+      if(!player||gameState==='start'||!forgeAllowedV2825())return {count:0,reason:'当前状态无法炼丹'};
+      if(player.alchemyLevel<recipe.alchemyLevelRequired)return {count:0,reason:`需要炼丹等级 ${recipe.alchemyLevelRequired}`};
+      const result=recipe.result,limit=LONGEVITY_PILLS[result];
+      if(limit&&normalizeLongevity(player.longevity).uses[result]+player.inventory.filter(n=>n===result).length>=limit.limit)return {count:0,reason:'库存与已服用数量已达终身上限'};
+      const costs=Object.entries(recipe.materials);if(!costs.length)return {count:0,reason:'丹方缺少材料配置'};
+      let count=times;
+      for(const [mat,need] of costs){if(!Number.isSafeInteger(need)||need<=0)return {count:0,reason:'丹方材料配置异常'};const have=Number(player.materials[mat]||0);if(!Number.isSafeInteger(have)||have<0)return {count:0,reason:'材料数量异常'};count=Math.min(count,Math.floor(have/need));}
+      return {count,reason:count?'':'材料不足',recipe};
     }
-    
+    function craftPill(recipeName,times=1) {
+      const plan=getAlchemyPlanV286850(recipeName,times);
+      if(!plan.count){showFloatingText?.(plan.reason,'#ff8a80');return false;}
+      let attempted=0,success=0;const initialLevel=player.alchemyLevel;
+      for(let i=0;i<plan.count;i++){
+        // Recheck after each outcome: success may fill a lifetime cap or raise alchemy level.
+        const step=getAlchemyPlanV286850(recipeName,1);if(!step.count)break;
+        const recipe=step.recipe;
+        for(const [mat,count] of Object.entries(recipe.materials)){player.materials[mat]-=count;if(player.materials[mat]<=0)delete player.materials[mat];}
+        const successRate=Math.min(1,recipe.baseSuccess+Math.floor((player.alchemyLevel-1)*3)/100);
+        player.alchemyCount++;attempted++;
+        if(Math.random()<successRate){
+          player.inventory.push(recipe.result);success++;player.alchemyExp+=10;
+          if(player.alchemyExp>=player.alchemyLevel*50){player.alchemyExp=0;player.alchemyLevel++;}
+          updateAchievementProgress('alchemy');
+        }
+      }
+      showFloatingText?.(`🔥 投入 ${attempted} 炉 · ${plan.recipe.result} ×${success} · 失败 ${attempted-success} 炉${player.alchemyLevel>initialLevel?' · 炼丹升至 Lv.'+player.alchemyLevel:''}`,success?'#69f0ae':'#ff8a80');
+      if(success)playSound(player.alchemyLevel>initialLevel?'levelup':'item');
+      updateAlchemyPanel();updateStats();autoSave();return {attempted,success};
+    }
+
     // ================== 宠物系统 ==================
     
     function showPets() {
@@ -14197,8 +14210,14 @@
       saveGame();
     }
     
-    function loadAndStart() {
-      const saveData = loadGame();
+    function loadAndStart(prepared) {
+      let saveData=prepared;
+      if(!saveData){
+        for(const key of [SAVE_KEY,SAVE_BACKUP_KEY]){
+          try{const raw=localStorage.getItem(key);if(!raw)continue;saveData=dryRunLoadV2870(raw);if(key===SAVE_BACKUP_KEY)saveData._recoveredFromBackup=true;break;}
+          catch(e){console.warn('存档预加载失败：',e);}
+        }
+      }
       if (!saveData) {
         alert('存档无法读取，请在存档管理中导入或恢复备份。原记录未删除。');
         showSaveManagerV2768();
@@ -14206,9 +14225,12 @@
       }
       
       if(saveData._recoveredFromBackup)alert('主存档无法读取，已使用最近一次有效备用档恢复。');
+      // Loading may initialize tasks; do not overwrite either recovery candidate during setup.
+      const wasSaveDeferred=miniSaveDeferredV286840;miniSaveDeferredV286840=true;
+      try{
       // 恢复玩家数据
       resetRuntimeState();
-      player = normalizePlayer(saveData.player);
+      player = saveData.player;
       
       // 恢复成就数据
       if (saveData.achievements) {
@@ -14252,6 +14274,8 @@
         { text: '续行仙途', action: 'village' }
       ]);
       recoverPendingBreakthroughV28683();
+      }finally{miniSaveDeferredV286840=wasSaveDeferred;}
+      return true;
     }
     
     function newGame() {
@@ -14509,7 +14533,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.47";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.50";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

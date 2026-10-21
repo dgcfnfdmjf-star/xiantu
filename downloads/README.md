@@ -1,8 +1,10 @@
 # 腾讯云部署下载
 
-当前包：**仙途 V28.68.47**，新增御剑术、万剑归宗、天地一剑独立特效，包含最新教程、法宝／灵宠批量养成、分解、放生返还和捕捉中断修复，以及此前接入的技能特效。
+当前包：**仙途 V28.68.50**，新增炼丹×1／×5／×10批量操作，包含灵宠防御类变异出战加成、词条去重与免费温养，包含最新教程、法宝／灵宠批量养成、分解、放生返还和捕捉中断修复，以及此前接入的技能特效。
 
-[直接下载 xiantu-v2831-scroll.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/codex/sword-skills-batch1/downloads/xiantu-v2831-scroll.zip)
+V28.68.50 部署包位于开发分支；合并请求 #7 包含本批更新。
+
+[下载 V28.68.50 xiantu-v2831-scroll.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/codex/sword-skills-batch2/downloads/xiantu-v2831-scroll.zip)
 
 如果仓库为私有，请先登录有权限的 GitHub 账号。也可以打开本目录中的 ZIP 文件，点击下载原始文件按钮。
 
@@ -12,7 +14,7 @@
 2. 下载并解压 `xiantu-v2831-scroll.zip`，得到同名文件夹，里面直接包含 `index.html`、`game-v2762.html`、脚本、样式与 `art` 资源目录。
 3. 打开 [CloudBase 控制台](https://console.cloud.tencent.com/tcb)，选择原游戏环境，进入「静态网站托管 → 文件管理」。
 4. 在托管根目录上传整个 `xiantu-v2831-scroll` 文件夹并覆盖同名文件；如果已经进入云端同名目录，就上传本地文件夹里面的内容，避免套两层目录。上传实际文件，不要只上传 ZIP。
-5. 等待所有文件完成后，打开原 `/xiantu-v2831-scroll/` 游戏网址，Ctrl+F5 刷新。角色设置中的版本应为 **V28.68.47**；法宝出现一键强化，百艺工坊兽丹卡片出现 ×1／×5／全部。
+5. 等待所有文件完成后，打开原 `/xiantu-v2831-scroll/` 游戏网址，Ctrl+F5 刷新。角色设置中的版本应为 **V28.68.50**；法宝出现一键强化，百艺工坊兽丹卡片出现 ×1／×5／全部。
 
 部署层级：
 
