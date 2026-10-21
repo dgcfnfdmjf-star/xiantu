@@ -36,9 +36,22 @@
     }
 
     function groupInventoryItems() {
-      const bucket = {};
+      const bucket = Object.create(null);
       (player?.inventory || []).forEach(name => { bucket[name] = (bucket[name] || 0) + 1; });
       return Object.entries(bucket).map(([name,count]) => ({name,count,data:ITEMS?.[name] || null}));
+    }
+
+    function sortAndConsolidateBagV2870(){
+      if(!Array.isArray(player?.inventory)||gameState!=='exploring'||player.breakthrough?.isAnimating||COMBAT_FINISH_V2764.settling)return false;
+      const priority={heal:1,mp:2,exp:3,pet:4,capture:5,pet_contract:6};
+      const original=player.inventory;
+      const sorted=[...original].sort((a,b)=>(priority[ITEMS[a]?.type]||9)-(priority[ITEMS[b]?.type]||9)||a.localeCompare(b,'zh-CN'));
+      if(sorted.some((name,i)=>name!==original[i])){
+        player.inventory=sorted;
+        if(!saveGame()){player.inventory=original;return false;}
+      }
+      renderMobileInventory();
+      showFloatingText('🎒 已按品类和名称整理，物品数量不变','#8fe3c4');return true;
     }
 
     function showMobileInventory() {
@@ -75,22 +88,30 @@
         rows=itemRows;
         footer='可使用的丹药/物品可直接点击；战斗中请使用战斗背包。';
       }
-      const htmlRows=rows.length?rows.map(row=>{
+      const htmlRows=rows.length?rows.map((row,index)=>{
         const d=row.data||{};
         const icon=d.icon || (d.type==='heal'?'💊':d.type==='mp'?'🔹':mobileInventoryTab==='materials'?'🌿':mobileInventoryTab==='equipment'?'⚔️':'🎐');
         const desc=d.desc || (mobileInventoryTab==='materials'?'修仙材料':mobileInventoryTab==='equipment'?'装备物品':'储物袋物品');
         if(mobileInventoryTab==='items'){
-          return `<button class="mobile-inventory-item usable" onclick="useItem('${row.name.replace(/'/g,"\\'")}');renderMobileInventory();"><span class="name">${icon} ${row.name}</span><span class="count">×${row.count}</span><span class="desc">${desc}</span></button>`;
+          return `<button class="mobile-inventory-item usable" data-bag-index="${index}"><span class="name">${escapeGameText(icon)} ${escapeGameText(row.name)}</span><span class="count">×${row.count}</span><span class="desc">${escapeGameText(desc)}</span></button>`;
         }
-        return `<div class="mobile-inventory-item"><span class="name">${icon} ${row.name}</span><span class="count">×${row.count}</span><span class="desc">${desc}</span></div>`;
+        return `<div class="mobile-inventory-item"><span class="name">${escapeGameText(icon)} ${escapeGameText(row.name)}</span><span class="count">×${row.count}</span><span class="desc">${escapeGameText(desc)}</span></div>`;
       }).join(''):`<div class="mobile-inventory-empty">这一栏目前是空的</div>`;
       card.innerHTML=`
         <div class="mobile-inventory-head"><div><div class="mobile-inventory-title">🎒 储物袋</div><div style="font-size:10px;color:#8f99a4;margin-top:2px">随身物资与修行资源</div></div><button aria-label="关闭" class="mobile-inventory-close" onclick="closeMobileInventory()">✕</button></div>
         <div class="mobile-inventory-summary"><span>💰 灵石 ${player.gold||0}</span><span>💠 灵力 ${Math.max(0,Math.round(player.mp||0))} / ${typeof getMaxMp==='function'?getMaxMp():Math.max(0,Math.round(player.maxMp||0))}</span><span>🎐 物品 ${itemRows.reduce((a,b)=>a+b.count,0)}</span><span>🌿 材料 ${materialRows.reduce((a,b)=>a+Number(b.count||0),0)}</span><span>⚔️ 装备 ${equipmentRows.length}</span></div>
         <div class="mobile-inventory-tabs">${tabs.map(([id,label])=>`<button class="mobile-inventory-tab ${mobileInventoryTab===id?'active':''}" onclick="setMobileInventoryTab('${id}')">${label}</button>`).join('')}</div>
+        ${mobileInventoryTab==='items'?'<button id="sortBagBtnV2870" class="choice-btn" style="width:100%;margin:8px 0" onclick="sortAndConsolidateBagV2870()">🔄 按品类整理物品</button>':''}
         <div class="mobile-inventory-grid">${htmlRows}</div>
         ${mobileInventoryTab==='equipment'?`<button class="choice-btn" style="margin-top:10px;width:100%" onclick="closeMobileInventory();showEquipmentPanel();">📦 打开完整装备栏</button>`:''}
         <div class="mobile-inventory-footer">${footer}</div>`;
+      const owner=player;
+      card.onclick=e=>{
+        const button=e.target.closest('[data-bag-index]');
+        if(!button||!card.contains(button)||player!==owner||gameState!=='exploring'||player.breakthrough?.isAnimating||COMBAT_FINISH_V2764.settling)return;
+        const row=rows[Number(button.dataset.bagIndex)];if(!row||mobileInventoryTab!=='items')return;
+        useItem(row.name);renderMobileInventory();
+      };
     }
 
     // ================== 存档系统 ==================
@@ -6274,6 +6295,7 @@
     let playerPressureStun = false;
 
     function resetRuntimeState() {
+      document.getElementById('sectCeremonyV2870')?.remove();
       if(typeof closeExpansionV286827==='function')closeExpansionV286827();
       document.getElementById('postCaseV286826')?.remove();document.getElementById('storyBossPrepV286826')?.remove();
       if(typeof rainCloseV286822==='function')rainCloseV286822();

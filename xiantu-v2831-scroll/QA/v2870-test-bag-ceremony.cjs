@@ -1,0 +1,23 @@
+const fs=require('node:fs'),path=require('node:path'),a=require('node:assert/strict');
+const root=process.env.XIANTU_TEST_ROOT||path.resolve(__dirname,'..'),f=require('./v2858-dom-fixture.cjs')(root);
+for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);
+f.El.prototype.before=function(el){this.parentNode?.insertBefore(el,this);};
+const run=s=>f.run(s);
+run("player=createDefaultPlayer();gameState='exploring';player.inventory=['聚灵丹','小还丹','聚灵丹','未知物品'];showMobileInventory()");
+const before=run('JSON.stringify([...player.inventory].sort())');a.equal(run('sortAndConsolidateBagV2870()'),true);a.equal(run('JSON.stringify([...player.inventory].sort())'),before);
+a.equal(run("player.inventory.join(',')"),'小还丹,聚灵丹,聚灵丹,未知物品');
+a.equal(run('groupInventoryItems().find(x=>x.name==="聚灵丹").count'),2);
+a(f.ids.has('sortBagBtnV2870'));run("setMobileInventoryTab('materials')");a(!f.ids.has('sortBagBtnV2870'));
+for(const state of ['combat','combat-ending','start']){run(`gameState='${state}'`);a.equal(run('sortAndConsolidateBagV2870()'),false);}
+run("gameState='exploring';player.breakthrough.isAnimating=true");a.equal(run('sortAndConsolidateBagV2870()'),false);run('player.breakthrough.isAnimating=false');
+const save=f.c.saveGame;f.c.saveGame=()=>false;
+run("player.inventory=['zzz','aaa']");const ref=run('player.inventory');a.equal(run('sortAndConsolidateBagV2870()'),false);a.equal(run('player.inventory'),ref);f.c.saveGame=save;
+run("player.inventory=['<img src=x onerror=alert(1)>',\"O'Brien\"];setMobileInventoryTab('items')");a(!f.ids.get('mobileInventoryCard').innerHTML.includes('<img src=x'));a(!f.ids.get('mobileInventoryCard').innerHTML.includes('onclick="useItem'));
+run("player=createDefaultPlayer();gameState='exploring';player.level=4;player.sectTotalContribution=1000;player.sectPromotion={tasksCompleted:5,inherited:false}");
+f.c.saveGame=()=>false;a.equal(run('inheritSectV2768()'),false);a.equal(run('player.sectPromotion.inherited'),false);a(!f.ids.has('sectCeremonyV2870'));f.c.saveGame=save;
+a.equal(run('inheritSectV2768()'),true);a(f.ids.has('sectCeremonyV2870'));a.equal(run('loadGame().player.sectPromotion.inherited'),true);
+f.ids.get('sectCeremonyV2870').querySelector('button').click();run('inheritSectV2768();showSectPromotionV2768()');a(!f.ids.has('sectCeremonyV2870'));
+run("player.sectPromotion.inherited=false;gameState='combat-ending'");run('inheritSectV2768()');a.equal(run('player.sectPromotion.inherited'),false);
+run("gameState='exploring';player.sectPromotion.tasksCompleted=4");run('inheritSectV2768()');a.equal(run('player.sectPromotion.inherited'),false);
+run('showSectMasterCeremonyV2870();resetRuntimeState()');a(!f.ids.has('sectCeremonyV2870'));
+a.equal(f.errors.length,0,JSON.stringify(f.errors));console.log('PASS bag count preservation, grouping, guards, rollback, inert rendering; ceremony eligibility, persisted promotion, single trigger, save failure and reset cleanup');

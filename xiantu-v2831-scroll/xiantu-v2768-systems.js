@@ -50,9 +50,22 @@ function inheritSectV2768(){
  if(!sectCanManageV2866())return;
  const p=normalizePromotionV2768(player.sectPromotion);
  if(gameState==='combat'||p.inherited||player.level<4||(player.sectTotalContribution||0)<1000||p.tasksCompleted<5)return;
+ const oldPromotion=player.sectPromotion,oldRank=player.sectRank;
  p.inherited=true;player.sectPromotion=p;player.sectRank=getCurrentRankInfo().name;
- updateStats();autoSave();
+ if(!saveGame()){player.sectPromotion=oldPromotion;player.sectRank=oldRank;return false;}
+ updateStats();
  showStory('<h3>👑 宗门传承</h3><p>五次宗门委托见证了你的担当，元婴修为足以护佑一方。你接过掌门信物，从今日起承担宗门兴衰之责。</p>',[{text:'执掌宗门',action:'sect_hall'}]);
+ showSectMasterCeremonyV2870();return true;
+}
+function showSectMasterCeremonyV2870(){
+ document.getElementById('sectCeremonyV2870')?.remove();
+ const el=document.createElement('div');el.id='sectCeremonyV2870';el.className='mobile-inventory-overlay';el.style.zIndex='100001';
+ el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-labelledby','sectCeremonyTitleV2870');
+ el.innerHTML=`<div class="mobile-inventory-card" style="padding:24px;max-height:85vh;overflow:auto;text-align:center;border-color:#dfbd68"><div style="font-size:44px">👑</div><h2 id="sectCeremonyTitleV2870" style="color:#ffe099">执掌宗门 · 掌教受箓</h2><p style="line-height:1.8">五次委托见证担当，千点贡献凝聚人心。<br>自今日起，你接过${escapeGameText(player.sect)}掌门信物，承担全宗兴衰之责。</p><button class="choice-btn" style="width:100%;min-height:44px">执掌山门</button></div>`;
+ const previous=document.activeElement,button=el.querySelector('button');
+ const close=()=>{el.remove();if(previous?.isConnected)previous.focus();};
+ button.onclick=close;el.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();close();}else if(e.key==='Tab'){e.preventDefault();button.focus();}});
+ document.body.appendChild(el);button.focus();
 }
 function showSaveManagerV2768(){
  document.getElementById('saveManagerV2768')?.remove();
