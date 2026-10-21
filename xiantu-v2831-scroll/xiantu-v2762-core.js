@@ -6632,6 +6632,7 @@
     function startCombat(enemy, isBoss = false, isTrib = false, monsterRef = null) {
       if(!enemy || gameState==='combat' || gameState==='combat-ending' || COMBAT_FINISH_V2764.settling || player.breakthrough?.isAnimating)return false;
       battleCheckpointV286812={owner:player,raw:JSON.stringify(createSaveDataV2768())};
+      const emergencyHealV2870=emergencyFieldHealV2870(enemy,isBoss,isTrib,monsterRef);
       document.getElementById('afterBattleV2838')?.remove();
       if(typeof closeWarPanelV2839==='function')closeWarPanelV2839();
       if(typeof closeSceneV2838==='function')closeSceneV2838(false);
@@ -6645,6 +6646,7 @@
       ensureEnemyRealm(enemy);
       balanceEnemyV2802(enemy,isBoss,isTrib);
       currentEnemy = enemy;
+      delete currentEnemy._mercySavedV2870;
       if(enemy._nightRivalV2810&&player.level>=15)enemy._originV286826={turns:0,collapsed:false};
       guardsV2785.delete(currentEnemy);
       gearBattleV2790.delete(currentEnemy);
@@ -6709,6 +6711,7 @@
       if (isTrib) logText = `⚡ 天劫降临！渡劫开始！`;
       
       document.getElementById('combatLog').innerHTML = `<div class="log-item">${logText}</div>`;
+      if(emergencyHealV2870)addCombatLog(`💊 临阵护脉：${escapeGameText(emergencyHealV2870.name)}恢复${emergencyHealV2870.heal}点气血`,'heal');
       const openingPressure = calculateRealmPressure(player.level, player.phase, currentEnemy._realmLevel || 0, currentEnemy._realmPhase || 0);
       const openingDesc = getPressureDisplay(openingPressure);
       addCombatLog(`⚖️ 境界对比：${getCultivationName()} vs ${getEnemyRealmNameV2811(currentEnemy)}${openingDesc ? ` · ${openingDesc}` : ''}`,'boss');

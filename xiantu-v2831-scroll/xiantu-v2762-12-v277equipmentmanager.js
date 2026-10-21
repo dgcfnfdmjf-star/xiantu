@@ -139,7 +139,7 @@ function showEquipmentPanel(){
     <div style="margin-top:12px;padding:10px;border:1px solid rgba(255,255,255,.08);border-radius:9px"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(95px,1fr));gap:7px;font-size:12px">${renderEquipStatsSummary()}</div></div>
     <p style="font-size:12px;color:#aaa">单件属性已含品质倍率。角色总属性另计境界、套装等加成并取整；闪避面板上限30%，格挡面板上限25%。</p>
     ${renderSetProgressV2789()}
-    <div class="equip-toolbar"><button class="panel-action-btn" id="gradeUpgradeBtnV2869" onclick="showGradeUpgradePanelV2869()">⬆️ 升品 / 继承</button><button class="panel-action-btn" onclick="showForgeV2825()">⚒️ 强化 / 洗练</button><button class="panel-action-btn equip-auto-btn" onclick="autoEquipBest()">⚡ 一键装备最佳${upgradeCount?` ↑${upgradeCount}`:''}</button><button class="panel-action-btn" onclick="showEquipmentInventory()">📦 背包装备（${player.equipmentInventory.length}）</button><button class="panel-action-btn equip-danger-btn" onclick="unequipAllGear()">↩️ 一键卸下未锁定</button><button class="panel-action-btn" onclick="document.getElementById('equipmentPanel')?.remove()">关闭</button></div>`;
+    ${renderLoadoutPresetsV2870()}<div class="equip-toolbar"><button class="panel-action-btn" id="gradeUpgradeBtnV2869" onclick="showGradeUpgradePanelV2869()">⬆️ 升品 / 继承</button><button class="panel-action-btn" onclick="showForgeV2825()">⚒️ 强化 / 洗练</button><button class="panel-action-btn equip-auto-btn" onclick="autoEquipBest()">⚡ 一键装备最佳${upgradeCount?` ↑${upgradeCount}`:''}</button><button class="panel-action-btn" onclick="showEquipmentInventory()">📦 背包装备（${player.equipmentInventory.length}）</button><button class="panel-action-btn equip-danger-btn" onclick="unequipAllGear()">↩️ 一键卸下未锁定</button><button class="panel-action-btn" onclick="document.getElementById('equipmentPanel')?.remove()">关闭</button></div>`;
   panel.appendChild(content);document.body.appendChild(panel);
 }
 
@@ -334,3 +334,36 @@ function showGradeUpgradePanelV2869(){
 try{ensureEquipmentManagerState();}catch(_){ }
 
 ;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-12-v277equipmentmanager.js"]="28.68.50";
+
+const LOADOUT_NAMES_V2870=['方案一·日常','方案二·爆发','方案三·护体'];
+function saveLoadoutPresetV2870(index){
+ if(!petBatchAllowedV286845()||!Number.isInteger(index)||index<0||index>2)return false;
+ const owner=player,old=player.loadoutPresetsV2870;
+ if(old?.[index]&&!confirm('覆盖这套已保存的装备与功法方案？'))return false;
+ if(player!==owner||!petBatchAllowedV286845())return false;
+ const next=Array.from({length:3},(_,i)=>old?.[i]||null);
+ next[index]={equipment:{...player.equipment},skills:sanitizeSkillLoadoutV212(player.skillLoadoutV212,player,!player.skillLoadoutInitializedV212)};
+ player.loadoutPresetsV2870=next;
+ if(!saveGame()){if(old===undefined)delete player.loadoutPresetsV2870;else player.loadoutPresetsV2870=old;return false;}
+ showEquipmentPanel();return true;
+}
+function applyLoadoutPresetV2870(index){
+ if(!petBatchAllowedV286845()||!Number.isInteger(index)||index<0||index>2)return false;
+ const preset=player.loadoutPresetsV2870?.[index];if(!preset?.equipment||typeof preset.equipment!=='object'||Array.isArray(preset.equipment))return false;
+ if(Object.keys(preset.equipment).some(k=>!Object.hasOwn(EQUIPMENT_SLOTS,k)))return false;
+ const pool=[...(player.equipmentInventory||[]),...Object.values(player.equipment||{}).filter(Boolean)],equipment=createEmptyEquipmentSlots();
+ for(const slot of Object.keys(EQUIPMENT_SLOTS)){
+   const wanted=preset.equipment[slot]||null,old=player.equipment?.[slot];
+   if(old&&isEquipmentLocked(old)&&old!==wanted){showFloatingText('方案会更换锁定装备，请先解锁','#ff8a80');return false;}
+   if(!wanted)continue;
+   const at=pool.indexOf(wanted),data=getEquipData(wanted);
+   if(typeof wanted!=='string'||at<0||!isEquipSlotUnlocked(slot)||!getAllowedSlotsForEquip(data).includes(slot)||!canEquipItem(wanted).ok){showFloatingText('方案装备缺失、已升品或不可穿戴，请重新保存方案','#ff8a80');return false;}
+   equipment[slot]=wanted;pool.splice(at,1);
+ }
+ const old={equipment:player.equipment,bag:player.equipmentInventory,skills:player.skillLoadoutV212,initialized:player.skillLoadoutInitializedV212,hp:player.hp,mp:player.mp,bonuses:player.activeSetBonuses};
+ player.equipment=equipment;player.equipmentInventory=pool;player.skillLoadoutV212=sanitizeSkillLoadoutV212(preset.skills,player,false);player.skillLoadoutInitializedV212=true;
+ checkSetBonuses();player.hp=Math.min(player.hp,getMaxHp());player.mp=Math.min(player.mp,getMaxMp());
+ if(!saveGame()){player.equipment=old.equipment;player.equipmentInventory=old.bag;player.skillLoadoutV212=old.skills;player.skillLoadoutInitializedV212=old.initialized;player.hp=old.hp;player.mp=old.mp;player.activeSetBonuses=old.bonuses;return false;}
+ updateStats();updateWorldHUD();showEquipmentPanel();showFloatingText('配装与已学功法已切换','#69f0ae');return true;
+}
+function renderLoadoutPresetsV2870(){return '<section id="equipPresetsBarV2870"><h3>装备与功法预设</h3><p>按原装备精确匹配；缺件或已升品时停止切换，现有装备不受影响。</p>'+LOADOUT_NAMES_V2870.map((name,i)=>`<div style="margin:8px 0"><b>${name}</b> · ${player.loadoutPresetsV2870?.[i]?'已保存':'未保存'} <button class="panel-action-btn" style="min-height:44px" onclick="saveLoadoutPresetV2870(${i})">保存当前</button><button class="panel-action-btn" style="min-height:44px" ${player.loadoutPresetsV2870?.[i]?'':'disabled'} onclick="applyLoadoutPresetV2870(${i})">启用</button></div>`).join('')+'</section>';}
