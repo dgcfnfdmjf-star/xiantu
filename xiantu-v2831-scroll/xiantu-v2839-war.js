@@ -31,7 +31,17 @@ function normalizeWarV2839(p){
  c.log=Array.isArray(c.log)?c.log.filter(x=>typeof x==='string').slice(-30):[];
  c.records=Array.isArray(c.records)?c.records.filter(x=>x&&Number.isInteger(x.stage)&&x.stage>=0&&x.stage<3&&typeof x.text==='string').slice(-12):[];
  c.roster=Array.isArray(c.roster)?c.roster.filter(x=>x&&typeof x.name==='string'&&Number.isFinite(x.power)&&x.power>=0).slice(0,28):[];
- if(c.pending&&(!c.pending.id||c.pending.stage!==c.step||![0,1,2].includes(c.pending.tactic)))c.pending=null;
+ // A pending duel is a paid resume ticket, including outside combat after reload.
+ // Normalize from the saved campaign itself, never from another character's runtime state.
+ if(c.pending){
+  const q=c.pending;
+  if(typeof q!=='object'||typeof q.id!=='string'||!q.id.trim()||q.id.length>100||c.step>=3||q.stage!==c.step||![0,1,2].includes(q.tactic)){
+   c.pending=null;warLogV2839(c,'交锋记录不完整，已解除异常锁定；已付战备不返还，可继续统领联军。');
+  }else c.selected[c.step]=q.tactic;
+ }
+ if(!c.pending&&c.commanderV286841==='fighting'){
+  c.commanderV286841='failed';warLogV2839(c,'主将交锋记录已中断，本场斩将机会不重置，可继续统领联军。');
+ }
  if(legacy)c.log.push('旧版战役已接续：既有阶段、优势与战力保留，剩余目标可选择亲自交锋或指挥联军。');
  w.status=WAR_STATUS.BATTLE;w.enemy=c.enemy;w.phase=c.step;
 }

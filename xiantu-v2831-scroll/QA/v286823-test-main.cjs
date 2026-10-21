@@ -43,3 +43,11 @@ f.run("player.tasks.active.journey_02={currentStep:1,progress:{},completed:false
 a.equal(f.run("setJourneyPrepV286823('journey_02','clue',0)"),true);
 f.run("launchJourneyBattleV2838('journey_02')");const stale=f.ids.get('journeyPrepareV2838');f.run("launchJourneyBattleV2838('journey_02')");stale.onclick({target:{closest:()=>({dataset:{journey:'clue1'}})}});a.equal(f.run("journeyPrepV286823('journey_02').clues.length"),1);
 console.log('PASS 27 chapters/17 realms, order and gate, 16 chapter-plan paths, persistent investigation, battle aid, victory guard, reward once, legacy progress/choices, branch callback, save rollback and stale panel');
+f.run('resetRuntimeState();player=createDefaultPlayer();player.level=16;ensureTaskState();player.tasks.completed=MAIN_TASKS.slice(0,MAIN_TASKS.findIndex(t=>t.id==="journey_01")).map(t=>t.id);acceptTask("journey_01",true);completeTaskStep("journey_01","journey_01_open");player.hp=getMaxHp();getTaskInstance("journey_01").progress.investigationV286823={clues:[0],plan:"guard"}');
+a.equal(f.run('journeyPrepV286823("journey_01").plan'),null,'incomplete imported investigation cannot unlock battle');
+a.match(f.run('investigationPanelV286823("journey_01")'),/已完成 1\/2/);
+f.run('setJourneyPrepV286823("journey_01","clue",1)');
+a.match(f.run('investigationPanelV286823("journey_01")'),/请选择下方战术/);
+f.run('setJourneyPrepV286823("journey_01","plan","guard")');
+a.match(f.run('investigationPanelV286823("journey_01")'),/战术已选定/);
+console.log('PASS investigation hints reflect progress; incomplete imported plan stays locked');
