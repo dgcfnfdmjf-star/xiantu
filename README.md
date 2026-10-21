@@ -1,6 +1,14 @@
-# 仙途 V28.68.48
+# 仙途 V28.68.50
 
-部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.48）；[上传步骤](downloads/README.md)。
+部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.50）；[上传步骤](downloads/README.md)。
+
+## 炼丹批量操作
+
+丹方卡片支持 ×1／×5／×10，按现有单炉成功率、升级和成就规则逐炉结算；材料不足或延寿库存达到终身上限时停炉。见 [规则与验证](docs/alchemy-batch.txt)。
+
+## 灵宠变异与免费温养
+
+出战灵宠的生命、防御、减伤及威压控制抵抗词条接入主人属性；旧档重复词条保留累计值合并。培养菜单可免费恢复状态，亲密度每仙历日最多+1，保存失败回滚。见 [规则及验证](docs/pet-mutation-comfort.txt)。
 
 ## 剑系第二批独立特效
 
@@ -100,7 +108,7 @@ npm test
 npm run test:browser
 ```
 
-`npm test` 运行选定的 61 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
+`npm test` 运行选定的 63 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
 
 浏览器测试覆盖恶意存档拒绝且原主档/备份不变、正常导入与刷新恢复、360/390/430/1366px 导航入口可达性、预加载去重与版本错误提示。外部请求被拦截，不调用付费服务。已有 Chromium 的云环境可使用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`。
 

@@ -333,4 +333,4 @@ function showGradeUpgradePanelV2869(){
 // 初始化锁定字段；旧存档无需迁移结构，下一次保存会自动写入 player。
 try{ensureEquipmentManagerState();}catch(_){ }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-12-v277equipmentmanager.js"]="28.68.48";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-12-v277equipmentmanager.js"]="28.68.50";

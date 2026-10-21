@@ -4211,7 +4211,7 @@
       const state=battleGearStateV2790(),m=gearModsV2790(),t=familyStateV2790('镇岳禅心');
       if(damage<=0)return damage;
       if(state.guard){state.guard=false;addCombatLog('镇岳霸体抵挡本次命中！','heal');return 0;}
-      const ratio=Math.min(.6,(m.reducePct||0)+(t.immortal?.1*player.hp/getMaxHp():0));
+      const ratio=Math.min(.6,(m.reducePct||0)+ownerPetTraitBonusV286849('reduce')+(t.immortal?.1*player.hp/getMaxHp():0));
       const out=Math.max(0,Math.floor(damage*(1-ratio)*(1-state.weaken)));state.weaken=0;return out;
     }
     function gearRestoreV2790(){
@@ -6365,6 +6365,8 @@
     function getEquipBlock(){return getEquipmentStat('block',['bracer','offhand','lifeArtifact']);}
     function getEquipResist(){return getEquipmentStat('resistance',['jade','head','lifeArtifact'])+(getSetBonusStats().resist||0);}
 
+    function ownerPetTraitBonusV286849(key){return typeof getOwnerPetTraitBonusV286849==='function'?getOwnerPetTraitBonusV286849(key):0;}
+    function getControlResistanceV286849(){return Math.min(.6,(gearModsV2790().controlResist||0)+ownerPetTraitBonusV286849('resistance'));}
     function getAtk(){
       let atk=player.baseAtk+getPhaseScaledBonus('atkBonus')+getEquipAtk()+calculateFurnitureBonus().atk;
       if(player.activePet){const t=PET_TYPES[player.activePet.type];if(t?.bonus?.type==='atk')atk+=t.bonus.value+player.activePet.level*2;}
@@ -6375,14 +6377,14 @@
       let def=player.baseDef+getPhaseScaledBonus('defBonus')+getEquipDef()+calculateFurnitureBonus().def;
       if(player.activePet){const t=PET_TYPES[player.activePet.type];if(t?.bonus?.type==='def')def+=t.bonus.value+player.activePet.level*3;}
       if(hasStatusEffect('guyuan'))def=Math.floor(def*1.10);
-      return Math.floor(def*(1+(gearModsV2790().defPct||0))*(1+miniBoonV286840('def')));
+      return Math.floor(def*(1+(gearModsV2790().defPct||0))*(1+miniBoonV286840('def'))*(1+ownerPetTraitBonusV286849('def')));
     }
     
     function getCritRateWithSet(){return getCritRate();}
     
     function getDamageBonusWithSet(){return getSetBonusStats().damage||0;}
     
-    function getMaxHp(){let max=player.maxHp+getPhaseScaledBonus('hpBonus')+getEquipHp();if(activeRegionDebuff?.type==='corruption')max=Math.floor(max*.90);return Math.max(1,Math.floor(max*(1+(gearModsV2790().hpPct||0))));}
+    function getMaxHp(){let max=player.maxHp+getPhaseScaledBonus('hpBonus')+getEquipHp();if(activeRegionDebuff?.type==='corruption')max=Math.floor(max*.90);return Math.max(1,Math.floor(max*(1+(gearModsV2790().hpPct||0))*(1+ownerPetTraitBonusV286849('hp'))));}
     
     function getMaxMp(){const base=Math.max(0,Number(player.maxMp)||0)+Math.floor(player.level*12+(player.phase||0)*4);let max=base*2+getEquipMp();return Math.max(1,Math.floor(max*(1+(gearModsV2790().mpPct||0))));}
 
@@ -7004,7 +7006,7 @@
         if(!usable.ok){showFloatingText?.(usable.reason,'#ffd76a');updateCombatChoices?.();return;}
       }
       if(currentEnemy._warV2839)currentEnemy._warV2839.awaitingAction=true;
-      if(playerPressureStun && Math.random()<Math.min(.6,gearModsV2790().controlResist||0)){playerPressureStun=false;addCombatLog('禅冠稳神，抵抗本次威压控制。','heal');}
+      if(playerPressureStun && Math.random()<getControlResistanceV286849()){playerPressureStun=false;addCombatLog('护持稳神，抵抗本次威压控制。','heal');}
       if(playerPressureStun && action !== 'flee' && action !== 'escapeScroll'){
         playerPressureStun=false;
         playerPressureTurns=Math.max(0,playerPressureTurns-1);
@@ -8482,8 +8484,8 @@
       document.getElementById('petPanel').classList.add('hidden');
       document.getElementById('artifactPanel').classList.add('hidden');
       
-      updateAlchemyPanel();
       gameState = 'alchemy';
+      updateAlchemyPanel();
     }
     
     function updateAlchemyPanel() {
@@ -8506,9 +8508,6 @@
       // 更新丹方列表
       const recipeList = document.getElementById('recipeList');
       recipeList.innerHTML = Object.entries(RECIPES).map(([name, recipe]) => {
-        const canCraft = player.alchemyLevel >= recipe.alchemyLevelRequired && 
-          Object.entries(recipe.materials).every(([mat, count]) => (player.materials[mat] || 0) >= count) &&
-          (!LONGEVITY_PILLS[name] || normalizeLongevity(player.longevity).uses[name]+player.inventory.filter(n=>n===name).length<LONGEVITY_PILLS[name].limit);
         const successRate = Math.min(1, recipe.baseSuccess + successBonus / 100);
         
         const materialText = Object.entries(recipe.materials)
@@ -8525,70 +8524,48 @@
               <div class="recipe-materials">${materialText}</div>
               <div class="recipe-success">成功率: ${Math.floor(successRate * 100)}% | ${recipe.desc}</div>
             </div>
-            <button class="craft-btn" onclick="craftPill('${name}')" ${canCraft ? '' : 'disabled'}>
-              炼制
-            </button>
+            <div class="alchemy-batch-actions" style="display:flex;gap:6px;flex-wrap:wrap">
+              ${[1,5,10].map(n=>{const plan=getAlchemyPlanV286850(name,n);return `<button class="craft-btn" style="min-height:40px" onclick="craftPill('${name}',${n})" ${plan.count?'':'disabled'} title="${plan.reason||'按实际材料逐炉炼制，达到延寿上限停炉'}">×${n}${plan.count&&plan.count<n?'（可炼'+plan.count+'）':''}</button>`}).join('')}
+            </div>
           </div>
         `;
       }).join('');
     }
     
-    function craftPill(recipeName) {
-      const recipe = RECIPES[recipeName];
-      if (!recipe) return;
-      if(gameState==='combat')return;
-      if(player.alchemyLevel<recipe.alchemyLevelRequired){alert(`需要炼丹等级 ${recipe.alchemyLevelRequired}！`);return;}
-      if(LONGEVITY_PILLS[recipeName]) {
-        const used=normalizeLongevity(player.longevity).uses[recipeName];
-        const owned=player.inventory.filter(n=>n===recipeName).length;
-        if(used+owned>=LONGEVITY_PILLS[recipeName].limit){alert('库存与已服用数量已足够达到终身上限，无需再炼制。');return;}
-      }
-      
-      // 检查材料
-      for (const [mat, count] of Object.entries(recipe.materials)) {
-        if ((player.materials[mat] || 0) < count) {
-          alert('材料不足！');
-          return;
-        }
-      }
-      
-      // 消耗材料
-      for (const [mat, count] of Object.entries(recipe.materials)) {
-        player.materials[mat] -= count;
-        if (player.materials[mat] <= 0) delete player.materials[mat];
-      }
-      
-      // 计算成功率
-      const successBonus = Math.floor((player.alchemyLevel - 1) * 3);
-      const successRate = Math.min(1, recipe.baseSuccess + successBonus / 100);
-      
-      player.alchemyCount++;
-      
-      if (Math.random() < successRate) {
-        player.inventory.push(recipe.result);
-        alert(`🎉 炼制成功！获得 ${recipe.result}！`);
-        playSound('item');
-        
-        // 炼丹经验
-        player.alchemyExp += 10;
-        if (player.alchemyExp >= player.alchemyLevel * 50) {
-          player.alchemyExp = 0;
-          player.alchemyLevel++;
-          alert(`🔥 炼丹等级提升至 ${player.alchemyLevel}！`);
-          playSound('levelup');
-        }
-        
-        // 更新炼丹成就
-        updateAchievementProgress('alchemy');
-      } else {
-        alert('💥 炼制失败，材料已消耗...');
-      }
-      
-      updateAlchemyPanel();
-      updateStats();
-      autoSave();
+    function getAlchemyPlanV286850(recipeName,times=1){
+      const recipe=Object.prototype.hasOwnProperty.call(RECIPES,recipeName)?RECIPES[recipeName]:null;
+      if(!recipe||![1,5,10].includes(times))return {count:0,reason:'无效丹方或炉数'};
+      if(!player||gameState==='start'||!forgeAllowedV2825())return {count:0,reason:'当前状态无法炼丹'};
+      if(player.alchemyLevel<recipe.alchemyLevelRequired)return {count:0,reason:`需要炼丹等级 ${recipe.alchemyLevelRequired}`};
+      const result=recipe.result,limit=LONGEVITY_PILLS[result];
+      if(limit&&normalizeLongevity(player.longevity).uses[result]+player.inventory.filter(n=>n===result).length>=limit.limit)return {count:0,reason:'库存与已服用数量已达终身上限'};
+      const costs=Object.entries(recipe.materials);if(!costs.length)return {count:0,reason:'丹方缺少材料配置'};
+      let count=times;
+      for(const [mat,need] of costs){if(!Number.isSafeInteger(need)||need<=0)return {count:0,reason:'丹方材料配置异常'};const have=Number(player.materials[mat]||0);if(!Number.isSafeInteger(have)||have<0)return {count:0,reason:'材料数量异常'};count=Math.min(count,Math.floor(have/need));}
+      return {count,reason:count?'':'材料不足',recipe};
     }
-    
+    function craftPill(recipeName,times=1) {
+      const plan=getAlchemyPlanV286850(recipeName,times);
+      if(!plan.count){showFloatingText?.(plan.reason,'#ff8a80');return false;}
+      let attempted=0,success=0;const initialLevel=player.alchemyLevel;
+      for(let i=0;i<plan.count;i++){
+        // Recheck after each outcome: success may fill a lifetime cap or raise alchemy level.
+        const step=getAlchemyPlanV286850(recipeName,1);if(!step.count)break;
+        const recipe=step.recipe;
+        for(const [mat,count] of Object.entries(recipe.materials)){player.materials[mat]-=count;if(player.materials[mat]<=0)delete player.materials[mat];}
+        const successRate=Math.min(1,recipe.baseSuccess+Math.floor((player.alchemyLevel-1)*3)/100);
+        player.alchemyCount++;attempted++;
+        if(Math.random()<successRate){
+          player.inventory.push(recipe.result);success++;player.alchemyExp+=10;
+          if(player.alchemyExp>=player.alchemyLevel*50){player.alchemyExp=0;player.alchemyLevel++;}
+          updateAchievementProgress('alchemy');
+        }
+      }
+      showFloatingText?.(`🔥 投入 ${attempted} 炉 · ${plan.recipe.result} ×${success} · 失败 ${attempted-success} 炉${player.alchemyLevel>initialLevel?' · 炼丹升至 Lv.'+player.alchemyLevel:''}`,success?'#69f0ae':'#ff8a80');
+      if(success)playSound(player.alchemyLevel>initialLevel?'levelup':'item');
+      updateAlchemyPanel();updateStats();autoSave();return {attempted,success};
+    }
+
     // ================== 宠物系统 ==================
     
     function showPets() {
@@ -14509,7 +14486,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.48";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.50";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
