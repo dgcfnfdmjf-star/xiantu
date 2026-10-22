@@ -12,7 +12,7 @@ def command(*args):
         if line[:1]==b'+': return line[1:-2].decode()
         raise RuntimeError(line.decode())
 keys=[prefix+'actor:'+str(i) for i in range(20)]+[prefix+'budget',prefix+'active']
-def acquire(i,lease=None):return command('EVAL',script,3,keys[i],keys[-2],keys[-1],10000,4,2,lease or str(i),1)
+def acquire(i,lease=None):return command('EVAL',script,5,keys[i],keys[-2],keys[-1],prefix+'hour',prefix+'day',10000,4,2,lease or str(i),1,6,7)
 try:
     assert acquire(0)==1 and acquire(1)==1
     assert acquire(0)==0 and acquire(2)==0
@@ -28,5 +28,15 @@ try:
     assert acquire(10)==1 and command('ZCARD',keys[-1])==1
     assert 0<command('PTTL',keys[10])<=10000
     assert 0<command('PTTL',keys[-2])<=60000
+    command('DEL',keys[-1],keys[-2])
+    assert acquire(11)==1
+    command('DEL',keys[-1],keys[-2])
+    assert acquire(12)==0, 'hour budget survives minute reset'
+    assert 0<command('PTTL',prefix+'hour')<=3600000
+    command('DEL',prefix+'hour')
+    assert acquire(12)==1
+    command('DEL',keys[-1],keys[-2],prefix+'hour')
+    assert acquire(13)==0, 'day budget survives hour reset'
+    assert 0<command('PTTL',prefix+'day')<=86400000
     print('PASS Redis atomic concurrency, cross-caller budget, cooldown, expired lease cleanup and bounded TTL')
-finally:command('DEL',*keys)
+finally:command('DEL',*keys,prefix+'hour',prefix+'day')

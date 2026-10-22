@@ -23,3 +23,27 @@ test('shared limiter fails closed, validates config, and sends atomic commands',
  const release=await limiter.acquire('paid','secret-session');await release();assert.equal(sent[0][0],'EVAL');assert.equal(sent[1][0],'ZREM');assert(!JSON.stringify(sent).includes('secret-session'));
  let calls=0;const h=createHandler({env:{...env,JEV_REQUIRE_SHARED_LIMITER:'true'},call:async()=>{calls++;return answer;}});const e=event(state('balanced'));e.headers['x-xiantu-access']=env.JEV_ACCESS_TOKEN;assert.equal((await h(e)).statusCode,503);assert.equal(calls,0);
 });
+test('hour/day budgets survive minute resets and lease release, then expire independently',async()=>{
+ let clock=0;
+ const limiter=createLimiter({JEV_MAX_REQUESTS_PER_HOUR:'2',JEV_MAX_REQUESTS_PER_DAY:'3'},()=>clock);
+ const use=async()=>{const release=await limiter.acquire('paid','one');assert.equal(typeof release,'function');await release();};
+ await use();clock=60000;await use();clock=120000;
+ assert.equal(await limiter.acquire('paid','two'),null);
+ clock=3600000;await use();clock=7200000;
+ assert.equal(await limiter.acquire('paid','three'),null);
+ clock=86400000;await use();
+});
+test('session hour/day limits cannot be bypassed with a different IP; budgets are separate',async()=>{
+ let clock=0;
+ const limiter=createLimiter({JEV_MAX_SESSIONS_PER_HOUR:'1',JEV_MAX_SESSIONS_PER_DAY:'2'},()=>clock);
+ await(await limiter.acquire('session','ip1'))();clock=60000;
+ assert.equal(await limiter.acquire('session','ip2'),null);
+ assert.equal(typeof await limiter.acquire('paid','player'),'function');
+ clock=3600000;await(await limiter.acquire('session','ip2'))();clock=7200000;
+ assert.equal(await limiter.acquire('session','ip3'),null);
+ clock=86400000;assert.equal(typeof await limiter.acquire('session','ip3'),'function');
+});
+test('invalid long-term budget fails closed before any network operation',async()=>{
+ for(const name of ['JEV_MAX_REQUESTS_PER_HOUR','JEV_MAX_REQUESTS_PER_DAY','JEV_MAX_SESSIONS_PER_HOUR','JEV_MAX_SESSIONS_PER_DAY'])
+  for(const value of ['0','-1','abc','10001','1.5'])await assert.rejects(createLimiter({[name]:value}).acquire('paid','one'),/limiter_config/);
+});

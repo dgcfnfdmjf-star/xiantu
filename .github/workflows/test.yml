@@ -30,6 +30,7 @@ jobs:
       - run: npm test
       - run: python3 scripts/test-redis.py
       - run: npm run test:browser
+      - run: npm run package:game
       - run: npm run package:cloud
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()

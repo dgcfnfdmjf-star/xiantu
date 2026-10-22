@@ -138,7 +138,7 @@ async function requestForgeJevV2842(nonce) {
   }
 }
 window.__xiantuBuildFilesV2814 = window.__xiantuBuildFilesV2814 || {};
-window.__xiantuBuildFilesV2814['xiantu-v2842-jev-forge.js'] = '28.68.54';
+window.__xiantuBuildFilesV2814['xiantu-v2842-jev-forge.js'] = '28.68.55';
 
 // Device memory contains only the user-selected game access code, never a provider API key.
 function validJevAccessV2845(value) {
