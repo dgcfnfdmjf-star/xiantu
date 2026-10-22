@@ -4918,7 +4918,7 @@
     function showYeWujiV2810(){
       if(gameState==='combat'||gameState==='combat-ending')return;
       const e=createYeWujiV2810();
-      showStory(`${jevEntryV2846('jevRivalV2849()','Jev 宿敌应对')}<section class="yewuji-card-v2810"><img src="./portrait-yewuji-v2810.webp" alt="夜无疆，玄黑暗金长袍立于破碎仙阵前" width="640" height="960" loading="lazy"><div><p>魔族共尊 · 逆天魔典</p><h3>夜无疆</h3><p>${YEWUJI_LORE_V2810}</p></div></section><p>你的境界：${getCultivationName()}<br>夜无疆：<b>${getEnemyRealmNameV2811(e)}</b></p><p>气血 ${e.hp} · 攻击 ${e.atk} · 防御 ${e.def}</p><p>境界极限：半圣圆满（对应现有准圣），永久无法突破圣人；到达极限后，主角继续成长也不会再提高他的属性。</p><p>三阶段招式：破阵指 → 裂界掌 → 万法归寂，逐步加强伤害与破甲。</p><p>备战建议：先到北域灵泉补满气血与灵力；储物袋备好大还丹或玄玉护脉丹；功法栏放入青莲护心、莲华济世或玄罡护体剑，在「万法归寂」前抵挡一次重击。战败不影响主线进度，可整备后再试。</p><p>这是宿敌挑战，可自行决定何时尝试。胜利代表击退，夜无疆不会永久死亡；本次不发放灵石和修为。战败沿用普通战斗扣款规则。</p>`,[{text:'📜 宿敌纪事 · '+yeStateV2816().choices.length+'/8章',action:'yewuji_story_v2816'},{text:'⚔️ 挑战夜无疆',action:'challenge_yewuji_v2810'},{text:'☠️ 前往玄煞魔域',action:'travel_world_map',regionId:'demon_domain',condition:()=>isRegionUnlocked('demon_domain')},{text:'返回地图',action:'return_to_map'}]);
+      showStory(`<button class="choice-btn" onclick="showRivalMonumentV2874()">交锋纪事碑 · 六合问锋</button>${jevEntryV2846('jevRivalV2849()','Jev 宿敌应对')}<section class="yewuji-card-v2810"><img src="./portrait-yewuji-v2810.webp" alt="夜无疆，玄黑暗金长袍立于破碎仙阵前" width="640" height="960" loading="lazy"><div><p>魔族共尊 · 逆天魔典</p><h3>夜无疆</h3><p>${YEWUJI_LORE_V2810}</p></div></section><p>你的境界：${getCultivationName()}<br>夜无疆：<b>${getEnemyRealmNameV2811(e)}</b></p><p>气血 ${e.hp} · 攻击 ${e.atk} · 防御 ${e.def}</p><p>境界极限：半圣圆满（对应现有准圣），永久无法突破圣人；到达极限后，主角继续成长也不会再提高他的属性。</p><p>三阶段招式：破阵指 → 裂界掌 → 万法归寂，逐步加强伤害与破甲。</p><p>备战建议：先到北域灵泉补满气血与灵力；储物袋备好大还丹或玄玉护脉丹；功法栏放入青莲护心、莲华济世或玄罡护体剑，在「万法归寂」前抵挡一次重击。战败不影响主线进度，可整备后再试。</p><p>这是宿敌挑战，可自行决定何时尝试。胜利代表击退，夜无疆不会永久死亡；本次不发放灵石和修为。战败沿用普通战斗扣款规则。</p>`,[{text:'📜 宿敌纪事 · '+yeStateV2816().choices.length+'/8章',action:'yewuji_story_v2816'},{text:'⚔️ 挑战夜无疆',action:'challenge_yewuji_v2810'},{text:'☠️ 前往玄煞魔域',action:'travel_world_map',regionId:'demon_domain',condition:()=>isRegionUnlocked('demon_domain')},{text:'返回地图',action:'return_to_map'}]);
     }
     function challengeYeWujiV2810(){
       if(gameState==='combat'||gameState==='combat-ending'||COMBAT_FINISH_V2764.settling)return;
@@ -7587,6 +7587,8 @@
     function resolveEnemyTurnV2844(decision=null, done=()=>{}) {
       if (!currentEnemy || gameState!=='combat') { done(); return; }
       const turnEnemyV2838=currentEnemy,turnOwnerV2838=player;
+      const rivalDoneV2874=done,turnTokenV2874=COMBAT_FINISH_V2764.token;let rivalCompletedV2874=false;const rivalEligibleV2874=!isPlayerTurn;
+      done=()=>{if(rivalCompletedV2874)return;rivalCompletedV2874=true;try{if(rivalEligibleV2874&&typeof rivalTurnCompletedV2874==='function')rivalTurnCompletedV2874(turnEnemyV2838,turnOwnerV2838,turnTokenV2874);}finally{rivalDoneV2874();}};
       if (currentEnemy.hp <= 0) {
         checkBattleEnd();
         done(); return;
@@ -7720,7 +7722,8 @@
           addCombatLog('💀 你重伤倒地...');
           playSound('defeat');
           player.hp = 1;
-          const defeatGoldLossV2777 = Math.floor(player.gold * 0.2);
+          const trialDefeatV2874=currentEnemy?._rivalTrialV2874===true;
+          const defeatGoldLossV2777 = trialDefeatV2874?0:Math.floor(player.gold * 0.2);
           player.gold -= defeatGoldLossV2777;
           autoSave();
           try { releaseCurrentMapMonster(false); }
@@ -7728,7 +7731,7 @@
             if (isBossFight) addCombatLog('首领战失败，需要重新挑战...');
             readyCombatFinishV2764({
               kind:'defeat', delay:650, skipReturn:true,
-              afterReturn:() => showStory(`你被击败了，身受重伤回到村庄休养。损失身上灵石的20%（${defeatGoldLossV2777}灵石，不足1灵石部分舍去）。`, [{ text: '继续', action: 'village' }])
+              afterReturn:() => showStory(`你被击败了，身受重伤回到村庄休养。${trialDefeatV2874?'问锋试炼不扣灵石。':`损失身上灵石的20%（${defeatGoldLossV2777}灵石，不足1灵石部分舍去）。`}`, [{ text: '继续', action: 'village' }])
             });
           }
           return;
@@ -9945,11 +9948,11 @@
       const cooldown=Math.max(0,Math.floor(player.warState?.warCooldown||0));
       const inWar=warStatus===WAR_STATUS.BATTLE || warStatus===WAR_STATUS.MOBILIZING;
       let html = `
-        <p>🏛️ <b>${player.sect || '凌霄宗'} · 宗门大殿</b></p>
+        <p>🏛️ <b>${escapeGameText(player.sect || '凌霄宗')} · 宗门大殿</b></p>
         <p>📅 ${getGameDateLabel()}</p>
         <div style="border:1px solid rgba(255,215,0,.3);border-radius:8px;padding:10px;margin-bottom:10px">
           <p>🧑‍🎓 职位：<b style="color:#ffd700">${rankInfo.icon} ${rankInfo.name}</b></p>
-          <p>💠 可用贡献：<b>${player.sectContribution}</b>　📈 累计贡献：<b>${player.sectTotalContribution || 0}</b></p>
+          <p>💠 可用贡献：<b>${player.sectContribution || 0}</b>　📈 累计贡献：<b>${player.sectTotalContribution || 0}</b></p>
           <p>🏯 宗门繁荣度：<b>${player.sectData?.prosperity || 20}</b></p>
           <p style="color:#aaa;font-size:12px">${rankInfo.desc||'积累贡献，参与宗门事务。'}</p>
           <p style="color:#aaa;font-size:12px">${nextReq}</p>
@@ -9959,15 +9962,15 @@
       if(cooldown>0) html+=`<p style="color:#aaa">⏳ 主动战争冷却：${cooldown} 天</p>`;
       if(isImmortalBlessingActive()) {
         const remainYears=Math.max(0,Math.ceil((player._immortalBlessingUntilDay-player.worldTime.totalDays)/GAME_DAYS_PER_YEAR));
-        html+=`<p style="color:#d9e8ff">🌌 ${player._immortalBlessingSource||'仙人宗门'}护界仙阵仍在运转，界外魔气受到明显压制（约剩${remainYears}年）</p>`;
+        html+=`<p style="color:#d9e8ff">🌌 ${escapeGameText(player._immortalBlessingSource||'仙人宗门')}护界仙阵仍在运转，界外魔气受到明显压制（约剩${remainYears}年）</p>`;
       }
       if((player.sect||'凌霄宗')==='凌霄宗') {
         html+=`<p style="color:#c9d8ef">⛩️ 宗内两脉：${getLingxiaoBalanceNarrative()} · 当前${getLingxiaoDominantFaction()}</p>`;
       }
       if(warStatus===WAR_STATUS.VICTORY || warStatus===WAR_STATUS.DEFEAT) html+=`<p style="color:${warStatus===WAR_STATUS.VICTORY?'#69f0ae':'#ff6b6b'}">📯 最近一场主动战争：${warStatus}</p>`;
-      if(player.warState?.lastNotice) html+=`<p style="color:${player.warState.lastNotice.result==='战败'?'#ff8f8f':'#ffd98a'}">${player.warState.lastNotice.text}</p>`;
-      if(player.warState?.alliedSects?.length) html+=`<p style="color:#bde7ff">🤝 当前战争盟友：${player.warState.alliedSects.join('、')}</p>`;
-      if(player.warState?.immortalSupport) html+=`<p style="color:#d9e8ff">✨ 仙人支援：${player.warState.immortalAlly || '仙人宗门'}</p>`;
+      if(player.warState?.lastNotice) html+=`<p style="color:${player.warState.lastNotice.result==='战败'?'#ff8f8f':'#ffd98a'}">${escapeGameText(player.warState.lastNotice.text)}</p>`;
+      if(player.warState?.alliedSects?.length) html+=`<p style="color:#bde7ff">🤝 当前战争盟友：${player.warState.alliedSects.map(name=>escapeGameText(name)).join('、')}</p>`;
+      if(player.warState?.immortalSupport) html+=`<p style="color:#d9e8ff">✨ 仙人支援：${escapeGameText(player.warState.immortalAlly || '仙人宗门')}</p>`;
       const choices = [
         {text: pendingTasks ? `📋 进行中的宗门任务（${pendingTasks}）` : '📜 宗门任务', action:'sect_tasks', story:true},
         {text:'📚 藏经阁（贡献兑换功法）', action:'sect_library', story:true},
@@ -14538,7 +14541,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.52";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.53";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

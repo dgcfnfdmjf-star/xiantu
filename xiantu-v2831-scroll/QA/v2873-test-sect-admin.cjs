@@ -1,0 +1,35 @@
+const fs=require('node:fs'),path=require('node:path'),a=require('node:assert/strict');
+const root=process.env.XIANTU_TEST_ROOT||path.resolve(__dirname,'..'),f=require('./v2858-dom-fixture.cjs')(root),run=s=>f.run(s);
+for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);
+f.c.console.log=()=>{};
+function fresh(){run("resetRuntimeState();player=createDefaultPlayer();gameState='exploring';player.sect='凌霄宗';player.level=4;player.sectTotalContribution=1200;player.sectContribution=2000;player.gold=5000;player.worldTime.totalDays=100;player.sectPromotion={version:1,sect:'凌霄宗',inherited:true,tasksCompleted:5};player.sectData.prosperity=20;discipleRosterV2815().members=[{id:1,name:'青禾',level:3,specialty:0,job:null},{id:2,name:'白羽',level:4,specialty:0,job:null},{id:3,name:'玄霜',level:5,specialty:0,job:null}]");f.timers.clear();f.c.confirm=()=>true;}
+function act(kind,id='',member=null){run('showSectAdminV2873()');return run(`executeSectAdminV2873(${JSON.stringify(kind)},${JSON.stringify(id)},${JSON.stringify(member)},sectAdminViewV2873?.token)`);}
+const day=n=>run(`player.worldTime.totalDays=${n}`),state=()=>run('JSON.stringify(player)');
+fresh();run('showSectAdminV2873()');const before=state();run('showSectAdminV2873()');a.equal(state(),before,'opening is read-only');a.equal(act('claim'),false);a.equal(act('start'),true);a.equal(run('player.sectAdminV2873.quarter.gold'),120);a.equal(run('player.sectAdminV2873.quarter.due'),130);a.equal(act('start'),false);day(129);a.equal(act('claim'),false);day(400);a.equal(act('claim'),true);a.equal(run('player.gold'),5120,'only one season, not offline windfall');a.equal(run('player.sectAdminV2873.quarter.due'),430);a.equal(act('claim'),false);day(100);a.equal(act('art','juling'),false);day(429);a.equal(act('claim'),false);day(430);a.equal(act('claim'),true);
+// New arts/appointments do not modify a locked quarter.
+fresh();a.equal(act('start'),true);a.equal(act('art','wanyao'),true);a.equal(act('art','juling'),true);a.equal(act('appoint','zhishi',1),true);a.equal(run('player.sectAdminV2873.quarter.gold'),120);day(130);a.equal(act('claim'),true);a.equal(run('player.gold'),5120);a.equal(run('player.sectData.prosperity'),21);a.equal(run('player.sectAdminV2873.quarter.gold'),160);a.equal(run('player.sectAdminV2873.quarter.stewardGold'),12);a.equal(act('art','juling'),false);a.equal(run('player.sectTotalContribution'),1200);
+// Default and learned decree windows; exact boundary and cooldown are persistent.
+fresh();a.equal(act('decree','kaicang'),true);a.equal(run('player.gold'),4800);a.equal(run('player.sectData.prosperity'),24);a.equal(act('start'),true);a.equal(run('player.sectAdminV2873.quarter.gold'),106);a.equal(run('player.sectAdminV2873.quarter.prosperity'),2);a.equal(act('decree','qingxiu'),false);day(130);a.equal(act('claim'),true);a.equal(run('player.gold'),4906);a.equal(run('player.sectAdminV2873.quarter.gold'),138,'expired decree not reused');day(159);a.equal(act('decree','qingxiu'),false);day(160);a.equal(act('decree','qingxiu'),true);
+fresh();a.equal(act('art','jiuzhuan'),true);a.equal(act('decree','zhongshang'),true);a.equal(run('player.sectAdminV2873.decree.until'),140);a.equal(run('player.sectAdminV2873.decree.ready'),160);a.equal(act('start'),true);a.equal(run('player.sectAdminV2873.quarter.gold'),180);a.equal(run('player.sectAdminV2873.quarter.prosperity'),0);
+// One post each, missing members and dismissal/reappointment cannot restore a cancelled bonus.
+fresh();a.equal(act('appoint','hufa',1),true);a.equal(act('appoint','zhishi','1'),false);a.equal(act('appoint','zhishi',2),true);a.equal(act('appoint','xianfeng',3),true);a.equal(act('appoint','hufa',999),false);a.equal(act('start'),true);a.equal(run('sectAdminRewardV2873(sectAdminReadV2873()).gold'),132);a.equal(act('dismiss','zhishi'),true);a.equal(act('appoint','zhishi',2),true);a.equal(run('sectAdminRewardV2873(sectAdminReadV2873()).gold'),120);run('discipleRosterV2815().members=discipleRosterV2815().members.filter(d=>d.id!==1)');a.equal(run('sectAdminRewardV2873(sectAdminReadV2873()).prosperity'),1);day(130);a.equal(act('claim'),true);a.equal(run('player.sectContribution'),2002);a.equal(run('player.sectTotalContribution'),1202);
+// Save/load preserves quotes and per-sect scope; legacy masters receive no historical quarter.
+fresh();a.equal(act('start'),true);const q=run('JSON.stringify(player.sectAdminV2873)');run('saveGame();player=normalizePlayer(loadGame().player)');a.equal(run('JSON.stringify(player.sectAdminV2873)'),q);run("player.sect='青云宗';player=normalizePlayer(player)");a.equal(run('player.sectAdminV2873.quarter'),null);a.equal(run('player.sectAdminV2873.arts.length'),0);a.equal(act('claim'),false);
+fresh();day(10000);run('player=normalizePlayer(player)');a.equal(run('player.sectAdminV2873.quarter'),null);
+// Full rollback on every action's storage failure, including a matured payout.
+for(const kind of ['start','claim','art','decree','appoint','dismiss']){
+ fresh();if(kind==='claim'){act('start');day(130);}if(kind==='dismiss')act('appoint','hufa',1);
+ run('showSectAdminV2873()');const before=state();run('globalThis.oldSet=localStorage.setItem;localStorage.setItem=()=>{throw Error("quota")}');
+ const id=kind==='art'?'juling':kind==='decree'?'kaicang':'hufa';
+ a.equal(run(`executeSectAdminV2873('${kind}','${id}',1,sectAdminViewV2873.token)`),false,kind);run('localStorage.setItem=oldSet');a.equal(state(),before,kind+' rollback');
+}
+fresh();run('showSectAdminV2873()');f.c.confirm=()=>false;const cancelled=state();a.equal(act('start'),false);a.equal(state(),cancelled);
+for(const mode of ['combat','combat-ending']){fresh();run('showSectAdminV2873()');run(`gameState='${mode}'`);a.equal(run("executeSectAdminV2873('start','',null,sectAdminViewV2873.token)"),false);}
+fresh();run('showSectAdminV2873();player={...player}');a.equal(run("executeSectAdminV2873('start','',null,sectAdminViewV2873.token)"),false);
+fresh();f.c.confirm=()=>{run('player.level=5');return true};a.equal(act('start'),false,'confirmation recheck');
+fresh();run('player.gold=0;player.sectContribution=0');a.equal(act('decree','kaicang'),false);a.equal(act('art','juling'),false);
+fresh();run('player.sectData.prosperity=150');a.equal(act('decree','kaicang'),true);a.equal(run('player.sectData.prosperity'),150);a.equal(act('start'),true);a.equal(run('player.sectAdminV2873.quarter.gold'),288,'income prosperity caps at100');
+fresh();run("discipleRosterV2815().members[0].name='<img src=x>';showSectAdminV2873()");a(!f.ids.get('storyText').innerHTML.includes('<img src=x>'));a(f.ids.get('storyText').innerHTML.includes('&lt;img src=x&gt;'));
+fresh();run('player.sectPromotion.inherited=false');a.equal(act('start'),false);
+a.equal(f.errors.length,6,'six injected storage failures');a(f.errors.every(e=>e[0]==='保存失败:'),JSON.stringify(f.errors));
+console.log('PASS seasonal lock/one claim, no back pay/clock rollback, arts/decrees/windows, officers/scope, save failure all actions, stale/confirm/combat guards and escaped names');

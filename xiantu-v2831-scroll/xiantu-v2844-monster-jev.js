@@ -183,4 +183,4 @@ function runMonsterTurnV2844(resolve) {
 window.addEventListener('xiantu:combat-finishing',()=>cancelMonsterJevV2844('changed'));
 window.addEventListener('pagehide',()=>{cancelMonsterJevV2844('disabled');});
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2844-monster-jev.js']='28.68.52';
+window.__xiantuBuildFilesV2814['xiantu-v2844-monster-jev.js']='28.68.53';

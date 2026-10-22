@@ -232,8 +232,8 @@ function recordBattleSummaryV2838(enemy,before){
 function showAfterBattleV2838(owner){
  const r=lastBattleV2838;lastBattleV2838=null;if(!r||r.owner!==owner||player!==owner||gameState!=='exploring')return;
  document.getElementById('afterBattleV2838')?.remove();const el=document.createElement('aside');el.id='afterBattleV2838';el.className='after-battle-v2838';el.setAttribute('aria-label','战后简报');const esc=discipleEscV2815;
- el.innerHTML=`<div><strong>战胜 · ${esc(r.name)}</strong><button type="button" data-after="close" aria-label="收起战后简报">×</button></div><p>灵石 +${r.gold}　修为 +${r.exp}<small>含本战触发的任务奖励</small></p><p>气血 ${Math.floor(player.hp)}/${getMaxHp()} · 灵力 ${Math.floor(player.mp)}/${getMaxMp()}</p><div><button type="button" data-after="tasks">继续任务</button><button type="button" data-after="rest">寻找补给</button></div>`;
- el.onclick=e=>{const act=e.target.closest('[data-after]')?.dataset.after;if(!act)return;el.remove();if(player!==owner||gameState!=='exploring'||player.breakthrough?.isAnimating)return;if(act==='tasks')showTaskPanel(r.taskType);if(act==='rest'){showScrollMapV2831();nearestScrollRestV2837();}};document.body.appendChild(el);
+ el.innerHTML=`<div><strong>战胜 · ${esc(r.name)}</strong><button type="button" data-after="close" aria-label="收起战后简报">×</button></div><p>灵石 +${r.gold}　修为 +${r.exp}<small>含本战触发的任务奖励</small></p><p data-after-status>气血 ${Math.floor(player.hp)}/${getMaxHp()} · 灵力 ${Math.floor(player.mp)}/${getMaxMp()}</p><div><button type="button" data-after="recover">服丹调息 · 查看消耗</button><button type="button" data-after="tasks">继续任务</button><button type="button" data-after="rest">寻找补给</button></div>`;
+ el.onclick=e=>{const act=e.target.closest('[data-after]')?.dataset.after;if(!act)return;if(act==='recover'){recoverAfterBattleV2875(owner,el);return;}el.remove();if(player!==owner||gameState!=='exploring'||player.breakthrough?.isAnimating)return;if(act==='tasks')showTaskPanel(r.taskType);if(act==='rest'){showScrollMapV2831();nearestScrollRestV2837();}};document.body.appendChild(el);
 }
 // New-game checkpoint is independent of the rolling autosave backup.
 const PREVIOUS_SAVE_V2838='xiantu_save_previous_character';
@@ -260,7 +260,7 @@ async function exportPreviousV2838(){
  try{await exportRawSaveV2870(localStorage.getItem(PREVIOUS_SAVE_V2838),'xiantu-previous-character.json');}
  catch(e){alert('导出失败：'+e.message);}
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.52';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.53';
 
 // Small non-combat encounters, two per region and character. Persist choice and reward together.
 const ROAMING_KINDS_V286818=['traveler','ruins'];
@@ -751,4 +751,22 @@ function showEpilogueV286838(){
   `<dl class="epilogue-stats-v286838"><dt>道号</dt><dd>${esc(player.name||'无名')}</dd><dt>境界</dt><dd>${esc(getCultivationName())}</dd><dt>仙历</dt><dd>${esc(getGameDateLabel())}</dd><dt>主线</dt><dd>${mains} / ${MAIN_TASKS.length} 章</dd><dt>成就</dt><dd>${achieved} / ${allAch}</dd></dl>`+
   '<p>《仙途》主线到此完结，感谢一路同行。之后仍可继续修炼、游历、参加宗门大比，或在「拾遗」中回看番外。</p>';
  expansionModalV286827('终章 · 道途圆满',body,[['continue','继续自由修炼'],['expansion','查看拾遗与番外']],k=>{if(k==='continue'){document.getElementById('expansionV286827')?.remove();expansionSessionV286827=null;}else if(k==='expansion')showExpansionV286827();});
+}
+
+function recoveryPlanV2875(){
+ const bag=getCombatConsumables().filter(i=>Number.isFinite(i.value)&&i.value>0),used={},target={hp:player.hp,mp:player.mp};
+ for(const [type,key,max] of [['heal','hp',getMaxHp()],['mp','mp',getMaxMp()]]){
+  let need=Math.max(0,max-target[key]);const list=bag.filter(i=>i.type===type).map(i=>({...i}));
+  while(need>0){const available=list.filter(i=>i.count>0).sort((a,b)=>a.value-b.value),pill=available.find(i=>i.value>=need)||available.at(-1);if(!pill)break;const count=Math.min(pill.count,Math.ceil(need/pill.value));pill.count-=count;used[pill.name]=(used[pill.name]||0)+count;const gain=Math.min(need,pill.value*count);target[key]+=gain;need-=gain;}
+ }
+ return {used,...target};
+}
+function recoverAfterBattleV2875(owner,el){
+ const valid=()=>player===owner&&gameState==='exploring'&&!player.breakthrough?.isAnimating&&document.getElementById('afterBattleV2838')===el;
+ if(!valid())return false;const plan=recoveryPlanV2875();if(!Object.keys(plan.used).length){showFloatingText('无需恢复或没有可用恢复丹药，可选择寻找补给','#ffd76a');return false;}
+ const before=JSON.stringify(player),stats=[getMaxHp(),getMaxMp()].join(',');
+ if(!confirm(`消耗${Object.entries(plan.used).map(([k,v])=>k+'×'+v).join('、')}，气血恢复至${plan.hp}/${getMaxHp()}，灵力恢复至${plan.mp}/${getMaxMp()}？库存不足时仅部分恢复。`)||!valid()||before!==JSON.stringify(player)||stats!==[getMaxHp(),getMaxMp()].join(','))return false;
+ const left={...plan.used};player.inventory=player.inventory.filter(n=>{if(left[n]>0){left[n]--;return false;}return true;});player.hp=plan.hp;player.mp=plan.mp;
+ try{if(!saveGame())throw Error('save failed');}catch(_){for(const k of Object.keys(owner))delete owner[k];Object.assign(owner,JSON.parse(before));if(owner.activePet?._petId)owner.activePet=owner.pets.find(p=>p._petId===owner.activePet._petId)||null;showFloatingText('保存失败，丹药与状态已恢复','#ff8a80');return false;}
+ updateStats();updateWorldHUD();playSound('item');el.querySelector('[data-after-status]').textContent=`气血 ${Math.floor(player.hp)}/${getMaxHp()} · 灵力 ${Math.floor(player.mp)}/${getMaxMp()}`;showFloatingText('已服丹调息','#69f0ae');return true;
 }

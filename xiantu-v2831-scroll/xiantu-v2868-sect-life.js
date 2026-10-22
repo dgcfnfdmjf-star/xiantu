@@ -56,14 +56,17 @@ let sectQuickContextV2870=null,sectQuickSerialV2870=0;
 function sectQuickHtmlV2870(){
  const token=++sectQuickSerialV2870;sectQuickContextV2870={token,owner:player,sect:player.sect};
  const t=sectTodoReadV2868(),trip=tripYieldV286821().units>0,count=t.jobs.length+t.thanks.length+Number(trip);
- return `${count?`<button class="choice-btn" onclick="claimAllSectTodoV2870(${token})">一键领取成果与答谢 · ${count}项${trip?'（含游历，领取后结束本趟）':''}</button>`:''}${t.trails.length?`<button class="choice-btn" onclick="startAllSectTrailsV2870(${token})">派遣古洞寻踪 · ${t.trails.length}人（需确认）</button>`:''}`;
+ return `${t.trails.length?`<button class="choice-btn" id="sectDispatchV2875" onclick="claimAllSectTodoV2870(${token},true)">领取并派遣已就绪寻踪（需确认）</button>`:''}${count?`<button class="choice-btn" onclick="claimAllSectTodoV2870(${token})">一键领取成果与答谢 · ${count}项${trip?'（含游历，领取后结束本趟）':''}</button>`:''}${t.trails.length?`<button class="choice-btn" onclick="startAllSectTrailsV2870(${token})">派遣古洞寻踪 · ${t.trails.length}人（需确认）</button>`:''}`;
 }
 function sectQuickValidV2870(token){return token==null||(sectQuickContextV2870?.token===token&&sectQuickContextV2870.owner===player&&sectQuickContextV2870.sect===player.sect&&!document.getElementById('storyPanel')?.classList.contains('hidden'));}
-function claimAllSectTodoV2870(token){
+function claimAllSectTodoV2870(token,dispatch=false){
+ if(dispatch&&(token==null||!document.getElementById('sectDispatchV2875')))return false;
  if(!sectQuickValidV2870(token))return false;
  if(!sectCanManageV2866())return false;
  const t=sectTodoReadV2868(),trip=tripYieldV286821().units>0;
- if(!t.jobs.length&&!t.thanks.length&&!trip)return false;
+ const trails=dispatch?t.trails:[];
+ if(!t.jobs.length&&!t.thanks.length&&!trip&&!trails.length)return false;
+ if(dispatch){const owner=player,before=JSON.stringify(player);if(!confirm(`领取${t.jobs.length}项成果、${t.thanks.length}份答谢${trip?'及游历收获（结束本趟）':''}，并派出${trails.length}名当前已就绪弟子寻踪4日？来信、委托和晋升仍需手动处理。`)||player!==owner||!sectQuickValidV2870(token)||!sectCanManageV2866()||before!==JSON.stringify(player))return false;}
  let jobs=0,thanks=0,claimedTrip=false;
  const ok=commitMiniWeaveV286840(()=>{
   if(t.jobs.length&&discipleAllowedV2815())jobs=settleDisciplesV2821(undefined,true)||0;
@@ -72,10 +75,11 @@ function claimAllSectTodoV2870(token){
    life.thanks.state='done';d.lifeV2868=life;lifeAddV2868(d,'thanks');player.inventory.push('小还丹','小还丹');player.materials['灵草']=(player.materials['灵草']||0)+3;onCollectMaterial?.('灵草',3);thanks++;
   }
   if(trip){claimedTrip=claimTripV286821(true);if(!claimedTrip)throw Error('trip changed');}
+  for(const d of sectMembersReadV2868().filter(d=>trails.includes(d.id))){const life=lifeReadV2868(d);if(d.job||warDiscipleBusyV286841(d.id)||life.trail?.state!=='ready')throw Error('trail changed');life.trail.state='running';d.lifeV2868=life;lifeAddV2868(d,'trail');d.job={type:'mission',name:'古洞寻踪',end:discipleDayV2815()+4,gold:240,material:'妖丹',count:2,followupV2868:true};}
  });
  if(!ok)return false;
  updateStats();syncSectTodoV2868();showSectTodoV2868();
- if(ok)showFloatingText(`已领取：弟子成果${jobs}项、同门答谢${thanks}份${claimedTrip?'、游历收获':''}`,'#69f0ae');
+ if(ok)showFloatingText(`已领取：弟子成果${jobs}项、同门答谢${thanks}份${claimedTrip?'、游历收获':''}${trails.length?'；已派遣寻踪'+trails.length+'人':''}`,'#69f0ae');
  return ok;
 }
 function startAllSectTrailsV2870(token){
@@ -92,7 +96,7 @@ function startAllSectTrailsV2870(token){
 }
 function drawSectTodoV2868(ctx,o){if(!sectTodoCacheV2868.total||!player?.sect)return;const own=(o.action==='faction_gate_v2806'&&o.factionName===player.sect)||(player.sect==='凌霄宗'&&(o.action==='sect'||o.buildingId==='main_hall'));if(!own)return;ctx.save();ctx.fillStyle='#263d31';ctx.fillRect(-42,-o.r-22,84,22);ctx.fillStyle='#f1d89b';ctx.font='12px Microsoft YaHei';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(`待办 ${sectTodoCacheV2868.total}`,0,-o.r-11);ctx.restore();}
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.52';
+window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.53';
 
 
 // V28.68.40: saved random encounters and run-scoped blessings.
@@ -112,7 +116,7 @@ const MINI_EVENTS_V286840=[
 ];
 function createMiniWeaveV286840(){
  const shuffled=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
- return {rewardRealmV2870:Math.max(0,Math.min(16,Math.floor(Number(player.level)||0))),events:shuffled([0,1,2,3]).slice(0,2),offers:[shuffled([0,1,2,3,4,5]).slice(0,3),shuffled([0,1,2,3,4,5]).slice(0,3)],boons:[],pending:false,treasureV2871:Math.floor(Math.random()*4)};
+ return {rewardRealmV2870:Math.max(0,Math.min(16,Math.floor(Number(player.level)||0))),events:shuffled([0,1,2,3]).slice(0,2),offers:[shuffled([0,1,2,3,4,5]).slice(0,3),shuffled([0,1,2,3,4,5]).slice(0,3)],boons:[],pending:false,treasureV2871:Math.floor(Math.random()*4),rerolledV2875:false};
 }
 function miniWeaveV286840(c){
  const w=c?.weaveV286840;
@@ -136,8 +140,9 @@ function commitMiniWeaveV286840(change){
 function showMiniWeaveV286840(c){
  const w=miniWeaveV286840(c);if(!w||(!w.pending&&c.step>=2))return false;
  const floor=w.pending?c.step-1:c.step;if(floor<0||floor>1)return false;
- let html=`<section class="sect-board-v2866 loop-board-v286840"><h3>万象迷阵 · 第${floor+1}/3层</h3>${miniWeaveTextV286840(c)}<p>随机事件与备选祝福已经保存；刷新不会重抽。可暂离补给。</p>`;
- if(w.pending){html+='<h4>残阵赠礼 · 三选一</h4>';html+=w.offers[floor].map(i=>`<article><h4>${MINI_BOONS_V286840[i].name}</h4><p>${MINI_BOONS_V286840[i].desc}</p><button class="choice-btn" onclick="chooseMiniBoonV286840(${c.id},${floor},${i})">选择此祝福</button></article>`).join('');}
+ miniRerollViewV2875={owner:player,c,w,floor};
+ let html=`<section class="sect-board-v2866 loop-board-v286840"><h3>万象迷阵 · 第${floor+1}/3层</h3><p>气血 ${Math.floor(player.hp)}/${getMaxHp()} · 灵力 ${Math.floor(player.mp)}/${getMaxMp()}</p><p>尚未入袋：灵草×${c.herbs||0} · 仙果×${c.fruit||0} · 悟道修为${c.insight||0}</p>${miniWeaveTextV286840(c)}<p>随机事件与备选祝福已经保存；刷新不会重抽。可暂离补给。</p>`;
+ if(w.pending){html+=`<h4>残阵赠礼 · 三选一</h4>${w.rerolledV2875===true?'<p>本局已使用重铸</p>':`<button class="choice-btn" id="miniRerollV2875" onclick="rerollMiniBoonV2875(${c.id},${floor})">重铸为另外三种祝福（每局免费一次）</button>`}`;html+=w.offers[floor].map(i=>`<article><h4>${MINI_BOONS_V286840[i].name}</h4><p>${MINI_BOONS_V286840[i].desc}</p><button class="choice-btn" onclick="chooseMiniBoonV286840(${c.id},${floor},${i})">选择此祝福</button></article>`).join('');}
  else{const event=MINI_EVENTS_V286840[w.events[floor]];html+=`<h4>${event.name}</h4><p>${event.text}</p>`+event.options.map((o,i)=>`<button class="choice-btn" onclick="chooseMiniEventV286840(${c.id},${floor},${i})">${o[1]==='insight'?o[0].replace(/\+\d+/,'+'+Math.floor(o[2]*miniRewardV2870(c,'leave').scale)):o[0]}</button>`).join('');}
  html+='</section>';showStory(html,[{text:'提前撤离 · 带回已获材料与悟道',action:'mini_choice_v2778',pick:'leave',step:c.step,runId:c.id},{text:'暂离 · 返回宗门',action:'sect_hall'}]);return true;
 }
@@ -202,7 +207,7 @@ function showSectMasterV2872(){
  if(!sectMasterAllowedV2872())return;
  const repair=sectMasterPlanV2872('repair'),lesson=sectMasterPlanV2872('lesson'),r=SECT_MASTER_COUNCIL_V2872,token=++sectMasterViewSerialV2872;
  sectMasterViewV2872={token,owner:player,sect:player.sect};
- showStory(`<section class="sect-board-v2866"><h3 id="sectMasterTitleV2872">${discipleEscV2815(player.sect)} · 宗主议事</h3><p>可用贡献 ${player.sectContribution||0} · 灵石 ${player.gold} · 繁荣度 ${player.sectData?.prosperity||20}</p><p>两项议事共用${r.cooldown}个游戏日冷却，每次选择一项。${repair.wait?`还需${repair.wait}个游戏日。`:'本次可以议事。'}消费不会降低累计贡献或职位。</p><article><h4>整饬山门</h4><p>支出${repair.contribution}贡献、${repair.gold}灵石；繁荣度+${repair.gain}（本项提升至多${r.prosperityCap}，更高繁荣度保留）。繁荣度参与原有入侵概率与仙门求援判定。</p><button class="choice-btn" onclick="executeSectMasterV2872('repair',${token})" ${repair.ok?'':'disabled'}>整饬山门 · 确认费用</button></article><article><h4>亲授门人</h4><p>每名${r.lessonContribution}贡献，本次${lesson.members.length}名，共${lesson.contribution}贡献；空闲且未满级弟子等级+1（最高10），忠诚+2。正在派遣或随军者不参与。</p><p>${lesson.members.map(d=>`${discipleEscV2815(d.name)} Lv.${d.level}→${d.level+1}`).join('、')||'暂无符合条件的弟子'}</p><button class="choice-btn" onclick="executeSectMasterV2872('lesson',${token})" ${lesson.ok?'':'disabled'}>亲授门人 · 确认名单</button></article></section>`,[{text:'返回宗门',action:'sect_hall'}]);
+ showStory(`<section class="sect-board-v2866"><button class="choice-btn" onclick="showSectAdminV2873()">季度岁入 · 敕令 · 绝学 · 官职</button><h3 id="sectMasterTitleV2872">${discipleEscV2815(player.sect)} · 宗主议事</h3><p>可用贡献 ${player.sectContribution||0} · 灵石 ${player.gold} · 繁荣度 ${player.sectData?.prosperity||20}</p><p>两项议事共用${r.cooldown}个游戏日冷却，每次选择一项。${repair.wait?`还需${repair.wait}个游戏日。`:'本次可以议事。'}消费不会降低累计贡献或职位。</p><article><h4>整饬山门</h4><p>支出${repair.contribution}贡献、${repair.gold}灵石；繁荣度+${repair.gain}（本项提升至多${r.prosperityCap}，更高繁荣度保留）。繁荣度参与原有入侵概率与仙门求援判定。</p><button class="choice-btn" onclick="executeSectMasterV2872('repair',${token})" ${repair.ok?'':'disabled'}>整饬山门 · 确认费用</button></article><article><h4>亲授门人</h4><p>每名${r.lessonContribution}贡献，本次${lesson.members.length}名，共${lesson.contribution}贡献；空闲且未满级弟子等级+1（最高10），忠诚+2。正在派遣或随军者不参与。</p><p>${lesson.members.map(d=>`${discipleEscV2815(d.name)} Lv.${d.level}→${d.level+1}`).join('、')||'暂无符合条件的弟子'}</p><button class="choice-btn" onclick="executeSectMasterV2872('lesson',${token})" ${lesson.ok?'':'disabled'}>亲授门人 · 确认名单</button></article></section>`,[{text:'返回宗门',action:'sect_hall'}]);
 }
 function executeSectMasterV2872(kind,token){
  const view=sectMasterViewV2872;if(!view||view.token!==token||view.owner!==player||view.sect!==player.sect||!document.getElementById('sectMasterTitleV2872')||document.getElementById('storyPanel')?.classList.contains('hidden'))return false;
@@ -218,4 +223,103 @@ function executeSectMasterV2872(kind,token){
   player.sectMasterV2872=state;
  });
  if(ok){updateStats();showSectMasterV2872();}return ok;
+}
+
+// Seasonal administration: explicit claims, immutable quarter quotes, no back pay.
+const SECT_ADMIN_V2873={
+ arts:[{id:'juling',name:'周天聚灵大阵',cost:300,desc:'下一季起繁荣度额外+2'},
+ {id:'wanyao',name:'万药归宗诀',cost:400,desc:'下一季起基础岁入+30%'},
+ {id:'jiuzhuan',name:'九转敕令诀',cost:500,desc:'此后新敕令持续40日，结束后冷却20日'}],
+ decrees:[{id:'kaicang',name:'开仓赈济令',gold:200,contribution:0,income:.8,prosperity:1,gain:4},
+ {id:'zhongshang',name:'重商兴市令',gold:0,contribution:0,income:1.5,prosperity:-1,gain:0},
+ {id:'qingxiu',name:'封山清修令',gold:0,contribution:50,income:.6,prosperity:2,gain:0}],
+ posts:[{id:'hufa',name:'护法',desc:'下一季繁荣度+1'},
+ {id:'zhishi',name:'执事',desc:'下一季基础岁入+10%'},
+ {id:'xianfeng',name:'先锋',desc:'下一季可用及累计贡献+2（行政职务，不增加战役战力）'}]
+};
+function normalizeSectAdminV2873(raw,sect){
+ const n=(v,max=1e9)=>Number.isFinite(Number(v))?Math.min(max,Math.max(0,Math.floor(Number(v)))):0;
+ const r=raw&&raw.sect===sect?raw:{},ids=['hufa','zhishi','xianfeng'],seen=new Set(),officers={};
+ for(const id of ids){const v=r.officers?.[id],valid=(Number.isSafeInteger(v)&&v>=0)||(typeof v==='string'&&/^[\p{L}\p{N}_.:-]{1,40}$/u.test(v));officers[id]=valid&&!seen.has(String(v))?v:null;if(officers[id]!==null)seen.add(String(v));}
+ const arts=[...new Set((Array.isArray(r.arts)?r.arts:[]).filter(id=>['juling','wanyao','jiuzhuan'].includes(id)))];
+ const d=r.decree||{},decree={id:['kaicang','zhongshang','qingxiu'].includes(d.id)?d.id:null,until:n(d.until),ready:n(d.ready)};
+ const q=r.quarter,quarter=q&&Number.isFinite(q.due)&&q.due>=0?{due:n(q.due),gold:n(q.gold,100000),prosperity:n(q.prosperity,10),officers:{...officers},stewardGold:n(q.stewardGold,10000)}:null;
+ // A quote records the original appointees; later appointments cannot earn past bonuses.
+ if(quarter)for(const id of ids){const v=q.officers?.[id];quarter.officers[id]=(typeof v==='string'&&/^[\p{L}\p{N}_.:-]{1,40}$/u.test(v))||(Number.isSafeInteger(v)&&v>=0)?v:null;}
+ return {version:1,sect,arts,officers,decree,quarter,highDay:n(r.highDay),claims:n(r.claims)};
+}
+function sectAdminReadV2873(){return normalizeSectAdminV2873(player.sectAdminV2873,player.sect);}
+function sectAdminQuoteV2873(s){
+ const day=discipleDayV2815(),pros=Math.max(10,Math.min(100,Number(player.sectData?.prosperity)||20)),level=Math.max(0,Math.min(16,Number(player.level)||0));
+ const base=(pros+20)*(1+level*.5),due=day+30,dec=SECT_ADMIN_V2873.decrees.find(d=>d.id===s.decree.id&&s.decree.until>=due);
+ const officers={};for(const p of SECT_ADMIN_V2873.posts)officers[p.id]=sectMembersReadV2868().some(d=>String(d.id)===String(s.officers[p.id]))?s.officers[p.id]:null;
+ return {due,gold:Math.round(base*(1+(s.arts.includes('wanyao')?.3:0))*(dec?.income||1)),prosperity:1+(s.arts.includes('juling')?2:0)+(dec?.prosperity||0),officers,stewardGold:Math.round(base*.1*(dec?.income||1))};
+}
+function sectAdminRewardV2873(s){
+ const q=s.quarter;if(!q)return null;
+ const owns=id=>q.officers[id]!==null&&s.officers[id]===q.officers[id]&&sectMembersReadV2868().some(d=>String(d.id)===String(q.officers[id]));
+ return {gold:q.gold+(owns('zhishi')?q.stewardGold:0),prosperity:q.prosperity+(owns('hufa')?1:0),contribution:owns('xianfeng')?2:0};
+}
+let sectAdminViewV2873=null,sectAdminSerialV2873=0;
+function sectAdminPlanV2873(kind,id,member){
+ if(!sectMasterAllowedV2872())return null;
+ const state=sectAdminReadV2873(),day=discipleDayV2815();if(day<state.highDay)return null;
+ let gold=0,contribution=0,label='',def;
+ if(kind==='start'){if(state.quarter)return null;const preview=sectAdminRewardV2873({...state,quarter:sectAdminQuoteV2873(state)});label=`开启首季账册：30游戏日后可领取${preview.gold}灵石、繁荣度+${preview.prosperity}（上限100）、贡献+${preview.contribution}，无历史补发`;}
+ else if(kind==='claim'){if(!state.quarter||day<state.quarter.due)return null;const r=sectAdminRewardV2873(state);label=`领取本季：${r.gold}灵石、繁荣度+${r.prosperity}（上限100）、贡献+${r.contribution}；并按当前配置开启下一季`;}
+ else if(kind==='art'){def=SECT_ADMIN_V2873.arts.find(a=>a.id===id);if(!def||state.arts.includes(id))return null;contribution=def.cost;label=`修习${def.name}，支出${contribution}贡献；已开季收益不变`;}
+ else if(kind==='decree'){def=SECT_ADMIN_V2873.decrees.find(a=>a.id===id);if(!def||day<state.decree.ready)return null;gold=def.gold;contribution=def.contribution;label=`颁布${def.name}，支出${gold}灵石、${contribution}贡献；立刻繁荣度+${def.gain}（上限100），已开季收益不变`;}
+ else if(kind==='appoint'){def=SECT_ADMIN_V2873.posts.find(a=>a.id===id);const target=sectMembersReadV2868().find(d=>String(d.id)===String(member));if(!def||!target||state.officers[id]===target.id||Object.values(state.officers).some(v=>v!==null&&String(v)===String(target.id)))return null;member=target.id;label=`任命${target.name}为${def.name}，下一季生效；不改变派遣或军职`;}
+ else if(kind==='dismiss'){def=SECT_ADMIN_V2873.posts.find(a=>a.id===id);if(!def||state.officers[id]===null)return null;label=`卸任${def.name}，本季该官职加成失效`;}
+ else return null;
+ if(player.gold<gold||(player.sectContribution||0)<contribution)return null;
+ return {state,day,gold,contribution,label,def,member};
+}
+function executeSectAdminV2873(kind,id,member,token){
+ const view=sectAdminViewV2873,valid=()=>view&&view===sectAdminViewV2873&&token===view.token&&player===view.owner&&player.sect===view.sect&&!!document.getElementById('sectAdminTitleV2873')&&!document.getElementById('storyPanel')?.classList.contains('hidden')&&sectMasterAllowedV2872();
+ if(!valid())return false;const p=sectAdminPlanV2873(kind,id,member);if(!p)return false;
+ const snapshot=()=>JSON.stringify([player.sectAdminV2873,player.sectPromotion,player.level,player.gold,player.sectContribution,player.sectTotalContribution,player.sectData?.prosperity,discipleDayV2815(),sectMembersReadV2868()]),before=snapshot();
+ if(!confirm(p.label+'？')||!valid()||before!==snapshot()||!sectAdminPlanV2873(kind,id,member))return false;
+ const ok=commitMiniWeaveV286840(()=>{
+  const s=p.state;s.highDay=Math.max(s.highDay,p.day);player.gold-=p.gold;player.sectContribution-=p.contribution;
+  const addPros=g=>{const old=Number(player.sectData.prosperity)||20;player.sectData.prosperity=Math.max(old,Math.min(100,old+g));};
+  if(kind==='claim'){const r=sectAdminRewardV2873(s);player.gold+=r.gold;addPros(r.prosperity);grantSectContributionV2768(r.contribution);s.claims++;}
+  if(kind==='art')s.arts.push(id);
+  if(kind==='decree'){addPros(p.def.gain);s.decree={id,until:p.day+(s.arts.includes('jiuzhuan')?40:30),ready:p.day+60};}
+  if(kind==='appoint'||kind==='dismiss'){
+   // Dismissal/replacement permanently cancels this quarter's original post bonus.
+   if(s.quarter)s.quarter.officers[id]=null;
+   s.officers[id]=kind==='appoint'?p.member:null;
+  }
+  if(kind==='start'||kind==='claim')s.quarter=sectAdminQuoteV2873(s);
+  player.sectAdminV2873=s;
+ });
+ if(ok){updateStats();showSectAdminV2873();}return ok;
+}
+function showSectAdminV2873(){
+ if(!sectMasterAllowedV2872())return;
+ const s=sectAdminReadV2873(),day=discipleDayV2815(),token=++sectAdminSerialV2873,esc=escapeGameText;
+ sectAdminViewV2873={token,owner:player,sect:player.sect};
+ const button=(kind,id,member,text)=>{const js=`executeSectAdminV2873(${JSON.stringify(kind)},${JSON.stringify(id)},${JSON.stringify(member)},${token})`;return `<button class="choice-btn" onclick="${esc(js)}" ${sectAdminPlanV2873(kind,id,member)?'':'disabled'}>${esc(text)}</button>`;};
+ let html=`<section class="sect-board-v2866"><h3 id="sectAdminTitleV2873">${esc(player.sect)} · 宗主经营</h3><p>灵石 ${player.gold} · 可用贡献 ${player.sectContribution||0}</p><p>每季30游戏日，开季锁定收益；到期手动领取，逾期不累计多季。领取后从当日开启下一季。新绝学、敕令与任命只影响此后开季；卸任或离宗会失去本季该官职加成。</p><p>基础岁入＝（开季繁荣度＋20）×（1＋境界序号×0.5），繁荣度按10～100计算；绝学、官职与敕令按下列规则加成。</p>`;
+ if(day<s.highDay)html+=`<p>当前日期早于经营记录，请等待至第${s.highDay}游戏日再操作。</p>`;
+ if(s.quarter){const r=sectAdminRewardV2873(s);html+=`<h4>季度账册</h4><p>还需${Math.max(0,s.quarter.due-day)}日 · 本季${r.gold}灵石、繁荣度+${r.prosperity}（提升上限100，已有更高值保留）、贡献+${r.contribution}</p>`+button('claim','',null,'领取岁入并开启下一季');}
+ else html+='<h4>季度账册</h4>'+button('start','',null,'开启首季账册');
+ html+='<h4>敕令</h4><p>每次颁布后60日才可再次颁布；默认持续30日，九转绝学延长为40日。只有在新季度到期日仍有效的敕令计入该季。</p>';
+ if(s.decree.id)html+=`<p>${esc(SECT_ADMIN_V2873.decrees.find(d=>d.id===s.decree.id).name)}：有效期剩${Math.max(0,s.decree.until-day)}日，再颁剩${Math.max(0,s.decree.ready-day)}日。</p>`;
+ for(const d of SECT_ADMIN_V2873.decrees)html+=`<article><p>${d.name}：${d.gold}灵石、${d.contribution}贡献；即时繁荣+${d.gain}；符合有效期的新季度岁入×${d.income}，繁荣${d.prosperity>=0?'+':''}${d.prosperity}。</p>${button('decree',d.id,null,'颁布 · '+d.name)}</article>`;
+ html+='<h4>镇派绝学</h4><p>宗门经营传承，不是角色战斗技能；消费不降低累计贡献。</p>';
+ for(const a of SECT_ADMIN_V2873.arts)html+=`<p>${a.name} · ${a.desc} · ${a.cost}贡献</p>`+(s.arts.includes(a.id)?'<p>已修成</p>':button('art',a.id,null,'修习 · '+a.name));
+ html+='<h4>官职任命</h4><p>一人一职，行政职务可与派遣、随军并存，不修改原任务和军队快照。</p>';
+ for(const p of SECT_ADMIN_V2873.posts){const current=sectMembersReadV2868().find(d=>s.officers[p.id]!==null&&String(d.id)===String(s.officers[p.id]));html+=`<details><summary>${p.name}：${current?esc(current.name):'空缺'} · ${p.desc}</summary>`+button('dismiss',p.id,null,'卸任'+p.name);for(const d of sectMembersReadV2868())html+=button('appoint',p.id,d.id,'任命'+d.name);html+='</details>';}
+ html+='<button class="choice-btn" onclick="showSectMasterV2872()">返回整饬与授业</button></section>';showStory(html,[{text:'返回宗门大殿',action:'sect_hall'}]);
+}
+
+let miniRerollViewV2875=null;
+function rerollMiniBoonV2875(runId,floor){
+ if(!sectCanManageV2866())return false;const c=miniRunV2778(),w=miniWeaveV286840(c);
+ if(miniRerollViewV2875?.owner!==player||miniRerollViewV2875.c!==c||miniRerollViewV2875.w!==w||!document.getElementById('miniRerollV2875')||document.getElementById('storyPanel')?.classList.contains('hidden')||!w||c.id!==runId||!w.pending||floor!==c.step-1||!Number.isInteger(floor)||floor<0||floor>1||w.rerolledV2875===true)return false;
+ const next=MINI_BOONS_V286840.map((_,i)=>i).filter(i=>!w.offers[floor].includes(i));
+ if(next.length!==3)return false;
+ const ok=commitMiniWeaveV286840(()=>{w.offers[floor]=next;w.rerolledV2875=true;});showMiniRealmV2778();return ok;
 }

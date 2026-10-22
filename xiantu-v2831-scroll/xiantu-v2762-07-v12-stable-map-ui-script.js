@@ -56,4 +56,4 @@
   if(document.body.classList.contains('flat-world-active'))requestAnimationFrame(install);
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-07-v12-stable-map-ui-script.js"]="28.68.52";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-07-v12-stable-map-ui-script.js"]="28.68.53";

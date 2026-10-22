@@ -66,7 +66,7 @@ function companionIdV2849(){const id=player?.companionV2849;return typeof id==='
 function showCompanionV2849(){
   if(gameState==='combat'||gameState==='combat-ending'){showFloatingText?.('请结束战斗后调整随行同伴','#ffd76a');return;}
   const id=player.romance?.partner,valid=!!ROMANCE_NPCS[id],selected=companionIdV2849();
-  showStory(`<h3>同伴随行</h3><p>${selected?ROMANCE_NPCS[selected].name+'正在随行':'当前没有随行同伴'}</p><p>已结为道侣的人物可随行。普通战斗中每个敌方回合前支援一次；独立灵力60，行动消耗灵力并受冷却限制。新手演武、天劫、宗门大比不出手。</p><p>回生：18灵力，恢复你12%最大气血，间隔3回合。护卫：12灵力，下次敌方直接命中减伤20%，间隔2回合。集火：16灵力，按你35%攻击减去敌方防御结算，间隔2回合。吐纳：恢复12灵力。</p>${valid?`<button class="choice-btn" onclick="setCompanionV2849(true)">邀请 ${ROMANCE_NPCS[id].name} 随行</button>`:'<p>尚未结缘，可在姻缘亭推进人物故事。</p>'}<button class="choice-btn" onclick="setCompanionV2849(false)">独自出行</button><label><input type="checkbox" ${NPC_JEV_V2849.allyCloud?'checked':''} onchange="setCompanionCloudV2849(this.checked)">同伴使用 Jev 判断（未解锁或超时使用本地策略）</label><p>试玩版默认开启 Jev 支援；连接失败用本地策略，不会使用你的背包丹药。Jev 不设次数上限，沿用防重复请求间隔。</p>`,[{text:'前往姻缘亭',action:'romance'},{text:'返回地图',action:'return_to_map'}]);
+  showStory(`<h3>同伴随行</h3><p>每日首次实际出手并获胜，好感+1（沿用剧情上限，切换道侣不重复领取）。</p><p>${selected?ROMANCE_NPCS[selected].name+'正在随行':'当前没有随行同伴'}</p><p>已结为道侣的人物可随行。普通战斗中每个敌方回合前支援一次；独立灵力60，行动消耗灵力并受冷却限制。新手演武、天劫、宗门大比不出手。</p><p>回生：18灵力，恢复你12%最大气血，间隔3回合。护卫：12灵力，下次敌方直接命中减伤20%，间隔2回合。集火：16灵力，按你35%攻击减去敌方防御结算，间隔2回合。吐纳：恢复12灵力。</p>${valid?`<button class="choice-btn" onclick="setCompanionV2849(true)">邀请 ${ROMANCE_NPCS[id].name} 随行</button>`:'<p>尚未结缘，可在姻缘亭推进人物故事。</p>'}<button class="choice-btn" onclick="setCompanionV2849(false)">独自出行</button><label><input type="checkbox" ${NPC_JEV_V2849.allyCloud?'checked':''} onchange="setCompanionCloudV2849(this.checked)">同伴使用 Jev 判断（未解锁或超时使用本地策略）</label><p>试玩版默认开启 Jev 支援；连接失败用本地策略，不会使用你的背包丹药。Jev 不设次数上限，沿用防重复请求间隔。</p>`,[{text:'前往姻缘亭',action:'romance'},{text:'返回地图',action:'return_to_map'}]);
 }
 function setCompanionV2849(on){if(!jevCanActV2846())return;const id=player.romance?.partner;if(on&&!ROMANCE_NPCS[id])return;player.companionV2849=on?id:null;autoSave();showCompanionV2849();}
 function setCompanionCloudV2849(on){NPC_JEV_V2849.allyCloud=!!on;try{localStorage.setItem('xiantu_jev_ally_v2849',on?'1':'0');}catch(_){}}
@@ -74,7 +74,7 @@ function initNpcBattleV2849(){
   NPC_JEV_V2849.allies.delete(currentEnemy);NPC_JEV_V2849.rivalRecorded.delete(currentEnemy);
   const id=companionIdV2849();
   if(id&&!isTribulation&&!currentEnemy._isTutorial&&!currentEnemy.tournamentFight)NPC_JEV_V2849.allies.set(currentEnemy,{id,owner:player,token:COMBAT_FINISH_V2764.token,mp:60,turn:0,cooldowns:{},guard:false,locked:false,status:'等待支援'});
-  if(currentEnemy._nightRivalV2810){const h=rivalHistoryV2849();h.duels++;player.rivalHistoryV2849=h;autoSave();}
+  if(currentEnemy._nightRivalV2810){initRivalTrialV2874(currentEnemy);const h=rivalHistoryV2849();h.duels++;player.rivalHistoryV2849=h;autoSave();}
 }
 function companionBattleV2849(){const s=currentEnemy&&NPC_JEV_V2849.allies.get(currentEnemy);return s&&s.owner===player&&s.token===COMBAT_FINISH_V2764.token&&s.id===companionIdV2849()?s:null;}
 const ALLY_ACTIONS_V2849=[{a:0,name:'吐纳',cost:0,cooldown:0},{a:1,name:'回生',cost:18,cooldown:3},{a:2,name:'护卫',cost:12,cooldown:2},{a:3,name:'集火',cost:16,cooldown:2}];
@@ -97,7 +97,7 @@ async function runCompanionTurnV2849(next){
     if(!fresh())return next();
     if(!NPC_JEV_V2849.allyCloud)answer={choice:'o'+options.indexOf(chosen),source:'local'};
     const action=options[Number(answer.choice.slice(1))];if(!action||!companionActionsV2849(s).includes(action))return next();
-    s.mp-=action.cost;s.cooldowns[action.a]=s.turn+action.cooldown;
+    s.actionsV2875=(s.actionsV2875||0)+1;s.mp-=action.cost;s.cooldowns[action.a]=s.turn+action.cooldown;
     const name=ROMANCE_NPCS[s.id].name;s.status=(answer.source==='jev'?'天机推演':'本地策略')+' · '+action.name;
     if(action.a===0){s.mp=Math.min(60,s.mp+12);addCombatLog(`${name}吐纳回气，灵力 ${s.mp}/60。`,'heal');}
     if(action.a===1){const gain=Math.min(getMaxHp()-player.hp,Math.max(1,Math.floor(getMaxHp()*.12)));player.hp+=gain;showDamageNumber(gain,'player',true,false,true,false,name+'·回生');addCombatLog(`${name}施展回生，恢复 ${gain} 气血。`,'heal');}
@@ -111,13 +111,82 @@ function companionGuardV2849(damage){const s=companionBattleV2849();if(!s?.guard
 function renderCompanionV2849(){
   const panel=document.getElementById('combatPanel');if(!panel)return;let box=document.getElementById('companionBattleV2849');
   if(!box){box=document.createElement('section');box.id='companionBattleV2849';box.setAttribute('role','status');box.setAttribute('aria-live','polite');panel.insertBefore(box,document.getElementById('combatArena'));}
-  const s=companionBattleV2849();box.hidden=!s;if(!s)return;box.textContent=ROMANCE_NPCS[s.id].name+' · 同伴灵力 '+s.mp+'/60 · '+s.status;
+  const s=companionBattleV2849();box.hidden=!s;if(!s)return;const ready=companionActionsV2849(s),cooldowns=ALLY_ACTIONS_V2849.filter(a=>a.a!==0&&(s.cooldowns[a.a]||0)>s.turn).map(a=>a.name+'还需'+(s.cooldowns[a.a]-s.turn)+'支援回合');box.textContent=ROMANCE_NPCS[s.id].name+' · 同伴灵力 '+s.mp+'/60 · '+s.status+' · 当前可用：'+(ready.map(a=>a.name).join('/')||'暂无')+(cooldowns.length?' · '+cooldowns.join('、'):'');
 }
 window.addEventListener('xiantu:combat-finishing',()=>{
+  recordRivalFinishV2874();
+  companionVictoryBondV2875();
   if(currentEnemy?._nightRivalV2810&&!NPC_JEV_V2849.rivalRecorded.has(currentEnemy)&&COMBAT_FINISH_V2764.pending?.owner===player){
     NPC_JEV_V2849.rivalRecorded.add(currentEnemy);const h=rivalHistoryV2849();if(COMBAT_FINISH_V2764.pending.kind==='victory')h.wins=Math.min(h.duels,h.wins+1);player.rivalHistoryV2849=h;autoSave();
   }
   const pending=JEV_WORLD_V2846.pending;if(pending){pending.cancel();pending.controller?.abort();}
 });
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2849-npc-jev.js']='28.68.52';
+window.__xiantuBuildFilesV2814['xiantu-v2849-npc-jev.js']='28.68.53';
+
+// Rival trial records use entry-realm snapshots; rewards are claimed outside combat.
+const RIVAL_STYLES_V2874={sword:['兵刃剑枪','折锋障','防御提高12%'],thunder:['九天雷法','吞雷引','攻击提高10%'],fire:['焚世真火','寂灭灰','攻击提高10%'],ice:['玄冥寒冰','沸血煞','防御提高12%'],heal:['青莲生机','断生印','攻击提高10%']};
+function rivalStyleV2874(){
+ const load=ensureSkillLoadoutV212(),keys=Object.keys(RIVAL_STYLES_V2874);let key='sword',best=-1;
+ for(const k of keys){const n=Array.isArray(load?.[k])?load[k].length:0;if(n>best){best=n;key=k;}}
+ return key;
+}
+function normalizeRivalChronicleV2874(raw){
+ const r=raw&&typeof raw==='object'?raw:{},realms=v=>[...new Set((Array.isArray(v)?v:[]).filter(x=>Number.isInteger(x)&&x>=0&&x<CULTIVATION_REALMS.length))],n=(x,max)=>Number.isFinite(Number(x))?Math.min(max,Math.max(0,Math.floor(Number(x)))):0;
+ const qualified=realms(r.qualified),claimed=realms(r.claimed);
+ return {version:1,qualified:[...new Set([...qualified,...claimed])],claimed,logs:(Array.isArray(r.logs)?r.logs:[]).slice(-24).filter(x=>x&&typeof x==='object').map(x=>({date:typeof x.date==='string'?x.date.slice(0,80):'',realm:n(x.realm,16),foe:n(x.foe,16),style:Object.hasOwn(RIVAL_STYLES_V2874,x.style)?x.style:'sword',counter:!!x.counter,turns:n(x.turns,999),self:n(x.self,100),enemy:n(x.enemy,100),trial:!!x.trial,result:['victory','defeat','survived','flee'].includes(x.result)?x.result:'flee'}))};
+}
+const rivalBattlesV2874=new WeakMap();
+function initRivalTrialV2874(enemy){
+ if(!enemy?._nightRivalV2810||rivalBattlesV2874.has(enemy))return;
+ const style=rivalStyleV2874(),counter=rivalHistoryV2849().duels>0,realm=Math.max(0,Math.min(16,Math.floor(Number(player.level)||0)));
+ rivalBattlesV2874.set(enemy,{owner:player,token:COMBAT_FINISH_V2764.token,realm,style,counter,turns:0,trial:enemy._rivalTrialV2874===true,logged:false});
+ if(counter){if(style==='sword'||style==='ice')enemy.def=Math.round(enemy.def*1.12);else enemy.atk=Math.round(enemy.atk*1.10);addCombatLog(`宿敌识破【${RIVAL_STYLES_V2874[style][0]}】· ${RIVAL_STYLES_V2874[style][1]}：${RIVAL_STYLES_V2874[style][2]}。`,'boss');}
+}
+function rivalTurnCompletedV2874(enemy,owner,token){
+ const s=rivalBattlesV2874.get(enemy);if(!s||s.token!==token||token!==COMBAT_FINISH_V2764.token||s.owner!==owner||player!==owner||currentEnemy!==enemy||gameState!=='combat'||!isPlayerTurn||player.hp<=0||enemy.hp<=0||COMBAT_FINISH_V2764.settling)return;
+ s.turns++;if(s.trial&&s.turns>=6){s.passed=true;addCombatLog('六合问锋已成，夜无疆收招。返回交锋纪事碑领取本境首通奖励。','gold');queueCombatFinishV2764('flee',{label:'问锋完成 · 返回领取',delay:650});}
+}
+function recordRivalFinishV2874(){
+ const enemy=currentEnemy,s=enemy&&rivalBattlesV2874.get(enemy),p=COMBAT_FINISH_V2764.pending;if(!s||s.logged||s.owner!==player||p?.owner!==player)return;
+ s.logged=true;const state=normalizeRivalChronicleV2874(player.rivalChronicleV2874),result=s.passed?'survived':p.kind;
+ if(s.trial&&(result==='survived'||result==='victory')&&!state.qualified.includes(s.realm))state.qualified.push(s.realm);
+ state.logs.push({date:getGameDateLabel(),realm:s.realm,foe:enemy._realmLevel||0,style:s.style,counter:s.counter,turns:s.turns,self:Math.max(0,Math.min(100,Math.round(player.hp/Math.max(1,getMaxHp())*100))),enemy:Math.max(0,Math.min(100,Math.round(enemy.hp/Math.max(1,enemy.maxHp)*100))),trial:s.trial,result});
+ state.logs=state.logs.slice(-24);player.rivalChronicleV2874=state;
+}
+let rivalViewV2874=null,rivalViewSerialV2874=0;
+function rivalViewValidV2874(token){return jevCanActV2846()&&rivalViewV2874?.token===token&&rivalViewV2874.owner===player&&!!document.getElementById('rivalMonumentV2874')&&!document.getElementById('storyPanel')?.classList.contains('hidden');}
+function startRivalTrialV2874(token){
+ if(!rivalViewValidV2874(token)||player.hp<=getMaxHp()*.25)return false;
+ const owner=player,stamp=()=>JSON.stringify([player.level,player.phase,player.hp,player.mp,player.skillLoadoutV212,player.rivalHistoryV2849]),before=stamp(),enemy=createYeWujiV2810();
+ if(!confirm(`问锋试炼：${getEnemyRealmNameV2811(enemy)}。撑过6个完整敌方回合或直接击退即达成；败北不扣灵石。每境首通只领一次，重复演练无奖励。继续？`)||owner!==player||!rivalViewValidV2874(token)||before!==stamp())return false;
+ enemy._rivalTrialV2874=true;closeJevWorldV2846();closeWorldOverlay();startCombat(enemy,true,false);addCombatLog('六合问锋：完成6个敌方回合并存活，或击退宿敌。奖励在纪事碑领取；首次交手不加反制。','boss');return true;
+}
+function claimRivalTrialV2874(realm,token){
+ if(!rivalViewValidV2874(token))return false;
+ const s=normalizeRivalChronicleV2874(player.rivalChronicleV2874);if(!s.qualified.includes(realm)||s.claimed.includes(realm))return false;
+ const owner=player,before=JSON.stringify(player);s.claimed.push(realm);player.rivalChronicleV2874=s;player.gold+=300+realm*180;player.exp+=160+realm*95;
+ try{if(!saveGame())throw Error('save failed');}catch(_){for(const k of Object.keys(owner))delete owner[k];Object.assign(owner,JSON.parse(before));if(owner.activePet?._petId)owner.activePet=owner.pets.find(p=>p._petId===owner.activePet._petId)||null;showFloatingText('记录未保存，奖励未领取，请重试','#ff8a80');return false;}
+ checkLevelUp();updateStats();showRivalMonumentV2874();return true;
+}
+function showRivalMonumentV2874(){
+ if(!jevCanActV2846())return;
+ const s=normalizeRivalChronicleV2874(player.rivalChronicleV2874),h=rivalHistoryV2849(),style=rivalStyleV2874(),info=RIVAL_STYLES_V2874[style],token=++rivalViewSerialV2874,esc=escapeGameText;
+ rivalViewV2874={token,owner:player};
+ let html=`<section class="sect-board-v2866"><h3 id="rivalMonumentV2874">夜无疆 · 交锋纪事碑</h3><p>交锋${h.duels}次 · 击退${h.wins}次 · 已领取${s.claimed.length}境试炼奖励</p><p>按携带功法数量识别主流派，同数优先剑、雷、火、冰、治疗。当前${info[0]}；${h.duels?`下次运转${info[1]}，${info[2]}`:'首次交手不施加反制'}。战斗中不重新识别；普通挑战也沿用此规则。</p><h4>六合问锋</h4><p>撑过6个完整敌方回合（控制跳过也计一回合）或直接击退。夜无疆仍止步半圣圆满；试炼败北不扣灵石，普通挑战败北仍按原规则扣款。</p><p>每境界仅一次首通奖励，按入场境界计算；凡人起300灵石/160修为，每升一境增加180灵石/95修为。重复演练无奖励。需要气血超过25%。</p><button class="choice-btn" onclick="startRivalTrialV2874(${token})" ${player.hp>getMaxHp()*.25?'':'disabled'}>开启六合问锋试炼</button>`;
+ for(const realm of s.qualified.filter(r=>!s.claimed.includes(r)))html+=`<button class="choice-btn" onclick="claimRivalTrialV2874(${realm},${token})">领取${CULTIVATION_REALMS[realm].name}首通：${300+realm*180}灵石、${160+realm*95}修为</button>`;
+ const labels={victory:'正面击退',defeat:'交锋落败',survived:'六合问锋达成',flee:'交锋退场'};
+ html+='<h4>最近24次交锋</h4>'+(s.logs.length?s.logs.slice().reverse().map(l=>`<article><h4>${labels[l.result]} · ${l.trial?'试炼':'挑战'}</h4><p>${esc(l.date)} · 完整敌方回合${l.turns}</p><p>你：${CULTIVATION_REALMS[l.realm].name}，余血${l.self}% · 对手：${CULTIVATION_REALMS[l.foe].name}，余血${l.enemy}%</p><p>${RIVAL_STYLES_V2874[l.style][0]} · ${l.counter?RIVAL_STYLES_V2874[l.style][1]:'初见未反制'}</p></article>`).join(''):'<p>尚无交锋记录。</p>');
+ showStory(html+'</section>',[{text:'返回夜无疆人物页',action:'yewuji_v2810'},{text:'返回地图',action:'return_to_map'}]);
+}
+
+function companionVictoryBondV2875(){
+ const p=COMBAT_FINISH_V2764.pending,s=currentEnemy&&NPC_JEV_V2849.allies.get(currentEnemy);
+ if(!s||s.owner!==player||s.id!==companionIdV2849()||!s.actionsV2875||s.winProcessedV2875||p?.owner!==player||p.kind!=='victory')return false;
+ s.winProcessedV2875=true;const day=relationshipDayV2852(),last=Number.isInteger(player.companionWinDayV2875)?player.companionWinDayV2875:-1;
+ if(day<=last)return false;
+ const priorDay=player.companionWinDayV2875,prior=JSON.parse(JSON.stringify(player.romance.npcs[s.id])),cap=s.id==='suwanqing'?getSuAffectionCap():100;
+ player.companionWinDayV2875=day;const gain=prior.affection<cap?Math.max(0,addAffection(s.id,1)):0;
+ try{if(!saveGame())throw Error('save failed');}catch(_){player.romance.npcs[s.id]=prior;if(priorDay===undefined)delete player.companionWinDayV2875;else player.companionWinDayV2875=priorDay;return false;}
+ if(gain)addCombatLog(`并肩同心：${ROMANCE_NPCS[s.id].name}好感+${gain}（每日首次实际参战胜利）`,'heal');return true;
+}
