@@ -98,7 +98,7 @@ async function runCompanionTurnV2849(next){
     if(!NPC_JEV_V2849.allyCloud)answer={choice:'o'+options.indexOf(chosen),source:'local'};
     const action=options[Number(answer.choice.slice(1))];if(!action||!companionActionsV2849(s).includes(action))return next();
     s.mp-=action.cost;s.cooldowns[action.a]=s.turn+action.cooldown;
-    const name=ROMANCE_NPCS[s.id].name;s.status=(answer.source==='jev'?'Jev 决策':'本地策略')+' · '+action.name;
+    const name=ROMANCE_NPCS[s.id].name;s.status=(answer.source==='jev'?'天机推演':'本地策略')+' · '+action.name;
     if(action.a===0){s.mp=Math.min(60,s.mp+12);addCombatLog(`${name}吐纳回气，灵力 ${s.mp}/60。`,'heal');}
     if(action.a===1){const gain=Math.min(getMaxHp()-player.hp,Math.max(1,Math.floor(getMaxHp()*.12)));player.hp+=gain;showDamageNumber(gain,'player',true,false,true,false,name+'·回生');addCombatLog(`${name}施展回生，恢复 ${gain} 气血。`,'heal');}
     if(action.a===2){s.guard=true;addCombatLog(`${name}展开护卫，抵挡下一次敌方直接命中的20%伤害。`,'heal');}

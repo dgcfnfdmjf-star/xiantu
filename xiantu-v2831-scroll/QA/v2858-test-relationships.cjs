@@ -47,6 +47,8 @@ const tick=async()=>{for(let i=0;i<8;i++)await Promise.resolve();};
  for(const id of Object.keys(data.npcs))for(const topic of Object.keys(data.topics)){
   await chat(dailyGame,id,topic);const first=json(dailyGame,`relationshipNpcV2852('${id}').chats.at(-1)`);await chat(dailyGame,id,topic);const second=json(dailyGame,`relationshipNpcV2852('${id}').chats.at(-1)`);a.notEqual(first.variant,second.variant);a.equal(first.stage,2);a.equal(second.stage,2);
  }
+ for(const id of Object.keys(data.npcs))initial.npcs[id].affection+=2;
+ initial.npcs.suwanqing.resonanceV286826=0;
  a.deepEqual(json(dailyGame,'player.romance'),initial);a(network.count>0);
  for(let i=0;i<20;i++)await chat(dailyGame,'jihongling','care');a.equal(dailyGame.run("relationshipNpcV2852('jihongling').chats.length"),12);a.equal(dailyGame.run("relationshipNpcV2852('suwanqing').chats.length"),12);
  dailyGame.run("player.romance.partner='jihongling'");await chat(dailyGame,'jihongling','bond');a.equal(dailyGame.run("relationshipNpcV2852('jihongling').chats.at(-1).stage"),3);await chat(dailyGame,'suwanqing','bond');a.equal(dailyGame.run("relationshipNpcV2852('suwanqing').chats.at(-1).stage"),0);a(!dailyGame.run("relationshipTonesV2852('suwanqing').includes(2)"));
@@ -66,6 +68,15 @@ const tick=async()=>{for(let i=0;i<8;i++)await Promise.resolve();};
  const double=game();double.run("showRelationshipSceneV2852('suwanqing','su_rain_1')");await Promise.all([double.run("chooseRelationshipSceneV2852('suwanqing','su_rain_1',1)"),double.run("chooseRelationshipSceneV2852('suwanqing','su_rain_1',2)")]);a.equal(double.run('player.romance.npcs.suwanqing.affection'),2);
  const quota=game();quota.c.localStorage.setItem=()=>{throw Error('quota')};await choose(quota,'suwanqing','su_rain_1',1);a(quota.ids.get('jevWorldPanelV2846').innerHTML.includes('未能保存'));
  console.log('PASS cancel/switch/realm/load/mainline/hidden/battle invalidation, canceled chat, timeout fallback, duplicate-tap protection and save-failure notice');
+ const reward=game();unlock(reward);reward.run("showRelationshipsV2852('jihongling','chat')");
+ await chat(reward,'jihongling','care');a.equal(reward.run('player.romance.npcs.jihongling.affection'),82);
+ for(let i=0;i<15;i++)await chat(reward,'jihongling','care');a.equal(reward.run('player.romance.npcs.jihongling.affection'),82);
+ reward.run('saveGame();player=normalizePlayer(loadGame().player)');await chat(reward,'jihongling','care');a.equal(reward.run('player.romance.npcs.jihongling.affection'),82);
+ reward.run('player.worldTime.totalDays++');await chat(reward,'jihongling','care');a.equal(reward.run('player.romance.npcs.jihongling.affection'),84);
+ reward.run('player.worldTime.totalDays--');await chat(reward,'jihongling','care');a.equal(reward.run('player.romance.npcs.jihongling.affection'),84);
+ const chatQuota=game();unlock(chatQuota);chatQuota.run("showRelationshipsV2852('jihongling','chat');globalThis.beforeChat=JSON.stringify([player.romance,player.relationshipStoriesV2852]);globalThis.origSet=localStorage.setItem;localStorage.setItem=()=>{throw Error('quota')}");await chat(chatQuota,'jihongling','care');a.equal(chatQuota.run('JSON.stringify([player.romance,player.relationshipStoriesV2852])'),chatQuota.run('beforeChat'));chatQuota.run('localStorage.setItem=origSet');chatQuota.errors.length=0;await chat(chatQuota,'jihongling','care');a.equal(chatQuota.run('player.romance.npcs.jihongling.affection'),82);
+ const capChat=game();capChat.run('player.romance.npcs.suwanqing.affection=20');await chat(capChat,'suwanqing','care');a.equal(capChat.run('player.romance.npcs.suwanqing.affection'),20);a.equal(capChat.run('player.romance.npcs.suwanqing.resonanceV286826||0'),0);
+ console.log('PASS daily chat high-water mark, bounded history, save/reload, next day, clock rollback, quota rollback and Su cap');
  for(const f of fixtures)if(f!==quota)a.equal(f.errors.length,0,JSON.stringify(f.errors));a(quota.errors.every(e=>String(e[0]).includes('保存失败')));
  console.log('PASS all relationship flow checks; simulated DOM/provider, no paid request or live deployment');
 })().catch(e=>{console.error(e);process.exitCode=1;});

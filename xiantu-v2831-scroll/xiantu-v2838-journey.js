@@ -270,20 +270,29 @@ function normalizeRoamingV286818(raw){
  for(const region of Object.keys(WORLD_MAP_CONFIGS)){
   const old=raw?.maps?.[region];if(!old||typeof old!=='object')continue;
   const resolved={};for(const kind of ROAMING_KINDS_V286818)if(['aid','guide','channel','copy','leave'].includes(old.resolved?.[kind]))resolved[kind]=old.resolved[kind];
-  out.maps[region]={seen:Array.isArray(old.seen)?[...new Set(old.seen.filter(x=>typeof x==='string'&&/^\d{1,4},\d{1,4}$/.test(x)))].slice(-256):[],steps:Math.max(0,Math.min(999,Math.floor(Number(old.steps)||0))),pending:ROAMING_KINDS_V286818.includes(old.pending)&&!resolved[old.pending]?old.pending:null,resolved};
+  out.maps[region]={cycle:Math.max(0,Math.min(1e9,Math.floor(Number(old.cycle)||0))),restSeen:Array.isArray(old.restSeen)?[...new Set(old.restSeen.filter(x=>typeof x==='string'&&/^\d{1,4},\d{1,4}$/.test(x)))].slice(-36):[],seen:Array.isArray(old.seen)?[...new Set(old.seen.filter(x=>typeof x==='string'&&/^\d{1,4},\d{1,4}$/.test(x)))].slice(-256):[],steps:Math.max(0,Math.min(999,Math.floor(Number(old.steps)||0))),pending:ROAMING_KINDS_V286818.includes(old.pending)&&!resolved[old.pending]?old.pending:null,resolved};
  }
  return out;
 }
 function roamingStateV286818(){
  const all=player.roamingV286818 ||= {maps:{}};all.maps ||= {};
- return all.maps[currentRegion||'south'] ||= {seen:[],steps:0,pending:null,resolved:{}};
+ return all.maps[currentRegion||'south'] ||= {seen:[],steps:0,pending:null,resolved:{},restSeen:[],cycle:0};
 }
 function roamingAllowedV286818(){return gameState==='exploring'&&!player.breakthrough?.isAnimating&&!COMBAT_FINISH_V2764.settling;}
 function discoverRoamingV286818(cell){
  if(!roamingAllowedV286818()||isWorldOverlayOpen()||autoNavigationV2830)return;
  const intro=typeof firstJourneyV28687==='function'?firstJourneyV28687():null;
  if(intro&&!intro.paused&&intro.step<4)return;
- const state=roamingStateV286818();if(state.pending||state.seen.includes(cell)||Object.keys(state.resolved).length>=2)return;
+ const state=roamingStateV286818();if(state.pending||typeof cell!=='string'||!/^\d{1,4},\d{1,4}$/.test(cell))return;
+ if(Object.keys(state.resolved).length>=2){
+  const rest=state.restSeen||[];if(rest.includes(cell))return;
+  if(rest.length<35){state.restSeen=[...rest,cell];return;}
+  const region=currentRegion||'south',next={seen:[],steps:0,pending:null,resolved:{},restSeen:[],cycle:Math.min(1e9,(state.cycle||0)+1)};
+  player.roamingV286818.maps[region]=next;
+  if(!saveGame())player.roamingV286818.maps[region]=state;
+  return;
+ }
+ if(state.seen.includes(cell))return;
  state.seen.push(cell);if(state.seen.length>256)state.seen.shift();state.steps=Math.min(999,state.steps+1);
  let hash=17;for(const ch of (currentRegion||'south')+':'+cell)hash=(Math.imul(hash,31)+ch.charCodeAt(0))>>>0;
  if(state.steps<12||hash%17!==0)return;
@@ -297,17 +306,17 @@ function roamingNoticeV286818(){
 }
 function openRoamingV286818(){
  if(!roamingAllowedV286818())return;const state=roamingStateV286818(),kind=state.pending;if(!kind)return;
- roamingContextV286818={owner:player,region:currentRegion||'south',kind};
+ roamingContextV286818={owner:player,region:currentRegion||'south',kind,cycle:state.cycle||0};
  const aid=(player.materials?.['灵草']||0)>=2,channel=player.mp>=20;
  let body=kind==='traveler'?`<h3 id="roamingTitleV286818">山道奇遇 · 受伤行者</h3><p>松根下，一位散修捂着伤腿。他愿以珍藏的神行符，换取两株灵草疗伤；若你不便施药，也可以替他辨认通往灵泉的道路。</p><button class="choice-btn" onclick="resolveRoamingV286818('aid')" ${aid?'':'disabled'}>施药相助 · 灵草−2，神行符+1</button><button class="choice-btn" onclick="resolveRoamingV286818('guide')">指路护送 · 获赠30灵石</button>`:`<h3 id="roamingTitleV286818">山道奇遇 · 残阵遗迹</h3><p>古修石门只余半幅阵纹。你可以注入灵力打开侧匣，也可以放弃启阵，采下石缝间的灵草。</p><button class="choice-btn" onclick="resolveRoamingV286818('channel')" ${channel?'':'disabled'}>注灵启匣 · 灵力−20，灵石+80、神行符+1</button><button class="choice-btn" onclick="resolveRoamingV286818('copy')">采草离去 · 灵草+3</button>`;
- body+='<p>各地区每种奇遇每位角色仅处理一次。可以稍后从探索手册继续；刷新不会重置选择。</p><button class="choice-btn" onclick="resolveRoamingV286818(\'leave\')">不作停留 · 放弃本次机缘</button>';
+ body+='<p>本地区两种奇遇处理完后，再手动探索36个不同地格可开启下一轮；原地重复、自动寻路不计。可以稍后从探索手册继续；刷新不会重置选择。</p><button class="choice-btn" onclick="resolveRoamingV286818(\'leave\')">不作停留 · 放弃本次机缘</button>';
  showStory('<section class="main-overview-v2822">'+body+'</section>',[{text:'稍后再来 · 返回地图',action:'return_to_map'}]);
 }
 function resolveRoamingV286818(choice){
  const context=roamingContextV286818;
  if(!roamingAllowedV286818()||!context||context.owner!==player||context.region!==(currentRegion||'south')||!document.getElementById('roamingTitleV286818')||document.getElementById('storyPanel')?.classList.contains('hidden'))return false;
  const state=roamingStateV286818(),kind=state.pending;
- if(!kind||kind!==context.kind||state.resolved[kind]||!(kind==='traveler'?['aid','guide','leave']:['channel','copy','leave']).includes(choice))return false;
+ if((state.cycle||0)!==(context.cycle||0)||!kind||kind!==context.kind||state.resolved[kind]||!(kind==='traveler'?['aid','guide','leave']:['channel','copy','leave']).includes(choice))return false;
  if(choice==='aid'&&(player.materials?.['灵草']||0)<2||choice==='channel'&&player.mp<20)return false;
  const before={gold:player.gold,mp:player.mp,inventory:player.inventory,materials:player.materials,roaming:player.roamingV286818};
  const next={...state,pending:null,resolved:{...state.resolved,[kind]:choice}};

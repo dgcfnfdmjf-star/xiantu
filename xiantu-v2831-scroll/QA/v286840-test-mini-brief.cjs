@@ -57,3 +57,18 @@ readyTodo();run('showSectTodoV2868();globalThis.oldToken=sectQuickContextV2870.t
 readyTodo();run('sectMembersReadV2868()[0].job=null;globalThis.before=JSON.stringify(player);globalThis.savedSet=localStorage.setItem;localStorage.setItem=()=>{throw Error("quota")}');a.equal(run('startAllSectTrailsV2870()'),false);run('localStorage.setItem=savedSet');a.equal(run('JSON.stringify(player)'),run('before'));
 readyTodo();run('sectMembersReadV2868()[0].job=null');f.c.confirm=()=>{run('player={...player}');return true};a.equal(run('startAllSectTrailsV2870()'),false);
 console.log('PASS stale owner callbacks and dispatch save rollback');
+// Treasure is rolled at entry and settled atomically with the original reward.
+for(let index=0;index<4;index++)for(let route=0;route<3;route++){
+ fresh();enter();run(`miniRunV2778().routeV2867=${route};miniRunV2778().weaveV286840.treasureV2871=${index};miniRunV2778().step=4;saveGame();player=normalizePlayer(loadGame().player)`);
+ a.equal(run('miniRunV2778().weaveV286840.treasureV2871'),index);
+ const mat=['妖丹','星辰砂','血玉','冰晶石'][index],pet=route===2?'变异灵晶':'兽魂晶',count=route===2?2:1;
+ run('finishMiniWeaveV286840("clear")');a.equal(run(`player.materials['${mat}']`),count);a.equal(run(`player.petMaterials['${pet}']`),1);
+ run('finishMiniWeaveV286840("clear")');a.equal(run(`player.materials['${mat}']`),count);
+}
+fresh();enter();run('miniRunV2778().step=4;globalThis.before=JSON.stringify(player);globalThis.savedSet=localStorage.setItem;localStorage.setItem=()=>{throw Error("quota")};finishMiniWeaveV286840("clear");localStorage.setItem=savedSet');a.equal(run('JSON.stringify(player)'),run('before'));
+run('globalThis.fixedTreasure=miniTreasureV2871(miniRunV2778()).material;finishMiniWeaveV286840("clear")');a.equal(run('player.materials[fixedTreasure]'),1);
+for(const kind of ['safe','leave']){fresh();enter();run('miniRunV2778().step=2;miniRunV2778().weaveV286840.pending=false');run(`finishMiniWeaveV286840('${kind}')`);a.equal(run('player.petMaterials["兽魂晶"]||0'),0);}
+fresh();enter();run('delete miniRunV2778().weaveV286840.treasureV2871');a.equal(run('miniTreasureV2871(miniRunV2778())'),null);
+run('miniRunV2778().weaveV286840.treasureV2871=99');a.equal(run('miniTreasureV2871(miniRunV2778())'),null);
+fresh();enter();run('miniRunV2778().step=4;gameState="combat";globalThis.before=JSON.stringify(player);finishMiniWeaveV286840("clear")');a.equal(run('JSON.stringify(player)'),run('before'));
+console.log('PASS four saved treasure rolls, three route quantities, old runs, clear-only/once-only payout, guarded failure and atomic retry');
