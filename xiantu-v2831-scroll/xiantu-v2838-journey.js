@@ -232,8 +232,37 @@ function recordBattleSummaryV2838(enemy,before){
 function showAfterBattleV2838(owner){
  const r=lastBattleV2838;lastBattleV2838=null;if(!r||r.owner!==owner||player!==owner||gameState!=='exploring')return;
  document.getElementById('afterBattleV2838')?.remove();const el=document.createElement('aside');el.id='afterBattleV2838';el.className='after-battle-v2838';el.setAttribute('aria-label','战后简报');const esc=discipleEscV2815;
- el.innerHTML=`<div><strong>战胜 · ${esc(r.name)}</strong><button type="button" data-after="close" aria-label="收起战后简报">×</button></div><p>灵石 +${r.gold}　修为 +${r.exp}<small>含本战触发的任务奖励</small></p><p data-after-status>气血 ${Math.floor(player.hp)}/${getMaxHp()} · 灵力 ${Math.floor(player.mp)}/${getMaxMp()}</p><div><button type="button" data-after="recover">服丹调息 · 查看消耗</button><button type="button" data-after="tasks">继续任务</button><button type="button" data-after="rest">寻找补给</button></div>`;
- el.onclick=e=>{const act=e.target.closest('[data-after]')?.dataset.after;if(!act)return;if(act==='recover'){recoverAfterBattleV2875(owner,el);return;}el.remove();if(player!==owner||gameState!=='exploring'||player.breakthrough?.isAnimating)return;if(act==='tasks')showTaskPanel(r.taskType);if(act==='rest'){showScrollMapV2831();nearestScrollRestV2837();}};document.body.appendChild(el);
+ el.innerHTML=`<div><strong>战胜 · ${esc(r.name)}</strong><button type="button" data-after="close" aria-label="收起战后简报">×</button></div><p>灵石 +${r.gold}　修为 +${r.exp}<small>含本战触发的任务奖励</small></p><p data-after-status>气血 ${Math.floor(player.hp)}/${getMaxHp()} · 灵力 ${Math.floor(player.mp)}/${getMaxMp()}</p><div><button type="button" data-after="review">回看本场战斗</button><button type="button" data-after="recover">服丹调息 · 查看消耗</button><button type="button" data-after="tasks">继续任务</button><button type="button" data-after="rest">寻找补给</button></div>`;
+ el.onclick=e=>{const act=e.target.closest('[data-after]')?.dataset.after;if(!act)return;if(act==='recover'){recoverAfterBattleV2875(owner,el);return;}el.remove();if(player!==owner||gameState!=='exploring'||player.breakthrough?.isAnimating)return;if(act==='review')showBattleReviewV2878();if(act==='tasks')showTaskPanel(r.taskType);if(act==='rest'){showScrollMapV2831();nearestScrollRestV2837();}};document.body.appendChild(el);
+}
+// A bounded, plain-text receipt. Never re-enters combat or reward handlers.
+function normalizeBattleReviewV2878(raw){
+ if(!raw||typeof raw!=='object'||!['victory','defeat','flee','capture'].includes(raw.kind))return null;
+ const text=(v,n)=>typeof v==='string'?v.slice(0,n):'',num=v=>Number.isFinite(v)?Math.max(0,Math.min(1e12,Math.floor(v))):0;
+ const lines=(v,n)=>Array.isArray(v)?v.slice(-n).filter(x=>typeof x==='string').map(x=>text(x,400)):[];
+ return {kind:raw.kind,name:text(raw.name,100),hero:text(raw.hero,100),day:num(raw.day),hp:num(raw.hp),maxHp:num(raw.maxHp),mp:num(raw.mp),maxMp:num(raw.maxMp),enemyHp:num(raw.enemyHp),enemyMaxHp:num(raw.enemyMaxHp),logs:lines(raw.logs,120),prose:lines(raw.prose,100)};
+}
+function rememberBattleVitalsV2878(){
+ const p=COMBAT_FINISH_V2764.pending,e=currentEnemy;
+ if(!p||p.owner!==player||!e||p.reviewVitalsV2878)return;
+ p.reviewVitalsV2878={name:e.name,hero:player.name,day:player.worldTime?.totalDays||0,hp:player.hp,maxHp:getMaxHp(),mp:player.mp,maxMp:getMaxMp(),enemyHp:e.hp,enemyMaxHp:e.maxHp};
+}
+window.addEventListener('xiantu:combat-finishing',rememberBattleVitalsV2878);
+function recordBattleReviewV2878(p){
+ if(!p||p.owner!==player||!currentEnemy||!p.reviewVitalsV2878)return false;
+ const logs=Array.from(document.getElementById('combatLog')?.children||[]).reverse().map(n=>n.textContent||'');
+ const prose=window.XiantuBattleProseV286832?.history?.()||[];
+ const record=normalizeBattleReviewV2878({...p.reviewVitalsV2878,kind:p.kind,logs,prose});
+ if(!record)return false;player.lastBattleReviewV2878=record;return true;
+}
+function showBattleReviewV2878(){
+ if(!jevCanActV2846())return false;
+ const r=normalizeBattleReviewV2878(player.lastBattleReviewV2878),esc=discipleEscV2815;
+ if(!r){showFloatingText('还没有可回看的战斗，结束下一场后会留下记录。','#ffd76a');return false;}
+ document.getElementById('afterBattleV2838')?.remove();resetWorldMovementV28686();
+ const result={victory:'胜利',defeat:'败退',flee:'脱离战斗',capture:'收服结束'}[r.kind];
+ const list=xs=>xs.map(x=>`<p>${esc(x)}</p>`).join('')||'<p>本场没有此类记录。</p>';
+ showStory(`<section class="battle-review-v2878 loop-board-v286840"><h3>上一场战斗 · ${result}</h3><p>游历第${r.day+1}日 · ${esc(r.hero)} 对战 ${esc(r.name)}</p><div class="battle-review-vitals-v2878"><article><b>${esc(r.hero)}</b><p>气血 ${r.hp}/${r.maxHp}</p><p>灵力 ${r.mp}/${r.maxMp}</p></article><article><b>${esc(r.name)}</b><p>气血 ${r.enemyHp}/${r.enemyMaxHp}</p></article></div><p>以上为退场结算开始时的状态。仅保留最近一场；回看不改变状态或重复发放奖励。</p><details open><summary>斗法纪事 · 最近${r.prose.length}段</summary>${list(r.prose)}</details><details><summary>详细战报 · 最近${r.logs.length}条（按发生顺序）</summary>${list(r.logs)}</details></section>`,[{text:'返回地图',action:'return_to_map'}]);return true;
 }
 // New-game checkpoint is independent of the rolling autosave backup.
 const PREVIOUS_SAVE_V2838='xiantu_save_previous_character';
@@ -260,7 +289,7 @@ async function exportPreviousV2838(){
  try{await exportRawSaveV2870(localStorage.getItem(PREVIOUS_SAVE_V2838),'xiantu-previous-character.json');}
  catch(e){alert('导出失败：'+e.message);}
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.54';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.55';
 
 // Small non-combat encounters, two per region and character. Persist choice and reward together.
 const ROAMING_KINDS_V286818=['traveler','ruins'];

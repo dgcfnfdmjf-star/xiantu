@@ -200,7 +200,7 @@ function installGuideEntry(){
 
 window.addEventListener('load',()=>setTimeout(()=>{installTutorialInteractionHooks();installGuideEntry();installTutorialTooltips()},650));
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-04-tutorial-guide-script.js"]="28.68.54";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-04-tutorial-guide-script.js"]="28.68.55";
 
 // 初入仙途：只突出下一步，奖励随进度一次性保存。
 function firstJourneyV28687(){
@@ -268,3 +268,47 @@ function finishFirstJourneyBattleV28687(enemy){
 }
 
 {const reset=window.resetRuntimeState;if(typeof reset==='function')window.resetRuntimeState=function(...args){cancelTutorialTrainingV286845();return reset.apply(this,args);};}
+
+// One-time cultivation milestones; use existing evidence rather than bag contents.
+const ENLIGHTENMENT_GOALS_V2879=[
+ {id:'g1',title:'初识炼丹',desc:'在丹房成功炼成一枚丹药（炼制失败、购买或初始赠药不计）',reward:'200灵石 · 小还丹×2',gold:200},
+ {id:'g2',title:'御兽结缘',desc:'拥有一只带收服记录的灵宠',reward:'300灵石 · 灵兽丹×2（御兽材料）',gold:300},
+ {id:'g3',title:'宗门入职',desc:'加入一处尚存的修真宗门',reward:'400灵石 · 可用及累计宗门贡献+100',gold:400},
+ {id:'g4',title:'法宝初炼',desc:'拥有一件从初始+1强化至+2或更高的法宝',reward:'500灵石 · 星辰砂×2 · 灵木×2',gold:500}
+];
+function normalizeEnlightenmentV2879(raw){return {claimed:[...new Set((Array.isArray(raw?.claimed)?raw.claimed:[]).filter(id=>['g1','g2','g3','g4'].includes(id)))]};}
+function enlightenmentReadyV2879(id){
+ if(id==='g1')return Number.isFinite(achievementProgress.alchemyCount)&&achievementProgress.alchemyCount>0;
+ if(id==='g2')return (player.pets||[]).some(p=>p&&PET_TYPES[p.type]&&typeof p.capturedAt==='string'&&p.capturedAt.length>0);
+ if(id==='g3')return !!player.sect&&player.sect!=='散修'&&!!getFactionByName(player.sect)&&!isFactionDestroyed(player.sect);
+ if(id==='g4')return (player.artifacts||[]).some(a=>a&&ARTIFACT_TYPES[a.type]&&Number.isInteger(a.level)&&a.level>=2);
+ return false;
+}
+let enlightenmentViewV2879=null,enlightenmentSerialV2879=0,enlightenmentBusyV2879=false;
+function showEnlightenmentPanelV2879(){
+ if(!jevCanActV2846())return false;
+ const claimed=normalizeEnlightenmentV2879(player.enlightenmentV2870).claimed,token=++enlightenmentSerialV2879;
+ enlightenmentViewV2879={owner:player,token};
+ const cards=ENLIGHTENMENT_GOALS_V2879.map(g=>{const done=claimed.includes(g.id),ready=enlightenmentReadyV2879(g.id);return `<article><h4>${done?'✓ ':''}${g.title}</h4><p>${g.desc}</p><p>奖励：${g.reward}</p><button class="choice-btn" onclick="claimEnlightenmentRewardV2879('${g.id}',${token})" ${done||!ready?'disabled':''}>${done?'已领取':ready?'领取奖励':'目标未达成'}</button></article>`;}).join('');
+ showStory(`<section id="enlightenmentV2879" data-token="${token}" class="loop-board-v286840"><h3>修真造化之路</h3><p>每个角色四项目标各奖励一次，旧角色达标也可补领。以实际经历为准，不必急于完成；法宝阶段可在开放后继续。</p>${cards}</section>`,[{text:'返回地图',action:'return_to_map'}]);return true;
+}
+function claimEnlightenmentRewardV2879(id,token){
+ const ctx=enlightenmentViewV2879,g=ENLIGHTENMENT_GOALS_V2879.find(g=>g.id===id);
+ if(enlightenmentBusyV2879||!g||!ctx||ctx.token!==token||ctx.owner!==player||!jevCanActV2846()||document.getElementById('storyPanel')?.classList.contains('hidden')||document.getElementById('enlightenmentV2879')?.dataset.token!==String(token)||!enlightenmentReadyV2879(id))return false;
+ const st=normalizeEnlightenmentV2879(player.enlightenmentV2870);if(st.claimed.includes(id))return false;
+ const owner=player,before=JSON.stringify(player),progress={...achievementProgress},completed=new Set(completedAchievements);
+ enlightenmentBusyV2879=true;miniSaveDeferredV286840=true;
+ try{
+  player.enlightenmentV2870=st;st.claimed.push(id);player.gold+=g.gold;
+  if(id==='g1')player.inventory.push('小还丹','小还丹');
+  if(id==='g2'){player.petMaterials ||= {};player.petMaterials['灵兽丹']=(Number(player.petMaterials['灵兽丹'])||0)+2;}
+  if(id==='g3')grantSectContributionV2768(100);
+  if(id==='g4'){for(const name of ['星辰砂','灵木']){player.materials[name]=(Number(player.materials[name])||0)+2;onCollectMaterial(name,2);}}
+  miniSaveDeferredV286840=false;if(!saveGame())throw Error('milestone save failed');
+ }catch(_){
+  for(const k of Object.keys(owner))delete owner[k];Object.assign(owner,JSON.parse(before));player=owner;
+  if(player.activePet?._petId)player.activePet=player.pets.find(p=>p._petId===player.activePet._petId)||null;
+  achievementProgress=progress;completedAchievements=completed;showEnlightenmentPanelV2879();showFloatingText('奖励未保存，本次领取已撤回，可重试。','#ff8a80');return false;
+ }finally{miniSaveDeferredV286840=false;enlightenmentBusyV2879=false;}
+ updateStats();showEnlightenmentPanelV2879();showFloatingText(`造化目标已达成：${g.title} · ${g.reward}`,'#ffd76a');return true;
+}

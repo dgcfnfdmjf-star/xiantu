@@ -1,0 +1,16 @@
+const fs=require('node:fs'),path=require('node:path'),a=require('node:assert/strict');
+const root=process.env.XIANTU_TEST_ROOT||path.resolve(__dirname,'..'),f=require('./v2858-dom-fixture.cjs')(root),run=s=>f.run(s);
+f.c.console.log=()=>{};for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);
+function fresh(){run("resetRuntimeState();player=createDefaultPlayer();gameState='exploring';achievementProgress.alchemyCount=0;player.gold=1000;player.sect='散修';showEnlightenmentPanelV2879()");f.timers.clear();}
+const claim=id=>run(`claimEnlightenmentRewardV2879('${id}',enlightenmentViewV2879.token)`);
+fresh();a.equal(claim('g1'),false);run('player.alchemyCount=999');a.equal(claim('g1'),false);run('achievementProgress.alchemyCount=1');a.equal(claim('g1'),true);a.equal(run('player.gold'),1200);a.equal(claim('g1'),false);run('player=normalizePlayer(loadGame().player);showEnlightenmentPanelV2879()');a.equal(claim('g1'),false);
+fresh();run("player.pets=[{type:'灵狐',level:1}]");a.equal(claim('g2'),false);run("player.pets[0].capturedAt='游历第一日'");a.equal(claim('g2'),true);a.equal(run("player.petMaterials['灵兽丹']"),2);a.equal(run("player.inventory.filter(x=>x==='灵兽丹').length"),0);
+fresh();a.equal(claim('g3'),false);run("player.sect='不存在宗门'");a.equal(claim('g3'),false);run("player.sect='凌霄宗'");a.equal(claim('g3'),true);a.equal(run('player.sectContribution'),100);a.equal(run('player.sectTotalContribution'),100);
+fresh();run('player.artifacts=[{type:Object.keys(ARTIFACT_TYPES)[0],level:1}]');a.equal(claim('g4'),false);run('player.artifacts[0].level=2');a.equal(claim('g4'),true);a.equal(run("player.materials['星辰砂']"),2);a.equal(run("player.materials['灵木']"),2);
+fresh();run('achievementProgress.alchemyCount=1;globalThis.before=JSON.stringify(player);globalThis.oldSet=localStorage.setItem;localStorage.setItem=()=>{throw Error("quota")}');a.equal(claim('g1'),false);run('localStorage.setItem=oldSet');a.equal(run('JSON.stringify(player)'),run('before'));a.equal(claim('g1'),true);
+fresh();run('achievementProgress.alchemyCount=1;player={...player}');a.equal(claim('g1'),false);run('showEnlightenmentPanelV2879();gameState="combat"');a.equal(claim('g1'),false);
+fresh();run('achievementProgress.alchemyCount=1;showStory("other",[])');a.equal(claim('g1'),false);a.equal(run("JSON.stringify(normalizeEnlightenmentV2879({claimed:['g1','g1','bad','g4']}))"),'{"claimed":["g1","g4"]}');
+// Existing dual-save semantics: invalid primary never contaminates valid backup;
+// load returns a save object, and reading fallback does not overwrite evidence.
+fresh();run('player.gold=111;saveGame();player.gold=222;saveGame();globalThis.backup=localStorage.getItem(SAVE_BACKUP_KEY);localStorage.setItem(SAVE_KEY,"broken")');a.equal(run('loadGame().player.gold'),111);a.equal(run('loadGame()._recoveredFromBackup'),true);a.equal(run('localStorage.getItem(SAVE_KEY)'),'broken');run('player.gold=333;saveGame()');a.equal(run('localStorage.getItem(SAVE_BACKUP_KEY)'),run('backup'));
+console.log('PASS verified milestone evidence, correct item pools/contribution, one-time/reload/stale/quota guards, existing dual-save fallback object and backup preservation');

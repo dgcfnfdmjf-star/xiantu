@@ -1,8 +1,10 @@
-# 仙途 V28.68.54
+# 仙途 V28.68.55
 
-部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.54）；[上传步骤](downloads/README.md)。
+部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.55）；[上传步骤](downloads/README.md)。
 
-## V28.68.54 完整包
+## V28.68.55 完整包
+
+新增摇杆释放恢复、战后回看、四项修真造化目标，以及Jev小时/每日额度保护。包含此前所有优化。网页与云函数需分别更新；发布状态及下载见downloads/README.md。
 
 整合宗主经营（季度岁入、敕令、镇派绝学、官职任命）、宿敌问锋试炼与交锋纪事、宗门领取派遣、迷阵重铸、战后服丹确认和道侣每日同心奖励，以及此前全部优化；同步40个脚本与入口缓存版本。解压目录仍为 `xiantu-v2831-scroll`，尚未部署腾讯云。
 
@@ -120,7 +122,7 @@ npm test
 npm run test:browser
 ```
 
-`npm test` 运行选定的 72 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
+`npm test` 运行选定的 75 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
 
 浏览器测试覆盖恶意存档拒绝且原主档/备份不变、正常导入与刷新恢复、360/390/430/1366px 导航入口可达性、预加载去重与版本错误提示。外部请求被拦截，不调用付费服务。已有 Chromium 的云环境可使用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`。
 
@@ -261,6 +263,10 @@ npm run package:cloud
 | 配置 | 默认值 | 含义 |
 | --- | --- | --- |
 | `JEV_MAX_REQUESTS_PER_MINUTE` | 6 | 每个固定 60 秒窗口内最多发起的付费请求数；失败调用也占预算 |
+| `JEV_MAX_REQUESTS_PER_HOUR` | 60 | 付费请求小时预算 |
+| `JEV_MAX_REQUESTS_PER_DAY` | 300 | 付费请求24小时预算 |
+| `JEV_MAX_SESSIONS_PER_HOUR` | 300 | 公共票据小时签发预算 |
+| `JEV_MAX_SESSIONS_PER_DAY` | 3000 | 公共票据24小时签发预算 |
 | `JEV_MAX_CONCURRENT` | 2 | 同时付费请求上限 |
 | `JEV_MAX_SESSIONS_PER_MINUTE` | 30 | 全部公共票据签发预算；每个来源 IP 最多 5 次/分钟 |
 | `JEV_REQUIRE_SHARED_LIMITER` | false | 设为 `true` 时强制要求共享限流，缺配置或故障返回 503，不调用付费提供方 |
@@ -288,3 +294,5 @@ npm run package:cloud
 ## 函数覆盖关系排查
 
 `npm run audit:wrappers` 按加载器中实际的 40 个脚本顺序，输出函数定义、包装与覆盖的静态候选关系。支持 `--list-only`、`--all`、`--json` 和 `--md`；完整用法与识别边界见 [扫描器说明](docs/wrapper-audit.md)。运行 `npm run test:wrappers` 可单独验证工具。扫描提示须结合调用路径人工核对，不能直接当成漏洞清单。开发工具变更无需重传腾讯云游戏包。
+
+小时/24小时额度按首次计数起算的固定窗口重置，不按自然日零点重置；失败请求也占额度，缓存命中不调用提供方。所有额度配置为1–10000整数。默认内存限流只约束单个实例，生产多实例需配置共享Redis并启用 `JEV_REQUIRE_SHARED_LIMITER=true`。请求次数上限不是金额硬上限。新额度需更新云函数后生效，网页包不能替代云函数发布。

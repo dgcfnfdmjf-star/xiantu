@@ -47,10 +47,11 @@ async function request(f){return await f.run('requestForgeJevV2842(forgeSelectio
  let serverDone;const busy=createHandler({env,call:()=>new Promise(r=>serverDone=r)});const first=busy(event());
  a.equal((await busy(event())).statusCode,429);serverDone({answers:{forge:good}});await first;
  let n=0,t=1000000;
- // Crossing the former hourly limit remains allowed; spacing still prevents duplicate bursts.
+ // Real handler enforces the default hourly budget before calling the provider.
  t=1000000;n=0;const hourly=createHandler({env,now:()=>t,call:async()=>{n++;return {answers:{forge:good}}}});
- for(let i=0;i<120;i++){t+=10001;a.equal((await hourly(event({...payload,after:{atk:0,def:(i%15)+1,hp:Math.floor(i/15)+1,mp:0}}))).statusCode,200)}
- t+=10001;a.equal((await hourly(event())).statusCode,200);a.equal(n,121);
+ for(let i=0;i<60;i++){t+=10001;a.equal((await hourly(event({...payload,after:{atk:0,def:(i%15)+1,hp:Math.floor(i/15)+1,mp:0}}))).statusCode,200)}
+ t+=10001;a.equal((await hourly(event())).statusCode,429);a.equal(n,60);
+ t+=3600000;a.equal((await hourly(event())).statusCode,200);a.equal(n,61);
  console.log('PASS server auth/origin, strict numeric input, prompt whitelist, response schema, base64, cache, concurrent/rate gates, no secret in errors');
  // Real game paths: offline advice never pays/replaces; existing manual flow stays authoritative.
  const f=game(false);a(f.ids.has('forgeAdviceV2842'));a(!f.ids.has('forgeJevButtonV2842'));const snapshot=state(f),saved=[...f.storage];

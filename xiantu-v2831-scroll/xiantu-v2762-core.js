@@ -5870,6 +5870,8 @@
     function completeCombatFinishV2764(expectedToken) {
       const pending = COMBAT_FINISH_V2764.pending;
       if (!pending || (expectedToken && expectedToken !== pending.token)) return;
+      let reviewRecordedV2878=false;
+      try{reviewRecordedV2878=recordBattleReviewV2878(pending);}catch(_){}
       window.InkSkillFxV2854?.clear(true);
       COMBAT_FINISH_V2764.pending = null;
       COMBAT_FINISH_V2764.settling = false;
@@ -5882,6 +5884,7 @@
       document.querySelectorAll('.achievement-popup').forEach(el => el.remove());
       document.body.classList.remove('cinema-battle-active-v2756');
       gameState = 'exploring'; currentEnemy = null; currentMonsterRef = null;
+      if(reviewRecordedV2878){try{if(!saveGame())showFloatingText('战斗回看暂存于本页，存储恢复后再保存。','#ffd76a');}catch(_){}}
       isPlayerTurn = true; isBossFight = false; isTribulation = false; currentBossPhase = 1;
       skipEnemyTurn = false; playerPressureTurns = 0; playerPressureStun = false;
       currentCombatReturnMode = 'location'; currentCombatReturnLocation = null;
@@ -14553,7 +14556,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.54";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.55";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
