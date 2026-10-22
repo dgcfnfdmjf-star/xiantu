@@ -35,7 +35,7 @@ function jevMerchantV2849(){
     const current=player.equipment[d.slot],gain=Math.max(0,getEquipItemScore(name)-(current?getEquipItemScore(current):0));
     return {a:0,b:d.priceV2790,c:gain,d:0,label:`${name} · ${d.priceV2790}灵石 · 参考评分提升 ${gain.toFixed(1)}`,apply:()=>buyMarketGearV2800(d.slot==='weapon'?'weapon':'armor',d.gradeV2790,'all',d.familyV2790,d.pieceV2790)};
   }).filter(o=>o.c>0).sort((a,b)=>b.c/Math.max(1,b.b)-a.c/Math.max(1,a.b)).slice(0,9);
-  const pills=[['小还丹',25,1],['聚灵丹',35,2],['大还丹',70,1]].filter(([,price])=>price<=player.gold).map(([name,price,type])=>({a:type,b:price,c:type===1?100-jevPercentV2846(player.hp,getMaxHp()):0,d:player.inventory.filter(x=>x===name).length,label:`${name} · ${price}灵石 · 已有${player.inventory.filter(x=>x===name).length}`,apply:()=>buyFromMapNpc('trader',name,price)}));
+  const pills=Object.entries(MAP_NPC_PRICES_V2876).filter(([name])=>['heal','mp'].includes(ITEMS[name]?.type)).flatMap(([name,price])=>[1,5].filter(count=>price*count<=player.gold).map(count=>({a:ITEMS[name].type==='heal'?1:2,b:price*count,c:ITEMS[name].type==='heal'?100-jevPercentV2846(player.hp,getMaxHp()):0,d:player.inventory.filter(x=>x===name).length,label:`${name} ×${count} · ${price*count}灵石 · 已有${player.inventory.filter(x=>x===name).length}`,apply:()=>buyFromMapNpc('trader',name,price,count)})));
   const options=[...gear,...pills];
   if(!options.length)return showStory('<h3>行脚商翻了翻货箱</h3><p>当前没有买得起且合适的升级装备或补给。先做委托积攒灵石，或继续使用现有装备。</p>',[{text:'赚取灵石',action:'early_economy_v2773'},{text:'返回仙市',action:'market'}]);
   const preferred=player.hp<getMaxHp()*.5?Math.max(0,options.findIndex(o=>o.a===1&&o.d===0)):0;
@@ -122,7 +122,7 @@ window.addEventListener('xiantu:combat-finishing',()=>{
   const pending=JEV_WORLD_V2846.pending;if(pending){pending.cancel();pending.controller?.abort();}
 });
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2849-npc-jev.js']='28.68.53';
+window.__xiantuBuildFilesV2814['xiantu-v2849-npc-jev.js']='28.68.54';
 
 // Rival trial records use entry-realm snapshots; rewards are claimed outside combat.
 const RIVAL_STYLES_V2874={sword:['兵刃剑枪','折锋障','防御提高12%'],thunder:['九天雷法','吞雷引','攻击提高10%'],fire:['焚世真火','寂灭灰','攻击提高10%'],ice:['玄冥寒冰','沸血煞','防御提高12%'],heal:['青莲生机','断生印','攻击提高10%']};

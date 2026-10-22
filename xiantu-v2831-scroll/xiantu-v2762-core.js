@@ -11818,23 +11818,35 @@
       showStory(`${buildNpcPanelHeader(npc)}<div class="npc-speech">“这些你先拿去，路上或许用得着。”</div><p style="color:#69f0ae">获得：${rewardDesc}</p>`,[{text:'继续',action:'map_npc',npcId}]);
     }
 
+    const MAP_NPC_PRICES_V2876=Object.freeze({'小还丹':25,'聚灵丹':35,'大还丹':70,'神行符':120});
+    let traderViewV2876=null,traderSerialV2876=0;
     function showMapNpcShop(npcId='trader'){
       if(!canMapNpcActV2864())return;
       const npc=MAP_NPCS[npcId]||MAP_NPCS.trader;
-      const rows=[['小还丹',25],['聚灵丹',35],['大还丹',70],['神行符',120]];
-      showStory(`${jevEntryV2846('jevMerchantV2849()','Jev 按需推荐')}${buildNpcPanelHeader(npc,'随身补给')}<div class="npc-speech">灵石：<b>${player.gold}</b></div>`,[
+      const rows=Object.entries(MAP_NPC_PRICES_V2876),token=++traderSerialV2876;
+      traderViewV2876={token,owner:player,npcId};
+      const bulk=rows.filter(([name])=>['heal','mp'].includes(ITEMS[name]?.type)).map(([name,price])=>`<button class="choice-btn" onclick="buyTraderPillBatchV2876('${name}',${token})" ${player.gold<price*5?'disabled':''}>${name} ×5 · ${price*5}灵石</button>`).join('');
+      showStory(`${jevEntryV2846('jevMerchantV2849()','Jev 按需推荐')}${buildNpcPanelHeader(npc,'随身补给')}<div class="npc-speech">灵石：<b>${player.gold}</b></div><section id="traderBatchV2876" data-token="${token}"><h4>丹药批量补给 · 确认后购买</h4>${bulk}</section>`,[
         ...rows.map(([item,cost])=>({text:`${item} · ${cost}灵石 · 已有${player.inventory.filter(x=>x===item).length}${player.gold<cost?' · 灵石不足':''}`,action:'map_npc_buy',npcId,item,cost,condition:()=>player.gold>=cost})),
         {text:'← 返回',action:'map_npc',npcId}
       ]);
     }
 
-    function buyFromMapNpc(npcId,item,cost){
-      if(!jevCanActV2846()||!MAP_NPCS[npcId])return;
-      const prices={'小还丹':25,'聚灵丹':35,'大还丹':70,'神行符':120};if(!Object.hasOwn(prices,item)||cost!==prices[item])return;
-      if(player.gold<cost){showStory('<p>灵石不足。</p>',[{text:'返回',action:'map_npc_shop',npcId}]);return;}
-      if(!window.confirm(`购买 ${item} ×1？消耗 ${cost} 灵石，剩余 ${player.gold-cost}。`))return;
-      player.gold-=cost;player.inventory.push(item);autoSave?.();updateStats?.();
-      showStory(`<p>购买了 <b>${item}</b>。</p><p style="color:#ffd76a">-${cost} 灵石</p>`,[{text:'继续购买',action:'map_npc_shop',npcId},{text:'返回',action:'map_npc',npcId}]);
+    function buyTraderPillBatchV2876(item,token){
+      const v=traderViewV2876;
+      if(!v||v.token!==token||v.owner!==player||document.getElementById('storyPanel')?.classList.contains('hidden')||document.getElementById('traderBatchV2876')?.dataset.token!==String(token))return false;
+      return buyFromMapNpc(v.npcId,item,MAP_NPC_PRICES_V2876[item],5);
+    }
+    function buyFromMapNpc(npcId,item,cost,count=1){
+      if(!jevCanActV2846()||!MAP_NPCS[npcId]||!Object.hasOwn(MAP_NPC_PRICES_V2876,item)||cost!==MAP_NPC_PRICES_V2876[item]||![1,5].includes(count)||(count===5&&!['heal','mp'].includes(ITEMS[item]?.type)))return false;
+      const total=cost*count;
+      if(!Number.isFinite(player.gold)||player.gold<total)return false;
+      const owner=player,before=JSON.stringify(player),owned=player.inventory.filter(x=>x===item).length;
+      if(!window.confirm(`购买 ${item} ×${count}？消耗 ${total} 灵石，剩余 ${player.gold-total}。\n当前持有 ${owned} 枚。`)||player!==owner||!jevCanActV2846()||JSON.stringify(player)!==before)return false;
+      player.gold-=total;player.inventory.push(...Array(count).fill(item));
+      let saved=false;try{saved=saveGame();}catch(_){}
+      if(!saved){player.gold+=total;player.inventory.splice(-count,count);showFloatingText('购买未保存，灵石与物品已恢复，可重试','#ff8a80');return false;}
+      updateStats();showMapNpcShop(npcId);showFloatingText(`已购入 ${item} ×${count}`,'#69f0ae');return true;
     }
 
 
@@ -14541,7 +14553,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.53";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.54";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
@@ -14659,11 +14671,11 @@ function showSectOverviewV2866(notice=''){
 }
 let discipleBatchV2866=null,discipleBatchSerialV2866=0;
 function discipleBatchSignatureV2866(){return JSON.stringify([player.sect,discipleDayV2815(),getCurrentRankInfo().name,discipleRosterV2815().members,player.warState?.campaignV2775?.officersV286841]);}
-function showDiscipleBatchV2866(tier=0,notice=''){
+function showDiscipleBatchV2866(tier=2,notice=''){
  if(!discipleAllowedV2815()||!Number.isInteger(tier)||tier<0||tier>2)return;
  const entries=discipleRosterV2815().members.filter(d=>!d.job&&!warDiscipleBusyV286841(d.id)).map(d=>{const type=Number.isInteger(d.specialty)&&d.specialty>=0&&d.specialty<=2?d.specialty:0;let target=tier;while(target>0&&!disciplePlanV2824(d,type,target).allowed)target--;return {id:d.id,name:d.name,plan:disciplePlanV2824(d,type,target)};});
- const token=++discipleBatchSerialV2866;discipleBatchV2866={token,owner:player,signature:discipleBatchSignatureV2866(),entries};
- const esc=discipleEscV2815;let html=`<section class="sect-board-v2866"><h3>派遣预览 · ${entries.length} 位空闲弟子</h3><p>按专长安排；等级不足会选用较低难度。已在执行事务或随军的弟子不参与。</p>${notice?`<p role="status">${esc(notice)}</p>`:''}<div class="sect-actions-v2866">${DISCIPLE_TIERS_V2824.map((t,i)=>`<button class="choice-btn" onclick="showDiscipleBatchV2866(${i})" aria-pressed="${i===tier}">${t.name}${i===tier?' ✓':''}</button>`).join('')}</div>`;
+ const token=++discipleBatchSerialV2866;discipleBatchV2866={token,owner:player,signature:discipleBatchSignatureV2866(),tier,entries};
+ const esc=discipleEscV2815;let html=`<section class="sect-board-v2866"><h3>派遣预览 · ${entries.length} 位空闲弟子</h3><p>默认预览最高可接档位，也可下调；按专长安排，等级不足会选用较低难度。已在执行事务或随军的弟子不参与。</p>${notice?`<p role="status">${esc(notice)}</p>`:''}<div class="sect-actions-v2866">${DISCIPLE_TIERS_V2824.map((t,i)=>`<button class="choice-btn" onclick="showDiscipleBatchV2866(${i})" aria-pressed="${i===tier}">${t.name}${i===tier?' ✓':''}</button>`).join('')}</div>`;
  for(const e of entries)html+=`<article><b>${esc(e.name)}</b><p>${esc(e.plan.name)} · ${e.plan.days} 个游戏日</p><p>${e.plan.gold} 灵石 · ${esc(e.plan.material)} ×${e.plan.count}</p></article>`;
  html+=`<p>${entries.length?'无派遣费用，成果到期后领取。':'没有空闲弟子。'}</p><button class="choice-btn" id="discipleBatchConfirmV2866" data-token="${token}" onclick="confirmDiscipleBatchV2866(${token})" ${entries.length?'':'disabled'}>确认派遣 ${entries.length} 位</button><button class="choice-btn" onclick="cancelDiscipleBatchV2866()">取消并返回</button></section>`;showStory(html,[]);
 }
@@ -14675,8 +14687,9 @@ function confirmDiscipleBatchV2866(token){
  discipleBatchV2866=null;
  const roster=discipleRosterV2815();
  if(batch.entries.some(e=>{const d=roster.members.find(x=>x.id===e.id);return !d||d.job||warDiscipleBusyV286841(e.id)}))return showDiscipleBatchV2866(0,'弟子状态已变化，请重新确认。');
- for(const e of batch.entries){const d=roster.members.find(x=>x.id===e.id);d.job=discipleNewJobV2867(d,e.plan);d.lastMissionV2824={type:e.plan.missionType,tier:e.plan.tier};}
- autoSave();showSectOverviewV2866(`已派遣 ${batch.entries.length} 位弟子。`);
+ const ok=commitMiniWeaveV286840(()=>{for(const e of batch.entries){const d=roster.members.find(x=>x.id===e.id);d.job=discipleNewJobV2867(d,e.plan);d.lastMissionV2824={type:e.plan.missionType,tier:e.plan.tier};}});
+ if(!ok)return showDiscipleBatchV2866(batch.tier,'未能保存，派遣已全部撤回，可重试。');
+ showSectOverviewV2866(`已派遣 ${batch.entries.length} 位弟子。`);
 }
 
 function discipleTraitsV2867(d){let h=0;for(const c of `${player.sect}|${d.name}|${d.batch??d.id}`)h=(Math.imul(h,31)+c.charCodeAt(0))>>>0;const o=d.traitsV2867||{};return {aptitude:[0,1,2].includes(o.aptitude)?o.aptitude:h%3,personality:[0,1,2].includes(o.personality)?o.personality:Math.floor(h/3)%3,loyalty:Number.isFinite(o.loyalty)?Math.max(0,Math.min(100,o.loyalty)):60};}

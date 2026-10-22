@@ -20,6 +20,7 @@ function normalizeRelationshipsV2852(old){
       const memory=relationshipSceneV2852(id,r.memory);n.chats.push({topic:r.topic,stage:r.stage,gain:relationshipIntV2852(r.gain,2),variant:r.stage===3?0:r.variant,tone:r.tone,day:relationshipIntV2852(r.day,1e9),source:r.source==='jev'?'jev':'local',memory:memory&&n.scenes[r.memory]?r.memory:'',warMoment:Number.isInteger(r.warMoment)&&r.warMoment>=0&&r.warMoment<=3?r.warMoment:null});
     }
     n.chatRewardDayV2870=Math.max(Number.isInteger(saved?.chatRewardDayV2870)?Math.min(1e9,Math.max(-1,saved.chatRewardDayV2870)):-1,...n.chats.map(r=>r.day));
+    n.teaDayV2876=Number.isInteger(saved?.teaDayV2876)?Math.min(1e9,Math.max(-1,saved.teaDayV2876)):-1;
     value.npcs[id]=n;
   }
   RELATIONSHIPS_V2852.normalized.add(value);return value;
@@ -64,10 +65,24 @@ function relationshipContextV2852(id){
 }
 function relationshipMountV2852(id,tab,body,extra={}){
   const npc=ROMANCE_NPCS[id],n=relationshipNpcV2852(id),count=Object.keys(n.scenes).length,esc=relationshipEscV2852;
-  const panel=jevModalV2846(npc.name+' · 知己往事',`<div class="rs-head-v2852" style="--rs-accent:${npc.color}"><span class="rs-eyebrow-v2852">知己往事 · ${esc(relationshipContextV2852(id))}</span><p>${esc(RELATIONSHIP_STORIES_V2852.npcs[id].intro)}</p><div class="rs-progress-v2852"><span>已读 ${count} / 6 幕</span><span>好感 ${player.romance.npcs[id].affection}</span></div><progress max="6" value="${count}" aria-label="人物支线进度"></progress><small>相处倾向：${esc(relationshipRouteV2852(id))}</small></div><nav class="rs-tabs-v2852" aria-label="相处栏目">${[['stories','剧情'],['chat','闲谈'],['diary','札记']].map(([key,title])=>`<button aria-pressed="${key===tab}" onclick="showRelationshipsV2852('${id}','${key}')">${title}</button>`).join('')}</nav><div class="rs-content-v2852" id="relationshipBodyV2852">${body}</div><footer class="rs-footer-v2852"><small>文字均为预写内容；Jev 只选择回应态度。离线也能继续。</small><button onclick="closeJevWorldV2846();showRomanceNpc('${id}')">返回人物 · 推进原故事</button></footer>`);
+  const panel=jevModalV2846(npc.name+' · 知己往事',`<div class="rs-head-v2852" style="--rs-accent:${npc.color}"><span class="rs-eyebrow-v2852">知己往事 · ${esc(relationshipContextV2852(id))}</span><p>${esc(RELATIONSHIP_STORIES_V2852.npcs[id].intro)}</p><div class="rs-progress-v2852"><span>已读 ${count} / 6 幕</span><span>好感 ${player.romance.npcs[id].affection}</span></div><progress max="6" value="${count}" aria-label="人物支线进度"></progress><small>相处倾向：${esc(relationshipRouteV2852(id))}</small>${extra.busy?'':`<button class="choice-btn" id="relationshipTeaV2876" onclick="inviteRelationshipTeaV2876('${id}',${JEV_WORLD_V2846.revision+1})" ${relationshipDayV2852()<=n.teaDayV2876||player.gold<50?'disabled':''}>${relationshipDayV2852()<=n.teaDayV2876?'今日已品茗':'邀约品茗 · 50灵石 · 好感最多+4 · 气血灵力回满'}</button><small>每位知己每仙历日一次；遵守剧情好感上限，不替代故事解锁。</small>`}</div><nav class="rs-tabs-v2852" aria-label="相处栏目">${[['stories','剧情'],['chat','闲谈'],['diary','札记']].map(([key,title])=>`<button aria-pressed="${key===tab}" onclick="showRelationshipsV2852('${id}','${key}')">${title}</button>`).join('')}</nav><div class="rs-content-v2852" id="relationshipBodyV2852">${body}</div><footer class="rs-footer-v2852"><small>文字均为预写内容；Jev 只选择回应态度。离线也能继续。</small><button onclick="closeJevWorldV2846();showRomanceNpc('${id}')">返回人物 · 推进原故事</button></footer>`);
   panel.classList.add('relationship-mode-v2852');
   RELATIONSHIPS_V2852.screen={id,tab,panel,rev:JEV_WORLD_V2846.revision,owner:player,busy:false,...extra};
   return RELATIONSHIPS_V2852.screen;
+}
+function inviteRelationshipTeaV2876(id,rev){
+  const screen=RELATIONSHIPS_V2852.screen;
+  const valid=()=>screen&&screen===RELATIONSHIPS_V2852.screen&&screen.id===id&&screen.rev===rev&&screen.owner===player&&!screen.busy&&JEV_WORLD_V2846.panel===screen.panel&&JEV_WORLD_V2846.revision===rev&&relationshipAllowedV2852(id)&&!!document.getElementById('relationshipTeaV2876');
+  if(!valid())return false;
+  const n=relationshipNpcV2852(id),today=relationshipDayV2852();
+  if(today<=n.teaDayV2876||!Number.isFinite(player.gold)||player.gold<50)return false;
+  const r=player.romance.npcs[id],cap=id==='suwanqing'?getSuAffectionCap():100,gain=Math.max(0,Math.min(4,cap-r.affection));
+  const before=JSON.stringify(player),oldNpc=JSON.parse(JSON.stringify(r)),oldDay=n.teaDayV2876,hp=player.hp,mp=player.mp,gold=player.gold;
+  if(!confirm(`与${ROMANCE_NPCS[id].name}品茗？消耗50灵石，好感+${gain}，气血/灵力恢复至${getMaxHp()}/${getMaxMp()}。每位知己每日一次。`)||!valid()||before!==JSON.stringify(player))return false;
+  player.gold-=50;n.teaDayV2876=today;if(gain>0)addAffection(id,gain);player.hp=getMaxHp();player.mp=getMaxMp();
+  let saved=false;try{saved=saveGame();}catch(_){}
+  if(!saved){player.gold=gold;player.hp=hp;player.mp=mp;n.teaDayV2876=oldDay;player.romance.npcs[id]=oldNpc;showFloatingText('品茗未保存，消耗与收益已恢复，可重试','#ff8a80');return false;}
+  updateStats();showRelationshipsV2852(id,screen.tab);showFloatingText(`共饮灵茶 · 好感+${gain} · 气血灵力已恢复`,'#8ff0cf');return true;
 }
 function showRelationshipsV2852(id,tab='stories'){
   if(!relationshipAllowedV2852(id))return;
@@ -160,7 +175,7 @@ async function relationshipChatV2852(id,topic){
   const warning='',esc=relationshipEscV2852;
   relationshipMountV2852(id,'chat',`<span class="rs-eyebrow-v2852">${esc(relationshipContextV2852(id))}</span>${relationshipChatTextV2852(id,record)}<p class="rs-hint-v2852" role="status">${esc(warning||answer.note||'已记入札记。')}</p><button class="rs-primary-v2852" onclick="showRelationshipsV2852('${id}','chat')">再聊一个话题</button><button class="rs-back-v2852" onclick="showRelationshipsV2852('${id}','diary')">翻开相处札记</button>`,{kind:'reply'});
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2852-relationships.js']='28.68.53';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2852-relationships.js']='28.68.54';
 
 function relationshipWarMomentV2865(){
  const story=player.yewujiStoryV2816;

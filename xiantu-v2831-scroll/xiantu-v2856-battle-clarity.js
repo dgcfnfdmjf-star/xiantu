@@ -38,6 +38,22 @@
     }
     return {hp:count(player.hp),maxHp:count(getMaxHp()),mp:count(player.mp),maxMp:count(getMaxMp()),ending,waiting:!ending&&!isPlayerTurn,turn:ending?'本场结算中':isPlayerTurn?'我方可行动':'行动结算中',chips};
   }
+  function tip(text){
+    const tips={
+      '纯阳剑意':'兵刃招式命中积攒剑气，上限3层；满层后由普攻引爆，追加80%攻击力的单体贯穿伤害并清空印记。不是满层立即触发。',
+      '五雷回流':'雷甲仍在持续时，承受攻击回复基础5点灵力，受所在区域恢复倍率及灵力上限限制。',
+      '不动护体':'本场已激活此羁绊时，护体或元素盾有效期间额外减伤10%。',
+      '镇岳霸体':'抵挡下一次命中的伤害，触发后消耗本次霸体。',
+      '寒迟':`当前追击速度降低${Math.round((currentEnemy?._chillV286818||.3)*100)}%，攻击面板降低${Math.round(Math.min(.55,currentEnemy?._chillV286818||.3)*50)}%。持续次数见状态标签，不等同于冻结停手。`,
+      '冰爆破甲':'有效期间敌方防御乘以75%；与灼烧破甲等按原公式叠乘，基础减防合计有50%下限。',
+      '灼烧破甲':'灼烧有效期间敌方防御乘以85%；只有标签显示禁疗时才禁止回生。灼烧伤害和剩余次数另列。',
+      '心火':'有效期间敌方主动出招攻击面板乘以85%，随灼烧持续次数结束。',
+      '封脉':'持续期间禁用敌方术法和回生行动；普通攻击等其他合法行动仍可使用。',
+      '魔典燃源':'夜无疆燃源阶段攻击+10%、防御+25%；第四次主动行动开始时进入道基崩裂。',
+      '道基崩裂':'夜无疆攻击+20%，不能回生；每次主动行动前损失4%最大气血，自损最低保留1点气血，不会自行败亡。'
+    };
+    const key=Object.keys(tips).find(k=>text.includes(k));return key?tips[key]:`当前状态：${text}。数值与剩余次数随战斗更新，展开说明不会消耗行动。`;
+  }
   function installReportLog(){
     const log=D.getElementById('combatLog');
     if(!log||D.getElementById('reportLogV2857'))return;
@@ -77,7 +93,7 @@
     if(!box){box=D.createElement('section');box.id='battleReadoutV2856';box.className='battle-readout-v2856';box.setAttribute('aria-label','战斗行动与持续状态');panel.insertBefore(box,arena);}
     box.hidden=false;
     compactUi(data,panel,arena);
-    const markup=`<div class="battle-vitals-v2865"><span class="hp">气血 <b>${data.hp} / ${data.maxHp}</b></span><span class="mp">灵力 <b>${data.mp} / ${data.maxMp}</b></span></div><div class="battle-readout-head-v2856"><strong>${esc(data.turn)}</strong><span>${data.ending?'奖励按战斗结果结算':data.waiting?'等待本次行动完成':'选择攻击、招式或补给'}</span></div>${data.chips.length?`<div class="battle-chip-list-v2856">${data.chips.map(c=>`<span class="battle-chip-v2856 ${c.side}">${esc(c.text)}</span>`).join('')}</div>`:''}`;
+    const markup=`<div class="battle-vitals-v2865"><span class="hp">气血 <b>${data.hp} / ${data.maxHp}</b></span><span class="mp">灵力 <b>${data.mp} / ${data.maxMp}</b></span></div><div class="battle-readout-head-v2856"><strong>${esc(data.turn)}</strong><span>${data.ending?'奖励按战斗结果结算':data.waiting?'等待本次行动完成':'选择攻击、招式或补给'}</span></div>${data.chips.length?`<div class="battle-chip-list-v2856">${data.chips.map(c=>`<details class="battle-chip-v2856 ${c.side}"><summary>${esc(c.text)}</summary><p>${esc(tip(c.text))}</p></details>`).join('')}</div>`:''}`;
     if(box._markupV2856!==markup){box.innerHTML=markup;box._markupV2856=markup;}
     box.classList.toggle('waiting',data.waiting);
     // Lock stale attack buttons during an in-flight action. Reading tabs stays available.
@@ -94,7 +110,7 @@
   }
   const logBase=W.addCombatLog;if(typeof logBase==='function')W.addCombatLog=function(...args){const result=logBase.apply(this,args);syncRecentLog();return result;};
   W.addEventListener('xiantu:combat-finishing',sync);
-  W.BattleClarityV2856={read,sync};
+  W.BattleClarityV2856={read,sync,tip};
 })(window,document);
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2856-battle-clarity.js']='28.68.53';
+window.__xiantuBuildFilesV2814['xiantu-v2856-battle-clarity.js']='28.68.54';
