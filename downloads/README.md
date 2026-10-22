@@ -1,8 +1,8 @@
 # 腾讯云部署下载
 
-当前包：**仙途 V28.68.51**，包含截至 main 合并请求 #9 的全部源码优化：存档恢复、灵宠契约与赐名、材料凝练、三套配装、可选野外辅助、战役续行恢复与游历调查引导，以及此前技能特效和批量养成。
+当前包：**仙途 V28.68.52**，包含合并请求 #11、#12 的秘境境界奖励、宗门批量领取、军功材料礼包、循环奇遇、每日闲谈、秘境额外宝藏、宗主身份修复与专属经营，以及此前全部优化。
 
-[下载 V28.68.51 xiantu-v2831-scroll.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/main/downloads/xiantu-v2831-scroll.zip)
+[下载 V28.68.52 xiantu-v2831-scroll.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/main/downloads/xiantu-v2831-scroll.zip)
 
 如果仓库为私有，请先登录有权限的 GitHub 账号。也可以打开本目录中的 ZIP 文件，点击下载原始文件按钮。
 
@@ -12,7 +12,7 @@
 2. 下载并解压 `xiantu-v2831-scroll.zip`，得到同名文件夹，里面直接包含 `index.html`、`game-v2762.html`、脚本、样式与 `art` 资源目录。
 3. 打开 [CloudBase 控制台](https://console.cloud.tencent.com/tcb)，选择原游戏环境，进入「静态网站托管 → 文件管理」。
 4. 在托管根目录上传整个 `xiantu-v2831-scroll` 文件夹并覆盖同名文件；如果已经进入云端同名目录，就上传本地文件夹里面的内容，避免套两层目录。上传实际文件，不要只上传 ZIP。
-5. 等待所有文件完成后，打开原 `/xiantu-v2831-scroll/` 游戏网址，Ctrl+F5 刷新。角色设置中的版本应为 **V28.68.51**；法宝出现一键强化，百艺工坊兽丹卡片出现 ×1／×5／全部。
+5. 等待所有文件完成后，打开原 `/xiantu-v2831-scroll/` 游戏网址，Ctrl+F5 刷新。角色设置中的版本应为 **V28.68.52**；法宝出现一键强化，百艺工坊兽丹卡片出现 ×1／×5／全部。
 
 部署层级：
 

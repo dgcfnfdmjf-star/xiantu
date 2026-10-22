@@ -120,4 +120,4 @@ window.addEventListener('xiantu:combat-finishing',()=>{
   const pending=JEV_WORLD_V2846.pending;if(pending){pending.cancel();pending.controller?.abort();}
 });
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2849-npc-jev.js']='28.68.51';
+window.__xiantuBuildFilesV2814['xiantu-v2849-npc-jev.js']='28.68.52';
