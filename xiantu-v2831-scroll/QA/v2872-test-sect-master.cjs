@@ -19,3 +19,22 @@ fresh();run('showSectMasterV2872();globalThis.oldToken=sectMasterViewV2872.token
 fresh();f.c.confirm=()=>{run('sectMembersReadV2868()[0].job={type:"train",end:30}');return true};a.equal(act('lesson'),false);a.equal(run('player.sectContribution'),500);
 fresh();run('player.sectPromotion.inherited=false;player.sectTotalContribution=0;showSectHall()');a(!f.ids.get('storyText').innerHTML.includes('宗主传承考核'));a(!f.ids.get('storyText').innerHTML.includes('undefined'));
 console.log('PASS scoped legacy promotion, shared gates, all placeholders, rank-only council, costs/cap, idle-only training, shared persisted cooldown, stale/blocked/cancel/quota rollback');
+// Imported legacy values and save-derived hall text must not become executable markup.
+fresh();
+for(const value of [Infinity,-Infinity,NaN,-1,'Infinity','invalid',undefined]){
+ f.c.badContribution=value;
+ run('player.sectContribution=badContribution;player.sectTotalContribution=badContribution;player=normalizePlayer(player)');
+ a.equal(run('player.sectContribution'),0);a.equal(run('player.sectTotalContribution'),0);
+}
+fresh();run("player.sectContribution='12.5';player.sectTotalContribution='1200';player=normalizePlayer(player)");a.equal(run('player.sectContribution'),12.5);a.equal(run('player.sectTotalContribution'),1200);
+fresh();run("player.warState.lastNotice={text:'<b>notice</b>',result:'战胜'};player.warState.alliedSects=['<b>ally</b>'];player.warState.immortalSupport=true;player.warState.immortalAlly='<b>immortal</b>';delete player.sectContribution;showSectHall()");
+const hall=f.ids.get('storyText').innerHTML;
+for(const word of ['notice','ally','immortal']){a(!hall.includes(`<b>${word}</b>`));a(hall.includes(`&lt;b&gt;${word}&lt;/b&gt;`));}
+a(!hall.includes('undefined'));
+console.log('PASS finite legacy contributions and escaped hall notices/allies/support');
+for(const level of [3,4])for(const total of [999,1000])for(const tasks of [4,5])for(const inherited of [false,true]){
+ fresh();run(`player.level=${level};player.sectTotalContribution=${total};player.sectPromotion.tasksCompleted=${tasks};player.sectPromotion.inherited=${inherited}`);
+ a.equal(run('sectMasterRequirementsV2872().ready'),level>=4&&total>=1000&&tasks>=5&&!inherited);
+}
+fresh();a.equal(act('repair'),true);run('player.worldTime.totalDays=5');a.equal(act('repair'),false);a.equal(run('player.sectMasterV2872.nextDay'),40);run('player.worldTime.totalDays=39');a.equal(act('repair'),false);run('player.worldTime.totalDays=40');a.equal(act('repair'),true);
+console.log('PASS succession threshold matrix and backwards clock does not reset governance cooldown');

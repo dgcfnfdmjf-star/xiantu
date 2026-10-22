@@ -27,7 +27,11 @@ normalizePlayer=function(saved={}){
  const p=normalizePlayerBeforeV2768(saved);
  p.sectPromotion=normalizePromotionV2768(saved.sectPromotion,p.sect);
  p.sectMasterV2872=normalizeSectMasterV2872(saved.sectMasterV2872,p.sect);
+ if(typeof normalizeSectAdminV2873==='function')p.sectAdminV2873=normalizeSectAdminV2873(saved.sectAdminV2873,p.sect);
+ if(typeof normalizeRivalChronicleV2874==='function')p.rivalChronicleV2874=normalizeRivalChronicleV2874(saved.rivalChronicleV2874);
+ p.companionWinDayV2875=Number.isInteger(saved.companionWinDayV2875)?Math.min(1e9,Math.max(-1,saved.companionWinDayV2875)):-1;
  p.buildingReadyDaysV2768=normalizeBuildingUseV2768(saved.buildingReadyDaysV2768);
+ for(const key of ['sectContribution','sectTotalContribution']){const value=Number(p[key]);p[key]=Number.isFinite(value)&&value>=0?value:0;}
  p.sectRank=getRankInfoForContribution(p.sectTotalContribution,p).name;
  return p;
 };
@@ -185,4 +189,4 @@ function restoreBackupV2768(){
  }catch(e){alert(`恢复失败：${e.message}`);}
 }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2768-systems.js"]="28.68.52";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2768-systems.js"]="28.68.53";
