@@ -56,7 +56,7 @@ let sectQuickContextV2870=null,sectQuickSerialV2870=0;
 function sectQuickHtmlV2870(){
  const token=++sectQuickSerialV2870;sectQuickContextV2870={token,owner:player,sect:player.sect};
  const t=sectTodoReadV2868(),trip=tripYieldV286821().units>0,count=t.jobs.length+t.thanks.length+Number(trip);
- return `${t.trails.length?`<button class="choice-btn" id="sectDispatchV2875" onclick="claimAllSectTodoV2870(${token},true)">领取并派遣已就绪寻踪（需确认）</button>`:''}${count?`<button class="choice-btn" onclick="claimAllSectTodoV2870(${token})">一键领取成果与答谢 · ${count}项${trip?'（含游历，领取后结束本趟）':''}</button>`:''}${t.trails.length?`<button class="choice-btn" onclick="startAllSectTrailsV2870(${token})">派遣古洞寻踪 · ${t.trails.length}人（需确认）</button>`:''}`;
+ return `${discipleAllowedV2815()&&sectMembersReadV2868().some(d=>!d.job&&!warDiscipleBusyV286841(d.id))?'<button class="choice-btn" onclick="showDiscipleBatchV2866(2)">按专长派遣空闲弟子 · 预览最高档</button>':''}${t.trails.length?`<button class="choice-btn" id="sectDispatchV2875" onclick="claimAllSectTodoV2870(${token},true)">领取并派遣已就绪寻踪（需确认）</button>`:''}${count?`<button class="choice-btn" onclick="claimAllSectTodoV2870(${token})">一键领取成果与答谢 · ${count}项${trip?'（含游历，领取后结束本趟）':''}</button>`:''}${t.trails.length?`<button class="choice-btn" onclick="startAllSectTrailsV2870(${token})">派遣古洞寻踪 · ${t.trails.length}人（需确认）</button>`:''}`;
 }
 function sectQuickValidV2870(token){return token==null||(sectQuickContextV2870?.token===token&&sectQuickContextV2870.owner===player&&sectQuickContextV2870.sect===player.sect&&!document.getElementById('storyPanel')?.classList.contains('hidden'));}
 function claimAllSectTodoV2870(token,dispatch=false){
@@ -96,7 +96,7 @@ function startAllSectTrailsV2870(token){
 }
 function drawSectTodoV2868(ctx,o){if(!sectTodoCacheV2868.total||!player?.sect)return;const own=(o.action==='faction_gate_v2806'&&o.factionName===player.sect)||(player.sect==='凌霄宗'&&(o.action==='sect'||o.buildingId==='main_hall'));if(!own)return;ctx.save();ctx.fillStyle='#263d31';ctx.fillRect(-42,-o.r-22,84,22);ctx.fillStyle='#f1d89b';ctx.font='12px Microsoft YaHei';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(`待办 ${sectTodoCacheV2868.total}`,0,-o.r-11);ctx.restore();}
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.53';
+window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.54';
 
 
 // V28.68.40: saved random encounters and run-scoped blessings.

@@ -117,4 +117,4 @@ window.drawCharacter=function(canvas,type,level,isEnemy=false){
   }
   return drawCharacterBeforeV2853.apply(this,arguments);
 };
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2853-monster-art.js']='28.68.53';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2853-monster-art.js']='28.68.54';
