@@ -9436,13 +9436,13 @@
     }
 
     function formatSectTaskDesc(template) {
-      return String(template?.desc || '').replace('{count}', getSectTaskCount(template));
+      return String(template?.desc || '').replaceAll('{count}', getSectTaskCount(template));
     }
 
     function getRankInfoForContribution(totalContribution=0, owner=player) {
       let rank = SECT_RANKS[0];
       for (const r of SECT_RANKS) {
-        if (totalContribution >= r.contributionRequired && (r.name!=='宗主'||owner?.sectPromotion?.inherited===true)) rank = r;
+        if (totalContribution >= r.contributionRequired && (r.name!=='宗主'||normalizePromotionV2768(owner?.sectPromotion,owner?.sect).inherited===true)) rank = r;
       }
       return rank;
     }
@@ -9574,7 +9574,7 @@
     function completeSectTask(task, options={}) {
       if(!task||task._rewardClaimedV2768)return;
       task._rewardClaimedV2768=true;
-      player.sectPromotion=normalizePromotionV2768(player.sectPromotion);
+      player.sectPromotion=normalizePromotionV2768(player.sectPromotion,player.sect);
       player.sectPromotion.tasksCompleted++;
       const template = task.template;
       const beforeRank = getCurrentRankInfo().name;
@@ -9939,7 +9939,7 @@
       if(!sectCanManageV2866())return;
       const rankInfo = getCurrentRankInfo();
       const nextRank = SECT_RANKS.find(r => r.contributionRequired > (player.sectTotalContribution || 0));
-      const nextReq = getCurrentRankInfo().name==='长老' ? '宗主传承：元婴境、累计贡献1000、完成5次宗门委托' : (nextRank ? `晋升 ${nextRank.name} 需累计贡献 ${nextRank.contributionRequired}` : '已达最高职位');
+      const nextReq = getCurrentRankInfo().name==='长老' ? '宗主传承：'+sectMasterRequirementTextV2872() : (nextRank ? `晋升 ${nextRank.name} 需累计贡献 ${nextRank.contributionRequired}` : '已达最高职位');
       const pendingTasks = player.sectTasks.filter(t => !t.completed).length;
       const warStatus=player.warState?.status || WAR_STATUS.PEACE;
       const cooldown=Math.max(0,Math.floor(player.warState?.warCooldown||0));
@@ -9951,7 +9951,7 @@
           <p>🧑‍🎓 职位：<b style="color:#ffd700">${rankInfo.icon} ${rankInfo.name}</b></p>
           <p>💠 可用贡献：<b>${player.sectContribution}</b>　📈 累计贡献：<b>${player.sectTotalContribution || 0}</b></p>
           <p>🏯 宗门繁荣度：<b>${player.sectData?.prosperity || 20}</b></p>
-          <p style="color:#aaa;font-size:12px">${rankInfo.desc}</p>
+          <p style="color:#aaa;font-size:12px">${rankInfo.desc||'积累贡献，参与宗门事务。'}</p>
           <p style="color:#aaa;font-size:12px">${nextReq}</p>
         </div>`;
       const warLevelInfo=getWarLevelInfo();
@@ -9983,7 +9983,8 @@
       ];
       html='<button class="choice-btn" onclick="showSectOverviewV2866()">宗门总览 · 待办与晋升</button>'+html;
       html+=jevEntryV2846('jevSectV2846()','Jev 宗门经营参议');
-      html+='<button class="choice-btn" onclick="showSectPromotionV2768()">👑 宗主传承考核</button>';
+      if(hasRank('宗主'))html+='<button class="choice-btn" onclick="showSectMasterV2872()">👑 宗主议事 · 整饬与授业</button>';
+      else if(hasRank('长老'))html+='<button class="choice-btn" onclick="showSectPromotionV2768()">👑 宗主传承考核</button>';
       showStory(html, choices);
     }
 
@@ -14537,7 +14538,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.51";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.52";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
@@ -14639,9 +14640,9 @@ function drawMapNpcStatusV2864(ctx,o){
 function sectCanManageV2866(){return !!player?.sect&&player.sect!=='散修'&&!isFactionDestroyed(player.sect)&&gameState==='exploring'&&!COMBAT_FINISH_V2764.settling&&!player.breakthrough?.isAnimating;}
 function sectPromotionViewV2866(){
  const total=Math.max(0,player.sectTotalContribution||0),rank=getCurrentRankInfo(),index=SECT_RANKS.indexOf(rank),next=SECT_RANKS[index+1];
- if(!next)return '<p>已执掌宗门，可安排弟子与山门军务。</p>';
- const count=normalizePromotionV2768(player.sectPromotion).tasksCompleted;
- return `<h4>下一职位 · ${next.name}</h4><progress max="${next.contributionRequired}" value="${Math.min(total,next.contributionRequired)}"></progress><p>累计贡献 ${total} / ${next.contributionRequired}${total<next.contributionRequired?` · 还差 ${next.contributionRequired-total}`:' · 已达标'}</p>${next.name==='宗主'?`<p>${player.level>=4?'✓':'○'} 元婴境　${count>=5?'✓':'○'} 完成委托 ${count} / 5</p><button class="choice-btn" onclick="showSectPromotionV2768()">查看传承考核</button>`:'<p>贡献达标自动晋升；商店消费不会降低累计贡献。</p>'}`;
+ if(!next)return '<p>已执掌宗门，可整饬山门、亲授门人。</p><button class="choice-btn" onclick="showSectMasterV2872()">宗主议事</button>';
+ const gate=sectMasterRequirementsV2872(),count=gate.promotion.tasksCompleted;
+ return `<h4>下一职位 · ${next.name}</h4><progress max="${next.contributionRequired}" value="${Math.min(total,next.contributionRequired)}"></progress><p>累计贡献 ${total} / ${next.contributionRequired}${total<next.contributionRequired?` · 还差 ${next.contributionRequired-total}`:' · 已达标'}</p>${next.name==='宗主'?`<p>${gate.realm?'✓':'○'} ${CULTIVATION_REALMS[gate.rules.realm].name}境　${gate.tasks?'✓':'○'} 完成委托 ${count} / ${gate.rules.tasks}</p><button class="choice-btn" onclick="showSectPromotionV2768()">查看传承考核</button>`:'<p>贡献达标自动晋升；商店消费不会降低累计贡献。</p>'}`;
 }
 function showSectOverviewV2866(notice=''){
  if(!sectCanManageV2866())return;

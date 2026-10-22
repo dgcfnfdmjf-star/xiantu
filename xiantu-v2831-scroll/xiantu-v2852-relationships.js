@@ -17,8 +17,9 @@ function normalizeRelationshipsV2852(old){
     for(const topic of Object.keys(data.chats))n.counts[topic]=relationshipIntV2852(saved?.counts?.[topic]);
     if(Array.isArray(saved?.chats))for(const r of saved.chats.slice(-12)){
       if(!r||!Object.hasOwn(data.chats,r.topic)||!Number.isInteger(r.stage)||r.stage<0||r.stage>3||!Number.isInteger(r.variant)||r.variant<0||r.variant>1||!Number.isInteger(r.tone)||r.tone<0||r.tone>2)continue;
-      const memory=relationshipSceneV2852(id,r.memory);n.chats.push({topic:r.topic,stage:r.stage,variant:r.stage===3?0:r.variant,tone:r.tone,day:relationshipIntV2852(r.day,1e9),source:r.source==='jev'?'jev':'local',memory:memory&&n.scenes[r.memory]?r.memory:'',warMoment:Number.isInteger(r.warMoment)&&r.warMoment>=0&&r.warMoment<=3?r.warMoment:null});
+      const memory=relationshipSceneV2852(id,r.memory);n.chats.push({topic:r.topic,stage:r.stage,gain:relationshipIntV2852(r.gain,2),variant:r.stage===3?0:r.variant,tone:r.tone,day:relationshipIntV2852(r.day,1e9),source:r.source==='jev'?'jev':'local',memory:memory&&n.scenes[r.memory]?r.memory:'',warMoment:Number.isInteger(r.warMoment)&&r.warMoment>=0&&r.warMoment<=3?r.warMoment:null});
     }
+    n.chatRewardDayV2870=Math.max(Number.isInteger(saved?.chatRewardDayV2870)?Math.min(1e9,Math.max(-1,saved.chatRewardDayV2870)):-1,...n.chats.map(r=>r.day));
     value.npcs[id]=n;
   }
   RELATIONSHIPS_V2852.normalized.add(value);return value;
@@ -74,7 +75,7 @@ function showRelationshipsV2852(id,tab='stories'){
   const data=RELATIONSHIP_STORIES_V2852.npcs[id],n=relationshipNpcV2852(id),esc=relationshipEscV2852;
   let body='';
   if(tab==='stories')body='<p class="rs-hint-v2852">每幕选一次，前一幕的选择会留到后一幕。完成一幕最多增加 2 点好感；重读不再奖励，不代替原人物主线。</p>'+data.arcs.map((arc,i)=>`<article class="rs-arc-v2852"><span class="rs-eyebrow-v2852">短篇 ${['壹','贰','叁'][i]}</span><h3>${esc(arc.title)}</h3><p>${esc(arc.desc)}</p>${arc.scenes.map((s,j)=>{const r=n.scenes[s.id],lock=relationshipLockV2852(id,s.id);return `<button class="rs-chapter-v2852" ${!r&&lock.length?'disabled':''} onclick="showRelationshipSceneV2852('${id}','${s.id}')"><span>${r?'已读':lock.length?'待解锁':'可游玩'} · 第${j+1}幕 ${esc(s.title)}</span><small>${r?'查看当时的选择与回应':lock.length?esc(lock.join('；')):'三种选择 · 继续你们的故事'}</small></button>`;}).join('')}</article>`).join('');
-  if(tab==='chat')body=`<p class="rs-hint-v2852">选一个话题，她会按你们当前的关系回应。同一阶段的闲谈轮换出现，不增加好感，也不会代替主线事件。</p><div class="rs-topic-grid-v2852">${Object.entries(RELATIONSHIP_STORIES_V2852.topics).map(([key,title])=>`<button onclick="relationshipChatV2852('${id}','${key}')">${title}<small>${{care:'聊聊今日',cultivation:'交换心得',journey:'谈谈远方',memory:'听一段旧事',bond:'说清心意',war:'烽火与平安'}[key]}</small></button>`).join('')}</div><p class="rs-hint-v2852">有些心里话会随原故事和好感解锁。札记保留最近 12 次闲谈，三位角色分别记忆。</p>`;
+  if(tab==='chat')body=`<p class="rs-hint-v2852">选一个话题，她会按你们当前的关系回应。同一阶段的闲谈轮换出现，每位人物每个仙历日首次闲谈最多增加2点好感，遵守原剧情上限，不代替主线事件。</p><div class="rs-topic-grid-v2852">${Object.entries(RELATIONSHIP_STORIES_V2852.topics).map(([key,title])=>`<button onclick="relationshipChatV2852('${id}','${key}')">${title}<small>${{care:'聊聊今日',cultivation:'交换心得',journey:'谈谈远方',memory:'听一段旧事',bond:'说清心意',war:'烽火与平安'}[key]}</small></button>`).join('')}</div><p class="rs-hint-v2852">有些心里话会随原故事和好感解锁。札记保留最近 12 次闲谈，三位角色分别记忆。</p>`;
   if(tab==='diary'){
     const records=data.arcs.flatMap(arc=>arc.scenes.filter(s=>n.scenes[s.id]).map(s=>{const r=n.scenes[s.id];return `<button class="rs-chapter-v2852" onclick="showRelationshipSceneV2852('${id}','${s.id}')"><span>${esc(s.title)}</span><small>${esc(s.choices[r.choice].label)} · ${relationshipDayLabelV2852(r.day)}</small></button>`;}));
     body='<h3>共同往事</h3>'+(records.join('')||'<p>还没有写下共同往事。从第一幕开始，让选择留在这里。</p>')+'<h3>最近闲谈</h3>'+n.chats.slice().reverse().map(r=>relationshipChatTextV2852(id,r,true)).join('');
@@ -137,7 +138,7 @@ function relationshipChatTextV2852(id,r,archived=false){
   const d=RELATIONSHIP_STORIES_V2852.npcs[id].chats[r.topic],line=r.stage===3?d.partner:d.stages[r.stage][r.variant],esc=relationshipEscV2852;
   const item=r.memory&&relationshipSceneV2852(id,r.memory),memory=item&&relationshipNpcV2852(id).scenes[r.memory];
   const tone=['她想了片刻，斟酌着开口。','她听你说完，接着谈起这个话题。','她的神色柔和下来，将话说得慢了些。'][r.tone];
-  return `<article class="rs-answer-v2852"><small>${esc(RELATIONSHIP_STORIES_V2852.topics[r.topic])} · ${relationshipDayLabelV2852(r.day)}${archived?' · 当时的关系':''}</small><p>${tone}</p><blockquote>${esc(line)}</blockquote>${r.topic==='war'&&Number.isInteger(r.warMoment)&&r.warMoment>=0&&r.warMoment<=3?`<p>${esc(RELATIONSHIP_WAR_V2865[id][r.warMoment])}</p>`:''}${memory?`<aside class="rs-memory-v2852">你想起「${esc(item.scene.title)}」那天，自己曾选择${esc(item.scene.choices[memory.choice].label)}。</aside>`:''}<small>${r.source==='jev'?'Jev 选择回应态度':'本地选择回应态度'} · 预写闲谈 · 不增加好感</small></article>`;
+  return `<article class="rs-answer-v2852"><small>${esc(RELATIONSHIP_STORIES_V2852.topics[r.topic])} · ${relationshipDayLabelV2852(r.day)}${archived?' · 当时的关系':''}</small><p>${tone}</p><blockquote>${esc(line)}</blockquote>${r.topic==='war'&&Number.isInteger(r.warMoment)&&r.warMoment>=0&&r.warMoment<=3?`<p>${esc(RELATIONSHIP_WAR_V2865[id][r.warMoment])}</p>`:''}${memory?`<aside class="rs-memory-v2852">你想起「${esc(item.scene.title)}」那天，自己曾选择${esc(item.scene.choices[memory.choice].label)}。</aside>`:''}<small>${r.source==='jev'?'Jev 选择回应态度':'本地选择回应态度'} · 预写闲谈 · 本次好感 +${r.gain||0}</small></article>`;
 }
 async function relationshipChatV2852(id,topic){
   if(!relationshipAllowedV2852(id)||!Object.hasOwn(RELATIONSHIP_STORIES_V2852.topics,topic))return;
@@ -146,11 +147,20 @@ async function relationshipChatV2852(id,topic){
   const signature=relationshipFingerprintV2852(id),fresh=()=>relationshipFreshV2852(screen,signature);
   const answer=await relationshipAnswerV2852(id,screen,fresh);if(!fresh())return relationshipInvalidatedV2852(screen);
   const n=relationshipNpcV2852(id),stage=relationshipStageV2852(id),hash=relationshipHashV2852(relationshipsStateV2852().seed+id+topic+stage),record={topic,stage,tone:answer.tone,source:answer.source,day:relationshipDayV2852(),variant:stage===3?0:(hash+n.counts[topic])%2,memory:relationshipMemoryV2852(id),warMoment:topic==='war'?relationshipWarMomentV2865():null};
+  const before=JSON.parse(JSON.stringify(n)),romanceBefore=JSON.parse(JSON.stringify(player.romance.npcs[id]));
+  record.gain=0;
+  if(record.day>(n.chatRewardDayV2870??-1)){
+    n.chatRewardDayV2870=record.day;
+    const cap=id==='suwanqing'?getSuAffectionCap():100;
+    if(player.romance.npcs[id].affection<cap)record.gain=Math.max(0,addAffection(id,2));
+  }
   n.counts[topic]=(n.counts[topic]+1)%1000000;n.chats.push(record);if(n.chats.length>12)n.chats.splice(0,n.chats.length-12);
-  const warning=relationshipSaveV2852(),esc=relationshipEscV2852;
+  let saved=false;try{saved=saveGame();}catch(_){}
+  if(!saved){relationshipsStateV2852().npcs[id]=before;player.romance.npcs[id]=romanceBefore;showRelationshipsV2852(id,'chat');showFloatingText('闲谈未保存，好感与札记已恢复，可重试','#ff8a80');return;}
+  const warning='',esc=relationshipEscV2852;
   relationshipMountV2852(id,'chat',`<span class="rs-eyebrow-v2852">${esc(relationshipContextV2852(id))}</span>${relationshipChatTextV2852(id,record)}<p class="rs-hint-v2852" role="status">${esc(warning||answer.note||'已记入札记。')}</p><button class="rs-primary-v2852" onclick="showRelationshipsV2852('${id}','chat')">再聊一个话题</button><button class="rs-back-v2852" onclick="showRelationshipsV2852('${id}','diary')">翻开相处札记</button>`,{kind:'reply'});
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2852-relationships.js']='28.68.51';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2852-relationships.js']='28.68.52';
 
 function relationshipWarMomentV2865(){
  const story=player.yewujiStoryV2816;

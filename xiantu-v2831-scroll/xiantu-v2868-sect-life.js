@@ -34,7 +34,7 @@ function sectTodoReadV2868(){
  if(!player?.sect||player.sect==='散修'||isFactionDestroyed(player.sect))return empty;
  if(hasRank('长老'))for(const d of sectMembersReadV2868()){if(discipleEventReadyV2867(d))empty.mails.push(d.id);if(discipleReadyV2821(d))empty.jobs.push(d.id);const life=lifeReadV2868(d);if(life.thanks?.state==='waiting'&&life.thanks.due<=discipleDayV2815())empty.thanks.push(d.id);if(life.trail?.state==='ready'&&!d.job&&!warDiscipleBusyV286841(d.id))empty.trails.push(d.id);}
  for(const [i,t] of (player.sectTasks||[]).entries())if(!t.completed&&t.template?.type!=='combat'&&getSectTaskProgressInfo(t).ready)empty.tasks.push(i);
- const promotion=normalizePromotionV2768(player.sectPromotion);empty.promotion=!promotion.inherited&&player.level>=4&&(player.sectTotalContribution||0)>=1000&&promotion.tasksCompleted>=5;
+ empty.promotion=sectMasterRequirementsV2872().ready;
  empty.total=empty.mails.length+empty.jobs.length+empty.thanks.length+empty.trails.length+empty.tasks.length+Number(empty.promotion);return empty;
 }
 let sectTodoCacheV2868={total:0};
@@ -92,7 +92,7 @@ function startAllSectTrailsV2870(token){
 }
 function drawSectTodoV2868(ctx,o){if(!sectTodoCacheV2868.total||!player?.sect)return;const own=(o.action==='faction_gate_v2806'&&o.factionName===player.sect)||(player.sect==='凌霄宗'&&(o.action==='sect'||o.buildingId==='main_hall'));if(!own)return;ctx.save();ctx.fillStyle='#263d31';ctx.fillRect(-42,-o.r-22,84,22);ctx.fillStyle='#f1d89b';ctx.font='12px Microsoft YaHei';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(`待办 ${sectTodoCacheV2868.total}`,0,-o.r-11);ctx.restore();}
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.51';
+window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.52';
 
 
 // V28.68.40: saved random encounters and run-scoped blessings.
@@ -112,7 +112,7 @@ const MINI_EVENTS_V286840=[
 ];
 function createMiniWeaveV286840(){
  const shuffled=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
- return {rewardRealmV2870:Math.max(0,Math.min(16,Math.floor(Number(player.level)||0))),events:shuffled([0,1,2,3]).slice(0,2),offers:[shuffled([0,1,2,3,4,5]).slice(0,3),shuffled([0,1,2,3,4,5]).slice(0,3)],boons:[],pending:false};
+ return {rewardRealmV2870:Math.max(0,Math.min(16,Math.floor(Number(player.level)||0))),events:shuffled([0,1,2,3]).slice(0,2),offers:[shuffled([0,1,2,3,4,5]).slice(0,3),shuffled([0,1,2,3,4,5]).slice(0,3)],boons:[],pending:false,treasureV2871:Math.floor(Math.random()*4)};
 }
 function miniWeaveV286840(c){
  const w=c?.weaveV286840;
@@ -124,7 +124,7 @@ function miniBoonV286840(key){
  if(gameState!=='combat'||!w||c.step!==3||currentEnemy?._miniRunV2778!==c.id)return 0;
  return w.boons.reduce((sum,id)=>sum+(MINI_BOONS_V286840[id].key===key?MINI_BOONS_V286840[id].value:0),0);
 }
-function miniWeaveTextV286840(c){const w=miniWeaveV286840(c);return w?`<p>万象迷阵 · 药径与幻境 → 三选一祝福 → 守关</p><p>入场奖励倍率 ×${miniRewardV2870(c,'safe').scale}（含悟道修为）${Number.isInteger(w.rewardRealmV2870)?'；守关通关另获路线御兽材料':'；本局沿用原奖励'}。</p><p>本局祝福：${w.boons.map(i=>MINI_BOONS_V286840[i].name).join('、')||'尚未选择'}。仅在本次守关战生效，离境后消散。</p>`:'';}
+function miniWeaveTextV286840(c){const w=miniWeaveV286840(c);return w?`<p>万象迷阵 · 药径与幻境 → 三选一祝福 → 守关</p><p>入场奖励倍率 ×${miniRewardV2870(c,'safe').scale}（含悟道修为）${Number.isInteger(w.rewardRealmV2870)?'；守关通关另获路线御兽材料':'；本局沿用原奖励'}。</p><p>本局祝福：${w.boons.map(i=>MINI_BOONS_V286840[i].name).join('、')||'尚未选择'}。仅在本次守关战生效，离境后消散。</p>${miniTreasureV2871(c)?`<p>守关额外珍材：妖丹 / 星辰砂 / 血玉 / 冰晶石中一种×${c.routeV2867===2?2:1}，另获${c.routeV2867===2?'变异灵晶':'兽魂晶'}×1；安全离境和提前撤离不发。</p>`:''}`:'';}
 let miniWeaveBusyV286840=false;
 function commitMiniWeaveV286840(change){
  if(miniWeaveBusyV286840||!sectCanManageV2866())return false;
@@ -159,12 +159,18 @@ function miniRewardV2870(c,kind){
  const scale=modern?MINI_REALM_SCALE_V2870[w.rewardRealmV2870]:1,first=kind==='clear'&&!player.sectData.miniFirstV2778,route=miniRouteV2867(c);
  return {scale,first,modern,gold:Math.floor((kind==='clear'?450:kind==='safe'?240:0)*route.reward*scale)+(first?Math.floor(300*scale):0),exp:Math.floor(((kind==='clear'?320:kind==='safe'?180:0)*route.reward+c.insight)*scale),pet:modern&&kind==='clear'?['普通血脉精元','变异灵晶','优质血脉精元'][c.routeV2867]:null};
 }
+const MINI_TREASURES_V2871=['妖丹','星辰砂','血玉','冰晶石'];
+function miniTreasureV2871(c){
+ const w=miniWeaveV286840(c),index=w?.treasureV2871;
+ if(!Number.isInteger(w?.rewardRealmV2870)||w.rewardRealmV2870<0||w.rewardRealmV2870>16||!Number.isInteger(index)||index<0||index>=MINI_TREASURES_V2871.length||![0,1,2].includes(c.routeV2867))return null;
+ return {material:MINI_TREASURES_V2871[index],count:c.routeV2867===2?2:1,pet:c.routeV2867===2?'变异灵晶':'兽魂晶'};
+}
 function finishMiniWeaveV286840(kind){
  const c=miniRunV2778(),w=miniWeaveV286840(c);if(!w)return false;
  if(!sectCanManageV2866()||!['safe','clear','leave'].includes(kind)||(kind==='safe'&&(c.step!==2||w.pending))||(kind==='clear'&&c.step!==4)||(kind==='leave'&&c.step>=4))return true;
- const {first,scale,modern,gold,exp,pet}=miniRewardV2870(c,kind);
- const ok=commitMiniWeaveV286840(()=>{player.sectData.miniRealmV2778=null;if(first){player.sectData.miniFirstV2778=true;player.inventory.push(...(modern?['大还丹','聚灵丹']:['小还丹','小还丹']))}if(pet){player.petMaterials ||= {};player.petMaterials[pet]=(player.petMaterials[pet]||0)+1;}player.gold+=gold;player.exp+=exp;player.materials['灵草']=(player.materials['灵草']||0)+c.herbs;player.materials['仙果']=(player.materials['仙果']||0)+c.fruit;if(c.herbs)onCollectMaterial?.('灵草',c.herbs);if(c.fruit)onCollectMaterial?.('仙果',c.fruit);});
- if(ok){checkLevelUp();updateStats();showStory(`<h3>万象迷阵 · 离境结算（入场境界 ×${scale}）</h3><p>灵石+${gold} · 修为+${exp}</p><p>灵草×${c.herbs} · 仙果×${c.fruit}</p>${pet?`<p>守关秘宝：${pet}×1。</p>`:''}${first?`<p>已含首通${Math.floor(300*scale)}灵石，另获${modern?'大还丹×1、聚灵丹×1':'小还丹×2'}。</p>`:''}<p>本局祝福已消散。材料与结算记录已保存。</p>`,[{text:'返回秘境',action:'mini_realm_v2778'},{text:'返回宗门',action:'sect_hall'}]);}return true;
+ const {first,scale,modern,gold,exp,pet}=miniRewardV2870(c,kind),treasure=kind==='clear'?miniTreasureV2871(c):null;
+ const ok=commitMiniWeaveV286840(()=>{player.sectData.miniRealmV2778=null;if(first){player.sectData.miniFirstV2778=true;player.inventory.push(...(modern?['大还丹','聚灵丹']:['小还丹','小还丹']))}if(pet){player.petMaterials ||= {};player.petMaterials[pet]=(player.petMaterials[pet]||0)+1;}if(treasure){player.materials[treasure.material]=(player.materials[treasure.material]||0)+treasure.count;player.petMaterials ||= {};player.petMaterials[treasure.pet]=(player.petMaterials[treasure.pet]||0)+1;onCollectMaterial?.(treasure.material,treasure.count);}player.gold+=gold;player.exp+=exp;player.materials['灵草']=(player.materials['灵草']||0)+c.herbs;player.materials['仙果']=(player.materials['仙果']||0)+c.fruit;if(c.herbs)onCollectMaterial?.('灵草',c.herbs);if(c.fruit)onCollectMaterial?.('仙果',c.fruit);});
+ if(ok){checkLevelUp();updateStats();showStory(`<h3>万象迷阵 · 离境结算（入场境界 ×${scale}）</h3><p>灵石+${gold} · 修为+${exp}</p><p>灵草×${c.herbs} · 仙果×${c.fruit}</p>${pet?`<p>守关秘宝：${pet}×1。</p>`:''}${treasure?`<p>守关珍材：${treasure.material}×${treasure.count} · ${treasure.pet}×1。</p>`:''}${first?`<p>已含首通${Math.floor(300*scale)}灵石，另获${modern?'大还丹×1、聚灵丹×1':'小还丹×2'}。</p>`:''}<p>本局祝福已消散。材料与结算记录已保存。</p>`,[{text:'返回秘境',action:'mini_realm_v2778'},{text:'返回宗门',action:'sect_hall'}]);}return true;
 }
 
 // Read-only return brief: existing reward transactions remain the only claim path.
@@ -180,3 +186,36 @@ function returnBriefHtmlV286840(timestamp=0){
 }
 function showReturnBriefV286840(){if(gameState==='exploring')showStory(returnBriefHtmlV286840(),[{text:'继续修行',action:'return_to_map'}]);}
 function claimReturnTripV286840(){const ok=claimTripV286821();if(ok)showReturnBriefV286840();return ok;}
+
+// Sect-master management: one shared council action per 30 game days.
+const SECT_MASTER_COUNCIL_V2872=Object.freeze({cooldown:30,repairContribution:100,repairGold:200,prosperityGain:5,prosperityCap:100,lessonContribution:50});
+let sectMasterViewV2872=null,sectMasterViewSerialV2872=0;
+function sectMasterAllowedV2872(){return sectCanManageV2866()&&hasRank('宗主');}
+function sectMasterPlanV2872(kind){
+ const r=SECT_MASTER_COUNCIL_V2872,state=normalizeSectMasterV2872(player.sectMasterV2872,player.sect),day=discipleDayV2815(),wait=Math.max(0,state.nextDay-day);
+ const members=sectMembersReadV2868().filter(d=>!d.job&&!warDiscipleBusyV286841(d.id)&&Number.isFinite(d.level)&&d.level>=1&&d.level<10),gain=Math.max(0,Math.min(r.prosperityGain,r.prosperityCap-(Number(player.sectData?.prosperity)||20)));
+ if(!['repair','lesson'].includes(kind))return null;
+ const contribution=kind==='repair'?r.repairContribution:members.length*r.lessonContribution,gold=kind==='repair'?r.repairGold:0;
+ return {state,day,wait,members,gain,contribution,gold,ok:sectMasterAllowedV2872()&&!wait&&(kind==='repair'?gain>0:members.length>0)&&(player.sectContribution||0)>=contribution&&player.gold>=gold};
+}
+function showSectMasterV2872(){
+ if(!sectMasterAllowedV2872())return;
+ const repair=sectMasterPlanV2872('repair'),lesson=sectMasterPlanV2872('lesson'),r=SECT_MASTER_COUNCIL_V2872,token=++sectMasterViewSerialV2872;
+ sectMasterViewV2872={token,owner:player,sect:player.sect};
+ showStory(`<section class="sect-board-v2866"><h3 id="sectMasterTitleV2872">${discipleEscV2815(player.sect)} · 宗主议事</h3><p>可用贡献 ${player.sectContribution||0} · 灵石 ${player.gold} · 繁荣度 ${player.sectData?.prosperity||20}</p><p>两项议事共用${r.cooldown}个游戏日冷却，每次选择一项。${repair.wait?`还需${repair.wait}个游戏日。`:'本次可以议事。'}消费不会降低累计贡献或职位。</p><article><h4>整饬山门</h4><p>支出${repair.contribution}贡献、${repair.gold}灵石；繁荣度+${repair.gain}（本项提升至多${r.prosperityCap}，更高繁荣度保留）。繁荣度参与原有入侵概率与仙门求援判定。</p><button class="choice-btn" onclick="executeSectMasterV2872('repair',${token})" ${repair.ok?'':'disabled'}>整饬山门 · 确认费用</button></article><article><h4>亲授门人</h4><p>每名${r.lessonContribution}贡献，本次${lesson.members.length}名，共${lesson.contribution}贡献；空闲且未满级弟子等级+1（最高10），忠诚+2。正在派遣或随军者不参与。</p><p>${lesson.members.map(d=>`${discipleEscV2815(d.name)} Lv.${d.level}→${d.level+1}`).join('、')||'暂无符合条件的弟子'}</p><button class="choice-btn" onclick="executeSectMasterV2872('lesson',${token})" ${lesson.ok?'':'disabled'}>亲授门人 · 确认名单</button></article></section>`,[{text:'返回宗门',action:'sect_hall'}]);
+}
+function executeSectMasterV2872(kind,token){
+ const view=sectMasterViewV2872;if(!view||view.token!==token||view.owner!==player||view.sect!==player.sect||!document.getElementById('sectMasterTitleV2872')||document.getElementById('storyPanel')?.classList.contains('hidden'))return false;
+ const plan=sectMasterPlanV2872(kind);if(!plan?.ok)return false;
+ const snapshot=()=>JSON.stringify([player.sectContribution,player.gold,player.sectData?.prosperity,player.sectMasterV2872,discipleDayV2815(),sectMembersReadV2868(),sectMembersReadV2868().map(d=>[d.id,warDiscipleBusyV286841(d.id)])]),before=snapshot();
+ if(!confirm(kind==='repair'?`支出${plan.contribution}贡献、${plan.gold}灵石，使繁荣度+${plan.gain}？两项议事将共同冷却30个游戏日。`:`支出${plan.contribution}贡献，亲授${plan.members.map(d=>d.name).join('、')}共${plan.members.length}名弟子，等级各+1、忠诚各+2？两项议事将共同冷却30个游戏日。`))return false;
+ if(view!==sectMasterViewV2872||player!==view.owner||player.sect!==view.sect||!sectMasterPlanV2872(kind)?.ok||before!==snapshot())return false;
+ const ok=commitMiniWeaveV286840(()=>{
+  player.sectContribution-=plan.contribution;player.gold-=plan.gold;
+  const state=plan.state;state.nextDay=plan.day+SECT_MASTER_COUNCIL_V2872.cooldown;
+  if(kind==='repair'){player.sectData.prosperity=(Number(player.sectData.prosperity)||20)+plan.gain;state.repairs++;}
+  else {for(const d of plan.members){d.level++;lifeCompletedV2868(d,{type:'train'});const traits=discipleTraitsV2867(d);d.traitsV2867={...traits,loyalty:Math.min(100,traits.loyalty+2)};}state.lessons++;}
+  player.sectMasterV2872=state;
+ });
+ if(ok){updateStats();showSectMasterV2872();}return ok;
+}

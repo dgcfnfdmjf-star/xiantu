@@ -58,7 +58,7 @@ const tick=async()=>{await Promise.resolve();await Promise.resolve();await Promi
  const remote=game();enable(remote);let sent=0;
  const integrated=createHandler({env,call:async b=>response(b.state,'guard')});
  remote.c.fetch=async(url,opt)=>{sent++;a.match(url,/\/api\/jev-forge$/);a.equal(opt.headers['X-Xiantu-Access'],token);const body=JSON.parse(opt.body);a.equal(body.task,'monster');a(!opt.body.includes(token));const result=await integrated({...event(body),headers:{...opt.headers,Origin:origin}});return {ok:result.statusCode===200,status:result.statusCode,json:async()=>JSON.parse(result.body)};};
- await run(remote);a.equal(mp(remote),90);a.equal(remote.run('monsterStateV2844().guard'),true);a.match(remote.ids.get('monsterAiSourceV2844').textContent,/Jev 决策/);a.equal(remote.run('isPlayerTurn'),true);
+ await run(remote);a.equal(mp(remote),90);a.equal(remote.run('monsterStateV2844().guard'),true);a.match(remote.ids.get('monsterAiSourceV2844').textContent,/天机推演/);a.equal(remote.run('isPlayerTurn'),true);
  a(!JSON.stringify([...remote.storage]).includes(token));a(!remote.run('JSON.stringify(player)').includes(token));
  run(remote);remote.flush(150);a.equal(sent,1,'nearby rounds do not call again');
  const cap=game();enable(cap);cap.run('monsterStateV2844().requests=3');let capCalls=0;cap.c.fetch=async()=>{capCalls++;return reply('guard')};await run(cap);a.equal(capCalls,1);a.equal(cap.run('monsterStateV2844().requests'),4);

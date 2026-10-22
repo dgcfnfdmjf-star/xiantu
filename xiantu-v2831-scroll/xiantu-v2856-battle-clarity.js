@@ -65,7 +65,7 @@
     const arena=D.getElementById('combatArena'),log=D.getElementById('combatLog');if(!arena||!log)return;
     let recent=D.getElementById('battleRecentV286816');
     if(!recent){recent=D.createElement('div');recent.id='battleRecentV286816';recent.setAttribute('aria-label','最近三条战报');arena.appendChild(recent);}
-    const lines=[...log.children].slice(0,3).reverse().map(n=>(n.textContent||'').replace(/(?:◇ 本地策略|☯ Jev 决策)[：:]?/g,''));
+    const lines=[...log.children].slice(0,3).reverse().map(n=>(n.textContent||'').replace(/(?:◇ 本地策略|☯ (?:Jev 决策|天机推演))[：:]?/g,''));
     const markup=lines.map(t=>`<div>${esc(t)}</div>`).join('');
     if(recent._markup!==markup){recent.innerHTML=markup;recent._markup=markup;}
   }
@@ -97,4 +97,4 @@
   W.BattleClarityV2856={read,sync};
 })(window,document);
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2856-battle-clarity.js']='28.68.51';
+window.__xiantuBuildFilesV2814['xiantu-v2856-battle-clarity.js']='28.68.52';

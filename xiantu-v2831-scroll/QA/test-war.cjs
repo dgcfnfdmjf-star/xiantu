@@ -66,3 +66,10 @@ for(const broken of [{id:42,stage:0,tactic:1},{id:' ',stage:0,tactic:1},{id:'x',
 recovery.run('player.warState.campaignV2775=JSON.parse(savedCampaign);Object.assign(player.warState.campaignV2775,{step:2,pending:null,commanderV286841:"fighting",selected:[1,1,1]});normalizeWarV2839(player)');
 a.equal(c(recovery).commanderV286841,'failed');idStep(recovery,'commandWarStageV2839');a.equal(c(recovery).step,3);
 console.log('PASS paid resume repairs missing tactic; malformed tickets and orphan commander recover idempotently without refunds');
+const shop=game();shop.run('player.warState.meritV2839=1000');
+shop.c.confirm=()=>false;shop.run('exchangeWarMeritV2839(6)');a.equal(shop.run('player.warState.meritV2839'),1000);
+shop.c.confirm=()=>true;shop.run('exchangeWarMeritV2839(5)');a.equal(shop.run('player.warState.meritV2839'),820);a.equal(shop.run('player.petMaterials["变异灵晶"]'),2);
+shop.run('exchangeWarMeritV2839(6)');a.equal(shop.run('player.petMaterials["上古返祖灵珠"]'),1);a.equal(shop.run('player.warState.meritV2839'),500);
+shop.run('globalThis.before=JSON.stringify(player);globalThis.oldSet=localStorage.setItem;localStorage.setItem=()=>{throw Error("quota")};exchangeWarMeritV2839(6);localStorage.setItem=oldSet');a.equal(shop.run('JSON.stringify(player)'),shop.run('before'));
+shop.run('player.warState.meritV2839=0;exchangeWarMeritV2839(6)');a.equal(shop.run('player.petMaterials["上古返祖灵珠"]'),1);
+console.log('PASS merit pet goods exact price, cancel, shortage and atomic save rollback');

@@ -66,5 +66,11 @@ a.equal(f.run('roamingStateV286818().steps'),0,'explicit navigation never trigge
 f.run('for(let i=0;i<200&&!roamingStateV286818().pending;i++)discoverRoamingV286818(i+",0")');a.equal(f.run('roamingStateV286818().pending'),'traveler');
 a.equal(f.run('loadGame().player.roamingV286818.maps.south.pending'),'traveler');
 f.run('resolveRoamingV286818("guide");closeWorldOverlay();for(let i=200;i<400&&!roamingStateV286818().pending;i++)discoverRoamingV286818(i+",0")');a.equal(f.run('roamingStateV286818().pending'),'ruins');
-f.run('resolveRoamingV286818("copy");closeWorldOverlay();for(let i=400;i<600;i++)discoverRoamingV286818(i+",0")');a.equal(f.run('roamingStateV286818().pending'),null);a.equal(f.run('Object.keys(roamingStateV286818().resolved).length'),2);
-console.log('PASS actual free-walk discovery, navigation exclusion, pending persistence and per-region two-event cap');
+f.run('resolveRoamingV286818("copy");closeWorldOverlay();for(let i=0;i<100;i++)discoverRoamingV286818("400,0")');a.equal(f.run('roamingStateV286818().restSeen.length'),1);
+f.run('for(let i=401;i<435;i++)discoverRoamingV286818(i+",0")');a.equal(f.run('roamingStateV286818().restSeen.length'),35);a.equal(f.run('Object.keys(roamingStateV286818().resolved).length'),2);
+f.run('saveGame();player=normalizePlayer(loadGame().player)');a.equal(f.run('roamingStateV286818().restSeen.length'),35);
+const setBeforeCycle=f.c.localStorage.setItem;f.c.localStorage.setItem=()=>{throw Error('quota')};f.run('discoverRoamingV286818("435,0")');a.equal(f.run('Object.keys(roamingStateV286818().resolved).length'),2);f.c.localStorage.setItem=setBeforeCycle;
+f.run('discoverRoamingV286818("435,0")');a.equal(f.run('roamingStateV286818().cycle'),1);a.equal(f.run('Object.keys(roamingStateV286818().resolved).length'),0);
+f.run('for(let i=500;i<800&&!roamingStateV286818().pending;i++)discoverRoamingV286818(i+",0")');a.equal(f.run('roamingStateV286818().pending'),'traveler');
+f.run('globalThis.roamGold=player.gold;resolveRoamingV286818("guide");resolveRoamingV286818("guide")');a.equal(f.run('player.gold-roamGold'),30);
+console.log('PASS distinct-cell cooldown, save/reload, failed cycle reset rollback, repeated rounds and single claim');

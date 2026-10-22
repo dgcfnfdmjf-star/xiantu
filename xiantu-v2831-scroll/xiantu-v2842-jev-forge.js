@@ -55,9 +55,9 @@ function forgeAdvicePanelV2842(ref, record) {
   }).join('');
   const endpoint = forgeJevEndpointV2842();
   const connection = typeof jevFriendsModeV2850==='function'&&jevFriendsModeV2850()
-    ? jevFriendsControlsV2850()+`<p>仅发送新旧词条试穿后的四项面板、档级和偏好。</p><button id="forgeJevButtonV2842" class="choice-btn" onclick="requestForgeJevV2842(${ref.nonce})" ${FORGE_ADVICE_V2842.access?'':'disabled'}>请 Jev 判断</button>`
+    ? jevFriendsControlsV2850()+`<p>仅发送新旧词条试穿后的四项面板、档级和偏好。</p><button id="forgeJevButtonV2842" class="choice-btn" onclick="requestForgeJevV2842(${ref.nonce})" ${FORGE_ADVICE_V2842.access?'':'disabled'}>请天机参详</button>`
     : endpoint
-    ? `<details class="forge-connection"><summary>Jev 访问设置 · ${FORGE_ADVICE_V2842.access ? '已解锁' : '待解锁'}</summary><p>输入一次游戏访问口令，勾选记住本设备后，下次同一浏览器自动恢复。API 密钥仍只放云函数。</p><label for="forgeAccessV2842">游戏访问口令（不是 Jev API 密钥）</label><input id="forgeAccessV2842" type="password" maxlength="128" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="已保存时无需再填">${jevRememberHtmlV2845('forge')}<button class="choice-btn" onclick="unlockForgeJevV2842(${ref.nonce})">解锁本次判断</button><button class="choice-btn" onclick="lockForgeJevV2842(${ref.nonce})">清除此设备口令</button></details><p>点击后仅发送新旧词条试穿后的四项面板、档级和偏好，由 Jev 判断；不发送角色名或存档。</p><button id="forgeJevButtonV2842" class="choice-btn" onclick="requestForgeJevV2842(${ref.nonce})" ${FORGE_ADVICE_V2842.access ? '' : 'disabled'}>请 Jev 判断</button>`
+    ? `<details class="forge-connection"><summary>Jev 访问设置 · ${FORGE_ADVICE_V2842.access ? '已解锁' : '待解锁'}</summary><p>输入一次游戏访问口令，勾选记住本设备后，下次同一浏览器自动恢复。API 密钥仍只放云函数。</p><label for="forgeAccessV2842">游戏访问口令（不是 Jev API 密钥）</label><input id="forgeAccessV2842" type="password" maxlength="128" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="已保存时无需再填">${jevRememberHtmlV2845('forge')}<button class="choice-btn" onclick="unlockForgeJevV2842(${ref.nonce})">解锁本次判断</button><button class="choice-btn" onclick="lockForgeJevV2842(${ref.nonce})">清除此设备口令</button></details><p>点击后仅发送新旧词条试穿后的四项面板、档级和偏好，由 Jev 判断；不发送角色名或存档。</p><button id="forgeJevButtonV2842" class="choice-btn" onclick="requestForgeJevV2842(${ref.nonce})" ${FORGE_ADVICE_V2842.access ? '' : 'disabled'}>请天机参详</button>`
     : '<p class="forge-muted">Jev 云端尚未配置，本地判读已可用。</p>';
   return `<section id="forgeAdviceV2842" class="forge-advice-v2842"><h4>词条判读</h4><p>对比本件装备采用新旧词条时的角色面板，基础属性与强化不变。背包装备按首个空槽或首个可用槽试穿计算。</p><table><caption>试穿后角色面板对比</caption><thead><tr><th>属性</th><th>原有</th><th>新词条</th><th>增减</th></tr></thead><tbody>${rows}</tbody></table><p>长生加气血上限，不增加寿元或立即回血；灵泉加灵力上限，不立即回灵。穿戴后生效，角色最终数值还受套装与状态影响。</p><div class="forge-goals" role="group" aria-label="判读偏好">${Object.entries(FORGE_GOALS_V2842).map(([key, goal]) => `<button class="choice-btn" aria-pressed="${state.goal === key}" onclick="setForgeGoalV2842(${ref.nonce},'${key}')">${goal.label}</button>`).join('')}</div><p class="forge-local"><b>本地参考：</b>${esc(forgeLocalAdviceV2842(state))}</p><p class="forge-muted">偏好按各属性相对原面板的变化加权，不是实战胜率或伤害预测。</p>${connection}<p id="forgeJevResultV2842" role="status" aria-live="polite"></p><p class="forge-muted">判断不扣游戏灵石，不自动替换。请用下方按钮确认选择。</p></section>`;
 }
@@ -138,7 +138,7 @@ async function requestForgeJevV2842(nonce) {
   }
 }
 window.__xiantuBuildFilesV2814 = window.__xiantuBuildFilesV2814 || {};
-window.__xiantuBuildFilesV2814['xiantu-v2842-jev-forge.js'] = '28.68.51';
+window.__xiantuBuildFilesV2814['xiantu-v2842-jev-forge.js'] = '28.68.52';
 
 // Device memory contains only the user-selected game access code, never a provider API key.
 function validJevAccessV2845(value) {
