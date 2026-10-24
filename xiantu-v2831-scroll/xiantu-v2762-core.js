@@ -9643,9 +9643,10 @@
         globalMultiplier*=1.08;
         globalDesc+=(globalDesc?' · ':'')+'太岁书院战略推演：联军更易掌握敌情与战机';
       }
-      const total=Math.max(0,Math.round(rawTotal*regionWar.multiplier*globalMultiplier));
+      const baseTotal=Math.max(0,Math.round(rawTotal*regionWar.multiplier*globalMultiplier)),masterMult=sectName===player.sect?sectPathPowerV2880():1;
+      const total=Math.round(baseTotal*masterMult),masterBonusV2880=total-baseTotal;
       return {
-        total,rawTotal,basePower,playerBonus,contributionBonus,discipleBonus,realmBonus,
+        total,masterBonusV2880,rawTotal,basePower,playerBonus,contributionBonus,discipleBonus,realmBonus,
         globalMultiplier,globalDesc,
         regionMultiplier:regionWar.multiplier,regionDesc:regionWar.desc,
         special:info.special||'',icon:info.icon||'🏳️'
@@ -9709,7 +9710,7 @@
         <div style="border:1px solid rgba(255,215,0,.3);border-radius:8px;padding:10px;margin:10px 0">
           <p><b>${player.sect}</b>：<span style="color:#7ec9ff">${getFactionPublicStrengthHint(player.sect)}</span></p>
           <p><b>${enemyInfo.icon} ${demonFaction}</b>：<span style="color:#ffb0b0">${getFactionPublicStrengthHint(demonFaction)}</span></p>
-          <p style="font-size:11px;color:#c7d7e8">🗺️ ${ourPower.regionDesc || '地利未见明显偏向'}</p>
+          <p style="font-size:11px;color:#c7d7e8">🗺️ ${ourPower.regionDesc || '地利未见明显偏向'}</p>${ourPower.masterBonusV2880?`<p>宗主道统与先锋加成 +${ourPower.masterBonusV2880} 战力</p>`:''}
           ${ourPower.globalDesc?`<p style="font-size:11px;color:#d9e8ff">✨ ${ourPower.globalDesc}</p>`:''}
           ${enemyPower.globalDesc?`<p style="font-size:11px;color:#69f0ae">🌌 ${enemyPower.globalDesc}</p>`:''}
           <p>${allyText}</p><p>${immortalText} · 支援战力 ${immortalBonus}</p><p style="font-size:12px;color:#d4c6a7">三族基础总量为仙5000、魔4000、人2000；援军投入其宗门基础战力的35%。实际胜负仍取决于本次参战力量和战术。</p>
@@ -10083,10 +10084,14 @@
     function recruitDiscipleV2815(index,batch){
       if(!discipleAllowedV2815())return showDisciplesV2815('需要长老及以上职位，且当前可处理宗门事务。');
       const r=discipleRosterV2815(),d=discipleCandidatesV2815().find(x=>x.id===index);
-      if(!d||d.batch!==batch||r.hired.includes(index)||r.members.length>=12)return showDisciplesV2815('候选或名额已变化，请重新查看。');
+      if(!d||d.batch!==batch||r.hired.includes(index)||r.members.length>=sectDiscipleCapV2880())return showDisciplesV2815('候选或名额已变化，请重新查看。');
       if(player.gold<d.cost)return showDisciplesV2815('灵石不足。');
+      const owner=player,sect=player.sect,before=JSON.stringify(player);
       if(!window.confirm(`招募 ${d.name}？消耗 ${d.cost} 灵石，剩余 ${player.gold-d.cost}。`))return;
-      player.gold-=d.cost;r.hired.push(index);r.members.push({id:r.nextId++,name:d.name,level:1,specialty:d.specialty,traitsV2867:discipleTraitsV2867(d),job:null});autoSave();updateStats();showDisciplesV2815('招募成功。');
+      if(player!==owner||player.sect!==sect||before!==JSON.stringify(player)||!discipleAllowedV2815()||discipleDayV2815()/30>=batch+1||r.members.length>=sectDiscipleCapV2880())return;
+      const ok=commitMiniWeaveV286840(()=>{player.gold-=d.cost;r.hired.push(index);r.members.push({id:r.nextId++,name:d.name,level:1,specialty:d.specialty,traitsV2867:discipleTraitsV2867(d),job:null});});
+      if(ok){updateStats();showDisciplesV2815('招募成功。');}
+
     }
     const DISCIPLE_TIERS_V2824=[{name:'普通',level:1,time:1,reward:1,count:1},{name:'进阶',level:3,time:1.5,reward:1.8,count:2},{name:'精英',level:6,time:2,reward:2.8,count:3}];
     function disciplePlanV2824(d,type,tier=0){
@@ -10154,7 +10159,7 @@
     function showDisciplesV2815(notice=''){
       if(!sectCanManageV2866())return;
       const r=discipleRosterV2815(),allowed=discipleAllowedV2815(),day=discipleDayV2815(),esc=discipleEscV2815,special=['灵植','商路','巡防'];
-      let html=`<section class="home-board-v2812"><h3>👥 ${esc(player.sect)} · 弟子事务</h3><p>名册 ${r.members.length}/12 · 弟子战力 +${disciplePowerV2815()} · 灵石 ${player.gold}</p><p>招募、培养与派遣需要长老及以上职位。每位弟子同时只能执行一项事务；培养等级1—10，每级提供2点宗门战力，派遣期间仍计入宗门战力。</p><p>按游戏日期结算，修炼、休息或历练可推进日期；无需等待现实时间。派遣奖励需返回领取。</p><details><summary>派遣难度与专长收益</summary><p>普通需Lv.1；进阶需Lv.3，耗时×1.5、基础灵石×1.8；精英需Lv.6，耗时×2、基础灵石×2.8。天数向上取整。</p><p>每提升一级，灵石加成增加3%；专长匹配再加20%。进阶/精英材料分别为基础的2/3倍，专长匹配额外+1份。资质每档增加5%灵石，果敢额外5%，忠诚80起额外5%；谨慎多用1天。出发时锁定奖励；途中选择探索或救援会按预览改变行程。未处理事件仍按原计划结算。不同任务仍各自占用一名弟子。</p></details>${notice?`<p class="home-notice-v2812">${esc(notice)}</p>`:''}`;
+      let html=`<section class="home-board-v2812"><h3>👥 ${esc(player.sect)} · 弟子事务</h3><p>名册 ${r.members.length}/${sectDiscipleCapV2880()} · 弟子战力 +${disciplePowerV2815()} · 灵石 ${player.gold}</p><p>招募、培养与派遣需要长老及以上职位。每位弟子同时只能执行一项事务；培养等级1—10，每级提供2点宗门战力，派遣期间仍计入宗门战力。</p><p>按游戏日期结算，修炼、休息或历练可推进日期；无需等待现实时间。派遣奖励需返回领取。</p><details><summary>派遣难度与专长收益</summary><p>普通需Lv.1；进阶需Lv.3，耗时×1.5、基础灵石×1.8；精英需Lv.6，耗时×2、基础灵石×2.8。天数向上取整。</p><p>每提升一级，灵石加成增加3%；专长匹配再加20%。进阶/精英材料分别为基础的2/3倍，专长匹配额外+1份。资质每档增加5%灵石，果敢额外5%，忠诚80起额外5%；谨慎多用1天。出发时锁定奖励；途中选择探索或救援会按预览改变行程。未处理事件仍按原计划结算。不同任务仍各自占用一名弟子。</p></details>${notice?`<p class="home-notice-v2812">${esc(notice)}</p>`:''}`;
       if(allowed)html+=jevEntryV2846('jevDiscipleV2846()','Jev 推荐派遣（最多比较前5名空闲弟子）');
       if(!allowed)html+='<p>🔒 当前仅可查看，请先晋升长老并在非战斗状态管理。</p>';
       const ready=r.members.filter(discipleReadyV2821),busy=r.members.filter(d=>d.job&&!discipleReadyV2821(d));
@@ -10164,7 +10169,7 @@
       html+=`<div class="disciple-claim-v2821"><strong>待领取 ${ready.length} · 进行中 ${busy.length} · 随军 ${r.members.filter(d=>warDiscipleBusyV286841(d.id)).length} · 空闲 ${r.members.filter(d=>!d.job&&!warDiscipleBusyV286841(d.id)).length}</strong><p>${ready.length?esc(summary):busy.length?`最近一项还需 ${Math.min(...busy.map(d=>Math.max(0,d.job.end-day)))} 个游戏日`:'暂无待领取事务，可安排培养或派遣。'}</p><button class="choice-btn" onclick="claimAllDisciplesV2821()" ${!allowed||!ready.length?'disabled':''}>${ready.length?`一键领取全部 · ${ready.length} 项`:'暂无可领取成果'}</button></div>`;
 
       html+=`<details ${r.members.length?'':'open'}><summary>招募候选 · ${30-day%30} 个游戏日后换批</summary><div class="home-grid-v2812">`;
-      for(const d of discipleCandidatesV2815())html+=`<article><h4>${d.name}</h4><p>${d.age}岁 · ${special[d.specialty]}专长</p>${discipleTraitsHtmlV2867(d)}<p> · 同类派遣灵石 +20%</p><button class="choice-btn" onclick="recruitDiscipleV2815(${d.id},${d.batch})" ${!allowed||r.hired.includes(d.id)||r.members.length>=12||player.gold<d.cost?'disabled':''}>${r.hired.includes(d.id)?'已招募':`招募 · ${d.cost}灵石`}</button></article>`;
+      for(const d of discipleCandidatesV2815())html+=`<article><h4>${d.name}</h4><p>${d.age}岁 · ${special[d.specialty]}专长</p>${discipleTraitsHtmlV2867(d)}<p> · 同类派遣灵石 +20%</p><button class="choice-btn" onclick="recruitDiscipleV2815(${d.id},${d.batch})" ${!allowed||r.hired.includes(d.id)||r.members.length>=sectDiscipleCapV2880()||player.gold<d.cost?'disabled':''}>${r.hired.includes(d.id)?'已招募':`招募 · ${d.cost}灵石`}</button></article>`;
       html+='</div></details><h4>弟子名册</h4><div class="home-grid-v2812">';
       const order=d=>discipleReadyV2821(d)?0:d.job?1:2;
       const sorted=r.members.slice().sort((a,b)=>order(a)-order(b)||(a.job?.end||0)-(b.job?.end||0)||a.id-b.id);
@@ -14669,7 +14674,7 @@ function showSectOverviewV2866(notice=''){
  let html=`<section class="sect-board-v2866"><header><small>${esc(getGameDateLabel())}</small><h3>${esc(player.sect)} · 宗门总览</h3><button class="choice-btn" onclick="showSectTodoV2868()">待办直达 · ${sectTodoReadV2868().total}</button><p>${rank.icon} ${rank.name}</p></header>${notice?`<p role="status">${esc(notice)}</p>`:''}<div class="sect-stats-v2866"><div>可用贡献<b>${player.sectContribution||0}</b></div><div>累计贡献<b>${player.sectTotalContribution||0}</b></div><div>空闲弟子<b>${idle.length}</b></div><div>待领成果<b>${ready.length}</b></div></div><article>${sectPromotionViewV2866()}</article><article><h4>我的委托 · ${active.length}</h4>`;
  for(const t of active){const progress=getSectTaskProgressInfo(t),idx=player.sectTasks.indexOf(t);html+=`<p>${esc(t.template.name)} · ${progress.ready?'可以交付':'进行中'}</p><button class="choice-btn" onclick="${progress.ready&&t.template.type!=='combat'?`updateSectTaskProgress(${idx})`:'showSectTasks()'}">${progress.ready&&t.template.type!=='combat'?'交付委托':'查看目标与去向'}</button>`;}
  if(!active.length)html+='<p>暂无进行中的委托</p><button class="choice-btn" onclick="showSectTasks()">领取宗门委托</button>';
- html+=`</article><article><h4>弟子事务 · ${r.members.length}/12</h4><p>途中来信 ${r.members.filter(discipleEventReadyV2867).length} 封</p><p>进行中 ${busy.length}${busy.length?` · 最近还需 ${Math.min(...busy.map(d=>Math.max(0,d.job.end-discipleDayV2815())))} 个游戏日`:''}</p>${allowed?'':'<p>招募、培养、派遣与领取需长老职位。</p>'}<div class="sect-actions-v2866"><button class="choice-btn" onclick="claimAllDisciplesV2821()" ${!allowed||!ready.length?'disabled':''}>领取成果 · ${ready.length}</button><button class="choice-btn" onclick="showDiscipleBatchV2866()" ${!allowed||!idle.length?'disabled':''}>批量派遣 · ${idle.length}</button><button class="choice-btn" onclick="showDisciplesV2815()">弟子名册与招募</button></div></article><article><h4>山门军务</h4><p>${esc(getWarLevelInfo().name)}${player.warState?.incomingV2839?' · 山门求援':''}</p><button class="choice-btn" onclick="showSectHall()">大殿 · 军务与秘境</button></article></section>`;
+ html+=`</article><article><h4>弟子事务 · ${r.members.length}/${sectDiscipleCapV2880()}</h4><p>途中来信 ${r.members.filter(discipleEventReadyV2867).length} 封</p><p>进行中 ${busy.length}${busy.length?` · 最近还需 ${Math.min(...busy.map(d=>Math.max(0,d.job.end-discipleDayV2815())))} 个游戏日`:''}</p>${allowed?'':'<p>招募、培养、派遣与领取需长老职位。</p>'}<div class="sect-actions-v2866"><button class="choice-btn" onclick="claimAllDisciplesV2821()" ${!allowed||!ready.length?'disabled':''}>领取成果 · ${ready.length}</button><button class="choice-btn" onclick="showDiscipleBatchV2866()" ${!allowed||!idle.length?'disabled':''}>批量派遣 · ${idle.length}</button><button class="choice-btn" onclick="showDisciplesV2815()">弟子名册与招募</button></div></article><article><h4>山门军务</h4><p>${esc(getWarLevelInfo().name)}${player.warState?.incomingV2839?' · 山门求援':''}</p><button class="choice-btn" onclick="showSectHall()">大殿 · 军务与秘境</button></article></section>`;
  showStory(html,[{text:'返回宗门',action:'sect'},{text:'返回地图',action:'return_to_map'}]);
 }
 let discipleBatchV2866=null,discipleBatchSerialV2866=0;

@@ -27,6 +27,7 @@ normalizePlayer=function(saved={}){
  const p=normalizePlayerBeforeV2768(saved);
  p.sectPromotion=normalizePromotionV2768(saved.sectPromotion,p.sect);
  p.sectMasterV2872=normalizeSectMasterV2872(saved.sectMasterV2872,p.sect);
+ if(typeof normalizeSectPathV2880==='function')p.sectPathV2880=normalizeSectPathV2880(saved.sectPathV2880,p.sect);
  if(typeof normalizeSectAdminV2873==='function')p.sectAdminV2873=normalizeSectAdminV2873(saved.sectAdminV2873,p.sect);
  if(typeof normalizeRivalChronicleV2874==='function')p.rivalChronicleV2874=normalizeRivalChronicleV2874(saved.rivalChronicleV2874);
  if(typeof normalizeBattleReviewV2878==='function')p.lastBattleReviewV2878=normalizeBattleReviewV2878(saved.lastBattleReviewV2878);
@@ -61,17 +62,12 @@ function beginBuildingOpV2768(op,id){
 function showSectPromotionV2768(){
  if(!sectCanManageV2866())return;
  const gate=sectMasterRequirementsV2872(),p=gate.promotion,ready=gate.ready,r=gate.rules;
- showStory(`<h3>👑 宗主传承考核</h3><p>${CULTIVATION_REALMS[r.realm].name}境：${gate.realm?'✅':'未达成'}</p><p>累计贡献：${player.sectTotalContribution||0} / ${r.contribution}</p><p>宗门委托考核：${p.tasksCompleted} / ${r.tasks}（本版本起完成的委托计入）</p><p>贡献达标后仍需完成考核并亲自接受传承。接受传承不扣贡献。</p>${p.inherited?'<p>✅ 已接受宗主传承</p>':`<button class="choice-btn" onclick="inheritSectV2768()" ${ready?'':'disabled'}>接受宗主传承</button>`}`,[{text:'返回宗门大殿',action:'sect_hall'}]);
+ showStory(`<h3>👑 宗主传承考核</h3><p>${CULTIVATION_REALMS[r.realm].name}境：${gate.realm?'✅':'未达成'}</p><p>累计贡献：${player.sectTotalContribution||0} / ${r.contribution}</p><p>宗门委托考核：${p.tasksCompleted} / ${r.tasks}（本版本起完成的委托计入）</p><p>达标后须完成问心、守山、受印三试并选择道统。守山布阵方案每次需100贡献，失败也扣；其他方案免费。</p>${p.inherited?'<p>✅ 已接受宗主传承</p>':`<button class="choice-btn" onclick="inheritSectV2768()" ${ready?'':'disabled'}>宗主三试 · 开始或继续</button>`}`,[{text:'返回宗门大殿',action:'sect_hall'}]);
 }
 function inheritSectV2768(){
  if(!sectCanManageV2866())return;
  const gate=sectMasterRequirementsV2872(),p=gate.promotion;if(!gate.ready)return;
- const oldPromotion=player.sectPromotion,oldRank=player.sectRank;
- p.inherited=true;player.sectPromotion=p;player.sectRank=getCurrentRankInfo().name;
- if(!saveGame()){player.sectPromotion=oldPromotion;player.sectRank=oldRank;return false;}
- updateStats();
- showStory('<h3>👑 宗门传承</h3><p>五次宗门委托见证了你的担当，元婴修为足以护佑一方。你接过掌门信物，从今日起承担宗门兴衰之责。</p>',[{text:'执掌宗门',action:'sect_hall'}]);
- showSectMasterCeremonyV2870();return true;
+ showSectPathV2880();return true;
 }
 function showSectMasterCeremonyV2870(){
  document.getElementById('sectCeremonyV2870')?.remove();
