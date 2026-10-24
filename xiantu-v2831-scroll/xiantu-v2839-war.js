@@ -62,7 +62,7 @@ function warCampaignV2839(id,stage){
 }
 function warRosterV2839(){
  const w=warStateV2839(),names=[player.sect,...new Set(w.alliedSects||[])].filter((n,i,a)=>n&&a.indexOf(n)===i&&!isFactionDestroyed(n));
- const rows=names.map(n=>({name:n,power:calculateSectPower(n).total,role:n===player.sect?'本宗主力':'盟军',detail:n===player.sect?'含主角、弟子与地利':'该宗实际投入'}));
+ const rows=names.map(n=>({name:n,power:calculateSectPower(n).total,role:n===player.sect?'本宗主力':'盟军',detail:n===player.sect?`含主角、弟子与地利；道统与先锋加成 +${calculateSectPower(n).masterBonusV2880||0}`:'该宗实际投入'}));
  const aid=getImmortalWarSupportV2807();if(aid>0)rows.push({name:w.immortalAlly,power:aid,role:'仙门支援',detail:'宗门基础战力的35%'});return rows;
 }
 function warLogV2839(c,text){c.log.push(text);c.log=c.log.slice(-30);}

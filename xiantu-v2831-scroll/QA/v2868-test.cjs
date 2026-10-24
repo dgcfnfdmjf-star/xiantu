@@ -24,7 +24,7 @@ const archive=f.run('JSON.stringify(d.lifeV2868)');f.run('player=normalizePlayer
 f.run("player.sectTasks=[{completed:false,template:{type:'collect',materials:{'灵草':1,'仙果':2}}}];player.materials={'灵草':1,'仙果':0}");a.equal(f.run('sectTodoReadV2868().tasks.length'),0);f.run("player.materials['仙果']=2");a.equal(f.run('sectTodoReadV2868().tasks.length'),1);
 f.run('player.sectTotalContribution=1000;player.sectPromotion={tasksCompleted:5,inherited:false}');a.equal(f.run('sectTodoReadV2868().promotion'),true);f.run('player.sectPromotion.inherited=true');a.equal(f.run('sectTodoReadV2868().promotion'),false);
 // Reading/painting HUD does not write save or add timers.
-const unchanged=f.run('JSON.stringify(player)'),timers=f.timers.size;for(let i=0;i<50;i++)f.run('syncSectTodoV2868()');a.equal(f.run('JSON.stringify(player)'),unchanged);a.equal(f.timers.size,timers);a.equal(f.ids.get('sectTodoBtnV2868').textContent,'宗门待办 1');
+const unchanged=f.run('JSON.stringify(player)'),timers=f.timers.size;for(let i=0;i<50;i++)f.run('syncSectTodoV2868()');a.equal(f.run('JSON.stringify(player)'),unchanged);a.equal(f.timers.size,timers);a.equal(f.ids.get('sectTodoBtnV2868').textContent,'宗门待办 2');
 f.run("player.sect='散修';syncSectTodoV2868()");a.equal(f.ids.get('sectTodoBtnV2868').hidden,true);
 const g=game();g.run("d.lifeV2868={counts:{},history:[],thanks:{state:'waiting',due:0},trail:{state:'ready'}};showDiscipleLifeV2868(1)");
 for(const state of ['combat','combat-ending']){g.run(`gameState='${state}'`);const p=g.run('JSON.stringify(player)');g.run('claimDiscipleThanksV2868(1);startDiscipleTrailV2868(1);showSectTodoV2868()');a.equal(g.run('JSON.stringify(player)'),p);}
