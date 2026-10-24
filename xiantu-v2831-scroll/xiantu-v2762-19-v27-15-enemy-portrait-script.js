@@ -47,4 +47,4 @@
   window.drawEnemyPortraitV215=drawEnemyPortraitV215;
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-19-v27-15-enemy-portrait-script.js"]="28.68.55";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-19-v27-15-enemy-portrait-script.js"]="28.68.56";
