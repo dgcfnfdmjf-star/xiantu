@@ -91,7 +91,8 @@ function journeyPrepV286823(id){const p=getTaskInstance(id)?.progress?.investiga
 function setJourneyPrepV286823(id,kind,value){
  const i=getTaskInstance(id);if(!i||i.completed||i.failed||getCurrentTaskStep(id)?.action!=='journey_battle_v2838'||!taskInteractionAllowedV2822())return false;
  const next=journeyPrepV286823(id);
- if(kind==='clue'&&[0,1].includes(value)){if(next.clues.includes(value))return false;next.clues.push(value);}
+ if(kind==='all'){if(next.clues.length===2)return false;next.clues=[0,1];}
+ else if(kind==='clue'&&[0,1].includes(value)){if(next.clues.includes(value))return false;next.clues.push(value);}
  else if(kind==='plan'&&next.clues.length===2&&['guard','breach'].includes(value))next.plan=value;
  else return false;
  const previous=i.progress.investigationV286823;i.progress.investigationV286823=next;
@@ -100,7 +101,7 @@ function setJourneyPrepV286823(id,kind,value){
 }
 function investigationPanelV286823(id){
  const d=investigationV286823(id),p=journeyPrepV286823(id),esc=discipleEscV2815;
- return `<section><h3>战术部署 · 战前调查 ${p.clues.length}/2</h3>${d.clues.map((c,n)=>`<button type="button" data-journey="clue${n}" ${p.clues.includes(n)?'disabled':''}>${p.clues.includes(n)?'✓ ':''}${esc(c[0])}</button>${p.clues.includes(n)?`<p>${esc(c[1])}</p>`:''}`).join('')}<p id="journeyPrepHintV2870" role="status" style="color:#ffd76a;font-weight:700">${p.clues.length<2?`请先调查两处线索（已完成 ${p.clues.length}/2），再选择战术方案。`:p.plan?'战术已选定，可以开始挑战；开战前仍可更改。':'两处线索已调查，请选择下方战术方案以开启挑战。'}</p>${['guard','breach'].map((plan,n)=>`<button type="button" data-journey="${plan}" aria-pressed="${p.plan===plan}" ${p.clues.length<2?'disabled':''}>${p.plan===plan?'✓ ':''}${esc(d.plans[n])} · ${n?'敌方防御降低15%':'前两回合获得最大气血12%的护盾'}</button>`).join('')}</section>`;
+ return `<section><h3>战术部署 · 战前调查 ${p.clues.length}/2</h3>${p.clues.length<2?'<button type="button" data-journey="all">一并调查两处线索</button><p>展开全部调查内容，再选择战术；气血与灵力保持当前状态。</p>':''}${d.clues.map((c,n)=>`<button type="button" data-journey="clue${n}" ${p.clues.includes(n)?'disabled':''}>${p.clues.includes(n)?'✓ ':''}${esc(c[0])}</button>${p.clues.includes(n)?`<p>${esc(c[1])}</p>`:''}`).join('')}<p id="journeyPrepHintV2870" role="status" style="color:#ffd76a;font-weight:700">${p.clues.length<2?`请先调查两处线索（已完成 ${p.clues.length}/2），再选择战术方案。`:p.plan?'战术已选定，可以开始挑战；开战前仍可更改。':'两处线索已调查，请选择下方战术方案以开启挑战。'}</p>${['guard','breach'].map((plan,n)=>`<button type="button" data-journey="${plan}" aria-pressed="${p.plan===plan}" ${p.clues.length<2?'disabled':''}>${p.plan===plan?'✓ ':''}${esc(d.plans[n])} · ${n?'敌方防御降低15%':'前两回合获得最大气血12%的护盾'}</button>`).join('')}</section>`;
 }
 const SCENES_V2838={
  walk_to_sect:[['清玄真人','“上了这阶，不代表从此便高人一等。”他在山门前停下，等你把气喘匀。'],['你','云海在脚下翻涌。你看见扫阶弟子袖口磨出的毛边，也看见远处一盏未熄的夜灯。'],['清玄真人','“路很长。先学会自己走，再谈走到哪里。”古钟响起，你迈过凌霄山门。']],
@@ -219,7 +220,7 @@ function launchJourneyBattleV2838(id){
  document.getElementById('journeyPrepareV2838')?.remove();closeTaskPanel();stopNavigationV2830();FLAT_WORLD.keys={};FLAT_WORLD.target=null;
  const enemy=journeyEnemyV2838(j),owner=player,step=i.currentStep,el=document.createElement('div');el.id='journeyPrepareV2838';el.className='journey-overlay-v2838';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-labelledby','journeyEnemyV2838');const esc=discipleEscV2815;
  el.innerHTML=`<section class="journey-prepare-v2838"><small>${esc(j.place)}</small><h2 id="journeyEnemyV2838">${esc(j.enemy)}</h2><p>${esc(weaknessTextV286821(enemy))}</p><p>${esc(CULTIVATION_REALMS[j.level].name)}初期 · 气血 ${enemy.maxHp} · 攻击 ${enemy.atk} · 防御 ${enemy.def}</p><p><b>${enemyRiskV286817(enemy).label}</b> · 仅按境界与精英标记评估；装备、招式和剩余气血仍影响胜负。</p><div class="journey-vitals-v2838"><span>气血 <b>${Math.floor(player.hp)} / ${getMaxHp()}</b></span><span>灵力 <b>${Math.floor(player.mp)} / ${getMaxMp()}</b></span></div>${investigationPanelV286823(id)}<p>这是中后期主线战：请升级到当前境界可用的武器、防具，并携带高阶功法；木剑与入门招式不足以应对。调查方案提供助力，不能替代装备准备。获胜推进本章，失败扣除身上灵石的20%，已读剧情保留。</p><button type="button" data-journey="fight" class="primary-v2838" ${player.hp<=1||!journeyPrepV286823(id).plan?'disabled':''}>准备好了 · 开始挑战</button><button type="button" data-journey="back">先补给 · 返回任务</button></section>`;
- el.onclick=e=>{const act=e.target.closest('[data-journey]')?.dataset.journey;if(!act)return;if(owner!==player||document.getElementById('journeyPrepareV2838')!==el||i!==getTaskInstance(id)||i.currentStep!==step){el.remove();return;}if(act.startsWith('clue')||['guard','breach'].includes(act)){if(setJourneyPrepV286823(id,act.startsWith('clue')?'clue':'plan',act.startsWith('clue')?Number(act.slice(4)):act))launchJourneyBattleV2838(id);return;}if(act==='back'){el.remove();showTaskPanel('main');return;}
+ el.onclick=e=>{const act=e.target.closest('[data-journey]')?.dataset.journey;if(!act)return;if(owner!==player||document.getElementById('journeyPrepareV2838')!==el||i!==getTaskInstance(id)||i.currentStep!==step){el.remove();return;}if(act==='all'||act.startsWith('clue')||['guard','breach'].includes(act)){if(setJourneyPrepV286823(id,act==='all'?'all':act.startsWith('clue')?'clue':'plan',act.startsWith('clue')?Number(act.slice(4)):act))launchJourneyBattleV2838(id);return;}if(act==='back'){el.remove();showTaskPanel('main');return;}
   if(act==='fight'&&i===getTaskInstance(id)&&i.currentStep===step&&!i.completed&&!i.failed&&taskInteractionAllowedV2822()&&player.hp>1&&journeyPrepV286823(id).plan){el.remove();startCombat(enemy,false,false,null);if(gameState==='combat'&&currentEnemy===enemy&&journeyPrepV286823(id).plan==='guard')elementGuardsV286818.set(enemy,{owner:player,pool:Math.floor(getMaxHp()*.12),turns:2});}};
  el.onkeydown=e=>{e.stopPropagation();if(e.key==='Escape'){el.remove();if(owner===player)showTaskPanel('main');}else trapJourneyFocusV2838(e,el);};document.body.appendChild(el);const prep=journeyPrepV286823(id),next=prep.clues.length<2?'clue'+[0,1].find(n=>!prep.clues.includes(n)):!prep.plan?'guard':player.hp>1?'fight':'back';el.querySelector(`[data-journey="${next}"]`)?.focus();
 }
@@ -289,7 +290,7 @@ async function exportPreviousV2838(){
  try{await exportRawSaveV2870(localStorage.getItem(PREVIOUS_SAVE_V2838),'xiantu-previous-character.json');}
  catch(e){alert('导出失败：'+e.message);}
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.57';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.58';
 
 // Small non-combat encounters, two per region and character. Persist choice and reward together.
 const ROAMING_KINDS_V286818=['traveler','ruins'];
@@ -636,7 +637,7 @@ function expansionStateV286827(){return normalizeExpansionV286827(player.storyEx
 function expansionSaveV286827(next,exp=0,gold=0){
  const old=player.storyExpansionV286827,beforeExp=player.exp,beforeGold=player.gold;
  player.storyExpansionV286827=normalizeExpansionV286827(next);player.exp+=exp;player.gold+=gold;
- if(saveGame()){updateStats();return true;}player.storyExpansionV286827=old;player.exp=beforeExp;player.gold=beforeGold;showFloatingText('案卷未保存，本次选择与奖励未生效，请重试');return false;
+ let saved=false;try{saved=saveGame();}catch(_){}if(saved){updateStats();return true;}player.storyExpansionV286827=old;player.exp=beforeExp;player.gold=beforeGold;showFloatingText('案卷未保存，本次选择与奖励未生效，请重试');return false;
 }
 function sceneUnlockedV286827(d){return !!d&&(!d.requires||player.tasks?.completed?.includes(d.requires))&&(!d.requiresScene||expansionStateV286827().scenes[d.requiresScene])&&player.level>=(d.level||0)&&(!d.when||d.when());}
 function recordRomanceV286827(npcId,eventId,option,choice){
@@ -660,7 +661,7 @@ function expansionModalV286827(title,body,buttons,callback){
 function showExpansionV286827(){
  if(!taskInteractionAllowedV2822())return;const s=expansionStateV286827(),rows=EXPANSION_SCENES_V286827.filter(d=>sceneUnlockedV286827(d)||s.scenes[d.id]);
  const body='<p>已发生的选择只读回看，不重复领取修为。未开放的故事会列出所需经历。</p>'+EXPANSION_SCENES_V286827.filter(d=>!rows.includes(d)).map(d=>`<details><summary>${escapeGameText(d.title)} · 待开启</summary><p>${escapeGameText(d.hint||('需完成'+(getTaskData(d.requires)?.title||EXPANSION_SCENES_V286827.find(x=>x.id===d.requiresScene)?.title||'相关人物选择')+(d.when?'及对应人物选择':'')))}</p></details>`).join('')+dossierCardV286827();
- expansionModalV286827('行纪拾遗',body,[['mentor','与清玄真人论道'],...(rainTwoUnlockedV286827()?[['rain','雨夜命牌案·卷二 渡牌东流']]:[]),...rows.map(d=>[d.id,(s.scenes[d.id]?'回看 · ':'相遇 · ')+d.title]),...(dossierOpenV286827()?[['fragment','核查当前地域线索']]:[])],k=>{if(k==='mentor')showMentorV286827();else if(k==='rain')showRainTwoV286827();else if(k==='fragment'){collectFragmentV286827();showExpansionV286827();}else showExpansionSceneV286827(k);});
+ expansionModalV286827('行纪拾遗',body,[['mentor','与清玄真人论道'],...(rainTwoUnlockedV286827()?[['rain','雨夜命牌案·卷二 渡牌东流']]:[]),...rows.map(d=>[d.id,(s.scenes[d.id]?'回看 · ':'相遇 · ')+d.title]),...(dossierOpenV286827()?[['fragment','核查当前地域线索'],...(s.fragments.length<3?[['survey','圣念巡天 · 核查三域线索']]:[])]:[])],k=>{if(k==='mentor')showMentorV286827();else if(k==='rain')showRainTwoV286827();else if(k==='fragment'||k==='survey'){if(k==='survey')surveyDossierV2884();else collectFragmentV286827();showExpansionV286827();}else showExpansionSceneV286827(k);});
 }
 function sceneContextV286827(id){
  const s=expansionStateV286827();let text='';
@@ -734,11 +735,18 @@ function finishRainTwoV286827(enemy){
 function dossierOpenV286827(){return player.level>=16&&player.tasks?.completed?.includes('main_19');}
 const DOSSIER_FRAGMENTS_V286827={north:['北域 · 渡牌编号','相同编号被不同批次反复使用，说明无名册并非一份偶然伪造的账。'],east:['东域 · 船期副本','船期与换印时间相错，运输者只知道上一站与下一站；单个执行者未必知道买家。'],immortal_domain:['仙域 · 旧印登记','旧印有领用、转借与报失记录。云阙痕迹必须分别核实经手者，不能把整座仙阙当作同一个人。']};
 function dossierCardV286827(){
- if(!dossierOpenV286827())return '';const s=expansionStateV286827();return `<h3>巡天卷宗 · ${s.fragments.length}/3</h3><p>前往北域、东域、仙域后，在此核查当地线索。收集不消耗资源。</p>${s.fragments.map(k=>`<p>${DOSSIER_FRAGMENTS_V286827[k][0]}：${DOSSIER_FRAGMENTS_V286827[k][1]}</p>`).join('')}${s.fragments.length===3?'<p>【秘密卷宗·现有证据全录】转运链利用伪造死亡隔绝追查，以分段交接隔绝责任。记忆被当成可搬运的货物，残页被当成工具；造桥者借用了这套分工，却尚无足以证明其身份的闭合证据链。此卷证明手段，不替未知者编造姓名。</p>':''}`;
+ if(!dossierOpenV286827())return '';const s=expansionStateV286827();return `<h3>巡天卷宗 · ${s.fragments.length}/3</h3><p>可前往北域、东域、仙域逐处核查，也可用圣念巡天一并核查三域。收集不消耗资源，不移动角色。</p>${s.fragments.map(k=>`<p>${DOSSIER_FRAGMENTS_V286827[k][0]}：${DOSSIER_FRAGMENTS_V286827[k][1]}</p>`).join('')}${s.fragments.length===3?'<p>【秘密卷宗·现有证据全录】转运链利用伪造死亡隔绝追查，以分段交接隔绝责任。记忆被当成可搬运的货物，残页被当成工具；造桥者借用了这套分工，却尚无足以证明其身份的闭合证据链。此卷证明手段，不替未知者编造姓名。</p>':''}`;
 }
 function collectFragmentV286827(){
  if(!dossierOpenV286827()||!taskInteractionAllowedV2822()||!Object.hasOwn(DOSSIER_FRAGMENTS_V286827,currentRegion)){showFloatingText('请先到北域、东域或仙域核查');return false;}
  const s=expansionStateV286827();if(s.fragments.includes(currentRegion))return false;s.fragments.push(currentRegion);return expansionSaveV286827(s);
+}
+function surveyDossierV2884(){
+ if(!dossierOpenV286827()||!taskInteractionAllowedV2822())return false;
+ const next=expansionStateV286827();if(next.fragments.length===3)return false;
+ next.fragments=Object.keys(DOSSIER_FRAGMENTS_V286827);
+ if(!expansionSaveV286827(next))return false;
+ showFloatingText('圣念巡天：三域线索已核查，可在卷宗中逐条阅读。','#ffd700');return true;
 }
 function chronicleV286827(){
  const s=expansionStateV286827(),esc=escapeGameText,rows=[];

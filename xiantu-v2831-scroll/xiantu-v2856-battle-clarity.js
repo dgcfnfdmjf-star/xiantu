@@ -94,6 +94,7 @@
   }
   function syncRecentLog(){
     const arena=D.getElementById('combatArena'),log=D.getElementById('combatLog');if(!arena||!log)return;
+    const summary=D.getElementById('reportLogV2857')?.querySelector('summary');if(summary)summary.textContent=`详细战报（最近 ${log.children.length} 条 / 最多120条） · 点击展开 / 收起`;
     let recent=D.getElementById('battleRecentV286816');
     if(!recent){recent=D.createElement('div');recent.id='battleRecentV286816';recent.setAttribute('aria-label','最近三条战报');arena.appendChild(recent);}
     const lines=[...log.children].slice(0,3).reverse().map(n=>(n.textContent||'').replace(/(?:◇ 本地策略|☯ (?:Jev 决策|天机推演))[：:]?/g,''));
@@ -102,6 +103,7 @@
   }
   function sync(){
     installReportLog();
+    if(typeof combatPetSessionV2884!=='undefined'&&combatPetSessionV2884&&(!canSwitchCombatPetV2884()||combatPetSessionV2884.owner!==player||combatPetSessionV2884.enemy!==currentEnemy||combatPetSessionV2884.token!==COMBAT_FINISH_V2764.token))closeCombatPetsV2884();
     const panel=D.getElementById('combatPanel'),arena=D.getElementById('combatArena');if(!panel||!arena)return;
     const data=read();let box=D.getElementById('battleReadoutV2856');
     if(!data){if(box)box.hidden=true;return;}
@@ -110,6 +112,11 @@
     compactUi(data,panel,arena);
     const markup=`<div class="battle-vitals-v2865"><span class="hp">气血 <b>${data.hp} / ${data.maxHp}</b></span><span class="mp">灵力 <b>${data.mp} / ${data.maxMp}</b></span></div><div class="battle-readout-head-v2856"><strong>${esc(data.turn)}</strong><span>${data.ending?'奖励按战斗结果结算':data.waiting?'等待本次行动完成':'选择攻击、招式或补给'}</span></div>${data.chips.length?`<div class="battle-chip-list-v2856">${data.chips.map(c=>`<details class="battle-chip-v2856 ${c.side}"><summary>${esc(c.text)}</summary><p>${esc(tip(c.text))}</p></details>`).join('')}</div>`:''}`;
     if(box._markupV2856!==markup){box.innerHTML=markup;box._markupV2856=markup;}
+    let petButton=D.getElementById('combatSwitchPetV2884');
+    if(!data.ending&&player.pets?.length){
+      if(!petButton){petButton=D.createElement('button');petButton.id='combatSwitchPetV2884';petButton.type='button';petButton.className='combat-pet-switch-v2884';petButton.onclick=()=>showCombatPetsV2884();box.querySelector('.battle-readout-head-v2856')?.appendChild(petButton);}
+      petButton.textContent='🐾 临阵换宠'+(player.activePet?' · '+player.activePet.name:' · 尚未出战');petButton.disabled=!canSwitchCombatPetV2884();
+    }else petButton?.remove();
     box.classList.toggle('waiting',data.waiting);
     // Lock stale attack buttons during an in-flight action. Reading tabs stays available.
     for(const b of D.getElementById('combatChoices')?.querySelectorAll('button')||[]){
@@ -128,4 +135,4 @@
   W.BattleClarityV2856={read,sync,tip};
 })(window,document);
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2856-battle-clarity.js']='28.68.57';
+window.__xiantuBuildFilesV2814['xiantu-v2856-battle-clarity.js']='28.68.58';

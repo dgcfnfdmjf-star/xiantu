@@ -120,4 +120,4 @@ function renderLivelihoodV2788(){
  return html;
 }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2773-economy.js"]="28.68.57";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2773-economy.js"]="28.68.58";

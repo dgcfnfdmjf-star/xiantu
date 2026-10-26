@@ -6298,6 +6298,7 @@
     let playerPressureStun = false;
 
     function resetRuntimeState() {
+      if(typeof closeCombatPetsV2884==='function')closeCombatPetsV2884();
       document.getElementById('sectCeremonyV2870')?.remove();
       if(typeof closeExpansionV286827==='function')closeExpansionV286827();
       document.getElementById('postCaseV286826')?.remove();document.getElementById('storyBossPrepV286826')?.remove();
@@ -14580,7 +14581,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.57";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.58";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
