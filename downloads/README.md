@@ -1,8 +1,8 @@
 # 腾讯云部署下载
 
-当前包：**仙途 V28.68.58**，新增游历一并调查、圣念巡天、临阵换宠和战报条数提示，并包含归墟断桥三形态首领、六种机制精英悬赏、宗主结算与预览修复，以及此前全部优化。
+当前包：**仙途 V28.68.59**，新增雨夜一并调查、只读分支预览、破势反制与宗门委托速办，保留游历一并调查、圣念巡天、临阵换宠和战报条数提示，并包含归墟断桥三形态首领、六种机制精英悬赏、宗主结算与预览修复，以及此前全部优化。
 
-[下载 V28.68.58 xiantu-v2831-scroll.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/codex/sect-settlement-polish/downloads/xiantu-v2831-scroll.zip)
+[下载 V28.68.59 xiantu-v2831-scroll.zip](https://github.com/dgcfnfdmjf-star/xiantu/raw/refs/heads/codex/sect-settlement-polish/downloads/xiantu-v2831-scroll.zip)
 
 如果仓库为私有，请先登录有权限的 GitHub 账号。也可以打开本目录中的 ZIP 文件，点击下载原始文件按钮。
 
@@ -12,7 +12,7 @@
 2. 下载并解压 `xiantu-v2831-scroll.zip`，得到同名文件夹，里面直接包含 `index.html`、`game-v2762.html`、脚本、样式与 `art` 资源目录。
 3. 打开 [CloudBase 控制台](https://console.cloud.tencent.com/tcb)，选择原游戏环境，进入「静态网站托管 → 文件管理」。
 4. 在托管根目录上传整个 `xiantu-v2831-scroll` 文件夹并覆盖同名文件；如果已经进入云端同名目录，就上传本地文件夹里面的内容，避免套两层目录。上传实际文件，不要只上传 ZIP。
-5. 等待所有文件完成后，打开原 `/xiantu-v2831-scroll/` 游戏网址，Ctrl+F5 刷新。角色设置中的版本应为 **V28.68.58**；三万年仙魔战可进入归墟断桥，探索手册可打开四域凶煞悬赏榜。
+5. 等待所有文件完成后，打开原 `/xiantu-v2831-scroll/` 游戏网址，Ctrl+F5 刷新。角色设置中的版本应为 **V28.68.59**；三万年仙魔战可进入归墟断桥，探索手册可打开四域凶煞悬赏榜。
 
 部署层级：
 

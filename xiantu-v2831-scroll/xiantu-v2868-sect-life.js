@@ -48,6 +48,7 @@ function showSectTodoV2868(){
  if(t.jobs.length)html+=`<button class="choice-btn" onclick="showDisciplesV2815()">${t.jobs.length} 项成果可领取</button>`;
  for(const id of t.thanks)html+=`<button class="choice-btn" onclick="showDiscipleLifeV2868(${id})">${names.get(id)} · 同门答谢已到</button>`;
  for(const id of t.trails)html+=`<button class="choice-btn" onclick="showDiscipleLifeV2868(${id})">${names.get(id)} · 古洞线索可出发</button>`;
+ html+='<button class="choice-btn" onclick="showReadySectTasksV2885()">宗门委托速办 · 预览消耗</button>';
  if(t.tasks.length)html+='<button class="choice-btn" onclick="showSectTasks()">宗门委托可以交付</button>';
  if(t.promotion)html+='<button class="choice-btn" onclick="showSectPromotionV2768()">宗主传承 · 考核已达标</button>';
  if(t.income)html+='<button class="choice-btn" onclick="showSectAdminV2873()">季度岁入 · 可以结算</button>';
@@ -98,8 +99,64 @@ function startAllSectTrailsV2870(token){
  syncSectTodoV2868();showSectTodoV2868();return ok;
 }
 function drawSectTodoV2868(ctx,o){if(!sectTodoCacheV2868.total||!player?.sect)return;const own=(o.action==='faction_gate_v2806'&&o.factionName===player.sect)||(player.sect==='凌霄宗'&&(o.action==='sect'||o.buildingId==='main_hall'));if(!own)return;ctx.save();ctx.fillStyle='#263d31';ctx.fillRect(-42,-o.r-22,84,22);ctx.fillStyle='#f1d89b';ctx.font='12px Microsoft YaHei';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(`待办 ${sectTodoCacheV2868.total}`,0,-o.r-11);ctx.restore();}
+// One reviewed settlement per click; never loops over newly generated commissions.
+function sectReadyQuoteV2885(templateId=null){
+ if(!sectCanManageV2866())return null;
+ const active=(player.sectTasks||[]).filter(t=>!t.completed),fresh=templateId!==null;
+ if(fresh&&(active.length||!SECT_TASK_TEMPLATES.some(t=>t.id===templateId&&t.type==='collect')))return null;
+ const candidates=fresh?[generateSectTask(templateId)]:active,materials={...(player.materials||{})};let gold=Number(player.gold)||0;
+ const quote={fresh,tasks:[],materials:{},gold:0,rewards:{gold:0,exp:0,contribution:0}};
+ for(const task of candidates){
+  const t=task?.template;if(!t||task._rewardClaimedV2768||!['collect','donate'].includes(t.type))continue;
+  const costs=Object.entries(t.materials||{}),cost=Number(t.goldCost)||0;
+  if(cost<0||!Number.isFinite(cost)||(!cost&&!costs.length)||costs.some(([k,n])=>!k||!Number.isSafeInteger(n)||n<=0)||['goldReward','expReward','contributionReward'].some(k=>!Number.isFinite(Number(t[k]||0))||Number(t[k]||0)<0))continue;
+  if(gold<cost||costs.some(([k,n])=>(Number(materials[k])||0)<n))continue;
+  gold-=cost;quote.gold+=cost;for(const [k,n] of costs){materials[k]-=n;quote.materials[k]=(quote.materials[k]||0)+n;}
+  quote.tasks.push(task);quote.rewards.gold+=Number(t.goldReward)||0;quote.rewards.exp+=Number(t.expReward)||0;quote.rewards.contribution+=Number(t.contributionReward)||0;
+ }
+ return quote.tasks.length?quote:null;
+}
+function showReadySectTasksV2885(templateId=null){
+ if(!sectCanManageV2866())return false;
+ const quote=sectReadyQuoteV2885(templateId),active=(player.sectTasks||[]).some(t=>!t.completed),esc=escapeGameText;
+ let body='<p>已有委托优先交付。没有待办委托时，可选择一项材料已齐的采集委托；每次只接取并交付这一项。</p>',buttons=[];
+ if(quote){
+  const costs=[...(quote.gold?[quote.gold+'灵石']:[]),...Object.entries(quote.materials).map(([k,n])=>`${k}×${n}`)].join('、');
+  body+=`<h3>${quote.fresh?'接取并交付':'交付已接委托'} · ${quote.tasks.length}项</h3><p>${quote.tasks.map(t=>esc(t.template.name)).join('、')}</p><p>消耗：${esc(costs)}</p><p>获得：${quote.rewards.contribution}贡献、${quote.rewards.exp}修为、${quote.rewards.gold}灵石</p>`;
+  buttons.push(['submit','确认上述消耗 · 速办委托']);
+ }else if(active)body+='<p>当前委托尚未备齐，或需要实际战斗完成。不会替你放弃或跳过。</p>';
+ else {
+  const ready=SECT_TASK_TEMPLATES.filter(t=>t.type==='collect'&&sectReadyQuoteV2885(t.id));
+  if(!ready.length)body+='<p>暂无材料已齐的采集委托。</p>';
+  buttons.push(...ready.map(t=>['pick:'+t.id,`${t.name} · 查看消耗与奖励`]));
+ }
+ buttons.push(['tasks','完整委托列表'],['back','返回宗门待办']);
+ const session=expansionModalV286827('宗门委托速办',body,buttons,(key,ss)=>{
+  if(!sectCanManageV2866()||ss.sect!==player.sect)return;
+  if(key==='submit')settleReadySectTasksV2885(ss);
+  else if(key.startsWith('pick:'))showReadySectTasksV2885(key.slice(5));
+  else{closeExpansionV286827();if(key==='tasks')showSectTasks();else showSectTodoV2868();}
+ });session.sect=player.sect;session.quote=quote;session.snapshot=JSON.stringify(player);return true;
+}
+function settleReadySectTasksV2885(session){
+ if(!session||session!==expansionSessionV286827||session.owner!==player||session.sect!==player.sect||document.getElementById('expansionV286827')!==session.el||!sectCanManageV2866()||!session.quote)return false;
+ const q=session.quote;
+ if(session.snapshot!==JSON.stringify(player)){showFloatingText('委托或资源已变化，请重新核对。','#ffd76a');showReadySectTasksV2885(q.fresh?q.tasks[0].templateId:null);return false;}
+ const ok=commitMiniWeaveV286840(()=>{
+  if(q.fresh){player.sectTasks=player.sectTasks.filter(t=>t.completed).slice(-3);player.sectTasks.push(q.tasks[0]);}
+  for(const task of q.tasks){
+   if(!player.sectTasks.includes(task)||task.completed||task._rewardClaimedV2768)throw Error('commission changed');
+   const t=task.template;player.gold-=Number(t.goldCost)||0;
+   for(const [k,n] of Object.entries(t.materials||{})){player.materials[k]-=n;if(player.materials[k]<=0)delete player.materials[k];}
+   task.progress=task.count;task.completed=true;
+   if(!completeSectTask(task,{silent:true}))throw Error('commission not settled');
+  }
+ });
+ if(!ok){showReadySectTasksV2885(q.fresh?q.tasks[0].templateId:null);return false;}
+ closeExpansionV286827();updateStats();syncSectTodoV2868();showFloatingText(`已速办${q.tasks.length}项委托，消耗与奖励已保存。`,'#69f0ae');showSectTodoV2868();return true;
+}
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.58';
+window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.59';
 
 
 // V28.68.40: saved random encounters and run-scoped blessings.

@@ -53,4 +53,4 @@
   window.drawExactEnemyPortraitV217=drawExactEnemyPortraitV217;
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-21-v27-17-enemy-batch2-script.js"]="28.68.58";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-21-v27-17-enemy-batch2-script.js"]="28.68.59";

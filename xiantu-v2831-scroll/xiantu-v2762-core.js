@@ -7118,7 +7118,7 @@
           
           damage=playerDamageBonusesV286812(damage);
           damage=gearHitV2790(damage,null);
-          if(typeof monsterGuardDamageV2844==='function')damage=monsterGuardDamageV2844(damage);
+          if(typeof monsterGuardDamageV2844==='function')damage=monsterGuardDamageV2844(damage,{crit:isCrit,skill:null});
           damage=dealEnemyDamageV2882(currentEnemy,damage,isCrit);
           restoreAttackMpV286817(damage);
           hitTacticsV286821(null,damage);
@@ -7196,7 +7196,7 @@
           
           damage=playerDamageBonusesV286812(damage,skill);
           damage=gearHitV2790(damage,skill);
-          if(typeof monsterGuardDamageV2844==='function')damage=monsterGuardDamageV2844(damage);
+          if(typeof monsterGuardDamageV2844==='function')damage=monsterGuardDamageV2844(damage,{crit:isCrit,skill});
           const beforeHitV2882=currentEnemy.hp;
           damage=dealEnemyDamageV2882(currentEnemy,damage,isCrit);
           const actualLossV2785=beforeHitV2882-currentEnemy.hp;
@@ -14581,7 +14581,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.58";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.59";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

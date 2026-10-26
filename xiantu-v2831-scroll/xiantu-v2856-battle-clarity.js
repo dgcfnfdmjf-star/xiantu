@@ -38,7 +38,8 @@
       if(player._thunderArmorTurns>0)push('self',`雷甲 · 余${count(player._thunderArmorTurns)}回合`);
       if(playerPressureStun)push('self','受威压震慑 · 下次行动可能受阻');
       if(playerPressureTurns>0)push('self',`威压削弱 · 余${count(playerPressureTurns)}次行动`);
-      if(enemy?.guard)push('enemy','敌方护体 · 抵挡部分下次伤害');
+      if(enemy?.guard)push('enemy','凝气护体 · 下次减伤30% · 雷系/暴击/重击可破');
+      if(enemy?.supportTurns>0)push('enemy',`同门援阵 · 攻击+15% · 余${enemy.supportTurns}次攻击 · 招式/暴击可破`);
       const elemental=elementGuardsV286818.get(currentEnemy);
       if(elemental?.owner===player&&elemental.pool>0)push('self',`护盾 ${elemental.pool} · 余${elemental.turns}次行动`);
       if(currentEnemy._chillTurnsV286818>0)push('enemy',`寒迟 · 余${currentEnemy._chillTurnsV286818}次行动`);
@@ -55,6 +56,8 @@
   }
   function tip(text){
     const tips={
+      '凝气护体':'玩家直接命中的雷系招式、暴击，或护体减伤前伤害达到攻击面板115%的重击，可无视本次30%护体减伤并削减敌方最多15灵力。宠物、持续伤害和显示动画不触发。',
+      '同门援阵':'敌方后续两次直接攻击伤害+15%；玩家直接招式或暴击命中可提前驱散。普通非暴击普攻、宠物与持续伤害不驱散。',
       '纯阳剑意':'兵刃招式命中积攒剑气，上限3层；满层后由普攻引爆，追加80%攻击力的单体贯穿伤害并清空印记。不是满层立即触发。',
       '五雷回流':'雷甲仍在持续时，承受攻击回复基础5点灵力，受所在区域恢复倍率及灵力上限限制。',
       '不动护体':'本场已激活此羁绊时，护体或元素盾有效期间额外减伤10%。',
@@ -135,4 +138,4 @@
   W.BattleClarityV2856={read,sync,tip};
 })(window,document);
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2856-battle-clarity.js']='28.68.58';
+window.__xiantuBuildFilesV2814['xiantu-v2856-battle-clarity.js']='28.68.59';

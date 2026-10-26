@@ -290,7 +290,7 @@ async function exportPreviousV2838(){
  try{await exportRawSaveV2870(localStorage.getItem(PREVIOUS_SAVE_V2838),'xiantu-previous-character.json');}
  catch(e){alert('导出失败：'+e.message);}
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.58';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.59';
 
 // Small non-combat encounters, two per region and character. Persist choice and reward together.
 const ROAMING_KINDS_V286818=['traveler','ruins'];
@@ -376,7 +376,7 @@ function rainStateV286822(){
  puzzle:!!r.puzzle,rested:Array.isArray(r.rested)?r.rested.filter(n=>n===4||n===9):[],rewarded:!!r.rewarded};
 }
 function rainUnlockedV286822(){return !!player.rainChapterV286822||player.level>=2||(firstJourneyV28687()?.step||0)>=4;}
-function rainSummaryV286822(){const s=rainStateV286822();return s.step>=13?`${s.route==='rescue'?'沈禾活着回来作证':'运输暗号已查明'}；${({public:'名册已交三方公开核查',protect:'证人已安置在药庐',trace:'库房仍由专人监视'})[s.policy]||'旧案留待查明'}。`:s.step?`雨夜命牌案：${RAIN_TITLES_V286822[s.step]}。`:'渡口来信尚待查证。';}
+function rainSummaryV286822(s=rainStateV286822()){return s.step>=13?`${s.route==='rescue'?'沈禾活着回来作证':'运输暗号已查明'}；${({public:'名册已交三方公开核查',protect:'证人已安置在药庐',trace:'库房仍由专人监视'})[s.policy]||'旧案留待查明'}。`:s.step?`雨夜命牌案：${RAIN_TITLES_V286822[s.step]}。`:'渡口来信尚待查证。';}
 function rainCardV286822(){return `<article class="task-card"><strong>雨夜命牌案 · 剧情扩展</strong><p>${rainUnlockedV286822()?escapeGameText(rainSummaryV286822()):'完成山道教学、发现来信后开启；筑基及以上旧存档可直接补记。'}</p><button class="task-action" onclick="showRainChapterV286822()" ${rainUnlockedV286822()?'':'disabled'}>${rainStateV286822().step>=13?'回看旧案':'追查来信'}</button></article>`;}
 // Scene selection is keyed by stable task IDs, never saved indices or localized titles.
 const MAIN_ART_V286829={
@@ -419,7 +419,7 @@ function rainNarrativeV286822(step,s){
  ['药师把最后一个人唤醒时，天已经亮了。二十七盏河灯只点起二十四盏，另三人的药位是空的。有人在你来之前把他们带走了。','宗门执事接过证物，第一句话却是：“真印外流，此事若传出去，凌霄宗颜面何存？”苏晚晴把名单往前推了一寸：“先把人记回来，再谈颜面。”',rescue?'沈禾站到人群前，报出自己的名字。他的声音仍很轻，却已经不再需要你代他说话。':'你按运输暗号复述了旧仓的交接过程；渡工带来沈禾的手印，补上了暂时不能到场的证词。','证据不足以指认某位长老。你需要决定如何保住调查，而不是选一个看起来最像坏人的人。'],
  ['公开核查会让更多家属知道真相，也会惊动暗中接货的人。保护证人能让他们喘口气，但解释暂时不会传遍山门。继续追踪能保住线索，却需要面对等待中的质疑。','【选择后果】公开：留下三方核查记录；保护：药庐成为证人落脚处；追踪：库房保留监视线。三种结案记录及苏晚晴后续对白不同，奖励相同，不扣好感，也不提前定罪。'],
  ['旧案刚刚封存，你在归途收到另一封信。里面没有命牌，只有一截烧焦的船绳和三个尚未归来的姓名。','夜无疆的字写在纸背：“有人买的是命牌，有人买的是不被追查的名字。你以为找回二十四个人，便已经找到了买家？”','你将信翻过来。第三个名字不是死者，也不是失踪者——那是替你们盖过借印章的录事。苏晚晴看完，把自己的灯递到你身旁：“这次，不要等我在别人那里听见。”','卷一至此结束。命牌案有了结果，真正接货的人仍在远处。完成可领取一次120灵石；回看不会重复领奖。'],
- [rainSummaryV286822(),share?'苏晚晴：“这次你把原信交给了我。下次有事，也别只留一句让我猜的话。”':'苏晚晴：“我会把我查到的事告诉你。至于你的那一半，我等你亲口说。”','你把案卷收好。河灯亮着，山路还长；原先未尽的约定，仍等你亲自赴约。可以回看此行，或继续自己的修行。']
+ [rainSummaryV286822(s),share?'苏晚晴：“这次你把原信交给了我。下次有事，也别只留一句让我猜的话。”':'苏晚晴：“我会把我查到的事告诉你。至于你的那一半，我等你亲口说。”','你把案卷收好。河灯亮着，山路还长；原先未尽的约定，仍等你亲自赴约。可以回看此行，或继续自己的修行。']
  ];return pages[step]||pages[0];
 }
 function rainCloseV286822(){rainViewV286822=null;document.getElementById('rainChapterV286822')?.remove();}
@@ -433,7 +433,7 @@ function showRainChapterV286822(replay=-1){
  const button=(id,label)=>`<button type="button" class="choice-btn" onclick="actRainV286822(${token},'${id}')">${label}</button>`;
  let buttons='';
  if(!back){
-  if([1,5,7].includes(n)){const keys=n===7?['ledger','seal','witness']:['rope','lamp','print'];buttons+=keys.map(k=>button(k,(s.clues.includes(k)?'✓ ':'调查 · ')+RAIN_CLUES_V286822[k][0])).join('');}
+  if([1,5,7].includes(n)){const keys=n===7?['ledger','seal','witness']:['rope','lamp','print'];if(keys.some(k=>!s.clues.includes(k)))buttons+=button('all','一并核查本节线索');buttons+=keys.map(k=>button(k,(s.clues.includes(k)?'✓ ':'调查 · ')+RAIN_CLUES_V286822[k][0])).join('');}
   if(n===2)buttons+=button('rescue','先救人 · 留下证人')+button('chase','先追踪 · 掌握暗号');
   else if(n===6)buttons+=button('share','交出原信 · 坦白同行')+button('reserve','暂留原信 · 分头查证');
   else if(n===7)buttons+=button('fraud','判断：伪造死亡，掩盖活人去向')+button('theft','判断：只为盗卖财物');
@@ -449,11 +449,11 @@ function showRainChapterV286822(replay=-1){
 function rainCommitV286822(next,reward=0,rest=false){
  const old={state:player.rainChapterV286822,gold:player.gold,hp:player.hp,mp:player.mp};player.rainChapterV286822=next;player.gold+=reward;
  if(rest){player.hp=getMaxHp();player.mp=getMaxMp();}
- if(saveGame()){updateStats();return true;}
+ let saved=false;try{saved=saveGame();}catch(_){}if(saved){updateStats();return true;}
  Object.assign(player,{rainChapterV286822:old.state,gold:old.gold,hp:old.hp,mp:old.mp});return false;
 }
 function actRainV286822(token,action){
- const v=rainViewV286822,s=rainStateV286822();if(gameState!=='exploring'||!v||v.owner!==player||v.token!==token||v.step!==s.step||v.replay)return false;
+ const v=rainViewV286822,s=rainStateV286822();if(!taskInteractionAllowedV2822()||!rainUnlockedV286822()||!document.getElementById('rainChapterV286822')||!v||v.owner!==player||v.token!==token||v.step!==s.step||v.replay)return false;
  const n=s.step,notice=t=>{const el=document.getElementById('rainNoticeV286822');if(el)el.textContent=t;return false;};
  if(action==='fight'&&(n===4||n===9)){
   if(!player.rainChapterV286822)return false;
@@ -467,7 +467,8 @@ function actRainV286822(token,action){
   updateCombatUI();return true;
  }
  let reward=0,rest=false;
- if(Object.hasOwn(RAIN_CLUES_V286822,action)&&(([1,5].includes(n)&&['rope','lamp','print'].includes(action))||(n===7&&['ledger','seal','witness'].includes(action)))){if(!s.clues.includes(action))s.clues.push(action);}
+ if(action==='all'&&[1,5,7].includes(n)){const keys=n===7?['ledger','seal','witness']:['rope','lamp','print'];if(keys.every(k=>s.clues.includes(k)))return false;s.clues=[...new Set([...s.clues,...keys])];}
+ else if(Object.hasOwn(RAIN_CLUES_V286822,action)&&(([1,5].includes(n)&&['rope','lamp','print'].includes(action))||(n===7&&['ledger','seal','witness'].includes(action)))){if(!s.clues.includes(action))s.clues.push(action);}
  else if(n===2&&['rescue','chase'].includes(action)){s.route=action;s.step++;}
  else if(n===6&&['share','reserve'].includes(action)){s.trust=action;s.step++;}
  else if(n===7&&['fraud','theft'].includes(action)){
@@ -481,7 +482,7 @@ function actRainV286822(token,action){
   s.step++;if(n===12&&!s.rewarded){reward=120;s.rewarded=true;}
  }else return false;
  if(!rainCommitV286822(s,reward,rest))return notice('保存失败，本次选择、调息或奖励未生效。请恢复存储后重试。');
- showRainChapterV286822();if(Object.hasOwn(RAIN_CLUES_V286822,action))document.getElementById('rainNoticeV286822').textContent=RAIN_CLUES_V286822[action][1];return true;
+ showRainChapterV286822();if(action==='all'){document.querySelector('#rainChapterV286822 details')?.setAttribute('open','');document.getElementById('rainNoticeV286822').textContent='本节线索已收录。请阅读案卷后自行判断，当前状态未改变。';}if(Object.hasOwn(RAIN_CLUES_V286822,action))document.getElementById('rainNoticeV286822').textContent=RAIN_CLUES_V286822[action][1];return true;
 }
 function finishRainBattleV286822(enemy){
  const battle=rainFightsV286822.get(enemy),s=rainStateV286822();
@@ -680,8 +681,7 @@ function showExpansionSceneV286827(id){
 const RAIN_TWO_TITLES_V286827=['残信再至','寻访幸存者','雷海船队','各方来信','执印使的两道封令','守渡执印使','三个人的去向','把哪一条路留住','渡牌东流 · 结案','卷二完'];
 const RAIN_TWO_ENDINGS_V286827={arrest:['扣住执行者，三方封存卷宗','你扣下执印使及这一段船队的转运册，先让归人离船，再封住泊位。三方分别收存副本。船队在此中断，远处另一处接货点却已撤空；被捕者只能说出经手的印号，不能证明最高层是谁。'],rescue:['先救船中人，舍弃追捕窗口','你把仅有的两条小艇用于接人。押船者趁退潮带走部分原册，留下的抄件不足以锁定下一处泊位。归人活着踏上岸，不代表失去的记忆已经回来；这段转运线还需要重查。'],seal:['保全云阙痕迹，等待交叉核验','封蜡的旧版印谱指向云阙一处档案机构，但印章可以被盗用。你将拓片交三方密存，请不同来源继续核验，暂不公开指认。质疑因此落到你身上：为何找到线索，却还不给家属一个名字？你只能如实解释证据边界。']};
 function rainTwoUnlockedV286827(){return rainStateV286822().step>=13&&player.level>=6;}
-function rainTwoPagesV286827(n){
- const one=rainStateV286822(),q=expansionStateV286827().rain2;
+function rainTwoPagesV286827(n,one=rainStateV286822(),q=expansionStateV286827().rain2){
  const policy={public:'幸存者带着当年的公开核查副本来见你，愿意署名作证，但要求先知道证言会交给谁。',protect:'你依约在药庐后院私下见到证人。他们使用化名，不愿让新生活再暴露在渡牌册里。',trace:'宗门保存的监视卷宗记录了三次换船。你没有让守望多年的渡工继续独自追踪。'}[one.policy]||'你重新向幸存者确认，他们是否愿意继续提供证言。';
  return [
  ['旧渡牌的印记再次出现在一封残信上。信里没有求你立刻出剑，只写着东域雷海旧渡的换船时辰。','当年二十七人救回二十四人，另三人被提前带走。这一次，你要追的是他们各自的去向，而不是再找一张盖过章的死亡证明。'],
@@ -700,7 +700,7 @@ const rainTwoFightsV286827=new WeakMap();
 function showRainTwoV286827(replay=-1){
  if(!rainTwoUnlockedV286827()||!taskInteractionAllowedV2822())return;const q=expansionStateV286827().rain2,back=Number.isInteger(replay)&&replay>=0&&replay<=q.step,n=back?replay:q.step;
  const buttons=[];if(!back){
- if(n===4){buttons.push(['seal','调查封印'+(q.clues.includes('seal')?' ✓':'')],['route','调查航线'+(q.clues.includes('route')?' ✓':'')]);if(q.clues.length===2)buttons.push(['guard','布置护身阵 · 12%气血护盾'],['breach','找准换印间隙 · 防御降低15%']);}
+ if(n===4){if(q.clues.length<2)buttons.push(['all','一并核查封印与航线']);buttons.push(['seal','调查封印'+(q.clues.includes('seal')?' ✓':'')],['route','调查航线'+(q.clues.includes('route')?' ✓':'')]);if(q.clues.length===2)buttons.push(['guard','布置护身阵 · 12%气血护盾'],['breach','找准换印间隙 · 防御降低15%']);}
  else if(n===5)buttons.push(['fight','准备妥当，挑战执印使']);
  else if(n===7)for(const [key,[label]] of Object.entries(RAIN_TWO_ENDINGS_V286827))buttons.push([key,label]);
  else if(n<9)buttons.push(['next',n===8?'收好卷宗 · 完成卷二':'继续追查']);
@@ -721,7 +721,8 @@ function actRainTwoV286827(session,action){
   if(q.plan==='guard')elementGuardsV286818.set(enemy,{owner:player,pool:Math.floor(getMaxHp()*.12),turns:2});updateCombatUI();return true;
  }
  let exp=0,gold=0;
- if(q.step===4&&['seal','route'].includes(action)){if(q.clues.includes(action))return false;q.clues.push(action);}
+ if(q.step===4&&action==='all'){if(q.clues.length===2)return false;q.clues=['seal','route'];}
+ else if(q.step===4&&['seal','route'].includes(action)){if(q.clues.includes(action))return false;q.clues.push(action);}
  else if(q.step===4&&q.clues.length===2&&['guard','breach'].includes(action)){q.plan=action;q.step=5;}
  else if(q.step===7&&Object.hasOwn(RAIN_TWO_ENDINGS_V286827,action)){q.ending=action;q.step=8;}
  else if([0,1,2,3,6,8].includes(q.step)&&action==='next'){if(q.step===8){if(!q.ending)return false;exp=300;gold=600;}q.step++;}
@@ -748,6 +749,35 @@ function surveyDossierV2884(){
  if(!expansionSaveV286827(next))return false;
  showFloatingText('圣念巡天：三域线索已核查，可在卷宗中逐条阅读。','#ffd700');return true;
 }
+// A terminal-story preview uses local copies only: no rewriting history or replaying rewards.
+function showStoryEchoV2885(draft={}){
+ if(!taskInteractionAllowedV2822()||!player.tasks?.completed?.includes('main_19'))return false;
+ const done=JOURNEYS_V2838.filter(j=>player.tasks.completed.includes(j.id)),one=rainStateV286822(),two=expansionStateV286827().rain2,esc=escapeGameText;
+ const links=done.map(j=>['journey:'+j.id,j.title]);if(one.step===13)links.push(['rain1','雨夜卷一 · 选择回响']);if(two.step===9)links.push(['rain2','雨夜卷二 · 结案回响']);
+ let body='<p>此处只预览另一种选择的剧情，不改写真实约定、人物关系、任务进度或奖励。关闭后仍沿用原存档。</p>',buttons=[],next={...draft};
+ const paras=xs=>xs.map(t=>`<p>${esc(t)}</p>`).join('');
+ if(draft.kind==='journey'){
+  const j=done.find(j=>j.id===draft.id);if(!j)return false;const choice=j.choices.find(c=>c[0]===draft.choice)||j.choices[0];next.choice=choice[0];
+  body+=`<h3>${esc(j.title)}</h3><p>真实约定：${esc(j.choices.find(c=>c[0]===player.tasks.choices?.[j.id])?.[1]||'旧记录未保存具体选择')}</p>`+paras(j.ending.map(x=>x.join('：')))+`<h4>预览 · ${esc(choice[1])}</h4><p>${esc(j.outcomes[choice[0]])}</p>`;
+  buttons=j.choices.map(c=>['choice:'+c[0],(c[0]===choice[0]?'✓ ':'')+c[1]]);
+ }else if(draft.kind==='rain1'&&one.step===13){
+  const fields={route:[['rescue','先救人'],['chase','先追踪']],trust:[['share','交出原信'],['reserve','暂留原信']],policy:[['public','公开核查'],['protect','保护证人'],['trace','继续追踪']]};
+  const preview={...one};for(const [k,opts] of Object.entries(fields)){preview[k]=opts.some(c=>c[0]===draft[k])?draft[k]:one[k]||opts[0][0];next[k]=preview[k];buttons.push(...opts.map(c=>[k+':'+c[0],(preview[k]===c[0]?'✓ ':'')+c[1]]));}
+  body+='<h3>雨夜卷一 · 预览回响</h3><p>真实结案：'+esc(rainSummaryV286822(one))+'</p>'+[3,7,10,13].map(n=>`<details ${n===13?'open':''}><summary>${esc(RAIN_TITLES_V286822[n])}</summary>${paras(rainNarrativeV286822(n,preview))}</details>`).join('');
+ }else if(draft.kind==='rain2'&&two.step===9){
+  const ending=Object.hasOwn(RAIN_TWO_ENDINGS_V286827,draft.ending)?draft.ending:two.ending||'arrest';next.ending=ending;
+  body+='<h3>雨夜卷二 · 结案预览</h3><p>真实结案：'+esc(RAIN_TWO_ENDINGS_V286827[two.ending]?.[0]||'旧记录未保存具体选择')+'</p>'+paras(rainTwoPagesV286827(9,one,{...two,ending}));buttons=Object.entries(RAIN_TWO_ENDINGS_V286827).map(([k,c])=>['ending:'+k,(k===ending?'✓ ':'')+c[0]]);
+ }else {next={};body+='<p>选择已完成的章节，查看不同约定或结案的原有文本。</p>';buttons=links;}
+ if(next.kind)buttons.push(['menu','返回溯回目录']);buttons.push(['journal','返回总纪事簿']);
+ expansionModalV286827('道心溯回',body,buttons,k=>{
+  if(!player.tasks?.completed?.includes('main_19'))return;
+  if(k==='journal'){closeExpansionV286827();showTaskPanel('journal');return;}
+  if(k==='menu')return showStoryEchoV2885();
+  if(k.startsWith('journey:'))return showStoryEchoV2885({kind:'journey',id:k.slice(8)});
+  if(k==='rain1'||k==='rain2')return showStoryEchoV2885({kind:k});
+  const [field,value]=k.split(':');if(['choice','route','trust','policy','ending'].includes(field))showStoryEchoV2885({...next,[field]:value});
+ });return true;
+}
 function chronicleV286827(){
  const s=expansionStateV286827(),esc=escapeGameText,rows=[];
  for(const t of MAIN_TASKS){const chosen=player.tasks?.choices?.[t.id];if(chosen){const label=t.steps.find(x=>x.action==='choice')?.options?.find(x=>x[0]===chosen)?.[1];rows.push(`${t.title}：${label||'历史选择'}${t.id==='main_09'&&chosen==='neutral'?' · 药庐外三方闲谈':''}`);}}
@@ -759,7 +789,7 @@ function chronicleV286827(){
  for(const t of SIDE_TASKS.filter(t=>t.type==='hidden'))if(player.tasks?.completed?.includes(t.id))rows.push(t.title+'：'+t.desc+'（已完成）');
  if(rainStateV286822().step>=13)rows.push('雨夜卷一：'+rainSummaryV286822()+(rainStateV286822().trust==='share'?'；曾交出原信。':'；曾暂留原信。'));
  if(s.rain2.step===9)rows.push('雨夜卷二：'+(RAIN_TWO_ENDINGS_V286827[s.rain2.ending]?.[1]||'已完成，旧记录缺少具体结案方式。'));
- return `<section class="main-overview-v2822"><h3>总纪事簿</h3><p>从现有存档重建；未知的旧选项保留空白，回看不改变选择或奖励。</p><details><summary>三界行旅纪事 · ${journeys.length}/8</summary>${journeyText.map(t=>`<p>${esc(t)}</p>`).join('')}</details><details><summary>人物、旧案与主线选择 · ${rows.length}条</summary>${rows.map(t=>`<p>${esc(t)}</p>`).join('')}</details>${dossierCardV286827()}<button class="task-action" onclick="showExpansionV286827()">人物与旧案</button></section>`;
+ return `<section class="main-overview-v2822"><h3>总纪事簿</h3>${player.tasks?.completed?.includes('main_19')?'<button type="button" class="task-action" onclick="showStoryEchoV2885()">道心溯回 · 预览其他分支</button>':''}<p>从现有存档重建；未知的旧选项保留空白，回看不改变选择或奖励。</p><details><summary>三界行旅纪事 · ${journeys.length}/8</summary>${journeyText.map(t=>`<p>${esc(t)}</p>`).join('')}</details><details><summary>人物、旧案与主线选择 · ${rows.length}条</summary>${rows.map(t=>`<p>${esc(t)}</p>`).join('')}</details>${dossierCardV286827()}<button class="task-action" onclick="showExpansionV286827()">人物与旧案</button></section>`;
 }
 const scenePagesBeforeV286827=scenePagesV2838;
 scenePagesV2838=function(id,action){const pages=scenePagesBeforeV286827(id,action).map(row=>row.slice());

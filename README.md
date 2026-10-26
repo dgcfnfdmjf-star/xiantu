@@ -1,6 +1,10 @@
-# 仙途 V28.68.58
+# 仙途 V28.68.59
 
-部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.58）；[上传步骤](downloads/README.md)。
+部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.59）；[上传步骤](downloads/README.md)。
+
+## V28.68.59 雨夜速查与破势反制
+
+雨夜两卷支持一并调查，保留剧情判断与原补给限制；终章后可在总纪事簿预览已完成章节的其他分支，不改写存档。雷系、暴击与重击可破凝气护体；直接招式或暴击可破同门援阵。宗门待办新增先预览消耗再提交的委托速办。见 [规则与验证](docs/rain-counter-commissions.txt)。无需更新Jev，尚未部署腾讯云。
 
 ## V28.68.58 游历与临阵调遣
 
@@ -136,7 +140,7 @@ npm test
 npm run test:browser
 ```
 
-`npm test` 运行选定的 80 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
+`npm test` 运行选定的 82 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
 
 浏览器测试覆盖恶意存档拒绝且原主档/备份不变、正常导入与刷新恢复、360/390/430/1366px 导航入口可达性、预加载去重与版本错误提示。外部请求被拦截，不调用付费服务。已有 Chromium 的云环境可使用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`。
 
