@@ -17,6 +17,10 @@ for(const id of ['ape','treant','spider','wolf','general','guard']){
  f.run('isPlayerTurn=false;resolveEnemyTurnV2844();resolveEnemyTurnV2844()');f.flush(150);a.equal(f.run('b.turn'),1,'once per action');
  win(f);a.equal(f.run('player.eliteHuntV2883.pending.id'),id);a.equal(f.run('player.eliteHuntV2883.records[b.id].kills'),1);a.equal(f.run('player.gold'),1000);a.equal(claim(f),true);a.equal(f.run('player.gold'),4260);a.equal(f.run('player.warState.meritV2839'),15);a.equal(claim(f),false);
 }
+// Scripted bounty does not also roll ordinary underdog currency/materials.
+const cross=game(5);all.push(cross);start(cross,'ape');cross.c.Math.random=()=>.01;
+const crossLoot=cross.run('JSON.stringify([player.exp,player.gold,player.materials,player.inventory])');win(cross);
+a.equal(cross.run('JSON.stringify([player.exp,player.gold,player.materials,player.inventory])'),crossLoot,'only pending bounty, no extra underdog roll');
 const ape=game();all.push(ape);start(ape,'ape');ape.run('b.shield=1000;globalThis.hp=currentEnemy.hp;player.hp=100');a.equal(ape.run('dealEnemyDamageV2882(currentEnemy,100)'),35);a.equal(ape.run('player.hp'),85);a.equal(ape.run('currentEnemy.hp'),ape.run('hp-35'));
 for(const source of ['pet','companion','passive']){ape.run(`player.hp=100;dealEnemyDamageV2882(currentEnemy,100,false,'${source}')`);a.equal(ape.run('player.hp'),100);}
 ape.run('player.hp=1;dealEnemyDamageV2882(currentEnemy,100)');a.equal(ape.run('player.hp'),1,'reflection cannot produce negative HP at 1');ape.run('b.shield=10;globalThis.def=currentEnemy.def;dealEnemyDamageV2882(currentEnemy,100)');a.equal(ape.run('b.shield'),0);a.equal(ape.run('currentEnemy.def'),ape.run('Math.floor(def*.75)'));ape.run('dealEnemyDamageV2882(currentEnemy,100)');a.equal(ape.run('currentEnemy.def'),ape.run('Math.floor(def*.75)'));

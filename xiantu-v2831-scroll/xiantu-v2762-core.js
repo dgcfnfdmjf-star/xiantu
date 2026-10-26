@@ -7401,7 +7401,7 @@
           // 越级击杀：仅普通非大比敌人追加奖励
           const enemyRealmValue=(currentEnemy._realmLevel||0)+((currentEnemy._realmPhase||0)/4);
           const playerRealmValue=(player.level||0)+((player.phase||0)/4);
-          if(!isBossFight&&!isTribulation&&!currentEnemy?.tournamentFight&&enemyRealmValue>playerRealmValue){
+          if(!isBossFight&&!isTribulation&&!currentEnemy?.tournamentFight&&!currentEnemy?._eliteHuntV2883&&enemyRealmValue>playerRealmValue){
             const bonusExp=Math.max(1,Math.floor(expGain*REALM_PRESSURE_CONFIG.underdogExpBonus));
             player.exp+=bonusExp;
             addCombatLog(`⚡ 越级挑战成功！额外修为 +${bonusExp}！`,'heal');
