@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="仙途">
   <meta name="mobile-web-app-capable" content="yes">
   
-  <title>仙途 V28.68.60 · 开场动画版</title>
+  <title>仙途 V28.68.61 · 开场动画版</title>
 
 
 
@@ -65,7 +65,7 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
     </div>
     <div class="boot-mark">☯</div>
     <h1 id="xiantuSafeBootTitle">仙途</h1>
-    <div class="boot-version">V28.68.60</div>
+    <div class="boot-version">V28.68.61</div>
     <button id="xiantuSafeBootButton" type="button">进入仙途</button>
     <div id="xiantuSafeBootProgress" class="boot-progress"></div>
     <div id="xiantuSafeBootError" class="boot-error"></div>
@@ -411,7 +411,7 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
   'use strict';
   // iOS Safari before 15.4 lacks Object.hasOwn, which several modules use.
   if(typeof Object.hasOwn!=='function')Object.defineProperty(Object,'hasOwn',{value:function(o,k){return Object.prototype.hasOwnProperty.call(o,k);},configurable:true,writable:true});
-  var expectedBuild='28.68.60';
+  var expectedBuild='28.68.61';
   var files=["xiantu-v2762-core.js", "xiantu-v2762-03-virtual-joystick-script.js", "xiantu-v2762-04-tutorial-guide-script.js", "xiantu-v2762-05-mobile-dedicated-script.js", "xiantu-v2762-06-local-test-bootstrap.js", "xiantu-v2762-07-v12-stable-map-ui-script.js", "xiantu-v2762-08-feature-08.js", "xiantu-v2762-09-control-mode-switch-script.js", "xiantu-v2762-10-upgrade-material-hint-script.js", "xiantu-v2762-11-feature-11.js", "xiantu-v2762-12-v277equipmentmanager.js", "xiantu-v2762-13-feature-13.js", "xiantu-v2762-14-v279-pet-capture-system.js", "xiantu-v2762-15-petgrowthsystemv210.js", "xiantu-v2762-16-petguidemapv211script.js", "xiantu-v2762-17-combatskillloadoutv212.js", "xiantu-v2762-18-skillswapmenuv213.js", "xiantu-v2762-19-v27-15-enemy-portrait-script.js", "xiantu-v2762-20-v27-16-enemy-batch1-script.js", "xiantu-v2762-21-v27-17-enemy-batch2-script.js", "xiantu-v2762-22-v2756-cinematic-combat-script.js", "xiantu-v2768-systems.js", "xiantu-v2770-avatar.js", "xiantu-v2773-economy.js", "xiantu-v2838-journey.js", "xiantu-v2839-war.js", "xiantu-v2840-war-map.js", "xiantu-v2841-dharma-war.js", "xiantu-v2842-jev-forge.js", "xiantu-v2850-jev-friends.js", "xiantu-v2844-monster-jev.js", "xiantu-v2846-world-jev.js", "xiantu-v2849-npc-jev.js", "xiantu-v2852-relationship-stories.js", "xiantu-v2852-relationships.js", "xiantu-v2853-monster-art.js", "xiantu-v2855-skill-fx.js", "xiantu-v2856-battle-clarity.js", "xiantu-v2868-sect-life.js", "xiantu-v28684-duel.js"];
   var button=document.getElementById('xiantuSafeBootButton');
   var progress=document.getElementById('xiantuSafeBootProgress');
@@ -422,14 +422,14 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
   function setProgress(text){currentStep=text;progress.textContent=text.indexOf('等待开场')>=0?'加载完成':text.indexOf('1/4')===0?'正在加载 · 1/4':text.indexOf('2/4')===0?'正在加载 · 2/4':text.indexOf('3/4')===0?'正在加载 · 3/4':text.indexOf('4/4')===0?'正在加载 · 4/4':text;}
   function pause(ms){return new Promise(function(resolve){setTimeout(resolve,ms)});}
   function nextPaint(){return new Promise(function(resolve){requestAnimationFrame(function(){setTimeout(resolve,0)})});}
-  function loadStyle(){return new Promise(function(resolve,reject){var link=document.createElement('link');var timer=setTimeout(function(){reject(new Error('样式文件加载超时'))},15000);link.rel='stylesheet';link.href='./xiantu-v2762.css?v=286860-war-return-20261026';link.onload=function(){clearTimeout(timer);resolve()};link.onerror=function(){clearTimeout(timer);reject(new Error('样式文件加载失败'))};document.head.appendChild(link);});}
+  function loadStyle(){return new Promise(function(resolve,reject){var link=document.createElement('link');var timer=setTimeout(function(){reject(new Error('样式文件加载超时'))},15000);link.rel='stylesheet';link.href='./xiantu-v2762.css?v=286861-seal-boss-20261026';link.onload=function(){clearTimeout(timer);resolve()};link.onerror=function(){clearTimeout(timer);reject(new Error('样式文件加载失败'))};document.head.appendChild(link);});}
   function preloadScripts(){
-    files.forEach(function(name){var link=document.createElement('link');link.rel='preload';link.as='script';link.href='./'+name+'?v=286860-war-return-20261026';document.head.appendChild(link);});
+    files.forEach(function(name){var link=document.createElement('link');link.rel='preload';link.as='script';link.href='./'+name+'?v=286861-seal-boss-20261026';document.head.appendChild(link);});
   }
-  function loadScript(name){return new Promise(function(resolve,reject){var s=document.createElement('script');var timer=setTimeout(function(){reject(new Error(name+' 加载超时'))},15000);s.src='./'+name+'?v=286860-war-return-20261026';s.async=false;s.onload=function(){clearTimeout(timer);if(!window.__xiantuBuildFilesV2814||window.__xiantuBuildFilesV2814[name]!==expectedBuild){reject(new Error('文件版本不一致：'+name+'。请上传完整 V28.68.60 文件夹覆盖后刷新，勿清除网站数据。'));return;}resolve()};s.onerror=function(){clearTimeout(timer);reject(new Error(name+' 加载失败'))};document.body.appendChild(s);});}
+  function loadScript(name){return new Promise(function(resolve,reject){var s=document.createElement('script');var timer=setTimeout(function(){reject(new Error(name+' 加载超时'))},15000);s.src='./'+name+'?v=286861-seal-boss-20261026';s.async=false;s.onload=function(){clearTimeout(timer);if(!window.__xiantuBuildFilesV2814||window.__xiantuBuildFilesV2814[name]!==expectedBuild){reject(new Error('文件版本不一致：'+name+'。请上传完整 V28.68.61 文件夹覆盖后刷新，勿清除网站数据。'));return;}resolve()};s.onerror=function(){clearTimeout(timer);reject(new Error(name+' 加载失败'))};document.body.appendChild(s);});}
   function addInstallLinks(){
-    var manifest=document.createElement('link');manifest.rel='manifest';manifest.href='./manifest-v2762.webmanifest?v=286860-war-return-20261026';document.head.appendChild(manifest);
-    var icon=document.createElement('link');icon.rel='apple-touch-icon';icon.href='./v2762-apple-touch-icon.png?v=286860-war-return-20261026';document.head.appendChild(icon);
+    var manifest=document.createElement('link');manifest.rel='manifest';manifest.href='./manifest-v2762.webmanifest?v=286861-seal-boss-20261026';document.head.appendChild(manifest);
+    var icon=document.createElement('link');icon.rel='apple-touch-icon';icon.href='./v2762-apple-touch-icon.png?v=286861-seal-boss-20261026';document.head.appendChild(icon);
   }
   function restoreCanvasSizes(){
     var list=document.querySelectorAll('canvas[data-v2762-width]');
@@ -454,7 +454,7 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
     var introDone=window.XiantuIntroV2860.start();
     try{
       restoreCanvasSizes();preloadScripts();
-      currentStep='1/4 · 加载界面样式';setProgress(currentStep);await loadStyle();if(getComputedStyle(document.documentElement).getPropertyValue('--xiantu-build').trim()!=='286860')throw new Error('样式版本不一致，请完整覆盖 V28.68.60 文件夹。');await nextPaint();
+      currentStep='1/4 · 加载界面样式';setProgress(currentStep);await loadStyle();if(getComputedStyle(document.documentElement).getPropertyValue('--xiantu-build').trim()!=='286861')throw new Error('样式版本不一致，请完整覆盖 V28.68.61 文件夹。');await nextPaint();
       currentStep='2/4 · 加载修仙世界';setProgress(currentStep);await loadScript(files[0]);if(fatalError)throw fatalError;await nextPaint();
       for(var i=1;i<files.length;i++){
         currentStep='3/4 · 加载玩法模块 '+i+'/'+(files.length-1);setProgress(currentStep);await loadScript(files[i]);if(fatalError)throw fatalError;
@@ -468,7 +468,7 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
       addInstallLinks();
       bootJevFriendsV2850();
       var buildBadge=document.createElement('button');buildBadge.id='xiantuBuildBadgeV2814';buildBadge.textContent='版本信息';buildBadge.title='查看当前版本';
-      buildBadge.onclick=function(){alert('仙途 · V28.68.60\n遇到问题时，可提供此版本号与画面截图。');};
+      buildBadge.onclick=function(){alert('仙途 · V28.68.61\n遇到问题时，可提供此版本号与画面截图。');};
       document.getElementById('characterUtilityActions').appendChild(buildBadge);
       document.body.classList.remove('xiantu-v2762-booting');
       document.getElementById('xiantuSafeBoot').remove();

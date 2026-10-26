@@ -10025,6 +10025,7 @@
       html+=jevEntryV2846('jevSectV2846()','Jev 宗门经营参议');
       if(hasRank('宗主'))html+='<button class="choice-btn" onclick="showSectMasterV2872()">👑 宗主议事 · 整饬与授业</button>';
       else if(hasRank('长老'))html+='<button class="choice-btn" onclick="showSectPromotionV2768()">👑 宗主传承考核</button>';
+      if(typeof bossHallButtonV2887==='function')html+=bossHallButtonV2887();
       showStory(html, choices);
     }
 
@@ -14594,7 +14595,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.60";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.61";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

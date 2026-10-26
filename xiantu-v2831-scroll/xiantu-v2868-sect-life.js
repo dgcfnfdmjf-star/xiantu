@@ -156,7 +156,7 @@ function settleReadySectTasksV2885(session){
  closeExpansionV286827();updateStats();syncSectTodoV2868();showFloatingText(`已速办${q.tasks.length}项委托，消耗与奖励已保存。`,'#69f0ae');showSectTodoV2868();return true;
 }
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.60';
+window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.61';
 
 
 // V28.68.40: saved random encounters and run-scoped blessings.
@@ -392,6 +392,7 @@ function showSectAdminV2873(){
  if(day<s.highDay)html+=`<p>当前日期早于经营记录，请等待至第${s.highDay}游戏日再操作。</p>`;
  if(s.quarter){const r=sectAdminRewardV2873(s),settlement=sectSettlementV2881(s);html+=`<h4>季度账册</h4><p>还需${Math.max(0,s.quarter.due-day)}日 · 本季${r.gold}灵石、繁荣度+${r.prosperity}（提升上限100，已有更高值保留）、贡献+${r.contribution}；供养${r.upkeep}，净收益${r.gold-r.upkeep}灵石。${sectUpkeepTextV2880(s.quarter)}</p><p role="status">按当前余额结算：${sectSettlementTextV2881(settlement)}。</p>`+button('claim','',null,'领取岁入并开启下一季');}
  else {const q=sectAdminQuoteV2873(s),r=sectAdminRewardV2873({...s,quarter:q});html+=`<h4>季度账册</h4><p>预览：收入${r.gold}，供养${r.upkeep}，净收益${r.gold-r.upkeep}灵石。${sectUpkeepTextV2880(q)}</p>`+button('start','',null,'开启首季账册');}
+ html+=bossSealSectionV2887();
  html+='<h4>敕令</h4><p>每次颁布后60日才可再次颁布；默认持续30日，九转绝学延长为40日。只有在新季度到期日仍有效的敕令计入该季。</p>';
  if(s.decree.id)html+=`<p>${esc(SECT_ADMIN_V2873.decrees.find(d=>d.id===s.decree.id).name)}：有效期剩${Math.max(0,s.decree.until-day)}日，再颁剩${Math.max(0,s.decree.ready-day)}日。</p>`;
  for(const d of SECT_ADMIN_V2873.decrees)html+=`<article><p>${d.name}：${d.gold}灵石、${d.contribution}贡献；即时繁荣+${d.gain}；符合有效期的新季度岁入×${d.income}，繁荣${d.prosperity>=0?'+':''}${d.prosperity}。</p>${button('decree',d.id,null,'颁布 · '+d.name)}</article>`;
