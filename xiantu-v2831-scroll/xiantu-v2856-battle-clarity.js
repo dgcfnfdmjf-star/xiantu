@@ -8,6 +8,21 @@
     const ending=gameState==='combat-ending',chips=[];
     const push=(side,text)=>chips.push({side,text});
     if(!ending){
+      const abyss=typeof abyssBattleV2882==='function'?abyssBattleV2882(currentEnemy):null;
+      if(abyss){
+        push('enemy',['','一重 · 万名渡骨','二重 · 窃忆魔相','三重 · 归墟同葬'][abyss.stage]);
+        if(abyss.shield>0)push('enemy',`千魂骨盾 ${abyss.shield} · 吸收每击60%`);
+        if(abyss.guard>0&&abyss.turn<2)push('self',`断链护盾 ${abyss.guard} · 余${Math.max(0,2-abyss.turn)}次行动`);
+      }
+      const elite=typeof eliteBattleV2883==='function'?eliteBattleV2883(currentEnemy):null;
+      if(elite){
+        push('enemy',ELITES_V2883[elite.id].trait);
+        if(elite.shield>0)push('enemy',`玄岩盾 ${elite.shield} · 吸收65%`);
+        if(elite.enraged)push('enemy','霜狼狂嗥 · 攻击+25%');
+        if(elite.undying)push('enemy','魔甲燃血 · 不屈已用 · 攻击+30%');
+        if(elite.marks)push('enemy',`天罚雷印 ${elite.marks}/2`);
+        if(elite.web)push('self','蚀脉蛛网 · 下次直接伤害-15%');
+      }
       const origin=currentEnemy._originV286826;
       if(origin)push('enemy',origin.collapsed?'道基崩裂 · 攻击+20% · 禁疗 · 行动自损4%':`魔典燃源 ${Math.min(3,origin.turns)}/3 · 攻击+10% · 防御+25%`);
       const tactics=tacticsV286821.get(currentEnemy);
@@ -113,4 +128,4 @@
   W.BattleClarityV2856={read,sync,tip};
 })(window,document);
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2856-battle-clarity.js']='28.68.56';
+window.__xiantuBuildFilesV2814['xiantu-v2856-battle-clarity.js']='28.68.57';

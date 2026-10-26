@@ -1,0 +1,52 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),a=require('node:assert/strict');
+const root=process.env.XIANTU_TEST_ROOT||path.resolve(__dirname,'..'),fixture=require('./v2858-dom-fixture.cjs');
+function game(){const f=fixture(root);f.c.Math=Object.create(Math);f.c.Math.random=()=>.5;f.storage.set('xiantu_battle_presentation_v2756','report');for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);f.c.console.log=()=>{};f.c.confirm=()=>true;f.run("startGame();closeWorldOverlay();player.level=5;player.phase=0;player.hp=getMaxHp();player.mp=getMaxMp();player.gold=1000;MONSTER_JEV_V2844.enabled=false;player.companionV2849=null;completedAchievements=new Set(Object.keys(ACHIEVEMENTS))");f.timers.clear();return f;}
+function start(f,plan='chain'){f.run(`showAbyssBossHubV2882('${plan}')`);a.equal(f.run('launchAbyssBossV2882()'),true);f.timers.clear();}
+function turn(f){f.run('isPlayerTurn=false;resolveEnemyTurnV2844()');f.flush(150);}
+function easy(f){f.run('currentEnemy.atk=1;currentEnemy._realmLevel=0;currentEnemy._pressureStun=false;currentEnemy._pressureTurns=0;playerPressureStun=false;playerPressureTurns=0');}
+function win(f){f.run('currentEnemy.hp=0;checkBattleEnd();completeCombatFinishV2764()');f.timers.clear();}
+function claim(f){f.run('showAbyssBossHubV2882()');return f.run('claimAbyssRewardV2882()');}
+const f=game();f.run('showAncientWarV2859()');let before=f.run('JSON.stringify(player)');f.run('showAbyssBossHubV2882();showAbyssBossHubV2882()');a.equal(f.run('JSON.stringify(player)'),before,'opening hub has no economic side effects');
+f.run('player.level=4;showAbyssBossHubV2882()');a.equal(f.run('launchAbyssBossV2882()'),false);f.run('player.level=5;player.hp=1;showAbyssBossHubV2882()');a.equal(f.run('launchAbyssBossV2882()'),false);f.run('player.hp=getMaxHp();showAbyssBossHubV2882();globalThis.oldView=abyssViewV2882;showAbyssBossHubV2882()');a.equal(f.run('abyssViewValidV2882(oldView)'),false);
+f.c.confirm=()=>{f.run('player={...player}');return true;};a.equal(f.run('launchAbyssBossV2882()'),false);f.c.confirm=()=>true;
+start(f);a.equal(f.run('monsterStateV2844()'),null,'no remote monster decisions');a.equal(f.run('canFleeV286818()'),false);a.equal(f.run('abyssBattleV2882(currentEnemy).shield'),Math.floor(f.run('currentEnemy.maxHp')*.075));
+const hp=f.run('currentEnemy.hp');a.equal(f.run('dealEnemyDamageV2882(currentEnemy,100)'),40);a.equal(f.run('currentEnemy.hp'),hp-40);
+f.run('globalThis.b=abyssBattleV2882(currentEnemy);b.shield=5');a.equal(f.run('dealEnemyDamageV2882(currentEnemy,100)'),95);a.equal(f.run('b.shield'),0);
+// Presentation never mutates HP; passive routes use the same shield commit.
+before=f.run('currentEnemy.hp');f.run("showDamageNumber(100,'enemy',false,true)");a.equal(f.run('currentEnemy.hp'),before);
+f.run('currentEnemy.hp=currentEnemy.maxHp*.29;globalThis.atk=currentEnemy.atk;globalThis.def=currentEnemy.def;syncAbyssPhaseV2882(currentEnemy)');a.equal(f.run('b.stage'),3);a.equal(f.run('currentEnemy.atk'),f.run('Math.round(Math.round(atk*1.2)*1.22)'));a.equal(f.run('currentEnemy.def'),f.run('Math.round(Math.round(def*1.15)*.85)'));const atk=f.run('currentEnemy.atk');f.run('syncAbyssPhaseV2882(currentEnemy)');a.equal(f.run('currentEnemy.atk'),atk);a.equal(f.run('dealEnemyDamageV2882(currentEnemy,100,true)'),125);
+f.run('b.plan="breach"');a.equal(f.run('dealEnemyDamageV2882(currentEnemy,100,true)'),155);
+f.run('currentEnemy.hp=10;b.shield=100');a.equal(f.run('dealEnemyDamageV2882(currentEnemy,20)'),8);a.equal(f.run('currentEnemy.hp'),2,'shield must prevent premature lethal');f.run('dealEnemyDamageV2882(currentEnemy,1000);checkBattleEnd()');a.equal(f.run('gameState'),'combat-ending');a.equal(f.run('player.abyssBossV2882.wins'),1);f.run('recordAbyssFinishV2882()');a.equal(f.run('player.abyssBossV2882.wins'),1);a.equal(f.run('player.gold'),1000,'all challenge currency is pending, not paid twice');f.run('completeCombatFinishV2764();saveGame();player=normalizePlayer(loadGame().player);showAbyssBossHubV2882()');a.equal(f.run('launchAbyssBossV2882()'),false,'unclaimed loot blocks reentry');
+// Save failure retains the exact pending drop, balances, and pet reference; retry once.
+before=f.run('JSON.stringify(player)');f.run('globalThis.oldSet=localStorage.setItem;localStorage.setItem=()=>{throw Error("quota")}');a.equal(f.run('claimAbyssRewardV2882()'),false);a.equal(f.run('JSON.stringify(player)'),before);f.run('localStorage.setItem=oldSet');a.equal(claim(f),true);a.equal(f.run('player.gold'),10200);a.equal(f.run('player.petMaterials["上古返祖灵珠"]'),1);a.equal(f.run('player.warState.meritV2839'),45);a.equal(claim(f),false);
+f.run('saveGame();player=normalizePlayer(loadGame().player)');a.equal(claim(f),false);
+// Threshold roll is exactly 35%, not guaranteed, and locked into the saved pending record.
+for(const [roll,drop] of [[.349,true],[.35,false],[.99,false]]){f.run('player.hp=getMaxHp();player.mp=getMaxMp()');start(f);f.c.Math.random=()=>roll;win(f);a.equal(f.run('!!player.abyssBossV2882.pending.rare'),drop);a.equal(f.run('player.abyssBossV2882.pending.first'),false);f.run('saveGame();player=normalizePlayer(loadGame().player)');a.equal(f.run('!!player.abyssBossV2882.pending.rare'),drop);a.equal(claim(f),true);}
+// Entry realm locked even if level changes at finish; cap at highest realm.
+const locked=game();start(locked);locked.run('player.level=6');win(locked);a.equal(locked.run('player.abyssBossV2882.pending.realm'),5);a.equal(locked.run('player.abyssBossV2882.pending.first'),true);locked.run('player.level=16');a.equal(locked.run('createAbyssBossV2882()._realmLevel'),16);
+// Controlled skips do not count or fire mechanics. Low MP cannot create imaginary shield.
+const turns=game();start(turns,'breach');easy(turns);turns.run('globalThis.b=abyssBattleV2882(currentEnemy);currentEnemy.hp=currentEnemy.maxHp*.6;syncAbyssPhaseV2882(currentEnemy);player.mp=3;skipEnemyTurn=true');turn(turns);a.equal(turns.run('b.turn'),0);a.equal(turns.run('player.mp'),turns.run('Math.min(getMaxMp(),3+0)'));
+turns.run('player.mp=3;b.shield=0;isPlayerTurn=false;resolveEnemyTurnV2844();resolveEnemyTurnV2844()');turns.flush(150);a.equal(turns.run('b.turn'),1,'duplicate callback does not add another turn');a.equal(turns.run('b.shield'),9);a.equal(turns.run('player.mp'),turns.run('0'));
+const mind=game();start(mind,'mind');easy(mind);mind.run('globalThis.b=abyssBattleV2882(currentEnemy);currentEnemy.hp=currentEnemy.maxHp*.6;syncAbyssPhaseV2882(currentEnemy);player.mp=0;b.shield=0');turn(mind);a.equal(mind.run('b.shield'),0);a.equal(mind.run('player.mp'),mind.run('Math.min(getMaxMp(),Math.ceil(getMaxMp()*.08)+0)'));
+// Heavy attack is a replacement action through mitigation, not a free second hit.
+const heavy=game();start(heavy);easy(heavy);heavy.run('globalThis.b=abyssBattleV2882(currentEnemy);b.guard=100000;b.turn=0');turn(heavy);a.equal(heavy.run('b.turn'),1);turn(heavy);a.equal(heavy.run('b.turn'),2);a.equal(heavy.run('BattleClarityV2856.read().chips.some(c=>c.text.includes("断链护盾"))'),false);heavy.run('isPlayerTurn=false');a.equal(heavy.run('abyssActionV2882(currentEnemy).name'),'战戟裂界');a.equal(heavy.run('b.guard'),0);
+// Storm is nonlethal but the following ordinary strike can defeat, without loss of gold.
+const dead=game();start(dead);dead.run('currentEnemy.hp=currentEnemy.maxHp*.25;syncAbyssPhaseV2882(currentEnemy);currentEnemy._pressureStun=false;currentEnemy._realmLevel=5;currentEnemy.atk=1e9;player.hp=2');turn(dead);a.equal(dead.run('COMBAT_FINISH_V2764.pending.kind'),'defeat');a.equal(dead.run('player.gold'),1000);a.equal(dead.run('player.abyssBossV2882.pending'),null);
+// Delayed action cannot touch another character or a subsequent fight.
+const stale=game();start(stale,'mind');stale.run('isPlayerTurn=false;resolveEnemyTurnV2844();queueCombatFinishV2764("flee");completeCombatFinishV2764();player=createDefaultPlayer()');before=stale.run('JSON.stringify(player)');stale.flush(150);a.equal(stale.run('JSON.stringify(player)'),before);
+// Real player DOT, attack and pet routes consume shield before any death handling.
+const routes=game();start(routes,'mind');routes.run('globalThis.b=abyssBattleV2882(currentEnemy);currentEnemy.hp=currentEnemy.maxHp=1000000;b.shield=100000;currentEnemy.burnStacks=100;currentEnemy.burnTurns=1;currentEnemy._frostTurnsV286818=1;currentEnemy._frostDamageV286818=100;currentEnemy.thunderDomainTurns=1;currentEnemy.thunderDomainDamage=100;combat("attack")');
+a.equal(routes.run('currentEnemy.hp'),1000000-120);a.equal(routes.run('b.shield'),100000-180);
+routes.flush(150);a(routes.run('b.shield')<100000-180,'real attack uses shield');
+routes.run('player.activePet={name:"火凤",type:Object.keys(PET_TYPES).find(k=>PET_TYPES[k].bonus.type==="burn"),level:20,evolutionStage:0};globalThis.shieldBefore=b.shield;petAttack()');a(routes.run('b.shield<shieldBefore'),'real pet and burn use shield');
+routes.run('player.activePet=null;currentEnemy.atk=2000;currentEnemy._realmLevel=5;currentEnemy._pressureStun=false;player.hp=getMaxHp();player._thunderArmorTurns=2;player._thunderReflectRatio=.25;globalThis.shieldBefore=b.shield');turn(routes);a(routes.run('b.shield<shieldBefore'),'real reflection uses shield');
+// Every legal challenge realm/phase: preview finite, strategy effect and cap consistent.
+const matrix=game();for(let realm=5;realm<17;realm++)for(let phase=0;phase<4;phase++)for(const plan of ['chain','mind','breach']){
+ matrix.run(`player.level=${realm};player.phase=${phase};globalThis.preview=createAbyssBossV2882('${plan}')`);
+ for(const key of ['hp','maxHp','atk','def'])a(Number.isFinite(matrix.run('preview.'+key))&&matrix.run('preview.'+key)>0);
+ a.equal(matrix.run('preview._realmLevel'),Math.min(16,realm+1));
+}
+const norm=game();norm.run('player.abyssBossV2882={plan:"bad",wins:Infinity,cleared:[5,5,-1,99],pending:{realm:99,first:true}};player=normalizePlayer(player)');a.equal(norm.run('player.abyssBossV2882.plan'),'chain');a.equal(norm.run('player.abyssBossV2882.wins'),0);a.deepEqual([...norm.run('player.abyssBossV2882.cleared')],[5]);a.equal(norm.run('player.abyssBossV2882.pending'),null);
+for(const x of [f,locked,turns,mind,heavy,dead,stale,routes,matrix,norm])a(x.errors.every(e=>e[0]==='保存失败:'),JSON.stringify(x.errors));
+console.log('PASS abyss ownership/guards, phase crossings, shield/critical commits, control skips/duplicate actions, MP/storm/defeat, realm-locked once rewards, 35% repeat drops and saved claim rollback');

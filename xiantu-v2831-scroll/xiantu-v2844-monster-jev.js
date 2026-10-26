@@ -7,7 +7,7 @@ const MONSTER_ACTIONS_V2844 = Object.freeze({
   heal:{label:'妖元回生',cost:28,cooldown:4}, spell:{label:'本命术法',cost:32,cooldown:3}
 });
 function monsterEligibleV2844() {
-  return !!currentEnemy && !isTribulation && !currentEnemy._isTutorial && !currentEnemy.tournamentFight;
+  return !!currentEnemy && !currentEnemy._abyssBossV2882 && !currentEnemy._eliteHuntV2883 && !isTribulation && !currentEnemy._isTutorial && !currentEnemy.tournamentFight;
 }
 function initMonsterAiV2844() {
   cancelMonsterJevV2844('changed');
@@ -183,4 +183,4 @@ function runMonsterTurnV2844(resolve) {
 window.addEventListener('xiantu:combat-finishing',()=>cancelMonsterJevV2844('changed'));
 window.addEventListener('pagehide',()=>{cancelMonsterJevV2844('disabled');});
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2844-monster-jev.js']='28.68.56';
+window.__xiantuBuildFilesV2814['xiantu-v2844-monster-jev.js']='28.68.57';

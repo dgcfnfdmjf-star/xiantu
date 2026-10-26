@@ -25,6 +25,8 @@ function normalizeBuildingUseV2768(raw={}) {
 const normalizePlayerBeforeV2768=normalizePlayer;
 normalizePlayer=function(saved={}){
  const p=normalizePlayerBeforeV2768(saved);
+ if(typeof normalizeEliteHuntV2883==='function')p.eliteHuntV2883=normalizeEliteHuntV2883(saved.eliteHuntV2883);
+ if(typeof normalizeAbyssV2882==='function')p.abyssBossV2882=normalizeAbyssV2882(saved.abyssBossV2882);
  p.sectPromotion=normalizePromotionV2768(saved.sectPromotion,p.sect);
  p.sectMasterV2872=normalizeSectMasterV2872(saved.sectMasterV2872,p.sect);
  if(typeof normalizeSectPathV2880==='function')p.sectPathV2880=normalizeSectPathV2880(saved.sectPathV2880,p.sect);
@@ -187,4 +189,4 @@ function restoreBackupV2768(){
  }catch(e){alert(`恢复失败：${e.message}`);}
 }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2768-systems.js"]="28.68.56";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2768-systems.js"]="28.68.57";

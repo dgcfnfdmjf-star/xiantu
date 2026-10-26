@@ -265,7 +265,7 @@ function rollPetGrowthMaterialDropV210(enemy){const demon=/魔|鬼|邪|煞|渊/.
 const v210BattleEndBase=window.checkBattleEnd;window.checkBattleEnd=function(){if(currentEnemy?.hp<=0)awardPetBattleGrowthV210(currentEnemy);return v210BattleEndBase?.apply(this,arguments)};
 
 // 完全进化后有概率触发第二灵宠技能；“每5级技能伤害小幅提升”已纳入成长倍率。
-const v210PetAttackBase=window.petAttack;window.petAttack=function(){const pet=player?.activePet;const base=v210PetAttackBase?.apply(this,arguments)||0;if(!pet||!currentEnemy||currentEnemy.hp<=0||(currentEnemy._mercySavedV2870&&isPlayerTurn))return base;ensurePetGrowthStateV210(pet);if(pet.evolutionStage<1)return base;const chance=.18+pet.evolutionStage*.07+petTraitBonusV210(pet,'speed')*.4;if(Math.random()>=chance)return base;const extra=Math.max(1,Math.floor(base*(.28+pet.evolutionStage*.12+pet.skillDamageBonus*.15)));currentEnemy.hp=Math.max(0,currentEnemy.hp-extra);const skill=PET_SECOND_SKILLS_V210[pet.type]||'血脉灵术';showDamageNumber?.(extra,'enemy',false,false,false,true);addCombatLog?.(`🪽 ${pet.name} 触发第二技能【${skill}】，追加 ${extra} 点伤害！`,'pet');updateCombatUI?.();if(currentEnemy.hp<=0)checkBattleEnd?.();return base+extra};
+const v210PetAttackBase=window.petAttack;window.petAttack=function(){const pet=player?.activePet;const base=v210PetAttackBase?.apply(this,arguments)||0;if(!pet||!currentEnemy||currentEnemy.hp<=0||(currentEnemy._mercySavedV2870&&isPlayerTurn))return base;ensurePetGrowthStateV210(pet);if(pet.evolutionStage<1)return base;const chance=.18+pet.evolutionStage*.07+petTraitBonusV210(pet,'speed')*.4;if(Math.random()>=chance)return base;const extra=dealEnemyDamageV2882(currentEnemy,Math.max(1,Math.floor(base*(.28+pet.evolutionStage*.12+pet.skillDamageBonus*.15))),false,'pet');const skill=PET_SECOND_SKILLS_V210[pet.type]||'血脉灵术';showDamageNumber?.(extra,'enemy',false,false,false,true);addCombatLog?.(`🪽 ${pet.name} 触发第二技能【${skill}】，追加 ${extra} 点伤害！`,'pet');updateCombatUI?.();if(currentEnemy.hp<=0)checkBattleEnd?.();return base+extra};
 
 // 御兽材料铺：保留战斗掉落，并提供血脉凝练作为确定性材料来源。
 const PET_GROWTH_SHOP_V286845=[
@@ -300,7 +300,7 @@ const v210BondBase=window.startBondingProcess;if(typeof v210BondBase==='function
 // 每次打开灵宠界面时都进行旧档迁移；旧存档无需重开。
 const v210ShowPetsBase=window.showPets;window.showPets=function(){ensureAllPetGrowthV210();const r=v210ShowPetsBase?.apply(this,arguments);updatePetPanel?.();return r};
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-15-petgrowthsystemv210.js"]="28.68.56";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-15-petgrowthsystemv210.js"]="28.68.57";
 
 const PET_SYNTH_RECIPES_V2870={
  '优质血脉精元':{inputs:{'普通血脉精元':3},gold:200,realm:0},
