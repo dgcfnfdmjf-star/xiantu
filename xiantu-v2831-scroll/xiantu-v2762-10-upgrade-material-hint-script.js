@@ -139,4 +139,4 @@
   }
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-10-upgrade-material-hint-script.js"]="28.68.59";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-10-upgrade-material-hint-script.js"]="28.68.60";

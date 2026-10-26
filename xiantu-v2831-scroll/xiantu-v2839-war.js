@@ -269,7 +269,7 @@ showWarCampaignV2775=function(){
   let html=`<div class="war-fronts-v2839">${WAR_FRONTS_V2839.map((f,i)=>`<div class="${i<stage?'done':i===stage?'current':''}"><small>${i<stage?'已推进':i===stage?'当前目标':'后续目标'}</small><strong>${i+1}. ${f.name}</strong></div>`).join('')}</div>${warStatsV2839(c)}<p>本场灵石/修为奖励 ×${warRewardScaleV286841(c)} · 按出征境界锁定，贡献与军功不乘倍。</p>${warOfficersHtmlV286841(c)}`;
   if(!valid)html+='<p class="war-notice-v2839">宗门归属或目标状态已变化，无法继续使用原联军。请有序撤军后重新整备。</p>';
   else if(stage<3){const front=WAR_FRONTS_V2839[stage],tactic=c.selected[stage],enemy=warEnemyV2839(c);
-   html+=`<section class="war-scene-v2839"><small>${front.objective}</small><h3>${front.name}</h3><p>${front.intro}</p><p class="war-report-v2839">敌情：${WAR_REPORTS_V2775[c.reports[stage]]}</p><p>${front.reward}</p></section><h3>① 选择本阶段战术</h3>${warButtonV2839('☯ 天机战术参议',jevWarV2846,!!c.pending)}<div class="war-tactics-v2839">${WAR_TACTICS_V2775.map((t,i)=>warButtonV2839(`${tactic===i?'✓ ':''}${t.name} · ${t.hint}`,()=>chooseWarTacticV2775(i,stage),!!c.pending,tactic===i?'selected':'')).join('')}</div><h3>② 推进目标</h3><div class="war-mission-v2839"><b>${esc(enemy.name)}</b><p>${esc(CULTIVATION_REALMS[c.realm].name)}${['初期','中期','后期','圆满'][enemy._realmPhase]} · 气血 ${enemy.maxHp} · 攻击 ${enemy.atk} · 防御 ${enemy.def}</p><p>你的气血 ${Math.floor(player.hp)}/${getMaxHp()} · 灵力 ${Math.floor(player.mp)}/${getMaxMp()}</p>${c.pending?'<p>上次交锋尚未结算。可以重新进入，敌方恢复到开战状态；沿用当前气血灵力，不再扣战备。</p>':''}<div class="war-actions-v2839">${warButtonV2839(c.pending?'继续未结算交锋':c.rulesV286841===1&&stage===2?'主将阵前单挑 · 8次行动 / 战备−1':'亲自交锋 · 战备 −1',()=>startWarDuelV2839(c.id,stage),tactic==null||player.hp<=1||(!c.pending&&(c.supplies<1||(c.rulesV286841===1&&stage===2&&!!c.commanderV286841))),'primary')}${warButtonV2839(tactic==null?'统领联军 · 先选择战术':`统领联军 · 预估成功 ${Math.round(warChanceV2839(c)*100)}%`,()=>commandWarStageV2839(c.id,stage),tactic==null||!!c.pending)}</div>${c.rulesV286841===1&&stage===2?'<p>限时斩将胜利：最终战力+30%；到时敌将气血≤30%：+15%。本场仅一次；失败后仍可统领联军。此加成影响实际战果，不保证必胜。</p>':''}<p class="war-muted-v2839">亲自交锋沿用已装配招式与自动战斗策略，需真正获胜。联军推进受战力、克制战术与士气影响，受挫也会进入下一阶段。</p></div>`;
+   html+=`<section class="war-scene-v2839"><small>${front.objective}</small><h3>${front.name}</h3><p>${front.intro}</p><p class="war-report-v2839">敌情：${WAR_REPORTS_V2775[c.reports[stage]]}</p><p>${front.reward}</p></section><h3>① 选择本阶段战术</h3>${warButtonV2839('军师布阵 · 按敌情选择战术与统领',()=>autoDeployWarV2886(c.id,stage),!!c.pending)}<p>按已显示敌情选择克制战术；优先契合性格的空闲弟子，可手动调整。只完成部署，不自动开战，不保证胜利。</p>${warButtonV2839('☯ 天机战术参议',jevWarV2846,!!c.pending)}<div class="war-tactics-v2839">${WAR_TACTICS_V2775.map((t,i)=>warButtonV2839(`${tactic===i?'✓ ':''}${t.name} · ${t.hint}`,()=>chooseWarTacticV2775(i,stage),!!c.pending,tactic===i?'selected':'')).join('')}</div><h3>② 推进目标</h3><div class="war-mission-v2839"><b>${esc(enemy.name)}</b><p>${esc(CULTIVATION_REALMS[c.realm].name)}${['初期','中期','后期','圆满'][enemy._realmPhase]} · 气血 ${enemy.maxHp} · 攻击 ${enemy.atk} · 防御 ${enemy.def}</p><p>你的气血 ${Math.floor(player.hp)}/${getMaxHp()} · 灵力 ${Math.floor(player.mp)}/${getMaxMp()}</p>${c.pending?'<p>上次交锋尚未结算。可以重新进入，敌方恢复到开战状态；沿用当前气血灵力，不再扣战备。</p>':''}<div class="war-actions-v2839">${warButtonV2839(c.pending?'继续未结算交锋':c.rulesV286841===1&&stage===2?'主将阵前单挑 · 8次行动 / 战备−1':'亲自交锋 · 战备 −1',()=>startWarDuelV2839(c.id,stage),tactic==null||player.hp<=1||(!c.pending&&(c.supplies<1||(c.rulesV286841===1&&stage===2&&!!c.commanderV286841))),'primary')}${warButtonV2839(tactic==null?'统领联军 · 先选择战术':`统领联军 · 预估成功 ${Math.round(warChanceV2839(c)*100)}%`,()=>commandWarStageV2839(c.id,stage),tactic==null||!!c.pending)}</div>${c.rulesV286841===1&&stage===2?'<p>限时斩将胜利：最终战力+30%；到时敌将气血≤30%：+15%。本场仅一次；失败后仍可统领联军。此加成影响实际战果，不保证必胜。</p>':''}<p class="war-muted-v2839">亲自交锋沿用已装配招式与自动战斗策略，需真正获胜。联军推进受战力、克制战术与士气影响，受挫也会进入下一阶段。</p></div>`;
   }else html+='<section class="war-notice-v2839"><h3>三个阶段已结束</h3><p>军功与战利品尚未发放，请查看战报并完成战役结算。</p></section>';
   html+=warRosterHtmlV2839(c.roster,c.foe,c.our)+`<details class="war-details-v2839" ${stage===3?'open':''}><summary>本次行军记录 · ${c.log.length} 条</summary><ol>${c.log.map(t=>`<li>${esc(t)}</li>`).join('')}</ol></details>`;return html;
  },()=> (stage===3&&valid?warButtonV2839('结算本场战役',()=>settleWarV2775(c.enemy),false,'primary'):warButtonV2839(`军营整备 · ${80+c.realm*30}灵石`,()=>restWarV2839(c.id),!valid||c.rests>=2||player.gold<80+c.realm*30))+warButtonV2839('查看地图战况',viewWarMapV2840)+warButtonV2839('暂离 · 保存进度',()=>{autoSave();closeWarPanelV2839();showSectHall();})+warButtonV2839('有序撤军',retreatWarV2775,false,'danger'));
@@ -286,7 +286,7 @@ function showWarMeritV2839(){
  if(!warAllowedV2839())return;const w=warStateV2839();
  openWarPanelV2839('军功补给处',()=>`<div class="war-stats-v2839"><div><small>可用军功</small><b>${w.meritV2839}</b></div><div><small>累计所得</small><b>${w.meritEarnedV2839}</b></div></div><p>完成会战获得军功；每次亲自交锋获胜另计10军功，随战役胜利统一发放。</p>${WAR_GOODS_V2839.map((g,i)=>`<article class="war-history-v2839"><h3>${g.name}</h3><p>${g.desc}</p>${warButtonV2839(`兑换 · ${g.cost}军功`,()=>exchangeWarMeritV2839(i),w.meritV2839<g.cost)}</article>`).join('')}<p class="war-muted-v2839">点兑换后仍需确认，取消不会扣除军功。</p>`,()=>warButtonV2839('返回军务',showWarHubV2839)+warButtonV2839('历次战报',showWarHistory));
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2839-war.js']='28.68.59';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2839-war.js']='28.68.60';
 
 // V28.68: one readable entry for the long war, existing story and campaign routes.
 function showAncientWarV2859(){
@@ -343,6 +343,20 @@ function assignWarOfficerV286841(id,stage,discipleId){
  if(discipleId!==null&&(!d||d.job||warDiscipleBusyV286841(d.id)))return false;
  const ok=commitWarV286841(()=>{c.officersV286841[stage]=d?{id:d.id,name:d.name,personality:discipleTraitsV2867(d).personality,healer:lifeTitlesV2868(d).includes('济危同门')}:null;});
  if(ok)showWarCampaignV2775();return ok;
+}
+function warAutoPlanV2886(c){
+ if(!warStageValidV2839(c)||c.pending||c.step>=3||![0,1,2].includes(c.reports?.[c.step]))return null;
+ const tactic=c.reports[c.step],current=warOfficerV286841(c),wanted=[0,2,1][tactic];
+ const candidates=c.rulesV286841===1?sectMembersReadV2868().filter(d=>!d.job&&(!warDiscipleBusyV286841(d.id)||current?.id===d.id)).map(d=>({id:d.id,name:d.name,personality:discipleTraitsV2867(d).personality,healer:lifeTitlesV2868(d).includes('济危同门')})):[];
+ const score=o=>(o.personality===wanted?100:o.personality===2?50:0)+(o.personality===2&&o.healer?20:0)+(o.id===current?.id?1:0);
+ candidates.sort((a,b)=>score(b)-score(a)||a.id-b.id);
+ return {tactic,officer:candidates[0]||null};
+}
+function autoDeployWarV2886(id,stage){
+ if(!warAllowedV2839())return false;const c=warCampaignV2839(id,stage),plan=warAutoPlanV2886(c);if(!plan)return false;
+ if(c.selected[stage]===plan.tactic&&JSON.stringify(warOfficerV286841(c))===JSON.stringify(plan.officer))return false;
+ const ok=commitWarV286841(()=>{c.selected[stage]=plan.tactic;if(c.rulesV286841===1)c.officersV286841[stage]=plan.officer;});
+ if(ok){showFloatingText(`按敌情布阵：${WAR_TACTICS_V2775[plan.tactic].name}${plan.officer?' · 统领'+plan.officer.name:' · 暂不委任统领'}`,'#69f0ae');showWarCampaignV2775();}return ok;
 }
 function warOfficersHtmlV286841(c){
  if(c.rulesV286841!==1||c.step>=3)return '';const stage=c.step,o=warOfficerV286841(c),esc=discipleEscV2815;

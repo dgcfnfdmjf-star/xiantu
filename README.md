@@ -1,6 +1,10 @@
-# 仙途 V28.68.59
+# 仙途 V28.68.60
 
-部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.59）；[上传步骤](downloads/README.md)。
+部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.60）；[上传步骤](downloads/README.md)。
+
+## V28.68.60 军师布阵与归来续派
+
+战役可按已公开敌情选择战术与空闲统领；归来简报可一次领取游历收获并沿原路线续派。天机秘境优先提供符合境界的高阶事件，保留40%事件分支与原消耗；战斗及战后回看显示真实最高直击。见 [规则与验证](docs/war-return-secret-peak.txt)。无需更新Jev，尚未部署腾讯云。
 
 ## V28.68.59 雨夜速查与破势反制
 
@@ -140,7 +144,7 @@ npm test
 npm run test:browser
 ```
 
-`npm test` 运行选定的 82 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
+`npm test` 运行选定的 84 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
 
 浏览器测试覆盖恶意存档拒绝且原主档/备份不变、正常导入与刷新恢复、360/390/430/1366px 导航入口可达性、预加载去重与版本错误提示。外部请求被拦截，不调用付费服务。已有 Chromium 的云环境可使用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`。
 

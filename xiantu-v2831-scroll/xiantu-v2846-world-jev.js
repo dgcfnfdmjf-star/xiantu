@@ -119,21 +119,29 @@ function jevSectV2846(){
   const fingerprint=()=>JSON.stringify([player.gold,player.sectContribution,player.sectData?.prosperity,player.warState,r]);const initial=fingerprint();
   return jevOfferV2846('宗门经营 · 当前优先事项','sect',[player.gold,player.sectContribution,player.sectData?.prosperity,Number(management),ready,idle,Number(active)],options,Math.max(0,options.findIndex(o=>o.a===priority)),()=>jevCanActV2846()&&player.sect===sect&&fingerprint()===initial);
 }
+function secretEventsV2886(){
+ return Object.entries(RANDOM_EVENTS).filter(([,e])=>hasReachedRealm(e.minLevel)).sort((a,b)=>Number(b[1].minLevel)-Number(a[1].minLevel)).slice(0,16);
+}
+function secretFallbackV2886(events,random=Math.random()){
+ const weights=events.map(([,e])=>Math.max(0,Number(e.weight)||0)*({encounter:1.5,treasure:1.5,cultivation:1.3}[e.type]||1));
+ let roll=Math.max(0,Math.min(.999999999,random))*weights.reduce((a,b)=>a+b,0);
+ for(let i=0;i<weights.length;i++){roll-=weights[i];if(roll<0)return i;}return Math.max(0,events.length-1);
+}
 async function jevSecretV2846(){
   if(!hasSectSecretQualification()||!jevCanActV2846()||JEV_WORLD_V2846.pending)return;
   // Preserve the original 40% event branch. A failed/cancelled request cannot award anything.
   if(Math.random()>=.4)return handleSecretExplore({eventResult:null});
-  const events=Object.entries(RANDOM_EVENTS).filter(([,e])=>hasReachedRealm(e.minLevel)).slice(0,16);
+  const events=secretEventsV2886();
   if(!events.length)return handleSecretExplore({eventResult:null});
   const owner=player,day=discipleDayV2815(),level=player.level,health=player.hp,mana=player.mp;
-  const panel=jevModalV2846('万宗秘境 · 寻觅机缘','<p>正在选择符合当前修行状态的秘境事件……最多等待 4.5 秒；未解锁或超时则沿用本地随机事件。</p><p>探索仍推进 30 个游戏日，奖励按原规则结算。关闭可取消本次探索。</p>');
+  const panel=jevModalV2846('万宗秘境 · 寻觅机缘','<p>正在选择当前境界可进入的机缘，优先纳入高阶事件……最多等待 4.5 秒；未解锁或超时则按候选事件原权重进行本地选择。</p><p>探索仍推进 30 个游戏日，奖励按原规则结算。关闭可取消本次探索。</p>');
   const rev=JEV_WORLD_V2846.revision;
   const fresh=()=>player===owner&&JEV_WORLD_V2846.revision===rev&&jevCanActV2846()&&hasSectSecretQualification()&&discipleDayV2815()===day&&player.level===level&&player.hp===health&&player.mp===mana;
   const options=events.map(([,e])=>({a:Math.max(0,(['encounter','treasure','cultivation','crisis','npc'].includes(e.type)?['encounter','treasure','cultivation','crisis','npc'].indexOf(e.type):5)),b:e.minLevel,c:e.weight}));
-  const roll=triggerRandomEvent('secret'),fallback=Math.max(0,events.findIndex(([name])=>name===roll?.name));
+  const fallback=secretFallbackV2886(events);
   const data=events.length===1?{choice:'o0'}:await jevDecideV2846(jevWireStateV2846('secret',[jevPercentV2846(health,getMaxHp()),jevPercentV2846(mana,getMaxMp()),level,player.storyProgress],options),'o'+fallback,fresh);
   if(!fresh()){if(JEV_WORLD_V2846.panel===panel)closeJevWorldV2846();return;}
-  const [name,event]=events[Number(data.choice.slice(1))];closeJevWorldV2846();handleSecretExplore({eventResult:{name,event}});
+  const pick=Number(data?.choice?.slice(1)),[name,event]=events[Number.isInteger(pick)&&pick>=0&&pick<events.length?pick:fallback];closeJevWorldV2846();handleSecretExplore({eventResult:{name,event}});
 }
 async function choosePlayerJevV2846(localPick,guard,pref){
   if(!JEV_WORLD_V2846.heroEnabled||!FORGE_ADVICE_V2842.access||!guard()||isTribulation||currentEnemy?._isTutorial||currentEnemy?.tournamentFight)return localPick;
@@ -159,4 +167,4 @@ async function choosePlayerJevV2846(localPick,guard,pref){
 }
 window.addEventListener('pagehide',closeJevWorldV2846);
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2846-world-jev.js']='28.68.59';
+window.__xiantuBuildFilesV2814['xiantu-v2846-world-jev.js']='28.68.60';

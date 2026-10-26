@@ -241,12 +241,12 @@ function normalizeBattleReviewV2878(raw){
  if(!raw||typeof raw!=='object'||!['victory','defeat','flee','capture'].includes(raw.kind))return null;
  const text=(v,n)=>typeof v==='string'?v.slice(0,n):'',num=v=>Number.isFinite(v)?Math.max(0,Math.min(1e12,Math.floor(v))):0;
  const lines=(v,n)=>Array.isArray(v)?v.slice(-n).filter(x=>typeof x==='string').map(x=>text(x,400)):[];
- return {kind:raw.kind,name:text(raw.name,100),hero:text(raw.hero,100),day:num(raw.day),hp:num(raw.hp),maxHp:num(raw.maxHp),mp:num(raw.mp),maxMp:num(raw.maxMp),enemyHp:num(raw.enemyHp),enemyMaxHp:num(raw.enemyMaxHp),logs:lines(raw.logs,120),prose:lines(raw.prose,100)};
+ return {peakHit:num(raw.peakHit),peakSkill:text(raw.peakSkill,100),directHits:num(raw.directHits),kind:raw.kind,name:text(raw.name,100),hero:text(raw.hero,100),day:num(raw.day),hp:num(raw.hp),maxHp:num(raw.maxHp),mp:num(raw.mp),maxMp:num(raw.maxMp),enemyHp:num(raw.enemyHp),enemyMaxHp:num(raw.enemyMaxHp),logs:lines(raw.logs,120),prose:lines(raw.prose,100)};
 }
 function rememberBattleVitalsV2878(){
  const p=COMBAT_FINISH_V2764.pending,e=currentEnemy;
  if(!p||p.owner!==player||!e||p.reviewVitalsV2878)return;
- p.reviewVitalsV2878={name:e.name,hero:player.name,day:player.worldTime?.totalDays||0,hp:player.hp,maxHp:getMaxHp(),mp:player.mp,maxMp:getMaxMp(),enemyHp:e.hp,enemyMaxHp:e.maxHp};
+ p.reviewVitalsV2878={...(combatPeakV2886()||{}),name:e.name,hero:player.name,day:player.worldTime?.totalDays||0,hp:player.hp,maxHp:getMaxHp(),mp:player.mp,maxMp:getMaxMp(),enemyHp:e.hp,enemyMaxHp:e.maxHp};
 }
 window.addEventListener('xiantu:combat-finishing',rememberBattleVitalsV2878);
 function recordBattleReviewV2878(p){
@@ -263,7 +263,7 @@ function showBattleReviewV2878(){
  document.getElementById('afterBattleV2838')?.remove();resetWorldMovementV28686();
  const result={victory:'胜利',defeat:'败退',flee:'脱离战斗',capture:'收服结束'}[r.kind];
  const list=xs=>xs.map(x=>`<p>${esc(x)}</p>`).join('')||'<p>本场没有此类记录。</p>';
- showStory(`<section class="battle-review-v2878 loop-board-v286840"><h3>上一场战斗 · ${result}</h3><p>游历第${r.day+1}日 · ${esc(r.hero)} 对战 ${esc(r.name)}</p><div class="battle-review-vitals-v2878"><article><b>${esc(r.hero)}</b><p>气血 ${r.hp}/${r.maxHp}</p><p>灵力 ${r.mp}/${r.maxMp}</p></article><article><b>${esc(r.name)}</b><p>气血 ${r.enemyHp}/${r.enemyMaxHp}</p></article></div><p>以上为退场结算开始时的状态。仅保留最近一场；回看不改变状态或重复发放奖励。</p><details open><summary>斗法纪事 · 最近${r.prose.length}段</summary>${list(r.prose)}</details><details><summary>详细战报 · 最近${r.logs.length}条（按发生顺序）</summary>${list(r.logs)}</details></section>`,[{text:'返回地图',action:'return_to_map'}]);return true;
+ showStory(`<section class="battle-review-v2878 loop-board-v286840"><h3>上一场战斗 · ${result}</h3><p>游历第${r.day+1}日 · ${esc(r.hero)} 对战 ${esc(r.name)}</p><div class="battle-review-vitals-v2878"><article><b>${esc(r.hero)}</b><p>气血 ${r.hp}/${r.maxHp}</p><p>灵力 ${r.mp}/${r.maxMp}</p></article><article><b>${esc(r.name)}</b><p>气血 ${r.enemyHp}/${r.enemyMaxHp}</p></article></div>${r.peakHit?`<p>本场最高直击 ${r.peakHit} · ${esc(r.peakSkill)}；有效直击 ${r.directHits} 次（仅主角实际扣血，过量伤害不计）。</p>`:''}<p>以上为退场结算开始时的状态。仅保留最近一场；回看不改变状态或重复发放奖励。</p><details open><summary>斗法纪事 · 最近${r.prose.length}段</summary>${list(r.prose)}</details><details><summary>详细战报 · 最近${r.logs.length}条（按发生顺序）</summary>${list(r.logs)}</details></section>`,[{text:'返回地图',action:'return_to_map'}]);return true;
 }
 // New-game checkpoint is independent of the rolling autosave backup.
 const PREVIOUS_SAVE_V2838='xiantu_save_previous_character';
@@ -290,7 +290,7 @@ async function exportPreviousV2838(){
  try{await exportRawSaveV2870(localStorage.getItem(PREVIOUS_SAVE_V2838),'xiantu-previous-character.json');}
  catch(e){alert('导出失败：'+e.message);}
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.59';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.60';
 
 // Small non-combat encounters, two per region and character. Persist choice and reward together.
 const ROAMING_KINDS_V286818=['traveler','ruins'];

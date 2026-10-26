@@ -52,10 +52,12 @@
       if(currentEnemy.thunderDomainTurns>0&&currentEnemy.thunderDomainDamage>0)push('enemy',`雷域 · ${count(currentEnemy.thunderDomainDamage)}点×${count(currentEnemy.thunderDomainTurns)}次`);
       if(currentEnemy._pressureTurns>0)push('enemy',`敌方威压削弱 · 余${count(currentEnemy._pressureTurns)}次行动`);
     }
+    const peak=typeof combatPeakV2886==='function'?combatPeakV2886():null;if(peak?.peakHit>0)push('self',`最高直击 ${Math.floor(peak.peakHit)} · ${peak.peakSkill} · 有效直击${peak.directHits}次`);
     return {hp:count(player.hp),maxHp:count(getMaxHp()),mp:count(player.mp),maxMp:count(getMaxMp()),ending,waiting:!ending&&!isPlayerTurn,turn:ending?'本场结算中':isPlayerTurn?'我方可行动':'行动结算中',chips};
   }
   function tip(text){
     const tips={
+      '最高直击':'只统计主角普攻和伤害招式造成的实际扣血，护盾减免后计算，过量伤害不计；宠物、同伴、持续伤害与反伤不计。次数是有效直接命中数，不提供连击增益。',
       '凝气护体':'玩家直接命中的雷系招式、暴击，或护体减伤前伤害达到攻击面板115%的重击，可无视本次30%护体减伤并削减敌方最多15灵力。宠物、持续伤害和显示动画不触发。',
       '同门援阵':'敌方后续两次直接攻击伤害+15%；玩家直接招式或暴击命中可提前驱散。普通非暴击普攻、宠物与持续伤害不驱散。',
       '纯阳剑意':'兵刃招式命中积攒剑气，上限3层；满层后由普攻引爆，追加80%攻击力的单体贯穿伤害并清空印记。不是满层立即触发。',
@@ -138,4 +140,4 @@
   W.BattleClarityV2856={read,sync,tip};
 })(window,document);
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2856-battle-clarity.js']='28.68.59';
+window.__xiantuBuildFilesV2814['xiantu-v2856-battle-clarity.js']='28.68.60';

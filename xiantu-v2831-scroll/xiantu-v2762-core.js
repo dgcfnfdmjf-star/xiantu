@@ -6798,11 +6798,24 @@
     }
     
     // All damage routes commit before presentation and kill detection.
-    function dealEnemyDamageV2882(enemy,damage,crit=false,source='direct') {
+    const combatHitsV2886=new WeakMap();
+    function combatPeakV2886(){
+      const s=currentEnemy&&combatHitsV2886.get(currentEnemy);
+      return s&&s.owner===player&&(s.token===COMBAT_FINISH_V2764.token||(gameState==='combat-ending'&&s.token===COMBAT_FINISH_V2764.token-1))?{peakHit:s.peakHit,peakSkill:s.peakSkill,directHits:s.directHits}:null;
+    }
+    function dealEnemyDamageV2882(enemy,damage,crit=false,source='direct',label='直接命中') {
       if(!enemy||enemy!==currentEnemy||gameState!=='combat'||enemy.hp<=0)return 0;
       if(typeof abyssOutgoingV2882==='function')damage=abyssOutgoingV2882(enemy,damage,crit);
       if(typeof eliteOutgoingV2883==='function')damage=eliteOutgoingV2883(enemy,damage,crit,source);
+      const beforeHp=enemy.hp;
       enemy.hp=Math.max(0,enemy.hp-damage);
+      // Record post-shield HP loss before undying/phase recovery, excluding overkill and non-player sources.
+      const loss=Math.max(0,beforeHp-enemy.hp);
+      if(source==='direct'&&Number.isFinite(loss)&&loss>0){
+        let stat=combatHitsV2886.get(enemy);
+        if(!stat||stat.owner!==player||stat.token!==COMBAT_FINISH_V2764.token){stat={owner:player,token:COMBAT_FINISH_V2764.token,peakHit:0,peakSkill:'',directHits:0};combatHitsV2886.set(enemy,stat);}
+        stat.directHits++;if(loss>stat.peakHit){stat.peakHit=loss;stat.peakSkill=String(label).slice(0,100);}
+      }
       if(typeof eliteAfterHitV2883==='function')eliteAfterHitV2883(enemy);
       if(typeof syncAbyssPhaseV2882==='function')syncAbyssPhaseV2882(enemy);
       return damage;
@@ -7119,7 +7132,7 @@
           damage=playerDamageBonusesV286812(damage);
           damage=gearHitV2790(damage,null);
           if(typeof monsterGuardDamageV2844==='function')damage=monsterGuardDamageV2844(damage,{crit:isCrit,skill:null});
-          damage=dealEnemyDamageV2882(currentEnemy,damage,isCrit);
+          damage=dealEnemyDamageV2882(currentEnemy,damage,isCrit,'direct','普通攻击');
           restoreAttackMpV286817(damage);
           hitTacticsV286821(null,damage);
           showDamageNumber(damage, 'enemy', false, isCrit, false, false, '普通攻击');
@@ -7198,7 +7211,7 @@
           damage=gearHitV2790(damage,skill);
           if(typeof monsterGuardDamageV2844==='function')damage=monsterGuardDamageV2844(damage,{crit:isCrit,skill});
           const beforeHitV2882=currentEnemy.hp;
-          damage=dealEnemyDamageV2882(currentEnemy,damage,isCrit);
+          damage=dealEnemyDamageV2882(currentEnemy,damage,isCrit,'direct',skill.name);
           const actualLossV2785=beforeHitV2882-currentEnemy.hp;
           swordAfterHitV2785(skill,actualLossV2785);
           showDamageNumber(damage, 'enemy', false, isCrit, false, false, skill.name,skill.mpCost);
@@ -14581,7 +14594,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.59";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.60";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
@@ -14790,24 +14803,27 @@ function tripYieldV286821(now=Date.now()){
  const units=Math.min(48,Math.max(0,Math.floor((now-t.started)/600000)));
  return {units,gold:units*r.gold,herbs:Math.floor(units/6)};
 }
+function tripAllowedV2886(){return gameState==='exploring'&&!COMBAT_FINISH_V2764.settling&&!player.breakthrough?.isAnimating;}
+function tripRestartAllowedV2886(s=tripStateV286821()){return !!s.active&&Number.isInteger(s.wins[s.active.key])&&player.level>=s.wins[s.active.key]+1;}
 function commitTripV286821(change){
- if(gameState!=='exploring')return false;
+ if(!tripAllowedV2886())return false;
  const old={state:player.expeditionV286821,gold:player.gold,materials:player.materials};
- change();if(saveGame())return true;
+ try{change();if(saveGame())return true;}catch(_){}
  player.expeditionV286821=old.state;player.gold=old.gold;player.materials=old.materials;
  showFloatingText('保存失败，游历操作未生效，可重试','#ff8a80');return false;
 }
 function startTripV286821(index){
- if(gameState!=='exploring')return false;
+ if(!tripAllowedV2886())return false;
  const r=TRIP_ROUTES_V286821[index],s=tripStateV286821();
  if(!r||s.active||!Number.isInteger(s.wins[r.key])||player.level<s.wins[r.key]+1)return false;
  const ok=commitTripV286821(()=>{player.expeditionV286821={wins:s.wins,active:{key:r.key,started:Date.now(),level:s.wins[r.key]}};});
  if(ok)showTripV286821();return ok;
 }
-function claimTripV286821(silent=false){
- const s=tripStateV286821(),y=tripYieldV286821();if(!s.active||!y.units)return false;
- const ok=commitTripV286821(()=>{player.expeditionV286821={wins:s.wins,active:null};player.gold+=y.gold;player.materials={...player.materials,'灵草':(Number(player.materials?.['灵草'])||0)+y.herbs};});
- if(ok&&!silent){showFloatingText(`游历归来：灵石+${y.gold}，灵草+${y.herbs}`);updateStats();showTripV286821();}return ok;
+function claimTripV286821(silent=false,restart=false){
+ if(!tripAllowedV2886())return false;
+ const s=tripStateV286821(),now=Date.now(),y=tripYieldV286821(now);if(!s.active||!y.units||restart&&!tripRestartAllowedV2886(s))return false;
+ const ok=commitTripV286821(()=>{player.expeditionV286821={wins:s.wins,active:restart?{key:s.active.key,started:now,level:s.wins[s.active.key]}:null};player.gold+=y.gold;player.materials={...player.materials,'灵草':(Number(player.materials?.['灵草'])||0)+y.herbs};});
+ if(ok&&!silent){showFloatingText(`游历归来：灵石+${y.gold}，灵草+${y.herbs}${restart?' · 已沿原路线续派':''}`);updateStats();showTripV286821();}return ok;
 }
 function showTripV286821(){
  if(gameState!=='exploring')return;

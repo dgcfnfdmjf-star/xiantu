@@ -156,7 +156,7 @@ function settleReadySectTasksV2885(session){
  closeExpansionV286827();updateStats();syncSectTodoV2868();showFloatingText(`已速办${q.tasks.length}项委托，消耗与奖励已保存。`,'#69f0ae');showSectTodoV2868();return true;
 }
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.59';
+window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.60';
 
 
 // V28.68.40: saved random encounters and run-scoped blessings.
@@ -239,11 +239,19 @@ function finishMiniWeaveV286840(kind){
 }
 
 // Read-only return brief: existing reward transactions remain the only claim path.
+let returnTripViewV2886=null,returnTripSerialV2886=0;
+function claimRestartReturnTripV2886(token){
+ const v=returnTripViewV2886;
+ if(!v||v.token!==token||v.owner!==player||!tripAllowedV2886()||!document.getElementById('restartReturnTripV2886')||document.getElementById('storyPanel')?.classList.contains('hidden')||v.trip!==JSON.stringify(tripStateV286821()))return false;
+ if(!claimTripV286821(true,true))return false;
+ returnTripViewV2886=null;showFloatingText('游历收获已保存，已沿原路线开始下一趟。','#69f0ae');updateStats();showReturnBriefV286840();return true;
+}
 function returnBriefHtmlV286840(timestamp=0){
+ const token=++returnTripSerialV2886;returnTripViewV2886={token,owner:player,trip:JSON.stringify(tripStateV286821())};
  const elapsed=Number.isFinite(timestamp)?Math.max(0,Date.now()-timestamp):0,y=tripYieldV286821(),t=tripStateV286821(),route=TRIP_ROUTES_V286821.find(r=>r.key===t.active?.key),todo=sectTodoReadV2868();
  let html=`<section class="sect-board-v2866 loop-board-v286840"><h3>归来简报</h3><p>${timestamp&&elapsed>=60000?`距上次存档约${Math.floor(elapsed/60000)}分钟。`:'修行与宗门近况。'}游历按现实时间累计，弟子派遣按仙历推进。</p>`;
  if(sectCanManageV2866())html+=sectQuickHtmlV2870();
- if(route){const lines=['队伍刚踏上山道，尚未走完一段路。','沿途清点所得，灵石与灵草已记入行囊。','经过几处旧驿，队伍正沿熟悉的路线归拢收获。','行囊已满，队伍在归途等候你的消息。'];html+=`<article><h4>${escapeGameText(route.name)} · 游历</h4><p>${lines[y.units===48?3:y.units>=6?2:y.units?1:0]}</p><p>已累计${y.units*10}/480分钟 · 待领${y.gold}灵石、${y.herbs}灵草</p><button class="choice-btn" onclick="claimReturnTripV286840()" ${y.units?'':'disabled'}>领取游历收获并结束本趟</button><button class="choice-btn" onclick="showTripV286821()">查看游历</button></article>`;}
+ if(route){const lines=['队伍刚踏上山道，尚未走完一段路。','沿途清点所得，灵石与灵草已记入行囊。','经过几处旧驿，队伍正沿熟悉的路线归拢收获。','行囊已满，队伍在归途等候你的消息。'];html+=`<article><h4>${escapeGameText(route.name)} · 游历</h4><p>${lines[y.units===48?3:y.units>=6?2:y.units?1:0]}</p><p>已累计${y.units*10}/480分钟 · 待领${y.gold}灵石、${y.herbs}灵草</p><button class="choice-btn" onclick="claimReturnTripV286840()" ${y.units?'':'disabled'}>领取游历收获并结束本趟</button><button id="restartReturnTripV2886" class="choice-btn" onclick="claimRestartReturnTripV2886(${token})" ${y.units&&tripRestartAllowedV2886(t)?'':'disabled'}>领取并沿原路线续派</button><button class="choice-btn" onclick="showTripV286821()">查看游历</button></article>`;}
  else html+='<p>暂无进行中的游历，可在洞府安排下一趟。</p><button class="choice-btn" onclick="showTripV286821()">安排游历</button>';
  if(todo.total)html+=`<article><h4>山门来讯</h4><p>弟子成果${todo.jobs.length}项 · 途中来信${todo.mails.length}封 · 同门答谢${todo.thanks.length}份</p><button class="choice-btn" onclick="showSectTodoV2868()">查看宗门待办 · ${todo.total}</button></article>`;
  if(miniRunV2778())html+='<button class="choice-btn" onclick="showMiniRealmV2778()">续行秘境 · 已保存进度</button>';
