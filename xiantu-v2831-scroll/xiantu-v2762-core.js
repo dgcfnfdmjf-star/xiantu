@@ -6298,6 +6298,7 @@
     let playerPressureStun = false;
 
     function resetRuntimeState() {
+      if(typeof closeCombatPetsV2884==='function')closeCombatPetsV2884();
       document.getElementById('sectCeremonyV2870')?.remove();
       if(typeof closeExpansionV286827==='function')closeExpansionV286827();
       document.getElementById('postCaseV286826')?.remove();document.getElementById('storyBossPrepV286826')?.remove();
@@ -6677,6 +6678,7 @@
       player._thunderArmorTurns = 0;
       player._thunderDamageBonus = 0;
       player._thunderReflectRatio = 0;
+      if(typeof initEliteEncounterV2883==='function')initEliteEncounterV2883(currentEnemy);
       if(typeof initMonsterAiV2844==='function')initMonsterAiV2844();
       if(typeof initNpcBattleV2849==='function')initNpcBattleV2849();
       combatBagState.open = false;
@@ -6795,6 +6797,30 @@
       while(log.childElementCount>120)log.lastElementChild.remove();
     }
     
+    // All damage routes commit before presentation and kill detection.
+    const combatHitsV2886=new WeakMap();
+    function combatPeakV2886(){
+      const s=currentEnemy&&combatHitsV2886.get(currentEnemy);
+      return s&&s.owner===player&&(s.token===COMBAT_FINISH_V2764.token||(gameState==='combat-ending'&&s.token===COMBAT_FINISH_V2764.token-1))?{peakHit:s.peakHit,peakSkill:s.peakSkill,directHits:s.directHits}:null;
+    }
+    function dealEnemyDamageV2882(enemy,damage,crit=false,source='direct',label='直接命中') {
+      if(!enemy||enemy!==currentEnemy||gameState!=='combat'||enemy.hp<=0)return 0;
+      if(typeof abyssOutgoingV2882==='function')damage=abyssOutgoingV2882(enemy,damage,crit);
+      if(typeof eliteOutgoingV2883==='function')damage=eliteOutgoingV2883(enemy,damage,crit,source);
+      const beforeHp=enemy.hp;
+      enemy.hp=Math.max(0,enemy.hp-damage);
+      // Record post-shield HP loss before undying/phase recovery, excluding overkill and non-player sources.
+      const loss=Math.max(0,beforeHp-enemy.hp);
+      if(source==='direct'&&Number.isFinite(loss)&&loss>0){
+        let stat=combatHitsV2886.get(enemy);
+        if(!stat||stat.owner!==player||stat.token!==COMBAT_FINISH_V2764.token){stat={owner:player,token:COMBAT_FINISH_V2764.token,peakHit:0,peakSkill:'',directHits:0};combatHitsV2886.set(enemy,stat);}
+        stat.directHits++;if(loss>stat.peakHit){stat.peakHit=loss;stat.peakSkill=String(label).slice(0,100);}
+      }
+      if(typeof eliteAfterHitV2883==='function')eliteAfterHitV2883(enemy);
+      if(typeof syncAbyssPhaseV2882==='function')syncAbyssPhaseV2882(enemy);
+      return damage;
+    }
+
     // 宠物攻击
     function petAttack() {
       if (!player.activePet || !currentEnemy || gameState!=='combat') return 0;
@@ -6808,7 +6834,7 @@
         defender:{level:currentEnemy._realmLevel||0,phase:currentEnemy._realmPhase||0,def:enemyDefenseV286818(),hp:currentEnemy.hp,name:currentEnemy.name,pressureTurns:currentEnemy._pressureTurns||0},
         skill:null,isCrit:false,isPet:true,isBoss:isBossFight||isTribulation
       });
-      const petDamage=petResult.damage;
+      let petDamage=petResult.damage;
       
       // 火凤灼烧效果
       let burnDamage = 0;
@@ -6823,14 +6849,14 @@
         skipEnemyTurn = true;
       }
       
-      currentEnemy.hp = Math.max(0, currentEnemy.hp - petDamage);
+      petDamage=dealEnemyDamageV2882(currentEnemy,petDamage,false,'pet');
       showDamageNumber(petDamage, 'enemy', false, false, false, true, pet.name);
       playHitEffect('enemy');
       
       const speciesIcon=getWorldMonsterIcon(pet.speciesV286818||pet.name||'');
       let logText = `${speciesIcon==='👾'?petType.icon:speciesIcon} ${pet.name}攻击造成 ${petDamage} 点伤害！`;
       if (burnDamage > 0) {
-        currentEnemy.hp = Math.max(0, currentEnemy.hp - burnDamage);
+        burnDamage=dealEnemyDamageV2882(currentEnemy,burnDamage,false,'passive');
         logText += ` <span style="color:#ff6600;">灼烧${burnDamage}!</span>`;
       }
       if (frozen) {
@@ -7060,21 +7086,20 @@
       isPlayerTurn = false;
       
       if(currentEnemy._frostTurnsV286818>0){
-        currentEnemy.hp=Math.max(0,currentEnemy.hp-currentEnemy._frostDamageV286818);currentEnemy._frostTurnsV286818--;
-        addCombatLog(`冰寒侵蚀造成${currentEnemy._frostDamageV286818}点伤害。`,'damage');
+        const frostDamage=dealEnemyDamageV2882(currentEnemy,currentEnemy._frostDamageV286818,false,'passive');currentEnemy._frostTurnsV286818--;
+        addCombatLog(`冰寒侵蚀造成${frostDamage}点伤害。`,'damage');
       }
       // 处理灼烧伤害
       if (currentEnemy && currentEnemy.burnStacks > 0 && currentEnemy.burnTurns > 0) {
-        currentEnemy.hp = Math.max(0, currentEnemy.hp - currentEnemy.burnStacks);
-        addCombatLog(`灼烧造成 ${currentEnemy.burnStacks} 点伤害！`, 'damage');
+        const burnDamage=dealEnemyDamageV2882(currentEnemy,currentEnemy.burnStacks,false,'passive');
+        addCombatLog(`灼烧造成 ${burnDamage} 点伤害！`, 'damage');
         currentEnemy.burnTurns--;
         if (currentEnemy.burnTurns <= 0){currentEnemy.burnStacks=0;currentEnemy._burnHealBlockV286818=currentEnemy._burnWeakV286818=false;}
         updateCombatUI();
       }
       // 万雷噬狱持续雷域：在玩家行动前结算一次，不会把气血扣成负数。
       if (currentEnemy && currentEnemy.thunderDomainDamage > 0 && currentEnemy.thunderDomainTurns > 0) {
-        const thunderTick=Math.max(1,Math.floor(currentEnemy.thunderDomainDamage));
-        currentEnemy.hp=Math.max(0,currentEnemy.hp-thunderTick);
+        const thunderTick=dealEnemyDamageV2882(currentEnemy,Math.max(1,Math.floor(currentEnemy.thunderDomainDamage)),false,'passive');
         notifyThunderVfxV286844('tick','雷域',thunderTick);
         currentEnemy.thunderDomainTurns--;
         addCombatLog(`⚡ 万雷噬狱雷域轰击，造成 ${thunderTick} 点持续雷伤！`, 'damage');
@@ -7106,8 +7131,8 @@
           
           damage=playerDamageBonusesV286812(damage);
           damage=gearHitV2790(damage,null);
-          if(typeof monsterGuardDamageV2844==='function')damage=monsterGuardDamageV2844(damage);
-          currentEnemy.hp = Math.max(0, currentEnemy.hp - damage);
+          if(typeof monsterGuardDamageV2844==='function')damage=monsterGuardDamageV2844(damage,{crit:isCrit,skill:null});
+          damage=dealEnemyDamageV2882(currentEnemy,damage,isCrit,'direct','普通攻击');
           restoreAttackMpV286817(damage);
           hitTacticsV286821(null,damage);
           showDamageNumber(damage, 'enemy', false, isCrit, false, false, '普通攻击');
@@ -7184,9 +7209,10 @@
           
           damage=playerDamageBonusesV286812(damage,skill);
           damage=gearHitV2790(damage,skill);
-          if(typeof monsterGuardDamageV2844==='function')damage=monsterGuardDamageV2844(damage);
-          const actualLossV2785=Math.min(currentEnemy.hp,damage);
-          currentEnemy.hp = Math.max(0, currentEnemy.hp - damage);
+          if(typeof monsterGuardDamageV2844==='function')damage=monsterGuardDamageV2844(damage,{crit:isCrit,skill});
+          const beforeHitV2882=currentEnemy.hp;
+          damage=dealEnemyDamageV2882(currentEnemy,damage,isCrit,'direct',skill.name);
+          const actualLossV2785=beforeHitV2882-currentEnemy.hp;
           swordAfterHitV2785(skill,actualLossV2785);
           showDamageNumber(damage, 'enemy', false, isCrit, false, false, skill.name,skill.mpCost);
           playHitEffect('enemy');
@@ -7389,7 +7415,7 @@
           // 越级击杀：仅普通非大比敌人追加奖励
           const enemyRealmValue=(currentEnemy._realmLevel||0)+((currentEnemy._realmPhase||0)/4);
           const playerRealmValue=(player.level||0)+((player.phase||0)/4);
-          if(!isBossFight&&!isTribulation&&!currentEnemy?.tournamentFight&&enemyRealmValue>playerRealmValue){
+          if(!isBossFight&&!isTribulation&&!currentEnemy?.tournamentFight&&!currentEnemy?._eliteHuntV2883&&enemyRealmValue>playerRealmValue){
             const bonusExp=Math.max(1,Math.floor(expGain*REALM_PRESSURE_CONFIG.underdogExpBonus));
             player.exp+=bonusExp;
             addCombatLog(`⚡ 越级挑战成功！额外修为 +${bonusExp}！`,'heal');
@@ -7589,6 +7615,12 @@
     }
     function resolveEnemyTurnV2844(decision=null, done=()=>{}) {
       if (!currentEnemy || gameState!=='combat') { done(); return; }
+      const abyssTurnV2882=(typeof abyssBattleV2882==='function'?abyssBattleV2882(currentEnemy):null)||(typeof eliteBattleV2883==='function'?eliteBattleV2883(currentEnemy):null);
+      if(abyssTurnV2882){
+        if(abyssTurnV2882.acting||isPlayerTurn){done();return;}
+        abyssTurnV2882.acting=true;
+        const abyssDoneV2882=done;done=()=>{abyssTurnV2882.acting=false;abyssDoneV2882();};
+      }
       const turnEnemyV2838=currentEnemy,turnOwnerV2838=player;
       const rivalDoneV2874=done,turnTokenV2874=COMBAT_FINISH_V2764.token;let rivalCompletedV2874=false;const rivalEligibleV2874=!isPlayerTurn;
       done=()=>{if(rivalCompletedV2874)return;rivalCompletedV2874=true;try{if(rivalEligibleV2874&&typeof rivalTurnCompletedV2874==='function')rivalTurnCompletedV2874(turnEnemyV2838,turnOwnerV2838,turnTokenV2874);}finally{rivalDoneV2874();}};
@@ -7636,7 +7668,7 @@
         try {
         if(player!==turnOwnerV2838||currentEnemy!==turnEnemyV2838||gameState!=='combat')return;
         let isCrit = Math.random() > 0.9;
-        let enemySkill=decision?.skill||null;
+        let enemySkill=(typeof abyssActionV2882==='function'?abyssActionV2882(currentEnemy):null)||(typeof eliteActionV2883==='function'?eliteActionV2883(currentEnemy,spellSealedV286817):null)||decision?.skill||null;
         if(enemySkill){playBossSkillEffect(enemySkill.name);addCombatLog(`【${currentEnemy.name}】施展【${enemySkill.name}】！`,'boss');}
         if (!decision && !spellSealedV286817 && (isBossFight || isTribulation) && currentEnemy.phases) {
           const bossData = getCombatBossData(currentEnemy);
@@ -7684,6 +7716,7 @@
         enemyDamage=consumeGuardV2785(enemyDamage);
         if(typeof companionGuardV2849==='function')enemyDamage=companionGuardV2849(enemyDamage);
         enemyDamage=absorbElementGuardV286818(enemyDamage);
+        if(typeof abyssIncomingV2882==='function')enemyDamage=abyssIncomingV2882(currentEnemy,enemyDamage);
         player.hp = Math.max(0, player.hp - enemyDamage);
         showDamageNumber(enemyDamage, 'player', false, isCrit, !!enemySkill, false, enemySkill?.name||currentEnemy.name+'·攻击');
         playHitEffect('player');
@@ -7693,8 +7726,7 @@
 
         // 雷神附体反伤：敌方实际命中后触发，最低不会把敌方气血扣成负数。
         if ((player._thunderArmorTurns||0)>0 && (player._thunderReflectRatio||0)>0 && enemyDamage>0 && currentEnemy.hp>0) {
-          const reflected=Math.max(1,Math.floor(enemyDamage*player._thunderReflectRatio));
-          currentEnemy.hp=Math.max(0,currentEnemy.hp-reflected);
+          const reflected=dealEnemyDamageV2882(currentEnemy,Math.max(1,Math.floor(enemyDamage*player._thunderReflectRatio)),false,'passive');
           notifyThunderVfxV286844('reflect','雷神附体·反噬',reflected);
           showDamageNumber(reflected,'enemy',false,false,false,false,'雷神附体·反噬');
           addCombatLog(`⚡ 雷纹铠甲反噬，回敬 ${reflected} 点雷电伤害！`, 'pet');
@@ -7726,7 +7758,8 @@
           playSound('defeat');
           player.hp = 1;
           const trialDefeatV2874=currentEnemy?._rivalTrialV2874===true;
-          const defeatGoldLossV2777 = trialDefeatV2874?0:Math.floor(player.gold * 0.2);
+          const abyssDefeatV2882=typeof abyssBattleV2882==='function'&&!!abyssBattleV2882(currentEnemy);
+          const defeatGoldLossV2777 = (trialDefeatV2874||abyssDefeatV2882)?0:Math.floor(player.gold * 0.2);
           player.gold -= defeatGoldLossV2777;
           autoSave();
           try { releaseCurrentMapMonster(false); }
@@ -7734,7 +7767,7 @@
             if (isBossFight) addCombatLog('首领战失败，需要重新挑战...');
             readyCombatFinishV2764({
               kind:'defeat', delay:650, skipReturn:true,
-              afterReturn:() => showStory(`你被击败了，身受重伤回到村庄休养。${trialDefeatV2874?'问锋试炼不扣灵石。':`损失身上灵石的20%（${defeatGoldLossV2777}灵石，不足1灵石部分舍去）。`}`, [{ text: '继续', action: 'village' }])
+              afterReturn:() => showStory(`你被击败了，身受重伤回到村庄休养。${abyssDefeatV2882?'归墟讨伐不扣灵石。':trialDefeatV2874?'问锋试炼不扣灵石。':`损失身上灵石的20%（${defeatGoldLossV2777}灵石，不足1灵石部分舍去）。`}`, [{ text: '继续', action: 'village' }])
             });
           }
           return;
@@ -9992,6 +10025,7 @@
       html+=jevEntryV2846('jevSectV2846()','Jev 宗门经营参议');
       if(hasRank('宗主'))html+='<button class="choice-btn" onclick="showSectMasterV2872()">👑 宗主议事 · 整饬与授业</button>';
       else if(hasRank('长老'))html+='<button class="choice-btn" onclick="showSectPromotionV2768()">👑 宗主传承考核</button>';
+      if(typeof bossHallButtonV2887==='function')html+=bossHallButtonV2887();
       showStory(html, choices);
     }
 
@@ -13559,7 +13593,7 @@
       const pending=progress.found.filter(p=>!map.claimed[p.id]).sort((a,b)=>distance(a)-distance(b));
       const services=FLAT_WORLD.pois.filter(p=>p.action==='rest'||p.buildingId==='spirit_spring'||p.id==='travel_gate'||p.action==='shop').sort((a,b)=>distance(a)-distance(b));
       const row=p=>`<article class="task-card"><strong>${p.icon} ${esc(p.name)}</strong><p>${esc(explorationDirectionV2829(p))}</p><button class="choice-btn" onclick="markExplorationV2829('${p.id}')">${marked?.id===p.id?'已标记 · 更新指引':'标记方向'}</button><button class="choice-btn" onclick="startNavigationV2830('${p.id}')">自动前往</button>${p.action==='explore_v2828'&&distance(p)<p.r+62?`<button class="choice-btn" onclick="showExplorationV2828('${p.id}')">查看探索点</button>`:''}</article>`;
-      showStory(`<section class="main-overview-v2822"><h3>🧭 ${esc(getRegionInfo(currentRegion||'south').name)} · 探索手册</h3><p>地面探索 ${progress.percent}% · 地点发现 ${progress.found.length}/${progress.points.length} · 已领取 ${progress.claimed.length}/${progress.points.length}</p><progress value="${progress.percent}" max="100" aria-label="地图探索进度"></progress><p>可选择方向标记或自动前往。自动寻路绕开静态障碍，到附近停下；摇杆、键盘或点地图可接管，遭遇战会停止。未发现探索点不显示坐标。</p>${marked?`<p>当前标记：${esc(marked.name)} · ${esc(explorationDirectionV2829(marked))}</p><button class="choice-btn" onclick="markExplorationV2829(null)">清除标记</button>`:''}${autoNavigationV2830?`<button class="choice-btn" onclick="stopNavigationV2830();showExplorationJournalV2829()">停止自动寻路</button>`:""}${typeof roamingNoticeV286818==='function'?roamingNoticeV286818():''}<h4>已发现 · 待领取</h4>${pending.length?pending.map(row).join(''):'<p>暂无待领取地点，继续探索周围区域吧。</p>'}<details><summary>补给与返回入口</summary>${services.map(row).join('')}</details><p>每处探索资源仅领取一次。切换地图后，仅显示当前地图的标记。</p></section>`,[{text:'返回地图',action:'return_to_map'}]);
+      showStory(`<section class="main-overview-v2822"><h3>🧭 ${esc(getRegionInfo(currentRegion||'south').name)} · 探索手册</h3><p>地面探索 ${progress.percent}% · 地点发现 ${progress.found.length}/${progress.points.length} · 已领取 ${progress.claimed.length}/${progress.points.length}</p><progress value="${progress.percent}" max="100" aria-label="地图探索进度"></progress><p>可选择方向标记或自动前往。自动寻路绕开静态障碍，到附近停下；摇杆、键盘或点地图可接管，遭遇战会停止。未发现探索点不显示坐标。</p>${marked?`<p>当前标记：${esc(marked.name)} · ${esc(explorationDirectionV2829(marked))}</p><button class="choice-btn" onclick="markExplorationV2829(null)">清除标记</button>`:''}${autoNavigationV2830?`<button class="choice-btn" onclick="stopNavigationV2830();showExplorationJournalV2829()">停止自动寻路</button>`:""}${typeof roamingNoticeV286818==='function'?roamingNoticeV286818():''}<button class="choice-btn" onclick="showEliteBoardV2883()">四域凶煞 · 悬赏榜</button><h4>已发现 · 待领取</h4>${pending.length?pending.map(row).join(''):'<p>暂无待领取地点，继续探索周围区域吧。</p>'}<details><summary>补给与返回入口</summary>${services.map(row).join('')}</details><p>每处探索资源仅领取一次。切换地图后，仅显示当前地图的标记。</p></section>`,[{text:'返回地图',action:'return_to_map'}]);
     }
 
     const SCROLL_ART_V2831={started:false,landscape:null,palace:null};
@@ -14561,7 +14595,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.56";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.61";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
@@ -14770,24 +14804,27 @@ function tripYieldV286821(now=Date.now()){
  const units=Math.min(48,Math.max(0,Math.floor((now-t.started)/600000)));
  return {units,gold:units*r.gold,herbs:Math.floor(units/6)};
 }
+function tripAllowedV2886(){return gameState==='exploring'&&!COMBAT_FINISH_V2764.settling&&!player.breakthrough?.isAnimating;}
+function tripRestartAllowedV2886(s=tripStateV286821()){return !!s.active&&Number.isInteger(s.wins[s.active.key])&&player.level>=s.wins[s.active.key]+1;}
 function commitTripV286821(change){
- if(gameState!=='exploring')return false;
+ if(!tripAllowedV2886())return false;
  const old={state:player.expeditionV286821,gold:player.gold,materials:player.materials};
- change();if(saveGame())return true;
+ try{change();if(saveGame())return true;}catch(_){}
  player.expeditionV286821=old.state;player.gold=old.gold;player.materials=old.materials;
  showFloatingText('保存失败，游历操作未生效，可重试','#ff8a80');return false;
 }
 function startTripV286821(index){
- if(gameState!=='exploring')return false;
+ if(!tripAllowedV2886())return false;
  const r=TRIP_ROUTES_V286821[index],s=tripStateV286821();
  if(!r||s.active||!Number.isInteger(s.wins[r.key])||player.level<s.wins[r.key]+1)return false;
  const ok=commitTripV286821(()=>{player.expeditionV286821={wins:s.wins,active:{key:r.key,started:Date.now(),level:s.wins[r.key]}};});
  if(ok)showTripV286821();return ok;
 }
-function claimTripV286821(silent=false){
- const s=tripStateV286821(),y=tripYieldV286821();if(!s.active||!y.units)return false;
- const ok=commitTripV286821(()=>{player.expeditionV286821={wins:s.wins,active:null};player.gold+=y.gold;player.materials={...player.materials,'灵草':(Number(player.materials?.['灵草'])||0)+y.herbs};});
- if(ok&&!silent){showFloatingText(`游历归来：灵石+${y.gold}，灵草+${y.herbs}`);updateStats();showTripV286821();}return ok;
+function claimTripV286821(silent=false,restart=false){
+ if(!tripAllowedV2886())return false;
+ const s=tripStateV286821(),now=Date.now(),y=tripYieldV286821(now);if(!s.active||!y.units||restart&&!tripRestartAllowedV2886(s))return false;
+ const ok=commitTripV286821(()=>{player.expeditionV286821={wins:s.wins,active:restart?{key:s.active.key,started:now,level:s.wins[s.active.key]}:null};player.gold+=y.gold;player.materials={...player.materials,'灵草':(Number(player.materials?.['灵草'])||0)+y.herbs};});
+ if(ok&&!silent){showFloatingText(`游历归来：灵石+${y.gold}，灵草+${y.herbs}${restart?' · 已沿原路线续派':''}`);updateStats();showTripV286821();}return ok;
 }
 function showTripV286821(){
  if(gameState!=='exploring')return;

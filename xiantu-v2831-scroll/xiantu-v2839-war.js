@@ -269,7 +269,7 @@ showWarCampaignV2775=function(){
   let html=`<div class="war-fronts-v2839">${WAR_FRONTS_V2839.map((f,i)=>`<div class="${i<stage?'done':i===stage?'current':''}"><small>${i<stage?'已推进':i===stage?'当前目标':'后续目标'}</small><strong>${i+1}. ${f.name}</strong></div>`).join('')}</div>${warStatsV2839(c)}<p>本场灵石/修为奖励 ×${warRewardScaleV286841(c)} · 按出征境界锁定，贡献与军功不乘倍。</p>${warOfficersHtmlV286841(c)}`;
   if(!valid)html+='<p class="war-notice-v2839">宗门归属或目标状态已变化，无法继续使用原联军。请有序撤军后重新整备。</p>';
   else if(stage<3){const front=WAR_FRONTS_V2839[stage],tactic=c.selected[stage],enemy=warEnemyV2839(c);
-   html+=`<section class="war-scene-v2839"><small>${front.objective}</small><h3>${front.name}</h3><p>${front.intro}</p><p class="war-report-v2839">敌情：${WAR_REPORTS_V2775[c.reports[stage]]}</p><p>${front.reward}</p></section><h3>① 选择本阶段战术</h3>${warButtonV2839('☯ 天机战术参议',jevWarV2846,!!c.pending)}<div class="war-tactics-v2839">${WAR_TACTICS_V2775.map((t,i)=>warButtonV2839(`${tactic===i?'✓ ':''}${t.name} · ${t.hint}`,()=>chooseWarTacticV2775(i,stage),!!c.pending,tactic===i?'selected':'')).join('')}</div><h3>② 推进目标</h3><div class="war-mission-v2839"><b>${esc(enemy.name)}</b><p>${esc(CULTIVATION_REALMS[c.realm].name)}${['初期','中期','后期','圆满'][enemy._realmPhase]} · 气血 ${enemy.maxHp} · 攻击 ${enemy.atk} · 防御 ${enemy.def}</p><p>你的气血 ${Math.floor(player.hp)}/${getMaxHp()} · 灵力 ${Math.floor(player.mp)}/${getMaxMp()}</p>${c.pending?'<p>上次交锋尚未结算。可以重新进入，敌方恢复到开战状态；沿用当前气血灵力，不再扣战备。</p>':''}<div class="war-actions-v2839">${warButtonV2839(c.pending?'继续未结算交锋':c.rulesV286841===1&&stage===2?'主将阵前单挑 · 8次行动 / 战备−1':'亲自交锋 · 战备 −1',()=>startWarDuelV2839(c.id,stage),tactic==null||player.hp<=1||(!c.pending&&(c.supplies<1||(c.rulesV286841===1&&stage===2&&!!c.commanderV286841))),'primary')}${warButtonV2839(tactic==null?'统领联军 · 先选择战术':`统领联军 · 预估成功 ${Math.round(warChanceV2839(c)*100)}%`,()=>commandWarStageV2839(c.id,stage),tactic==null||!!c.pending)}</div>${c.rulesV286841===1&&stage===2?'<p>限时斩将胜利：最终战力+30%；到时敌将气血≤30%：+15%。本场仅一次；失败后仍可统领联军。此加成影响实际战果，不保证必胜。</p>':''}<p class="war-muted-v2839">亲自交锋沿用已装配招式与自动战斗策略，需真正获胜。联军推进受战力、克制战术与士气影响，受挫也会进入下一阶段。</p></div>`;
+   html+=`<section class="war-scene-v2839"><small>${front.objective}</small><h3>${front.name}</h3><p>${front.intro}</p><p class="war-report-v2839">敌情：${WAR_REPORTS_V2775[c.reports[stage]]}</p><p>${front.reward}</p></section><h3>① 选择本阶段战术</h3>${warButtonV2839('军师布阵 · 按敌情选择战术与统领',()=>autoDeployWarV2886(c.id,stage),!!c.pending)}<p>按已显示敌情选择克制战术；优先契合性格的空闲弟子，可手动调整。只完成部署，不自动开战，不保证胜利。</p>${warButtonV2839('☯ 天机战术参议',jevWarV2846,!!c.pending)}<div class="war-tactics-v2839">${WAR_TACTICS_V2775.map((t,i)=>warButtonV2839(`${tactic===i?'✓ ':''}${t.name} · ${t.hint}`,()=>chooseWarTacticV2775(i,stage),!!c.pending,tactic===i?'selected':'')).join('')}</div><h3>② 推进目标</h3><div class="war-mission-v2839"><b>${esc(enemy.name)}</b><p>${esc(CULTIVATION_REALMS[c.realm].name)}${['初期','中期','后期','圆满'][enemy._realmPhase]} · 气血 ${enemy.maxHp} · 攻击 ${enemy.atk} · 防御 ${enemy.def}</p><p>你的气血 ${Math.floor(player.hp)}/${getMaxHp()} · 灵力 ${Math.floor(player.mp)}/${getMaxMp()}</p>${c.pending?'<p>上次交锋尚未结算。可以重新进入，敌方恢复到开战状态；沿用当前气血灵力，不再扣战备。</p>':''}<div class="war-actions-v2839">${warButtonV2839(c.pending?'继续未结算交锋':c.rulesV286841===1&&stage===2?'主将阵前单挑 · 8次行动 / 战备−1':'亲自交锋 · 战备 −1',()=>startWarDuelV2839(c.id,stage),tactic==null||player.hp<=1||(!c.pending&&(c.supplies<1||(c.rulesV286841===1&&stage===2&&!!c.commanderV286841))),'primary')}${warButtonV2839(tactic==null?'统领联军 · 先选择战术':`统领联军 · 预估成功 ${Math.round(warChanceV2839(c)*100)}%`,()=>commandWarStageV2839(c.id,stage),tactic==null||!!c.pending)}</div>${c.rulesV286841===1&&stage===2?'<p>限时斩将胜利：最终战力+30%；到时敌将气血≤30%：+15%。本场仅一次；失败后仍可统领联军。此加成影响实际战果，不保证必胜。</p>':''}<p class="war-muted-v2839">亲自交锋沿用已装配招式与自动战斗策略，需真正获胜。联军推进受战力、克制战术与士气影响，受挫也会进入下一阶段。</p></div>`;
   }else html+='<section class="war-notice-v2839"><h3>三个阶段已结束</h3><p>军功与战利品尚未发放，请查看战报并完成战役结算。</p></section>';
   html+=warRosterHtmlV2839(c.roster,c.foe,c.our)+`<details class="war-details-v2839" ${stage===3?'open':''}><summary>本次行军记录 · ${c.log.length} 条</summary><ol>${c.log.map(t=>`<li>${esc(t)}</li>`).join('')}</ol></details>`;return html;
  },()=> (stage===3&&valid?warButtonV2839('结算本场战役',()=>settleWarV2775(c.enemy),false,'primary'):warButtonV2839(`军营整备 · ${80+c.realm*30}灵石`,()=>restWarV2839(c.id),!valid||c.rests>=2||player.gold<80+c.realm*30))+warButtonV2839('查看地图战况',viewWarMapV2840)+warButtonV2839('暂离 · 保存进度',()=>{autoSave();closeWarPanelV2839();showSectHall();})+warButtonV2839('有序撤军',retreatWarV2775,false,'danger'));
@@ -286,7 +286,7 @@ function showWarMeritV2839(){
  if(!warAllowedV2839())return;const w=warStateV2839();
  openWarPanelV2839('军功补给处',()=>`<div class="war-stats-v2839"><div><small>可用军功</small><b>${w.meritV2839}</b></div><div><small>累计所得</small><b>${w.meritEarnedV2839}</b></div></div><p>完成会战获得军功；每次亲自交锋获胜另计10军功，随战役胜利统一发放。</p>${WAR_GOODS_V2839.map((g,i)=>`<article class="war-history-v2839"><h3>${g.name}</h3><p>${g.desc}</p>${warButtonV2839(`兑换 · ${g.cost}军功`,()=>exchangeWarMeritV2839(i),w.meritV2839<g.cost)}</article>`).join('')}<p class="war-muted-v2839">点兑换后仍需确认，取消不会扣除军功。</p>`,()=>warButtonV2839('返回军务',showWarHubV2839)+warButtonV2839('历次战报',showWarHistory));
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2839-war.js']='28.68.56';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2839-war.js']='28.68.61';
 
 // V28.68: one readable entry for the long war, existing story and campaign routes.
 function showAncientWarV2859(){
@@ -298,6 +298,7 @@ function showAncientWarV2859(){
   html+='<section class="war-notice-v2839"><h3>你可以从哪里开始</h3><p>现在即可阅读下面的旧战纪年；练气起逐章经历夜无疆的宿敌故事。加入宗门后可筹备三阶段会战，实际出征会进入地图战场。主线“三万年烽火”需达到化神并推进前序主线。</p>';
   html+=warButtonV2839(next<8?(yeStoryAvailableV2816(next)?'继续剧情 · '+chapters[next].title:'宿敌纪事 · 查看解锁条件'):'宿敌纪事 · 八章回顾',leave(()=>next<8&&yeStoryAvailableV2816(next)?showYeChapterV2816(next):showYeChronicleV2816()),false,'primary');
   html+=warButtonV2839('夜无疆 · 人物与挑战',leave(showYeWujiV2810));
+  html+=warButtonV2839('归墟断桥 · 三形态首领',showAbyssBossHubV2882);
   html+=warButtonV2839(player.sect?'宗门会战 · 整备 / 继续':'先拜入宗门，再参与会战',leave(player.sect?showWarHubV2839:showSect));
   html+=warButtonV2839('查看主线进度',leave(()=>showTaskPanel('main')));html+='</section>';
   const eras=[
@@ -343,6 +344,20 @@ function assignWarOfficerV286841(id,stage,discipleId){
  const ok=commitWarV286841(()=>{c.officersV286841[stage]=d?{id:d.id,name:d.name,personality:discipleTraitsV2867(d).personality,healer:lifeTitlesV2868(d).includes('济危同门')}:null;});
  if(ok)showWarCampaignV2775();return ok;
 }
+function warAutoPlanV2886(c){
+ if(!warStageValidV2839(c)||c.pending||c.step>=3||![0,1,2].includes(c.reports?.[c.step]))return null;
+ const tactic=c.reports[c.step],current=warOfficerV286841(c),wanted=[0,2,1][tactic];
+ const candidates=c.rulesV286841===1?sectMembersReadV2868().filter(d=>!d.job&&(!warDiscipleBusyV286841(d.id)||current?.id===d.id)).map(d=>({id:d.id,name:d.name,personality:discipleTraitsV2867(d).personality,healer:lifeTitlesV2868(d).includes('济危同门')})):[];
+ const score=o=>(o.personality===wanted?100:o.personality===2?50:0)+(o.personality===2&&o.healer?20:0)+(o.id===current?.id?1:0);
+ candidates.sort((a,b)=>score(b)-score(a)||a.id-b.id);
+ return {tactic,officer:candidates[0]||null};
+}
+function autoDeployWarV2886(id,stage){
+ if(!warAllowedV2839())return false;const c=warCampaignV2839(id,stage),plan=warAutoPlanV2886(c);if(!plan)return false;
+ if(c.selected[stage]===plan.tactic&&JSON.stringify(warOfficerV286841(c))===JSON.stringify(plan.officer))return false;
+ const ok=commitWarV286841(()=>{c.selected[stage]=plan.tactic;if(c.rulesV286841===1)c.officersV286841[stage]=plan.officer;});
+ if(ok){showFloatingText(`按敌情布阵：${WAR_TACTICS_V2775[plan.tactic].name}${plan.officer?' · 统领'+plan.officer.name:' · 暂不委任统领'}`,'#69f0ae');showWarCampaignV2775();}return ok;
+}
 function warOfficersHtmlV286841(c){
  if(c.rulesV286841!==1||c.step>=3)return '';const stage=c.step,o=warOfficerV286841(c),esc=discipleEscV2815;
  let html=`<section class="war-notice-v2839"><h3>随军点兵 · ${WAR_POSTS_V286841[c.step]}</h3><p>果敢配突击：优势+1；谨慎配稳守：整场战力修正最低100%；仁厚：战败损失减半，有「济危同门」则减少75%。完成阶段后锁定，战役结束解任。</p><p>当前：${o?esc(o.name)+' · '+['谨慎','果敢','仁厚'][o.personality]:'未委任，可直接推进'}</p>`;
@@ -371,4 +386,284 @@ function warDuelLimitV286841(){
  tag.awaitingAction=false;tag.turns=warIntV2839(tag.turns,0,8)+1;
  if(tag.turns>=8){finishWarDuelV2839(false,'timeout');return true;}
  addCombatLog(`阵前斩将：剩余 ${8-tag.turns} 次行动。`,'boss');return false;
+}
+
+// Optional three-form challenge. Runtime ownership never enters the save.
+const ABYSS_PLANS_V2882={
+ chain:['斩断渡魂锁链','开局骨盾由15%降为7.5%首领气血；前两次首领实际行动内共享15%自身最大气血护盾。'],
+ mind:['照心定魂守脉','免疫二阶段抽灵；每次首领实际行动恢复8%最大灵力。'],
+ breach:['业火焚毁无名册','基础防御降低18%；三阶段主角暴击额外伤害由25%提高至55%。']
+};
+const ABYSS_PRIZES_V2882=['上古返祖灵珠','深渊魔核','极品血脉精元'];
+const abyssBattlesV2882=new WeakMap();
+let abyssViewV2882=null;
+function normalizeAbyssV2882(raw){
+ const r=raw&&typeof raw==='object'?raw:{},realm=n=>Number.isInteger(n)&&n>=5&&n<CULTIVATION_REALMS.length;
+ const cleared=[...new Set((Array.isArray(r.cleared)?r.cleared:[]).filter(realm))];
+ const p=r.pending,pending=p&&realm(p.realm)?{realm:p.realm,first:p.first===true,rare:ABYSS_PRIZES_V2882.includes(p.rare)?p.rare:null}:null;
+ if(pending&&!cleared.includes(pending.realm))cleared.push(pending.realm);
+ return {version:1,plan:Object.hasOwn(ABYSS_PLANS_V2882,r.plan)?r.plan:'chain',wins:Number.isSafeInteger(r.wins)?Math.max(0,Math.min(1e9,r.wins)):0,cleared,pending};
+}
+function abyssBattleV2882(enemy){
+ const b=enemy&&abyssBattlesV2882.get(enemy);
+ return b&&b.owner===player&&currentEnemy===enemy&&(COMBAT_FINISH_V2764.token===b.token||COMBAT_FINISH_V2764.pending?.token===b.token+1)?b:null;
+}
+function createAbyssBossV2882(plan='chain'){
+ if(!Object.hasOwn(ABYSS_PLANS_V2882,plan))plan='chain';
+ const level=Math.min(CULTIVATION_REALMS.length-1,Math.max(5,Math.floor(Number(player.level)||5))+1);
+ const e={name:'归墟造桥主·战神之魂',hp:900+level*380,maxHp:900+level*380,atk:85+level*28,def:45+level*16,gold:0,exp:0,_realmLevel:level,_realmPhase:3,_isElite:true,_isTaskBattle:true,_abyssBossV2882:true};
+ balanceEnemyV2802(e,true,false);
+ e.hp=e.maxHp=Math.round(e.maxHp*1.35);e.atk=Math.round(e.atk*1.18);e.def=Math.round(e.def*1.18);
+ if(plan==='breach')e.def=Math.floor(e.def*.82);
+ return e;
+}
+function syncAbyssPhaseV2882(enemy){
+ const b=abyssBattleV2882(enemy);if(!b||gameState!=='combat'||enemy.hp<=0)return;
+ const ratio=enemy.hp/Math.max(1,enemy.maxHp);
+ if(b.stage===1&&ratio<=.65){b.stage=2;enemy.atk=Math.round(enemy.atk*1.2);enemy.def=Math.round(enemy.def*1.15);addCombatLog('🌑 窃忆魔相：攻击+20%、防御+15%；每次实际行动抽灵化盾。','boss');}
+ if(b.stage===2&&ratio<=.30){b.stage=3;enemy.atk=Math.round(enemy.atk*1.22);enemy.def=Math.round(enemy.def*.85);addCombatLog('🔥 归墟同葬：攻击再增22%、防御降低15%；主角暴击加深，行动引动罡风。','boss');}
+ if(b.stage!==currentBossPhase){currentBossPhase=b.stage;const el=document.getElementById('bossPhase');if(el)el.textContent=`第 ${b.stage} 阶段`;}
+}
+function abyssOutgoingV2882(enemy,damage,crit){
+ const b=abyssBattleV2882(enemy);if(!b)return damage;
+ damage=Math.max(0,Math.floor(Number(damage)||0));
+ if(b.stage===3&&crit)damage+=Math.floor(damage*(b.plan==='breach'?.55:.25));
+ const absorb=Math.min(b.shield,Math.floor(damage*.6));
+ if(absorb>0){b.shield-=absorb;addCombatLog(`千魂骨盾吸收 ${absorb} 点伤害，剩余 ${b.shield}。`,'boss');}
+ return damage-absorb;
+}
+// Called inside the owner-checked attack callback, after pressure/freeze skips.
+// The heavy strike replaces the normal hit and uses the ordinary mitigation path.
+function abyssActionV2882(enemy){
+ const b=abyssBattleV2882(enemy);if(!b||gameState!=='combat'||isPlayerTurn||enemy.hp<=0||player.hp<=0)return null;
+ syncAbyssPhaseV2882(enemy);b.turn++;
+ if(b.turn>2)b.guard=0;
+ if(b.plan==='mind'){
+  const gain=Math.max(0,Math.min(getMaxMp()-player.mp,Math.ceil(getMaxMp()*.08)));player.mp+=gain;
+  if(gain)addCombatLog(`照心定魂恢复 ${gain} 点灵力。`,'heal');
+ }
+ if(b.stage===2&&b.plan!=='mind'&&player.mp>0){
+  const drain=Math.min(player.mp,Math.max(8,Math.floor(player.mp*.15)));player.mp-=drain;b.shield+=drain*3;
+  addCombatLog(`剥忆噬灵：抽取 ${drain} 点灵力，转为 ${drain*3} 点骨盾。`,'boss');
+ }
+ if(b.stage===3){
+  const damage=Math.min(Math.max(0,player.hp-1),Math.max(12,Math.floor(getMaxHp()*.07)));
+  if(damage){player.hp-=damage;showDamageNumber(damage,'player',false,false,true,false,'归墟罡风');addCombatLog(`归墟罡风造成 ${damage} 点伤害（自身最低保留1点，随后首领攻击仍可致命）。`,'damage');}
+ }
+ return b.stage===1&&b.turn%3===0?{name:'战戟裂界',damage:1.35,mpCost:0}:null;
+}
+function abyssIncomingV2882(enemy,damage){
+ const b=abyssBattleV2882(enemy);if(!b||b.turn>2||b.guard<=0)return damage;
+ const absorb=Math.min(b.guard,damage);b.guard-=absorb;
+ if(absorb)addCombatLog(`断链护盾抵挡 ${absorb} 点伤害。`,'heal');
+ return damage-absorb;
+}
+function abyssRewardV2882(p){
+ const foe=Math.min(CULTIVATION_REALMS.length-1,p.realm+1);
+ return {gold:1500+foe*450+(p.first?2000+p.realm*600:0),exp:600+foe*220+(p.first?800+p.realm*300:0),prizes:p.first?ABYSS_PRIZES_V2882:p.rare?[p.rare]:[]};
+}
+function abyssRewardTextV2882(p){
+ const r=abyssRewardV2882(p);
+ return `灵石 ${r.gold}、修为 ${r.exp}、军功45、星辰砂×3、万年寒玉×2${r.prizes.length?'、'+r.prizes.map(n=>n+'×1').join('、'):''}`;
+}
+function abyssViewValidV2882(view=abyssViewV2882){return warAllowedV2839()&&view&&view===abyssViewV2882&&view.owner===player&&view.ui===warUiV2839&&!!document.getElementById('warPanelV2839');}
+function selectAbyssPlanV2882(plan){
+ if(!abyssViewValidV2882()||!Object.hasOwn(ABYSS_PLANS_V2882,plan))return false;
+ // Selection is saved at launch; viewing and comparing plans cannot award resources.
+ abyssViewV2882.plan=plan;showAbyssBossHubV2882(plan);return true;
+}
+function launchAbyssBossV2882(){
+ if(!abyssViewValidV2882()||player.level<5||player.hp<=1)return false;
+ const view=abyssViewV2882,owner=player,state=normalizeAbyssV2882(player.abyssBossV2882);if(state.pending)return false;
+ const stamp=JSON.stringify([player.level,player.phase,player.hp,player.mp,player.abyssBossV2882]),e=createAbyssBossV2882(view.plan);
+ if(!confirm(`迎战${getEnemyRealmNameV2811(e)}的战神之魂？三阶段连续交锋，不能脱战；战败不扣灵石。胜利后回断桥领取悬赏。`)||owner!==player||!abyssViewValidV2882(view)||stamp!==JSON.stringify([player.level,player.phase,player.hp,player.mp,player.abyssBossV2882]))return false;
+ const realm=player.level;
+ closeWarPanelV2839();closeWorldOverlay();startCombat(e,true,false,null);
+ if(currentEnemy!==e||gameState!=='combat')return false;
+ player.abyssBossV2882={...state,plan:view.plan};
+ abyssBattlesV2882.set(e,{owner,token:COMBAT_FINISH_V2764.token,realm,plan:view.plan,stage:1,turn:0,shield:Math.floor(e.maxHp*(view.plan==='chain'?.075:.15)),guard:view.plan==='chain'?Math.floor(getMaxHp()*.15):0,settled:false});
+ addCombatLog(`归墟断桥 · ${ABYSS_PLANS_V2882[view.plan][0]}：${ABYSS_PLANS_V2882[view.plan][1]}`,'boss');
+ updateCombatUI();return true;
+}
+function recordAbyssFinishV2882(){
+ const e=currentEnemy,b=abyssBattleV2882(e),p=COMBAT_FINISH_V2764.pending;
+ if(!b||b.settled||p?.owner!==player||p.token!==b.token+1)return;
+ b.settled=true;
+ if(p.kind!=='victory'||e.hp>0)return;
+ const state=normalizeAbyssV2882(player.abyssBossV2882);if(state.pending)return;
+ const first=!state.cleared.includes(b.realm);
+ state.pending={realm:b.realm,first,rare:!first&&Math.random()<.35?ABYSS_PRIZES_V2882[Math.floor(Math.random()*3)]:null};
+ state.wins=Math.min(1e9,state.wins+1);if(first)state.cleared.push(b.realm);player.abyssBossV2882=state;
+ addCombatLog(`归墟悬赏已记录，返回「三万年仙魔战 → 归墟断桥」领取：${abyssRewardTextV2882(state.pending)}。`,'gold');
+ // Core finishing saves pending loot with the outcome; no extra save mid-settlement.
+}
+window.addEventListener('xiantu:combat-finishing',recordAbyssFinishV2882);
+function claimAbyssRewardV2882(){
+ if(!abyssViewValidV2882())return false;
+ const state=normalizeAbyssV2882(player.abyssBossV2882),pending=state.pending;if(!pending)return false;
+ const owner=player,before=JSON.stringify(player),r=abyssRewardV2882(pending);
+ try{
+  state.pending=null;player.abyssBossV2882=state;player.gold+=r.gold;player.exp+=r.exp;
+  player.materials=player.materials||{};player.petMaterials=player.petMaterials||{};
+  for(const [n,q] of [['星辰砂',3],['万年寒玉',2]])player.materials[n]=(player.materials[n]||0)+q;
+  for(const n of r.prizes)player.petMaterials[n]=(player.petMaterials[n]||0)+1;
+  const w=warStateV2839();w.meritV2839+=45;w.meritEarnedV2839+=45;
+  if(!saveGame())throw Error('save failed');
+ }catch(_){
+  for(const k of Object.keys(owner))delete owner[k];Object.assign(owner,JSON.parse(before));
+  if(owner.activePet?._petId)owner.activePet=owner.pets.find(p=>p._petId===owner.activePet._petId)||null;
+  showFloatingText('记录未保存，悬赏仍待领取，请重试。','#ff8a80');return false;
+ }
+ checkLevelUp();updateStats();showAbyssBossHubV2882();return true;
+}
+function showAbyssBossHubV2882(selected){
+ if(!warAllowedV2839())return;
+ const state=normalizeAbyssV2882(player.abyssBossV2882),plan=Object.hasOwn(ABYSS_PLANS_V2882,selected)?selected:state.plan,e=createAbyssBossV2882(plan);
+ openWarPanelV2839('归墟断桥 · 战神之魂',()=>{
+  let html=`<section class="war-notice-v2839"><h3>古战神残魂，欲以万名修士的记忆补合断桥</h3><p>化神境开启；首领高于入场境界一阶（最高圣人），圆满阶段。三形态连续交锋，不能脱战；败战不扣灵石。</p><p>${discipleEscV2815(getEnemyRealmNameV2811(e))} · 气血 ${e.maxHp} · 攻击 ${e.atk} · 防御 ${e.def}</p><p>累计击破 ${state.wins} 次 · 气血 ${Math.floor(player.hp)}/${getMaxHp()} · 灵力 ${Math.floor(player.mp)}/${getMaxMp()}</p></section>`;
+  html+='<details class="war-details-v2839"><summary>三形态机制 · 开战前查看</summary><p>一重：骨盾吸收每击60%伤害，池耗尽失效；每第3次实际行动以1.35倍招式替代普攻。</p><p>二重（气血≤65%）：攻击+20%、防御+15%；每次实际行动抽取当前灵力15%（至少8、不超过现有），按实际抽取量×3化盾。</p><p>三重（气血≤30%）：攻击再增22%、防御降低15%；主角暴击伤害额外+25%。每次实际行动先造成7%最大气血罡风伤害（至少12、最低留1血），随后正常攻击可致命。</p><p>冻结或威压跳过行动时，不触发抽灵、回灵和罡风。跨过两个阈值会依次转换，不回退形态；治疗仍可正常使用。</p></details>';
+  html+='<h3>破阵部署 · 三选一</h3>';
+  for(const [key,[name,desc]] of Object.entries(ABYSS_PLANS_V2882))html+=`<article class="war-notice-v2839"><p>${desc}</p>${warButtonV2839((plan===key?'✓ 已选 · ':'选择 · ')+name,()=>selectAbyssPlanV2882(key),false,plan===key?'primary':'')}</article>`;
+  const first=!state.cleared.includes(player.level),quote={realm:Math.max(5,Math.min(CULTIVATION_REALMS.length-1,player.level)),first};
+  html+=`<section class="war-notice-v2839"><h3>${first?'本境首通悬赏':'重复讨伐悬赏'}</h3><p>${abyssRewardTextV2882(quote)}。</p><p>首通按入场境界分别记录；重复胜利有35%概率额外获得三种御兽珍材之一，抽中后等概率选一种。固定悬赏不叠加野外收益倍率；领取前不可再次开战。备战沿用现有补给。</p></section>`;
+  if(state.pending)html+=`<section class="war-notice-v2839"><h3>待领取 · ${discipleEscV2815(CULTIVATION_REALMS[state.pending.realm].name)}${state.pending.first?'首通':''}</h3><p>${abyssRewardTextV2882(state.pending)}</p>${warButtonV2839('领取已记录悬赏',claimAbyssRewardV2882,false,'primary')}</section>`;
+  return html;
+ },()=>warButtonV2839(player.level<5?'化神境解锁':state.pending?'先领取上次悬赏':player.hp<=1?'先恢复气血':'踏入断桥 · 开始挑战',launchAbyssBossV2882,player.level<5||!!state.pending||player.hp<=1,'primary')+warButtonV2839('返回仙魔战卷宗',showAncientWarV2859));
+ abyssViewV2882={owner:player,ui:warUiV2839,plan};
+}
+
+// Six optional bounty encounters; fixed local mechanics, no hidden AI actions.
+const ELITES_V2883={
+ ape:{name:'【精英】裂山玄甲巨猿',region:'south',level:2,trait:'玄岩震甲',desc:'20%气血岩盾吸收每击65%伤害；盾在时反震主角直接伤害的15%（最低留1血）。破盾后防御降低25%。',tip:'持续伤害、灵宠可磨盾而不触发反震；破盾后集中输出。',materials:{兽骨:3,灵草:4},pets:{兽魂晶:1}},
+ treant:{name:'【精英】千年噬魂树妖',region:'east',level:3,trait:'枯荣寄生',desc:'每次实际行动恢复6%最大气血；灼烧期间改为自损5%最大气血（至少10、最低留1血）。',tip:'保持火系灼烧，阻断回血并引发火噬。',materials:{灵木:3,千年灵芝:1},pets:{变异灵晶:1}},
+ spider:{name:'【精英】九幽血煞魔蛛',region:'east',level:4,trait:'蚀脉蛛网',desc:'每第2次实际行动抽取12%当前灵力（至少6、不超过现有），并使主角下一次直接伤害降低15%。',tip:'携带回灵补给；蛛网不会封禁技能，也不影响灵宠和持续伤害。',materials:{妖丹:2,暗灵草:2},pets:{魔魂晶:1}},
+ wolf:{name:'【精英】极北霜狱狼王',region:'north',level:5,trait:'极寒孤狼',desc:'气血≤50%时攻击提升25%，随后以1.5倍霜爪连击招式替代普攻（合并一次承伤结算）。',tip:'半血前准备护盾和灵力；冻结可阻止其实际行动。',materials:{雪莲:2,万年寒玉:1},pets:{纯净灵髓:1}},
+ general:{name:'【精英】古战残甲魔将',region:'west',level:6,trait:'百战不屈',desc:'首次致死伤害后恢复至15%气血，攻击提升30%，本场仅一次；后续致死正常结算。',tip:'触发不屈后预留护盾与治疗。持续伤害同样会触发不屈。',materials:{星辰砂:2,魔核:2},pets:{优质血脉精元:1}},
+ guard:{name:'【精英】巡天镇界仙卫',region:'immortal_domain',level:10,trait:'诸天雷罚',desc:'每次实际行动积1道雷印，满2道时以1.45倍、穿透30%防御的神雷替代普攻并清印；主角暴击震散1印。',tip:'暴击压制雷印；封脉期间仍积印但不释放神雷。',materials:{仙灵草:3,龙血果:2},pets:{极品血脉精元:1}}
+};
+const eliteBattlesV2883=new WeakMap();
+let eliteViewV2883=null;
+function eliteDayV2883(){return Math.max(0,Math.min(1e9,Math.floor(Number(player.worldTime?.totalDays)||0)));}
+function normalizeEliteHuntV2883(raw){
+ const r=raw&&typeof raw==='object'?raw:{},records={};
+ for(const id of Object.keys(ELITES_V2883)){
+  const x=r.records?.[id]||{};
+  records[id]={kills:Number.isSafeInteger(x.kills)?Math.max(0,Math.min(1e9,x.kills)):0,lastDay:Number.isInteger(x.lastDay)?Math.max(-1,Math.min(1e9,x.lastDay)):-1};
+ }
+ const p=r.pending,c=p&&Object.hasOwn(ELITES_V2883,p.id)?ELITES_V2883[p.id]:null;
+ const pending=c&&Number.isInteger(p.realm)&&p.realm>=c.level&&p.realm<CULTIVATION_REALMS.length&&Number.isInteger(p.day)&&p.day>=0&&p.day<=1e9?{id:p.id,realm:p.realm,day:p.day,first:p.first===true}:null;
+ return {version:1,records,pending};
+}
+function eliteBattleV2883(enemy){
+ const b=enemy&&eliteBattlesV2883.get(enemy);
+ return b&&b.owner===player&&enemy===currentEnemy&&(COMBAT_FINISH_V2764.token===b.token||COMBAT_FINISH_V2764.pending?.token===b.token+1)?b:null;
+}
+function createEliteV2883(id){
+ if(!Object.hasOwn(ELITES_V2883,id))return null;
+ const c=ELITES_V2883[id],level=Math.min(CULTIVATION_REALMS.length-1,Math.max(c.level,Math.floor(Number(player.level)||0))),phase=Math.min(3,Math.max(0,Math.floor(Number(player.phase)||0))+1);
+ const e={name:c.name,hp:320+level*160,maxHp:320+level*160,atk:35+level*14,def:16+level*8,gold:0,exp:0,_realmLevel:level,_realmPhase:phase,_isElite:true,_isTaskBattle:true,_eliteHuntV2883:id};
+ // Use the actual elite template once; do not accidentally apply tribulation scaling.
+ return balanceEnemyV2802(e,false,false);
+}
+function initEliteEncounterV2883(enemy){
+ const id=enemy?._eliteHuntV2883;if(!Object.hasOwn(ELITES_V2883,id)||eliteBattlesV2883.has(enemy))return;
+ eliteBattlesV2883.set(enemy,{owner:player,token:COMBAT_FINISH_V2764.token,id,realm:player.level,day:eliteDayV2883(),turn:0,shield:id==='ape'?Math.floor(enemy.maxHp*.2):0,enraged:false,undying:false,web:false,marks:0,settled:false,acting:false});
+}
+function eliteOutgoingV2883(enemy,damage,crit,source){
+ const b=eliteBattleV2883(enemy);if(!b)return damage;
+ damage=Math.max(0,Math.floor(Number(damage)||0));
+ if(source==='direct'&&damage>0){
+  if(b.web){damage=Math.floor(damage*.85);b.web=false;addCombatLog('蚀脉蛛网削弱本次直接伤害15%，蛛丝已挣脱。','boss');}
+  if(b.id==='guard'&&crit&&b.marks>0){b.marks--;addCombatLog('锋芒破印：暴击震散一道天罚雷印。','gold');}
+ }
+ if(b.id==='ape'&&b.shield>0&&damage>0){
+  if(source==='direct'){
+   const reflect=Math.max(0,Math.min(player.hp-1,Math.floor(damage*.15)));
+   if(reflect){player.hp-=reflect;showDamageNumber(reflect,'player',false,false,false,false,'玄岩反震');addCombatLog(`玄岩反震 ${reflect} 点气血（最低留1血）。`,'damage');}
+  }
+  const absorb=Math.min(b.shield,Math.floor(damage*.65));b.shield-=absorb;damage-=absorb;
+  if(absorb)addCombatLog(`玄岩盾吸收 ${absorb}，剩余 ${b.shield}。`,'boss');
+  if(b.shield===0){enemy.def=Math.floor(enemy.def*.75);addCombatLog('岩盾破碎，巨猿防御降低25%。','gold');}
+ }
+ return damage;
+}
+function eliteAfterHitV2883(enemy){
+ const b=eliteBattleV2883(enemy);if(!b)return;
+ if(b.id==='general'&&!b.undying&&enemy.hp<=0){b.undying=true;enemy.hp=Math.max(1,Math.floor(enemy.maxHp*.15));enemy.atk=Math.round(enemy.atk*1.3);addCombatLog('百战不屈：残甲魔将恢复至15%气血，攻击+30%；本场不屈已耗尽。','boss');}
+ if(b.id==='wolf'&&!b.enraged&&enemy.hp>0&&enemy.hp<=enemy.maxHp*.5){b.enraged=true;enemy.atk=Math.round(enemy.atk*1.25);addCombatLog('霜狼狂嗥：攻击+25%，后续出招改为霜爪连击。','boss');}
+}
+function eliteActionV2883(enemy,sealed=false){
+ const b=eliteBattleV2883(enemy);if(!b||gameState!=='combat'||isPlayerTurn||enemy.hp<=0||player.hp<=0)return null;
+ b.turn++;eliteAfterHitV2883(enemy);
+ if(b.id==='treant'){
+  if(enemy.burnTurns>0){
+   const damage=Math.min(Math.max(0,enemy.hp-1),Math.max(10,Math.floor(enemy.maxHp*.05)));
+   dealEnemyDamageV2882(enemy,damage,false,'passive');showDamageNumber(damage,'enemy',false,false,false,false,'火克木灵');addCombatLog(`火克枯荣：阻断恢复，反噬 ${damage} 点气血。`,'gold');
+  }else{
+   const heal=Math.max(0,Math.min(enemy.maxHp-enemy.hp,Math.floor(enemy.maxHp*.06)));enemy.hp+=heal;
+   if(heal){showDamageNumber(heal,'enemy',true,false,false,false,'枯荣寄生');addCombatLog(`枯荣寄生恢复 ${heal} 点气血；灼烧可克制。`,'boss');}
+  }
+ }
+ if(b.id==='spider'&&b.turn%2===0){
+  const drain=Math.max(0,Math.min(player.mp,Math.max(6,Math.floor(player.mp*.12))));player.mp-=drain;b.web=true;
+  addCombatLog(`蚀脉蛛网抽取 ${drain} 点灵力，下一次主角直接伤害-15%。`,'boss');
+ }
+ if(b.id==='wolf'&&b.enraged)return {name:'霜爪连击',damage:1.5,mpCost:0};
+ if(b.id==='guard'){
+  b.marks=Math.min(2,b.marks+1);
+  if(b.marks===2&&!sealed){b.marks=0;return {name:'诸天雷罚',damage:1.45,armorPierce:.30,mpCost:0};}
+  addCombatLog(`仙卫蓄雷 ${b.marks}/2${sealed?'，封脉阻止本次神雷':''}。`,'boss');
+ }
+ return null;
+}
+function eliteRewardV2883(p){const c=ELITES_V2883[p.id];return {gold:360+p.realm*140+(p.first?300+p.realm*120:0),exp:180+p.realm*85,merit:p.first?15:0,materials:c.materials,pets:c.pets};}
+function eliteRewardTextV2883(p){const r=eliteRewardV2883(p);return `灵石${r.gold}、修为${r.exp}${r.merit?'、军功'+r.merit:''}、`+Object.entries({...r.materials,...r.pets}).map(([n,q])=>`${n}×${q}`).join('、');}
+function recordEliteFinishV2883(){
+ const enemy=currentEnemy,b=eliteBattleV2883(enemy),p=COMBAT_FINISH_V2764.pending;
+ if(!b||b.settled||p?.owner!==player||p.token!==b.token+1)return;
+ b.settled=true;if(p.kind!=='victory'||enemy.hp>0)return;
+ const s=normalizeEliteHuntV2883(player.eliteHuntV2883);if(s.pending)return;
+ const rec=s.records[b.id],first=b.day>rec.lastDay;
+ rec.kills=Math.min(1e9,rec.kills+1);rec.lastDay=Math.max(rec.lastDay,b.day);
+ s.pending={id:b.id,realm:b.realm,day:b.day,first};player.eliteHuntV2883=s;
+ addCombatLog(`凶煞讨伐已记入悬赏榜，返回领取：${eliteRewardTextV2883(s.pending)}。`,'gold');
+}
+window.addEventListener('xiantu:combat-finishing',recordEliteFinishV2883);
+function eliteViewValidV2883(view=eliteViewV2883){return warAllowedV2839()&&view&&view===eliteViewV2883&&view.owner===player&&view.ui===warUiV2839&&!!document.getElementById('warPanelV2839');}
+function launchEliteV2883(id){
+ if(!eliteViewValidV2883()||!Object.hasOwn(ELITES_V2883,id))return false;
+ const c=ELITES_V2883[id],s=normalizeEliteHuntV2883(player.eliteHuntV2883);
+ if(player.level<c.level||!isRegionUnlocked(c.region)||player.hp<=1||s.pending)return false;
+ const view=eliteViewV2883,owner=player,stamp=()=>JSON.stringify([player.level,player.phase,player.hp,player.mp,eliteDayV2883(),player.eliteHuntV2883]),before=stamp(),enemy=createEliteV2883(id);
+ if(!confirm(`讨伐${c.name}（${getEnemyRealmNameV2811(enemy)}）？${c.desc} 此战不能脱战；战败沿用20%灵石损失。`)||owner!==player||!eliteViewValidV2883(view)||stamp()!==before)return false;
+ closeWarPanelV2839();closeWorldOverlay();startCombat(enemy,false,false,null);
+ if(currentEnemy!==enemy||gameState!=='combat')return false;
+ addCombatLog(`${c.trait}：${c.desc}`,'boss');updateCombatUI();return true;
+}
+function claimEliteV2883(){
+ if(!eliteViewValidV2883())return false;
+ const s=normalizeEliteHuntV2883(player.eliteHuntV2883),p=s.pending;if(!p)return false;
+ const r=eliteRewardV2883(p);
+ const ok=commitWarV286841(()=>{
+  s.pending=null;player.eliteHuntV2883=s;player.gold+=r.gold;player.exp+=r.exp;
+  player.materials=player.materials||{};player.petMaterials=player.petMaterials||{};
+  for(const [n,q] of Object.entries(r.materials)){player.materials[n]=(player.materials[n]||0)+q;onCollectMaterial(n,q);}
+  for(const [n,q] of Object.entries(r.pets))player.petMaterials[n]=(player.petMaterials[n]||0)+q;
+  if(r.merit){const w=warStateV2839();w.meritV2839+=r.merit;w.meritEarnedV2839+=r.merit;}
+ });
+ if(ok){checkLevelUp();updateStats();showEliteBoardV2883();}return ok;
+}
+function showEliteBoardV2883(){
+ if(!warAllowedV2839())return;
+ const s=normalizeEliteHuntV2883(player.eliteHuntV2883),day=eliteDayV2883();
+ openWarPanelV2839('四域凶煞 · 悬赏榜',()=>{
+  let html='<p>四域与仙界的六路凶煞，可从悬赏榜主动追踪；达到所需境界和地域门槛后开放。不替换地图上的普通怪物。</p><p>每个仙历日、每种凶煞首次击败额外获得300＋入场境界×120灵石及15军功；以入场日期为准，跨日结算不多领。固定悬赏不叠加野外收益倍率。</p>';
+  if(s.pending)html+=`<section class="war-notice-v2839"><h3>待领取 · ${discipleEscV2815(ELITES_V2883[s.pending.id].name)}</h3><p>${eliteRewardTextV2883(s.pending)}</p>${warButtonV2839('领取本次凶煞悬赏',claimEliteV2883,false,'primary')}</section>`;
+  for(const [id,c] of Object.entries(ELITES_V2883)){
+   const e=createEliteV2883(id),first=day>s.records[id].lastDay,unlocked=player.level>=c.level&&isRegionUnlocked(c.region);
+   html+=`<details class="war-details-v2839"><summary>${discipleEscV2815(c.name)} · ${unlocked?(first?'今日首赏可得':'今日首赏已记'):CULTIVATION_REALMS[c.level].name+'解锁'}</summary><p>${discipleEscV2815(getRegionInfo(c.region).name)} · 累计${s.records[id].kills}次</p><h3>${c.trait}</h3><p>${c.desc}</p><p>破敌要诀：${c.tip}</p><p>${getEnemyRealmNameV2811(e)} · 气血${e.maxHp} · 攻击${e.atk} · 防御${e.def}</p><p>悬赏：${eliteRewardTextV2883({id,realm:Math.max(c.level,player.level),first})}</p>${warButtonV2839('寻踪讨伐 · '+c.trait,()=>launchEliteV2883(id),!unlocked||player.hp<=1||!!s.pending,'primary')}</details>`;
+  }
+  return html+'<p>胜利后回本榜领取，领取前不可再次寻猎。重复挑战仍有基础悬赏；原有成就和御兽战斗成长另计。战败损失20%灵石，出发前先检查配装与补给。</p>';
+ },()=>warButtonV2839('探索手册',()=>{closeWarPanelV2839();showExplorationJournalV2829();})+warButtonV2839('返回地图',()=>{closeWarPanelV2839();closeWorldOverlay();}));
+ eliteViewV2883={owner:player,ui:warUiV2839};
 }

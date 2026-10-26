@@ -7,7 +7,7 @@ const MONSTER_ACTIONS_V2844 = Object.freeze({
   heal:{label:'妖元回生',cost:28,cooldown:4}, spell:{label:'本命术法',cost:32,cooldown:3}
 });
 function monsterEligibleV2844() {
-  return !!currentEnemy && !isTribulation && !currentEnemy._isTutorial && !currentEnemy.tournamentFight;
+  return !!currentEnemy && !currentEnemy._abyssBossV2882 && !currentEnemy._eliteHuntV2883 && !isTribulation && !currentEnemy._isTutorial && !currentEnemy.tournamentFight;
 }
 function initMonsterAiV2844() {
   cancelMonsterJevV2844('changed');
@@ -103,8 +103,19 @@ function cancelMonsterJevV2844(reason='disabled') {
 function disableMonsterJevV2844() {
   MONSTER_JEV_V2844.enabled=false;saveJevDeviceV2845();cancelMonsterJevV2844();renderMonsterAiV2844();
 }
-function monsterGuardDamageV2844(damage) {
-  const s=monsterStateV2844();if(!s?.guard||damage<=0)return damage;
+function monsterGuardDamageV2844(damage,hit=null) {
+  const s=monsterStateV2844();if(!s||!Number.isFinite(damage)||damage<=0)return damage;
+  // Only the two real player direct-hit paths supply hit metadata. VFX/pets/DOT do not.
+  if(hit&&gameState==='combat'&&currentEnemy?.hp>0){
+    if(s.supportTurns>0&&(hit.crit||hit.skill)){
+      s.supportTurns=0;addCombatLog('破阵斩影：直接招式或暴击命中，同门援阵已散。','gold');
+    }
+    if(s.guard&&(hit.crit||hit.skill?.element==='thunder'||damage>=Math.max(1,getAtk())*1.15)){
+      s.guard=false;const drained=Math.min(15,Math.max(0,Number(s.mp)||0));s.mp-=drained;
+      addCombatLog(`破势碎甲：震碎凝气护体，本击不受护体减伤，震散敌方${drained}点灵力。`,'gold');renderMonsterAiV2844();return damage;
+    }
+  }
+  if(!s.guard)return damage;
   s.guard=false;const after=Math.max(1,Math.floor(damage*.7));
   addCombatLog(`敌方护体抵消 ${damage-after} 点直接伤害，护体消散。`,'boss');return after;
 }
@@ -183,4 +194,4 @@ function runMonsterTurnV2844(resolve) {
 window.addEventListener('xiantu:combat-finishing',()=>cancelMonsterJevV2844('changed'));
 window.addEventListener('pagehide',()=>{cancelMonsterJevV2844('disabled');});
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2844-monster-jev.js']='28.68.56';
+window.__xiantuBuildFilesV2814['xiantu-v2844-monster-jev.js']='28.68.61';

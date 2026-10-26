@@ -102,7 +102,7 @@ async function runCompanionTurnV2849(next){
     if(action.a===0){s.mp=Math.min(60,s.mp+12);addCombatLog(`${name}吐纳回气，灵力 ${s.mp}/60。`,'heal');}
     if(action.a===1){const gain=Math.min(getMaxHp()-player.hp,Math.max(1,Math.floor(getMaxHp()*.12)));player.hp+=gain;showDamageNumber(gain,'player',true,false,true,false,name+'·回生');addCombatLog(`${name}施展回生，恢复 ${gain} 气血。`,'heal');}
     if(action.a===2){s.guard=true;addCombatLog(`${name}展开护卫，抵挡下一次敌方直接命中的20%伤害。`,'heal');}
-    if(action.a===3){const damage=Math.min(enemy.hp,Math.max(1,Math.floor(getAtk()*.35-enemy.def*.2)));enemy.hp=Math.max(0,enemy.hp-damage);showDamageNumber(damage,'enemy',false,false,true,false,name+'·集火');addCombatLog(`${name}协同集火，造成 ${damage} 伤害。`,'pet');}
+    if(action.a===3){const damage=dealEnemyDamageV2882(enemy,Math.min(enemy.hp,Math.max(1,Math.floor(getAtk()*.35-enemy.def*.2))),false,'companion');showDamageNumber(damage,'enemy',false,false,true,false,name+'·集火');addCombatLog(`${name}协同集火，造成 ${damage} 伤害。`,'pet');}
     addCombatLog('☯ 同伴 '+s.status+' · 灵力 '+s.mp+'/60','pet');updateCombatUI();updateStats();
     if(enemy.hp<=0){checkBattleEnd();return;}return next();
   }finally{s.locked=false;}
@@ -122,7 +122,7 @@ window.addEventListener('xiantu:combat-finishing',()=>{
   const pending=JEV_WORLD_V2846.pending;if(pending){pending.cancel();pending.controller?.abort();}
 });
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2849-npc-jev.js']='28.68.56';
+window.__xiantuBuildFilesV2814['xiantu-v2849-npc-jev.js']='28.68.61';
 
 // Rival trial records use entry-realm snapshots; rewards are claimed outside combat.
 const RIVAL_STYLES_V2874={sword:['兵刃剑枪','折锋障','防御提高12%'],thunder:['九天雷法','吞雷引','攻击提高10%'],fire:['焚世真火','寂灭灰','攻击提高10%'],ice:['玄冥寒冰','沸血煞','防御提高12%'],heal:['青莲生机','断生印','攻击提高10%']};

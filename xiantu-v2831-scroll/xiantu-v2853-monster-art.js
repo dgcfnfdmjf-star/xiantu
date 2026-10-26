@@ -14,7 +14,7 @@ function scrollMonsterKeyV2853(name='',region='',generic=false){
   if(/血魔老祖/.test(n))return 'blood-elder';
   if(/迷雾领主|幽冥鬼王/.test(n))return 'mist-lord';
   if(/战神|战魂|亡灵战士|古代将军/.test(n))return 'war-spirit';
-  if(/宗门试炼守将|秘境守护者|秘境之主|天兵|护卫|仙兵|仙将/.test(n))return 'celestial-guard';
+  if(/宗门试炼守将|秘境守护者|秘境之主|天兵|护卫|仙兵|仙将|巡天镇界仙卫/.test(n))return 'celestial-guard';
   if(/鬼将|魔将|魔族将军/.test(n))return 'demon-general';
   if(/冰.*狼|霜.*狼|雪.*狼|寒.*狼/.test(n))return 'frost-wolf';
   if(/狼/.test(n))return 'wolf';
@@ -117,4 +117,4 @@ window.drawCharacter=function(canvas,type,level,isEnemy=false){
   }
   return drawCharacterBeforeV2853.apply(this,arguments);
 };
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2853-monster-art.js']='28.68.56';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2853-monster-art.js']='28.68.61';

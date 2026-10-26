@@ -328,4 +328,4 @@
   // 战斗呈现UI与观察器由第一次 startCombat 按需创建。
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-22-v2756-cinematic-combat-script.js"]="28.68.56";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-22-v2756-cinematic-combat-script.js"]="28.68.61";
