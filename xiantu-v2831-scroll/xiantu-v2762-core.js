@@ -6298,6 +6298,7 @@
     let playerPressureStun = false;
 
     function resetRuntimeState() {
+      if(typeof resetMapAliveV2893==='function')resetMapAliveV2893(true);
       if(typeof closeCombatPetsV2884==='function')closeCombatPetsV2884();
       document.getElementById('sectCeremonyV2870')?.remove();
       if(typeof closeExpansionV286827==='function')closeExpansionV286827();
@@ -12475,6 +12476,7 @@
       if(!WORLD_MAP_CONFIGS[regionId]) regionId='south';
       if(!isRegionUnlocked(regionId)) { warnRegionLocked(regionId,'无法前往'); return false; }
       const cfg=WORLD_MAP_CONFIGS[regionId];
+      if(typeof resetMapAliveV2893==='function')resetMapAliveV2893();
       closeScrollMapV2837();
       currentRegion=regionId;
       if(player) player.worldMapId=regionId;
@@ -13065,8 +13067,8 @@
         if (isWorldOverlayOpen()) return false;
         const rect=canvas.getBoundingClientRect();
         if(clientX<rect.left||clientX>rect.right||clientY<rect.top||clientY>rect.bottom) return false;
-        const sx=(clientX-rect.left)*(canvas.width/rect.width), sy=(clientY-rect.top)*(canvas.height/rect.height);
-        const worldX=sx+FLAT_WORLD.camera.x, worldY=sy+FLAT_WORLD.camera.y;
+        const point=worldTapPointV2893(canvas,rect,clientX,clientY);
+        const worldX=point.x,worldY=point.y;
         FLAT_WORLD.target={x:worldX, y:worldY};
         FLAT_WORLD.tapTargetFx={x:worldX,y:worldY,startedAt:performance.now()};
         FLAT_WORLD.keys={};
@@ -13168,9 +13170,14 @@
       });
     }
 
+    function worldTapPointV2893(canvas,rect,x,y){
+      const dpr=canvas._dpr||1,cam=FLAT_WORLD._camDrawV2893||FLAT_WORLD.camera;
+      return {x:(x-rect.left)*canvas.width/(rect.width*dpr)+cam.x,y:(y-rect.top)*canvas.height/(rect.height*dpr)+cam.y};
+    }
+
     function resizeWorldCanvas() {
       const c=document.getElementById('worldCanvas'); if(!c)return;
-      const dpr=Math.min(PERF_CONFIG.lowEnd?1:1.5,window.devicePixelRatio||1);
+      const dpr=Math.min(typeof worldDprCapV2893==='function'?worldDprCapV2893():(PERF_CONFIG.lowEnd?1:1.5),window.devicePixelRatio||1);
       const root=document.documentElement;
       const ucActive=root.classList.contains('uc-landscape-active');
       const logicalW=ucActive?(parseFloat(root.style.getPropertyValue('--uc-lw'))||innerWidth):innerWidth;
@@ -13179,6 +13186,7 @@
       if(c.width===w && c.height===h && c._dpr===dpr)return;
       c.width=w; c.height=h;
       c._dpr=dpr;
+      if(typeof resetMapAliveV2893==='function')resetMapAliveV2893();
       resize3DAvatar();
     }
 
@@ -13355,19 +13363,24 @@
       const targetCamX=Math.max(0,Math.min(Math.max(0,FLAT_WORLD.width-vw),p.x-vw/2));
       const targetCamY=Math.max(0,Math.min(Math.max(0,FLAT_WORLD.height-vh),typeof warCameraYV2840==='function'?warCameraYV2840(p,vh):p.y-vh/2));
       // 相机采用指数跟随，消除偶发长帧带来的“一格一格”跳动。
+      if(typeof worldCameraStepV2893==='function')worldCameraStepV2893(cam,p,targetCamX,targetCamY,dt,vw,vh);
+      else{
       const follow=1-Math.exp(-Math.max(.001,dt)*24);
       cam.x+=(targetCamX-cam.x)*follow;
       cam.y+=(targetCamY-cam.y)*follow;
       if(Math.abs(targetCamX-cam.x)<.02)cam.x=targetCamX;
       if(Math.abs(targetCamY-cam.y)<.02)cam.y=targetCamY;
+      }
+      const camDraw=FLAT_WORLD._camDrawV2893||(FLAT_WORLD._camDrawV2893={x:0,y:0});
+      camDraw.x=typeof worldCameraSnapV2893==='function'?worldCameraSnapV2893(cam.x,dpr):cam.x;camDraw.y=typeof worldCameraSnapV2893==='function'?worldCameraSnapV2893(cam.y,dpr):cam.y;
       ctx.clearRect(0,0,vw,vh);
 
       // 静态背景只生成一次，并按当前视口裁切复制。
       const staticMap=ensureStaticWorldCache();
-      ctx.drawImage(staticMap,cam.x,cam.y,vw,vh,0,0,vw,vh);
-      drawExplorationFogV2828(ctx,cam,vw,vh);
+      ctx.drawImage(staticMap,camDraw.x,camDraw.y,vw,vh,0,0,vw,vh);
+      drawExplorationFogV2828(ctx,camDraw,vw,vh);
 
-      ctx.save(); ctx.translate(-cam.x,-cam.y);
+      ctx.save(); ctx.translate(-camDraw.x,-camDraw.y);
       const items=FLAT_WORLD._drawItems; items.length=0;
       const minX=cam.x-130,maxX=cam.x+vw+130,minY=cam.y-130,maxY=cam.y+vh+130;
       const visible=o=>o.x>=minX&&o.x<=maxX&&o.y>=minY&&o.y<=maxY;
@@ -13378,6 +13391,7 @@
       if(typeof appendWarUnitsV2840==='function')appendWarUnitsV2840(items,dt,warViewV2840);
       items.sort((a,b)=>worldDepthV2770(a)-worldDepthV2770(b));
       drawWorldAmbient(ctx, t, minX, maxX, minY, maxY);
+      if(typeof mapAliveGroundV2893==='function')mapAliveGroundV2893(ctx,t);
       if(typeof drawWarGroundV2840==='function')drawWarGroundV2840(ctx,warViewV2840);
       FLAT_WORLD.deferLabelsV2836=true;
       let playerDrawn=false;
@@ -13386,7 +13400,7 @@
         if(it.x<minX||it.x>maxX||it.y<minY||it.y>maxY) continue;
         if(it._warUnitV2840)drawWarUnitV2840(ctx,it);else if(it.action==='war_map_v2840')drawWarPostV2840(ctx,it);else if(it.t==='tree')drawDepthTreeV2770(ctx,it);else if(it.enemy)drawWorldMonster(ctx,it);else{
           const fade=worldDepthV2770(it)>p.y+17&&Math.abs(it.x-p.x)<82&&it.y-p.y<165;
-          ctx.save();if(fade)ctx.globalAlpha=.38;drawWorldPoi(ctx,it);ctx.restore();
+          ctx.save();if(fade)ctx.globalAlpha=.38;drawWorldPoi(ctx,it);if(typeof mapAliveBuildingV2893==='function')mapAliveBuildingV2893(ctx,it);ctx.restore();
         }
       }
       if(!playerDrawn)drawWorldPlayer(ctx,p);
@@ -13421,6 +13435,7 @@
       }
       ctx.restore();
 
+      if(typeof mapAliveFrameV2893==='function')mapAliveFrameV2893(t,dt);
       const near=FLAT_WORLD.nearby;
       const region=getRegionInfo(currentRegion || getPlayerRegion());
       const areaKey=near?`p:${near.id}`:`r:${region.id}`;
@@ -13955,6 +13970,8 @@
       const near=FLAT_WORLD.nearby?.id===o.id;
       const kind=getPoiVisualKind(o);
       if(near){ctx.fillStyle='rgba(239,201,108,.12)';ctx.beginPath();ctx.arc(0,2,o.r+16,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(239,201,108,.78)';ctx.setLineDash([8,8]);ctx.lineWidth=3;ctx.stroke();ctx.setLineDash([])}
+      ctx.save();
+      if(typeof landmarkPoiApplyV2893==='function')landmarkPoiApplyV2893(ctx,o);
       if(kind==='npc'){
         drawMapNpcV2863(ctx,o);
         drawMapNpcStatusV2864(ctx,o);
@@ -14051,6 +14068,7 @@
         if(!PERF_CONFIG.ultraSmooth){ctx.shadowColor='rgba(0,0,0,.35)';ctx.shadowBlur=8;ctx.shadowOffsetY=8}
         ctx.font=`${Math.round(Math.min(68,o.r*.75))}px "Segoe UI Emoji"`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(o.icon,0,0);ctx.shadowColor='transparent';ctx.shadowBlur=0;
       }
+      ctx.restore();
       ctx.textAlign='center';
       if(o.action==='yewuji_v2810'){ctx.save();ctx.translate(0,16);drawMapNpcV2863(ctx,o);ctx.restore();}
       if(typeof drawSectTodoV2868==='function')drawSectTodoV2868(ctx,o);
@@ -14080,10 +14098,12 @@
         drawRealmAura(ctx, 0, 0, 38, visualLevel, { alpha:0.82 + Math.min(3, player?.phase || 0) * 0.12 });
       }
       ctx.restore();
-      drawActor25DV2770(ctx,p);
+      const juiceV2893=typeof playerJuiceV2893==='function'&&playerJuiceV2893(ctx,p);
+      try{drawActor25DV2770(ctx,p);}finally{if(juiceV2893)ctx.restore();}
     }
 
     function updateWorldHUD(){
+      if(typeof ensureMapAliveButtonV2893==='function')ensureMapAliveButtonV2893();
       if(typeof syncFirstJourneyV28687==='function')syncFirstJourneyV28687();
       if(typeof syncSectTodoV2868==='function')syncSectTodoV2868();
       ensureScrollButtonV2831();
@@ -14480,6 +14500,7 @@
       c.width = w;
       c.height = h;
       c._dpr = 1;
+      if(typeof resetMapAliveV2893==='function')resetMapAliveV2893();
       resize3DAvatar();
       // 静态地图不依赖屏幕尺寸；旋转手机只重设视口画布。
     };
@@ -14598,6 +14619,7 @@
     // V27.67：后台停止地图/人物绘制，前台按需恢复，防止生成重复动画循环。
     let characterAnimationPausedV2767=false;
     function pauseVisualsV2767() {
+      if(typeof resetMapAliveV2893==='function')resetMapAliveV2893();
       clearTimeout(mapIdleTimerV2865);mapIdleTimerV2865=null;
       clearCombatValuesV2818();
       if(FLAT_WORLD.raf!=null){cancelAnimationFrame(FLAT_WORLD.raf);FLAT_WORLD.raf=null;}
@@ -14622,7 +14644,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.65";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.66";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

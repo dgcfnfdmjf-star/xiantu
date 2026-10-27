@@ -67,6 +67,7 @@ function viewWarMapV2840(){
   const x=site.x+dx,y=site.y+dy;if(x<25||y>FLAT_WORLD.height-25)continue;
   if(!FLAT_WORLD.colliders.some(o=>Math.hypot(x-o.x,y-o.y)<(o.radius||0)+20)){destination={x,y};safe=true;break;}
  }if(safe)break;}
+ if(typeof resetMapAliveV2893==='function')resetMapAliveV2893();
  FLAT_WORLD.player.x=destination.x;FLAT_WORLD.player.y=destination.y;
  const canvas=document.getElementById('worldCanvas'),vw=(canvas?.width||390)/(canvas?._dpr||1),vh=(canvas?.height||700)/(canvas?._dpr||1);
  FLAT_WORLD.camera.x=Math.max(0,Math.min(Math.max(0,FLAT_WORLD.width-vw),destination.x-vw/2));FLAT_WORLD.camera.y=Math.max(0,Math.min(Math.max(0,FLAT_WORLD.height-vh),warCameraYV2840(destination,vh)));
@@ -166,4 +167,4 @@ const warRetreatBeforeV2840=retreatWarV2775;
 retreatWarV2775=function(){warRetreatBeforeV2840();syncWarMapV2840();};
 // Refresh a limited preference flag; do not start a second animation loop.
 window.matchMedia?.('(prefers-reduced-motion: reduce)').addEventListener?.('change',e=>{WAR_MAP_V2840.reduced=e.matches;});
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2840-war-map.js']='28.68.65';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2840-war-map.js']='28.68.66';
