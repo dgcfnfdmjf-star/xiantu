@@ -1493,4 +1493,4 @@ function installGuideV2890(){
 try{installGuideV2890();}catch(e){console.warn('修行指引安装失败',e);}
 
 // END GUIDE_V2890
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.64';
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.65';

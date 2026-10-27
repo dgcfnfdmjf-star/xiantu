@@ -1,6 +1,10 @@
-# 仙途 V28.68.64
+# 仙途 V28.68.65
 
-部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.64）；[上传步骤](downloads/README.md)。
+部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.65）；[上传步骤](downloads/README.md)。
+
+## V28.68.65 宗门执事立绘
+
+四位统一水墨国风执事接入宗门大殿、藏经阁、宗门任务、传承考核与贡献商店，地图执事对话使用同套立绘。沿用原有操作与费用，支持手机及缺图回退。见 [接入与验证](docs/sect-steward-portraits.txt)。无需更新 Jev，尚未部署腾讯云。
 
 ## V28.68.64 宗主亲传与斗法画面工具
 

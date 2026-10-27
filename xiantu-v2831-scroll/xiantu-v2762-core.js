@@ -6571,6 +6571,7 @@
       document.getElementById('petPanel').classList.add('hidden');
       document.getElementById('artifactPanel').classList.add('hidden');
       document.getElementById('storyText').innerHTML = text;
+      if(text.includes('class="sect-steward-'))document.getElementById('storyText').scrollTop=0;
       document.getElementById('storyPanel').classList.toggle('loop-panel-v286840',!!document.getElementById('storyText').querySelector('.loop-board-v286840'));
       
       const choicesDiv = document.getElementById('choices');
@@ -9535,7 +9536,7 @@
       if(!sectCanManageV2866())return;
       const active = player.sectTasks.filter(t => !t.completed);
       const completed = player.sectTasks.filter(t => t.completed).slice(-3);
-      let html = `<p>📜 <b>宗门任务 · 详细指引</b></p>
+      let html = `${sectStewardCardV286865('affairs')}<p>📜 <b>宗门任务 · 详细指引</b></p>
         <p style="color:#aaa;font-size:12px">这里会显示任务目标、当前持有/击杀进度、真实获取方式和推荐地点。完成任务可获得可消费贡献，同时累计宗门资历用于职位晋升。</p>`;
       if (!active.length) html += `<div style="padding:12px;border:1px dashed rgba(255,255,255,.18);border-radius:8px;color:#aaa">当前没有进行中的任务。领取任务后，这里会直接告诉你“去哪、打什么、还差多少”。</div>`;
       for (const task of active) html += getSectTaskGuideHtml(task);
@@ -9994,6 +9995,7 @@
           <p style="color:#aaa;font-size:12px">${rankInfo.desc||'积累贡献，参与宗门事务。'}</p>
           <p style="color:#aaa;font-size:12px">${nextReq}</p>
         </div>`;
+      html+=sectStewardDirectoryV286865();
       const warLevelInfo=getWarLevelInfo();
       html+=`<p style="color:${getWarLevel()>=2?'#ff8f8f':'#aaa'}">🌍 三界战争态势：<b>${warLevelInfo.name}</b> · ${warLevelInfo.desc}</p>`;
       if(cooldown>0) html+=`<p style="color:#aaa">⏳ 主动战争冷却：${cooldown} 天</p>`;
@@ -10030,7 +10032,7 @@
     }
 
     function showSectLibrary() {
-      let html = `<p>📚 <b>藏经阁</b></p><p>当前可用贡献：<b>${player.sectContribution}</b> · 职位：${getCurrentRankInfo().icon}${getCurrentRankInfo().name}</p><p style="font-size:11px;color:#aaa">已经参悟的功法可照常施展；其余宗门秘法需以贡献换取传承资格。</p>`;
+      let html = `${sectStewardCardV286865('teaching')}<p>📚 <b>藏经阁</b></p><p>当前可用贡献：<b>${player.sectContribution}</b> · 职位：${getCurrentRankInfo().icon}${getCurrentRankInfo().name}</p><p style="font-size:11px;color:#aaa">已经参悟的功法可照常施展；其余宗门秘法需以贡献换取传承资格。</p>`;
       const choices = [];
       for (const item of SECT_LIBRARY) {
         const hasSkill = player.skills.some(skill => skill?.name === item.skillName);
@@ -10060,7 +10062,7 @@
     }
 
     function showSectShop() {
-      let html = `<p>🏪 <b>贡献商店</b></p><p>当前可用贡献：<b>${player.sectContribution}</b></p>`;
+      let html = `${sectStewardCardV286865('medicine')}<p>🏪 <b>贡献商店</b></p><p>当前可用贡献：<b>${player.sectContribution}</b></p>`;
       const choices = [];
       for (const item of SECT_SHOP_ITEMS) {
         html += `<p style="font-size:11px;color:#aaa">${item.name} · ${item.cost}贡献 · ${item.desc}</p>`;
@@ -11935,6 +11937,7 @@
 
     function buildNpcPanelHeader(npc, extraTitle='', extraDesc='') {
       if (!npc) return '';
+      if(npc.id==='elder')return `<div class="sect-steward-card">${sectStewardArtV286865('teaching')}<div><h3>${escapeGameText(npc.name)}</h3><p>${escapeGameText(npc.title||'')}</p><p>${escapeGameText(extraDesc||npc.desc||'')}</p>${extraTitle?`<p>${escapeGameText(extraTitle)}</p>`:''}</div></div>`;
       const tags=[npc.region?`所在：${getRegionInfo(npc.region)?.shortName||npc.region}`:'',npc.title||'',extraTitle||''].filter(Boolean).slice(0,2).map((tag,idx)=>`<span class="npc-tag ${idx===0?'strong':''}">${tag}</span>`).join('');
       return `<div class="npc-unified-card portrait-mode">
         <div class="npc-portrait-scene" style="box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 12px 24px rgba(0,0,0,.24),0 0 0 1px ${npc.color}33;">
@@ -11945,6 +11948,30 @@
         </div>
         <div class="npc-unified-meta"><div class="npc-unified-name" style="color:${npc.color}">${npc.name}</div><div class="npc-unified-title">${npc.title||''}</div><div class="npc-unified-desc">${extraDesc||npc.desc||''}</div><div class="npc-unified-tags">${tags}</div><div class="npc-dialog-box">支线、赠礼、情报与专属入口都保留在同一人物面板里。</div></div>
       </div>`;
+    }
+
+    // One transparent atlas, loaded only when a steward is shown. No save state or timers.
+    const SECT_STEWARDS_V286865=Object.freeze({
+      teaching:{name:'传功执事',x:0,w:450,desc:'守藏经、传道法，以宗门贡献换取功法传承。'},
+      affairs:{name:'内务执事',x:450,w:386,desc:'掌差事、核功绩，查看委托进度与提交要求。'},
+      discipline:{name:'戒律执事',x:836,w:439,desc:'察资历、验心性，主持宗主传承的资格考核。'},
+      medicine:{name:'丹药执事',x:1275,w:397,desc:'掌宗门补给，以贡献兑换丹药与修行物资。'}
+    });
+    function sectStewardArtV286865(key){
+      const s=SECT_STEWARDS_V286865[key];if(!s)return '';
+      return `<span class="sect-steward-art" style="aspect-ratio:${s.w}/941"><img src="./art/npc/sect-stewards-v286865.png" alt="${s.name}立绘" width="1672" height="941" loading="lazy" decoding="async" style="width:${1672/s.w*100}%;left:${-s.x/s.w*100}%" onerror="this.parentElement.hidden=true"></span>`;
+    }
+    function sectStewardCardV286865(key){
+      const s=SECT_STEWARDS_V286865[key];if(!s)return '';
+      return `<div class="sect-steward-card">${sectStewardArtV286865(key)}<div><h3>${s.name}</h3><p>${s.desc}</p></div></div>`;
+    }
+    function sectStewardDirectoryV286865(){
+      return '<section aria-label="宗门执事" class="sect-steward-directory">'+Object.entries(SECT_STEWARDS_V286865).map(([key,s])=>`<button type="button" onclick="openSectStewardV286865('${key}')">${sectStewardArtV286865(key)}<span>${s.name}</span></button>`).join('')+'</section>';
+    }
+    function openSectStewardV286865(key){
+      if(!sectCanManageV2866())return;
+      const open={teaching:showSectLibrary,affairs:showSectTasks,discipline:showSectPromotionV2768,medicine:showSectShop}[key];
+      if(typeof open==='function')open();
     }
 
     function getCombatConsumables() {
@@ -14595,7 +14622,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.64";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.65";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
