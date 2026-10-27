@@ -166,4 +166,4 @@ const warRetreatBeforeV2840=retreatWarV2775;
 retreatWarV2775=function(){warRetreatBeforeV2840();syncWarMapV2840();};
 // Refresh a limited preference flag; do not start a second animation loop.
 window.matchMedia?.('(prefers-reduced-motion: reduce)').addEventListener?.('change',e=>{WAR_MAP_V2840.reduced=e.matches;});
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2840-war-map.js']='28.68.62';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2840-war-map.js']='28.68.63';

@@ -14,6 +14,9 @@ const WAR_GOODS_V2839=[
  {name:'太古返祖宝匣',cost:320,desc:'上古返祖灵珠×1、深渊魔核×1、极品血脉精元×1',petMaterials:{'上古返祖灵珠':1,'深渊魔核':1,'极品血脉精元':1}}
 ];
 function warIntV2839(n,min=0,max=1e9){n=Number(n);return Number.isFinite(n)?Math.max(min,Math.min(max,Math.floor(n))):min;}
+function warSectEligibleV2891(p=player){return !!p?.sect&&p.sect!=='散修'&&!isFactionDestroyed(p.sect);}
+function warTargetEligibleV2891(enemy){return warSectEligibleV2891()&&!!DEMON_FACTION_POWER[enemy]&&enemy!==player.sect&&!isFactionDestroyed(enemy);}
+function warProsperityV2891(){const n=Number(player.sectData?.prosperity);return Number.isFinite(n)?n:20;}
 function warAllowedV2839(){return gameState==='exploring'&&!player.breakthrough?.isAnimating&&!COMBAT_FINISH_V2764.settling;}
 function warIdV2839(w=player.warState){w.serialV2839=warIntV2839(w.serialV2839)+1;return Date.now().toString(36)+'-'+w.serialV2839.toString(36);}
 function normalizeWarV2839(p){
@@ -66,7 +69,7 @@ function warRosterV2839(){
  const aid=getImmortalWarSupportV2807();if(aid>0)rows.push({name:w.immortalAlly,power:aid,role:'仙门支援',detail:'宗门基础战力的35%'});return rows;
 }
 function warLogV2839(c,text){c.log.push(text);c.log=c.log.slice(-30);}
-function warStageValidV2839(c){return !!c&&c.originSect===player.sect&&c.enemy!==c.originSect&&!isFactionDestroyed(c.enemy)&&!isFactionDestroyed(c.originSect);}
+function warStageValidV2839(c){return warSectEligibleV2891()&&!!c&&c.originSect===player.sect&&c.enemy!==c.originSect&&!isFactionDestroyed(c.enemy)&&!isFactionDestroyed(c.originSect);}
 function warChanceV2839(c){const counter=c.selected[c.step]===c.reports[c.step];return Math.max(.15,Math.min(.92,c.our/Math.max(1,c.foe)*.48+(counter ? .20 : -.08)+(c.morale-50)*.002));}
 function warEnemyV2839(c){
  const stage=c.step,front=WAR_FRONTS_V2839[stage],phase=Math.min(3,c.phase+(stage===2?1:0));
@@ -78,11 +81,11 @@ showWarTargetList=function(){showWarHubV2839();};
 declareWar=function(enemy){
  if(!warAllowedV2839())return;
  const w=warStateV2839();if(w.campaignV2775)return showWarCampaignV2775();
- if(!player.sect||!DEMON_FACTION_POWER[enemy]||enemy===player.sect||isFactionDestroyed(enemy))return showWarHubV2839();
+ if(!warTargetEligibleV2891(enemy))return showWarHubV2839();
  showWarPreparationV2839(enemy);
 };
 executeWar=function(enemy){
- if(!warAllowedV2839()||!player.sect||isFactionDestroyed(player.sect))return;
+ if(!warAllowedV2839()||!warSectEligibleV2891())return;
  const w=warStateV2839();if(w.campaignV2775)return showWarCampaignV2775();
  if(!DEMON_FACTION_POWER[enemy]||enemy===player.sect||isFactionDestroyed(enemy))return;
  const incoming=w.incomingV2839,defense=incoming?.enemy===enemy;if(incoming&&!defense)return showWarHubV2839();
@@ -173,10 +176,10 @@ settleWarV2775=function(enemy){
  w.history.push(record);w.history=w.history.slice(-60);w.playerKills=(w.playerKills||0)+kills;
  player.gold+=reward.gold-penalty;player.exp+=reward.exp;player.sectContribution=(player.sectContribution||0)+reward.contribution;player.sectTotalContribution=(player.sectTotalContribution||0)+reward.contribution;
  w.meritV2839+=merit;w.meritEarnedV2839+=merit;
- if(base){player.sectData.prosperity=(player.sectData.prosperity||20)+Math.floor(kills/2);addFactionReputation(c.originSect,Math.max(5,Math.floor(kills/2)),'宗门战争胜利');for(const ally of w.alliedSects)addFactionReputation(ally,5,'并肩参战');}
- else{player.sectData.prosperity=Math.max(10,(player.sectData.prosperity||20)-10);addFactionReputation(c.originSect,-5,'宗门战争战败');}
+ if(base){player.sectData.prosperity=warProsperityV2891()+Math.floor(kills/2);addFactionReputation(c.originSect,Math.max(5,Math.floor(kills/2)),'宗门战争胜利');for(const ally of w.alliedSects)addFactionReputation(ally,5,'并肩参战');}
+ else{player.sectData.prosperity=Math.max(Math.min(10,warProsperityV2891()),warProsperityV2891()-10);addFactionReputation(c.originSect,-5,'宗门战争战败');}
  addFactionReputation(c.enemy,base?-Math.min(25,10+Math.floor(kills/5)):-5,'正魔交战');
- if(mercy)player.sectData.prosperity=(player.sectData.prosperity||20)+(mercy>=.75?6:3);
+ if(mercy)player.sectData.prosperity=warProsperityV2891()+(mercy>=.75?6:3);
  if(c.taisuiIntel)player._taisuiWarIntel=false;
  w.lastNotice={text:`对${c.enemy}的会战已${result}，战果已结算，可在战争史查看。`,date:getGameDateLabel(),result};
  clearWarCampaignV2839(w,c.mode==='defense'?7:30,base?WAR_STATUS.VICTORY:WAR_STATUS.DEFEAT);
@@ -195,10 +198,10 @@ function exchangeWarMeritV2839(index){
 }
 // Incoming assaults are dispatches awaiting the player's decision. Resting never silently bills a battle loss.
 checkDemonInvasion=function(){
- if(!player?.sect||!player.warState)return;const w=warStateV2839();
+ if(!warSectEligibleV2891()||!player.warState)return;const w=warStateV2839();
  if(w.campaignV2775||w.incomingV2839||w.status===WAR_STATUS.BATTLE||getGameDate().day!==1)return;
  const day=player.worldTime.totalDays;if(w.lastInvasionCheckV2775===day)return;w.lastInvasionCheckV2775=day;
- const chance=Math.max(.003,[.01,.03,.07,.15][getWarLevel()]-(player.sectData?.prosperity||20)/1800);if(Math.random()>=chance)return;
+ const chance=Math.max(.003,[.01,.03,.07,.15][getWarLevel()]-warProsperityV2891()/1800);if(Math.random()>=chance)return;
  const names=Object.keys(DEMON_FACTION_POWER).filter(n=>n!==player.sect&&!isFactionDestroyed(n));if(!names.length)return;
  const enemy=names[Math.floor(Math.random()*names.length)];w.incomingV2839={id:warIdV2839(),enemy,day};
  w.lastNotice={text:`${enemy}逼近山门，守军请求调度。请进入正魔大战处理；尚未交战，未扣灵石。`,date:getGameDateLabel(),result:'待迎敌'};autoSave();
@@ -225,37 +228,40 @@ function showWarHubV2839(){
  if(c)return showWarCampaignV2775();
  openWarPanelV2839('正魔大战 · 军务',()=>{
   let html=`<div class="war-hero-v2839"><span>三万年烽火 · 此战为护归途</span><h3>${esc(player.sect||'尚未加入宗门')}</h3><p>备战结盟 → 三阶段会战 → 战果复盘</p></div><div class="war-stats-v2839"><div><small>可用军功</small><b>${w.meritV2839}</b></div><div><small>主动出征休整</small><b>${w.warCooldown||0}<em>游戏日</em></b></div><div><small>战史</small><b>${w.history.length}</b></div></div>`;
-  if(w.incomingV2839){const enemy=w.incomingV2839.enemy;html+=`<section class="war-notice-v2839"><h3>山门急报 · ${esc(enemy)}</h3><p>守军正在集结，等待你调度。迎敌不受主动出征冷却限制。</p>${warButtonV2839('查看来敌 · 整备迎战',()=>declareWar(enemy),false,'primary')}</section>`;}
+  if(w.incomingV2839&&warSectEligibleV2891()){const enemy=w.incomingV2839.enemy;html+=`<section class="war-notice-v2839"><h3>山门急报 · ${esc(enemy)}</h3><p>守军正在集结，等待你调度。迎敌不受主动出征冷却限制。</p>${warButtonV2839('查看来敌 · 整备迎战',()=>declareWar(enemy),false,'primary')}</section>`;}
+  if(!warSectEligibleV2891())html+='<p>须加入尚存宗门才能领军。已有战史和军功仍可查看、使用。</p>';
   html+='<h3>选择战场</h3><p class="war-muted-v2839">先查看双方投入、补给与预期，再确认出征。筹备页面不会自动开战。</p><div class="war-targets-v2839">';
-  for(const enemy of Object.keys(DEMON_FACTION_POWER).filter(n=>n!==player.sect&&!isFactionDestroyed(n))){const n=calculateSectPower(enemy).total;html+=warButtonV2839(`${enemy} · ${n} 战力`,()=>declareWar(enemy),!player.sect||!!w.incomingV2839||w.warCooldown>0);}
+  for(const enemy of Object.keys(DEMON_FACTION_POWER).filter(n=>n!==player.sect&&!isFactionDestroyed(n))){const n=calculateSectPower(enemy).total;html+=warButtonV2839(`${enemy} · ${n} 战力`,()=>declareWar(enemy),!warSectEligibleV2891()||!!w.incomingV2839||w.warCooldown>0);}
   html+='</div>';if(w.warCooldown>0)html+='<p>休整按游戏时间推进，可进行修炼、宗门事务或休息，无需等现实倒计时。</p>';
   if(w.lastNotice)html+=`<p class="war-muted-v2839">${esc(w.lastNotice.text||'')}</p>`;return html;
  },()=>warButtonV2839('军功兑换',showWarMeritV2839)+warButtonV2839('历次战报',showWarHistory)+warButtonV2839('返回宗门',()=>{closeWarPanelV2839();showSectHall();}));
 }
 function showWarPreparationV2839(enemy){
+ if(!warAllowedV2839()||!warTargetEligibleV2891(enemy))return;
  const w=warStateV2839(),rows=warRosterV2839(),our=rows.reduce((s,r)=>s+r.power,0),defense=w.incomingV2839?.enemy===enemy,foe=calculateSectPower(enemy).total*(defense?1+getWarLevel()*.12:1),ratio=our/Math.max(1,foe),esc=discipleEscV2815;
  openWarPanelV2839((defense?'山门迎敌':'战前筹备')+' · '+enemy,()=>`<div class="war-hero-v2839"><span>${defense?'守住来路':'战前军议'}</span><h3>${esc(getWarOutlook(ratio).name)}</h3><p>${esc(getWarOutlook(ratio).desc)}</p></div>${warRosterHtmlV2839(rows,foe)}<section class="war-notice-v2839"><h3>这场怎么打</h3><p>确认后进入地图战场，可见弟子护阵、修士斗法与军令台，战场表现按境界分层。点击地图下方“参战”下达军令：前哨、灵脉、核心阵三处目标，先选克制战术，再亲自交锋或指挥联军。初始士气60、战备3，可暂离保存。</p><p>亲自交锋获胜增加军功；负伤只降士气，可整备重试。整场战败沿用战争损失：身上灵石8%，最多500，不再叠加普通战斗的20%。撤军不发奖励。</p><p>战役结束统一发放灵石、修为、宗门贡献与军功。主动出征休整30个游戏日；迎敌与撤军至少休整7日，已有更长休整保留。</p></section><p>本次出征灵石/修为倍率 ×${WAR_SCALE_V286841[warIntV2839(player.level,0,16)]}，出征时锁定；贡献和军功沿用原值。第三阶段可进行8次行动限时斩将，取胜战力+30%，重创+15%。可在各阶段委任一名空闲弟子。</p><h3>战前状态</h3><p>气血 ${Math.floor(player.hp)}/${getMaxHp()}　灵力 ${Math.floor(player.mp)}/${getMaxMp()}</p><div class="war-actions-v2839">${warButtonV2839('邀请人族盟军 · 每宗30贡献',()=>showWarAlliesV2839(enemy))}${warButtonV2839('请求仙门支援 · 需150贡献',()=>requestWarImmortalV2839(enemy),w.immortalSupport||getWarLevel()<2||player.sectContribution<150)}</div><p class="war-muted-v2839">仙援需达到局部会战且声望符合条件。成功扣150贡献；未获回应扣75，请求前会确认。</p>`,()=>warButtonV2839(defense?'确认迎敌':'确认出征',()=>executeWar(enemy),!player.sect||(!defense&&(ratio<=.5||w.warCooldown>0))||!!w.incomingV2839&&!defense,'primary')+warButtonV2839('返回军务',showWarHubV2839));
 }
 function showWarAlliesV2839(enemy){
- if(!warAllowedV2839()||warCampaignV2839())return;const w=warStateV2839(),esc=discipleEscV2815;
+ if(!warAllowedV2839()||!warTargetEligibleV2891(enemy)||warCampaignV2839())return;const w=warStateV2839(),esc=discipleEscV2815;
  openWarPanelV2839('联军招募',()=>`<p>每宗30贡献，确认后结盟。本次战役结束或撤军后解散。</p><p>可用贡献：${player.sectContribution}</p><div class="war-targets-v2839">${Object.keys(HUMAN_FACTION_POWER).filter(n=>n!==player.sect&&!isFactionDestroyed(n)).map(n=>warButtonV2839(`${n} · ${calculateSectPower(n).total} 战力${w.alliedSects.includes(n)?' · 已结盟':''}`,()=>{
-  const owner=player;if(!confirm(`支付30贡献，邀请${n}加入本次联军？`))return;
-  if(player!==owner||!warAllowedV2839()||warCampaignV2839()||w.alliedSects.includes(n)||player.sectContribution<30||isFactionDestroyed(n))return;
-  player.sectContribution-=30;w.alliedSects.push(n);autoSave();showWarAlliesV2839(enemy);
+  const owner=player,originSect=player.sect;if(!confirm(`支付30贡献，邀请${n}加入本次联军？`))return;
+  if(player!==owner||player.sect!==originSect||player.warState!==w||!warTargetEligibleV2891(enemy)||n===player.sect||!warAllowedV2839()||warCampaignV2839()||w.alliedSects.includes(n)||player.sectContribution<30||isFactionDestroyed(n))return;
+  if(!commitWarV286841(()=>{player.sectContribution-=30;w.alliedSects.push(n);})){showWarAlliesV2839(enemy);return;}updateStats();showWarAlliesV2839(enemy);
  },w.alliedSects.includes(n)||player.sectContribution<30)).join('')}</div>`,()=>warButtonV2839('返回战前筹备',()=>declareWar(enemy)));
 }
 function requestWarImmortalV2839(enemy){
- if(!warAllowedV2839()||warCampaignV2839()||!DEMON_FACTION_POWER[enemy]||enemy===player.sect||isFactionDestroyed(enemy))return;
+ if(!warAllowedV2839()||!warTargetEligibleV2891(enemy)||warCampaignV2839())return;
  const w=warStateV2839();if(w.immortalSupport||getWarLevel()<2||player.sectContribution<150)return;
  const eligible=IMMORTAL_SECTS_FULL.filter(f=>f.name!=='太岁书院'&&canRequestAid(f.name)&&!isFactionDestroyed(f.name));
  openWarPanelV2839('向仙门求援',()=>`<p>可用贡献 ${player.sectContribution}。选定仙门后仍需确认：成功消耗150贡献，未获回应消耗75贡献。</p>${eligible.length?eligible.map(f=>{
-  const rate=Math.min(.85,.3+(player.sectData?.prosperity||20)/500+(player.factionReputation?.[f.name]||0)/250);
+  const rate=Math.min(.85,.3+warProsperityV2891()/500+(player.factionReputation?.[f.name]||0)/250);
   return '<article class="war-history-v2839"><h3>'+discipleEscV2815(f.name)+'</h3><p>支援战力 '+Math.round(getFactionWorldBasePower(f.name)*.35)+' · 应援概率 '+Math.round(rate*100)+'%</p>'+warButtonV2839('请求'+f.name+'支援',()=>{
-   const owner=player;if(!confirm('向'+f.name+'求援？成功扣150贡献，未获回应扣75贡献。'))return;
-   if(player!==owner||!warAllowedV2839()||warCampaignV2839()||w.immortalSupport||player.sectContribution<150||isFactionDestroyed(f.name)||!canRequestAid(f.name))return;
-   const ok=Math.random()<rate;player.sectContribution-=ok?150:75;
+   const owner=player,originSect=player.sect;if(!confirm('向'+f.name+'求援？成功扣150贡献，未获回应扣75贡献。'))return;
+   if(player!==owner||player.sect!==originSect||player.warState!==w||!warTargetEligibleV2891(enemy)||getWarLevel()<2||!warAllowedV2839()||warCampaignV2839()||w.immortalSupport||player.sectContribution<150||isFactionDestroyed(f.name)||!canRequestAid(f.name))return;
+   const currentRate=Math.min(.85,.3+warProsperityV2891()/500+(player.factionReputation?.[f.name]||0)/250),ok=Math.random()<currentRate;
+   if(!commitWarV286841(()=>{player.sectContribution-=ok?150:75;
    if(ok){w.immortalSupport=true;w.immortalAlly=f.name;addFactionReputation(f.name,5,'宗门战争求援');}
-   w.lastNotice={text:ok?f.name+'同意支援，已消耗150贡献。':f.name+'未回应，已消耗75贡献。',date:getGameDateLabel(),result:'求援'};updateStats();autoSave();
+   w.lastNotice={text:ok?f.name+'同意支援，已消耗150贡献。':f.name+'未回应，已消耗75贡献。',date:getGameDateLabel(),result:'求援'};})){requestWarImmortalV2839(enemy);return;}updateStats();
    openWarPanelV2839('仙门回讯',()=>'<p>'+discipleEscV2815(w.lastNotice.text)+'</p>',()=>warButtonV2839('返回战前筹备',()=>declareWar(enemy)));
   })+'</article>';
  }).join(''):'<p>暂无达到声望与干预条件的仙门。可先通过三界势力玩法改善关系。</p>'}`,()=>warButtonV2839('返回战前筹备',()=>declareWar(enemy)));
@@ -286,7 +292,7 @@ function showWarMeritV2839(){
  if(!warAllowedV2839())return;const w=warStateV2839();
  openWarPanelV2839('军功补给处',()=>`<div class="war-stats-v2839"><div><small>可用军功</small><b>${w.meritV2839}</b></div><div><small>累计所得</small><b>${w.meritEarnedV2839}</b></div></div><p>完成会战获得军功；每次亲自交锋获胜另计10军功，随战役胜利统一发放。</p>${WAR_GOODS_V2839.map((g,i)=>`<article class="war-history-v2839"><h3>${g.name}</h3><p>${g.desc}</p>${warButtonV2839(`兑换 · ${g.cost}军功`,()=>exchangeWarMeritV2839(i),w.meritV2839<g.cost)}</article>`).join('')}<p class="war-muted-v2839">点兑换后仍需确认，取消不会扣除军功。</p>`,()=>warButtonV2839('返回军务',showWarHubV2839)+warButtonV2839('历次战报',showWarHistory));
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2839-war.js']='28.68.62';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2839-war.js']='28.68.63';
 
 // V28.68: one readable entry for the long war, existing story and campaign routes.
 function showAncientWarV2859(){
@@ -299,7 +305,7 @@ function showAncientWarV2859(){
   html+=warButtonV2839(next<8?(yeStoryAvailableV2816(next)?'继续剧情 · '+chapters[next].title:'宿敌纪事 · 查看解锁条件'):'宿敌纪事 · 八章回顾',leave(()=>next<8&&yeStoryAvailableV2816(next)?showYeChapterV2816(next):showYeChronicleV2816()),false,'primary');
   html+=warButtonV2839('夜无疆 · 人物与挑战',leave(showYeWujiV2810));
   html+=warButtonV2839('归墟断桥 · 三形态首领',showAbyssBossHubV2882);
-  html+=warButtonV2839(player.sect?'宗门会战 · 整备 / 继续':'先拜入宗门，再参与会战',leave(player.sect?showWarHubV2839:showSect));
+  html+=warButtonV2839(warSectEligibleV2891()?'宗门会战 · 整备 / 继续':'先拜入宗门，再参与会战',leave(warSectEligibleV2891()?showWarHubV2839:showSect));
   html+=warButtonV2839('查看主线进度',leave(()=>showTaskPanel('main')));html+='</section>';
   const eras=[
    ['一 · 界门初裂','仙魔边界的灵脉枯竭，旧约随之崩解。仙族布下诸天守界大阵，魔门转向裂隙夺取灵源。人族村镇不得不一次次迁离，最初以为数年便能结束的战争，成了后世修士出生时就已存在的烽火。'],

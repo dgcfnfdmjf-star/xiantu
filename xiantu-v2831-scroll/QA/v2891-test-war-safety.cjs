@@ -1,0 +1,30 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),a=require('node:assert/strict');
+const root=process.env.XIANTU_TEST_ROOT||path.resolve(__dirname,'..'),f=require('./v2858-dom-fixture.cjs')(root);f.c.console.log=()=>{};
+for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);
+const run=s=>f.run(s),realSave=f.c.saveGame,random=Math.random,rep=f.c.addFactionReputation;
+function fresh(){f.c.saveGame=realSave;f.c.addFactionReputation=rep;f.c.confirm=()=>true;Math.random=random;run("resetRuntimeState();player=createDefaultPlayer();gameState='exploring';player.sect='凌霄宗';player.level=11;player.hp=getMaxHp();player.mp=getMaxMp();player.gold=10000;player.sectContribution=1000;player.sectTotalContribution=1000;player.demonInvasionLevel=2;player.sectData.prosperity=20;player.factionReputation['隐月灵渊阁']=50;closeWarPanelV2839()");}
+function action(label){const p=run("document.getElementById('warPanelV2839')"),b=[...p.innerHTML.matchAll(/<button\b[^>]*data-war-action="(\d+)"[^>]*>([^<]*)<\/button>/g)].find(x=>x[2].includes(label));a(b,'button: '+label);return run('warUiV2839.actions')[Number(b[1])];}
+const state=()=>run('JSON.stringify(player)');
+// Keep every unapproved balancing mechanic absent; old public enemy intel remains in use.
+a.equal(run('typeof SECTWAR_V2891'),'undefined');
+for(const sect of ['散修','']){fresh();f.c.__sect=sect;run('player.sect=__sect');const before=state();for(const call of ["executeWar('仙魔教')","showWarPreparationV2839('仙魔教')","showWarAlliesV2839('仙魔教')","requestWarImmortalV2839('仙魔教')","checkDemonInvasion()"]){run(call);a.equal(state(),before,sect+': '+call);}a.equal(run("document.getElementById('warPanelV2839')"),null);}
+fresh();run("player.destroyedFactions=['凌霄宗'];executeWar('仙魔教');showWarAlliesV2839('仙魔教');requestWarImmortalV2839('仙魔教');checkDemonInvasion()");a.equal(run('player.warState.campaignV2775??null'),null);a.equal(run('player.warState.incomingV2839??null'),null);
+// Existing history and military merit stay accessible outside a sect.
+run("player.sect='散修';player.warState.meritV2839=100;showWarMeritV2839()");a(run("document.getElementById('warPanelV2839')"));a.equal(run('player.warState.meritV2839'),100);
+// Allies: original 30-contribution price, cancellation, atomic rollback and retry; no new cap.
+fresh();run("showWarAlliesV2839('仙魔教')");let buy=action('战神殿');const before=state();f.c.confirm=()=>false;buy();a.equal(state(),before);f.c.confirm=()=>true;f.c.saveGame=()=>false;buy();a.equal(state(),before,'failed save restores contribution and pact');f.c.saveGame=realSave;action('战神殿')();a.equal(run('player.sectContribution'),970);a.equal(run('player.sectTotalContribution'),1000);a.equal(run('player.warState.alliedSects[0]'),'战神殿');buy();a.equal(run('player.sectContribution'),970,'stale closure after rerender/rollback cannot spend');
+for(const name of ['青鸾宫','雷音山','紫薇堂']){run("showWarAlliesV2839('仙魔教')");action(name)();}a.equal(run('player.warState.alliedSects.length'),4,'no new three-ally cap');a.equal(run('player.sectContribution'),880);
+// A confirmation that changes sect or replaces the war state cannot debit the current player.
+for(const mutation of ["player.sect='青莲宗'","player.warState=JSON.parse(JSON.stringify(player.warState))","player=createDefaultPlayer()"]){fresh();run("showWarAlliesV2839('仙魔教')");const click=action('战神殿');let after;f.c.confirm=()=>{run(mutation);after=state();return true;};click();a.equal(state(),after,'stale confirmation: '+mutation);}
+// Immortal support: existing 150/75 prices. Failed persistence and reputation exceptions restore every field.
+for(const success of [true,false]){fresh();Math.random=()=>success?0:.999999;run("requestWarImmortalV2839('仙魔教')");const click=action('请求隐月灵渊阁支援'),before=state();f.c.saveGame=()=>false;click();a.equal(state(),before);f.c.saveGame=realSave;action('请求隐月灵渊阁支援')();a.equal(run('player.sectContribution'),success?850:925);a.equal(run('!!player.warState.immortalSupport'),success);if(success)a.equal(run('player.factionReputation["隐月灵渊阁"]'),55);}
+fresh();Math.random=()=>0;run("requestWarImmortalV2839('仙魔教')");{const before=state();f.c.addFactionReputation=()=>{throw Error('rep failed')};action('请求隐月灵渊阁支援')();a.equal(state(),before);}
+for(const mutation of ["player.sect='散修'","player.warState=JSON.parse(JSON.stringify(player.warState))","player.demonInvasionLevel=0"]){fresh();run("requestWarImmortalV2839('仙魔教')");const click=action('请求隐月灵渊阁支援');let after;f.c.confirm=()=>{run(mutation);after=state();return true;};click();a.equal(state(),after);}
+// Zero prosperity is a valid value, including support probability and post-battle gains/losses.
+fresh();run('player.sectData.prosperity=0');a.equal(run('warProsperityV2891()'),0);run("player.factionReputation['隐月灵渊阁']=100;requestWarImmortalV2839('仙魔教')");a(run("document.getElementById('warPanelV2839').innerHTML").includes('应援概率 70%'));
+function finished(win){fresh();run("player.warState.alliedSects=Object.keys(HUMAN_FACTION_POWER).filter(n=>n!==player.sect);executeWar('仙魔教')");a(run('warCampaignV2839()'));run(`warCampaignV2839().step=3;warCampaignV2839().our=${win?100000:1};warCampaignV2839().foe=1000;warCampaignV2839().killRoll=0;player.sectData.prosperity=0;warStateV2839()`);}
+finished(true);{const before=state();f.c.addFactionReputation=()=>{throw Error('reputation unavailable')};run("settleWarV2775('仙魔教')");a.equal(state(),before,'reward and reputation remain atomic');f.c.addFactionReputation=rep;run("settleWarV2775('仙魔教')");a.equal(run('player.sectData.prosperity'),10);const paid=state();run("settleWarV2775('仙魔教')");a.equal(state(),paid,'no double settlement');}
+finished(false);run("settleWarV2775('仙魔教')");a.equal(run('player.sectData.prosperity'),0,'defeat does not magically lift zero prosperity to ten');
+Math.random=random;
+console.log('PASS war eligibility; original ally/aid prices and unrestricted ally count; confirmations; persistence/reputation rollback; zero prosperity; idempotent settlement');
