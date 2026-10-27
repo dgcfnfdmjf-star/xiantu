@@ -65,7 +65,7 @@ function beginBuildingOpV2768(op,id){
 function showSectPromotionV2768(){
  if(!sectCanManageV2866())return;
  const gate=sectMasterRequirementsV2872(),p=gate.promotion,ready=gate.ready,r=gate.rules;
- showStory(`<h3>👑 宗主传承考核</h3><p>${CULTIVATION_REALMS[r.realm].name}境：${gate.realm?'✅':'未达成'}</p><p>累计贡献：${player.sectTotalContribution||0} / ${r.contribution}</p><p>宗门委托考核：${p.tasksCompleted} / ${r.tasks}（本版本起完成的委托计入）</p><p>达标后须完成问心、守山、受印三试并选择道统。守山布阵方案每次需100贡献，失败也扣；其他方案免费。</p>${p.inherited?'<p>✅ 已接受宗主传承</p>':`<button class="choice-btn" onclick="inheritSectV2768()" ${ready?'':'disabled'}>宗主三试 · 开始或继续</button>`}`,[{text:'返回宗门大殿',action:'sect_hall'}]);
+ showStory(`${sectStewardCardV286865('discipline')}<h3>👑 宗主传承考核</h3><p>${CULTIVATION_REALMS[r.realm].name}境：${gate.realm?'✅':'未达成'}</p><p>累计贡献：${player.sectTotalContribution||0} / ${r.contribution}</p><p>宗门委托考核：${p.tasksCompleted} / ${r.tasks}（本版本起完成的委托计入）</p><p>达标后须完成问心、守山、受印三试并选择道统。守山布阵方案每次需100贡献，失败也扣；其他方案免费。</p>${p.inherited?'<p>✅ 已接受宗主传承</p>':`<button class="choice-btn" onclick="inheritSectV2768()" ${ready?'':'disabled'}>宗主三试 · 开始或继续</button>`}`,[{text:'返回宗门大殿',action:'sect_hall'}]);
 }
 function inheritSectV2768(){
  if(!sectCanManageV2866())return;
@@ -796,4 +796,4 @@ function reinforceSealV2887(token){
  if(ok){bossViewV2887=null;showSectAdminV2873();showFloatingText('九锁重鸣，旧账与加固已保存。','#ffd76a');}return ok;
 }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2768-systems.js"]="28.68.64";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2768-systems.js"]="28.68.65";
