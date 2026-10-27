@@ -26,6 +26,46 @@ function readCombatElements(enemy,owner){
  const g=typeof elementGuardsV286818!=='undefined'?elementGuardsV286818.get(enemy):null;
  return {...window.InkSkillFxV2854?.thunderBatch3?.readState(enemy,owner),chillTurns:enemy?._chillTurnsV286818||0,guardPool:g?.owner===owner?g.pool:0,guardTurns:g?.owner===owner?g.turns:0,guardElement:g?.owner===owner?g.element:null};
 }
+// Visual speed is separate from automatic combat cadence (xiantu_battle_speed_v2756).
+const DUEL_SPEED_KEY_V2892='xiantu_duel_speed_v2892';
+let duelVisualSpeedV2892=1;
+const duelToolbarsV2892=new Set();
+function readDuelSpeedV2892(){try{const v=Number(localStorage.getItem(DUEL_SPEED_KEY_V2892));return [1,2,3].includes(v)?v:1;}catch(_){return 1;}}
+function setDuelSpeedV2892(v){
+ duelVisualSpeedV2892=[1,2,3].includes(v)?v:1;
+ for(const b of duelToolbarsV2892)b.textContent=`画面 ${duelVisualSpeedV2892}×`;
+}
+window.addEventListener('storage',e=>{if(e.key===DUEL_SPEED_KEY_V2892||e.key===null)setDuelSpeedV2892(readDuelSpeedV2892());});
+function createDuelToolsV2892(stage,bg,canvas,valid){
+ setDuelSpeedV2892(readDuelSpeedV2892());
+ if(!document.getElementById('duelToolsStyleV2892')){const st=document.createElement('style');st.id='duelToolsStyleV2892';st.textContent='.duel-tools-v2892{position:relative;display:flex;align-items:center;gap:6px;padding:4px 0;max-width:100%;flex-wrap:wrap;justify-content:flex-end}#combatPanel>.duel-tools-v2892{order:0!important;grid-column:1/-1}.duel-tools-v2892 button{min-height:32px;padding:4px 8px;border:1px solid #ad995b;border-radius:6px;background:#13291fee;color:#f4df9e;font-size:12px}.duel-tools-v2892 [role=status]{font:12px system-ui;color:#fff1c4;background:#13291fee;max-width:220px}';document.head.appendChild(st);}
+ const bar=document.createElement('div');bar.className='duel-tools-v2892';bar.setAttribute('aria-label','斗法画面工具');
+ const speed=document.createElement('button'),capture=document.createElement('button'),status=document.createElement('span');
+ speed.type=capture.type='button';speed.textContent=`画面 ${duelVisualSpeedV2892}×`;speed.title='只加快动作与特效画面，不改变出招等待、回合或伤害';capture.textContent='🖼 拓印';status.setAttribute('role','status');
+ duelToolbarsV2892.add(speed);bar.appendChild(speed);bar.appendChild(capture);bar.appendChild(status);const host=stage.parentNode;if(host.id==='combatArena')host.parentNode.insertBefore(bar,host.nextSibling);else host.appendChild(bar);
+ let disposed=false,busy=false;const urls=new Map();
+ const live=()=>!disposed&&stage.isConnected&&valid();
+ speed.onclick=()=>{if(!live())return;setDuelSpeedV2892(duelVisualSpeedV2892%3+1);try{localStorage.setItem(DUEL_SPEED_KEY_V2892,String(duelVisualSpeedV2892));status.textContent='';}catch(_){status.textContent='本次生效，未能保存偏好';}};
+ capture.onclick=()=>{
+  if(!live()||busy)return;busy=true;capture.disabled=true;status.textContent='正在拓印…';
+  const finish=text=>{busy=false;if(!disposed){capture.disabled=false;status.textContent=text;}};
+  const fail=()=>finish('拓印失败，请检查浏览器下载权限');
+  const download=url=>{const a=document.createElement('a');a.href=url;a.download=`xiantu-duel-${Date.now()}.png`;document.body.appendChild(a);try{a.click();}finally{a.remove();}};
+  try{
+   if(canvas.width<2||canvas.height<2)throw Error('empty canvas');
+   const out=document.createElement('canvas');out.width=canvas.width;out.height=canvas.height;const ctx=out.getContext('2d');
+   ctx.drawImage(bg,0,0,out.width,out.height);ctx.drawImage(canvas,0,0,out.width,out.height);
+   if(typeof out.toBlob==='function')out.toBlob(blob=>{
+    if(!live()){finish('');return;}if(!blob){fail();return;}
+    let url;try{url=URL.createObjectURL(blob);download(url);const timer=setTimeout(()=>{URL.revokeObjectURL(url);urls.delete(url);},8000);urls.set(url,timer);finish('已请求下载 PNG，请查看下载记录');}
+    catch(_){if(url)URL.revokeObjectURL(url);fail();}
+   },'image/png');
+   else{download(out.toDataURL('image/png'));finish('已请求下载 PNG，请查看下载记录');}
+  }catch(_){fail();}
+ };
+ return {destroy(){disposed=true;duelToolbarsV2892.delete(speed);for(const [url,timer] of urls){clearTimeout(timer);URL.revokeObjectURL(url);}urls.clear();bar.remove();}};
+}
+
 function create(host,read,enemyKey='wolf'){
  const profile=ROSTER.find(p=>p.key===enemyKey);if(!host||!profile)return null;
  const atlas=profile.group?getAtlas(profile.group):null,started=performance.now();
@@ -36,6 +76,7 @@ function create(host,read,enemyKey='wolf'){
  const stage=document.createElement('div');stage.className='duel25-stage';host.insertBefore(stage,canvas);
  bg.className='duel25-backdrop';bg.setAttribute('aria-hidden','true');stage.appendChild(bg);stage.appendChild(canvas);
  let raf=0,last=0,dead=false,elapsed=0,attack=null,queue=[],tails=[],hits=[],floats=[],label="",paintedLandscape=false;
+ const tools=createDuelToolsV2892(stage,bg,canvas,()=>!dead&&ready()&&read().active!==false);
  const thunder=window.InkSkillFxV2854?.thunderBatch3?.createState(read,()=>elapsed);
  let thunderFloats=[];
  function thunderEvent(kind,detail={}){
@@ -140,7 +181,7 @@ function create(host,read,enemyKey='wolf'){
   const animating=attack||queue.length||tails.length||hits.length||floats.length||elapsed-petHitAt<320||
    (data.enemyHp<=0&&(deaths.enemy===null||elapsed-deaths.enemy<440))||
    (data.playerHp<=0&&(deaths.player===null||elapsed-deaths.player<440));
-  if(now-last<(animating?33:66)){raf=requestAnimationFrame(draw);return;}const dt=Math.max(0,now-last);last=now;elapsed+=dt;
+  if(now-last<(animating?33:66)){raf=requestAnimationFrame(draw);return;}const dt=Math.max(0,now-last);last=now;elapsed+=dt*duelVisualSpeedV2892;
   const width=Math.max(1,host.clientWidth||W),dpr=Math.min(1.5,window.devicePixelRatio||1);const pw=Math.round(width*dpr),ph=Math.round(width*H/W*dpr);
   if(canvas.width!==pw||canvas.height!==ph){canvas.width=pw;canvas.height=ph;}ctx.setTransform(canvas.width/W,0,0,canvas.height/H,0,0);ctx.clearRect(0,0,W,H);
   if(ready()&&!host.classList.contains('duel25-active')){host.classList.add('duel25-active');if(host.id==='combatArena')document.getElementById('combatPanel')?.classList.add('duel25-panel');}
@@ -307,7 +348,7 @@ function create(host,read,enemyKey='wolf'){
   if(authored(attack))attack=null;
   queue=queue.filter(a=>!authored(a));tails=tails.filter(a=>!authored(a));
  }else wake();}
- function destroy(){if(dead)return;dead=true;thunder?.clear();unsubscribeThunder?.();thunderFloats=[];clearElements();domainSource=null;attack=null;queue=[];tails=[];hits=[];floats=[];cancelAnimationFrame(raf);raf=0;document.removeEventListener('visibilitychange',visibility);stage.remove();canvas.width=canvas.height=1;bg.width=bg.height=1;host.classList.remove('duel25-active');if(host.id==='combatArena')document.getElementById('combatPanel')?.classList.remove('duel25-panel');}
+ function destroy(){if(dead)return;dead=true;tools.destroy();thunder?.clear();unsubscribeThunder?.();thunderFloats=[];clearElements();domainSource=null;attack=null;queue=[];tails=[];hits=[];floats=[];cancelAnimationFrame(raf);raf=0;document.removeEventListener('visibilitychange',visibility);stage.remove();canvas.width=canvas.height=1;bg.width=bg.height=1;host.classList.remove('duel25-active');if(host.id==='combatArena')document.getElementById('combatPanel')?.classList.remove('duel25-panel');}
  document.addEventListener('visibilitychange',visibility);wake();
  function act(side,element,name='',enhance=false){
   if(dead)return;
@@ -319,10 +360,10 @@ function create(host,read,enemyKey='wolf'){
   // The engine emits attack first, then its skill effect 150ms later: enrich that
   // same action instead of restarting the lunge or queuing a duplicate turn.
   const latest=queue.length?queue[queue.length-1]:attack;
-  if(enhance&&latest?.side===side&&(queue.length||elapsed-latest.at<350)){
+  if(enhance&&latest?.side===side&&(queue.length||performance.now()-latest.realAt<350)){
    latest.element=element;latest.name=name;latest.fxProfile=null;latest.anchors=null;if(name==='炎阳护盾'&&side==='player')guardIntro=latest;return;
   }
-  const next={side,element,name,at:elapsed,pendingHits:[]};
+  const next={side,element,name,at:elapsed,realAt:performance.now(),pendingHits:[]};
   if(name==='炎阳护盾'&&side==='player')guardIntro=next;
   if(!attack||elapsed-attack.at>=620)attack=next;
   else {if(queue.length>=4)flushHits(queue.shift());next.waiting=true;queue.push(next);}
@@ -1094,7 +1135,7 @@ try{installBattleAll25dV2889();}catch(e){console.warn('立体战场安装失败'
 // END BATTLE25D_V2889
 
 // BEGIN GUIDE_V2890
-// V28.68.63 修行指引：按主题分页、手机可读；数字尽量取自当前代码常量，读不到时用与 28.68.62 一致的默认值。
+// V28.68.64 修行指引：按主题分页、手机可读；数字尽量取自当前代码常量，读不到时用与 28.68.62 一致的默认值。
 // 只改说明文字与指引面板，不改任何玩法与数值。依赖（均可缺省）：V2887 镇岳台、V2872/V2880 宗主、V2888 山河图立体、V2889 立体战场。
 const GUIDE_V2890=Object.freeze({
  storeKey:'xiantu_guide_tab_v2890',
@@ -1124,6 +1165,7 @@ function guideFactsV2890(){
  f.monthDays=guideTryV2890(()=>GAME_DAYS_PER_MONTH,30);
  f.ranks=guideTryV2890(()=>SECT_RANKS.map(r=>({name:r.name,need:r.contributionRequired})),[{name:'外门弟子',need:0},{name:'内门弟子',need:100},{name:'真传弟子',need:300},{name:'长老',need:600},{name:'宗主',need:1000}]);
  f.master=guideTryV2890(()=>({realm:SECT_MASTER_RULES_V2872.realm,contribution:SECT_MASTER_RULES_V2872.contribution,tasks:SECT_MASTER_RULES_V2872.tasks}),{realm:4,contribution:1000,tasks:5});
+ f.mentor=guideTryV2890(()=>MENTOR_V2892,null);
  f.council=guideTryV2890(()=>({...SECT_MASTER_COUNCIL_V2872}),{cooldown:30,repairContribution:100,repairGold:200,prosperityGain:5,lessonContribution:50});
  f.doctrines=guideTryV2890(()=>SECT_DOCTRINES_V2880.map(d=>({name:d.name,desc:d.desc})),[]);
  f.discipleCap={member:12,master:16};          // sectDiscipleCapV2880(): 宗主16，其余12
@@ -1219,11 +1261,12 @@ function guideSectionsV2890(){
    +ul([
     `弟子事务：招募、培养、派遣门下弟子，最多 ${f.discipleCap.member} 人，宗主可收 ${f.discipleCap.master} 人。`,
     '百年宗门大比：前三的人类宗门获得本世纪进入<b>万宗秘境</b>的资格。'])
-   +'<h4>正魔大战</h4>'+ul(['加入尚存宗门后，可从【三万年仙魔战 → 宗门会战】筹备出征；散修不能发起会战、邀请盟军或请求仙援。已有战史与军功仍保留。','邀请人族盟军每宗 30 贡献；仙援仍沿用成功 150、未回应 75 贡献。确认后才扣费，保存失败恢复本次操作。','每阶段先按公开敌情选择战术，再指挥联军或亲自交锋；军师布阵使用同一份公开敌情。奖励统一在战役结束发放，不新增递减或盟军分成。'])
+   +'<h4>正魔大战</h4>'+ul(['加入尚存宗门后，可从【三万年仙魔战 → 宗门会战】筹备出征；散修不能发起会战、邀请盟军或请求仙援。已有战史与军功仍保留。','邀请人族盟军每宗 30 贡献，可一键按战力优先邀请预算内的全部可邀宗门；仙援仍沿用成功 150、未回应 75 贡献。确认后才扣费，保存失败恢复本次操作。','每阶段先按公开敌情选择战术，再指挥联军或亲自交锋；军师布阵使用同一份公开敌情。奖励统一在战役结束发放，不新增递减或盟军分成。'])
    +'<h4>宗主之路</h4>'+ul([
     `<b>一 · 考核</b>：位至长老后，宗门大殿出现【👑 宗主传承考核】。须${R(f.master.realm)}境、累计贡献 ${e(f.master.contribution)}、完成 ${e(f.master.tasks)} 次宗门委托。`,
     '<b>二 · 三试</b>：问心（只记录决、仁、守的倾向）→ 守山（三种方案任选；布阵每次耗 100 贡献，失败也扣；失败需调息 3 日，不损境界与物品）→ 受印（择一种传承）。每步都会保存，可暂离续接。',
     `<b>三 · 立道统</b>：${f.doctrines.length?f.doctrines.map(d=>`${e(d.name)}（${e(d.desc)}）`).join('；'):'剑道、丹道、阵道三选一'}。立下后暂不可更改。`])
+   +(f.mentor?`<h4>宗主亲传</h4><p>在弟子的【成长履历与后续】中，支出 ${f.mentor.goldBase}＋${f.mentor.goldPerLevel}×弟子等级灵石进行讲道、济危演练或寻幽推演。每名弟子每 ${f.mentor.cooldownDays} 个游戏日一次，各类最多 ${f.mentor.perKindCap} 次；讲道另升一级（最高 ${f.mentor.maxLevel} 级）。称号仍需真实历练，演练不会发放答谢或古洞奖励。派遣或随军期间不能亲传。</p>`:'')
    +'<h4>宗主议事</h4>'+ul([
     `<b>整饬山门</b>：支出 ${e(f.council.repairContribution)} 贡献、${e(f.council.repairGold)} 灵石，繁荣度 +${e(f.council.prosperityGain)}。`,
     `<b>亲授弟子</b>：支出 ${e(f.council.lessonContribution)} 贡献，亲授的弟子等级 +1、忠诚 +2。两项议事共用 ${e(f.council.cooldown)} 个游戏日冷却。`,
@@ -1450,4 +1493,4 @@ function installGuideV2890(){
 try{installGuideV2890();}catch(e){console.warn('修行指引安装失败',e);}
 
 // END GUIDE_V2890
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.63';
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.64';

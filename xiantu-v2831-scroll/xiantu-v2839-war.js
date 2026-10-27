@@ -243,11 +243,35 @@ function showWarPreparationV2839(enemy){
 }
 function showWarAlliesV2839(enemy){
  if(!warAllowedV2839()||!warTargetEligibleV2891(enemy)||warCampaignV2839())return;const w=warStateV2839(),esc=discipleEscV2815;
- openWarPanelV2839('联军招募',()=>`<p>每宗30贡献，确认后结盟。本次战役结束或撤军后解散。</p><p>可用贡献：${player.sectContribution}</p><div class="war-targets-v2839">${Object.keys(HUMAN_FACTION_POWER).filter(n=>n!==player.sect&&!isFactionDestroyed(n)).map(n=>warButtonV2839(`${n} · ${calculateSectPower(n).total} 战力${w.alliedSects.includes(n)?' · 已结盟':''}`,()=>{
+ openWarPanelV2839('联军招募',()=>`<p>每宗30贡献，确认后结盟。本次战役结束或撤军后解散。</p><p>可用贡献：${player.sectContribution}</p>${allyBatchButtonV2892(enemy)}<div class="war-targets-v2839">${Object.keys(HUMAN_FACTION_POWER).filter(n=>n!==player.sect&&!isFactionDestroyed(n)).map(n=>warButtonV2839(`${n} · ${calculateSectPower(n).total} 战力${w.alliedSects.includes(n)?' · 已结盟':''}`,()=>{
   const owner=player,originSect=player.sect;if(!confirm(`支付30贡献，邀请${n}加入本次联军？`))return;
   if(player!==owner||player.sect!==originSect||player.warState!==w||!warTargetEligibleV2891(enemy)||n===player.sect||!warAllowedV2839()||warCampaignV2839()||w.alliedSects.includes(n)||player.sectContribution<30||isFactionDestroyed(n))return;
   if(!commitWarV286841(()=>{player.sectContribution-=30;w.alliedSects.push(n);})){showWarAlliesV2839(enemy);return;}updateStats();showWarAlliesV2839(enemy);
  },w.alliedSects.includes(n)||player.sectContribution<30)).join('')}</div>`,()=>warButtonV2839('返回战前筹备',()=>declareWar(enemy)));
+}
+// Same eligibility and 30-contribution price as individual invitations; no new ally cap.
+function allyPlanV2892(){
+ if(!warSectEligibleV2891())return {picks:[],cost:0};
+ const allied=player.warState?.alliedSects||[],balance=Number(player.sectContribution),budget=Number.isFinite(balance)?Math.max(0,balance):0;
+ const pool=Object.keys(HUMAN_FACTION_POWER).filter(n=>n!==player.sect&&!isFactionDestroyed(n)&&!allied.includes(n))
+  .map(name=>({name,power:calculateSectPower(name).total})).sort((a,b)=>b.power-a.power||a.name.localeCompare(b.name));
+ const picks=pool.slice(0,Math.floor(budget/30));return {picks,cost:picks.length*30};
+}
+function allyBatchButtonV2892(enemy){
+ const plan=allyPlanV2892(),owner=player,sect=player.sect,w=player.warState;
+ return '<p class="war-muted-v2839">批量邀请按当前战力优先，在贡献预算内选择；确认前显示全部名单。</p>'+warButtonV2839(plan.picks.length?`一键邀请 · ${plan.picks.length}宗 · ${plan.cost}贡献`:'暂无可批量邀请的宗门',()=>{
+  if(player!==owner||player.sect!==sect||player.warState!==w)return;
+  allyAllV2892(enemy,plan);
+ },!plan.picks.length,'primary');
+}
+function allyAllV2892(enemy,expected){
+ if(!warAllowedV2839()||!warTargetEligibleV2891(enemy)||warCampaignV2839())return false;
+ const owner=player,sect=player.sect,w=player.warState,plan=allyPlanV2892(),signature=JSON.stringify(plan);
+ if(!plan.picks.length||expected&&signature!==JSON.stringify(expected))return false;
+ if(!confirm(`邀请 ${plan.picks.map(p=>p.name).join('、')}，共 ${plan.picks.length} 宗？每宗30贡献，总计 ${plan.cost}，剩余 ${player.sectContribution-plan.cost} 贡献。`))return false;
+ if(player!==owner||player.sect!==sect||player.warState!==w||!warAllowedV2839()||!warTargetEligibleV2891(enemy)||warCampaignV2839()||JSON.stringify(allyPlanV2892())!==signature)return false;
+ const ok=commitWarV286841(()=>{player.sectContribution-=plan.cost;w.alliedSects.push(...plan.picks.map(p=>p.name));});
+ if(ok)updateStats();showWarAlliesV2839(enemy);return ok;
 }
 function requestWarImmortalV2839(enemy){
  if(!warAllowedV2839()||!warTargetEligibleV2891(enemy)||warCampaignV2839())return;
@@ -292,7 +316,7 @@ function showWarMeritV2839(){
  if(!warAllowedV2839())return;const w=warStateV2839();
  openWarPanelV2839('军功补给处',()=>`<div class="war-stats-v2839"><div><small>可用军功</small><b>${w.meritV2839}</b></div><div><small>累计所得</small><b>${w.meritEarnedV2839}</b></div></div><p>完成会战获得军功；每次亲自交锋获胜另计10军功，随战役胜利统一发放。</p>${WAR_GOODS_V2839.map((g,i)=>`<article class="war-history-v2839"><h3>${g.name}</h3><p>${g.desc}</p>${warButtonV2839(`兑换 · ${g.cost}军功`,()=>exchangeWarMeritV2839(i),w.meritV2839<g.cost)}</article>`).join('')}<p class="war-muted-v2839">点兑换后仍需确认，取消不会扣除军功。</p>`,()=>warButtonV2839('返回军务',showWarHubV2839)+warButtonV2839('历次战报',showWarHistory));
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2839-war.js']='28.68.63';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2839-war.js']='28.68.64';
 
 // V28.68: one readable entry for the long war, existing story and campaign routes.
 function showAncientWarV2859(){
