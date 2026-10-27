@@ -2483,6 +2483,7 @@
       const owned=player.inventory.filter(n=>n===name).length;
       if(used+owned>=d.limit)return showFloatingText?.('已服用与库存已足够达到终身上限，无需再买','#ffd76a');
       if(player.gold<d.cost)return showFloatingText?.('灵石不足','#ffd76a');
+      if(!confirmPurchaseV286867(name,d.cost))return;
       player.gold-=d.cost; player.inventory.push(name);
       updateStats(); autoSave(); showRarePillShop();
       showFloatingText?.(`已购买${name}，请在储物袋中服用`,'#69f0ae');
@@ -2572,6 +2573,7 @@
     function buyBreakthroughPillV28683(name){
       const d=BREAKTHROUGH_PILLS_V28683[name];
       if(!d||gameState==='combat'||gameState==='combat-ending'||player.breakthrough?.isAnimating||player.level<d.level||player.gold<d.cost)return;
+      if(!confirmPurchaseV286867(name,d.cost))return;
       player.gold-=d.cost;player.inventory.push(name);autoSave();updateStats();showRarePillShop();
     }
     function breakthroughDetailsV28683(){
@@ -4265,10 +4267,21 @@
       html+='<p>回合制适配：追击代替攻速、一次命中抵挡代替短暂无敌、击杀回灵代替突进刷新；目前不模拟位移范围、击退浮空或Spine骨骼动画。</p>';
       showStory(html,[{text:'返回仙市',action:'market'}]);
     }
+    let purchaseConfirmingV286867=false;
+    function confirmPurchaseV286867(name,cost,qty=1,currency='gold',detail=''){
+      if(purchaseConfirmingV286867||!player||gameState!=='exploring'||player.breakthrough?.isAnimating||!['gold','sectContribution'].includes(currency)||typeof name!=='string'||!name||!Number.isFinite(cost)||cost<0||!Number.isInteger(qty)||qty<1||!Number.isFinite(player[currency])||player[currency]<cost||typeof window.confirm!=='function')return false;
+      const owner=player,before=JSON.stringify(player),choices=currentChoices,quote=JSON.stringify(currentChoices),view=document.getElementById('storyText')?.innerHTML;
+      const unit=currency==='gold'?'灵石':'宗门贡献';
+      purchaseConfirmingV286867=true;
+      try{
+        if(!window.confirm(`确认购买？\n\n${name} ×${qty}\n本次花费：${cost} ${unit}\n购买后剩余：${player[currency]-cost} ${unit}${detail?'\n'+detail:''}\n\n确定后才会扣款；取消不购买。`))return false;
+        return player===owner&&gameState==='exploring'&&!player.breakthrough?.isAnimating&&JSON.stringify(player)===before&&currentChoices===choices&&JSON.stringify(currentChoices)===quote&&document.getElementById('storyText')?.innerHTML===view;
+      }catch(_){return false;}finally{purchaseConfirmingV286867=false;}
+    }
     function confirmGearPurchaseV2804(name,cost,qty=1){
       if(!Number.isFinite(cost)||cost<=0||!Number.isInteger(qty)||qty<1||player.gold<cost||typeof window.confirm!=='function')return false;
       const owned=(player.equipmentInventory||[]).filter(n=>n===name).length+(player.inventory||[]).filter(n=>n===name).length+Object.values(player.equipment||{}).filter(n=>n===name).length;
-      return window.confirm(`确认购买装备？\n\n${name} ×${qty}\n已持有：${owned}件（含已穿戴）\n本次花费：${cost} 灵石\n购买后剩余：${player.gold-cost} 灵石\n\n确定后才会扣款；取消不购买。`);
+      return confirmPurchaseV286867(name,cost,qty,'gold',`已持有：${owned}件（含已穿戴）`);
     }
 
     function buyNewGearV2790(family,piece,grade){
@@ -9438,7 +9451,7 @@
       if(gameState==='combat'||gameState==='combat-ending'||!Number.isInteger(index)||!Number.isInteger(qty))return;
       const item=GENERAL_SHOP_V2801[index];if(!item||![1,5].includes(qty)||(item.category==='gear'&&qty!==1))return;
       if(!hasReachedRealm(item.level)||player.gold<item.cost*qty)return;
-      if(item.category==='gear'&&!confirmGearPurchaseV2804(item.name,item.cost*qty,qty))return;
+      if(!(item.category==='gear'?confirmGearPurchaseV2804(item.name,item.cost*qty,qty):confirmPurchaseV286867(item.name,item.cost*qty,qty)))return;
       player.gold-=item.cost*qty;
       if(item.store!=='auto'){player[item.store]||={};player[item.store][item.name]=(Number(player[item.store][item.name])||0)+qty;}
       else{const bucket=EQUIPMENT_DB[item.name]?'equipmentInventory':'inventory';player[bucket]||=[];for(let i=0;i<qty;i++)player[bucket].push(item.name);}
@@ -10051,11 +10064,14 @@
     }
 
     function buySectSkill(skillName, cost, requiredRank='外门弟子') {
+      const entry=SECT_LIBRARY.find(i=>i.skillName===skillName);if(!entry)return;
+      cost=entry.contributionCost;requiredRank=entry.requiredRank;
       if (!hasRank(requiredRank)) return showStory(`职位不足，需要【${requiredRank}】。`, [{text:'返回', action:'sect_library'}]);
       if (player.skills.some(s=>s?.name===skillName)) return showSectLibrary();
       if (player.sectContribution < cost) return showStory('贡献不足！', [{text:'返回', action:'sect_library'}]);
       const skillObj = SKILLS.find(s=>s.name===skillName);
       if (!skillObj) return showSectLibrary();
+      if(!confirmPurchaseV286867(skillName,cost,1,'sectContribution'))return;
       player.sectContribution -= cost;
       player.skills.push({...skillObj});
       autoSave();
@@ -10076,7 +10092,9 @@
     function buySectItem(itemName, cost) {
       const itemDef = SECT_SHOP_ITEMS.find(i=>i.name===itemName);
       if (!itemDef) return showSectShop();
+      cost=itemDef.cost;
       if (player.sectContribution < cost) return showStory('贡献不足！', [{text:'返回', action:'sect_shop'}]);
+      if(!confirmPurchaseV286867(itemName,cost,1,'sectContribution'))return;
       player.sectContribution -= cost;
       if (itemDef.type === 'material') player.materials[itemDef.value] = (player.materials[itemDef.value] || 0) + 1;
       else player.inventory.push(itemName);
@@ -10420,6 +10438,10 @@
         return;
       }
       
+      if(['buy','buyMaterial','buyArtifactMaterial','buyPetMaterial','buy_set_item'].includes(choice.action)){
+        const ok=EQUIPMENT_DB[choice.item]?confirmGearPurchaseV2804(choice.item,choice.cost):confirmPurchaseV286867(choice.item,choice.cost);
+        if(!ok)return;
+      }
       switch(choice.action) {
         case 'tutorial_begin_world':
           // 进入游戏后优先进入新手引路，不先弹出村庄自由行动面板，避免与引导气泡重叠。
@@ -10682,7 +10704,6 @@
           break;
           
         case 'buy':
-          if(EQUIPMENT_DB[choice.item]&&!confirmGearPurchaseV2804(choice.item,choice.cost))break;
           if (player.gold >= choice.cost) {
             player.gold -= choice.cost;
             if(EQUIPMENT_DB[choice.item])player.equipmentInventory.push(choice.item);else player.inventory.push(choice.item);
@@ -11033,7 +11054,6 @@
           break;
           
         case 'buy_set_item':
-          if(!confirmGearPurchaseV2804(choice.item,choice.cost))break;
           if (player.gold >= choice.cost) {
             player.gold -= choice.cost;
             player.inventory.push(choice.item);
@@ -11305,7 +11325,7 @@
       if(!d)return;
       if(h.furniture.some(f=>f.name===name)){showFurnitureShop('这件家具已经拥有，收纳后也无需再买。');return;}
       if(player.gold<d.cost){showFurnitureShop('灵石不足，还差 '+(d.cost-player.gold)+' 灵石。');return;}
-      if(typeof window.confirm!=='function'||!window.confirm('购买 '+d.name+'？\n'+d.desc+'\n消耗 '+d.cost+' 灵石，剩余 '+(player.gold-d.cost)+' 灵石。\n每种限购一次，购买后自动摆放。'))return;
+      if(!confirmPurchaseV286867(d.name,d.cost,1,'gold',d.desc+'\n每种限购一次，购买后自动摆放。'))return;
       player.gold-=d.cost;h.furniture.push({name:d.name,type:d.type,value:d.value,active:true});
       autoSave();updateStats();showFurnitureShop('购买成功，已摆放：'+d.name);
     }
@@ -14644,7 +14664,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.66";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.67";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

@@ -1916,4 +1916,4 @@ function mapAliveBuildingV2893(ctx,o){
  ctx.save();try{drawBuildingLifeV2893(ctx,[o],mapAliveCalmV2893()?0:(ALIVE_V2893.clock||0),mapDayPhaseV2893(),false);}finally{ctx.restore();}
 }
 // END MAP_ALIVE_V2893
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.66';
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.67';

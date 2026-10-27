@@ -1,6 +1,10 @@
-# 仙途 V28.68.66
+# 仙途 V28.68.67
 
-部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.66）；[上传步骤](downloads/README.md)。
+部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.67）；[上传步骤](downloads/README.md)。
+
+## V28.68.67 购买确认
+
+百宝阁、仙市、御兽材料和宗门贡献兑换补齐购买确认，显示商品、数量、总价和余额；取消不扣款、不发货，批量购买只确认一次。见 [规则与验证](docs/purchase-confirmation.txt)。无需更新 Jev，尚未部署腾讯云。
 
 ## V28.68.66 山河灵动
 
