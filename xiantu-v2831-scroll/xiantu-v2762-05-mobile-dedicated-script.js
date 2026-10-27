@@ -48,8 +48,11 @@
       const c=document.getElementById('worldCanvas');
       if(!c)return;
       const v=viewport();
-      if(c.width!==v.w||c.height!==v.h||c._dpr!==1){
-        c.width=v.w;c.height=v.h;c._dpr=1;
+      const dpr=Math.min(typeof worldDprCapV2893==='function'?worldDprCapV2893():1,window.devicePixelRatio||1);
+      const w=Math.round(v.w*dpr),h=Math.round(v.h*dpr);
+      if(c.width!==w||c.height!==h||c._dpr!==dpr){
+        c.width=w;c.height=h;c._dpr=dpr;
+        if(typeof resetMapAliveV2893==='function')resetMapAliveV2893();
         try{ if(typeof resize3DAvatar==='function') resize3DAvatar(); }catch(_){ }
         try{ if(typeof PERF_CONFIG!=='undefined'){PERF_CONFIG.staticWorldReady=false;PERF_CONFIG.staticWorldCanvas=null;} }catch(_){ }
       }
@@ -78,4 +81,4 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-05-mobile-dedicated-script.js"]="28.68.65";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-05-mobile-dedicated-script.js"]="28.68.66";

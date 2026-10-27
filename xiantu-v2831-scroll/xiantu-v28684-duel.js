@@ -586,6 +586,7 @@ function installWorld25dV2888(){
  s25WrapSpriteV2888('drawWorldPlayer',false);
  const baseDraw=window.drawFlatWorld;
  const w=function(t=performance.now(),dt=1/60){
+  if(typeof watchDprV2893==='function')watchDprV2893();
   const c=document.getElementById('worldCanvas'),dpr=c?._dpr||1;
   if(c)S25_V2888.frameVh=c.height/dpr;
   const r=baseDraw.apply(this,arguments);
@@ -1313,6 +1314,7 @@ function guideSectionsV2890(){
    +'<h4>认路</h4>'+ul([
     '右上小地图可看周围地点，点选地图位置即可寻路。',
     '【探索】→【卷 山河图】展开整幅地域绘卷；绘卷中的【立体】按钮可开关层叠景深与光影，只影响画面。',
+    '【探索】→【灵动】切换高、低、关：天气、鸟群、脚步与建筑动效只影响画面，手机默认低；关闭后仍保留原有地图画面与镜头修正。',
     '画面类开关（立体山河、立体战场、战斗呈现方式）记在本机浏览器里，不随存档转移。'])
   },
   {id:'items',icon:'🎒',tab:'物品',title:'物品与锻造',html:()=>
@@ -1493,4 +1495,425 @@ function installGuideV2890(){
 try{installGuideV2890();}catch(e){console.warn('修行指引安装失败',e);}
 
 // END GUIDE_V2890
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.65';
+// BEGIN MAP_ALIVE_V2893
+// V28.93 山河灵动：镜头手感（前瞻、柔性死区、换图瞬切）、像素对齐、地标视觉放大、桌面清晰度修正，
+// 以及纯表现层的地图生气：季节与地域飘落物、天象、昼夜色调、鸟群萤火、建筑炊烟旗幡阵光、足下尘涟、行走起伏、
+// 三个小彩蛋。全部只画在画布上：不改 r、碰撞、交互、存档或数值。可调数值集中在 MAP_ALIVE_V2893。
+const MAP_ALIVE_V2893=(()=>{const deep=o=>{for(const v of Object.values(o))if(v&&typeof v==='object')deep(v);return Object.freeze(o);};return deep({
+ camera:{
+  rate:10,             // 跟随速度（原为 24）：1-exp(-rate·dt)，与帧率无关
+  lookAhead:56,        // 行走方向前瞻像素
+  lookAheadY:.6,       // 纵向前瞻比例
+  lookAheadRate:3,     // 前瞻缓入速度
+  deadzone:26,         // 柔性死区：偏离小于此距离时跟随明显变慢
+  snapViewport:.6      // 目标跳变超过视口 60% 时直接切换（换图、传送）
+ },
+ pixelSnap:true,
+ dpr:{desktopCap:1.5,memoryFloorGB:4,fpsFloor:40,fpsStrikes:3},  // 桌面清晰度：内存<4GB或帧率持续<40时退回1
+ landmarks:{baseY:30,scale:{sect:1.22,faction_gate:1.2,palace:1.18,travel_gate:1.15,market:1.12,artifacts:1.12,alchemy:1.1,village:1.08}},
+ quality:{
+  key:'xiantu_map_alive_v2893',
+  order:['high','low','off'],
+  names:{high:'高',low:'低',off:'关'},
+  levels:{
+   high:{fall:36,rain:90,glow:14,birds:2,dust:12,buildings:true,eggs:true,bob:true},
+   low:{fall:14,rain:40,glow:6,birds:1,dust:6,buildings:true,eggs:false,bob:true},
+   off:{fall:0,rain:0,glow:0,birds:0,dust:0,buildings:false,eggs:false,bob:false}
+  }
+ },
+ juice:{stride:30,hop:2.2,squash:.045,breath:.012,feetY:16,dustLife:.55,rippleLife:.9},
+ seasons:{1:'spring',2:'spring',3:'spring',4:'summer',5:'summer',6:'summer',7:'autumn',8:'autumn',9:'autumn',10:'winter',11:'winter',12:'winter'},
+ fall:{spring:'petal',summer:null,autumn:'leaf',winter:'snow'},
+ regionFall:{demon_domain:'ember',immortal_domain:'mote',north:'snow'},
+ weather:{
+  south:{clear:.62,mist:.18,rain:.2},east:{clear:.5,mist:.25,rain:.25},west:{clear:.75,mist:.15,rain:.1},
+  north:{clear:.55,mist:.15,snow:.3},demon_domain:{clear:.55,ash:.45},immortal_domain:{clear:.7,mist:.3},
+  default:{clear:.65,mist:.17,rain:.18}
+ },
+ weatherNames:{clear:'晴',mist:'薄雾',rain:'小雨',snow:'飞雪',ash:'灰烬'},
+ dayNight:{mode:'realtime',dawn:[5,7],dusk:[17,19],tints:{dawn:'rgba(255,186,160,.08)',dusk:'rgba(255,140,70,.12)',night:'rgba(16,26,66,.26)'},names:{dawn:'清晨',day:'白昼',dusk:'黄昏',night:'夜'}},
+ weatherTint:{rain:'rgba(70,86,104,.10)',mist:'rgba(232,238,240,.10)',snow:'rgba(236,244,255,.08)',ash:'rgba(60,30,40,.10)'},
+ buildings:{   // local anchors (before scaling) of small idle effects, by building kind
+  sect:[{fx:'banner',x:-25,y:-8},{fx:'banner',x:25,y:-8},{fx:'lantern',x:0,y:4}],
+  faction_gate:[{fx:'banner',x:-30,y:-18},{fx:'banner',x:30,y:-18}],
+  alchemy:[{fx:'smoke',x:16,y:-14},{fx:'lantern',x:16,y:-10}],
+  home:[{fx:'smoke',x:-14,y:-22},{fx:'lantern',x:4,y:6}],
+  village:[{fx:'smoke',x:-36,y:-12},{fx:'smoke',x:8,y:-22}],
+  market:[{fx:'lantern',x:-32,y:23},{fx:'lantern',x:0,y:23},{fx:'lantern',x:32,y:23}],
+  shop:[{fx:'lantern',x:0,y:6}],
+  artifacts:[{fx:'pulse',x:0,y:-6}],
+  travel_gate:[{fx:'formation',x:0,y:18}],
+  secret:[{fx:'formation',x:0,y:14},{fx:'motes',x:0,y:-4}]
+ },
+ eggs:{meteorPerSec:.006,craneIdleSec:9,craneCooldownSec:240,foxChancePerSec:.01,foxFleeDist:80,foxRange:260}
+});})();
+
+const ALIVE_V2893={
+ la:{x:0,y:0},snap:true,lastCam:null,dprStrikes:0,dprDowngraded:false,lastFpsAt:0,
+ fall:[],rain:[],glow:[],birds:[],dust:[],ripples:[],
+ strideDist:0,stridePhase:0,moveAmt:0,lastP:null,idle:0,
+ meteor:null,crane:null,craneCd:0,fox:null,toldCrane:false,toldFox:false,toldMeteor:false,
+ sprites:null,regionKey:''
+};
+// Visual randomness must never consume the combat/loot RNG.
+let aliveSeedV2893=0x2893cafe;
+function aliveRandV2893(){aliveSeedV2893=(Math.imul(aliveSeedV2893,1664525)+1013904223)>>>0;return aliveSeedV2893/4294967296;}
+let aliveQualityV2893=null;
+try{const q=localStorage.getItem(MAP_ALIVE_V2893.quality.key);if(MAP_ALIVE_V2893.quality.order.includes(q))aliveQualityV2893=q;}catch(_){}
+const aliveMotionV2893=window.matchMedia?.('(prefers-reduced-motion: reduce)');
+aliveMotionV2893?.addEventListener?.('change',()=>resetMapAliveV2893());
+window.addEventListener('storage',e=>{if(e.key!==MAP_ALIVE_V2893.quality.key&&e.key!==null)return;aliveQualityV2893=MAP_ALIVE_V2893.quality.order.includes(e.newValue)?e.newValue:null;resetMapAliveV2893();syncMapAliveButtonV2893();});
+
+// ------------------------------------------------------------ settings ----
+function mapAliveCalmV2893(){return !!aliveMotionV2893?.matches;}
+function mapAliveQualityV2893(){return aliveQualityV2893||((typeof PERF_CONFIG!=='undefined'&&PERF_CONFIG.mobile)?'low':'high');}
+function mapAliveLevelV2893(){return MAP_ALIVE_V2893.quality.levels[mapAliveQualityV2893()];}
+function setMapAliveQualityV2893(v){
+ const Q=MAP_ALIVE_V2893.quality;if(!Q.order.includes(v))return false;aliveQualityV2893=v;resetMapAliveV2893();try{localStorage.setItem(Q.key,v);}catch(_){}
+ syncMapAliveButtonV2893();return true;
+}
+function cycleMapAliveV2893(){
+ const Q=MAP_ALIVE_V2893.quality,next=Q.order[(Q.order.indexOf(mapAliveQualityV2893())+1)%Q.order.length];setMapAliveQualityV2893(next);
+ showFloatingText?.(`山河灵动：${Q.names[next]}${next==='off'?'（关闭新增环境动效）':''}`,'#ccefdc');return next;
+}
+
+// ------------------------------------------------------------ 1. camera ----
+// Called by drawFlatWorld with the clamped target it already computed (includes the war-camera offset).
+function worldCameraStepV2893(cam,p,targetX,targetY,dt,vw,vh){
+ const C=MAP_ALIVE_V2893.camera,W=FLAT_WORLD.width,H=FLAT_WORLD.height;dt=Math.max(.001,Math.min(.1,Number(dt)||1/60));
+ const calm=mapAliveCalmV2893()||mapAliveQualityV2893()==='off',moving=!!FLAT_WORLD.moving&&!calm;
+ if(calm)ALIVE_V2893.la.x=ALIVE_V2893.la.y=0;
+ const lr=1-Math.exp(-C.lookAheadRate*dt);
+ ALIVE_V2893.la.x+=((moving?(Number(FLAT_WORLD.moveDirX)||0)*C.lookAhead:0)-ALIVE_V2893.la.x)*lr;
+ ALIVE_V2893.la.y+=((moving?(Number(FLAT_WORLD.moveDirY)||0)*C.lookAhead*C.lookAheadY:0)-ALIVE_V2893.la.y)*lr;
+ const tx=Math.max(0,Math.min(Math.max(0,W-vw),targetX+ALIVE_V2893.la.x)),ty=Math.max(0,Math.min(Math.max(0,H-vh),targetY+ALIVE_V2893.la.y));
+ const dx=tx-cam.x,dy=ty-cam.y,dist=Math.hypot(dx,dy);
+ if(ALIVE_V2893.snap||dist>C.snapViewport*Math.max(vw,vh)){
+  cam.x=targetX;cam.y=targetY;ALIVE_V2893.la.x=ALIVE_V2893.la.y=0;ALIVE_V2893.snap=false;ALIVE_V2893.lastCam=null;return 'snap';
+ }
+ const soft=dist<C.deadzone?Math.max(.15,(dist/C.deadzone)*(dist/C.deadzone)):1;
+ const k=1-Math.exp(-C.rate*soft*dt);
+ cam.x+=dx*k;cam.y+=dy*k;
+ if(Math.abs(tx-cam.x)<.02)cam.x=tx;if(Math.abs(ty-cam.y)<.02)cam.y=ty;
+ return 'follow';
+}
+function worldCameraSnapV2893(v,dpr){if(!MAP_ALIVE_V2893.pixelSnap)return v;const d=Math.max(1,Number(dpr)||1);return Math.round(v*d)/d;}
+function resetMapAliveV2893(full=false){
+ for(const k of ['fall','rain','glow','birds','dust','ripples'])ALIVE_V2893[k].length=0;
+ Object.assign(ALIVE_V2893,{meteor:null,crane:null,fox:null,lastP:null,lastCam:null,snap:true,la:{x:0,y:0},strideDist:0,stridePhase:0,moveAmt:0,idle:0,craneCd:0,regionKey:'',clock:0});
+ if(typeof FLAT_WORLD!=='undefined')delete FLAT_WORLD._camDrawV2893;
+ if(full){ALIVE_V2893.toldCrane=ALIVE_V2893.toldFox=ALIVE_V2893.toldMeteor=false;aliveSeedV2893=0x2893cafe;}
+}
+
+// ------------------------------------------------------------ 2. world canvas DPR ----
+// PERF_CONFIG.lowEnd stays as it is (it drives the 3D avatar, decor counts and skill effects); only the map resolution changes.
+function worldDprCapV2893(){
+ const D=MAP_ALIVE_V2893.dpr;
+ if(typeof PERF_CONFIG!=='undefined'&&PERF_CONFIG.mobile)return 1;
+ const mem=Number(navigator?.deviceMemory);if(Number.isFinite(mem)&&mem>0&&mem<D.memoryFloorGB)return 1;
+ return ALIVE_V2893.dprDowngraded?1:D.desktopCap;
+}
+function watchDprV2893(){
+ const D=MAP_ALIVE_V2893.dpr;if(ALIVE_V2893.dprDowngraded||typeof PERF_CONFIG==='undefined'||PERF_CONFIG.mobile)return;
+ const c=document.getElementById('worldCanvas');if(!c||(c._dpr||1)<=1)return;
+ if(PERF_CONFIG.fpsStartedAt===ALIVE_V2893.lastFpsAt||!PERF_CONFIG.measuredFps)return;ALIVE_V2893.lastFpsAt=PERF_CONFIG.fpsStartedAt;
+ ALIVE_V2893.dprStrikes=PERF_CONFIG.measuredFps<D.fpsFloor?ALIVE_V2893.dprStrikes+1:0;
+ if(ALIVE_V2893.dprStrikes>=D.fpsStrikes){ALIVE_V2893.dprDowngraded=true;try{resizeWorldCanvas?.();}catch(_){}}
+}
+
+// ------------------------------------------------------------ 3. landmark scale (visual only) ----
+function landmarkKindV2893(o){
+ if(!o||o.enemy||o.t==='tree'||o._warUnitV2840||o.action==='explore_v2828'||o.action==='war_map_v2840')return null;
+ if(o.action==='faction_gate_v2806')return 'faction_gate';
+ const k=typeof getPoiVisualKind==='function'?getPoiVisualKind(o):'default',M=MAP_ALIVE_V2893;
+ if(M.landmarks.scale[k]||M.buildings[k])return k;          // its own kind first (the 宗门 is also a painted palace)
+ if(typeof scrollPalacePoiV2831==='function'&&scrollPalacePoiV2831(o))return 'palace';
+ return k;
+}
+function landmarkScaleV2893(o){const k=landmarkKindV2893(o);return k&&MAP_ALIVE_V2893.landmarks.scale[k]||1;}
+// Called by drawWorldPoi right after it moves to the building's centre; grows the drawing upward from its base.
+// The painted building only: r, collision and the interaction ring logic stay in world units.
+function landmarkPoiApplyV2893(ctx,o){
+ if(!ctx||ctx.canvas?.id!=='worldCanvas')return 1;const s=landmarkScaleV2893(o);if(s===1)return 1;
+ const by=MAP_ALIVE_V2893.landmarks.baseY;ctx.translate(0,by);ctx.scale(s,s);ctx.translate(0,-by);return s;
+}
+// Where a local building point ends up: landmark scale about the base (inside drawWorldPoi), then V2888's depth scale about the centre (outside).
+function landmarkPointV2893(o,lx,ly){
+ const d=(typeof scene25dOnV2888==='function'&&scene25dOnV2888()&&typeof s25DepthScaleV2888==='function')?s25DepthScaleV2888(o.y):1;
+ const L=landmarkScaleV2893(o),B=MAP_ALIVE_V2893.landmarks.baseY;
+ return {x:o.x+d*lx*L,y:o.y+d*(B+(ly-B)*L),s:d*L};
+}
+
+// ------------------------------------------------------------ environment ----
+function mapSeasonV2893(){let m=1;try{m=getGameDate().month;}catch(_){}return MAP_ALIVE_V2893.seasons[m]||'spring';}
+function mapRegionV2893(){try{return currentRegion||player?.worldMapId||'south';}catch(_){return 'south';}}
+function mapWeatherV2893(day,region){
+ if(day===undefined){try{day=Math.floor(player.worldTime.totalDays)||0;}catch(_){day=0;}}region=region||mapRegionV2893();
+ const W=MAP_ALIVE_V2893.weather,table=W[region]||W.default;let h=2166136261;for(const ch of `${region}:${day}`)h=Math.imul(h^ch.charCodeAt(0),16777619);
+ let r=((h>>>0)%10000)/10000;for(const [k,p] of Object.entries(table)){if(r<p)return k;r-=p;}return 'clear';
+}
+function mapDayPhaseV2893(hour){
+ const D=MAP_ALIVE_V2893.dayNight;if(D.mode!=='realtime')return 'day';
+ if(hour===undefined)hour=new Date().getHours();
+ if(hour>=D.dawn[0]&&hour<D.dawn[1])return 'dawn';if(hour>=D.dawn[1]&&hour<D.dusk[0])return 'day';if(hour>=D.dusk[0]&&hour<D.dusk[1])return 'dusk';return 'night';
+}
+function mapFallKindV2893(region=mapRegionV2893(),season=mapSeasonV2893(),weather=mapWeatherV2893()){
+ if(weather==='rain')return null;if(weather==='snow')return 'snow';if(weather==='ash')return 'ember';
+ return MAP_ALIVE_V2893.regionFall[region]||MAP_ALIVE_V2893.fall[season]||null;
+}
+function aliveSpritesV2893(){
+ if(ALIVE_V2893.sprites)return ALIVE_V2893.sprites;
+ const make=(rgb)=>{const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext?.('2d');if(!x)return null;
+  const g=x.createRadialGradient(16,16,0,16,16,16);g.addColorStop(0,`rgba(${rgb},1)`);g.addColorStop(.35,`rgba(${rgb},.55)`);g.addColorStop(1,`rgba(${rgb},0)`);x.fillStyle=g;x.fillRect(0,0,32,32);return c;};
+ ALIVE_V2893.sprites={warm:make('255,206,120'),green:make('200,255,150'),cyan:make('170,235,255'),ember:make('255,120,60')};
+ return ALIVE_V2893.sprites;
+}
+
+// ------------------------------------------------------------ particles (session only) ----
+function fillPoolV2893(pool,n,make){while(pool.length<n)pool.push(make());if(pool.length>n)pool.length=n;}
+function updateFallV2893(dt,vw,vh,camDX,camDY,kind,n,t){
+ const pool=ALIVE_V2893.fall;
+ fillPoolV2893(pool,kind?n:0,()=>({x:aliveRandV2893()*vw,y:aliveRandV2893()*vh,vx:0,vy:0,rot:aliveRandV2893()*6,vr:0,size:0,ph:aliveRandV2893()*6,kind:''}));
+ for(const q of pool){
+  if(q.kind!==kind){q.kind=kind;const up=kind==='ember'||kind==='mote';q.vy=up?-(10+aliveRandV2893()*16):kind==='snow'?18+aliveRandV2893()*16:24+aliveRandV2893()*22;q.vx=(aliveRandV2893()-.5)*10;q.vr=(aliveRandV2893()-.5)*2.4;q.size=kind==='snow'?1.2+aliveRandV2893()*1.6:kind==='ember'||kind==='mote'?1.2+aliveRandV2893()*1.4:3+aliveRandV2893()*2.5;}
+  q.y+=q.vy*dt-camDY*.25;q.x+=(q.vx+Math.sin(t*1.3+q.ph)*14)*dt-camDX*.3;q.rot+=q.vr*dt;
+  if(q.vy>0&&q.y>vh+12){q.y=-12;q.x=aliveRandV2893()*vw;}else if(q.vy<0&&q.y<-12){q.y=vh+12;q.x=aliveRandV2893()*vw;}
+  if(q.x<-20)q.x+=vw+40;else if(q.x>vw+20)q.x-=vw+40;
+ }
+}
+function drawFallV2893(ctx,dpr){
+ const colors={petal:'rgba(255,188,206,.85)',leaf:'rgba(214,140,60,.85)',snow:'rgba(250,252,255,.9)'};
+ const sp=aliveSpritesV2893();
+ for(const q of ALIVE_V2893.fall){
+  if(q.kind==='ember'||q.kind==='mote'){const img=q.kind==='ember'?sp.ember:sp.warm;if(!img)continue;ctx.globalAlpha=.55;const s=q.size*5;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.drawImage(img,q.x-s/2,q.y-s/2,s,s);continue;}
+  const c=Math.cos(q.rot),s=Math.sin(q.rot);ctx.setTransform(dpr*c,dpr*s,-dpr*s,dpr*c,dpr*q.x,dpr*q.y);ctx.globalAlpha=1;ctx.fillStyle=colors[q.kind]||colors.petal;
+  ctx.beginPath();if(q.kind==='snow')ctx.arc(0,0,q.size,0,Math.PI*2);else ctx.ellipse(0,0,q.size,q.size*.55,0,0,Math.PI*2);ctx.fill();
+ }
+ ctx.globalAlpha=1;
+}
+function updateRainV2893(dt,vw,vh,n){
+ const pool=ALIVE_V2893.rain;fillPoolV2893(pool,n,()=>({x:aliveRandV2893()*vw,y:aliveRandV2893()*vh,v:380+aliveRandV2893()*160}));
+ for(const q of pool){q.y+=q.v*dt;q.x-=q.v*.18*dt;if(q.y>vh+16){q.y=-16;q.x=aliveRandV2893()*(vw+60);}}
+}
+function drawRainV2893(ctx,dpr){
+ if(!ALIVE_V2893.rain.length)return;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.strokeStyle='rgba(200,220,235,.38)';ctx.lineWidth=1;ctx.beginPath();
+ for(const q of ALIVE_V2893.rain){ctx.moveTo(q.x,q.y);ctx.lineTo(q.x+2.4,q.y-13);}ctx.stroke();
+}
+// Fireflies / spirit motes / butterflies, wandering inside the view (world space).
+function updateGlowV2893(dt,view,n,kind,t){
+ const pool=ALIVE_V2893.glow,rand=aliveRandV2893;
+ fillPoolV2893(pool,kind?n:0,()=>({x:0,y:0,ph:rand()*6,sp:.4+rand()*.6,live:false,kind:''}));
+ for(const q of pool){
+  if(!q.live||q.kind!==kind||q.x<view.minX-60||q.x>view.maxX+60||q.y<view.minY-60||q.y>view.maxY+60){q.x=view.minX+rand()*(view.maxX-view.minX);q.y=view.minY+rand()*(view.maxY-view.minY);q.live=true;q.kind=kind;}
+  q.x+=Math.cos(t*q.sp+q.ph)*22*dt;q.y+=Math.sin(t*q.sp*1.3+q.ph*2)*14*dt;
+ }
+}
+function drawGlowV2893(ctx,t){
+ const sp=aliveSpritesV2893();
+ for(const q of ALIVE_V2893.glow){
+  if(q.kind==='butterfly'){const f=Math.abs(Math.sin(t*9+q.ph));ctx.fillStyle=q.ph>3?'rgba(255,236,150,.9)':'rgba(255,255,255,.9)';ctx.beginPath();ctx.ellipse(q.x-2.5*f,q.y,3*f+.6,2.2,0,0,Math.PI*2);ctx.ellipse(q.x+2.5*f,q.y,3*f+.6,2.2,0,0,Math.PI*2);ctx.fill();continue;}
+  const img=q.kind==='firefly'?sp.green:q.kind==='mote'?sp.warm:sp.cyan;if(!img)continue;
+  const a=.25+.4*(.5+.5*Math.sin(t*2.2+q.ph*3)),s=10+4*Math.sin(t+q.ph);ctx.globalAlpha=a;ctx.drawImage(img,q.x-s/2,q.y-s/2,s,s);
+ }
+ ctx.globalAlpha=1;
+}
+function glowKindV2893(region,season,phase,weather){
+ if(weather==='rain')return null;if(region==='immortal_domain')return 'mote';if(region==='demon_domain')return null;
+ if(phase==='night'||phase==='dusk')return season==='winter'?'spirit':'firefly';
+ return season==='spring'||season==='summer'?'butterfly':null;
+}
+function updateBirdsV2893(dt,view,n){
+ const B=ALIVE_V2893.birds,rand=aliveRandV2893;
+ while(B.length<n)B.push({live:false,wait:4+rand()*10,x:0,y:0,vx:0,count:3,ph:0});if(B.length>n)B.length=n;
+ for(const b of B){
+  if(!b.live){b.wait-=dt;if(b.wait>0)continue;const left=rand()<.5;b.live=true;b.vx=(left?1:-1)*(60+rand()*30);b.x=left?view.minX-40:view.maxX+40;b.y=view.minY+(view.maxY-view.minY)*(.1+rand()*.35);b.count=3+Math.floor(rand()*3);b.ph=rand()*6;continue;}
+  b.x+=b.vx*dt;b.y+=Math.sin(b.x*.01+b.ph)*6*dt;
+  if(b.x<view.minX-260||b.x>view.maxX+260){b.live=false;b.wait=12+rand()*14;}
+ }
+}
+function drawBirdsV2893(ctx,t){
+ ctx.strokeStyle='rgba(40,46,44,.7)';ctx.lineWidth=1.4;ctx.beginPath();
+ for(const b of ALIVE_V2893.birds){if(!b.live)continue;const dir=b.vx>0?-1:1;
+  for(let i=0;i<b.count;i++){const ox=b.x+dir*(i?Math.ceil(i/2)*14:0),oy=b.y+(i?Math.ceil(i/2)*8*(i%2?1:-1):0),f=Math.sin(t*10+i+b.ph)*3.5;
+   ctx.moveTo(ox-6,oy-f);ctx.quadraticCurveTo(ox-3,oy-2,ox,oy);ctx.quadraticCurveTo(ox+3,oy-2,ox+6,oy-f);}
+ }
+ ctx.stroke();
+}
+function drawBirdShadowsV2893(ctx){
+ ctx.fillStyle='rgba(10,16,14,.12)';
+ for(const b of ALIVE_V2893.birds){if(!b.live)continue;ctx.beginPath();ctx.ellipse(b.x+24,b.y+150,10,3,0,0,Math.PI*2);ctx.fill();}
+}
+
+// ------------------------------------------------------------ juice: footsteps + player ----
+function stepJuiceV2893(dt,weather,lv,region){
+ const J=MAP_ALIVE_V2893.juice,p=FLAT_WORLD.player,last=ALIVE_V2893.lastP;
+ const moved=last?Math.hypot(p.x-last.x,p.y-last.y):0;ALIVE_V2893.lastP={x:p.x,y:p.y};
+ const moving=!!FLAT_WORLD.moving&&moved>0&&moved<80;
+ ALIVE_V2893.moveAmt+=((moving?1:0)-ALIVE_V2893.moveAmt)*(1-Math.exp(-8*dt));
+ ALIVE_V2893.idle=moving?0:ALIVE_V2893.idle+dt;
+ if(moving){ALIVE_V2893.stridePhase+=moved/J.stride*Math.PI;ALIVE_V2893.strideDist+=moved;}
+ if(moving&&ALIVE_V2893.strideDist>=J.stride&&lv.dust>0&&!mapAliveCalmV2893()){
+  ALIVE_V2893.strideDist=0;const side=(Math.floor(ALIVE_V2893.stridePhase/Math.PI)%2)?5:-5;
+  const kind=weather==='rain'?'ripple':(weather==='snow'||region==='north')?'snow':region==='west'?'sand':'dust';
+  const pool=kind==='ripple'?ALIVE_V2893.ripples:ALIVE_V2893.dust,cap=kind==='ripple'?Math.ceil(lv.dust/2):lv.dust;
+  if(pool.length>=cap)pool.shift();pool.push({x:p.x+side,y:p.y+J.feetY,age:0,kind});
+ }
+ for(const pool of [ALIVE_V2893.dust,ALIVE_V2893.ripples]){for(const d of pool)d.age+=dt;while(pool.length&&pool[0].age>(pool===ALIVE_V2893.ripples?J.rippleLife:J.dustLife))pool.shift();}
+}
+function drawStepsV2893(ctx){
+ const J=MAP_ALIVE_V2893.juice,col={dust:'150,132,104',sand:'196,166,112',snow:'245,248,255'};
+ for(const d of ALIVE_V2893.dust){const k=d.age/J.dustLife;ctx.fillStyle=`rgba(${col[d.kind]||col.dust},${.3*(1-k)})`;ctx.beginPath();ctx.ellipse(d.x,d.y-2*k,3+6*k,2+3*k,0,0,Math.PI*2);ctx.fill();}
+ ctx.lineWidth=1.2;
+ for(const r of ALIVE_V2893.ripples){const k=r.age/J.rippleLife;ctx.strokeStyle=`rgba(210,232,245,${.45*(1-k)})`;ctx.beginPath();ctx.ellipse(r.x,r.y,4+12*k,(4+12*k)*.42,0,0,Math.PI*2);ctx.stroke();}
+}
+// Called by drawWorldPlayer around the painted actor; returns true when it saved the context (the caller restores).
+function playerJuiceV2893(ctx,p){
+ try{
+  const lv=mapAliveLevelV2893();if(!lv.bob||mapAliveCalmV2893()||!ctx||ctx.canvas?.id!=='worldCanvas'||!p)return false;
+  const J=MAP_ALIVE_V2893.juice,m=ALIVE_V2893.moveAmt,ph=ALIVE_V2893.stridePhase,t=(ALIVE_V2893.clock||0);
+  const bob=-Math.abs(Math.sin(ph))*J.hop*m,sq=Math.sin(2*ph)*J.squash*m,breath=1+J.breath*Math.sin(t*1.8)*(1-m);
+  const fx=p.x,fy=p.y+J.feetY;
+  ctx.save();ctx.translate(fx,fy+bob);ctx.scale(1+sq,(1-sq)*breath);ctx.translate(-fx,-fy);return true;
+ }catch(e){console.warn('行走起伏失败',e);return false;}
+}
+
+// ------------------------------------------------------------ building idle life ----
+function drawBuildingLifeV2893(ctx,items,t,phase,ground){
+ const night=phase==='night'||phase==='dusk',sp=aliveSpritesV2893(),FX=MAP_ALIVE_V2893.buildings;
+ for(const o of items){
+  const k=landmarkKindV2893(o),list=k&&FX[k];if(!list)continue;
+  for(const a of list){
+   const isGround=a.fx==='formation';if(isGround!==ground)continue;
+   const q=landmarkPointV2893(o,a.x,a.y),s=q.s,seed=(o.x*7+o.y*3+a.x)%17;
+   if(a.fx==='formation'){const pulse=.5+.5*Math.sin(t*1.6+seed);ctx.save();ctx.translate(q.x,q.y);ctx.rotate(t*.25);ctx.strokeStyle=`rgba(150,230,255,${.18+.22*pulse})`;ctx.lineWidth=1.6;ctx.setLineDash([6,7]);ctx.beginPath();ctx.ellipse(0,0,34*s,14*s,0,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.restore();}
+   else if(a.fx==='smoke'){for(let i=0;i<3;i++){const age=((t*.22+i/3+seed*.05)%1);ctx.fillStyle=`rgba(225,225,215,${.32*(1-age)})`;ctx.beginPath();ctx.arc(q.x+Math.sin(t*.8+i+seed)*4*age+age*8,q.y-age*34*s,(3+age*7)*s,0,Math.PI*2);ctx.fill();}}
+   else if(a.fx==='banner'){const w=Math.sin(t*3.2+seed)*3;ctx.fillStyle='rgba(176,44,44,.9)';ctx.beginPath();ctx.moveTo(q.x,q.y-16*s);ctx.quadraticCurveTo(q.x+7*s,q.y-15*s+w,q.x+14*s,q.y-13*s+w*1.4);ctx.lineTo(q.x+13*s,q.y-6*s+w*1.4);ctx.quadraticCurveTo(q.x+7*s,q.y-8*s+w,q.x,q.y-8*s);ctx.closePath();ctx.fill();ctx.strokeStyle='rgba(80,50,30,.9)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x,q.y-17*s);ctx.stroke();}
+   else if(a.fx==='pulse'){const img=sp.cyan;if(img){ctx.globalAlpha=.25+.25*Math.sin(t*2+seed);const z=26*s;ctx.drawImage(img,q.x-z/2,q.y-z/2,z,z);ctx.globalAlpha=1;}}
+   else if(a.fx==='motes'){const img=sp.warm;if(img)for(let i=0;i<3;i++){const age=(t*.3+i/3)%1;ctx.globalAlpha=.5*(1-age);const z=8;ctx.drawImage(img,q.x+Math.sin(t+i*2)*10-z/2,q.y-age*30-z/2,z,z);}ctx.globalAlpha=1;}
+   else if(a.fx==='lantern'&&night){const img=sp.warm;if(img){const f=.75+.25*Math.sin(t*7+seed*3)*Math.sin(t*3.1+seed);ctx.globalAlpha=.55*f;const z=30*s;ctx.drawImage(img,q.x-z/2,q.y-z/2,z,z);ctx.globalAlpha=1;}}
+  }
+ }
+}
+
+// ------------------------------------------------------------ easter eggs (session only, no rewards) ----
+function updateEggsV2893(dt,view,vw,vh,phase,region,lv){
+ const E=MAP_ALIVE_V2893.eggs,rand=aliveRandV2893,p=FLAT_WORLD.player;
+ if(!lv.eggs){ALIVE_V2893.meteor=ALIVE_V2893.crane=ALIVE_V2893.fox=null;return;}
+ // 流星: night sky, screen space
+ if(!ALIVE_V2893.meteor&&phase==='night'&&rand()<E.meteorPerSec*dt)ALIVE_V2893.meteor={x:vw*(.2+rand()*.6),y:vh*(.05+rand()*.2),age:0};
+ if(ALIVE_V2893.meteor){ALIVE_V2893.meteor.age+=dt;if(ALIVE_V2893.meteor.age>1.1){ALIVE_V2893.meteor=null;if(!ALIVE_V2893.toldMeteor){ALIVE_V2893.toldMeteor=true;showFloatingText?.('流星划过天际。','#d9e8ff');}}}
+ // 仙鹤: after standing still for a while
+ ALIVE_V2893.craneCd=Math.max(0,ALIVE_V2893.craneCd-dt);
+ if(!ALIVE_V2893.crane&&ALIVE_V2893.craneCd<=0&&ALIVE_V2893.idle>=E.craneIdleSec&&region!=='demon_domain'){
+  const left=rand()<.5;ALIVE_V2893.crane={x:left?view.minX-60:view.maxX+60,y:p.y-120-rand()*60,vx:left?70:-70,age:0};ALIVE_V2893.craneCd=E.craneCooldownSec;
+ }
+ const c=ALIVE_V2893.crane;if(c){c.age+=dt;c.x+=c.vx*dt;c.y+=Math.sin(c.age*1.4)*8*dt;
+  if(!ALIVE_V2893.toldCrane&&Math.abs(c.x-p.x)<40){ALIVE_V2893.toldCrane=true;showFloatingText?.('鹤鸣于九皋，声闻于天。','#f2f0e0');}
+  if(c.x<view.minX-200||c.x>view.maxX+200)ALIVE_V2893.crane=null;}
+ // 灵狐: peeks near trees or forest landmarks, flees when approached
+ const f=ALIVE_V2893.fox;
+ if(!f&&rand()<E.foxChancePerSec*dt){
+  const near=(FLAT_WORLD.decor||[]).find(d=>d.t==='tree'&&d.x>view.minX&&d.x<view.maxX&&d.y>view.minY&&d.y<view.maxY&&Math.hypot(d.x-p.x,d.y-p.y)<E.foxRange&&Math.hypot(d.x-p.x,d.y-p.y)>E.foxFleeDist*1.6);
+  if(near)ALIVE_V2893.fox={x:near.x+18,y:near.y+12,fleeing:false,vx:0,age:0,alpha:0};
+ }
+ if(f){f.age+=dt;if(!f.fleeing)f.alpha=Math.min(1,f.alpha+dt*2);
+  if(!f.fleeing&&Math.hypot(f.x-p.x,f.y-p.y)<E.foxFleeDist){f.fleeing=true;f.vx=(f.x>p.x?1:-1)*220;if(!ALIVE_V2893.toldFox){ALIVE_V2893.toldFox=true;showFloatingText?.('一只灵狐倏然遁入林间。','#ffd2a0');}}
+  if(f.fleeing){f.x+=f.vx*dt;f.alpha-=dt*1.6;}
+  if(f.alpha<=0&&f.fleeing||f.age>20)ALIVE_V2893.fox=null;}
+}
+function drawFoxV2893(ctx,t){
+ const f=ALIVE_V2893.fox;if(!f)return;const dir=f.vx<0?-1:1;
+ ctx.save();ctx.globalAlpha=Math.max(0,f.alpha);ctx.translate(f.x,f.y);ctx.scale(dir,1);
+ ctx.fillStyle='rgba(10,14,12,.18)';ctx.beginPath();ctx.ellipse(0,6,11,3,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#e48a3c';ctx.beginPath();ctx.ellipse(0,0,8,5,0,0,Math.PI*2);ctx.fill();
+ ctx.beginPath();ctx.ellipse(-10,-2+Math.sin(t*6)*1.5,7,3.2,-.5,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#fff3e0';ctx.beginPath();ctx.ellipse(-15,-5+Math.sin(t*6)*1.5,2.4,1.6,-.5,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#e48a3c';ctx.beginPath();ctx.arc(8,-4,4,0,Math.PI*2);ctx.fill();
+ ctx.beginPath();ctx.moveTo(6,-7);ctx.lineTo(7,-12);ctx.lineTo(9,-7);ctx.moveTo(9,-7);ctx.lineTo(11,-11);ctx.lineTo(11.5,-6);ctx.fill();
+ ctx.restore();
+}
+function drawCraneV2893(ctx,t){
+ const c=ALIVE_V2893.crane;if(!c)return;const dir=c.vx<0?-1:1,f=Math.sin(t*4)*7;
+ ctx.save();ctx.translate(c.x,c.y);ctx.scale(dir,1);ctx.strokeStyle='rgba(250,250,245,.95)';ctx.lineWidth=2.4;ctx.lineCap='round';
+ ctx.beginPath();ctx.moveTo(-16,-f);ctx.quadraticCurveTo(-6,-4,0,0);ctx.quadraticCurveTo(6,-4,16,-f);ctx.stroke();
+ ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(12,-2);ctx.moveTo(0,0);ctx.lineTo(-12,3);ctx.stroke();
+ ctx.fillStyle='#c0392b';ctx.beginPath();ctx.arc(12.5,-2.5,1.4,0,Math.PI*2);ctx.fill();ctx.restore();
+ ctx.fillStyle='rgba(10,16,14,.1)';ctx.beginPath();ctx.ellipse(c.x+30,c.y+170,14,3.5,0,0,Math.PI*2);ctx.fill();
+}
+function drawMeteorV2893(ctx,dpr){
+ const m=ALIVE_V2893.meteor;if(!m)return;const k=m.age/1.1,x=m.x+k*180,y=m.y+k*70;
+ ctx.setTransform(dpr,0,0,dpr,0,0);const g=ctx.createLinearGradient(x-60,y-24,x,y);g.addColorStop(0,'rgba(220,235,255,0)');g.addColorStop(1,`rgba(240,248,255,${.9*(1-k)})`);
+ ctx.strokeStyle=g;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-60,y-24);ctx.lineTo(x,y);ctx.stroke();
+}
+
+// ------------------------------------------------------------ frame: ground layer ----
+// Called by drawFlatWorld right after the ground ambience, before buildings and actors are drawn.
+function mapAliveGroundV2893(ctx,t){
+ try{
+  if(ctx?.canvas?.id==='worldCanvas'&&mapAliveQualityV2893()!=='off'){
+   const tt=ALIVE_V2893.clock||0,calm=mapAliveCalmV2893();
+   if(!calm)drawStepsV2893(ctx);if(!calm)drawBirdShadowsV2893(ctx);
+   if(mapAliveLevelV2893().buildings)drawBuildingLifeV2893(ctx,FLAT_WORLD._drawItems||[],calm?0:tt,mapDayPhaseV2893(),true);
+  }
+ }catch(e){console.warn('灵动地面层失败',e);}
+}
+
+// ------------------------------------------------------------ frame: top + screen layers ----
+// Called by drawFlatWorld once the world layer is finished (screen space), before V2888's haze and mist.
+function mapAliveFrameV2893(t,dt){try{mapAliveFrameInnerV2893(t,dt);}catch(e){console.warn('山河灵动失败',e);}}
+function mapAliveFrameInnerV2893(t,dt){
+ const c=document.getElementById('worldCanvas');if(!c)return;
+ const q=mapAliveQualityV2893();if(q==='off')return;
+ const lv=MAP_ALIVE_V2893.quality.levels[q],ctx=c.getContext('2d'),dpr=c._dpr||1,vw=c.width/dpr,vh=c.height/dpr;
+ dt=Math.max(0,Math.min(.05,Number(dt)||1/60));const calm=mapAliveCalmV2893();
+ if(!calm)ALIVE_V2893.clock=(ALIVE_V2893.clock||0)+dt;const tt=ALIVE_V2893.clock||0;
+ const region=mapRegionV2893(),season=mapSeasonV2893(),weather=mapWeatherV2893(),phase=mapDayPhaseV2893();
+ const key=region+'|'+weather;if(key!==ALIVE_V2893.regionKey){ALIVE_V2893.regionKey=key;ALIVE_V2893.fall.length=0;ALIVE_V2893.rain.length=0;ALIVE_V2893.glow.length=0;}
+ const cam=FLAT_WORLD._camDrawV2893||FLAT_WORLD.camera,last=ALIVE_V2893.lastCam,camDX=last?cam.x-last.x:0,camDY=last?cam.y-last.y:0;ALIVE_V2893.lastCam={x:cam.x,y:cam.y};
+ const view={minX:cam.x,maxX:cam.x+vw,minY:cam.y,maxY:cam.y+vh};
+ // update (skipped when the player asked for reduced motion)
+ if(!calm){
+  stepJuiceV2893(dt,weather,lv,region);
+  updateFallV2893(dt,vw,vh,camDX,camDY,mapFallKindV2893(region,season,weather),lv.fall,tt);
+  updateRainV2893(dt,vw,vh,weather==='rain'?lv.rain:0);
+  updateGlowV2893(dt,view,lv.glow,glowKindV2893(region,season,phase,weather),tt);
+  updateBirdsV2893(dt,view,region==='demon_domain'?0:lv.birds);
+  updateEggsV2893(dt,view,vw,vh,phase,region,lv);
+ }else{for(const k of ['fall','rain','glow','birds','dust','ripples'])ALIVE_V2893[k].length=0;ALIVE_V2893.meteor=ALIVE_V2893.crane=ALIVE_V2893.fox=null;}
+ ctx.save();
+ try{
+  // world space: buildings, birds, fox, crane
+  ctx.setTransform(dpr,0,0,dpr,-cam.x*dpr,-cam.y*dpr);
+
+  drawFoxV2893(ctx,tt);drawBirdsV2893(ctx,tt);drawCraneV2893(ctx,tt);
+  // screen space: falling things, rain, weather and day tint
+  drawFallV2893(ctx,dpr);drawRainV2893(ctx,dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const wt=MAP_ALIVE_V2893.weatherTint[weather];if(wt){ctx.fillStyle=wt;ctx.fillRect(0,0,vw,vh);}
+  const dn=MAP_ALIVE_V2893.dayNight.tints[phase];if(dn){ctx.fillStyle=dn;ctx.fillRect(0,0,vw,vh);}
+  // glows shine through the tint; additive only at night (on light daytime ground it washes out to white)
+  if(phase==='night')ctx.globalCompositeOperation='lighter';
+  ctx.setTransform(dpr,0,0,dpr,-cam.x*dpr,-cam.y*dpr);drawGlowV2893(ctx,tt);
+  ctx.globalCompositeOperation='source-over';
+  drawMeteorV2893(ctx,dpr);
+ }finally{ctx.restore();}
+}
+
+// ------------------------------------------------------------ quality button ----
+function ensureMapAliveButtonV2893(){
+ const host=document.getElementById('worldExploreActions');if(!host)return;if(document.getElementById('mapAliveBtnV2893')){syncMapAliveButtonV2893();return;}
+ const b=document.createElement('button');b.type='button';b.id='mapAliveBtnV2893';b.onclick=cycleMapAliveV2893;host.appendChild(b);syncMapAliveButtonV2893();
+}
+function syncMapAliveButtonV2893(){
+ const b=document.getElementById('mapAliveBtnV2893');if(!b)return;const Q=MAP_ALIVE_V2893.quality,q=mapAliveQualityV2893();
+ b.textContent=`灵动 · ${Q.names[q]}`;b.setAttribute('aria-pressed',String(q!=='off'));
+ try{b.title=`今日天象：${MAP_ALIVE_V2893.weatherNames[mapWeatherV2893()]||'晴'} · ${MAP_ALIVE_V2893.dayNight.names[mapDayPhaseV2893()]}。点按切换 高 / 低 / 关（只影响画面）`;}catch(_){}
+}
+
+
+function mapAliveBuildingV2893(ctx,o){
+ if(ctx?.canvas?.id!=='worldCanvas'||!mapAliveLevelV2893().buildings)return;
+ ctx.save();try{drawBuildingLifeV2893(ctx,[o],mapAliveCalmV2893()?0:(ALIVE_V2893.clock||0),mapDayPhaseV2893(),false);}finally{ctx.restore();}
+}
+// END MAP_ALIVE_V2893
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.66';
