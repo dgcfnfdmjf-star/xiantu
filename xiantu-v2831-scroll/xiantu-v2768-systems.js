@@ -218,7 +218,7 @@ const BOSS_V2887={
  tiers:[                                         // Realm bands; annual full reward, daily limited practice.
   {id:1,minLevel:4,hp:1.0,dmg:1.0,gold:1500,exp:500,contribution:80,bones:2,relic:'zhenyue'},
   {id:2,minLevel:7,hp:1.2,dmg:1.1,gold:2600,exp:900,contribution:150,bones:3,relic:'gudi'},
-  {id:3,minLevel:11,hp:1.4,dmg:1.2,gold:4200,exp:1500,contribution:260,bones:4,relic:'suopian'}
+  {id:3,minLevel:11,hp:1.25,dmg:1.2,gold:4200,exp:1500,contribution:260,bones:4,relic:'suopian'}
  ],
  grade:{fastBase:14,fastPerTier:2,hpShare:0.5,names:{A:'甲',B:'乙',C:'丙'},gold:{A:0.30,B:0.15,C:0},bones:{A:1,B:0,C:0}},
  firstTier:{goldMult:0.5},
@@ -340,7 +340,7 @@ function normalizeBossV2887(raw,p){
   seal:{settledYear:!same||sr.settledYear===undefined?bossLastDoneYearV2887(p):int(sr.settledYear,-1,1e6,-1),
         wonYears:(Array.isArray(sr.wonYears)?sr.wonYears:[]).map(Number).filter(n=>Number.isInteger(n)&&n>=0&&n<=1e6).slice(-6),
         missed:same?int(sr.missed,0,C.seal.missedCap,0):0},
-  fight:fight&&fight.sect===sect?fight:null};     // a fight from version 1 is dropped (nothing was paid for it)
+  fight:fight&&fight.sect===sect?fight:null};     // a fight is kept only if it was saved by this version and belongs to the current sect
 }
 function ensureBossV2887(p=player){if(!p.bossV2887||p.bossV2887.v!==BOSS_V2887.version||p.bossV2887.sect!==p.sect)p.bossV2887=normalizeBossV2887(p.bossV2887,p);return p.bossV2887;}
 function bossPeekV2887(p=player){const b=p?.bossV2887;return b&&b.v===BOSS_V2887.version&&b.sect===p.sect?b:normalizeBossV2887(b,p);}
@@ -563,20 +563,28 @@ function bossRewardsV2887(F,b,day=F.day){
 // --------------------------------------- commit with rollback (saves) ----
 
 function bossCommitV2887(apply){return commitMiniWeaveV286840(apply);}
+function bossClampProsperityV2887(cur,delta){const next=cur+delta;return delta>0?Math.min(next,Math.max(cur,100)):Math.max(next,Math.min(cur,10));}
 function bossAdjustProsperityV2887(p,delta){
  p.sectData=p.sectData&&typeof p.sectData==='object'?p.sectData:{};
- const cur=Number.isFinite(p.sectData.prosperity)?p.sectData.prosperity:20,next=cur+delta;
- p.sectData.prosperity=delta>0?Math.min(next,Math.max(cur,100)):Math.max(next,Math.min(cur,10));
+ const cur=Number.isFinite(p.sectData.prosperity)?p.sectData.prosperity:20;
+ p.sectData.prosperity=bossClampProsperityV2887(cur,delta);
 }
 function bossBonesV2887(p=player){const n=Number(p?.materials?.[BOSS_V2887.bone]);return Number.isFinite(n)&&n>0?Math.floor(n):0;}
 function bossAddBonesV2887(p,n){p.materials=p.materials&&typeof p.materials==='object'?p.materials:{};p.materials[BOSS_V2887.bone]=Math.max(0,bossBonesV2887(p)+n);}
+// Pure: what settling the missed years would do, read from the small boss state only (no save copy).
+function bossSettlePlanV2887(p=player,master=bossIsMasterV2887()){
+ const C=BOSS_V2887,b=bossPeekV2887(p),last=bossLastDoneYearV2887(p);
+ let y=b.seal.settledYear+1,n=0,lost=0,missed=b.seal.missed;
+ while(y<=last&&n<C.seal.catchUpYears){if(!b.seal.wonYears.includes(y)){missed=Math.min(C.seal.missedCap,missed+1);lost++;}y++;n++;}
+ const cur=p?.sectData?.prosperity,pay=lost&&master;
+ return {lost,missed,settledYear:Math.max(b.seal.settledYear,last),highDay:Math.max(b.highDay,bossTodayV2887(p)),
+  prosperity:pay?bossClampProsperityV2887(Number.isFinite(cur)?cur:20,-C.seal.missedProsperity*lost):(cur??20),pay};
+}
 function bossSettleV2887(p=player){
- const C=BOSS_V2887,b=ensureBossV2887(p),last=bossLastDoneYearV2887(p);
- let y=b.seal.settledYear+1,n=0,lost=0;
- while(y<=last&&n<C.seal.catchUpYears){if(!b.seal.wonYears.includes(y)){b.seal.missed=Math.min(C.seal.missedCap,b.seal.missed+1);lost++;}b.seal.settledYear=y;y++;n++;}
- if(b.seal.settledYear<last)b.seal.settledYear=last;
- if(lost&&bossIsMasterV2887())bossAdjustProsperityV2887(p,-C.seal.missedProsperity*lost);
- b.highDay=Math.max(b.highDay,bossTodayV2887(p));return lost;
+ const C=BOSS_V2887,plan=bossSettlePlanV2887(p),b=ensureBossV2887(p);
+ b.seal.missed=plan.missed;b.seal.settledYear=plan.settledYear;
+ if(plan.pay)bossAdjustProsperityV2887(p,-C.seal.missedProsperity*plan.lost);
+ b.highDay=plan.highDay;return plan.lost;
 }
 function bossEligibleV2887(p=player){
  return !!p?.sect&&p.sect!=='散修'&&!(typeof isFactionDestroyed==='function'&&isFactionDestroyed(p.sect))&&!!bossTierV2887(p.level);
@@ -700,13 +708,37 @@ function bossRequestV2887(token,kinds){
  const v=bossViewV2887,id={altar:'bossAltarV2887',fight:'bossFightV2887',seal:'bossSealV2887'};
  return !!(v&&v.token===token&&v.owner===player&&v.sect===player.sect&&kinds.includes(v.kind)&&sectCanManageV2866()&&bossEligibleV2887()&&document.getElementById(id[v.kind])&&!document.getElementById('storyPanel')?.classList.contains('hidden')&&v.state===bossFingerprintV2887()&&bossTodayV2887()>=bossPeekV2887().highDay);
 }
+function bossRefuseV2887(kind,msg){
+ let text=msg;
+ if(!text){
+  if(!sectCanManageV2866())text='当前无法处理镇岳台事务（战斗、突破或结算中）。';
+  else if(!bossEligibleV2887())text='你已不符合镇岳台的条件。';
+  else if(bossTodayV2887()<bossPeekV2887().highDay)text=`当前日期早于镇岳台记录（第${bossPeekV2887().highDay}日），请到那天之后再来。`;
+  else text='画面已过期，请使用当前页面的按钮重新选择。';
+ }
+ try{showFloatingText(text,'#ff9f43');}catch(_){}
+ try{
+  const v=bossViewV2887,ids={altar:'bossAltarV2887',fight:'bossFightV2887',seal:'bossSealV2887'};
+  const visible=v&&v.owner===player&&v.sect===player.sect&&document.getElementById(ids[v.kind])&&!document.getElementById('storyPanel')?.classList.contains('hidden');
+  if(visible&&sectCanManageV2866()&&bossEligibleV2887()){
+   if(kind==='seal'){if(typeof showSectAdminV2873==='function')showSectAdminV2873();}
+   else if(kind==='fight'&&bossPeekV2887().fight)showBossFightV2887(text);
+   else showBossAltarV2887(text);
+  }
+ }catch(e){console.warn('镇岳台刷新失败',e);}
+ return false;
+}
 function bossFightFreshV2887(F){
  const w=bossWindowV2887();return !!(F&&F.sect===player.sect&&bossEligibleV2887()&&bossTodayV2887()>=F.day&&(F.over||w.open&&w.year===F.year));
 }
-function bossSettlementPreviewV2887(){const copy=JSON.parse(JSON.stringify(player)),lost=bossSettleV2887(copy);return {lost,missed:copy.bossV2887.seal.missed,prosperity:copy.sectData?.prosperity??20};}
+function bossSettlementPreviewV2887(){const plan=bossSettlePlanV2887(player);return {lost:plan.lost,missed:plan.missed,prosperity:plan.prosperity};}
 function startBossFightV2887(offer=false,token){
- if(!bossRequestV2887(token,['altar'])||typeof offer!=='boolean')return false;
- const C=BOSS_V2887,w=bossWindowV2887();if(!w.open||bossPeekV2887().fight||offer&&bossBonesV2887()<C.offering.bones)return false;
+ if(typeof offer!=='boolean')return false;
+ if(!bossRequestV2887(token,['altar']))return bossRefuseV2887('altar');
+ const C=BOSS_V2887,w=bossWindowV2887();
+ if(!w.open)return bossRefuseV2887('altar','封印稳固，尚未松动。');
+ if(bossPeekV2887().fight)return bossRefuseV2887('altar','已有一场魂影未结束。');
+ if(offer&&bossBonesV2887()<C.offering.bones)return bossRefuseV2887('altar',`${C.bone}不足。`);
  const ok=bossCommitV2887(()=>{
   bossSettleV2887();const b=ensureBossV2887(),T=bossTierV2887(player.level),adv={...bossAdvantagesV2887(),offered:offer};
   const F=bossNewFightV2887('xuanming',T.id,bossPlayerStatsV2887(),adv,b.seal.missed,w.year);
@@ -715,9 +747,9 @@ function startBossFightV2887(offer=false,token){
  if(ok){bossViewV2887=null;showBossFightV2887('魂影入阵。战斗使用入场面板快照，暂离不会恢复魂影气血或灵力。');}return ok;
 }
 function bossActV2887(action,token){
- if(!bossRequestV2887(token,['fight']))return false;
- const F=bossPeekV2887().fight;if(!bossFightFreshV2887(F)||F.over)return false;
- const next=JSON.parse(JSON.stringify(F)),r=bossStepV2887(next,action);if(r.invalid)return false;
+ if(!bossRequestV2887(token,['fight']))return bossRefuseV2887('fight');
+ const F=bossPeekV2887().fight;if(!bossFightFreshV2887(F)||F.over)return bossRefuseV2887('fight');
+ const next=JSON.parse(JSON.stringify(F)),r=bossStepV2887(next,action);if(r.invalid){try{showFloatingText(r.ev[0]||'此招此刻无法使用。','#ff9f43');}catch(_){}return false;}
  const ok=bossCommitV2887(()=>{ensureBossV2887().fight=next;});
  if(ok){bossViewV2887=null;showBossFightV2887(r.ev.join(' '));}return ok;
 }
@@ -730,8 +762,8 @@ function showBossResultV2887(token,report=''){
  showStory(`<section id="bossFightV2887" class="sect-board-v2866 loop-board-v286840"><h3>镇岳${win?'功成':'未成'} · 待结算</h3><p>${esc(report)}</p><p>${text}</p><p>魂影损伤不影响真身。确认后保存本场结果，失败可重试，刷新可继续结算。</p><button class="choice-btn" onclick="bossFinalizeV2887(${token})">${win?'确认战果':'确认调息'}</button></section>`,[{text:'暂离 · 返回宗门',action:'sect_hall'}]);
 }
 function bossFinalizeV2887(token){
- if(!bossRequestV2887(token,['fight']))return false;
- const b=bossPeekV2887(),F=b.fight;if(!F?.over||!bossFightFreshV2887(F))return false;
+ if(!bossRequestV2887(token,['fight']))return bossRefuseV2887('fight');
+ const b=bossPeekV2887(),F=b.fight;if(!F?.over||!bossFightFreshV2887(F))return bossRefuseV2887('fight');
  const win=F.over==='win',R=win?bossRewardsV2887(F,b,bossTodayV2887()):null;
  const ok=bossCommitV2887(()=>{
   const s=ensureBossV2887();
@@ -749,15 +781,19 @@ function bossFinalizeV2887(token){
  if(ok){bossViewV2887=null;updateStats();showBossAltarV2887(win?'战果已保存，同年首胜与当日练手奖励不会重复领取。':'已完成调息；魂影战损未影响真身。');}return ok;
 }
 function abandonBossV2887(token){
- if(!bossRequestV2887(token,['altar','fight'])||!bossPeekV2887().fight)return false;
+ if(!bossRequestV2887(token,['altar','fight'])||!bossPeekV2887().fight)return bossRefuseV2887('altar');
  if(!confirm('放弃本场魂影？不发战果、不退献骨；已经结束的战斗请先确认结算。'))return false;
  if(!bossRequestV2887(token,['altar','fight'])||bossPeekV2887().fight?.over)return false;
  const ok=bossCommitV2887(()=>{ensureBossV2887().fight=null;});if(ok){bossViewV2887=null;showBossAltarV2887('已放弃魂影，本场无奖励。');}return ok;
 }
 function reinforceSealV2887(token){
- if(!bossRequestV2887(token,['seal'])||!bossIsMasterV2887()||bossPeekV2887().fight||bossBonesV2887()<BOSS_V2887.seal.reinforceBones||bossSettlementPreviewV2887().missed<=0)return false;
+ if(!bossRequestV2887(token,['seal']))return bossRefuseV2887('seal');
+ if(!bossIsMasterV2887())return bossRefuseV2887('seal','只有宗主可以加固封印。');
+ if(bossPeekV2887().fight)return bossRefuseV2887('seal','镇岳台的战斗尚未结束，不能加固封印。');
+ if(bossBonesV2887()<BOSS_V2887.seal.reinforceBones)return bossRefuseV2887('seal',`${BOSS_V2887.bone}不足。`);
+ if(bossSettlementPreviewV2887().missed<=0)return bossRefuseV2887('seal','封印并无失守，无需加固。');
  const ok=bossCommitV2887(()=>{bossSettleV2887();bossAddBonesV2887(player,-BOSS_V2887.seal.reinforceBones);ensureBossV2887().seal.missed=0;bossAdjustProsperityV2887(player,BOSS_V2887.seal.reinforceProsperity);});
  if(ok){bossViewV2887=null;showSectAdminV2873();showFloatingText('九锁重鸣，旧账与加固已保存。','#ffd76a');}return ok;
 }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2768-systems.js"]="28.68.61";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2768-systems.js"]="28.68.62";

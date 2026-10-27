@@ -141,7 +141,7 @@ fresh();
   const F=newFight(4);
   a.equal(F.bossMax,68*9,'boss life is 9 strikes at tier 1');a.equal(F.aspect,'shi');a.equal(F.armor,0);
   a.equal(F.hpMax,420);a.equal(F.mpMax,90);deq(F.intent,{skill:'heavy',stage:'act',read:null,why:null,tide:false});
-  a.equal(newFight(7).bossMax,Math.round(104*9*1.2));a.equal(newFight(11).bossMax,Math.round(152*9*1.4));
+  a.equal(newFight(7).bossMax,Math.round(104*9*1.2));a.equal(newFight(11).bossMax,Math.round(152*9*1.25));
   a.equal(newFight(4,NEUTRAL,0,0).armor,1,'骨甲相 starts armoured');
   // plain hits
   const S=newFight(4);step(S,'strike');a.equal(S.bossHp,612-68);a.equal(S.hp,420-Math.round(0.26*420));

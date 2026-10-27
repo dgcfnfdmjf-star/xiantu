@@ -383,4 +383,713 @@ if(typeof window.startCombat==='function'){
 }
 
 })();
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.61';
+
+// BEGIN SCENE25D_V2888
+'use strict';
+// V2888 · 2.5D map scenes. Pure canvas/CSS/inline SVG: no image files, no gameplay or save changes.
+// World map: relief light baked once into the static ground cache, drifting cloud shadows, depth scale and
+// cast shadows on landmarks/trees, cached screen-space haze + light, parallax foreground mist.
+// 山河图: light/relief layer, raised landmark plinths, parallax mist, procedural terrain only under missing art.
+// Location cards: layered ink-landscape diorama with pointer parallax and a raised medallion.
+// Opt-out: the 山河图 header button, or localStorage 'xiantu_scene25d_v2888' = 'off'.
+const SCENE25D_V2888={
+ key:'xiantu_scene25d_v2888',
+ depth:{far:.91,near:1.07},                       // sprite scale at the top / bottom of the view
+ cast:{building:{w:66,h:20,dx:20,dy:5,y:26},tree:{w:30,h:10,dx:11,dy:4,y:28},alpha:.24},
+ clouds:{count:6,alpha:.15,speed:7,w:520,h:230},
+ haze:{top:.22,topSpan:.32,bottom:.16,bottomSpan:.28},
+ mist:{alpha:.16,parallax:1.35,speed:6},
+ relief:{hills:26,light:.15,shade:.17,global:.09,edge:.14},
+ palette:{                                         // haze colour per region (sky tint seen through distance)
+  south:[238,230,205],east:[214,232,220],west:[232,214,190],north:[226,238,246],human_peaks:[230,232,214],
+  human_valleys:[226,236,212],demon_domain:[120,86,110],immortal_domain:[255,240,210]
+ }
+};
+const S25_V2888={sprites:null,overlay:null,overlayKey:'',baked:new WeakSet(),frameVh:0,terrain:new Map(),scrollRaf:0,cardRaf:0,cardTarget:null,cardXY:[0,0]};
+
+// ------------------------------------------------------------------ switches ----
+let scene25dEnabledV2888=true;try{scene25dEnabledV2888=localStorage.getItem(SCENE25D_V2888.key)!=='off';}catch(_){}
+function scene25dOnV2888(){return scene25dEnabledV2888;}
+function scene25dCalmV2888(){try{return !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;}catch(_){return false;}}
+function setScene25dV2888(on){
+ on=!!on;scene25dEnabledV2888=on;s25StopMotionV2888();
+ try{on?localStorage.removeItem(SCENE25D_V2888.key):localStorage.setItem(SCENE25D_V2888.key,'off');}catch(_){}
+ S25_V2888.overlay=null;S25_V2888.overlayKey='';
+ try{if(typeof releaseStaticWorldCacheV2767==='function')releaseStaticWorldCacheV2767();}catch(_){}
+ document.documentElement.classList.toggle('scene25d-off-v2888',!on);s25ApplyScrollV2888();
+ return on;
+}
+function s25RandV2888(seed){let s=(seed>>>0)||1;return()=>((s=Math.imul(s^s>>>15,1|s)+0x6D2B79F5|0,(s^s>>>7)>>>0)%100000)/100000;}
+function s25HashV2888(text){let h=2166136261;for(const ch of String(text))h=Math.imul(h^ch.codePointAt(0),16777619);return h>>>0;}
+function s25RegionV2888(){try{return currentRegion||player?.worldMapId||'south';}catch(_){return 'south';}}
+function s25CanvasV2888(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext?.('2d');return x?{c,x}:null;}
+function s25IsWorldCtxV2888(ctx){return !!ctx&&ctx.canvas&&ctx.canvas.id==='worldCanvas';}
+
+// ------------------------------------------------------------------ sprites (made once) ----
+function s25SpritesV2888(){
+ if(S25_V2888.sprites)return S25_V2888.sprites;
+ const blob=(w,h,puffs,rgb,seed)=>{
+  const k=s25CanvasV2888(w,h);if(!k)return null;const r=s25RandV2888(seed);
+  for(let i=0;i<puffs;i++){
+   const x=w*(.18+.64*r()),y=h*(.3+.4*r()),rad=h*(.28+.25*r());
+   const g=k.x.createRadialGradient(x,y,0,x,y,rad);g.addColorStop(0,`rgba(${rgb},.55)`);g.addColorStop(1,`rgba(${rgb},0)`);
+   k.x.fillStyle=g;k.x.beginPath();k.x.arc(x,y,rad,0,Math.PI*2);k.x.fill();
+  }
+  return k.c;
+ };
+ const shadow=(()=>{const k=s25CanvasV2888(128,48);if(!k)return null;const g=k.x.createRadialGradient(64,24,2,64,24,62);g.addColorStop(0,'rgba(12,16,12,1)');g.addColorStop(.55,'rgba(12,16,12,.55)');g.addColorStop(1,'rgba(12,16,12,0)');k.x.setTransform(1,0,0,.38,0,14.9);k.x.fillStyle=g;k.x.beginPath();k.x.arc(64,24,62,0,Math.PI*2);k.x.fill();return k.c;})();
+ S25_V2888.sprites={cloud:[blob(256,112,7,'18,26,22',11),blob(256,112,6,'18,26,22',29)],mist:[blob(256,96,6,'255,255,255',41),blob(256,96,5,'255,255,255',57)],shadow};
+ return S25_V2888.sprites;
+}
+
+// ------------------------------------------------------------------ world: one-time relief on the ground cache ----
+function s25BakeReliefV2888(cache){
+ if(!cache||S25_V2888.baked.has(cache))return;S25_V2888.baked.add(cache);
+ const ctx=cache.getContext?.('2d');if(!ctx)return;
+ const C=SCENE25D_V2888.relief,w=cache.width,h=cache.height,region=s25RegionV2888();
+ const image=typeof SCROLL_ART_V2831!=='undefined'&&(SCROLL_ART_V2831.regions||SCROLL_ART_V2831.landscape),art=!!(image?.complete&&image.naturalWidth);
+ ctx.save();
+ if(!art){                                          // procedural ground only: rounded mounds lit from the upper left
+  const r=s25RandV2888(s25HashV2888(region)),dark=region==='demon_domain'?'28,10,22':'16,26,18';
+  for(let i=0;i<C.hills;i++){
+   const x=w*r(),y=h*r(),rad=90+r()*150;
+   const lg=ctx.createRadialGradient(x-rad*.35,y-rad*.42,0,x-rad*.35,y-rad*.42,rad*.95);lg.addColorStop(0,`rgba(255,248,222,${C.light})`);lg.addColorStop(1,'rgba(255,248,222,0)');
+   ctx.fillStyle=lg;ctx.beginPath();ctx.arc(x-rad*.35,y-rad*.42,rad*.95,0,Math.PI*2);ctx.fill();
+   const sg=ctx.createRadialGradient(x+rad*.38,y+rad*.42,0,x+rad*.38,y+rad*.42,rad);sg.addColorStop(0,`rgba(${dark},${C.shade})`);sg.addColorStop(1,`rgba(${dark},0)`);
+   ctx.fillStyle=sg;ctx.beginPath();ctx.arc(x+rad*.38,y+rad*.42,rad,0,Math.PI*2);ctx.fill();
+  }
+ }
+ // whole map: warm light from the upper left, cool shade toward the lower right, darker world edges (ambient occlusion)
+ const d=ctx.createLinearGradient(0,0,w,h);d.addColorStop(0,`rgba(255,238,196,${C.global})`);d.addColorStop(.5,'rgba(255,238,196,0)');d.addColorStop(.5,'rgba(20,28,44,0)');d.addColorStop(1,`rgba(20,28,44,${C.global*1.2})`);
+ ctx.fillStyle=d;ctx.fillRect(0,0,w,h);
+ const edge=70;for(const [x0,y0,x1,y1,rx,ry,rw,rh] of [[0,0,0,edge,0,0,w,edge],[0,h,0,h-edge,0,h-edge,w,edge],[0,0,edge,0,0,0,edge,h],[w,0,w-edge,0,w-edge,0,edge,h]]){
+  const g=ctx.createLinearGradient(x0,y0,x1,y1);g.addColorStop(0,`rgba(10,14,12,${C.edge})`);g.addColorStop(1,'rgba(10,14,12,0)');ctx.fillStyle=g;ctx.fillRect(rx,ry,rw,rh);
+ }
+ ctx.restore();
+}
+
+// ------------------------------------------------------------------ world: per-frame helpers ----
+function s25DepthScaleV2888(y){
+ const D=SCENE25D_V2888.depth,cam=FLAT_WORLD.camera,vh=S25_V2888.frameVh||700;
+ const k=Math.max(0,Math.min(1,(y-cam.y)/vh));return D.far+(D.near-D.far)*k;
+}
+function s25CastKindV2888(o){
+ if(o?.t==='tree')return 'tree';
+ if(!o||o.enemy||o._warUnitV2840||o.action==='war_map_v2840'||o.action==='explore_v2828'||o.buildingId==='spirit_spring')return null;
+ const k=typeof getPoiVisualKind==='function'?getPoiVisualKind(o):'default';
+ return k==='npc'||k==='default'||k==='rest'||k==='forest'||k==='battlefield'||k==='pets'?null:'building';
+}
+function s25CastShadowV2888(ctx,o,kind){
+ const sp=s25SpritesV2888().shadow;if(!sp)return;
+ const c=SCENE25D_V2888.cast,k=c[kind],s=kind==='tree'?(o.s||1):1,w=k.w*s*2,h=k.h*s*2;
+ ctx.save();ctx.globalAlpha*=c.alpha;
+ ctx.translate(o.x+k.dx*s,o.y+k.y*s+k.dy*s);ctx.transform(1,0,-.55,1,0,0);   // skewed away from the upper-left sun
+ ctx.drawImage(sp,-w/2,-h/2,w,h);ctx.restore();
+}
+function s25WrapSpriteV2888(name,cast){
+ const base=window[name];if(typeof base!=='function'||base._s25V2888)return;
+ const wrapped=function(ctx,o){
+  if(!scene25dOnV2888()||!s25IsWorldCtxV2888(ctx)||!o)return base.apply(this,arguments);
+  const kind=cast?s25CastKindV2888(o):null;if(kind)s25CastShadowV2888(ctx,o,kind);
+  const s=s25DepthScaleV2888(o.y);
+  ctx.save();ctx.translate(o.x,o.y);ctx.scale(s,s);ctx.translate(-o.x,-o.y);
+  try{return base.apply(this,arguments);}finally{ctx.restore();}
+ };
+ wrapped._s25V2888=true;wrapped._baseV2888=base;window[name]=wrapped;
+}
+function s25CloudShadowsV2888(ctx,t,minX,maxX,minY,maxY){
+ const C=SCENE25D_V2888.clouds,sp=s25SpritesV2888().cloud,W=FLAT_WORLD.width+C.w*2,H=FLAT_WORLD.height;
+ const tt=scene25dCalmV2888()?0:t*.001,r=s25RandV2888(s25HashV2888(s25RegionV2888())+7);
+ ctx.save();
+ for(let i=0;i<C.count;i++){
+  const img=sp[i%2];if(!img)continue;
+  const sc=.7+r()*.6,w=C.w*sc,h=C.h*sc,x=((r()*W+tt*C.speed*(1+i*.15))%W)-C.w,y=H*(.05+.9*r());
+  if(x+w<minX||x>maxX||y+h<minY||y>maxY)continue;
+  ctx.globalAlpha=C.alpha*(.75+.5*r());ctx.drawImage(img,x,y,w,h);
+ }
+ ctx.restore();
+}
+function s25OverlayV2888(vw,vh){
+ const region=s25RegionV2888(),key=`${Math.round(vw)}x${Math.round(vh)}:${region}`;
+ if(S25_V2888.overlay&&S25_V2888.overlayKey===key)return S25_V2888.overlay;
+ const k=s25CanvasV2888(Math.max(1,Math.round(vw)),Math.max(1,Math.round(vh)));if(!k)return null;
+ const H=SCENE25D_V2888.haze,rgb=(SCENE25D_V2888.palette[region]||SCENE25D_V2888.palette.south).join(','),x=k.x,w=k.c.width,h=k.c.height;
+ let g=x.createLinearGradient(0,0,0,h*H.topSpan);g.addColorStop(0,`rgba(${rgb},${H.top})`);g.addColorStop(1,`rgba(${rgb},0)`);x.fillStyle=g;x.fillRect(0,0,w,h*H.topSpan);   // distance haze
+ g=x.createLinearGradient(0,h*(1-H.bottomSpan),0,h);g.addColorStop(0,'rgba(10,14,12,0)');g.addColorStop(1,`rgba(10,14,12,${H.bottom})`);x.fillStyle=g;x.fillRect(0,h*(1-H.bottomSpan),w,h*H.bottomSpan);  // near ground
+ const diag=Math.hypot(w,h);
+ g=x.createRadialGradient(-w*.1,-h*.15,0,-w*.1,-h*.15,diag*.75);g.addColorStop(0,'rgba(255,236,190,.12)');g.addColorStop(1,'rgba(255,236,190,0)');x.fillStyle=g;x.fillRect(0,0,w,h);   // sun
+ g=x.createRadialGradient(w*1.05,h*1.05,0,w*1.05,h*1.05,diag*.6);g.addColorStop(0,'rgba(18,26,46,.14)');g.addColorStop(1,'rgba(18,26,46,0)');x.fillStyle=g;x.fillRect(0,0,w,h);       // shade
+ S25_V2888.overlay=k.c;S25_V2888.overlayKey=key;return k.c;
+}
+function s25ForegroundV2888(ctx,t,vw,vh){
+ const ov=s25OverlayV2888(vw,vh);if(ov)ctx.drawImage(ov,0,0,vw,vh);
+ const M=SCENE25D_V2888.mist,sp=s25SpritesV2888().mist,cam=FLAT_WORLD.camera,tt=scene25dCalmV2888()?0:t*.001,span=vw+520;
+ ctx.save();ctx.globalAlpha=M.alpha;
+ for(let i=0;i<2;i++){const img=sp[i];if(!img)continue;
+  const x=((( -(scene25dCalmV2888()?0:cam.x)*M.parallax+tt*M.speed*(i?1.4:1)+i*span*.5)%span)+span)%span-260,y=vh*(i?.86:.74)-(scene25dCalmV2888()?0:cam.y)*.04%24;
+  ctx.drawImage(img,x,y,420,150);
+ }
+ ctx.restore();
+}
+
+// ------------------------------------------------------------------ world: install wrappers ----
+function installWorld25dV2888(){
+ if(typeof drawFlatWorld!=='function'||drawFlatWorld._s25V2888)return;
+ const baseCache=window.ensureStaticWorldCache;
+ if(typeof baseCache==='function'){const w=function(){const c=baseCache.apply(this,arguments);try{if(scene25dOnV2888())s25BakeReliefV2888(c);}catch(e){console.warn('2.5D 地形光照失败',e);}return c;};w._s25V2888=true;window.ensureStaticWorldCache=w;}
+ const baseAmbient=window.drawWorldAmbient;
+ if(typeof baseAmbient==='function'){const w=function(ctx,t,minX,maxX,minY,maxY){const r=baseAmbient.apply(this,arguments);try{if(scene25dOnV2888()&&s25IsWorldCtxV2888(ctx))s25CloudShadowsV2888(ctx,t,minX,maxX,minY,maxY);}catch(e){console.warn('2.5D 云影失败',e);}return r;};w._s25V2888=true;window.drawWorldAmbient=w;}
+ s25WrapSpriteV2888('drawWorldPoi',true);
+ s25WrapSpriteV2888('drawDepthTreeV2770',true);
+ s25WrapSpriteV2888('drawWorldMonster',false);
+ s25WrapSpriteV2888('drawWorldPlayer',false);
+ const baseDraw=window.drawFlatWorld;
+ const w=function(t=performance.now(),dt=1/60){
+  const c=document.getElementById('worldCanvas'),dpr=c?._dpr||1;
+  if(c)S25_V2888.frameVh=c.height/dpr;
+  const r=baseDraw.apply(this,arguments);
+  if(c&&!document.hidden&&!isWorldOverlayOpen()&&document.body.classList.contains('flat-world-active')&&scene25dOnV2888()){
+   const ctx=c.getContext('2d');
+   try{ctx.save();ctx.setTransform(dpr,0,0,dpr,0,0);s25ForegroundV2888(ctx,t,c.width/dpr,c.height/dpr);}catch(e){console.warn('2.5D 前景失败',e);}finally{ctx.restore();}
+  }
+  return r;
+ };
+ w._s25V2888=true;window.drawFlatWorld=w;
+}
+
+// ------------------------------------------------------------------ 山河图 ----
+function s25TerrainUrlV2888(region){
+ if(!Object.hasOwn(SCENE25D_V2888.palette,region))region='south';
+ if(S25_V2888.terrain.has(region))return S25_V2888.terrain.get(region);
+ const k=s25CanvasV2888(440,290);if(!k||typeof k.c.toDataURL!=='function')return '';
+ const x=k.x,w=440,h=290,r=s25RandV2888(s25HashV2888(region)+3);
+ const pal=typeof worldThemeV2827==='function'?worldThemeV2827():{ground:'#617452',patch:'#8b9867',dark:'#314b37'};
+ x.fillStyle='#eadfbe';x.fillRect(0,0,w,h);
+ for(let i=0;i<34;i++){                             // ink mountains: lit left flank, shaded right flank
+  const cx=w*r(),base=h*(.25+.75*r()),ph=18+r()*46,pw=ph*(1.1+r());
+  x.fillStyle=pal.patch;x.globalAlpha=.32;x.beginPath();x.moveTo(cx-pw,base);x.lineTo(cx,base-ph);x.lineTo(cx,base);x.closePath();x.fill();
+  x.fillStyle=pal.dark;x.globalAlpha=.36;x.beginPath();x.moveTo(cx,base-ph);x.lineTo(cx+pw,base);x.lineTo(cx,base);x.closePath();x.fill();
+ }
+ x.globalAlpha=.5;x.strokeStyle='#6f8f99';x.lineWidth=3;x.beginPath();x.moveTo(0,h*.62);for(let i=1;i<=8;i++)x.quadraticCurveTo(w*(i-.5)/8,h*(.55+.15*r()),w*i/8,h*(.58+.1*r()));x.stroke();x.globalAlpha=1;
+ let url='';try{url=k.c.toDataURL('image/jpeg',.82);}catch(_){}
+ S25_V2888.terrain.set(region,url);return url;
+}
+function s25DecorateFieldV2888(){
+ const field=document.getElementById('scrollFieldV2831');if(!field||!scene25dOnV2888())return;
+ if(!field.querySelector('.s25-light-v2888'))for(const cls of ['s25-mist-v2888 s25-near-v2888','s25-mist-v2888 s25-far-v2888','s25-light-v2888']){const el=document.createElement('div');el.className=cls;el.setAttribute('aria-hidden','true');field.prepend(el);}
+ s25ScrollParallaxV2888();
+}
+function s25ScrollParallaxV2888(){
+ const view=document.getElementById('scrollWindowV2831');if(!view||document.hidden||!scene25dOnV2888())return;
+ if(scene25dCalmV2888()){for(const el of view.querySelectorAll('.s25-mist-v2888'))el.style.transform='none';return;}
+ for(const el of view.querySelectorAll('.s25-mist-v2888')){const k=el.classList.contains('s25-near-v2888')?-.18:.22;el.style.transform=`translate3d(${(view.scrollLeft*k).toFixed(1)}px,${(view.scrollTop*k).toFixed(1)}px,0)`;}
+}
+function s25EnhanceScrollV2888(){
+ const wrap=document.getElementById('scrollMapV2831');if(!wrap)return;
+ const head=wrap.querySelector('header');
+ if(head&&!head.querySelector('[data-s25-toggle]')){
+  const b=document.createElement('button');b.type='button';b.setAttribute('data-s25-toggle','1');b.className='s25-toggle-v2888';
+  const label=()=>{const on=scene25dOnV2888();b.textContent=on?'立体 · 开':'立体 · 关';b.setAttribute('aria-pressed',String(on));};label();
+  b.addEventListener('click',e=>{e.stopPropagation();setScene25dV2888(!scene25dOnV2888());label();s25ApplyScrollV2888();});
+  head.insertBefore(b,head.querySelector('[data-scroll-action="close"]'));
+ }
+ const view=document.getElementById('scrollWindowV2831');
+ if(view&&!view._s25V2888){view._s25V2888=true;view.addEventListener('scroll',()=>{if(S25_V2888.scrollRaf||document.hidden||!scene25dOnV2888()||scene25dCalmV2888())return;S25_V2888.scrollRaf=requestAnimationFrame(()=>{S25_V2888.scrollRaf=0;s25ScrollParallaxV2888();});},{passive:true});}
+ s25ApplyScrollV2888();
+}
+function s25ApplyScrollV2888(){
+ const wrap=document.getElementById('scrollMapV2831'),field=document.getElementById('scrollFieldV2831');if(!wrap||!field)return;
+ const on=scene25dOnV2888();wrap.classList.toggle('scene25d-scroll-v2888',on);
+ if(!on){for(const el of field.querySelectorAll('.s25-light-v2888, .s25-mist-v2888'))el.remove();if(field._s25Background){Object.assign(field.style,field._s25Background);delete field._s25Background;delete field.dataset.s25Bg;}return;}
+ const url=s25TerrainUrlV2888(s25RegionV2888());
+ if(url&&!field.dataset.s25Bg){                      // painted art stays on top; the terrain only shows where art is missing
+  field._s25Background=Object.fromEntries(['backgroundImage','backgroundSize','backgroundPosition','backgroundRepeat'].map(k=>[k,field.style[k]||'']));
+  const cs=getComputedStyle(field),img=field.style.backgroundImage||cs.backgroundImage||'none';
+  field.dataset.s25Bg=img;
+  const size=field.style.backgroundSize||cs.backgroundSize||'100% 100%',pos=field.style.backgroundPosition||cs.backgroundPosition||'50% 50%';
+  field.style.backgroundImage=`${img&&img!=='none'?img+', ':''}url("${url}")`;
+  field.style.backgroundSize=`${img&&img!=='none'?size+', ':''}100% 100%`;
+  field.style.backgroundPosition=`${img&&img!=='none'?pos+', ':''}0 0`;
+  field.style.backgroundRepeat='no-repeat';
+ }
+ s25DecorateFieldV2888();
+}
+function installScroll25dV2888(){
+ const baseShow=window.showScrollMapV2831;
+ if(typeof baseShow==='function'&&!baseShow._s25V2888){const w=function(){const r=baseShow.apply(this,arguments);try{s25EnhanceScrollV2888();}catch(e){console.warn('2.5D 山河图失败',e);}return r;};w._s25V2888=true;window.showScrollMapV2831=w;}
+ const baseRender=window.renderScrollTargetsV2837;  // the field is rebuilt on every filter/selection change
+ if(typeof baseRender==='function'&&!baseRender._s25V2888){const w=function(){const r=baseRender.apply(this,arguments);try{s25DecorateFieldV2888();}catch(e){console.warn('2.5D 山河图层失败',e);}return r;};w._s25V2888=true;window.renderScrollTargetsV2837=w;}
+ const baseZoom=window.zoomScrollV2837;
+ if(typeof baseZoom==='function'&&!baseZoom._s25V2888){const w=function(){const r=baseZoom.apply(this,arguments);try{s25ScrollParallaxV2888();}catch(_){}return r;};w._s25V2888=true;window.zoomScrollV2837=w;}
+}
+
+// ------------------------------------------------------------------ location cards ----
+function s25RidgeV2888(rand,base,amp,step){
+ let d=`M0 80 L0 ${base}`;for(let x=0;x<=300;x+=step){const y=base-amp*(.35+.65*rand());d+=` L${x} ${y.toFixed(1)}`;}return d+' L300 80 Z';
+}
+function s25LandmarkV2888(kind){
+ if(kind==='sect')return '<g transform="translate(236 30)"><path d="M-22 22h44l-6-7h-32z"/><path d="M-17 15h34l-5-7h-24z"/><path d="M-12 8h24l-4-7h-16z"/><path d="M-1 1h2v-9h-2z"/><rect x="-14" y="22" width="28" height="22"/><path d="M-44 44v-14h4v14zM-30 44v-14h4v14zM-48 30h26l-3-4h-20z"/></g>';
+ if(kind==='village')return '<g transform="translate(222 46)"><path d="M0 12l14-12 14 12z"/><rect x="3" y="12" width="22" height="16"/><path d="M26 16l12-10 12 10z"/><rect x="29" y="16" width="18" height="12"/><path d="M-22 18l10-9 10 9z"/><rect x="-20" y="18" width="16" height="10"/></g>';
+ if(kind==='home')return '<g transform="translate(230 30)"><path d="M-40 50 L-30 6 Q-5 -10 22 4 L40 50Z"/><path d="M-12 50v-18a12 12 0 0 1 24 0v18z" fill="rgba(0,0,0,.55)"/></g>';
+ if(kind==='market')return '<g transform="translate(222 48)"><rect x="-20" y="8" width="18" height="18"/><path d="M-24 8h26l-4-8h-18z"/><rect x="8" y="8" width="18" height="18"/><path d="M4 8h26l-4-8h-18z"/><path d="M36 26v-30h2v30z"/><path d="M38 -4h12l-3 5 3 5h-12z"/></g>';
+ return '<g transform="translate(232 40)"><path d="M-26 14q26 -16 52 0l-6 3h-40z"/><rect x="-16" y="17" width="3" height="20"/><rect x="13" y="17" width="3" height="20"/><path d="M-22 37h44v3h-44z"/></g>';
+}
+function s25SceneKindV2888(icon,title){
+ const t=String(icon)+String(title);
+ if(/⛩|宗|殿|阁/.test(t))return 'sect';
+ if(/🏘|村|镇/.test(t))return 'village';
+ if(/🏠|洞府|居/.test(t))return 'home';
+ if(/🏪|🏬|市|铺|商/.test(t))return 'market';
+ return 'pavilion';
+}
+function s25DioramaV2888(icon,title,accent){
+ const pal=typeof worldThemeV2827==='function'?worldThemeV2827():{ground:'#617452',patch:'#8b9867',dark:'#314b37'};
+ const r=s25RandV2888(s25HashV2888(title)),safe=/^#[0-9a-f]{3,8}$/i.test(accent)?accent:'#ffd98a',kind=s25SceneKindV2888(icon,title);
+ const layer=(depth,body)=>`<div class="s25-layer-v2888" style="--d:${depth}"><svg viewBox="0 0 300 80" preserveAspectRatio="none" focusable="false">${body}</svg></div>`;
+ return `<div class="s25-diorama-v2888" aria-hidden="true" style="--s25-accent:${safe}">`
+  +`<div class="s25-sky-v2888"></div><div class="s25-sun-v2888" style="left:${Math.round(12+r()*30)}%"></div>`
+  +layer(.15,`<path d="${s25RidgeV2888(r,46,30,20)}" fill="${pal.patch}" opacity=".45"/>`)
+  +layer(.35,`<path d="${s25RidgeV2888(r,58,24,15)}" fill="${pal.ground}" opacity=".8"/>`)
+  +'<div class="s25-mistband-v2888"></div>'
+  +layer(.7,`<g fill="${pal.dark}"><path d="${s25RidgeV2888(r,70,12,25)}"/>${s25LandmarkV2888(kind)}</g>`)
+  +'<div class="s25-ground-v2888"></div></div>';
+}
+function installCards25dV2888(){
+ const base=window.buildAreaSceneCard;if(typeof base!=='function'||base._s25V2888)return;
+ const w=function(opts={}){
+  const html=base.apply(this,arguments);
+  if(!scene25dOnV2888()||typeof html!=='string'||!html.includes('<div class="area-scene-card">'))return html;
+  try{return html.replace('<div class="area-scene-card">',`<div class="area-scene-card scene25d-card-v2888">${s25DioramaV2888(opts?.icon??'',opts?.title??'',opts?.accent??'#ffd98a')}`);}
+  catch(e){console.warn('2.5D 场景卡失败',e);return html;}
+ };
+ w._s25V2888=true;w._baseV2888=base;window.buildAreaSceneCard=w;
+ const move=e=>{
+  const card=e.target?.closest?.('.scene25d-card-v2888');
+  if(card!==S25_V2888.cardTarget){if(S25_V2888.cardTarget){S25_V2888.cardTarget.style.setProperty('--s25x','0');S25_V2888.cardTarget.style.setProperty('--s25y','0');}S25_V2888.cardTarget=card||null;}
+  if(!card||document.hidden||!scene25dOnV2888()||scene25dCalmV2888()||(e.pointerType==='touch'&&!e.buttons))return;
+  const b=card.getBoundingClientRect();S25_V2888.cardXY=[Math.max(-1,Math.min(1,((e.clientX-b.left)/Math.max(1,b.width))*2-1)),Math.max(-1,Math.min(1,((e.clientY-b.top)/Math.max(1,b.height))*2-1))];
+  if(S25_V2888.cardRaf)return;
+  S25_V2888.cardRaf=requestAnimationFrame(()=>{S25_V2888.cardRaf=0;const c=S25_V2888.cardTarget;if(!c||!c.isConnected||!scene25dOnV2888()||document.hidden)return;c.style.setProperty('--s25x',S25_V2888.cardXY[0].toFixed(3));c.style.setProperty('--s25y',S25_V2888.cardXY[1].toFixed(3));});
+ };
+ document.addEventListener('pointermove',move,{passive:true});
+}
+
+function s25StopMotionV2888(){
+ cancelAnimationFrame(S25_V2888.cardRaf);cancelAnimationFrame(S25_V2888.scrollRaf);
+ S25_V2888.cardRaf=S25_V2888.scrollRaf=0;
+ const c=S25_V2888.cardTarget;if(c){c.style.setProperty('--s25x','0');c.style.setProperty('--s25y','0');}S25_V2888.cardTarget=null;
+}
+let scene25dLifecycleV2888=false;
+function installSceneLifecycleV2888(){
+ if(scene25dLifecycleV2888)return;scene25dLifecycleV2888=true;
+ for(const n of ['pointerup','pointercancel','pointerleave'])document.addEventListener(n,s25StopMotionV2888,{passive:true});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)s25StopMotionV2888();});
+ window.addEventListener('pagehide',s25StopMotionV2888);
+ window.addEventListener('storage',e=>{if(e.key===SCENE25D_V2888.key||e.key===null)setScene25dV2888(e.key===null||e.newValue!=='off');});
+ window.matchMedia?.('(prefers-reduced-motion: reduce)')?.addEventListener?.('change',()=>{s25StopMotionV2888();s25ScrollParallaxV2888();});
+ for(const n of ['closeScrollMapV2837','closeWorldOverlay','resetRuntimeState']){const base=window[n];if(typeof base==='function')window[n]=function(...args){s25StopMotionV2888();return base.apply(this,args);};}
+}
+// ------------------------------------------------------------------ styles ----
+function installStyles25dV2888(){
+ if(document.getElementById('scene25dStyleV2888'))return;
+ const st=document.createElement('style');st.id='scene25dStyleV2888';
+ st.textContent=`
+.scene25d-card-v2888{position:relative;overflow:hidden;--s25x:0;--s25y:0;transform:perspective(900px) rotateX(calc(var(--s25y) * -2deg)) rotateY(calc(var(--s25x) * 2.6deg));transition:transform .25s ease-out}
+.scene25d-card-v2888 .s25-diorama-v2888{position:relative;height:88px;margin:-14px -14px 12px;border-radius:18px 18px 0 0;overflow:hidden;contain:paint;background:#1c2128}
+.s25-sky-v2888{position:absolute;inset:0;background:linear-gradient(180deg,color-mix(in srgb,var(--s25-accent) 30%,#2b3640) 0%,#1d252c 100%)}
+@supports not (background:color-mix(in srgb,red 50%,blue)){.s25-sky-v2888{background:linear-gradient(180deg,#5b5a4a 0%,#1d252c 100%)}}
+.s25-sun-v2888{position:absolute;top:12px;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#fff8de,var(--s25-accent) 60%,transparent 72%);box-shadow:0 0 26px 8px color-mix(in srgb,var(--s25-accent) 45%,transparent);opacity:.85;transform:translate3d(calc(var(--s25x) * -2px),calc(var(--s25y) * -1px),0)}
+.s25-layer-v2888{position:absolute;inset:-6px -12px 0;transform:translate3d(calc(var(--s25x) * var(--d) * -14px),calc(var(--s25y) * var(--d) * -5px),0);transition:transform .25s ease-out;will-change:transform}
+.s25-layer-v2888 svg{width:100%;height:100%;display:block}
+.s25-mistband-v2888{position:absolute;left:-20%;right:-20%;top:46%;height:26px;background:radial-gradient(ellipse at 30% 50%,rgba(255,255,255,.22),transparent 60%),radial-gradient(ellipse at 75% 50%,rgba(255,255,255,.16),transparent 55%);animation:s25DriftV2888 22s linear infinite alternate}
+.s25-ground-v2888{position:absolute;left:0;right:0;bottom:0;height:22px;background:linear-gradient(180deg,transparent,rgba(10,12,14,.55))}
+@keyframes s25DriftV2888{from{transform:translateX(-6%)}to{transform:translateX(6%)}}
+.scene25d-card-v2888 .area-scene-head{position:relative;z-index:1}
+.scene25d-card-v2888 .area-scene-icon{margin-top:-46px;background:radial-gradient(circle at 32% 26%,rgba(255,255,255,.34),rgba(255,255,255,.06) 42%,rgba(0,0,0,.28) 100%),#2a3038;border:1px solid rgba(255,255,255,.2);box-shadow:0 14px 22px rgba(0,0,0,.42),0 3px 0 rgba(0,0,0,.35),inset 0 2px 1px rgba(255,255,255,.22),inset 0 -6px 10px rgba(0,0,0,.35)!important;text-shadow:0 3px 4px rgba(0,0,0,.45)}
+@media(max-width:600px){.scene25d-card-v2888 .s25-diorama-v2888{height:66px}.scene25d-card-v2888 .area-scene-icon{margin-top:-38px}}
+.scene25d-scroll-v2888 .scroll-field-v2831 .s25-light-v2888{position:absolute;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse at 12% 8%,rgba(255,246,214,.30),transparent 55%),radial-gradient(ellipse at 95% 100%,rgba(48,34,22,.22),transparent 60%),linear-gradient(180deg,rgba(246,238,214,.32),transparent 30%)}
+.scene25d-scroll-v2888 .scroll-field-v2831 .s25-mist-v2888{position:absolute;inset:-10%;pointer-events:none;z-index:1;background:radial-gradient(ellipse 22% 9% at 20% 30%,rgba(255,255,255,.34),transparent 70%),radial-gradient(ellipse 26% 8% at 70% 62%,rgba(255,255,255,.28),transparent 70%),radial-gradient(ellipse 18% 7% at 45% 85%,rgba(255,255,255,.24),transparent 70%);will-change:transform}
+.scene25d-scroll-v2888 .scroll-field-v2831 .s25-near-v2888{opacity:.7;background-size:140% 140%}
+.scene25d-scroll-v2888 .scroll-poi-v2831::before{content:"";position:absolute;left:50%;bottom:14px;width:46px;height:12px;margin-left:-14px;border-radius:50%;background:radial-gradient(closest-side,rgba(40,26,12,.42),transparent);transform:skewX(-35deg);z-index:-1;pointer-events:none}
+.scene25d-scroll-v2888 .scroll-poi-v2831{transition:transform .18s ease-out}
+.scene25d-scroll-v2888 .scroll-poi-v2831.is-selected,.scene25d-scroll-v2888 .scroll-poi-v2831:hover{transform:translate(-50%,-82%)}
+.scene25d-scroll-v2888 .scroll-poi-v2831.is-selected::before,.scene25d-scroll-v2888 .scroll-poi-v2831:hover::before{bottom:6px;width:54px;opacity:.75}
+.scene25d-scroll-v2888 .scroll-player-v2831{filter:drop-shadow(3px 4px 2px rgba(40,26,12,.45))}
+.s25-toggle-v2888{margin-left:auto;margin-right:8px;font-size:12px!important;min-height:36px!important}
+.scene25d-off-v2888 .s25-diorama-v2888{display:none}.scene25d-off-v2888 .scene25d-card-v2888{transform:none!important}.scene25d-off-v2888 .scene25d-card-v2888 .area-scene-icon{margin-top:0}
+.xiantu-v2762-page-hidden .s25-mistband-v2888{animation-play-state:paused}
+@media (prefers-reduced-motion: reduce){.s25-layer-v2888,.s25-sun-v2888,.s25-mist-v2888{transform:none!important}.scene25d-card-v2888,.s25-layer-v2888,.scene25d-scroll-v2888 .scroll-poi-v2831{transition:none}.s25-mistband-v2888{animation:none}.scene25d-card-v2888{transform:none}}
+`;
+ document.head.appendChild(st);
+}
+
+// ------------------------------------------------------------------ install ----
+function installScene25dV2888(){
+ installSceneLifecycleV2888();installStyles25dV2888();installWorld25dV2888();installScroll25dV2888();installCards25dV2888();
+ document.documentElement.classList.toggle('scene25d-off-v2888',!scene25dOnV2888());
+}
+try{installScene25dV2888();}catch(e){console.warn('2.5D 场景安装失败',e);}
+
+// END SCENE25D_V2888
+
+// BEGIN BATTLE25D_V2889
+'use strict';
+// V2889 · 2.5D battle stage and clearer battle feedback. Presentation only: never writes gameplay state,
+// never changes damage, turns or rewards. Pure CSS / inline SVG / DOM, no image files, no animation loop.
+// Regular battles: region-matched layered backdrop with perspective floor, pedestals and depth for the fighters,
+// pointer + impact parallax, hit / crit / dodge / heal bursts, readable damage numbers, tweened HP/MP bars with a
+// damage "chip", a turn cue and phone-friendly skill buttons. 镇岳台 (V2887): stage, tweened bars, damage floats.
+// Off switch: 战斗设置 → 立体战场, or localStorage 'xiantu_battle25d_v2889' = 'off'. Reduced motion is respected.
+const BATTLE25D_V2889={
+ key:'xiantu_battle25d_v2889',
+ fxMax:6,fxLife:900,kickMs:240,
+ regions:{                       // sky top, sky bottom, far ridge, near ridge, floor, mist
+  south:['#2b4a52','#c9b98d','#6f8a70','#3d5a45','#4e6a49','255,246,220'],
+  east:['#23434a','#a9c8b4','#5d8a78','#2f5446','#3f6352','230,250,240'],
+  west:['#4a3a35','#d0a878','#8a7058','#54412f','#6b5641','255,236,210'],
+  north:['#33485a','#d9e6ec','#9fb3b7','#5c7276','#7d9093','240,248,255'],
+  human_peaks:['#334452','#c8c6a6','#7d8a70','#45573f','#5a6a4c','250,248,230'],
+  human_valleys:['#2d4a45','#bcc89a','#6f8f62','#3e5a3a','#55704a','245,250,225'],
+  demon_domain:['#1b1220','#6b3048','#4a2a3c','#2a1622','#3a2230','230,170,200'],
+  immortal_domain:['#3c3a66','#f3dfa8','#a99bc8','#6e6496','#8a7fae','255,244,220']
+ },
+ tier:{boss:'rgba(255,70,60,.20)',tribulation:'rgba(140,170,255,.26)',elite:'rgba(255,214,90,.14)',normal:'rgba(0,0,0,0)'},
+ dodge:/闪避(?:了|成功)|(?:躲过|躲开|避开)了.*(?:攻击|一击)|攻击未能命中/,
+ block:/格挡了|抵挡下|挡下了|护盾吸收了/,
+ elements:{fire:'#ff9348',ice:'#9fe8ff',thunder:'#efe88f',heal:'#84ffd0',sword:'#dce9ff',wood:'#9be27d',earth:'#d9b77a',water:'#7fc4ff'}
+};
+const B25_V2889={meters:new Map(),meterOwner:null,fx:[],kickTimer:0,pointerRaf:0,xy:[0,0],boss:new Map(),bossBefore:null,tasks:new Map(),epoch:0,owner:null,foe:null,lifecycle:false};
+
+// ------------------------------------------------------------------ switches ----
+let battle25dEnabledV2889=true;try{battle25dEnabledV2889=localStorage.getItem(BATTLE25D_V2889.key)!=='off';}catch(_){}
+function battle25dOnV2889(){return battle25dEnabledV2889;}
+function battle25dCalmV2889(){try{return !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;}catch(_){return false;}}
+function setBattle25dV2889(on){
+ on=!!on;battle25dEnabledV2889=on;b25ClearV2889();
+ try{on?localStorage.removeItem(BATTLE25D_V2889.key):localStorage.setItem(BATTLE25D_V2889.key,'off');}catch(_){}
+ b25SyncV2889(true);if(on)b25BossStageV2889();else{const h=document.getElementById('bossFightV2887');h?.classList.remove('b25-boss-v2889');for(const e of h?.querySelectorAll('.b25-stage-v2889, .b25-fx-v2889')||[])e.remove();}return on;
+}
+function b25HashV2889(t){let h=2166136261;for(const c of String(t))h=Math.imul(h^c.codePointAt(0),16777619);return h>>>0;}
+function b25RandV2889(seed){let s=(seed>>>0)||7;return()=>((s=Math.imul(s^s>>>15,1|s)+0x6D2B79F5|0,(s^s>>>7)>>>0)%100000)/100000;}
+function b25ChildV2889(el,cls){return el?[...el.children].find(c=>c.classList?.contains(cls))||null:null;}
+function b25RegionV2889(){try{return currentRegion||player?.worldMapId||'south';}catch(_){return 'south';}}
+function b25InBattleV2889(){try{return !!currentEnemy&&(gameState==='combat'||gameState==='combat-ending');}catch(_){return false;}}
+function b25TierV2889(){try{return isTribulation?'tribulation':isBossFight?'boss':currentEnemy?._isElite?'elite':'normal';}catch(_){return 'normal';}}
+function b25DuelV2889(){return !!document.getElementById('combatArena')?.classList.contains('duel25-active');}
+
+function b25ScheduleV2889(fn,delay,frame){
+ const epoch=B25_V2889.epoch,owner=player;
+ const cb=()=>{B25_V2889.tasks.delete(id);if(epoch===B25_V2889.epoch&&owner===player&&!document.hidden&&battle25dOnV2889())fn();};
+ const id=frame?requestAnimationFrame(cb):setTimeout(cb,delay);B25_V2889.tasks.set(id,frame);return id;
+}
+function b25LaterV2889(fn,delay){return b25ScheduleV2889(fn,delay,false);}
+function b25FrameV2889(fn){return b25ScheduleV2889(fn,0,true);}
+function b25CancelV2889(id){if(B25_V2889.tasks.get(id))cancelAnimationFrame(id);else clearTimeout(id);B25_V2889.tasks.delete(id);}
+function b25ResetPointerV2889(){
+ b25CancelV2889(B25_V2889.pointerRaf);B25_V2889.pointerRaf=0;
+ const a=document.getElementById('combatArena');if(a){a.style.setProperty('--b25x','0');a.style.setProperty('--b25y','0');}
+}
+function b25ClearV2889(){
+ B25_V2889.epoch++;for(const id of B25_V2889.tasks.keys())b25CancelV2889(id);
+ B25_V2889.fx=[];B25_V2889.kickTimer=0;b25ResetPointerV2889();B25_V2889.meters.clear();B25_V2889.boss.clear();B25_V2889.meterOwner=null;
+ for(const e of document.querySelectorAll('.b25-burst-v2889, .b25-chip-v2889'))e.remove();
+ for(const id of ['combatArena','bossFightV2887']){const e=document.getElementById(id);if(e){e.style.setProperty('--b25-kick','0');e.classList.remove('b25-quake-v2889');}}
+}
+// ------------------------------------------------------------------ stage ----
+function b25RidgeV2889(r,base,amp,step){let d=`M0 100 L0 ${base}`;for(let x=0;x<=400;x+=step)d+=` L${x} ${(base-amp*(.3+.7*r())).toFixed(1)}`;return d+' L400 100 Z';}
+function b25StageHtmlV2889(region,tier,seed){
+ const C=BATTLE25D_V2889,p=C.regions[region]||C.regions.south,r=b25RandV2889(seed);
+ const svg=(d,body)=>`<div class="b25-layer-v2889" style="--d:${d}"><svg viewBox="0 0 400 100" preserveAspectRatio="none" focusable="false">${body}</svg></div>`;
+ return `<div class="b25-sky-v2889" style="background:linear-gradient(180deg,${p[0]},${p[1]})"></div>`
+  +`<div class="b25-glow-v2889" style="left:${Math.round(18+r()*55)}%"></div>`
+  +svg(.12,`<path d="${b25RidgeV2889(r,52,34,22)}" fill="${p[2]}" opacity=".75"/>`)
+  +`<div class="b25-mist-v2889" style="--m:rgba(${p[5]},.30)"></div>`
+  +svg(.3,`<path d="${b25RidgeV2889(r,70,22,16)}" fill="${p[3]}"/>`)
+  +`<div class="b25-floor-v2889" style="--floor:${p[4]}"><i></i></div>`
+  +`<div class="b25-tier-v2889" style="background:radial-gradient(ellipse at 70% 40%,${C.tier[tier]||C.tier.normal},transparent 65%)"></div>`
+  +svg(.55,`<path d="M0 100 L0 ${88+r()*6} Q40 ${80+r()*8} 70 ${90+r()*6} L120 100 Z M310 100 Q340 ${82+r()*6} 400 ${84+r()*8} L400 100Z" fill="rgba(8,12,10,.82)"/>`)
+  +'<div class="b25-vignette-v2889"></div>';
+}
+function b25EnsureStageV2889(){
+ const arena=document.getElementById('combatArena'),panel=document.getElementById('combatPanel');if(!arena||!panel)return null;
+ const on=battle25dOnV2889()&&b25InBattleV2889()&&!b25DuelV2889();
+ panel.classList.toggle('b25-on-v2889',on);
+ let stage=arena.querySelector('.b25-stage-v2889');
+ if(!on){b25ClearV2889();stage?.remove();for(const el of arena.querySelectorAll('.b25-pedestal-v2889, .b25-fx-v2889, .b25-marker-v2889'))el.remove();return null;}
+ const region=b25RegionV2889(),tier=b25TierV2889(),key=`${region}|${tier}|${currentEnemy?.name||''}`;
+ if(!stage){stage=document.createElement('div');stage.className='b25-stage-v2889';stage.setAttribute('aria-hidden','true');arena.prepend(stage);}
+ if(stage.dataset.key!==key){stage.dataset.key=key;stage.dataset.region=region;stage.dataset.tier=tier;stage.innerHTML=b25StageHtmlV2889(region,tier,b25HashV2889(key));}
+ for(const id of ['playerCombatant','enemyCombatant']){
+  const c=document.getElementById(id);if(c&&!b25ChildV2889(c,'b25-pedestal-v2889')){const p=document.createElement('div');p.className='b25-pedestal-v2889';p.setAttribute('aria-hidden','true');c.prepend(p);}
+  if(c&&!b25ChildV2889(c,'b25-marker-v2889')){const m=document.createElement('div');m.className='b25-marker-v2889';m.setAttribute('aria-hidden','true');c.appendChild(m);}
+ }
+ if(!arena.querySelector('.b25-fx-v2889')){const fx=document.createElement('div');fx.className='b25-fx-v2889';fx.setAttribute('aria-hidden','true');arena.appendChild(fx);}
+ return stage;
+}
+
+// ------------------------------------------------------------------ turn cue ----
+function b25TurnV2889(){
+ try{if(!b25InBattleV2889()||gameState==='combat-ending')return 'end';return isPlayerTurn?'player':'enemy';}catch(_){return 'end';}
+}
+function b25SyncTurnV2889(force){
+ const panel=document.getElementById('combatPanel');if(!panel)return;
+ const turn=b25TurnV2889();if(!force&&panel.dataset.b25Turn===turn)return;
+ panel.dataset.b25Turn=turn;
+}
+
+// ------------------------------------------------------------------ bars: tween + damage chip ----
+function b25MetersV2889(){
+ const status=document.getElementById('battleVitalsV286816');if(!status||!battle25dOnV2889()||document.hidden)return;
+ if(B25_V2889.meterOwner!==currentEnemy){B25_V2889.meterOwner=currentEnemy;B25_V2889.meters.clear();}
+ const calm=battle25dCalmV2889();
+ [...status.children].forEach((side,si)=>{
+  for(const m of side.querySelectorAll('.battle-meter-v286816')){
+   const fill=m.querySelector('i');if(!fill||fill.dataset.b25)continue;
+   fill.dataset.b25='1';
+   const cls=String(m.className||'').split(/\s+/).find(c=>c&&c!=='battle-meter-v286816')||'x',key=si+':'+cls;
+   const to=parseFloat(fill.style.width)||0,from=B25_V2889.meters.has(key)?B25_V2889.meters.get(key):to;
+   B25_V2889.meters.set(key,to);
+   if(calm||Math.abs(to-from)<.05)continue;
+   const chip=document.createElement('u');chip.className='b25-chip-v2889 '+(to<from?'loss':'gain');chip.style.width=Math.max(from,to)+'%';m.prepend(chip);
+   fill.style.transition='none';fill.style.width=from+'%';void fill.offsetWidth;
+   fill.style.transition='';fill.style.width=to+'%';
+   b25FrameV2889(()=>b25FrameV2889(()=>{chip.style.width=to+'%';}));
+   b25LaterV2889(()=>chip.remove(),1100);
+  }
+ });
+}
+
+// ------------------------------------------------------------------ feedback bursts ----
+function b25FxV2889(kind,side,text=''){
+ if(!battle25dOnV2889()||document.hidden||b25DuelV2889())return null;
+ const layer=document.getElementById('combatArena')?.querySelector('.b25-fx-v2889');if(!layer)return null;
+ while(B25_V2889.fx.length>=BATTLE25D_V2889.fxMax){const old=B25_V2889.fx.shift();b25CancelV2889(old.timer);old.el.remove();}
+ const el=document.createElement('div');el.className=`b25-burst-v2889 ${kind} at-${side==='enemy'?'enemy':'player'}`;
+ if(text){const b=document.createElement('b');b.textContent=text;el.appendChild(b);}
+ layer.appendChild(el);
+ const rec={el,timer:b25LaterV2889(()=>{el.remove();B25_V2889.fx=B25_V2889.fx.filter(x=>x!==rec);},BATTLE25D_V2889.fxLife)};B25_V2889.fx.push(rec);
+ return el;
+}
+function b25KickV2889(side,strong){
+ const arena=document.getElementById('combatArena');if(!arena||document.hidden||b25DuelV2889()||battle25dCalmV2889()||!battle25dOnV2889())return;
+ arena.style.setProperty('--b25-kick',String((side==='enemy'?-1:1)*(strong?1.6:1)));
+ arena.classList.toggle('b25-quake-v2889',!!strong);
+ b25CancelV2889(B25_V2889.kickTimer);
+ B25_V2889.kickTimer=b25LaterV2889(()=>{arena.style.setProperty('--b25-kick','0');arena.classList.remove('b25-quake-v2889');},BATTLE25D_V2889.kickMs);
+}
+function b25ClassifyLogV2889(text){
+ const t=String(text||'').replace(/<[^>]*>/g,'');
+ if(BATTLE25D_V2889.dodge.test(t))return 'dodge';
+ if(BATTLE25D_V2889.block.test(t))return 'block';
+ return null;
+}
+
+// ------------------------------------------------------------------ skill buttons ----
+function b25ButtonsV2889(){
+ const box=document.getElementById('combatChoices');if(!box||!battle25dOnV2889())return;
+ for(const b of box.querySelectorAll('button')){
+  const m=/^combat\(\s*'skill'\s*,\s*(\d+)\s*\)/.exec(b.getAttribute('onclick')||'');
+  if(!m){if(/^combat\(\s*'attack'/.test(b.getAttribute('onclick')||''))b.dataset.b25El='strike';continue;}
+  const s=player?.skills?.[Number(m[1])];if(!s)continue;
+  b.dataset.b25El=BATTLE25D_V2889.elements[s.element]?s.element:'sword';
+  const short=Number(s.mpCost)>Number(player.mp);
+  if(short)b.dataset.b25Why=`灵力差 ${Math.ceil(Number(s.mpCost)-Number(player.mp))}`;else delete b.dataset.b25Why;
+ }
+}
+
+// ------------------------------------------------------------------ one sync for everything ----
+function b25SyncV2889(force=false){
+ try{
+  if(B25_V2889.owner!==player||B25_V2889.foe!==currentEnemy){b25ClearV2889();B25_V2889.owner=player;B25_V2889.foe=currentEnemy;}
+  const stage=b25EnsureStageV2889();
+  if(stage||force)b25SyncTurnV2889(force);
+  if(stage){b25MetersV2889();b25ButtonsV2889();b25ToggleV2889();}
+ }catch(e){console.warn('立体战场同步失败',e);}
+}
+function b25WrapV2889(name,after,before){
+ const base=window[name];if(typeof base!=='function'||base._b25V2889)return;
+ const w=function(...args){
+  let pre;try{if(before)pre=before.apply(this,args);}catch(e){console.warn('立体战场',name,e);}
+  const r=w._baseV2889.apply(this,args);              // looked up on call, so a test can swap the base
+  try{if(after)after.call(this,args,r,pre);}catch(e){console.warn('立体战场',name,e);}
+  return r;
+ };
+ w._b25V2889=true;w._baseV2889=base;window[name]=w;
+}
+
+// ------------------------------------------------------------------ regular battle hooks ----
+function installBattle25dV2889(){
+ if(B25_V2889.lifecycle)return;B25_V2889.lifecycle=true;
+ for(const n of ['resetRuntimeState','endCombatAfterCapture','startCombat','showStory'])b25WrapV2889(n,()=>b25SyncV2889(),()=>b25ClearV2889());
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)b25ClearV2889();else b25SyncV2889(true);});
+ window.addEventListener('pagehide',b25ClearV2889);
+ window.addEventListener('storage',e=>{if(e.key===BATTLE25D_V2889.key||e.key===null)setBattle25dV2889(e.key===null||e.newValue!=='off');});
+ window.matchMedia?.('(prefers-reduced-motion: reduce)')?.addEventListener?.('change',b25ClearV2889);
+ for(const n of ['pointerup','pointercancel','pointerleave'])document.addEventListener(n,b25ResetPointerV2889,{passive:true});
+ for(const n of ['startCombat','updateCombatUI','updateCombatChoices','combat','checkBattleEnd','useCombatBagItem','completeCombatFinishV2764'])b25WrapV2889(n,()=>b25SyncV2889());
+ b25WrapV2889('enemyTurn',()=>b25SyncV2889(),()=>{const p=document.getElementById('combatPanel');if(p&&battle25dOnV2889())p.dataset.b25Turn='enemy';});
+ b25WrapV2889('playHitEffect',([target])=>{if(!b25InBattleV2889())return;b25FxV2889('hit',target);b25KickV2889(target,false);});
+ b25WrapV2889('showDamageNumber',([damage,target,isHeal,isCrit])=>{
+  if(!b25InBattleV2889()||!Number.isFinite(Number(damage)))return;
+  if(isHeal){b25FxV2889('heal',target);return;}
+  if(isCrit){b25FxV2889('crit',target,'暴击');b25KickV2889(target,true);}
+ });
+ b25WrapV2889('addCombatLog',([text])=>{
+  if(!b25InBattleV2889())return;const k=b25ClassifyLogV2889(text);if(!k)return;
+  let side='player';try{side=isPlayerTurn?'enemy':'player';}catch(_){}
+  b25FxV2889(k,side,k==='dodge'?'闪避':'格挡');
+ });
+ const arena=()=>document.getElementById('combatArena');
+ document.addEventListener('pointermove',e=>{
+  const a=arena();if(!a||!a.contains(e.target)||document.hidden||b25DuelV2889()||!b25InBattleV2889()||battle25dCalmV2889()||!battle25dOnV2889()||(e.pointerType==='touch'&&!e.buttons)){b25ResetPointerV2889();return;}
+  const b=a.getBoundingClientRect();B25_V2889.xy=[Math.max(-1,Math.min(1,(e.clientX-b.left)/Math.max(1,b.width)*2-1)),Math.max(-1,Math.min(1,(e.clientY-b.top)/Math.max(1,b.height)*2-1))];
+  if(B25_V2889.pointerRaf)return;
+  B25_V2889.pointerRaf=b25FrameV2889(()=>{B25_V2889.pointerRaf=0;const x=arena();if(!x)return;x.style.setProperty('--b25x',B25_V2889.xy[0].toFixed(3));x.style.setProperty('--b25y',B25_V2889.xy[1].toFixed(3));});
+ },{passive:true});
+ }
+// the off switch lives in the existing 战斗设置 drawer
+function b25ToggleV2889(){
+ const box=document.getElementById('battleSettingsV286816');if(!box||box.querySelector('[data-b25-toggle]'))return;
+ const b=document.createElement('button');b.type='button';b.className='choice-btn';b.setAttribute('data-b25-toggle','1');
+ const label=()=>{const on=battle25dOnV2889();b.textContent=on?'立体战场：开':'立体战场：关';b.setAttribute('aria-pressed',String(on));};label();
+ b.addEventListener('click',()=>{setBattle25dV2889(!battle25dOnV2889());label();});box.appendChild(b);
+}
+
+// ------------------------------------------------------------------ 镇岳台 (V2887) ----
+function b25BossStageV2889(){
+ const host=document.getElementById('bossFightV2887');if(!host||!battle25dOnV2889())return null;
+ if(b25ChildV2889(host,'b25-stage-v2889'))return host;
+ const F=typeof bossPeekV2887==='function'?bossPeekV2887().fight:null;
+ const ph=F&&typeof BOSS_V2887!=='undefined'?BOSS_V2887.bosses[F.id]?.phases?.[F.phase-1]:null;
+ host.classList.add('b25-boss-v2889');
+ const stage=document.createElement('div');stage.className='b25-stage-v2889';stage.setAttribute('aria-hidden','true');
+ const region=F?.phase===3?'demon_domain':F?.phase===2?'immortal_domain':'north';
+ stage.innerHTML=b25StageHtmlV2889(region,'boss',b25HashV2889('boss'+(F?.phase||1)));
+ if(ph?.accent)stage.style.setProperty('--b25-accent',ph.accent);
+ host.prepend(stage);
+ const fx=document.createElement('div');fx.className='b25-fx-v2889';fx.setAttribute('aria-hidden','true');host.appendChild(fx);
+ return host;
+}
+function b25BossBarsV2889(){
+ const host=document.getElementById('bossFightV2887');if(!host||document.hidden||!battle25dOnV2889()||battle25dCalmV2889())return;
+ const bars=[...host.querySelectorAll('[role="meter"]')];
+ bars.forEach((bar,i)=>{
+  const now=Number(bar.getAttribute('aria-valuenow'));const fill=bar.querySelector('span');if(!Number.isFinite(now)||!fill)return;
+  const key=String(i),from=B25_V2889.boss.has(key)?B25_V2889.boss.get(key):now;B25_V2889.boss.set(key,now);
+  if(Math.abs(from-now)<.5)return;
+  const target=fill.style.width;fill.style.transition='none';fill.style.width=from+'%';void fill.offsetWidth;fill.style.transition='width .45s cubic-bezier(.2,.8,.2,1)';fill.style.width=target;
+  if(now<from){const chip=document.createElement('u');chip.className='b25-chip-v2889 loss';chip.style.width=from+'%';bar.style.position='relative';bar.prepend(chip);b25FrameV2889(()=>b25FrameV2889(()=>{chip.style.width=now+'%';}));b25LaterV2889(()=>chip.remove(),1100);}
+ });
+}
+function b25BossFloatV2889(host,side,text,kind){
+ const layer=b25ChildV2889(host,'b25-fx-v2889');if(!layer||document.hidden||!battle25dOnV2889())return;
+ const el=document.createElement('div');el.className=`b25-burst-v2889 ${kind} at-${side}`;const b=document.createElement('b');b.textContent=text;el.appendChild(b);layer.appendChild(el);
+ b25LaterV2889(()=>el.remove(),BATTLE25D_V2889.fxLife);
+}
+function installBoss25dV2889(){
+ b25WrapV2889('showBossFightV2887',()=>{const h=b25BossStageV2889();if(h)b25BossBarsV2889();});
+ b25WrapV2889('showBossAltarV2887',()=>{B25_V2889.boss.clear();});
+ b25WrapV2889('bossActV2887',([action],ok,before)=>{
+  if(!ok||!before||!battle25dOnV2889())return;
+  const F=typeof bossPeekV2887==='function'?bossPeekV2887().fight:null,host=document.getElementById('bossFightV2887');if(!F||!host)return;
+  const dealt=before.bossHp-Math.max(0,F.bossHp),taken=before.hp-F.hp;
+  if(dealt>0)b25BossFloatV2889(host,'enemy','-'+Math.round(dealt),'hit');
+  if(taken>0)b25BossFloatV2889(host,'player','-'+Math.round(taken),'hit');
+  if(taken<0)b25BossFloatV2889(host,'player','+'+Math.round(-taken),'heal');
+  if(action==='evade'&&taken<=0&&before.canEvade&&!F.over)b25BossFloatV2889(host,'player','避开','dodge');
+  if(action==='guard'&&taken>0&&before.canGuard)b25BossFloatV2889(host,'player','守势','block');
+  if(dealt>0||taken>0)b25KickBossV2889(host,dealt>=taken?'enemy':'player');
+ },()=>{const F=typeof bossPeekV2887==='function'?bossPeekV2887().fight:null;if(!F)return null;const it=F.intent,d=it?.stage==='release'?BOSS_V2887.bosses[F.id].skills[it.skill]?.release:it?.stage==='act'?BOSS_V2887.bosses[F.id].skills[it.skill]:null;return {bossHp:Math.max(0,F.bossHp),hp:F.hp,canEvade:!!d?.evadable&&it.read!=='evade',canGuard:!!d&&d.guard<1&&it.read!=='guard'};});
+}
+function b25KickBossV2889(host,side){
+ if(document.hidden||!battle25dOnV2889()||battle25dCalmV2889())return;host.style.setProperty('--b25-kick',side==='enemy'?'-1':'1');b25LaterV2889(()=>host.style.setProperty('--b25-kick','0'),BATTLE25D_V2889.kickMs);
+}
+
+// ------------------------------------------------------------------ styles ----
+function installBattleStylesV2889(){
+ if(document.getElementById('battle25dStyleV2889'))return;
+ const st=document.createElement('style');st.id='battle25dStyleV2889';
+ const P='html body #combatPanel.b25-on-v2889';
+ st.textContent=`
+${P} #combatArena{isolation:isolate;--b25x:0;--b25y:0;--b25-kick:0;background:#10161a}
+${P} #combatArena.duel25-active .b25-stage-v2889,${P} #combatArena.duel25-active .b25-pedestal-v2889,${P} #combatArena.duel25-active .b25-marker-v2889{display:none}
+.b25-stage-v2889{position:absolute;inset:0;z-index:-1;overflow:hidden;border-radius:inherit;pointer-events:none;contain:paint}
+.b25-stage-v2889>*{position:absolute;inset:0}
+.b25-sky-v2889{transform:translate3d(calc(var(--b25x) * -2px),0,0)}
+.b25-glow-v2889{inset:auto;top:8%;width:90px;height:90px;margin-left:-45px;border-radius:50%;background:radial-gradient(circle,rgba(255,248,214,.85),rgba(255,236,170,.25) 35%,transparent 70%);opacity:.75}
+.b25-layer-v2889{top:auto;height:62%;bottom:24%;left:-6%;right:-6%;transform:translate3d(calc((var(--b25x) * -10px - var(--b25-kick) * 6px) * var(--d)),calc(var(--b25y) * var(--d) * -4px),0);transition:transform .22s ease-out}
+.b25-layer-v2889:last-of-type{bottom:0;height:34%}
+.b25-layer-v2889 svg{width:100%;height:100%;display:block}
+.b25-mist-v2889{top:38%;bottom:30%;left:-15%;right:-15%;background:radial-gradient(ellipse 35% 45% at 25% 50%,var(--m),transparent 70%),radial-gradient(ellipse 30% 40% at 72% 55%,var(--m),transparent 70%);animation:b25MistV2889 26s ease-in-out infinite alternate}
+.b25-floor-v2889{top:auto;height:38%;bottom:0;perspective:220px;perspective-origin:50% 0}
+.b25-floor-v2889 i{position:absolute;left:-60%;right:-60%;top:0;bottom:-40%;transform:rotateX(58deg) translate3d(calc(var(--b25x) * -18px - var(--b25-kick) * 10px),0,0);transform-origin:50% 0;transition:transform .22s ease-out;background:linear-gradient(180deg,rgba(0,0,0,.18),rgba(0,0,0,.55)),repeating-linear-gradient(90deg,rgba(255,255,255,.07) 0 1px,transparent 1px 42px),repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 1px,transparent 1px 30px),var(--floor)}
+.b25-tier-v2889{mix-blend-mode:screen}
+.b25-vignette-v2889{background:radial-gradient(ellipse at 50% 45%,transparent 45%,rgba(0,0,0,.55) 100%),linear-gradient(180deg,rgba(0,0,0,.25),transparent 25%)}
+@keyframes b25MistV2889{from{transform:translateX(-4%)}to{transform:translateX(4%)}}
+${P} #combatArena>.combatant{position:relative}
+${P} .b25-pedestal-v2889{position:absolute;left:50%;bottom:34px;width:118px;height:30px;margin-left:-59px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.6),rgba(0,0,0,.25) 60%,transparent);z-index:-1;pointer-events:none}
+${P} .b25-pedestal-v2889::after{content:"";position:absolute;inset:-4px -8px;border-radius:50%;border:2px solid transparent;opacity:0;transition:opacity .25s,border-color .25s}
+${P}[data-b25-turn="player"] #playerCombatant .b25-pedestal-v2889::after{border-color:rgba(127,220,255,.75);opacity:1;box-shadow:0 0 18px rgba(127,220,255,.45)}
+${P}[data-b25-turn="enemy"] #enemyCombatant .b25-pedestal-v2889::after{border-color:rgba(255,120,110,.75);opacity:1;box-shadow:0 0 18px rgba(255,110,100,.45)}
+${P} #playerCombatant .combatant-avatar{scale:1.05;translate:0 6px;filter:drop-shadow(-3px 6px 4px rgba(0,0,0,.45)) drop-shadow(0 0 1px rgba(255,255,255,.35))}
+${P} #enemyCombatant .combatant-avatar{scale:.95;translate:0 -4px;filter:drop-shadow(-3px 6px 4px rgba(0,0,0,.5)) drop-shadow(0 0 1px rgba(255,220,200,.3))}
+${P} .vs-text{opacity:.35}
+${P} .b25-marker-v2889{position:absolute;left:50%;top:-4px;width:14px;height:14px;margin-left:-7px;rotate:45deg;border-radius:3px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:3}
+${P}[data-b25-turn="player"] #playerCombatant .b25-marker-v2889{opacity:1;background:#7fdcff;box-shadow:0 0 12px #7fdcff;animation:b25BobV2889 1.2s ease-in-out infinite}
+${P}[data-b25-turn="enemy"] #enemyCombatant .b25-marker-v2889{opacity:1;background:#ff7c70;box-shadow:0 0 12px #ff7c70;animation:b25BobV2889 1.2s ease-in-out infinite}
+@keyframes b25BobV2889{50%{translate:0 -4px}}
+${P}[data-b25-turn="player"] #battleReadoutV2856{box-shadow:inset 4px 0 0 #7fdcff}
+${P}[data-b25-turn="enemy"] #battleReadoutV2856{box-shadow:inset 4px 0 0 #ff7c70}
+.b25-fx-v2889{position:absolute;inset:0;z-index:60;pointer-events:none;overflow:hidden}
+.b25-burst-v2889{position:absolute;top:44%;width:120px;height:120px;margin:-60px 0 0 -60px}
+.b25-burst-v2889::before{content:"";position:absolute;inset:0;border-radius:50%;animation:b25BurstV2889 .55s ease-out forwards}
+.b25-burst-v2889.at-player{left:24%}.b25-burst-v2889.at-enemy{left:76%}
+.b25-burst-v2889.hit::before{background:radial-gradient(circle,rgba(255,255,255,.75),rgba(255,210,150,.35) 30%,transparent 62%)}
+.b25-burst-v2889.crit{width:170px;height:170px;margin:-85px 0 0 -85px}
+.b25-burst-v2889.crit::before{background:repeating-conic-gradient(from 0deg,rgba(255,221,96,.85) 0 6deg,transparent 6deg 24deg),radial-gradient(circle,rgba(255,250,220,.95),transparent 55%);-webkit-mask:radial-gradient(circle,#000 30%,transparent 70%);mask:radial-gradient(circle,#000 30%,transparent 70%)}
+.b25-burst-v2889.heal::before{background:radial-gradient(circle,rgba(132,255,208,.65),transparent 62%)}
+.b25-burst-v2889.dodge::before,.b25-burst-v2889.block::before{border:2px dashed rgba(180,230,255,.75);animation-duration:.7s}
+.b25-burst-v2889.block::before{border-style:solid;border-color:rgba(255,230,150,.8)}
+.b25-burst-v2889 b{position:absolute;left:50%;top:50%;translate:-50% -50%;font-size:20px;font-weight:900;color:#fff;white-space:nowrap;-webkit-text-stroke:1px rgba(0,0,0,.6);text-shadow:0 3px 0 rgba(0,0,0,.45),0 0 12px rgba(255,255,255,.4);animation:b25RiseV2889 .9s ease-out forwards}
+.b25-burst-v2889.crit b{font-size:22px;color:#ffe26b}
+@keyframes b25BurstV2889{0%{transform:scale(.35);opacity:0}25%{opacity:1}100%{transform:scale(1.15);opacity:0}}
+@keyframes b25RiseV2889{0%{translate:-50% -20%;scale:.7;opacity:0}15%{scale:1.15;opacity:1}75%{opacity:1}100%{translate:-50% -140%;scale:1;opacity:0}}
+#combatArena.b25-quake-v2889 .b25-stage-v2889{animation:b25QuakeV2889 .24s linear}
+@keyframes b25QuakeV2889{25%{transform:translate(3px,-2px)}50%{transform:translate(-3px,2px)}75%{transform:translate(2px,1px)}}
+${P} #combatArena .combat-values-v2817 .damage-number{top:calc(30% + var(--value-stack)*48px);background:linear-gradient(180deg,rgba(14,18,24,.86),rgba(14,18,24,.62));border:1px solid rgba(255,255,255,.18);box-shadow:0 8px 18px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.15)}
+${P} #combatArena .combat-value-number-v2817{-webkit-text-stroke:.6px rgba(0,0,0,.55);text-shadow:0 2px 0 rgba(0,0,0,.5)}
+${P} #combatArena .combat-values-v2817 .crit{border-color:rgba(255,214,90,.8);box-shadow:0 0 22px rgba(255,214,90,.45),0 8px 18px rgba(0,0,0,.45)}
+@media(max-width:640px){${P} #combatArena .combat-values-v2817 .damage-number{top:calc(34% + var(--value-stack)*46px)}}
+${P} .battle-meter-v286816{position:relative;overflow:hidden}
+${P} .battle-meter-v286816 i{position:relative;z-index:1;transition:width .45s cubic-bezier(.2,.8,.2,1)}
+.b25-chip-v2889{position:absolute;left:0;top:0;bottom:0;z-index:0;transition:width .7s ease-in .3s;text-decoration:none}
+.b25-chip-v2889.loss{background:rgba(255,236,200,.9)}.b25-chip-v2889.gain{background:rgba(132,255,208,.55);transition:none}
+${P} #combatChoices button[data-b25-el]{position:relative;min-height:52px;border-top:3px solid var(--b25-el,#dce9ff)!important;box-shadow:0 6px 14px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.12);transition:scale .08s ease-out}
+${P} #combatChoices button[data-b25-el]:active:not(:disabled){scale:.97}
+${P} #combatChoices button[data-b25-el="fire"]{--b25-el:#ff9348}${P} #combatChoices button[data-b25-el="ice"]{--b25-el:#9fe8ff}${P} #combatChoices button[data-b25-el="thunder"]{--b25-el:#efe88f}
+${P} #combatChoices button[data-b25-el="heal"]{--b25-el:#84ffd0}${P} #combatChoices button[data-b25-el="strike"]{--b25-el:#ffd98a}${P} #combatChoices button[data-b25-el="wood"]{--b25-el:#9be27d}
+${P} #combatChoices button[data-b25-why]::after{content:attr(data-b25-why);display:block;margin-top:3px;font-size:10px;padding:1px 6px;border-radius:8px;background:rgba(120,140,200,.25);color:#cfe0ff}
+${P}[data-b25-turn="enemy"] #combatChoices{opacity:.72}
+#bossFightV2887.b25-boss-v2889{position:relative;overflow:hidden;isolation:isolate;--b25x:0;--b25y:0;--b25-kick:0}
+#bossFightV2887.b25-boss-v2889>.b25-stage-v2889{z-index:-1;opacity:.55}
+#bossFightV2887.b25-boss-v2889>:not(.b25-stage-v2889):not(.b25-fx-v2889){position:relative;z-index:1}
+#bossFightV2887.b25-boss-v2889 .b25-burst-v2889{top:30%}
+#bossFightV2887.b25-boss-v2889 .b25-burst-v2889 b{font-size:26px;color:#ffe26b}
+#bossFightV2887.b25-boss-v2889 .b25-burst-v2889.at-player b{color:#ff9b8f}
+#bossFightV2887.b25-boss-v2889 .b25-burst-v2889.heal b{color:#84ffd0}
+#bossFightV2887.b25-boss-v2889 .b25-burst-v2889.dodge b,#bossFightV2887.b25-boss-v2889 .b25-burst-v2889.block b{color:#cfe8ff}
+#bossFightV2887.b25-boss-v2889 [role="meter"]{position:relative;overflow:hidden}
+#bossFightV2887.b25-boss-v2889 [role="meter"]>span{position:relative;z-index:1}
+@media(max-width:600px){#storyText .choice-btn[onclick^="bossActV2887"]{min-height:52px;font-size:14px}}
+.xiantu-v2762-page-hidden .b25-mist-v2889,.xiantu-v2762-page-hidden .b25-marker-v2889{animation-play-state:paused!important}
+@media (prefers-reduced-motion: reduce){.b25-mist-v2889,.b25-burst-v2889::before,.b25-burst-v2889 b,.b25-marker-v2889,#combatArena.b25-quake-v2889 .b25-stage-v2889{animation:none!important}.b25-burst-v2889{opacity:.85}.b25-layer-v2889,.b25-floor-v2889 i,.b25-chip-v2889,${P} .battle-meter-v286816 i{transition:none!important}}
+`;
+ document.head.appendChild(st);
+}
+
+// ------------------------------------------------------------------ install ----
+function installBattleAll25dV2889(){installBattleStylesV2889();installBattle25dV2889();installBoss25dV2889();}
+try{installBattleAll25dV2889();}catch(e){console.warn('立体战场安装失败',e);}
+
+// END BATTLE25D_V2889
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.62';
