@@ -1,5 +1,5 @@
 /* Bounded disciple chronicle and one-time consequence chains; no timers or paid calls. */
-const LIFE_TYPES_V2868={training:'培养完成',mission:'出使归来',rescue:'救援同门',explore:'寻访遗迹',withdraw:'有序撤回',safe:'稳妥前行',thanks:'同门答谢',trail:'古洞寻踪',trail_done:'古洞归来',war_stage:'随军参战',war_victory:'战场取胜'};
+const LIFE_TYPES_V2868={training:'培养完成',mission:'出使归来',rescue:'救援同门',explore:'寻访遗迹',withdraw:'有序撤回',safe:'稳妥前行',thanks:'同门答谢',trail:'古洞寻踪',trail_done:'古洞归来',war_stage:'随军参战',war_victory:'战场取胜',mentor_training:'宗主亲传 · 讲道',mentor_rescue:'宗主亲传 · 济危演练',mentor_explore:'宗主亲传 · 寻幽推演'};
 function lifeReadV2868(d){
  const raw=d?.lifeV2868||{},integer=(v,max=100000)=>Number.isFinite(v)?Math.max(0,Math.min(max,Math.floor(v))):0,counts={};
  for(const k of ['training','mission','rescue','explore','war_stage','war_victory'])counts[k]=integer(raw.counts?.[k]);
@@ -13,12 +13,52 @@ function lifeTitlesV2868(d){const c=lifeReadV2868(d).counts;return [c.training>=
 function lifeEventV2868(d,e,choice){const type=choice===0?'safe':['rescue','explore','withdraw'][e.kind];const life=lifeAddV2868(d,type);if(choice===1&&e.kind===0&&!life.thanks)life.thanks={state:'waiting',due:discipleDayV2815()+3};if(choice===1&&e.kind===1&&!life.trail)life.trail={state:'ready'};d.lifeV2868=life;}
 function lifeCompletedV2868(d,j){const life=lifeAddV2868(d,j.type==='train'?'training':j.followupV2868?'trail_done':'mission');if(j.followupV2868)life.trail={state:'done'};d.lifeV2868=life;}
 function lifeCardV2868(d){const titles=lifeTitlesV2868(d);return `${titles.length?`<p class="disciple-titles-v2868">${titles.join(' · ')}</p>`:''}<button class="choice-btn" onclick="showDiscipleLifeV2868(${d.id})">成长履历与后续</button>`;}
+// Bounded, paid mentoring. No title, prosperity, gift or trail is created by training alone.
+const MENTOR_V2892=Object.freeze({cooldownDays:30,goldBase:200,goldPerLevel:50,perKindCap:2,maxLevel:10});
+const MENTOR_KINDS_V2892=Object.freeze({training:'亲传讲道',rescue:'演练济危',explore:'推演寻幽'});
+function mentorReadV2892(d){
+ const raw=d?.mentorV2892||{},integer=(v,max)=>Number.isFinite(v)?Math.max(0,Math.min(max,Math.floor(v))):0;
+ return {next:integer(raw.next,1e9),counts:Object.fromEntries(Object.keys(MENTOR_KINDS_V2892).map(k=>[k,integer(raw.counts?.[k],2)]))};
+}
+function mentorLevelV2892(d){return Math.max(1,Math.min(10,Math.floor(Number(d?.level)||1)));}
+function mentorPlanV2892(d,kind){
+ if(!d||!Object.hasOwn(MENTOR_KINDS_V2892,kind))return {ok:false,why:'亲传项目无效'};
+ if(!sectCanManageV2866()||!discipleAllowedV2815()||!sectPathMasterV2880())return {ok:false,why:'须已继任宗主且当前可处理宗务'};
+ if(d.job||warDiscipleBusyV286841(d.id))return {ok:false,why:'弟子在外或随军'};
+ const m=mentorReadV2892(d),day=discipleDayV2815(),cost=MENTOR_V2892.goldBase+MENTOR_V2892.goldPerLevel*mentorLevelV2892(d);
+ if(day<m.next)return {ok:false,why:`${m.next-day} 日后可再受亲传`};
+ if(m.counts[kind]>=MENTOR_V2892.perKindCap)return {ok:false,why:'此类亲传已满，须亲身历练'};
+ if(!Number.isFinite(player.gold)||player.gold<cost)return {ok:false,why:`需 ${cost} 灵石`};
+ return {ok:true,cost,day,m};
+}
+function mentorPanelV2892(d){
+ if(!sectPathMasterV2880())return '';
+ const m=mentorReadV2892(d),cost=MENTOR_V2892.goldBase+MENTOR_V2892.goldPerLevel*mentorLevelV2892(d),esc=discipleEscV2815;
+ return `<article id="mentorBoxV2892"><h4>宗主亲传 · ${cost} 灵石</h4><p>每名弟子每30个游戏日一次；每类最多两次。三次履历称号仍需至少一次亲身历练。讲道提升一级（最高10级）；演练不产生答谢或古洞奖励。</p>${Object.entries(MENTOR_KINDS_V2892).map(([k,label])=>{const p=mentorPlanV2892(d,k);return `<button type="button" class="choice-btn" onclick="mentorDiscipleV2892(${Number(d.id)},'${k}')" ${p.ok?'':'disabled'}>${label} · ${m.counts[k]}/2${p.ok?'':' · '+esc(p.why)}</button>`;}).join('')}</article>`;
+}
+function mentorDiscipleV2892(id,kind){
+ const d=lifeActionDiscipleV2868(id);if(!d)return false;
+ const plan=mentorPlanV2892(d,kind);if(!plan.ok){showFloatingText(plan.why,'#ffd76a');return false;}
+ const owner=player,sect=player.sect,view=lifeViewV2868,record=JSON.stringify(d);
+ if(!confirm(`${MENTOR_KINDS_V2892[kind]}「${d.name}」？消耗 ${plan.cost} 灵石，剩余 ${player.gold-plan.cost}；对应履历+1${kind==='training'&&mentorLevelV2892(d)<10?'，等级+1':''}。30个游戏日后可再受亲传，本类剩余 ${1-plan.m.counts[kind]} 次。`))return false;
+ if(player!==owner||player.sect!==sect||lifeViewV2868!==view||lifeActionDiscipleV2868(id)!==d||JSON.stringify(d)!==record)return false;
+ const again=mentorPlanV2892(d,kind);if(!again.ok||again.cost!==plan.cost||again.day!==plan.day)return false;
+ const ok=commitMiniWeaveV286840(()=>{
+  player.gold-=plan.cost;const life=lifeAddV2868(d,kind);life.history[life.history.length-1].type='mentor_'+kind;
+  if(kind==='training')d.level=Math.min(10,mentorLevelV2892(d)+1);
+  const m=mentorReadV2892(d);m.counts[kind]++;m.next=plan.day+30;d.mentorV2892=m;
+ });
+ // Rollback restores nested objects, so rebind the view before allowing a retry.
+ showDiscipleLifeV2868(id);if(ok){updateStats();showFloatingText(`「${d.name}」亲传已记入履历。`,'#ffd76a');}return ok;
+}
+
 let lifeViewV2868=null;
 function showDiscipleLifeV2868(id){
  if(!sectCanManageV2866())return;const d=discipleRosterV2815().members.find(x=>x.id===id);if(!d)return;
  const life=lifeReadV2868(d),titles=lifeTitlesV2868(d),allowed=discipleAllowedV2815(),esc=discipleEscV2815;
  lifeViewV2868={owner:player,sect:player.sect,disciple:d};
  let html=`<section class="sect-board-v2866"><h3 id="discipleLifeTitleV2868">${esc(d.name)} · 成长履历</h3><p>${titles.join(' · ')||'初入山门，来日方长'}</p><p>培养 ${life.counts.training} 次 · 出使 ${life.counts.mission} 次 · 救援 ${life.counts.rescue} 次 · 探索 ${life.counts.explore} 次 · 随军 ${life.counts.war_stage} 次 · 战场取胜 ${life.counts.war_victory} 次</p><details><summary>称号条件</summary><p>培养3次：笃学之士；普通派遣归来5次：行路老手；救援3次：济危同门；探索3次：寻幽客；会战阶段取胜3次：破魔先锋。济危同门可增强仁厚统领的战败保护，其余称号记录经历。</p></details>`;
+ html+=mentorPanelV2892(d);
  if(life.thanks){const days=Math.max(0,life.thanks.due-discipleDayV2815());html+=`<article><h4>药棚旧友</h4><p>${life.thanks.state==='done'?'同门送来的药与灵草已收下，这份人情留在了履历中。':days?`获救同门正在休养，${days} 个游戏日后会送来答谢。`:'同门伤愈归来，将两瓶小还丹与三束灵草放在案上：“那日若不是你们停步，我恐怕走不出药棚。”'}</p><button class="choice-btn" onclick="claimDiscipleThanksV2868(${id})" ${!allowed||days||life.thanks.state==='done'?'disabled':''}>${life.thanks.state==='done'?'已收下答谢':'收下答谢 · 小还丹×2、灵草×3'}</button></article>`;}
  if(life.trail)html+=`<article><h4>古洞寻踪</h4><p>${life.trail.state==='done'?'旧洞的踪迹已查清，这次寻访已记入履历。':life.trail.state==='running'?'弟子已沿旧线索出发，到期后从事务中领取成果。':'上次带回的残图显出一条隐蔽山径。可让这位弟子再去查探一次。'}</p><p>4个游戏日 · 240灵石、妖丹×2 · 无费用、无途中事件</p><button class="choice-btn" onclick="startDiscipleTrailV2868(${id})" ${!allowed||life.trail.state!=='ready'||d.job||warDiscipleBusyV286841(d.id)?'disabled':''}>${life.trail.state==='done'?'后续已完成':life.trail.state==='running'?'正在寻踪':(d.job||warDiscipleBusyV286841(d.id))?'弟子忙碌，空闲后可出发':'确认派遣 · 古洞寻踪'}</button></article>`;
  html+=`<h4>最近经历</h4><ol class="disciple-history-v2868">${life.history.slice().reverse().map(x=>`<li><small>游历第 ${x.day+1} 日</small><span>${LIFE_TYPES_V2868[x.type]}</span></li>`).join('')||'<li>尚无记载，新的经历会从此刻开始记录。</li>'}</ol><button class="choice-btn" onclick="showDisciplesV2815()">返回弟子名册</button><button class="choice-btn" onclick="showSectTodoV2868()">宗门待办</button></section>`;
@@ -156,7 +196,7 @@ function settleReadySectTasksV2885(session){
  closeExpansionV286827();updateStats();syncSectTodoV2868();showFloatingText(`已速办${q.tasks.length}项委托，消耗与奖励已保存。`,'#69f0ae');showSectTodoV2868();return true;
 }
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.62';
+window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.64';
 
 
 // V28.68.40: saved random encounters and run-scoped blessings.

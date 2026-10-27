@@ -13158,7 +13158,7 @@
     function isWorldOverlayOpen() {
       if(['rainChapterV286822','expansionV286827','postCaseV286826','storyBossPrepV286826'].some(id=>document.getElementById(id)))return true;
       if(document.getElementById('jevWorldPanelV2846'))return true;
-      if(document.getElementById('warPanelV2839'))return true;
+      if(document.getElementById('warPanelV2839')||document.getElementById('helpManual'))return true;
       if(document.getElementById('sceneV2838')||document.getElementById('journeyPrepareV2838')||document.getElementById('scrollMapV2831'))return true;
       if(document.getElementById('taskPanel')) return true;
       if(document.getElementById('mobileInventoryOverlay')) return true;
@@ -14595,7 +14595,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.62";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.64";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

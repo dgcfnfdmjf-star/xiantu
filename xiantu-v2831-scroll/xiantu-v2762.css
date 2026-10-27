@@ -3899,7 +3899,7 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 /* V28.12 洞府管理 */
 .home-board-v2812{padding:16px;border:1px solid #9eb781;border-radius:16px;background:linear-gradient(135deg,#14251e,#18202b);color:#e9eee3;line-height:1.65}.home-board-v2812 h3{color:#ead592;margin:0 0 12px}.home-grid-v2812{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-grid-v2812 article{padding:14px;border:1px solid #526454;border-radius:12px;background:#ffffff08}.home-grid-v2812 h4{margin:0;color:#e8d594}.home-grid-v2812 p{color:#d0dbd1}.home-grid-v2812 strong{color:#83ddb6}.home-notice-v2812{padding:12px;background:#31534066;border-radius:10px}@media(max-width:600px){.home-grid-v2812{grid-template-columns:1fr}.home-board-v2812{padding:12px;font-size:14px}}
 
-:root{--xiantu-build:286862;}
+:root{--xiantu-build:286864;}
 #xiantuBuildBadgeV2814{font-size:11px;min-height:32px;padding:5px 9px;white-space:nowrap;color:#b4d4bd;background:#18251f;border:1px solid #718475;border-radius:8px;}
 
 /* V28.68 战斗数值可视层 */
@@ -4454,7 +4454,7 @@ body:has(#storyPanel.loop-panel-v286840:not(.hidden)) .save-controls,body:has(#s
 .battle-review-v2878 summary{padding:12px 0;cursor:pointer;color:#efd48b;}
 .battle-review-v2878 details p{line-height:1.7;border-bottom:1px solid #ffffff12;padding-bottom:8px;}
 
-/* V28.68.62: touch-friendly, wrapping combat pet control. */
+/* V28.68.64: touch-friendly, wrapping combat pet control. */
 .battle-readout-head-v2856 .combat-pet-switch-v2884{min-height:44px;max-width:100%;white-space:normal;overflow-wrap:anywhere;padding:6px 10px;border:1px solid #729486;border-radius:8px;background:#163027;color:#b8ebcf;font:inherit;cursor:pointer}
 .battle-readout-head-v2856 .combat-pet-switch-v2884:disabled{opacity:.55;cursor:default}
 #combatPetsV2884 button{min-height:44px;max-width:100%;white-space:normal;overflow-wrap:anywhere}

@@ -26,6 +26,46 @@ function readCombatElements(enemy,owner){
  const g=typeof elementGuardsV286818!=='undefined'?elementGuardsV286818.get(enemy):null;
  return {...window.InkSkillFxV2854?.thunderBatch3?.readState(enemy,owner),chillTurns:enemy?._chillTurnsV286818||0,guardPool:g?.owner===owner?g.pool:0,guardTurns:g?.owner===owner?g.turns:0,guardElement:g?.owner===owner?g.element:null};
 }
+// Visual speed is separate from automatic combat cadence (xiantu_battle_speed_v2756).
+const DUEL_SPEED_KEY_V2892='xiantu_duel_speed_v2892';
+let duelVisualSpeedV2892=1;
+const duelToolbarsV2892=new Set();
+function readDuelSpeedV2892(){try{const v=Number(localStorage.getItem(DUEL_SPEED_KEY_V2892));return [1,2,3].includes(v)?v:1;}catch(_){return 1;}}
+function setDuelSpeedV2892(v){
+ duelVisualSpeedV2892=[1,2,3].includes(v)?v:1;
+ for(const b of duelToolbarsV2892)b.textContent=`画面 ${duelVisualSpeedV2892}×`;
+}
+window.addEventListener('storage',e=>{if(e.key===DUEL_SPEED_KEY_V2892||e.key===null)setDuelSpeedV2892(readDuelSpeedV2892());});
+function createDuelToolsV2892(stage,bg,canvas,valid){
+ setDuelSpeedV2892(readDuelSpeedV2892());
+ if(!document.getElementById('duelToolsStyleV2892')){const st=document.createElement('style');st.id='duelToolsStyleV2892';st.textContent='.duel-tools-v2892{position:relative;display:flex;align-items:center;gap:6px;padding:4px 0;max-width:100%;flex-wrap:wrap;justify-content:flex-end}#combatPanel>.duel-tools-v2892{order:0!important;grid-column:1/-1}.duel-tools-v2892 button{min-height:32px;padding:4px 8px;border:1px solid #ad995b;border-radius:6px;background:#13291fee;color:#f4df9e;font-size:12px}.duel-tools-v2892 [role=status]{font:12px system-ui;color:#fff1c4;background:#13291fee;max-width:220px}';document.head.appendChild(st);}
+ const bar=document.createElement('div');bar.className='duel-tools-v2892';bar.setAttribute('aria-label','斗法画面工具');
+ const speed=document.createElement('button'),capture=document.createElement('button'),status=document.createElement('span');
+ speed.type=capture.type='button';speed.textContent=`画面 ${duelVisualSpeedV2892}×`;speed.title='只加快动作与特效画面，不改变出招等待、回合或伤害';capture.textContent='🖼 拓印';status.setAttribute('role','status');
+ duelToolbarsV2892.add(speed);bar.appendChild(speed);bar.appendChild(capture);bar.appendChild(status);const host=stage.parentNode;if(host.id==='combatArena')host.parentNode.insertBefore(bar,host.nextSibling);else host.appendChild(bar);
+ let disposed=false,busy=false;const urls=new Map();
+ const live=()=>!disposed&&stage.isConnected&&valid();
+ speed.onclick=()=>{if(!live())return;setDuelSpeedV2892(duelVisualSpeedV2892%3+1);try{localStorage.setItem(DUEL_SPEED_KEY_V2892,String(duelVisualSpeedV2892));status.textContent='';}catch(_){status.textContent='本次生效，未能保存偏好';}};
+ capture.onclick=()=>{
+  if(!live()||busy)return;busy=true;capture.disabled=true;status.textContent='正在拓印…';
+  const finish=text=>{busy=false;if(!disposed){capture.disabled=false;status.textContent=text;}};
+  const fail=()=>finish('拓印失败，请检查浏览器下载权限');
+  const download=url=>{const a=document.createElement('a');a.href=url;a.download=`xiantu-duel-${Date.now()}.png`;document.body.appendChild(a);try{a.click();}finally{a.remove();}};
+  try{
+   if(canvas.width<2||canvas.height<2)throw Error('empty canvas');
+   const out=document.createElement('canvas');out.width=canvas.width;out.height=canvas.height;const ctx=out.getContext('2d');
+   ctx.drawImage(bg,0,0,out.width,out.height);ctx.drawImage(canvas,0,0,out.width,out.height);
+   if(typeof out.toBlob==='function')out.toBlob(blob=>{
+    if(!live()){finish('');return;}if(!blob){fail();return;}
+    let url;try{url=URL.createObjectURL(blob);download(url);const timer=setTimeout(()=>{URL.revokeObjectURL(url);urls.delete(url);},8000);urls.set(url,timer);finish('已请求下载 PNG，请查看下载记录');}
+    catch(_){if(url)URL.revokeObjectURL(url);fail();}
+   },'image/png');
+   else{download(out.toDataURL('image/png'));finish('已请求下载 PNG，请查看下载记录');}
+  }catch(_){fail();}
+ };
+ return {destroy(){disposed=true;duelToolbarsV2892.delete(speed);for(const [url,timer] of urls){clearTimeout(timer);URL.revokeObjectURL(url);}urls.clear();bar.remove();}};
+}
+
 function create(host,read,enemyKey='wolf'){
  const profile=ROSTER.find(p=>p.key===enemyKey);if(!host||!profile)return null;
  const atlas=profile.group?getAtlas(profile.group):null,started=performance.now();
@@ -36,6 +76,7 @@ function create(host,read,enemyKey='wolf'){
  const stage=document.createElement('div');stage.className='duel25-stage';host.insertBefore(stage,canvas);
  bg.className='duel25-backdrop';bg.setAttribute('aria-hidden','true');stage.appendChild(bg);stage.appendChild(canvas);
  let raf=0,last=0,dead=false,elapsed=0,attack=null,queue=[],tails=[],hits=[],floats=[],label="",paintedLandscape=false;
+ const tools=createDuelToolsV2892(stage,bg,canvas,()=>!dead&&ready()&&read().active!==false);
  const thunder=window.InkSkillFxV2854?.thunderBatch3?.createState(read,()=>elapsed);
  let thunderFloats=[];
  function thunderEvent(kind,detail={}){
@@ -140,7 +181,7 @@ function create(host,read,enemyKey='wolf'){
   const animating=attack||queue.length||tails.length||hits.length||floats.length||elapsed-petHitAt<320||
    (data.enemyHp<=0&&(deaths.enemy===null||elapsed-deaths.enemy<440))||
    (data.playerHp<=0&&(deaths.player===null||elapsed-deaths.player<440));
-  if(now-last<(animating?33:66)){raf=requestAnimationFrame(draw);return;}const dt=Math.max(0,now-last);last=now;elapsed+=dt;
+  if(now-last<(animating?33:66)){raf=requestAnimationFrame(draw);return;}const dt=Math.max(0,now-last);last=now;elapsed+=dt*duelVisualSpeedV2892;
   const width=Math.max(1,host.clientWidth||W),dpr=Math.min(1.5,window.devicePixelRatio||1);const pw=Math.round(width*dpr),ph=Math.round(width*H/W*dpr);
   if(canvas.width!==pw||canvas.height!==ph){canvas.width=pw;canvas.height=ph;}ctx.setTransform(canvas.width/W,0,0,canvas.height/H,0,0);ctx.clearRect(0,0,W,H);
   if(ready()&&!host.classList.contains('duel25-active')){host.classList.add('duel25-active');if(host.id==='combatArena')document.getElementById('combatPanel')?.classList.add('duel25-panel');}
@@ -307,7 +348,7 @@ function create(host,read,enemyKey='wolf'){
   if(authored(attack))attack=null;
   queue=queue.filter(a=>!authored(a));tails=tails.filter(a=>!authored(a));
  }else wake();}
- function destroy(){if(dead)return;dead=true;thunder?.clear();unsubscribeThunder?.();thunderFloats=[];clearElements();domainSource=null;attack=null;queue=[];tails=[];hits=[];floats=[];cancelAnimationFrame(raf);raf=0;document.removeEventListener('visibilitychange',visibility);stage.remove();canvas.width=canvas.height=1;bg.width=bg.height=1;host.classList.remove('duel25-active');if(host.id==='combatArena')document.getElementById('combatPanel')?.classList.remove('duel25-panel');}
+ function destroy(){if(dead)return;dead=true;tools.destroy();thunder?.clear();unsubscribeThunder?.();thunderFloats=[];clearElements();domainSource=null;attack=null;queue=[];tails=[];hits=[];floats=[];cancelAnimationFrame(raf);raf=0;document.removeEventListener('visibilitychange',visibility);stage.remove();canvas.width=canvas.height=1;bg.width=bg.height=1;host.classList.remove('duel25-active');if(host.id==='combatArena')document.getElementById('combatPanel')?.classList.remove('duel25-panel');}
  document.addEventListener('visibilitychange',visibility);wake();
  function act(side,element,name='',enhance=false){
   if(dead)return;
@@ -319,10 +360,10 @@ function create(host,read,enemyKey='wolf'){
   // The engine emits attack first, then its skill effect 150ms later: enrich that
   // same action instead of restarting the lunge or queuing a duplicate turn.
   const latest=queue.length?queue[queue.length-1]:attack;
-  if(enhance&&latest?.side===side&&(queue.length||elapsed-latest.at<350)){
+  if(enhance&&latest?.side===side&&(queue.length||performance.now()-latest.realAt<350)){
    latest.element=element;latest.name=name;latest.fxProfile=null;latest.anchors=null;if(name==='炎阳护盾'&&side==='player')guardIntro=latest;return;
   }
-  const next={side,element,name,at:elapsed,pendingHits:[]};
+  const next={side,element,name,at:elapsed,realAt:performance.now(),pendingHits:[]};
   if(name==='炎阳护盾'&&side==='player')guardIntro=next;
   if(!attack||elapsed-attack.at>=620)attack=next;
   else {if(queue.length>=4)flushHits(queue.shift());next.waiting=true;queue.push(next);}
@@ -1092,4 +1133,364 @@ function installBattleAll25dV2889(){installBattleStylesV2889();installBattle25dV
 try{installBattleAll25dV2889();}catch(e){console.warn('立体战场安装失败',e);}
 
 // END BATTLE25D_V2889
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.62';
+
+// BEGIN GUIDE_V2890
+// V28.68.64 修行指引：按主题分页、手机可读；数字尽量取自当前代码常量，读不到时用与 28.68.62 一致的默认值。
+// 只改说明文字与指引面板，不改任何玩法与数值。依赖（均可缺省）：V2887 镇岳台、V2872/V2880 宗主、V2888 山河图立体、V2889 立体战场。
+const GUIDE_V2890=Object.freeze({
+ storeKey:'xiantu_guide_tab_v2890',
+ tabs:['start','cultivate','combat','sect','boss','travel','items','save']
+});
+let guideTabV2890='start',guideOwnerV2890=null,guideOpenerV2890=null;
+function guideJourneyReadV2890(){const raw=player?.firstJourneyV28687;return raw&&typeof raw==='object'?{...raw,step:Math.max(0,Math.min(5,Math.floor(Number(raw.step)||0)))}:null;}
+
+function guideEscV2890(v){
+ const s=String(v===undefined||v===null?'':v);
+ return typeof escapeGameText==='function'?escapeGameText(s):s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function guideTryV2890(fn,fallback){try{const v=fn();return v===undefined||v===null||(typeof v==='number'&&!Number.isFinite(v))?fallback:v;}catch(_){return fallback;}}
+function guideRealmV2890(i){
+ const fb=['凡人','练气','筑基','金丹','元婴','化神','炼虚','合体','大乘','渡劫','地仙','天仙','金仙','太乙金仙','大罗金仙','准圣','圣人'];
+ return guideTryV2890(()=>CULTIVATION_REALMS[i].name,fb[i]||'');
+}
+function guideStoreV2890(id){try{if(id)localStorage.setItem(GUIDE_V2890.storeKey,id);else return localStorage.getItem(GUIDE_V2890.storeKey);}catch(_){}return null;}
+
+// 读取说明中用到的数字；每一项都有与当前版本一致的默认值。
+function guideFactsV2890(){
+ const f={};
+ f.unlock=guideTryV2890(()=>({south:REGION_UNLOCK_LEVEL.south,east:REGION_UNLOCK_LEVEL.east,north:REGION_UNLOCK_LEVEL.north,west:REGION_UNLOCK_LEVEL.west}),{south:0,east:2,north:2,west:3});
+ f.realms=guideTryV2890(()=>CULTIVATION_REALMS.map(r=>r.name),null)||Array.from({length:17},(_,i)=>guideRealmV2890(i));
+ f.phases=guideTryV2890(()=>REALM_PHASES.slice(),['初期','中期','后期','圆满']);
+ f.yearDays=guideTryV2890(()=>GAME_DAYS_PER_YEAR,360);
+ f.monthDays=guideTryV2890(()=>GAME_DAYS_PER_MONTH,30);
+ f.ranks=guideTryV2890(()=>SECT_RANKS.map(r=>({name:r.name,need:r.contributionRequired})),[{name:'外门弟子',need:0},{name:'内门弟子',need:100},{name:'真传弟子',need:300},{name:'长老',need:600},{name:'宗主',need:1000}]);
+ f.master=guideTryV2890(()=>({realm:SECT_MASTER_RULES_V2872.realm,contribution:SECT_MASTER_RULES_V2872.contribution,tasks:SECT_MASTER_RULES_V2872.tasks}),{realm:4,contribution:1000,tasks:5});
+ f.mentor=guideTryV2890(()=>MENTOR_V2892,null);
+ f.council=guideTryV2890(()=>({...SECT_MASTER_COUNCIL_V2872}),{cooldown:30,repairContribution:100,repairGold:200,prosperityGain:5,lessonContribution:50});
+ f.doctrines=guideTryV2890(()=>SECT_DOCTRINES_V2880.map(d=>({name:d.name,desc:d.desc})),[]);
+ f.discipleCap={member:12,master:16};          // sectDiscipleCapV2880(): 宗主16，其余12
+ const B=guideTryV2890(()=>BOSS_V2887,null);
+ if(B){
+  const Y=f.yearDays,start=guideTryV2890(()=>bossWindowStartV2887(),Math.min(B.window.openOffset,Y-B.window.days)),end=start+B.window.days-1;
+  const md=d=>`${Math.floor(d/f.monthDays)+1}月${d%f.monthDays+1}日`;
+  f.boss={
+   from:md(start),to:md(end),days:B.window.days,maxRounds:B.maxRounds,defeatDays:B.defeatDays,bone:B.bone,
+   tiers:B.tiers.map(t=>({id:t.id,realm:guideRealmV2890(t.minLevel),gold:t.gold,exp:t.exp,contribution:t.contribution,bones:t.bones})),
+   minRealm:guideRealmV2890(B.tiers[0].minLevel),
+   offering:{bones:B.offering.bones,locks:B.offering.locks},
+   repeat:{gold:Math.round(B.repeat.gold*100),bones:B.repeat.bones},
+   seal:{hp:Math.round(B.seal.missedHp*100),member:B.seal.memberCap,master:B.seal.missedCap,prosperity:B.seal.missedProsperity,reinforce:B.seal.reinforceBones,reinforceGain:B.seal.reinforceProsperity},
+   masterHp:Math.round((B.masterHp-1)*100),
+   aspects:B.aspectOrder.map(id=>({icon:B.aspects[id].icon,name:B.aspects[id].name,desc:B.aspects[id].desc})),
+   boons:Object.values(B.boons).map(x=>({name:x.name,desc:x.desc})),
+   names:B.actionNames
+  };
+ }else f.boss=null;
+ return f;
+}
+
+// 依据当前角色给出至多三条“下一步”；任何一项读不到就跳过。
+function guideNextStepsV2890(f){
+ const out=[];
+ const add=t=>{if(out.length<3&&t)out.push(t);};
+ const p=typeof player==='object'&&player?player:null;if(!p)return out;
+ guideTryV2890(()=>{const s=guideJourneyReadV2890();if((p.level||0)<2&&(!s||s.step<5))add('完成【初入仙途】五步引导：试手、穿戴、配功法、山道挑战、查看来信。');},0);
+ guideTryV2890(()=>{if((Number(p.exp)||0)>=getCurrentExpNeed()&&!(p.breakthrough?.cooldownDays>0))add('修为已至瓶颈：可以尝试突破了（闭关不会自动破境）。');},0);
+ guideTryV2890(()=>{if(p.breakthrough?.cooldownDays>0)add(`突破受挫，尚需调息 ${p.breakthrough.cooldownDays} 日；可在突破面板一次调息完毕。`);},0);
+ guideTryV2890(()=>{if(!p.sect||p.sect==='散修')add('尚无宗门：主线【拜入宗门】会在练气后引你参加凌霄宗入门考核。');},0);
+ guideTryV2890(()=>{if(!document.getElementById('tutorialUnlock')&&typeof bossEligibleV2887==='function'&&bossEligibleV2887()&&bossWindowV2887().open)add(`镇岳台封印松动中（余 ${bossWindowV2887().daysLeft} 天）：宗门大殿 → ⛰️ 镇岳台。`);},0);
+ guideTryV2890(()=>{if(p.sect&&p.sect!=='散修'&&typeof sectMasterRequirementsV2872==='function'&&sectMasterRequirementsV2872().ready)add('宗主传承考核条件已齐：宗门大殿 → 👑 宗主传承考核，开始三试。');},0);
+ if(!out.length)add('接宗门任务稳攒修为、贡献与灵石；也可出门游历、清剿妖兽。');
+ return out;
+}
+
+function guideSectionsV2890(){
+ const f=guideFactsV2890(),e=guideEscV2890,u=f.unlock,R=i=>e(guideRealmV2890(i));
+ const ul=items=>`<ul class="guide-list-v2890">${items.map(t=>`<li>${t}</li>`).join('')}</ul>`;
+ const tip=t=>`<p class="guide-tip-v2890">${t}</p>`;
+ const B=f.boss;
+ return [
+  {id:'start',icon:'🌅',tab:'起步',title:'初入仙途',html:()=>{
+   const next=guideNextStepsV2890(f);
+   return `<div class="guide-next-v2890" role="note"><b>此刻宜行</b>${ul(next.map(e))}</div>`
+   +'<h4>三步上手</h4>'+ul([
+    '<b>行走</b>：拖动左下摇杆，或轻点地面自动前往。走进地点外圈后，按右下【交互】进入。',
+    '<b>初战</b>：角色 → 修行与设置中的【初入仙途】会带你走完五步：山脚试手 → 穿戴木剑 → 配置御剑术 → 山道挑战 → 查看来信。可随时收起，之后从本指引继续。',
+    '<b>修行</b>：接宗门任务，换取修为、贡献与灵石；修为攒满瓶颈后尝试突破。'])
+   +'<h4>常用入口</h4>'+ul([
+    '<b>角色</b>：装备、功法、宗门待办；另有【修真造化之路】（四项一次性目标，旧角色达标也可补领）、【上一场战斗 · 回看】、【☯ 天机】参详推演。',
+    '<b>探索</b>：小地图旁【探索】可展开【卷 山河图】与探索手册。',
+    '<b>手机</b>：右上【☰】快捷菜单里有记档、存档管理、成就录、静音与本指引。'])
+   +'<h4>仙历与寿元</h4>'+`<p>一年 ${f.yearDays} 日（${Math.round(f.yearDays/f.monthDays)} 月 × ${f.monthDays} 日）。修炼、闭关、调息、休息都会推着仙历前行，年岁随之增长。寿元将尽时，须突破大境界或服延寿丹。</p>`;
+  }},
+  {id:'cultivate',icon:'🧘',tab:'修炼',title:'修炼与突破',html:()=>
+   `<p>大境界自 ${e(f.realms[0])} 起，依次为 ${e(f.realms.slice(1,11).join(' → '))} → ……直至${e(f.realms[f.realms.length-1])}。每个大境界又分<b>${e(f.phases.join('、'))}</b>四段。</p>`
+   +'<h4>积攒修为</h4>'+ul([
+    '宗门任务、战斗胜利、修炼与闭关都能增长修为。',
+    '洞府【短期修炼】最多一年；【洞府闭关】与宗门闭关最多十年，洞府闭关另得家具的修为加成。',
+    '闭关只把修为补到<b>当前小段的瓶颈</b>为止：修为一满即提前出关，绝不会自行破境；百年大比将开或寿元只剩一年时，也会提前出关。'])
+   +'<h4>突破</h4>'+ul([
+    '修为达到瓶颈即可尝试突破，<b>每次只进一段</b>：成功只扣去本段所需修为，余下的保留。',
+    '成功率受境界、丹药、宗门与心境影响；南域仙市的稀有丹药中有破境丹可助一臂之力。',
+    '失败会损失部分修为，并需调息若干日；可在突破面板一次调息完毕。',
+    `${e(f.realms[9]||'渡劫')}圆满后，须亲手渡过<b>飞升天劫</b>（不可逃），方入${e(f.realms[10]||'地仙')}。`])
+   +tip('寿元：突破大境界会提高寿元上限；三种延寿丹合计最多延寿 600 年，服用次数不因突破或读档重置。')
+  },
+  {id:'combat',icon:'⚔️',tab:'战斗',title:'战斗与功法',html:()=>
+   ul([
+    '<b>出手</b>：普通攻击命中可回些许灵力；功法消耗灵力，冰冻、灼烧、治疗等效果各有妙用。',
+    '<b>携带功法</b>：每系最多携带 3 个，在【更换战斗技能】中配置；战斗技能栏默认收起，点系别即可展开。',
+    '<b>丹药</b>：战斗中只能从【战斗背包】服用。',
+    '<b>境界威压</b>：高境界对低境界有伤害优势；越级而战更险，胜了收益也更丰。'])
+   +'<h4>脱身</h4>'+ul([
+    '【逃跑】按钮会直接显示成功率（15%～95%），取决于身法速度与双方境界差。',
+    '首领、天劫、宗门大比、正魔大战、宗门任务战与引导战不可逃。<b>神行符</b>只在允许逃跑的战斗中保证脱身，禁逃战斗也不能用符。'])
+   +'<h4>看得清楚</h4>'+ul([
+    '【🎬 动画演武】与【📜 简略战报】可随时切换；【详细战报】可展开查看每一笔数值。',
+    '【战斗设置】里有【立体战场】开关：立体背景、命中/暴击/闪避特效、飘字与血条动画，<b>只改画面，不改数值</b>；系统开启“减少动态效果”时会自动收敛。',
+    '战后简报可【回看本场战斗】，之后也能在角色面板【上一场战斗 · 回看】。'])
+   +'<h4>灵宠</h4>'+ul([
+    '把可收服的灵兽压到 <b>25% 气血及以下</b>，再用灵兽绳、缚灵玉、御灵葫芦等契具尝试收服；魔宠需魔缚索，神兽须结缘。',
+    '东域灵兽谷可培养、选择出战灵宠；本指引底部的【🐾 灵宠完整指引】讲得更细。'])
+  },
+  {id:'sect',icon:'🏯',tab:'宗门',title:'宗门与宗主',html:()=>
+   '<p>主线【拜入宗门】：练气之后，通过凌霄宗入门考核即可入门。宗门诸事都在<b>宗门大殿</b>：宗门任务、藏经阁（以贡献换功法）、贡献商店、贡献榜、正魔大战、宗门小秘境，以及【宗门总览 · 待办与晋升】。</p>'
+   +'<h4>贡献与职位</h4>'
+   +`<p>${f.ranks.map(r=>`<span class="help-tag">${e(r.name)} ${e(r.need)}</span>`).join('')}</p>`
+   +'<p>职位看<b>累计贡献</b>；花掉可用贡献不会降低累计贡献或职位。</p>'
+   +ul([
+    `弟子事务：招募、培养、派遣门下弟子，最多 ${f.discipleCap.member} 人，宗主可收 ${f.discipleCap.master} 人。`,
+    '百年宗门大比：前三的人类宗门获得本世纪进入<b>万宗秘境</b>的资格。'])
+   +'<h4>正魔大战</h4>'+ul(['加入尚存宗门后，可从【三万年仙魔战 → 宗门会战】筹备出征；散修不能发起会战、邀请盟军或请求仙援。已有战史与军功仍保留。','邀请人族盟军每宗 30 贡献，可一键按战力优先邀请预算内的全部可邀宗门；仙援仍沿用成功 150、未回应 75 贡献。确认后才扣费，保存失败恢复本次操作。','每阶段先按公开敌情选择战术，再指挥联军或亲自交锋；军师布阵使用同一份公开敌情。奖励统一在战役结束发放，不新增递减或盟军分成。'])
+   +'<h4>宗主之路</h4>'+ul([
+    `<b>一 · 考核</b>：位至长老后，宗门大殿出现【👑 宗主传承考核】。须${R(f.master.realm)}境、累计贡献 ${e(f.master.contribution)}、完成 ${e(f.master.tasks)} 次宗门委托。`,
+    '<b>二 · 三试</b>：问心（只记录决、仁、守的倾向）→ 守山（三种方案任选；布阵每次耗 100 贡献，失败也扣；失败需调息 3 日，不损境界与物品）→ 受印（择一种传承）。每步都会保存，可暂离续接。',
+    `<b>三 · 立道统</b>：${f.doctrines.length?f.doctrines.map(d=>`${e(d.name)}（${e(d.desc)}）`).join('；'):'剑道、丹道、阵道三选一'}。立下后暂不可更改。`])
+   +(f.mentor?`<h4>宗主亲传</h4><p>在弟子的【成长履历与后续】中，支出 ${f.mentor.goldBase}＋${f.mentor.goldPerLevel}×弟子等级灵石进行讲道、济危演练或寻幽推演。每名弟子每 ${f.mentor.cooldownDays} 个游戏日一次，各类最多 ${f.mentor.perKindCap} 次；讲道另升一级（最高 ${f.mentor.maxLevel} 级）。称号仍需真实历练，演练不会发放答谢或古洞奖励。派遣或随军期间不能亲传。</p>`:'')
+   +'<h4>宗主议事</h4>'+ul([
+    `<b>整饬山门</b>：支出 ${e(f.council.repairContribution)} 贡献、${e(f.council.repairGold)} 灵石，繁荣度 +${e(f.council.prosperityGain)}。`,
+    `<b>亲授弟子</b>：支出 ${e(f.council.lessonContribution)} 贡献，亲授的弟子等级 +1、忠诚 +2。两项议事共用 ${e(f.council.cooldown)} 个游戏日冷却。`,
+    '<b>季度岁入 · 敕令 · 绝学 · 官职</b>：新季度须手动结算；余额不足时灵石归零，繁荣度另减 2。护法、执事、先锋三职还会随你登镇岳台。'])
+  },
+  {id:'boss',icon:'⛰️',tab:'镇岳台',title:'镇岳台 · 玄冥蜕影',html:()=>{
+   if(!B)return '<p>本版本未载入镇岳台。</p>';
+   return '<p>万年前被九锁镇于山腹的玄冥，每逢灵潮之秋便蜕下一缕魂影爬上镇岳台。镇之，护宗门气运。</p>'
+   +'<h4>何人、何时、何处</h4>'+ul([
+    `<b>条件</b>：身在宗门（非散修、宗门尚存）且达${e(B.minRealm)}境。`,
+    `<b>时间</b>：每年 <b>${e(B.from)}～${e(B.to)}</b>，封印松动 ${e(B.days)} 日。`,
+    '<b>入口</b>：宗门大殿【⛰️ 镇岳台】，按钮上直接写着封印状态与剩余天数。'])
+   +'<h4>层级与年度首胜</h4><div class="guide-table-v2890" role="table" aria-label="镇岳台层级">'
+   +'<div role="row" class="guide-tr-v2890 guide-th-v2890"><span role="columnheader">层</span><span role="columnheader">境界起</span><span role="columnheader">灵石</span><span role="columnheader">修为</span><span role="columnheader">贡献</span><span role="columnheader">残骨</span></div>'
+   +B.tiers.map(t=>`<div role="row" class="guide-tr-v2890"><span role="cell">第${e(t.id)}层</span><span role="cell">${e(t.realm)}</span><span role="cell">${e(t.gold)}</span><span role="cell">${e(t.exp)}</span><span role="cell">${e(t.contribution)}</span><span role="cell">${e(t.bones)}</span></div>`).join('')+'</div>'
+   +`<p>每年只有<b>第一次</b>胜利全额领奖，按回合快慢另评甲、乙、丙。同年再胜算练手：每个游戏日最多一份，得 ${e(B.repeat.gold)}% 灵石与 ${e(B.repeat.bones)} 枚${e(B.bone)}。</p>`
+   +'<h4>六式</h4>'+ul([
+    `<b>${e(B.names.strike)}</b>：消耗全部道韵，每层增伤 25%。`,
+    `<b>${e(B.names.guard)}</b>：减伤，回 3% 气血、12% 灵力并积 1 层道韵。`,
+    `<b>${e(B.names.evade)}</b>：躲开可避之招并反击，积 1 层道韵。`,
+    `<b>${e(B.names.break)}</b>：耗 25% 灵力，打断蓄力（吞灵诀）或碎一层骨甲。`,
+    `<b>${e(B.names.cleanse)}</b>：解除蚀咒与被封之招。`,
+    `<b>${e(B.names.lock)}</b>：消耗一道锁，整回合锁住蜕影；对“无法避让”的大招最管用。`])
+   +tip('每回合都会<b>预告</b>蜕影下一招与应对之法。同一招式连用两次后，再用会被<b>看破</b>（避让躲不开、守势被破、强攻减半）；进入噬灵相后，它还会记住你上次如何应对同一招。')
+   +'<h4>年相与九锁</h4>'+ul(B.aspects.map(a=>`${e(a.icon)} <b>${e(a.name)}</b>：${e(a.desc)}`).concat([
+    '三相按年轮转，台上会提前写出来年之相。',
+    `每次换相可选一次<b>九锁回应</b>：${B.boons.map(b=>`${e(b.name)}（${e(b.desc)}）`).join('、')}；宗主另有一应，由道统决定。`,
+    `<b>献骨入阵</b>：任何人都可献 ${e(B.offering.bones)} 枚${e(B.bone)}，开战多 ${e(B.offering.locks)} 道镇岳锁。`]))
+   +'<h4>失守与加固</h4>'+ul([
+    `某年未镇，即记失守一年：蜕影气血与灵石奖励各 +${e(B.seal.hp)}%/年；门人最多感受 ${e(B.seal.member)} 年，宗主最多 ${e(B.seal.master)} 年，且宗主每失守一年繁荣度 −${e(B.seal.prosperity)}。`,
+    `宗主可在【季度岁入 · 敕令 · 绝学 · 官职】的镇岳封印栏，以 ${e(B.seal.reinforce)} 枚${e(B.bone)}加固封印：清除失守，繁荣度 +${e(B.seal.reinforceGain)}。`,
+    `宗主亲临：开战即有镇岳锁与道韵，护法、执事、先锋随行；但蜕影恨透了宗主，气血 +${e(B.masterHp)}%。`])
+   +tip(`魂影代身：战斗中的损伤不伤真身，战败只需调息 ${e(B.defeatDays)} 日。一战最多 ${e(B.maxRounds)} 回合；未完之战可继续，也可放弃（不发战果、不退献骨）。`);
+  }},
+  {id:'travel',icon:'🗺️',tab:'行路',title:'山河与行路',html:()=>
+   `<p><span class="help-tag">南域 ${R(u.south)}</span><span class="help-tag">东域 ${R(u.east)}</span><span class="help-tag">北域 ${R(u.north)}</span><span class="help-tag">西域 ${R(u.west)}</span></p>`
+   +'<p>标签是开放该地域所需的境界。南域的【四方驿道】通往他域，他域的【归途界门】可回南域。</p>'
+   +ul([
+    '<b>南域</b>：初始之地；仙市可购丹药，洞府也在这里。',
+    '<b>东域</b>：迷雾森林、灵兽谷。',
+    '<b>北域</b>：问道山、凌霄宗、三界势力碑。',
+    '<b>西域</b>：古战场、炼丹房、法宝台。古战场最险，先备足补给。',
+    '<b>万宗秘境</b>：须所在宗门在百年大比中取得本世纪资格。'])
+   +'<h4>认路</h4>'+ul([
+    '右上小地图可看周围地点，点选地图位置即可寻路。',
+    '【探索】→【卷 山河图】展开整幅地域绘卷；绘卷中的【立体】按钮可开关层叠景深与光影，只影响画面。',
+    '画面类开关（立体山河、立体战场、战斗呈现方式）记在本机浏览器里，不随存档转移。'])
+  },
+  {id:'items',icon:'🎒',tab:'物品',title:'物品与锻造',html:()=>
+   '<h4>装备</h4>'+ul([
+    '装备分凡品至神器多个品质，品质会放大基础属性；高阶装备有境界要求，成套可激活额外加成。',
+    `戒指两格、法宝三格；<b>本命法宝位于${R(3)}境开启</b>。`,
+    '装备栏：【⚡ 一键装备最佳】、【⬆️ 升品 / 继承】、【⚒️ 强化 / 洗练】、【📦 背包装备】、【↩️ 一键卸下未锁定】，另有装备与功法预设。'])
+   +'<h4>装备工坊</h4>'+ul([
+    '<b>强化</b>：最高 +10，每级提升原有攻击、防御、气血、灵力 5%，成功率 100%，不降级，消耗灵石。',
+    '<b>洗练</b>：生成两条不同的百分比词条，先对比再决定是否替换。',
+    '加工过的装备自动锁定，卸下或换装后保留进度。战斗或突破中不能开工坊。'])
+   +'<h4>丹药与法宝</h4>'+ul([
+    '南域仙市【稀有丹药】可买破境丹、延寿丹等；西域炼丹房按丹方炼制。',
+    '西域法宝台可查看与强化已有法宝。',
+    '灵兽丹等御兽材料用于灵宠养成。'])
+   +tip('战斗中只能用【战斗背包】里的物品；平时点背包中的捕捉契具只会提示用法，不会误耗。')
+  },
+  {id:'save',icon:'💾',tab:'存档',title:'存档与备份',html:()=>
+   ul([
+    '<b>自动记档</b>：每 30 秒一次，切到后台或关闭页面时也会尝试记档，离开前仍建议手动保存。',
+    '<b>手动记档</b>：【💾 记档】在存档栏；手机在右上【☰】快捷菜单里。',
+    '<b>战斗中记档</b>：普通战斗只保留开战前的记录；未结算离开时回到战前快照。镇岳台按每回合保存，正魔大战已付战备的交锋可续行，不能依靠刷新退还战备。'])
+   +'<h4>📁 存档管理</h4>'+ul([
+    '<b>导出当前存档</b> / <b>复制存档文本</b>：换设备或留底时用。',
+    '<b>导入存档</b>：JSON 文件，最大 8MB，会替换当前主存档（导入前会确认）。',
+    '<b>上一次有效备份</b>：可导出或恢复。',
+    '<b>替换前记录</b>：导入或恢复前自动留一份，仅存一份。',
+    '<b>上一位角色</b>：重新入世时保留，自动记档不会覆盖。'])
+   +tip('修行记录只保存在<b>当前这个浏览器</b>里。清除网站数据会让存档消失；换手机、换浏览器前，请先导出。')
+  }
+ ];
+}
+
+function guideRenderBodyV2890(id){
+ const list=guideSectionsV2890(),sec=list.find(s=>s.id===id)||list[0];
+ guideTabV2890=sec.id;
+ let html='';try{html=sec.html();}catch(err){console.warn('修行指引分页失败',sec.id,err);html='<p>此页暂时无法显示。</p>';}
+ const i=list.indexOf(sec),prev=list[i-1],next=list[i+1];
+ return `<h3 class="guide-h3-v2890" id="guideTitleV2890" tabindex="-1">${sec.icon} ${guideEscV2890(sec.title)}</h3>${html}`
+  +`<nav class="guide-pager-v2890" aria-label="翻页">${prev?`<button type="button" data-guide-tab="${prev.id}">‹ ${guideEscV2890(prev.tab)}</button>`:'<span></span>'}${next?`<button type="button" data-guide-tab="${next.id}">${guideEscV2890(next.tab)} ›</button>`:'<span></span>'}</nav>`;
+}
+function guideTabV2890Go(id,focus){
+ const root=document.getElementById('helpManual');if(!root||guideOwnerV2890!==player||!root.classList.contains('guide-v2890'))return false;
+ const body=document.getElementById('guideBodyV2890');if(!body)return false;
+ body.innerHTML=guideRenderBodyV2890(id);body.scrollTop=0;
+ for(const b of root.querySelectorAll('.guide-tab-v2890')){const on=b.getAttribute('data-guide-tab')===guideTabV2890;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;b.className='guide-tab-v2890'+(on?' on':'');if(on){try{const strip=b.parentNode;if(strip&&strip.clientWidth)strip.scrollLeft=Math.max(0,b.offsetLeft-(strip.clientWidth-b.offsetWidth)/2);}catch(_){}if(focus)try{b.focus();}catch(_){}}}
+ body.setAttribute('aria-labelledby','guideTabBtnV2890-'+guideTabV2890);
+ guideStoreV2890(guideTabV2890);
+ return true;
+}
+function guideActionsV2890(){
+ const t=player?.tutorial;
+ const s=guideJourneyReadV2890(),lv=guideTryV2890(()=>player.level,0);
+ let html=typeof showPetGuideV211==='function'?'<button id="helpPetGuideV211" type="button" onclick="closeHelpManual();showPetGuideV211(\'overview\')">🐾 灵宠完整指引</button>':'';
+ if(s&&s.step<5)html+='<button type="button" onclick="beginFirstJourneyV28687()">继续初入仙途</button>';
+ else if(!s&&lv<2&&typeof beginFirstJourneyV28687==='function')html+='<button type="button" onclick="beginFirstJourneyV28687()">开始初入仙途</button>';
+ if(typeof restartTutorial==='function')html+='<button type="button" onclick="restartTutorial()">🌅 重走新手引路</button>';
+ if(typeof toggleTutorialTooltips==='function')html+=`<button type="button" onclick="toggleTutorialTooltips()">${t?.showTooltips!==false?'关闭':'开启'}问号提示</button>`;
+ html+='<button type="button" onclick="closeHelpManual()">返回仙途</button>';
+ return html;
+}
+function renderGuideV2890(tab){
+ if(!document.getElementById('helpManual'))guideOpenerV2890=document.activeElement;guideOwnerV2890=player;
+ if(typeof stopNavigationV2830==='function')stopNavigationV2830();if(typeof resetWorldMovementV28686==='function')resetWorldMovementV28686();
+ let el=document.getElementById('helpManual');
+ if(!el){el=document.createElement('div');el.id='helpManual';el.onclick=ev=>{if(ev.target===el)closeHelpManual();};document.body.appendChild(el);}
+ el.className='help-manual-overlay active guide-v2890';
+ const list=guideSectionsV2890();
+ const want=tab&&GUIDE_V2890.tabs.includes(tab)?tab:(guideStoreV2890()||guideTabV2890);
+ const start=GUIDE_V2890.tabs.includes(want)?want:'start';
+ const tabs=list.map(s=>`<button type="button" role="tab" class="guide-tab-v2890" id="guideTabBtnV2890-${s.id}" data-guide-tab="${s.id}" aria-controls="guideBodyV2890" aria-selected="false" tabindex="-1">${s.icon} ${guideEscV2890(s.tab)}</button>`).join('');
+ el.innerHTML=`<div class="help-manual-content guide-sheet-v2890" role="dialog" aria-modal="true" aria-labelledby="guideHeadV2890" onclick="event.stopPropagation()">`
+  +`<div class="help-manual-title guide-head-v2890"><span id="guideHeadV2890">📖 仙途 · 修行指引</span><button type="button" aria-label="关闭修行指引" class="help-manual-close" onclick="closeHelpManual()">✕</button></div>`
+  +`<div class="guide-tabs-v2890" role="tablist" aria-label="指引分类">${tabs}</div>`
+  +`<div class="guide-body-v2890" id="guideBodyV2890" role="tabpanel" tabindex="0"></div>`
+  +`<div class="help-manual-actions guide-actions-v2890">${guideActionsV2890()}</div></div>`;
+ guideTabV2890Go(start,true);
+ if(!el.__guideOwnerGuardV2890){el.__guideOwnerGuardV2890=true;el.addEventListener('click',ev=>{if(guideOwnerV2890!==player){ev.preventDefault();ev.stopImmediatePropagation();closeHelpManual();}},true);}
+ return el;
+}
+function guideKeyV2890(ev){
+ const root=document.getElementById('helpManual');if(!root||guideOwnerV2890!==player||!root.classList.contains('guide-v2890'))return;
+ if(!root.contains(ev.target))return;ev.stopPropagation?.();
+ if(ev.key==='Escape'){ev.preventDefault?.();ev.stopPropagation?.();closeHelpManual();return;}
+ if(ev.key==='Tab'){trapJourneyFocusV2838(ev,root);return;}
+ const onTab=ev.target?.classList?.contains?.('guide-tab-v2890');
+ if(onTab&&(ev.key==='ArrowRight'||ev.key==='ArrowLeft'||ev.key==='Home'||ev.key==='End')){
+  const ids=GUIDE_V2890.tabs,i=ids.indexOf(guideTabV2890);
+  const j=ev.key==='Home'?0:ev.key==='End'?ids.length-1:(i+(ev.key==='ArrowRight'?1:-1)+ids.length)%ids.length;
+  ev.preventDefault?.();guideTabV2890Go(ids[j],true);
+ }
+}
+function guideClickV2890(ev){
+ const t=ev.target?.closest?.('[data-guide-tab]');if(!t||!t.closest?.('#helpManual'))return;
+ const fromPager=!!t.closest('.guide-pager-v2890');
+ guideTabV2890Go(t.getAttribute('data-guide-tab'),fromPager);
+}
+
+// 修正新手引路中“闭关十年最多推进一个小段”的含糊说法，并在元婴时补一张镇岳台提示。
+function installGuideTextV2890(){
+ try{
+  if(typeof TUTORIAL_STEPS==='object'&&TUTORIAL_STEPS.cultivation){
+   TUTORIAL_STEPS.cultivation.desc='修为攒到当前小段的瓶颈后，即可尝试突破；<b>每次突破只进一段</b>，成功只扣本段所需修为。失败会损失部分修为并需调息，可在突破面板一次调息完毕。<br><br>闭关最多十年，但只会把修为补到瓶颈，<b>不会自行破境</b>；渡劫圆满须亲手渡过飞升天劫，方入地仙。<br><br>随时可从【📖 修行指引】查看各项玩法。';
+  }
+ }catch(_){}
+ const base=window.checkTutorialRealm;
+ if(typeof base==='function'&&!base.__guideV2890){
+  const wrapped=function(level){
+   const r=base.apply(this,arguments);
+   try{
+    if(!document.getElementById('tutorialUnlock')&&typeof bossEligibleV2887==='function'&&bossEligibleV2887()&&typeof showTutorialUnlockPopup==='function'){
+     const f=guideFactsV2890().boss;
+     if(f)showTutorialUnlockPopup('unlock_boss_v2890','⛰️ 镇岳台可往',`你已入${guideEscV2890(f.minRealm)}，又身在宗门。每年 ${guideEscV2890(f.from)}～${guideEscV2890(f.to)} 镇岳封印松动，可从宗门大殿登台镇压玄冥蜕影。详见【📖 修行指引 → 镇岳台】。`);
+    }
+   }catch(err){console.warn('镇岳台提示失败',err);}
+   return r;
+  };
+  wrapped.__guideV2890=true;window.checkTutorialRealm=wrapped;
+ }
+}
+function installGuideStylesV2890(){
+ if(document.getElementById('guideStyleV2890'))return;
+ const st=document.createElement('style');st.id='guideStyleV2890';
+ st.textContent=`
+#helpManual.guide-v2890 .guide-sheet-v2890{display:flex;flex-direction:column;width:min(760px,94vw);max-height:min(88vh,920px);max-height:min(88dvh,920px);padding:0;overflow:hidden}
+#helpManual.guide-v2890 .guide-head-v2890{margin:0;padding:14px 16px 8px;flex:none}
+#helpManual.guide-v2890 .guide-tabs-v2890{flex:none;display:flex;gap:6px;overflow-x:auto;padding:2px 14px 10px;scrollbar-width:none;-webkit-overflow-scrolling:touch;border-bottom:1px solid rgba(242,210,122,.18)}
+#helpManual.guide-v2890 .guide-tabs-v2890::-webkit-scrollbar{display:none}
+#helpManual.guide-v2890 .guide-tab-v2890{flex:none;min-height:38px;padding:6px 12px;border-radius:999px;border:1px solid rgba(242,210,122,.28);background:rgba(255,255,255,.04);color:#d8ccb0;font-size:14px;white-space:nowrap}
+#helpManual.guide-v2890 .guide-tab-v2890.on{background:linear-gradient(135deg,rgba(242,210,122,.28),rgba(217,181,236,.18));color:#fff3cf;border-color:#f2d27a;font-weight:700}
+#helpManual.guide-v2890 .guide-tab-v2890:focus-visible,#helpManual.guide-v2890 .guide-pager-v2890 button:focus-visible{outline:2px solid #f2d27a;outline-offset:2px}
+#helpManual.guide-v2890 .guide-body-v2890{flex:1 1 auto;min-height:0;overflow-y:auto;padding:12px 18px 6px;font-size:15px;line-height:1.75;color:#e8e2d4;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#helpManual.guide-v2890 .guide-body-v2890:focus{outline:none}
+#helpManual.guide-v2890 .guide-h3-v2890{margin:2px 0 8px;font-size:18px;color:#f2d27a;outline:none}
+#helpManual.guide-v2890 .guide-body-v2890 h4{margin:14px 0 4px;font-size:15px;color:#d9b5ec}
+#helpManual.guide-v2890 .guide-body-v2890 p{margin:6px 0}
+#helpManual.guide-v2890 .guide-body-v2890 b{color:#fff1c4}
+#helpManual.guide-v2890 .guide-list-v2890{margin:4px 0 6px;padding-left:1.2em}
+#helpManual.guide-v2890 .guide-list-v2890 li{margin:5px 0}
+#helpManual.guide-v2890 .guide-next-v2890{padding:9px 12px;border:1px solid rgba(105,240,174,.35);border-radius:10px;background:rgba(105,240,174,.07)}
+#helpManual.guide-v2890 .guide-next-v2890 b{color:#9ff5c8}
+#helpManual.guide-v2890 .guide-tip-v2890{padding:8px 11px;border-left:3px solid #f2d27a;border-radius:6px;background:rgba(242,210,122,.08);font-size:14px}
+#helpManual.guide-v2890 .guide-table-v2890{display:grid;gap:2px;margin:6px 0;max-width:560px;font-size:14px;overflow-x:auto}
+#helpManual.guide-v2890 .guide-tr-v2890{display:grid;grid-template-columns:4em 4.5em repeat(4,minmax(3em,1fr));gap:4px;padding:4px 6px;border-radius:6px;background:rgba(255,255,255,.035)}
+#helpManual.guide-v2890 .guide-th-v2890{color:#d9b5ec;background:rgba(217,181,236,.10)}
+#helpManual.guide-v2890 .guide-pager-v2890{display:flex;justify-content:space-between;gap:8px;margin:16px 0 8px}
+#helpManual.guide-v2890 .guide-pager-v2890 button{min-height:40px;padding:6px 14px;border-radius:10px;border:1px solid rgba(242,210,122,.3);background:rgba(255,255,255,.05);color:#f2d27a;font-size:14px}
+#helpManual.guide-v2890 .guide-actions-v2890{flex:none;display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid rgba(242,210,122,.18)}
+#helpManual.guide-v2890 .guide-actions-v2890 button{flex:1 1 auto;min-height:40px;font-size:14px}
+@media (max-width:620px){#helpManual.guide-v2890 .guide-sheet-v2890{width:100%;max-height:92vh;max-height:92dvh;border-radius:16px 16px 12px 12px}#helpManual.guide-v2890 .guide-body-v2890{padding:10px 14px 4px}#helpManual.guide-v2890 .guide-actions-v2890{gap:5px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px))}#helpManual.guide-v2890 .guide-actions-v2890 button{flex:1 1 auto;min-height:36px;padding:5px 8px;font-size:13px}}
+html.xiantu-mobile-dedicated #helpManual.guide-v2890 .guide-sheet-v2890{padding:0!important}
+@media (prefers-reduced-motion:no-preference){#helpManual.guide-v2890 .guide-body-v2890>*{animation:guideInV2890 .18s ease-out}}
+@keyframes guideInV2890{from{opacity:.4;transform:translateY(3px)}to{opacity:1;transform:none}}
+`;
+ (document.head||document.documentElement).appendChild(st);
+}
+function installGuideV2890(){
+ installGuideStylesV2890();
+ installGuideTextV2890();
+ const base=window.showHelpManual;
+ if(typeof base==='function'&&!base.__guideV2890){
+  const wrapped=function(tab){
+   // Keep the existing public entry and actions; render without save normalization.
+   // Render read-only; legacy guide normalizers must not mutate a save when browsing help.
+   try{renderGuideV2890(typeof tab==='string'?tab:null);}catch(err){console.warn('修行指引渲染失败',err);}
+  };
+  wrapped.__guideV2890=true;window.showHelpManual=wrapped;
+ }
+ const hud=document.getElementById('guideHudBtn');if(hud)hud.onclick=window.showHelpManual;
+ if(!window.__guideListenersV2890){
+  const close=window.closeHelpManual;window.closeHelpManual=function(){const opener=guideOpenerV2890,owner=guideOwnerV2890;guideOpenerV2890=null;guideOwnerV2890=null;if(typeof resetWorldMovementV28686==='function')resetWorldMovementV28686();const r=close.apply(this,arguments);if(owner===player&&opener?.isConnected)opener.focus?.();return r;};
+  const reset=window.resetRuntimeState;window.resetRuntimeState=function(){closeHelpManual();return reset.apply(this,arguments);};
+  window.__guideListenersV2890=true;
+  document.addEventListener('keydown',guideKeyV2890);
+  document.addEventListener('click',guideClickV2890,true);   // capture: the sheet stops bubbling clicks
+ }
+}
+try{installGuideV2890();}catch(e){console.warn('修行指引安装失败',e);}
+
+// END GUIDE_V2890
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.64';
