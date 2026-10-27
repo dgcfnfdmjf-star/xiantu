@@ -156,7 +156,7 @@ function settleReadySectTasksV2885(session){
  closeExpansionV286827();updateStats();syncSectTodoV2868();showFloatingText(`已速办${q.tasks.length}项委托，消耗与奖励已保存。`,'#69f0ae');showSectTodoV2868();return true;
 }
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.61';
+window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.62';
 
 
 // V28.68.40: saved random encounters and run-scoped blessings.
