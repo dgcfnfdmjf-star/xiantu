@@ -178,6 +178,6 @@ function getAvailableCombatSkillsV2769(){
  return (p.skills||[]).map((_,index)=>getCombatSkillAvailabilityV2769(index)).filter(x=>x.ok);
 }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-17-combatskillloadoutv212.js"]="28.68.67";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-17-combatskillloadoutv212.js"]="28.68.68";
 
 function toggleSkillDetailsV2856(){combatSkillUiV212.details=!combatSkillUiV212.details;updateCombatChoices?.();}

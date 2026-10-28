@@ -171,6 +171,7 @@
       // 备份写入失败时不覆盖主档，保留已有记录。
       if(validOld && old!==raw)localStorage.setItem(SAVE_BACKUP_KEY,old);
       localStorage.setItem(SAVE_KEY,raw);
+      try{window.saveMirrorV2895?.(raw);}catch(_){}
     }
     let miniSaveDeferredV286840=false;
     function saveGame() {
@@ -200,6 +201,7 @@
         // 先删备用档：若失败保留主档，避免只删主档后又从备用档恢复。
         localStorage.removeItem(SAVE_BACKUP_KEY);
         localStorage.removeItem(SAVE_KEY);
+        try{window.saveMirrorClearedV2895?.();}catch(_){}
         return true;
       } catch(e) { console.warn('无法删除本地存档：', e); return false; }
     }
@@ -4079,6 +4081,11 @@
       offhand:{label:'副手',icon:'🛡️',type:'weapon'}, artifact1:{label:'法宝·天',icon:'🔮',type:'artifact'}, artifact2:{label:'法宝·地',icon:'🔮',type:'artifact'},
       artifact3:{label:'法宝·人',icon:'🔮',type:'artifact'}, flying:{label:'飞行法器',icon:'🪁',type:'artifact'}, lifeArtifact:{label:'本命法宝',icon:'✨',type:'life_artifact'}
     };
+    // V2895: player-facing names for slot keys and slot types (never show the English keys).
+    const EQUIP_TYPE_LABELS_V2895={armor:'防具',jewelry:'饰品',weapon:'兵器',artifact:'法宝',life_artifact:'本命'};
+    const EQUIP_SLOT_EXTRA_V2895={ring:'戒指',artifact:'法宝',life_artifact:'本命法宝'};
+    function equipSlotLabelV2895(slot){return EQUIPMENT_SLOTS[slot]?.label||EQUIP_SLOT_EXTRA_V2895[slot]||'装备';}
+    function equipTypeLabelV2895(type){return EQUIP_TYPE_LABELS_V2895[type]||'装备';}
 
     function createEmptyEquipmentSlots(){
       const out={}; for(const key of Object.keys(EQUIPMENT_SLOTS))out[key]=null; return out;
@@ -6311,6 +6318,7 @@
     let playerPressureStun = false;
 
     function resetRuntimeState() {
+      document.getElementById('saveRemindV2895')?.remove();
       if(typeof resetMapAliveV2893==='function')resetMapAliveV2893(true);
       if(typeof closeCombatPetsV2884==='function')closeCombatPetsV2884();
       document.getElementById('sectCeremonyV2870')?.remove();
@@ -6576,6 +6584,7 @@
     }
     
     function showStory(text, choices) {
+      document.getElementById('saveRemindV2895')?.remove();
       window.jevStoryChangedV2846?.();
       document.getElementById('storyPanel')?.classList.remove('equipment-bag-view-v2803','equipment-bag-expanded-v2803');
       refreshProtagonistPortraits();
@@ -6649,6 +6658,7 @@
     // ================== 战斗系统 ==================
     
     function startCombat(enemy, isBoss = false, isTrib = false, monsterRef = null) {
+      document.getElementById('saveRemindV2895')?.remove();
       if(!enemy || gameState==='combat' || gameState==='combat-ending' || COMBAT_FINISH_V2764.settling || player.breakthrough?.isAnimating)return false;
       battleCheckpointV286812={owner:player,raw:JSON.stringify(createSaveDataV2768())};
       const emergencyHealV2870=emergencyFieldHealV2870(enemy,isBoss,isTrib,monsterRef);
@@ -8487,7 +8497,7 @@
         const locked=slot==='lifeArtifact'&&(player.level||0)<3, name=player.equipment?.[slot], data=name&&getEquipData(name), q=data?getQualityInfo(data.quality):null,upgrade=!locked?getBestBagUpgradeForSlot(slot):null;
         const itemText=locked?'🔒 未解锁':name||'空'; const color=locked?'#555':q?.color||(name?'#ddd':'#666');
         return `<div class="equipment-slot-row ${name?'equipped':''} ${upgrade?'has-upgrade':''}" ${name?`onclick="unequipItem('${slot}',true)" title="点击卸下"`:''}>
-          <span style="font-size:18px;text-align:center">${locked?'🔒':s.icon}</span><div class="slot-main"><span class="slot-name">${s.label}</span><span class="item-name" style="color:${color}">${itemText}</span>${data?`<span style="font-size:9px;color:${q.color}">${q.icon} ${q.name} · ${formatEquipItemStatsV286813(name)}</span>`:''}${upgrade?`<span class="slot-upgrade-hint">↑ 背包有更优：${upgrade.name}</span>`:''}</div><span style="font-size:9px;color:#555">${s.type}</span></div>`;
+          <span style="font-size:18px;text-align:center">${locked?'🔒':s.icon}</span><div class="slot-main"><span class="slot-name">${s.label}</span><span class="item-name" style="color:${color}">${itemText}</span>${data?`<span style="font-size:9px;color:${q.color}">${q.icon} ${q.name} · ${formatEquipItemStatsV286813(name)}</span>`:''}${upgrade?`<span class="slot-upgrade-hint">↑ 背包有更优：${upgrade.name}</span>`:''}</div><span style="font-size:9px;color:#555">${equipTypeLabelV2895(s.type)}</span></div>`;
       }).join('');
     }
 
@@ -9055,7 +9065,7 @@
       for(const [name,d] of items){
         const q=getQualityInfo(d.quality),allowed=canEquipItem(name).ok,owned=(player.equipmentInventory||[]).filter(n=>n===name).length+Object.values(player.equipment||{}).filter(n=>n===name).length;
         const reason=!allowed?`需${CULTIVATION_REALMS[d.realmRequired]?.name||'更高境界'}`:player.gold<d.priceV2790?`还差 ${d.priceV2790-player.gold} 灵石`:'购买';
-        html+=`<article class="gear-grade-card-v2791 market-item-v2800" style="--gear-color:${q.color}"><b style="color:var(--gear-color)">${name}</b><p>${EQUIPMENT_SLOTS[d.slot]?.name||d.slot} · 需${CULTIVATION_REALMS[d.realmRequired]?.name} · 已持有 ${owned}</p><p>${formatEquipItemStatsV286813(name)}</p><details><summary>查看装备说明</summary><p>${d.desc||''}</p></details><div class="market-buy-v2800"><strong>${d.priceV2790} 灵石</strong><button type="button" class="choice-btn" ${!allowed||player.gold<d.priceV2790?'disabled':''} onclick="buyMarketGearV2800('${category}',${grade},'${family}','${d.familyV2790}',${d.pieceV2790})">${reason}</button></div></article>`;
+        html+=`<article class="gear-grade-card-v2791 market-item-v2800" style="--gear-color:${q.color}"><b style="color:var(--gear-color)">${name}</b><p>${equipSlotLabelV2895(d.slot)} · 需${CULTIVATION_REALMS[d.realmRequired]?.name} · 已持有 ${owned}</p><p>${formatEquipItemStatsV286813(name)}</p><details><summary>查看装备说明</summary><p>${d.desc||''}</p></details><div class="market-buy-v2800"><strong>${d.priceV2790} 灵石</strong><button type="button" class="choice-btn" ${!allowed||player.gold<d.priceV2790?'disabled':''} onclick="buyMarketGearV2800('${category}',${grade},'${family}','${d.familyV2790}',${d.pieceV2790})">${reason}</button></div></article>`;
       }
       showStory(html,[{text:category==='weapon'?'🛡️ 前往护身坊':'⚔️ 前往神兵铺',action:'market_switch_v2800',category:category==='weapon'?'armor':'weapon',grade},{text:'← 返回仙市',action:'market'}]);
     }
@@ -14440,6 +14450,8 @@
         if (info) info.innerHTML = '检测到旧日修行记录。<br>点击“继续修行”后读取，道具、境界与剧情均会保留。';
         const dialog = document.getElementById('loadDialog');
         if (dialog) dialog.style.display = 'flex';
+      } else {
+        try{window.saveMirrorOfferV2895?.();}catch(_){}
       }
     }
     
@@ -14664,7 +14676,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.67";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.68";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
