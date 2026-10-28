@@ -1245,4 +1245,4 @@ const RELATIONSHIP_STORIES_V2852={
     }
   }
 };
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2852-relationship-stories.js"]="28.68.75";
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2852-relationship-stories.js"]="28.68.76";

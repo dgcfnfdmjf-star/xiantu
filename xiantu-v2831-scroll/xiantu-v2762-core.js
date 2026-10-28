@@ -12471,7 +12471,14 @@
       for(const tier of order){const list=getBuildingsByTier(tier);if(!list.length)continue;const meta=LINGXIAO_TIER_META[tier]||{};html+=`<div class="lx-directory-group"><div class="lx-directory-title" style="color:${meta.color||'#f2d68d'}">${meta.label||tier} · ${list.length}处</div><div class="lx-directory-grid">${list.map(b=>{const a=canAccessBuilding(b.id);return `<div class="lx-directory-item ${a.allowed?'':'locked'}" onclick="enterLingxiaoBuilding('${b.id}')"><div class="lx-directory-name">${b.icon} ${b.shortName||b.name}</div><div class="lx-directory-access">${a.allowed?'✅ 可进入':'🔒 '+a.reason}</div></div>`;}).join('')}</div></div>`;}
       html+='<div class="lx-building-tip">🌙 月下观星台、禁阁夜廊、深夜药庐只在设备当地 18:00–06:00 开放互动。</div>';showStory(html,[{text:'📍 返回宗门总览',action:'sect'},{text:'← 返回地图',action:'return_to_map'}]);
     }
-    function drawLingxiaoBuildingPaths(ctx,transform=null){ /* Routes intentionally hidden in V28.47. */ }
+    function drawLingxiaoBuildingPaths(ctx,transform=null){
+      if(currentRegion!=='north')return;ctx.save();ctx.lineCap='round';
+      for(const [a,b] of BUILDING_PATHS){const start=getBuildingData(a),end=getBuildingData(b);if(!start||!end)continue;
+        const from=transform?transform(start.x,start.y+12):{x:start.x,y:start.y+12},to=transform?transform(end.x,end.y+12):{x:end.x,y:end.y+12};
+        ctx.setLineDash([]);ctx.strokeStyle='rgba(32,52,56,.25)';ctx.lineWidth=14;ctx.beginPath();ctx.moveTo(from.x,from.y);ctx.lineTo(to.x,to.y);ctx.stroke();
+        ctx.strokeStyle='rgba(224,240,242,.55)';ctx.lineWidth=7;ctx.setLineDash([8,5]);ctx.stroke();
+      }ctx.restore();
+    }
 
     const WORLD_SCALE_V2900=1.45;
     // Keep legacy exploration cell IDs and POI IDs: changing their world-unit size
@@ -12716,11 +12723,18 @@
     // ================== 俯视平面世界 ==================
     // ================== 性能优化配置 ==================
     // 低配置电脑和手机自动启用轻量渲染：降低像素比、限制地图/3D帧率、缓存静态地图。
+    function readGraphicsQualityV2903(){try{const q=localStorage.getItem('xiantu_gfx_quality_v2876');return ['low','high'].includes(q)?q:'auto';}catch(_){return 'auto';}}
+    function graphicsLowV2903(mode){
+      if(mode==='low')return true;if(mode==='high')return false;
+      const mobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||'')||!!window.matchMedia?.('(pointer: coarse)').matches;
+      const mem=Number(navigator.deviceMemory);return mobile||(Number.isFinite(mem)&&mem>0&&mem<4);
+    }
     const PERF_CONFIG = {
-      lowEnd: ((navigator.deviceMemory || 4) <= 8) || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || ''),
+      graphicsQuality: readGraphicsQualityV2903(),
+      lowEnd: graphicsLowV2903(readGraphicsQualityV2903()),
       // 真流畅模式：世界移动不再人为锁30FPS，直接跟随浏览器RAF（通常60Hz）。
       // 低配设备默认关闭全屏透明WebGL角色层，换稳定帧率。
-      ultraSmooth: ((navigator.deviceMemory || 4) <= 8) || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || ''),
+      ultraSmooth: graphicsLowV2903(readGraphicsQualityV2903()),
       minimapInterval: 1000 / 5,      // 小地图5FPS即可，避免抢主循环时间
       avatar3DInterval: 1000 / 30,    // 非低配设备的3D角色仍单独限制30FPS
       lastMinimapDraw: 0,
@@ -13043,7 +13057,8 @@
       let seed = 82631+String(currentRegion||'south').split('').reduce((n,c)=>n+c.charCodeAt(0)*71,0);
       const roadSegments=worldRoadSegmentsV2827();
       const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-      const decorTarget=PERF_CONFIG.mobile?38:(PERF_CONFIG.lowEnd?48:64);
+      // Keep legacy tree/collider density independent of the graphics preference.
+      const decorTarget=PERF_CONFIG.mobile?38:((Number(navigator.deviceMemory)||4)<=8?48:64);
       for (let i=0;i<decorTarget;i++) {
         const x=60+rnd()*(FLAT_WORLD.width-120), y=60+rnd()*(FLAT_WORLD.height-120);
         if (FLAT_WORLD.pois.some(p=>Math.hypot(x-p.x,y-p.y)<p.r+(p.action==='lingxiao_building'?25:90))) continue;
@@ -13425,6 +13440,7 @@
       cache.width=FLAT_WORLD.width; cache.height=FLAT_WORLD.height;
       const sctx=cache.getContext('2d',{alpha:false});
       drawWorldGround(sctx);
+      drawRoutesV2827(sctx);
       drawRegionBoundaries(sctx);
       // 装饰物是静态的，预先绘制一次，避免每帧重画130棵树/石头/草。
       for(const d of FLAT_WORLD.decor) if(d.t!=='tree')drawWorldDecor(sctx,d);
@@ -13583,12 +13599,13 @@
       const state=player.explorationV2828 ||= {maps:{}};state.maps ||= {};
       return state.maps[region] ||= {seen:{},claimed:{}};
     }
+    function explorationVisionV2903(){return 460+Math.min(160,Math.max(0,Number(player?.level)||0)*12);}
     function revealExplorationV2828(){
       if(exploreOwnerV2828!==player){exploreOwnerV2828=player;exploreCellV2828='';exploreDirtyV2828=false;}
-      const p=FLAT_WORLD.player,region=currentRegion||'south',cx=Math.floor(p.x/EXPLORATION_CELL_V2900),cy=Math.floor(p.y/EXPLORATION_CELL_V2900),key=region+':'+cx+','+cy;
+      const p=FLAT_WORLD.player,region=currentRegion||'south',cx=Math.floor(p.x/EXPLORATION_CELL_V2900),cy=Math.floor(p.y/EXPLORATION_CELL_V2900),radius=explorationVisionV2903(),span=Math.ceil(radius/EXPLORATION_CELL_V2900)+1,key=region+':'+cx+','+cy+':'+radius;
       if(key!==exploreCellV2828){exploreCellV2828=key;const map=explorationV2828();
         if(typeof discoverRoamingV286818==='function')discoverRoamingV286818(cx+','+cy);
-        for(let y=cy-3;y<=cy+3;y++)for(let x=cx-3;x<=cx+3;x++)if(x>=0&&y>=0&&x*EXPLORATION_CELL_V2900<FLAT_WORLD.width&&y*EXPLORATION_CELL_V2900<FLAT_WORLD.height&&Math.hypot((x+.5)*EXPLORATION_CELL_V2900-p.x,(y+.5)*EXPLORATION_CELL_V2900-p.y)<285*WORLD_SCALE_V2900){const cell=x+','+y;if(!map.seen[cell]){map.seen[cell]=1;exploreDirtyV2828=true;}}
+        for(let y=cy-span;y<=cy+span;y++)for(let x=cx-span;x<=cx+span;x++)if(x>=0&&y>=0&&x*EXPLORATION_CELL_V2900<FLAT_WORLD.width&&y*EXPLORATION_CELL_V2900<FLAT_WORLD.height&&Math.hypot((x+.5)*EXPLORATION_CELL_V2900-p.x,(y+.5)*EXPLORATION_CELL_V2900-p.y)<radius){const cell=x+','+y;if(!map.seen[cell]){map.seen[cell]=1;exploreDirtyV2828=true;}}
       }
       if(exploreDirtyV2828&&Date.now()-exploreSaveAtV2828>5000){exploreSaveAtV2828=Date.now();exploreDirtyV2828=false;autoSave();}
     }
@@ -13792,14 +13809,21 @@
       if(major){ctx.strokeStyle='rgba(183,150,81,.55)';ctx.beginPath();ctx.ellipse(0,bottom-3,w*.36,12,0,0,Math.PI*2);ctx.stroke();}
       ctx.restore();
     }
+    function architectureFadeV2903(ctx,o,w,h,bottom){
+      if(ctx.canvas?.id!=='worldCanvas'||!FLAT_WORLD.player||typeof landmarkPointV2893!=='function')return;
+      const p=FLAT_WORLD.player;if(o.y<=p.y+12)return;
+      const left=landmarkPointV2893(o,-w/2,bottom-h),right=landmarkPointV2893(o,w/2,bottom);
+      if(p.x+12>left.x&&p.x-12<right.x&&p.y>left.y&&p.y-42<right.y)ctx.globalAlpha*=.42;
+    }
     function drawScrollPalaceV2831(ctx,p){
       const im=SCROLL_ART_V2831.palace;if(!im||!(im.width>0&&im.height>0))return false;
       const w=architectureWidthV2900(p,p.action==='lingxiao_building'?128:180),h=w*im.height/im.width;
       const locked=p.action==='lingxiao_building'&&!canAccessBuilding(p.buildingId).allowed;
+      ctx.save();architectureFadeV2903(ctx,p,w,h,42);
       drawArchitectureBaseV2900(ctx,p,w,42,locked);
       ctx.save();if(locked)ctx.globalAlpha*=.58;ctx.drawImage(im,-w/2,-h+42,w,h);ctx.restore();
       if(locked){ctx.font='16px sans-serif';ctx.textAlign='center';ctx.fillText('🔒',w/3,-25);}
-      ctx.strokeStyle='rgba(177,132,55,.8)';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(0,28,w*.24,8,0,0,Math.PI*2);ctx.stroke();return true;
+      ctx.strokeStyle='rgba(177,132,55,.8)';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(0,28,w*.24,8,0,0,Math.PI*2);ctx.stroke();ctx.restore();return true;
     }
     function scrollBuildingCellV2832(p){
       if(p.action==='explore_v2828'||scrollPalacePoiV2831(p))return -1;
@@ -13817,10 +13841,11 @@
       const n=scrollBuildingCellV2832(p),im=SCROLL_ART_V2831.buildings;if(n<0||!im||!(im.width>0&&im.height>0))return false;
       const w=architectureWidthV2900(p,p.action==='lingxiao_building'?96:(n===0||n===2?150:120)),h=w;
       const locked=p.action==='lingxiao_building'&&!canAccessBuilding(p.buildingId).allowed;
+      ctx.save();architectureFadeV2903(ctx,p,w,h,32);
       drawArchitectureBaseV2900(ctx,p,w,32,locked);
       ctx.save();if(locked)ctx.globalAlpha*=.58;
       ctx.drawImage(im,n%3*im.width/3,Math.floor(n/3)*im.height/2,im.width/3,im.height/2,-w/2,-h+32,w,h);ctx.restore();
-      if(locked){ctx.font='14px sans-serif';ctx.textAlign='center';ctx.fillText('🔒',w/3,-20);}return true;
+      if(locked){ctx.font='14px sans-serif';ctx.textAlign='center';ctx.fillText('🔒',w/3,-20);}ctx.restore();return true;
     }
     function regionBuildingCellV2835(p){
       const col=currentRegion==='north'?0:currentRegion==='demon_domain'?1:currentRegion==='immortal_domain'?2:-1;
@@ -13834,10 +13859,11 @@
       const w=architectureWidthV2900(p,p.action==='lingxiao_building'?100:cell.row===2?180:cell.row===0?150:125);
       const cw=im.width/3,ch=im.height/4,h=w*ch/cw;
       const locked=p.action==='lingxiao_building'&&!canAccessBuilding(p.buildingId).allowed;
+      ctx.save();architectureFadeV2903(ctx,p,w,h,32);
       drawArchitectureBaseV2900(ctx,p,w,32,locked);
       ctx.save();if(locked)ctx.globalAlpha*=.58;
       ctx.drawImage(im,cell.col*cw,cell.row*ch,cw,ch,-w/2,-h+32,w,h);ctx.restore();
-      if(locked){ctx.font='14px sans-serif';ctx.textAlign='center';ctx.fillText('🔒',w/3,-20);}return true;
+      if(locked){ctx.font='14px sans-serif';ctx.textAlign='center';ctx.fillText('🔒',w/3,-20);}ctx.restore();return true;
     }
     function scrollPoiArtV2832(p){
       if(p.action==='war_map_v2840')return '<i class="war-scroll-flag-v2840">令</i>';
@@ -14000,7 +14026,13 @@
         if(currentRegion==='demon_domain'&&i%3===0){ctx.strokeStyle='#b17a73';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x-25,y-15);ctx.lineTo(x,y);ctx.lineTo(x-8,y+14);ctx.lineTo(x+22,y+25);ctx.stroke();}
       }ctx.globalAlpha=1;
     }
-    function drawRoutesV2827(ctx){ /* Routes intentionally hidden in V28.47. */ }
+    function drawRoutesV2827(ctx){
+      ctx.save();ctx.lineCap='round';
+      for(const r of worldRoutesV2827()){
+        ctx.setLineDash([]);ctx.strokeStyle='rgba(42,45,36,.18)';ctx.lineWidth=18;ctx.beginPath();ctx.moveTo(r.a.x,r.a.y);ctx.quadraticCurveTo(r.c.x,r.c.y,r.b.x,r.b.y);ctx.stroke();
+        ctx.strokeStyle=currentRegion==='north'?'rgba(224,236,232,.48)':'rgba(218,203,165,.44)';ctx.lineWidth=10;ctx.setLineDash([14,6]);ctx.stroke();
+      }ctx.restore();
+    }
 
     function drawBiomeTreeV2827(ctx,o){
       const s=o.s||1,t=worldThemeV2827(),region=currentRegion||'south';ctx.save();ctx.translate(o.x,o.y);ctx.scale(s,s);ctx.strokeStyle=t.dark;ctx.lineWidth=2;
@@ -14040,7 +14072,6 @@
       }
       ctx.restore();
       const hub=cfg.hub;
-      drawRoutesV2827(ctx);
       ctx.fillStyle='rgba(255,255,255,.035)';ctx.beginPath();ctx.arc(hub.x,hub.y,78,0,Math.PI*2);ctx.fill();
       ctx.font='700 15px Microsoft YaHei';ctx.textAlign='center';ctx.fillStyle=region.color;ctx.fillText(region.shortName,hub.x,hub.y+5);
     }
@@ -14230,6 +14261,7 @@
     }
 
     function updateWorldHUD(){
+      if(typeof ensureGraphicsButtonV2903==='function')ensureGraphicsButtonV2903();
       if(typeof ensureMapAliveButtonV2893==='function')ensureMapAliveButtonV2893();
       if(typeof ensureSwordFlightV2896==='function')ensureSwordFlightV2896();
       if(typeof syncFirstJourneyV28687==='function')syncFirstJourneyV28687();
@@ -14580,8 +14612,8 @@
       (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
     PERF_CONFIG.mobile = MOBILE_GAME;
     if (MOBILE_GAME) {
-      PERF_CONFIG.lowEnd = true;
-      PERF_CONFIG.ultraSmooth = true;
+      PERF_CONFIG.lowEnd = graphicsLowV2903(PERF_CONFIG.graphicsQuality);
+      PERF_CONFIG.ultraSmooth = PERF_CONFIG.lowEnd;
       PERF_CONFIG.minimapInterval = 1000 / 4;
       FLAT_WORLD.maxMonsters = Math.min(4, FLAT_WORLD.maxMonsters || 4);
       document.documentElement.classList.add('mobile-game');
@@ -14774,7 +14806,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.75";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.76";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
