@@ -12458,6 +12458,27 @@
     }
     function drawLingxiaoBuildingPaths(ctx,transform=null){ /* Routes intentionally hidden in V28.47. */ }
 
+    const WORLD_SCALE_V2900=1.45;
+    // Keep legacy exploration cell IDs and POI IDs: changing their world-unit size
+    // preserves discovered terrain, roaming evidence and once-only rewards on load.
+    const EXPLORATION_CELL_V2900=96*WORLD_SCALE_V2900;
+    const WORLD_MAP_BASE_V2900=JSON.parse(JSON.stringify(WORLD_MAP_CONFIGS));
+    const LINGXIAO_BASE_V2900=Object.fromEntries(LINGXIAO_BUILDINGS.map(b=>[b.id,{x:b.x,y:b.y}]));
+    let worldExpandedV2900=false;
+    function expandWorldLayoutsV2900(){
+      if(worldExpandedV2900)return;worldExpandedV2900=true;
+      const scaled=n=>Math.round(n*WORLD_SCALE_V2900);
+      for(const [id,cfg] of Object.entries(WORLD_MAP_CONFIGS)){
+        const base=WORLD_MAP_BASE_V2900[id];cfg.width=scaled(base.width);cfg.height=scaled(base.height);
+        for(const key of ['spawn','hub'])if(base[key])cfg[key]={x:scaled(base[key].x),y:scaled(base[key].y)};
+        cfg.poiPositions=Object.fromEntries(Object.entries(base.poiPositions).map(([key,pos])=>[key,[scaled(pos[0]),scaled(pos[1])]]));
+        cfg.safeZones=(base.safeZones||[]).map(z=>({...z,x:scaled(z.x),y:scaled(z.y),r:scaled(z.r)}));
+        if(WORLD_REGIONS[id])WORLD_REGIONS[id].bounds={xMin:0,xMax:cfg.width,yMin:0,yMax:cfg.height};
+      }
+      for(const b of LINGXIAO_BUILDINGS){const old=LINGXIAO_BASE_V2900[b.id];b.x=scaled(old.x);b.y=scaled(old.y);}
+    }
+    expandWorldLayoutsV2900();
+
     function getWorldMapConfig(regionId=currentRegion || player?.worldMapId || 'south') {
       return WORLD_MAP_CONFIGS[regionId] || WORLD_MAP_CONFIGS.south;
     }
@@ -13111,9 +13132,7 @@
         if(clientX<rect.left||clientX>rect.right||clientY<rect.top||clientY>rect.bottom) return false;
         const point=worldTapPointV2893(canvas,rect,clientX,clientY);
         const worldX=point.x,worldY=point.y;
-        FLAT_WORLD.target={x:worldX, y:worldY};
-        FLAT_WORLD.tapTargetFx={x:worldX,y:worldY,startedAt:performance.now()};
-        FLAT_WORLD.keys={};
+        if(!setWorldTapDestinationV2900(worldX,worldY))return false;
         if (typeof tutorialState!=='undefined' && tutorialState.currentStepId==='movement') {
           goTutorialNext('movement','interaction');
           showTutorialToast('✅ 已掌握点击移动',1800);
@@ -13550,27 +13569,27 @@
     }
     function revealExplorationV2828(){
       if(exploreOwnerV2828!==player){exploreOwnerV2828=player;exploreCellV2828='';exploreDirtyV2828=false;}
-      const p=FLAT_WORLD.player,region=currentRegion||'south',cx=Math.floor(p.x/96),cy=Math.floor(p.y/96),key=region+':'+cx+','+cy;
+      const p=FLAT_WORLD.player,region=currentRegion||'south',cx=Math.floor(p.x/EXPLORATION_CELL_V2900),cy=Math.floor(p.y/EXPLORATION_CELL_V2900),key=region+':'+cx+','+cy;
       if(key!==exploreCellV2828){exploreCellV2828=key;const map=explorationV2828();
         if(typeof discoverRoamingV286818==='function')discoverRoamingV286818(cx+','+cy);
-        for(let y=cy-3;y<=cy+3;y++)for(let x=cx-3;x<=cx+3;x++)if(x>=0&&y>=0&&x*96<FLAT_WORLD.width&&y*96<FLAT_WORLD.height&&Math.hypot((x+.5)*96-p.x,(y+.5)*96-p.y)<285){const cell=x+','+y;if(!map.seen[cell]){map.seen[cell]=1;exploreDirtyV2828=true;}}
+        for(let y=cy-3;y<=cy+3;y++)for(let x=cx-3;x<=cx+3;x++)if(x>=0&&y>=0&&x*EXPLORATION_CELL_V2900<FLAT_WORLD.width&&y*EXPLORATION_CELL_V2900<FLAT_WORLD.height&&Math.hypot((x+.5)*EXPLORATION_CELL_V2900-p.x,(y+.5)*EXPLORATION_CELL_V2900-p.y)<285*WORLD_SCALE_V2900){const cell=x+','+y;if(!map.seen[cell]){map.seen[cell]=1;exploreDirtyV2828=true;}}
       }
       if(exploreDirtyV2828&&Date.now()-exploreSaveAtV2828>5000){exploreSaveAtV2828=Date.now();exploreDirtyV2828=false;autoSave();}
     }
-    function exploredPointV2828(x,y){return !!explorationV2828().seen[Math.floor(x/96)+','+Math.floor(y/96)];}
+    function exploredPointV2828(x,y){return !!explorationV2828().seen[Math.floor(x/EXPLORATION_CELL_V2900)+','+Math.floor(y/EXPLORATION_CELL_V2900)];}
     function drawExplorationFogV2828(ctx,cam,vw,vh){
       const map=explorationV2828();ctx.save();ctx.fillStyle='rgba(239,227,194,.70)';
-      for(let y=Math.max(0,Math.floor(cam.y/96));y<Math.min(Math.ceil(FLAT_WORLD.height/96),Math.ceil((cam.y+vh)/96));y++)for(let x=Math.max(0,Math.floor(cam.x/96));x<Math.min(Math.ceil(FLAT_WORLD.width/96),Math.ceil((cam.x+vw)/96));x++)if(!map.seen[x+','+y])ctx.fillRect(x*96-cam.x,y*96-cam.y,96,96);
+      for(let y=Math.max(0,Math.floor(cam.y/EXPLORATION_CELL_V2900));y<Math.min(Math.ceil(FLAT_WORLD.height/EXPLORATION_CELL_V2900),Math.ceil((cam.y+vh)/EXPLORATION_CELL_V2900));y++)for(let x=Math.max(0,Math.floor(cam.x/EXPLORATION_CELL_V2900));x<Math.min(Math.ceil(FLAT_WORLD.width/EXPLORATION_CELL_V2900),Math.ceil((cam.x+vw)/EXPLORATION_CELL_V2900));x++)if(!map.seen[x+','+y])ctx.fillRect(x*EXPLORATION_CELL_V2900-cam.x,y*EXPLORATION_CELL_V2900-cam.y,EXPLORATION_CELL_V2900,EXPLORATION_CELL_V2900);
       ctx.restore();
     }
     function buildExplorationPoisV2828(region,pois){
-      const cfg=getWorldMapConfig(region),rows=[],types=[['野生灵草','🌿'],['遗落行囊','🎒'],['残旧道碑','🪨']];let seed=region.split('').reduce((n,ch)=>n+ch.charCodeAt(0),817);
+      const cfg=WORLD_MAP_BASE_V2900[region]||WORLD_MAP_BASE_V2900.south,basePois=pois.map(p=>{const pos=p.buildingId?LINGXIAO_BASE_V2900[p.buildingId]:cfg.poiPositions[p.id];return {...p,x:Array.isArray(pos)?pos[0]:pos?.x??p.x/WORLD_SCALE_V2900,y:Array.isArray(pos)?pos[1]:pos?.y??p.y/WORLD_SCALE_V2900};}),rows=[],types=[['野生灵草','🌿'],['遗落行囊','🎒'],['残旧道碑','🪨']];let seed=region.split('').reduce((n,ch)=>n+ch.charCodeAt(0),817);
       const rnd=()=>((seed=seed*16807%2147483647)/2147483647);
       for(let attempt=0;attempt<150&&rows.length<6;attempt++){
         const x=100+rnd()*(cfg.width-200),y=100+rnd()*(cfg.height-200);
-        if([...pois,...rows].some(p=>Math.hypot(p.x-x,p.y-y)<(p.r||30)+100))continue;
+        if([...basePois,...rows].some(p=>Math.hypot(p.x-x,p.y-y)<(p.r||30)+100))continue;
         const n=rows.length,type=n%3;rows.push({id:'explore_v2828_'+n,name:types[type][0],icon:types[type][1],x,y,r:24,action:'explore_v2828',region,exploreTypeV2828:type,desc:'靠近后探索，资源仅可领取一次'});
-      }return rows;
+      }return rows.map(p=>({...p,x:p.x*WORLD_SCALE_V2900,y:p.y*WORLD_SCALE_V2900}));
     }
     function explorationRewardV2828(p,choice){
       const level=Number(WORLD_MAP_CONFIGS[p.region]?.unlockRealm||REGION_UNLOCK_LEVEL[p.region])||0;
@@ -13596,21 +13615,31 @@
 
     let autoNavigationV2830=null;
     function planNavigationV2830(goal){
+      if(!goal||![goal.x,goal.y].every(Number.isFinite))return null;
       const p=FLAT_WORLD.player,step=40,cols=Math.ceil(FLAT_WORLD.width/step),rows=Math.ceil(FLAT_WORLD.height/step),radius=(p.r||17)+4;
-      const clear=(a,b)=>(FLAT_WORLD.colliders||[]).every(c=>worldDistanceSegmentV2827(c.x,c.y,a,b)>=c.radius+radius);
+      const blockers=(FLAT_WORLD.colliders||[]).map(c=>({x:c.x,y:c.y,limit:c.radius+radius}));
+      const clear=(a,b)=>{
+        const minX=Math.min(a.x,b.x),maxX=Math.max(a.x,b.x),minY=Math.min(a.y,b.y),maxY=Math.max(a.y,b.y);
+        for(const c of blockers){
+          if(c.x<minX-c.limit||c.x>maxX+c.limit||c.y<minY-c.limit||c.y>maxY+c.limit)continue;
+          if(!(worldDistanceSegmentV2827(c.x,c.y,a,b)>=c.limit))return false;
+        }
+        return true;
+      };
+      if(goal.exact&&!clear(goal,goal))return null;
       const point=id=>({x:(id%cols)*step+20,y:Math.floor(id/cols)*step+20});
       const open=new Uint8Array(cols*rows);for(let id=0;id<open.length;id++){const q=point(id);open[id]=q.x>=30&&q.y>=30&&q.x<=FLAT_WORLD.width-30&&q.y<=FLAT_WORLD.height-30&&clear(q,q)?1:0;}
       let start=-1,best=Infinity;for(let id=0;id<open.length;id++)if(open[id]){const q=point(id),d=Math.hypot(q.x-p.x,q.y-p.y);if(d<best&&d<120&&clear(p,q)){start=id;best=d;}}if(start<0)return null;
       const queue=[start],prev=new Int32Array(open.length);prev.fill(-2);prev[start]=-1;let found=-1;
       for(let head=0;head<queue.length;head++){
-        const id=queue[head],q=point(id);if(Math.hypot(q.x-goal.x,q.y-goal.y)<goal.r+(goal.id?43:28)){found=id;break;}
+        const id=queue[head],q=point(id);if(goal.exact?clear(q,goal):Math.hypot(q.x-goal.x,q.y-goal.y)<(Number(goal.r)||0)+(goal.id?43:28)){found=id;break;}
         for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]]){
           const x=id%cols+dx,y=Math.floor(id/cols)+dy,n=y*cols+x;
           if(x<0||y<0||x>=cols||y>=rows||!open[n]||prev[n]!==-2||!clear(q,point(n)))continue;
           prev[n]=id;queue.push(n);
         }
       }
-      if(found<0)return null;const path=[];for(let id=found;id!==-1;id=prev[id])path.push(point(id));path.reverse();
+      if(found<0)return null;const path=[];for(let id=found;id!==-1;id=prev[id])path.push(point(id));path.reverse();if(goal.exact)path.push({x:goal.x,y:goal.y});
       // Smooth only across collision-free segments; never cut through a trunk or roof footprint.
       const smooth=[];let anchor=p,i=0;while(i<path.length){let far=i;for(let j=i+1;j<path.length;j++){if(clear(anchor,path[j]))far=j;else break;}smooth.push(path[far]);anchor=path[far];i=far+1;}return smooth;
     }
@@ -13624,14 +13653,31 @@
       return startPointNavigationV28685(goal);
     }
     function startPointNavigationV28685(goal){
-      if(!forgeAllowedV2825()||!goal||!Number.isFinite(goal.x)||!Number.isFinite(goal.y))return;
+      if(!forgeAllowedV2825()||!goal||!Number.isFinite(goal.x)||!Number.isFinite(goal.y))return false;
+      goal={...goal,r:Number.isFinite(goal.r)?Math.max(0,goal.r):0};
       stopNavigationV2830();const p=FLAT_WORLD.player;
-      if(Math.hypot(p.x-goal.x,p.y-goal.y)<goal.r+55){closeWorldOverlay();showFloatingText?.('已在目标附近，请点击交互。','#9edcff');return;}
-      const route=planNavigationV2830(goal);if(!route?.length)return showFloatingText?.('暂未找到安全路线，请手动绕开障碍后重试。','#ffd76a');
-      if(goal.id){explorationV2828();player.explorationV2828.marked={region:currentRegion,id:goal.id};autoSave();}closeWorldOverlay();
-      autoNavigationV2830={owner:player,region:currentRegion,goal:goal.id||null,route,index:0,target:route[0],lastX:p.x,lastY:p.y,stuck:0};
+      if(Math.hypot(p.x-goal.x,p.y-goal.y)<(goal.exact?1:goal.r+55)){closeWorldOverlay();if(!goal.silent)showFloatingText?.('已在目标附近，请点击交互。','#9edcff');return true;}
+      const route=planNavigationV2830(goal);if(!route?.length){showFloatingText?.('暂未找到安全路线，请点附近空地或手动绕行。','#ffd76a');return false;}
+      if(goal.id&&goal.mark!==false){explorationV2828();player.explorationV2828.marked={region:currentRegion,id:goal.id};autoSave();}closeWorldOverlay();
+      autoNavigationV2830={owner:player,region:currentRegion,goal:goal.id||null,silent:!!goal.silent,route,index:0,target:route[0],lastX:p.x,lastY:p.y,stuck:0};
       FLAT_WORLD.keys={};FLAT_WORLD.target=route[0];FLAT_WORLD.tapTargetFx={...route[0],startedAt:performance.now()};
-      showFloatingText?.('🧭 自动寻路中，操作摇杆或点击地图可接管。','#9edcff');
+      if(!goal.silent)showFloatingText?.('🧭 自动寻路中，操作摇杆或点击地图可接管。','#9edcff');return true;
+    }
+    // A tap plans once, using the same collision footprint as deliberate navigation.
+    // Straight clear paths keep the existing cheap movement; no per-frame path search.
+    function setWorldTapDestinationV2900(x,y){
+      if(!forgeAllowedV2825()||isWorldOverlayOpen()||![x,y].every(Number.isFinite))return false;
+      const goal={x:Math.max(30,Math.min(FLAT_WORLD.width-30,x)),y:Math.max(30,Math.min(FLAT_WORLD.height-30,y)),r:0,exact:true,silent:true};
+      const p=FLAT_WORLD.player,radius=(p.r||17)+4;
+      stopNavigationV2830();FLAT_WORLD.target=null;FLAT_WORLD.tapTargetFx=null;FLAT_WORLD.keys={};
+      const blocked=(FLAT_WORLD.colliders||[]).some(c=>worldDistanceSegmentV2827(c.x,c.y,p,goal)<c.radius+radius);
+      if(blocked){
+        // A building's footprint is not a walkable destination: stop in its existing
+        // interaction range, without expanding access or saving a new marked POI.
+        const poi=(FLAT_WORLD.pois||[]).filter(o=>getPoiCollisionRadius(o)>0&&Math.hypot(o.x-goal.x,o.y-goal.y)<getPoiCollisionRadius(o)+radius).sort((a,b)=>Math.hypot(a.x-goal.x,a.y-goal.y)-Math.hypot(b.x-goal.x,b.y-goal.y))[0];
+        return startPointNavigationV28685(poi?{...poi,silent:true,mark:false}:goal);
+      }
+      FLAT_WORLD.target={x:goal.x,y:goal.y};FLAT_WORLD.tapTargetFx={...FLAT_WORLD.target,startedAt:performance.now()};return true;
     }
     function tickNavigationV2830(dt){
       const nav=autoNavigationV2830;if(!nav)return;const p=FLAT_WORLD.player;
@@ -13640,11 +13686,11 @@
       if(FLAT_WORLD.target!==nav.target&&!(FLAT_WORLD.target===null&&near))return stopNavigationV2830();
       const moved=Math.hypot(p.x-nav.lastX,p.y-nav.lastY);nav.stuck=moved<.1?nav.stuck+Math.min(dt,.1):0;nav.lastX=p.x;nav.lastY=p.y;
       if(nav.stuck>2)return stopNavigationV2830('路径受阻，已停止；可手动移动后重试。');
-      if(near){nav.index++;if(nav.index>=nav.route.length)return stopNavigationV2830('已到目标附近，请点击交互。');nav.target=nav.route[nav.index];FLAT_WORLD.target=nav.target;FLAT_WORLD.tapTargetFx={...nav.target,startedAt:performance.now()};}
+      if(near){nav.index++;if(nav.index>=nav.route.length)return stopNavigationV2830(nav.silent?'':'已到目标附近，请点击交互。');nav.target=nav.route[nav.index];FLAT_WORLD.target=nav.target;FLAT_WORLD.tapTargetFx={...nav.target,startedAt:performance.now()};}
     }
 
     function explorationProgressV2829(){
-      const map=explorationV2828(),cols=Math.ceil(FLAT_WORLD.width/96),rows=Math.ceil(FLAT_WORLD.height/96);
+      const map=explorationV2828(),cols=Math.ceil(FLAT_WORLD.width/EXPLORATION_CELL_V2900),rows=Math.ceil(FLAT_WORLD.height/EXPLORATION_CELL_V2900);
       const visited=Object.keys(map.seen).filter(key=>{const [x,y]=key.split(',').map(Number);return Number.isInteger(x)&&Number.isInteger(y)&&x>=0&&y>=0&&x<cols&&y<rows;}).length;
       const points=FLAT_WORLD.pois.filter(p=>p.action==='explore_v2828'),found=points.filter(p=>exploredPointV2828(p.x,p.y)),claimed=points.filter(p=>!!map.claimed[p.id]);
       return {percent:Math.min(100,Math.floor(visited/(cols*rows)*100)),points,found,claimed};
@@ -13712,10 +13758,29 @@
       if(tint){ctx.fillStyle=tint;ctx.fillRect(0,0,FLAT_WORLD.width,FLAT_WORLD.height);}return true;
     }
     function scrollPalacePoiV2831(p){return p.action==='faction_gate_v2806'||p.id==='sect'||p.id==='mountain'||['main_hall','elder_hall','forbidden_library','ancestor_cave','qingxuan_academy'].includes(p.buildingId);}
+    // Visual hierarchy within the existing footprint. Regional art and access checks stay intact.
+    function architectureWidthV2900(p,base){
+      if(p.action!=='lingxiao_building')return base;
+      const scale={main_hall:1.4,gate:1.25,elder_hall:1.12,forbidden_library:1.12,ancestor_cave:1.12};
+      return base*(scale[p.buildingId]||1);
+    }
+    function drawArchitectureBaseV2900(ctx,p,w,bottom,locked){
+      const major=scrollPalacePoiV2831(p)||p.buildingId==='gate';
+      ctx.save();if(locked)ctx.globalAlpha*=.58;
+      ctx.fillStyle='rgba(24,38,35,.18)';ctx.beginPath();ctx.ellipse(0,bottom-5,w*.34,major?11:8,0,0,Math.PI*2);ctx.fill();
+      const half=w*(major?.27:.22),y=bottom-6;
+      ctx.fillStyle=currentRegion==='demon_domain'?'#80787d':'#d6d3bf';
+      ctx.beginPath();ctx.moveTo(-half,y-8);ctx.lineTo(half,y-8);ctx.lineTo(half+7,y+2);ctx.lineTo(-half-7,y+2);ctx.closePath();ctx.fill();
+      ctx.strokeStyle='rgba(87,91,79,.55)';ctx.lineWidth=1;
+      for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(-half-2*i,y-4+3*i);ctx.lineTo(half+2*i,y-4+3*i);ctx.stroke();}
+      if(major){ctx.strokeStyle='rgba(183,150,81,.55)';ctx.beginPath();ctx.ellipse(0,bottom-3,w*.36,12,0,0,Math.PI*2);ctx.stroke();}
+      ctx.restore();
+    }
     function drawScrollPalaceV2831(ctx,p){
-      const im=SCROLL_ART_V2831.palace;if(!im)return false;
-      const w=p.action==='lingxiao_building'?128:180,h=w*im.height/im.width;
+      const im=SCROLL_ART_V2831.palace;if(!im||!(im.width>0&&im.height>0))return false;
+      const w=architectureWidthV2900(p,p.action==='lingxiao_building'?128:180),h=w*im.height/im.width;
       const locked=p.action==='lingxiao_building'&&!canAccessBuilding(p.buildingId).allowed;
+      drawArchitectureBaseV2900(ctx,p,w,42,locked);
       ctx.save();if(locked)ctx.globalAlpha*=.58;ctx.drawImage(im,-w/2,-h+42,w,h);ctx.restore();
       if(locked){ctx.font='16px sans-serif';ctx.textAlign='center';ctx.fillText('🔒',w/3,-25);}
       ctx.strokeStyle='rgba(177,132,55,.8)';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(0,28,w*.24,8,0,0,Math.PI*2);ctx.stroke();return true;
@@ -13733,9 +13798,10 @@
       return ({village:0,shop:1,market:2,home:3,alchemy:4,artifacts:5,sect:5,travel_gate:5,romance:5,secret:3})[k]??-1;
     }
     function drawScrollBuildingV2832(ctx,p){
-      const n=scrollBuildingCellV2832(p),im=SCROLL_ART_V2831.buildings;if(n<0||!im)return false;
-      const w=p.action==='lingxiao_building'?96:(n===0||n===2?150:120),h=w;
+      const n=scrollBuildingCellV2832(p),im=SCROLL_ART_V2831.buildings;if(n<0||!im||!(im.width>0&&im.height>0))return false;
+      const w=architectureWidthV2900(p,p.action==='lingxiao_building'?96:(n===0||n===2?150:120)),h=w;
       const locked=p.action==='lingxiao_building'&&!canAccessBuilding(p.buildingId).allowed;
+      drawArchitectureBaseV2900(ctx,p,w,32,locked);
       ctx.save();if(locked)ctx.globalAlpha*=.58;
       ctx.drawImage(im,n%3*im.width/3,Math.floor(n/3)*im.height/2,im.width/3,im.height/2,-w/2,-h+32,w,h);ctx.restore();
       if(locked){ctx.font='14px sans-serif';ctx.textAlign='center';ctx.fillText('🔒',w/3,-20);}return true;
@@ -13748,10 +13814,11 @@
       return {col,row:base===0?0:base===3?3:base===5?2:1};
     }
     function drawRegionBuildingV2835(ctx,p){
-      const cell=regionBuildingCellV2835(p),im=SCROLL_ART_V2831.regionalBuildings;if(!cell||!im)return false;
-      const w=p.action==='lingxiao_building'?100:cell.row===2?180:cell.row===0?150:125;
+      const cell=regionBuildingCellV2835(p),im=SCROLL_ART_V2831.regionalBuildings;if(!cell||!im||!(im.width>0&&im.height>0))return false;
+      const w=architectureWidthV2900(p,p.action==='lingxiao_building'?100:cell.row===2?180:cell.row===0?150:125);
       const cw=im.width/3,ch=im.height/4,h=w*ch/cw;
       const locked=p.action==='lingxiao_building'&&!canAccessBuilding(p.buildingId).allowed;
+      drawArchitectureBaseV2900(ctx,p,w,32,locked);
       ctx.save();if(locked)ctx.globalAlpha*=.58;
       ctx.drawImage(im,cell.col*cw,cell.row*ch,cw,ch,-w/2,-h+32,w,h);ctx.restore();
       if(locked){ctx.font='14px sans-serif';ctx.textAlign='center';ctx.fillText('🔒',w/3,-20);}return true;
@@ -14691,7 +14758,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.72";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.73";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

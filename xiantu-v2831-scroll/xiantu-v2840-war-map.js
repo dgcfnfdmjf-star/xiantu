@@ -11,6 +11,10 @@ function warMapSourceV2840(){
 function validWarSiteV2840(site){
  const cfg=WORLD_MAP_CONFIGS[site?.region];return !!cfg&&Number.isFinite(site.x)&&Number.isFinite(site.y)&&site.x>=175&&site.x<=cfg.width-175&&site.y>=180&&site.y<=cfg.height-200;
 }
+function migrateWarSiteV2900(site){
+ if(!site||Number(site.layoutV2900)>=1||!WORLD_MAP_BASE_V2900[site.region]||![site.x,site.y].every(Number.isFinite))return site;
+ return {...site,x:Math.round(site.x*WORLD_SCALE_V2900),y:Math.round(site.y*WORLD_SCALE_V2900),layoutV2900:1};
+}
 function chooseWarSiteV2840(record,kind){
  const attacking=kind!=='incoming'&&record?.mode!=='defense';
  const enemyRegion=attacking?FACTION_LOCATIONS_V2806[record?.enemy]?.region:null;
@@ -24,7 +28,7 @@ function chooseWarSiteV2840(record,kind){
   const score=Math.min(space,240)*3-Math.hypot(x-origin.x,y-origin.y)*.12;
   if(score>bestScore){bestScore=score;best={region,x,y};}
  }
- return best||{region,x:cfg.width/2,y:cfg.height/2};
+ return {...(best||{region,x:cfg.width/2,y:cfg.height/2}),layoutV2900:1};
 }
 function resetWarMapV2840(){
  WAR_MAP_V2840.owner=null;WAR_MAP_V2840.source=null;WAR_MAP_V2840.key='';WAR_MAP_V2840.scene=null;WAR_MAP_V2840.clock=0;WAR_MAP_V2840.hudKey='';
@@ -35,7 +39,7 @@ function syncWarMapV2840(){
  const state=WAR_MAP_V2840;if(state.owner!==player){resetWarMapV2840();state.owner=player;}
  const source=warMapSourceV2840();
  if(!source){if(state.source){resetWarMapV2840();state.owner=player;}return null;}
- const c=source.record;if(!validWarSiteV2840(c.mapV2840))c.mapV2840=chooseWarSiteV2840(c,source.kind);
+ const c=source.record;c.mapV2840=migrateWarSiteV2900(c.mapV2840);if(!validWarSiteV2840(c.mapV2840))c.mapV2840=chooseWarSiteV2840(c,source.kind);
  const site=c.mapV2840,key=[c.id,source.kind,c.step||0,site.region,site.x,site.y,currentRegion,PERF_CONFIG.ultraSmooth,PERF_CONFIG.mobile].join(':');
  if(state.key!==key||state.source!==c){
   state.key=key;state.source=c;state.clock=0;
@@ -167,4 +171,4 @@ const warRetreatBeforeV2840=retreatWarV2775;
 retreatWarV2775=function(){warRetreatBeforeV2840();syncWarMapV2840();};
 // Refresh a limited preference flag; do not start a second animation loop.
 window.matchMedia?.('(prefers-reduced-motion: reduce)').addEventListener?.('change',e=>{WAR_MAP_V2840.reduced=e.matches;});
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2840-war-map.js']='28.68.72';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2840-war-map.js']='28.68.73';
