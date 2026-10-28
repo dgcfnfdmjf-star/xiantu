@@ -167,4 +167,4 @@ async function choosePlayerJevV2846(localPick,guard,pref){
 }
 window.addEventListener('pagehide',closeJevWorldV2846);
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2846-world-jev.js']='28.68.71';
+window.__xiantuBuildFilesV2814['xiantu-v2846-world-jev.js']='28.68.72';

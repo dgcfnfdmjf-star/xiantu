@@ -615,7 +615,7 @@ function sampleAbsoluteZero(D,j,age){
     }
   }
   function fireBatchReady(name){const D=fireDefinition(name),textures=D&&fireBatchTextures.get(D.key);return !!D&&textures?.size===Object.keys(D.layers).length&&[...textures.values()].every(t=>t.ready)}
-  function fireBatchSample(j,age){const D=fireDefinition(j.profile.name);return D?(SWORD_BATCH2.includes(D)?sampleSwordBatch2(D,j,age):SWORD_BATCH.includes(D)?sampleSwordBatch(D,j,age):THUNDER_BATCH3.includes(D)?sampleThunderBatch3(D,{stateActive:false,...j},age):(THUNDER_BATCH.includes(D)||THUNDER_BATCH2.includes(D))?sampleThunderBatch(D,j,age):D.key==='solar_aegis'?sampleSolarAegis(D,j,age):FIRE_BATCH3.includes(D)?sampleFireBatch3(D,j,age):FIRE_BATCH.includes(D)?sampleFireBatch(D,j,age):sampleFireBatch2(D,j,age)):[]}
+  function fireBatchSample(j,age){if(j.profile.name==='冰甲护身'&&j.guardActive===false)return [];const D=fireDefinition(j.profile.name);return D?(SWORD_BATCH2.includes(D)?sampleSwordBatch2(D,j,age):SWORD_BATCH.includes(D)?sampleSwordBatch(D,j,age):THUNDER_BATCH3.includes(D)?sampleThunderBatch3(D,{stateActive:false,...j},age):(THUNDER_BATCH.includes(D)||THUNDER_BATCH2.includes(D))?sampleThunderBatch(D,j,age):D.key==='solar_aegis'?sampleSolarAegis(D,j,age):FIRE_BATCH3.includes(D)?sampleFireBatch3(D,j,age):FIRE_BATCH.includes(D)?sampleFireBatch(D,j,age):sampleFireBatch2(D,j,age)):[]}
   // The shield's formation belongs to the cast; its continuing dome belongs to the live pool.
   function sampleSolarAegis(D,j,age){
     if(age<0||age>=j.duration||j.hidden||j.exited||j.alive===false||j.sameTarget===false||j.guardActive===false)return [];
@@ -673,6 +673,72 @@ function sampleAbsoluteZero(D,j,age){
       c.save();c.beginPath();c.rect(0,0,j.width,j.clipBottom);c.clip();
       for(const p of parts){if(p.layer==='body'){const q=j.profile.self?j.from:j.toGround;ellipse(c,q,36*(j.scale||1),j.profile.self?55*(j.scale||1):14*(j.scale||1),'#678bff',2,p.opacity);}else if(p.id.startsWith('tick:')||p.id.startsWith('reflect'))lightning(c,j.from,j.to,['#678bff','#90dfff','#27235b'],p.opacity,3,1.5);}
       c.restore();
+    }
+  };
+  // Presentation-only provenance: shared stun/seal counters are not proof of an ice cast.
+  // Records belong to a scene, never to the save. No timers, RNG or combat writes.
+  function createIceState(read,clock){
+    const records=new Map();let paused=false;
+    const alive=d=>d.active!==false&&d.playerHp>0&&d.enemyHp>0;
+    const active=(k,d)=>k==='freeze'?d.frozen===true:k==='frost'?d.frostTurns>0&&d.frostDamage>0:k==='seal'?d.sealTurns>0:d.guardElement==='ice'&&d.guardPool>0&&d.guardTurns>0;
+    function sync(){
+      const d=read(),t=clock();if(!alive(d)){records.clear();return d;}
+      for(const [k,r] of records){
+        if(r.owner!==d.ownerToken||r.target!==d.targetToken||k==='guard'&&d.guardElement&&d.guardElement!=='ice'){records.delete(k);continue;}
+        if(k==='guard'&&d.guardPool<r.pool&&r.end===Infinity)r.pulse=t;
+        r.pool=d.guardPool;
+        if(paused&&!active(k,d)){records.delete(k);continue;}
+        if(!active(k,d)&&r.end===Infinity)r.end=t;
+        if(t>=r.end+220)records.delete(k);
+      }
+      return d;
+    }
+    function notify(kind,detail={}){
+      const d=sync(),t=clock();if(!alive(d)||detail.owner&&detail.owner!==d.ownerToken||detail.target&&detail.target!==d.targetToken)return;
+      if(kind==='seal-clear'){records.delete('seal');return;}
+      if(kind==='freeze-clear'){const r=records.get('freeze');if(r)r.end=t;return;}
+      if(kind==='tick'){const r=records.get('frost');if(r)r.pulse=t;return;}
+      const keys=kind==='guard'?['guard']:kind==='apply'?['freeze','frost','seal'].filter(k=>detail[k]):[];
+      for(const k of keys)if(active(k,d))records.set(k,{kind:k,name:k==='guard'?'冰甲护身':detail.name,owner:d.ownerToken,target:d.targetToken,at:t,end:Infinity,pulse:-Infinity,pool:d.guardPool});
+    }
+    function collect(){
+      sync();paused=false;const t=clock();return [...records.values()].map(r=>({...r,age:t-r.at,ending:Number.isFinite(r.end),endAge:t-r.end,pulse:Math.max(0,1-(t-r.pulse)/220),opacity:Math.max(0,Math.min(1,(t-r.at)/80,1-(t-r.end)/220))}));
+    }
+    function pause(){sync();paused=true;for(const [k,r] of records){if(Number.isFinite(r.end))records.delete(k);else{r.pulse=-Infinity;r.at=clock()-1200;r.pool=read().guardPool;}}}
+    return {notify,collect,sync,pause,clear:()=>records.clear(),inspect:()=>[...records.keys()]};
+  }
+  function readIceState(foe,owner){
+    const g=typeof elementGuardsV286818!=='undefined'&&foe?elementGuardsV286818.get(foe):null;
+    return {active:!!foe&&!!owner,ownerToken:owner,targetToken:foe,playerHp:owner?.hp||0,enemyHp:foe?.hp||0,
+      frozen:typeof currentEnemy!=='undefined'&&foe===currentEnemy&&typeof skipEnemyTurn!=='undefined'&&skipEnemyTurn&&foe?._skipReason==='冻结',
+      frostTurns:foe?._frostTurnsV286818||0,frostDamage:foe?._frostDamageV286818||0,sealTurns:foe?._spellSealTurnsV286817||0,
+      guardPool:g?.owner===owner?g.pool:0,guardTurns:g?.owner===owner?g.turns:0,guardElement:g?.owner===owner?g.element:null};
+  }
+  const iceListeners=new Set();
+  const reportIce=createIceState(()=>({...readIceState(typeof currentEnemy==='undefined'?null:currentEnemy,typeof player==='undefined'?null:player),active:typeof gameState!=='undefined'&&gameState==='combat'}),now);
+  const iceFinale={createState:createIceState,readState:readIceState,
+    subscribe(fn){iceListeners.add(fn);return ()=>iceListeners.delete(fn)},
+    notify(kind,detail={}){let handled=false;for(const fn of iceListeners){try{handled=fn(kind,detail)||handled}catch(_){}}
+      if(!handled){reportIce.notify(kind,detail);if(reportIce.inspect().length){if(timer)clearTimeout(timer);timer=0;resumeThunder();}}},
+    drawStatus(c,r,point,{scale=1,reduced=false,width=720,clipBottom=355}={}){
+      if(r.opacity<=0)return false;
+      // Ice armor hands over after the existing cast has completely faded. The
+      // other marks are small attached status cues, not replayed full-size hits.
+      const guard=r.kind==='guard';if(guard&&r.age<1100&&!r.ending)return false;
+      const name=guard?'冰甲护身':r.kind==='freeze'?'冰河葬狱':r.kind==='seal'?'冰魄封魂':elementDefinition(r.name)?r.name:'万载寒晶';
+      const layer=r.ending?'residue':guard?'body':r.kind==='freeze'?'body':r.kind==='seal'?'telegraph':'residue';
+      const def=elementDefinition(name),L=def.layers[layer];prepareFireBatch(name);
+      const size=(guard?270:r.kind==='freeze'?165:r.kind==='seal'?90:195)*scale;
+      const phase=Math.floor(Math.max(0,r.age)*6/1000)%(2*L.frames-2);
+      const frame=r.ending?Math.min(L.frames-1,Math.floor(r.endAge/220*L.frames)):reduced?Math.min(2,L.frames-1):phase<L.frames?phase:2*L.frames-2-phase;
+      c.save();c.beginPath();c.rect(0,0,width,clipBottom);c.clip();c.globalCompositeOperation='source-over';
+      c.globalAlpha=r.opacity*(guard?.8:r.kind==='freeze'?.8:.9);
+      const texture=fireBatchTextures.get(def.key)?.get(layer);
+      if(texture?.ready)c.drawImage(texture.image,frame*L.frameWidth,0,L.frameWidth,L.frameHeight,point.x-size*L.pivotX,point.y-size*L.pivotY,size,size);
+      else{c.strokeStyle='#8bd5e8';c.lineWidth=2*scale;c.beginPath();c.ellipse(point.x,point.y-18*scale,30*scale,18*scale,0,0,Math.PI*2);c.stroke();}
+      // Only a real absorption or frost tick creates a pulse; loops never do.
+      if(r.pulse>0){c.globalAlpha=r.pulse*.7;c.strokeStyle='#b9f0ff';c.lineWidth=2*scale;c.beginPath();c.ellipse(point.x,point.y-8*scale,(30+12*(1-r.pulse))*scale,12*scale,0,0,Math.PI*2);c.stroke();}
+      c.restore();return true;
     }
   };
   const elementBatch={definitions:ELEMENT_BATCH,definition:elementDefinition,prepare:prepareFireBatch,ready:fireBatchReady,sample:fireBatchSample};
@@ -969,15 +1035,15 @@ function sampleAbsoluteZero(D,j,age){
   }
   function live(){return !D.hidden&&(typeof gameState==='undefined'||gameState==='combat'||(gameState==='combat-ending'&&now()<finishUntil))&&!D.getElementById('combatPanel')?.classList.contains('hidden')}
   function clear(resetLabel=false,preserveThunder=false){
-    if(preserveThunder)reportThunder.pause();else reportThunder.clear();
+    if(preserveThunder){reportThunder.pause();reportIce.pause();}else{reportThunder.clear();reportIce.clear();}
     finishUntil=0;
     if(raf)cancelAnimationFrame(raf);raf=0;if(timer)clearTimeout(timer);timer=0;jobs=[];lastFrame=-Infinity;
     if(canvas){canvas.width=canvas.height=1;canvas.remove();canvas=null;ctx=null}
     if(resetLabel){const label=D.getElementById('inkFxNameV2854');if(label)label.textContent='术法招式'}
   }
   function resumeThunder(){
-    reportThunder.sync();
-    if(!live()||!reportThunder.inspect().length||D.getElementById('combatArena')?.classList.contains('duel25-active'))return;
+    reportThunder.sync();reportIce.sync();
+    if(!live()||(!reportThunder.inspect().length&&!reportIce.inspect().length)||D.getElementById('combatArena')?.classList.contains('duel25-active'))return;
     const host=D.getElementById('skillEffect'),box=host?.getBoundingClientRect();if(!box||box.width<1||box.height<1)return;
     if(!canvas){const opt=settings(),ratio=Math.min(W.devicePixelRatio||1,opt.dpr,Math.sqrt(opt.pixels/(box.width*box.height)));
       canvas=D.createElement('canvas');canvas.className='ink-skill-canvas-v2854';canvas.setAttribute('aria-hidden','true');ctx=canvas.getContext('2d');if(!ctx){canvas=null;return;}
@@ -989,7 +1055,7 @@ function sampleAbsoluteZero(D,j,age){
   // Preserve only an already-confirmed impact during settlement; never delay rewards,
   // start another cast, or replay the attack. Manual exit and visibility cleanup win.
   function finish(){
-    reportThunder.clear();
+    reportThunder.clear();reportIce.clear();
     if(typeof gameState==='undefined'||gameState!=='combat-ending'||D.hidden){clear(true);return}
     if(finishUntil)return;
     const stamp=now();jobs=jobs.filter(j=>j.hitAt!==null&&stamp-j.started<j.hitAt+540);
@@ -1008,10 +1074,11 @@ function sampleAbsoluteZero(D,j,age){
       a.reportGround??={x:enemy.x,y:enemy.bottom};
       return {profile:profile(name),from:hero,to:enemy,fromGround:{x:hero.x,y:hero.bottom},toGround:a.reportGround,width:box.width,height:box.height,clipBottom:box.height,...reportThunderLayout(name,box,hero,{...enemy,x:a.reportGround.x,bottom:a.reportGround.y}),ratio:canvas.width/box.width,light:opt.light,reduced:opt.reduced,arriveAt:310};
     });
+    const iceRecords=reportIce.collect();
     jobs=jobs.filter(j=>stamp-j.started<j.duration);
-    if(!jobs.length&&!thunderJobs.length){clear();return}
+    if(!jobs.length&&!thunderJobs.length&&!iceRecords.length){clear();return}
     const fps=jobs.some(j=>!j.light)?30:24;
-    if(stamp-lastFrame>=1000/fps){lastFrame=stamp;ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);const ratio=jobs[0]?.ratio??thunderJobs[0].job.ratio;ctx.setTransform(ratio,0,0,ratio,0,0);for(const j of jobs)if(!j.thunderOwned)draw(ctx,j,stamp-j.started);for(const {job,age}of thunderJobs)thunderBatch3.drawState(ctx,job,age)}
+    if(stamp-lastFrame>=1000/fps){lastFrame=stamp;ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);const box=D.getElementById('skillEffect').getBoundingClientRect(),ratio=jobs[0]?.ratio??thunderJobs[0]?.job.ratio??canvas.width/Math.max(1,box.width);ctx.setTransform(ratio,0,0,ratio,0,0);for(const j of jobs)if(!j.thunderOwned){if(j.profile.name==='冰甲护身'){const d=readIceState(typeof currentEnemy==='undefined'?null:currentEnemy,typeof player==='undefined'?null:player);j.guardActive=d.guardElement==='ice'&&d.guardPool>0&&d.guardTurns>0;}draw(ctx,j,stamp-j.started);}for(const {job,age}of thunderJobs)thunderBatch3.drawState(ctx,job,age);for(const r of iceRecords){const a=anchor(r.kind==='guard'?'combatPlayerChar':'enemyChar',box,r.kind==='guard'?'player':'enemy');iceFinale.drawStatus(ctx,r,{x:a.x,y:r.kind==='seal'?a.y-22:a.bottom},{scale:clamp(box.width/720,.4,1.1),reduced:settings().reduced,width:box.width,clipBottom:box.height});}}
     raf=requestAnimationFrame(frame);
   }
   function anchor(id,host,side){
@@ -1045,8 +1112,8 @@ function sampleAbsoluteZero(D,j,age){
     if(thunderBatch3.definition(name))Object.assign(job,reportThunderLayout(name,box,a,b));
     jobs=jobs.filter(j=>j.side!==side&&started-j.started<j.duration);jobs.push(job);if(jobs.length>2)jobs.shift();
     const label=D.getElementById('inkFxNameV2854');if(label){label.textContent=(source==='passive'?'被动':side==='enemy'?'敌方':'我方')+' · '+p.name;label.style.color=p.palette[0]}
-    if(timer)clearTimeout(timer);timer=reportThunder.inspect().length?0:setTimeout(()=>clear(),Math.max(...jobs.map(j=>j.started+j.duration))-started+80);
-    if(opt.reduced){if(raf)cancelAnimationFrame(raf);raf=0;ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,box.width,box.height);draw(ctx,job,200)}else if(!raf)raf=requestAnimationFrame(frame);
+    if(timer)clearTimeout(timer);timer=(reportThunder.inspect().length||reportIce.inspect().length)?0:setTimeout(()=>clear(),Math.max(...jobs.map(j=>j.started+j.duration))-started+80);
+    if(opt.reduced){if(raf)cancelAnimationFrame(raf);raf=0;ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,box.width,box.height);draw(ctx,job,200);if(reportIce.inspect().length||reportThunder.inspect().length)raf=requestAnimationFrame(frame)}else if(!raf)raf=requestAnimationFrame(frame);
     return true;
   }
   function hit(side){for(const j of jobs){if(j.profile.self||j.hitAt!==null||j.side===side)continue;const age=now()-j.started;if(age<600){j.hitAt=Math.max(120,age);if(j.reduced&&(['sun','butterfly','heart'].includes(j.profile.kind)||j.profile.name==='绝对零度'||fireDefinition(j.profile.name))&&ctx){ctx.setTransform(j.ratio,0,0,j.ratio,0,0);ctx.clearRect(0,0,j.width,j.height);for(const active of jobs)draw(ctx,active,Math.max(now()-active.started,(active.hitAt??0)+(active.reduced&&fireDefinition(active.profile.name)?100:0)));}}}}
@@ -1064,7 +1131,7 @@ function sampleAbsoluteZero(D,j,age){
   W.playInkSkillV2854=play;
   const solar={definition:SOLAR,prepare:prepareSolar,ready:solarReady,sample:solarSample};
   const butterfly={definition:ICE_BUTTERFLY,prepare:prepareButterfly,ready:butterflyReady,sample:butterflySample};
-  W.InkSkillFxV2854={profile,draw,drawGround,sample,solar,butterfly,heart,absoluteZero,swordBatch,swordBatch2,fireBatch,fireBatch2,fireBatch3,elementBatch,thunderBatch,thunderBatch2,thunderBatch3,fireFinale,authoredDuration:name=>fireDefinition(name)?1100:0,catalog:()=>[...new Set([...Object.keys(styles),...Object.keys(forms),...(typeof SKILLS!=='undefined'?SKILLS.map(s=>s.name):[])])].map(name=>profile(name)),play,hit,clear,finish,cinemaClear,install,cycle,settings,inspect:()=>({version:'28.68',quality,finishing:finishUntil>now(),active:jobs.length,raf:!!raf,pixels:canvas?canvas.width*canvas.height:0,jobs:jobs.map(j=>({name:j.profile.name,kind:j.profile.kind,family:j.profile.family,side:j.side,self:j.profile.self,hitAt:j.hitAt,from:{...j.from},to:{...j.to}}))})};
+  W.InkSkillFxV2854={profile,draw,drawGround,sample,solar,butterfly,heart,absoluteZero,swordBatch,swordBatch2,fireBatch,fireBatch2,fireBatch3,elementBatch,thunderBatch,thunderBatch2,thunderBatch3,fireFinale,iceFinale,authoredDuration:name=>fireDefinition(name)?1100:0,catalog:()=>[...new Set([...Object.keys(styles),...Object.keys(forms),...(typeof SKILLS!=='undefined'?SKILLS.map(s=>s.name):[])])].map(name=>profile(name)),play,hit,clear,finish,cinemaClear,install,cycle,settings,inspect:()=>({version:'28.68',quality,finishing:finishUntil>now(),active:jobs.length,iceStates:reportIce.inspect(),raf:!!raf,pixels:canvas?canvas.width*canvas.height:0,jobs:jobs.map(j=>({name:j.profile.name,kind:j.profile.kind,family:j.profile.family,side:j.side,self:j.profile.self,hitAt:j.hitAt,from:{...j.from},to:{...j.to}}))})};
   install();
 })();
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2855-skill-fx.js']='28.68.71';
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2855-skill-fx.js']='28.68.72';
