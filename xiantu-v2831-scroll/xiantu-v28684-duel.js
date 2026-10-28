@@ -24,7 +24,7 @@ function petVisualKeyV286818(pet){
 // Copy only presentation primitives; never expose the writable WeakMap record.
 function readCombatElements(enemy,owner){
  const g=typeof elementGuardsV286818!=='undefined'?elementGuardsV286818.get(enemy):null;
- return {...window.InkSkillFxV2854?.thunderBatch3?.readState(enemy,owner),chillTurns:enemy?._chillTurnsV286818||0,guardPool:g?.owner===owner?g.pool:0,guardTurns:g?.owner===owner?g.turns:0,guardElement:g?.owner===owner?g.element:null};
+ return {...window.InkSkillFxV2854?.thunderBatch3?.readState(enemy,owner),...window.InkSkillFxV2854?.iceFinale?.readState(enemy,owner),chillTurns:enemy?._chillTurnsV286818||0,guardPool:g?.owner===owner?g.pool:0,guardTurns:g?.owner===owner?g.turns:0,guardElement:g?.owner===owner?g.element:null};
 }
 // Visual speed is separate from automatic combat cadence (xiantu_battle_speed_v2756).
 const DUEL_SPEED_KEY_V2892='xiantu_duel_speed_v2892';
@@ -86,6 +86,13 @@ function create(host,read,enemyKey='wolf'){
   thunder?.notify(kind,detail,a);return ready();
  }
  const unsubscribeThunder=window.InkSkillFxV2854?.thunderBatch3?.subscribe(thunderEvent);
+ const ice=window.InkSkillFxV2854?.iceFinale?.createState(read,()=>elapsed);
+ function iceEvent(kind,detail={}){
+  if(dead)return false;
+  const d=read();if(detail.target&&detail.target!==d.targetToken||detail.owner&&detail.owner!==d.ownerToken)return false;
+  ice?.notify(kind,detail);if(document.hidden)ice?.pause();return ready();
+ }
+ const unsubscribeIce=window.InkSkillFxV2854?.iceFinale?.subscribe(iceEvent);
  const deaths={player:null,enemy:null};
  let burnPulseAt=-1000,domainSource=null;
  let bindSource=null,guardIntro=null,previousGuard=null,guardBreakAt=-1000,guardPulseAt=-1000;
@@ -229,7 +236,7 @@ function create(host,read,enemyKey='wolf'){
      const hero={x:px+8,y:205};
      Object.assign(from,a.side==='player'?hero:torso);Object.assign(to,a.side==='player'?torso:hero);
     }
-    fxJobs.push({action:a,job:{id:a.side==='player'?1:2,profile:a.fxProfile,from,to,...a.anchors,width:W,clipBottom:355,scale:1.05,light:fxSettings.light,reduced,duration:ink.authoredDuration?.(a.name)||900,arriveAt:contactTime(a),hitAt:a.impactAt??(a.fxProfile.self?contactTime(a):null),guardActive:a.name==='炎阳护盾'?ink.fireFinale?.guardActive(data):undefined,detonationAt:a.detonationAt??null,groundDrawn:!!ink.drawGround}});
+    fxJobs.push({action:a,job:{id:a.side==='player'?1:2,profile:a.fxProfile,from,to,...a.anchors,width:W,clipBottom:355,scale:1.05,light:fxSettings.light,reduced,duration:ink.authoredDuration?.(a.name)||900,arriveAt:contactTime(a),hitAt:a.impactAt??(a.fxProfile.self?contactTime(a):null),guardActive:a.name==='炎阳护盾'?ink.fireFinale?.guardActive(data):a.name==='冰甲护身'?data.guardElement==='ice'&&data.guardPool>0&&data.guardTurns>0:undefined,detonationAt:a.detonationAt??null,groundDrawn:!!ink.drawGround}});
    }
   }
   const thunderJobs=thunder?.collect((name,a)=>{
@@ -239,6 +246,7 @@ function create(host,read,enemyKey='wolf'){
   })||[];
   for(const {action:a,job} of fxJobs)ink.drawGround?.(ctx,job,elapsed-a.at);
   petActor(data,t);
+  const iceRecords=ice?.collect()||[];
   const actors=[{side:'player',x:px,y:305},{side:'enemy',x:ex,y:profile.key==='wolf'?278:profile.height>200?315:/fly|float/.test(profile.motion)?306:292}].sort((a,b)=>a.y-b.y);
   for(const a of actors){
    const attacking=attack?.side===a.side,hit=[...hits].reverse().find(h=>h.side===a.side&&elapsed-h.at<250);
@@ -261,6 +269,11 @@ function create(host,read,enemyKey='wolf'){
    if(a.side==='player')illustratedActor(ctx,a.x-recoil,a.y,t,attacking?(cast?(age<.58?1:0):pose):0,data.playerHp<=0&&!awaitingHit,0);
    else monsterActor(ctx,a.x+recoil,a.y-lift,t,attacking?pose:0,data.enemyHp<=0&&!awaitingHit);
    ctx.restore();
+   if(!fallen&&ink?.iceFinale)for(const r of iceRecords){
+    if((r.kind==='guard'?'player':'enemy')!==a.side)continue;
+    const x=a.x+(a.side==='player'?-recoil:recoil),foot=a.y-lift;
+    ink.iceFinale.drawStatus(ctx,r,{x,y:r.kind==='seal'?Math.max(155,foot-profile.height-8):foot},{scale:1.05,reduced,width:W,clipBottom:355});
+   }
    if(!fallen&&ink?.fireFinale){
     if(a.side==='enemy'&&ink.fireFinale.bindActive({...data,bindConfirmed:!!bindSource})){
      const action=bindSource.action;
@@ -338,7 +351,7 @@ function create(host,read,enemyKey='wolf'){
  }
  function wake(){if(!dead&&!document.hidden&&!raf){last=performance.now();raf=requestAnimationFrame(draw);}}
  function visibility(){if(document.hidden){
-  thunder?.pause();thunderFloats=[];
+  thunder?.pause();ice?.pause();thunderFloats=[];
   burnPulseAt=-1000;
   previousGuard=null;guardIntro=null;guardBreakAt=guardPulseAt=-1000;
   cancelAnimationFrame(raf);raf=0;
@@ -348,7 +361,7 @@ function create(host,read,enemyKey='wolf'){
   if(authored(attack))attack=null;
   queue=queue.filter(a=>!authored(a));tails=tails.filter(a=>!authored(a));
  }else wake();}
- function destroy(){if(dead)return;dead=true;tools.destroy();thunder?.clear();unsubscribeThunder?.();thunderFloats=[];clearElements();domainSource=null;attack=null;queue=[];tails=[];hits=[];floats=[];cancelAnimationFrame(raf);raf=0;document.removeEventListener('visibilitychange',visibility);stage.remove();canvas.width=canvas.height=1;bg.width=bg.height=1;host.classList.remove('duel25-active');if(host.id==='combatArena')document.getElementById('combatPanel')?.classList.remove('duel25-panel');}
+ function destroy(){if(dead)return;dead=true;tools.destroy();thunder?.clear();ice?.clear();unsubscribeThunder?.();unsubscribeIce?.();thunderFloats=[];clearElements();domainSource=null;attack=null;queue=[];tails=[];hits=[];floats=[];cancelAnimationFrame(raf);raf=0;document.removeEventListener('visibilitychange',visibility);stage.remove();canvas.width=canvas.height=1;bg.width=bg.height=1;host.classList.remove('duel25-active');if(host.id==='combatArena')document.getElementById('combatPanel')?.classList.remove('duel25-panel');}
  document.addEventListener('visibilitychange',visibility);wake();
  function act(side,element,name='',enhance=false){
   if(dead)return;
@@ -379,7 +392,7 @@ function create(host,read,enemyKey='wolf'){
   floats.push({...h,text:(h.pet?'灵宠 ':h.crit?'暴击 ':'')+(h.heal?'+':'−')+Math.round(h.amount),lane,at:elapsed});
  }
  function flushHits(action){for(const h of action.pendingHits)emitHit(h,action);action.pendingHits=[];}
- return {get ready(){return ready()&&!dead;},act,thunderEvent,burnTick(){if(!dead&&!document.hidden)burnPulseAt=elapsed;},
+ return {get ready(){return ready()&&!dead;},act,thunderEvent,iceEvent,burnTick(){if(!dead&&!document.hidden)burnPulseAt=elapsed;},
   elementApplied(skill){
    if(dead)return;syncElements();
    // Ice uses the same chill counter: it replaces fire-bind provenance, never its mechanics.
@@ -397,7 +410,7 @@ function create(host,read,enemyKey='wolf'){
    const action=pet?null:[...queue].reverse().find(a=>a.side===source)||(attack?.side===source?attack:null);
    if(action&&(action!==attack||elapsed-action.at<contactTime(action)))action.pendingHits.push(h);
    else emitHit(h,action);
-  },reset(){if(dead)return;thunder?.clear();thunderFloats=[];clearElements();domainSource=null;burnPulseAt=-1000;petHitAt=-1000;deaths.player=deaths.enemy=null;attack=null;queue=[];tails=[];hits=[];floats=[];},destroy,canvas};
+  },reset(){if(dead)return;thunder?.clear();ice?.clear();thunderFloats=[];clearElements();domainSource=null;burnPulseAt=-1000;petHitAt=-1000;deaths.player=deaths.enemy=null;attack=null;queue=[];tails=[];hits=[];floats=[];},destroy,canvas};
 }
 window.XiantuDuel25D={create,readCombatElements,petKey:petVisualKeyV286818,roster:ROSTER.map(({key,name})=>({key,name}))};
 // Shared species mapping includes elite variants; named story people and tribulations keep their own art.
@@ -1917,7 +1930,7 @@ function mapAliveBuildingV2893(ctx,o){
 }
 // END MAP_ALIVE_V2893
 ;// BEGIN SAVE_UI_V2895
-// V28.68.71 存档护身 + 手机界面（内部标识 V2895）：
+// V28.68.72 存档护身 + 手机界面（内部标识 V2895）：
 //  1) 申请浏览器持久保存（navigator.storage.persist）；
 //  2) 主存档写入成功后，另存一份到 IndexedDB 备用库（独立于 localStorage），本地存档丢失时可在开场恢复；
 //  3) 定期提醒导出存档（7天未导出且有进展、或新入大境界）；
@@ -2396,4 +2409,4 @@ function resolvePlayerMotionV2896(fromX,fromY,toX,toY,actorRadius=17){
 }
 // END MAP_MOVEMENT_V2896
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.71';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.72';

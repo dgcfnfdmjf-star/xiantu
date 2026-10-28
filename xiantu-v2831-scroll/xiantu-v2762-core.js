@@ -6944,13 +6944,15 @@
         e._chillTurnsV286818=Math.max(e._chillTurnsV286818||0,2);
         addCombatLog(`❄ 寒迟：接下来两次行动追击速度降低${Math.round(e._chillV286818*100)}%，攻击面板降低${Math.round(e._chillV286818*50)}%。`,'pet');
         if(skill.effect==='defDown')e._iceBreakTurnsV286818=2;
+        let frozenV2899=false;
         const chances={'冰封千里':.8,'绝对零度':1,'冰蝶幻舞':.35,'冰河葬狱':1,'冰魄封魂':1,'万载寒晶':1,'寒渊领域':.35};
-        if(chances[skill.name]&&Math.random()<chances[skill.name]){skipEnemyTurn=true;e._skipReason='冻结';addCombatLog('寒冰凝结，敌人下一次行动被冻结。','pet');}
-        if(skill.effect==='freezeSilence')sealEnemySpellsV286817(1);
+        if(chances[skill.name]&&Math.random()<chances[skill.name]){frozenV2899=true;skipEnemyTurn=true;e._skipReason='冻结';addCombatLog('寒冰凝结，敌人下一次行动被冻结。','pet');}
+        if(skill.effect==='freezeSilence')sealEnemySpellsV286817(1,skill.name);
         if(['iceField','coldDomain','eternalIce'].includes(skill.effect)){
           e._frostDamageV286818=Math.max(e._frostDamageV286818||0,Math.max(1,Math.floor(damage*.12)));e._frostTurnsV286818=3;
           addCombatLog(`冰寒侵蚀：未来3次主动出招前各受到${e._frostDamageV286818}点冰伤。`,'damage');
         }
+        notifyIceVfxV2899('apply',{name:skill.name,freeze:frozenV2899,frost:['iceField','coldDomain','eternalIce'].includes(skill.effect),seal:skill.effect==='freezeSilence'});
       }
       if(skill.element==='fire'){
         if(skill.effect==='burnDetonate'){
@@ -6967,9 +6969,11 @@
         if(skill.effect==='fireBind'){e._chillV286818=.3;e._chillTurnsV286818=1;addCombatLog('流火缠身，下次行动追击速度降低30%、攻击面板降低15%。','pet');}
       }
     }
+    function notifyIceVfxV2899(kind,detail={}){try{window.InkSkillFxV2854?.iceFinale?.notify(kind,{...detail,owner:player,target:currentEnemy});}catch(_){}}
     function applyElementGuardV286818(skill){
       const old=elementGuardsV286818.get(currentEnemy),pool=Math.floor(getMaxHp()*.2);
       elementGuardsV286818.set(currentEnemy,{owner:player,pool:Math.max(old?.owner===player?old.pool:0,pool),turns:3,element:skill.element});
+      if(skill.element==='ice')notifyIceVfxV2899('guard',{name:skill.name});
       addCombatLog(`护盾展开：吸收最多${pool}点伤害，持续敌方3次行动；同类不叠加。`,'heal');
     }
     function absorbElementGuardV286818(damage){
@@ -7000,9 +7004,10 @@
       if(gain){player.mp+=gain;addCombatLog(`普攻调息，恢复 ${gain} 点灵力。`,'heal');}
       return gain;
     }
-    function sealEnemySpellsV286817(turns=2) {
+    function sealEnemySpellsV286817(turns=2,iceSource=null) {
       if(!currentEnemy || currentEnemy.hp<=0)return;
       currentEnemy._spellSealTurnsV286817=Math.max(currentEnemy._spellSealTurnsV286817||0,turns);
+      if(!iceSource)notifyIceVfxV2899('seal-clear');
       addCombatLog(`⚡ 封脉：${currentEnemy.name}接下来 ${turns} 次行动不能施展术法或回生，仍可物理攻击、护体与回气。`,'pet');
     }
     // 这是境界提示，不伪装为完整胜率预测；精英与当前气血另行提醒。
@@ -7116,7 +7121,7 @@
       isPlayerTurn = false;
       
       if(currentEnemy._frostTurnsV286818>0){
-        const frostDamage=dealEnemyDamageV2882(currentEnemy,currentEnemy._frostDamageV286818,false,'passive');currentEnemy._frostTurnsV286818--;
+        const frostDamage=dealEnemyDamageV2882(currentEnemy,currentEnemy._frostDamageV286818,false,'passive');notifyIceVfxV2899('tick');currentEnemy._frostTurnsV286818--;
         addCombatLog(`冰寒侵蚀造成${frostDamage}点伤害。`,'damage');
       }
       // 处理灼烧伤害
@@ -7670,6 +7675,7 @@
       }
       // 冰龙冻结效果检查
       if (skipEnemyTurn) {
+        notifyIceVfxV2899('freeze-clear');
         skipEnemyTurn = false;
         const reason=currentEnemy?._skipReason||'冻结';
         if(currentEnemy)currentEnemy._skipReason='';
@@ -14685,7 +14691,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.71";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.72";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
