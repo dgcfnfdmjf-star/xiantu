@@ -560,7 +560,8 @@ function bossRewardsV2887(F,b,day=F.day){
   const paid=b.rewardDay>=day;return {repeat:true,limited:paid,grade,gold:paid?0:Math.round(T.gold*C.repeat.gold),exp:0,contribution:0,bones:paid?0:C.repeat.bones,prosperity:0,relic:null,firstTier:false};
  }
  const relic=b.relics.includes(T.relic)?null:T.relic;
- const gold=Math.round(T.gold*(1+(relic?C.firstTier.goldMult:0)+C.grade.gold[grade]+C.missedGold*F.missed));
+ const baseGold=Math.max(T.gold,lateGoldPerKillV2902(T.minLevel)*LATE_ECONOMY_V2902.annualBossKills);
+ const gold=Math.round(baseGold*(1+(relic?C.firstTier.goldMult:0)+C.grade.gold[grade]+C.missedGold*F.missed));
  return {repeat:false,grade,gold,exp:T.exp,contribution:T.contribution,bones:T.bones+C.grade.bones[grade],
   prosperity:F.master?C.prosperity.master:C.prosperity.member,relic,firstTier:!!relic};
 }
@@ -801,4 +802,4 @@ function reinforceSealV2887(token){
  if(ok){bossViewV2887=null;showSectAdminV2873();showFloatingText('九锁重鸣，旧账与加固已保存。','#ffd76a');}return ok;
 }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2768-systems.js"]="28.68.74";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2768-systems.js"]="28.68.75";

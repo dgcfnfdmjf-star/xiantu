@@ -15,7 +15,7 @@ for(const id of ['ape','treant','spider','wolf','general','guard']){
  a.equal(f.run('scrollMonsterKeyV2853(currentEnemy.name)'),{ape:'ape',treant:'treant',spider:'spider',wolf:'frost-wolf',general:'demon-general',guard:'celestial-guard'}[id]);
  easy(f);f.run('skipEnemyTurn=true');turn(f);a.equal(f.run('b.turn'),0,'freeze suppresses specialty');
  f.run('isPlayerTurn=false;resolveEnemyTurnV2844();resolveEnemyTurnV2844()');f.flush(150);a.equal(f.run('b.turn'),1,'once per action');
- win(f);a.equal(f.run('player.eliteHuntV2883.pending.id'),id);a.equal(f.run('player.eliteHuntV2883.records[b.id].kills'),1);a.equal(f.run('player.gold'),1000);a.equal(claim(f),true);a.equal(f.run('player.gold'),4260);a.equal(f.run('player.warState.meritV2839'),15);a.equal(claim(f),false);
+ win(f);a.equal(f.run('player.eliteHuntV2883.pending.id'),id);a.equal(f.run('player.eliteHuntV2883.records[b.id].kills'),1);a.equal(f.run('player.gold'),1000);a.equal(claim(f),true);a.equal(f.run('player.gold'),4600);a.equal(f.run('player.warState.meritV2839'),15);a.equal(claim(f),false);
 }
 // Scripted bounty does not also roll ordinary underdog currency/materials.
 const cross=game(5);all.push(cross);start(cross,'ape');cross.c.Math.random=()=>.01;

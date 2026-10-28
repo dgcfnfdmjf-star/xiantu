@@ -12,7 +12,7 @@ function forge(){run("selectForgeV2825('bag',0);mutateForgeV2825(forgeSelectionV
 // Every authored family/piece advances exactly one grade at the actual shop difference.
 fresh();const catalogue=read('Object.entries(EQUIPMENT_DB).filter(([n,d])=>d.familyV2790&&d.gradeV2790&&d.gradeV2790<6).map(([n])=>n)');
 for(const name of catalogue){f.c.testName=name;const row=read('findNextGradeEquipV2869(testName)');a(row,name);a.equal(row.nextBaseData.gradeV2790,row.baseData.gradeV2790+1);a.equal(row.nextBaseData.familyV2790,row.baseData.familyV2790);a.equal(row.nextBaseData.pieceV2790,row.baseData.pieceV2790);a.equal(row.nextBaseData.slot,row.baseData.slot);a.equal(row.goldDiff,row.nextBaseData.priceV2790-row.baseData.priceV2790);}
-a.deepEqual(read("GRADES_V2790.slice(1).map((g,i)=>g.cost-GRADES_V2790[i].cost)"),[1800,7200,28800,115200,460800]);
+a.deepEqual(read("GRADES_V2790.slice(1).map((g,i)=>g.cost-GRADES_V2790[i].cost)"),[1800,7200,9600,19200,38400]);
 a.equal(run("findNextGradeEquipV2869('木剑')"),null);a.equal(run("findNextGradeEquipV2869('万象玄霆·九霄玄霆杖·道器')"),null);
 const state=run('JSON.stringify(player)');run('findNextGradeEquipV2869(low)');a.equal(run('JSON.stringify(player)'),state,'quote is read-only');
 // One plain copy changes; name-based locks remain on other copies and follow the upgraded copy.

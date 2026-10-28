@@ -309,11 +309,11 @@ fresh();setup();
   const R=(F,b)=>{f.c.__F=F;f.c.__b=b;return clone(f.run('bossRewardsV2887(__F,__b)'));};
   const fresh0=()=>clone(f.run('normalizeBossV2887(undefined,player)'));
   let b=fresh0(),r=R(mk({}),b);
-  a.equal(r.grade,'C');a.equal(r.relic,'zhenyue');a.equal(r.gold,Math.round(1500*1.5));a.equal(r.exp,500);a.equal(r.contribution,80);a.equal(r.bones,2);a.equal(r.prosperity,2);a.equal(r.repeat,false);
-  r=R(mk({round:16,flawless:true}),b);a.equal(r.grade,'A');a.equal(r.gold,Math.round(1500*(1+0.5+0.3)));a.equal(r.bones,3);
+  a.equal(r.grade,'C');a.equal(r.relic,'zhenyue');a.equal(r.gold,Math.round(2560*1.5));a.equal(r.exp,500);a.equal(r.contribution,80);a.equal(r.bones,2);a.equal(r.prosperity,2);a.equal(r.repeat,false);
+  r=R(mk({round:16,flawless:true}),b);a.equal(r.grade,'A');a.equal(r.gold,Math.round(2560*(1+0.5+0.3)));a.equal(r.bones,3);
   r=R(mk({round:17,flawless:true}),b);a.equal(r.grade,'B','tier 1: 16 rounds or fewer is fast');
   r=R(mk({tier:3,round:20,flawless:false}),b);a.equal(r.grade,'B','tier 3: 20 rounds or fewer is fast');a.equal(r.relic,'suopian');
-  b.relics=['zhenyue'];r=R(mk({missed:2,master:true}),b);a.equal(r.relic,null);a.equal(r.gold,Math.round(1500*1.2));a.equal(r.prosperity,3,'the master raises prosperity more');
+  b.relics=['zhenyue'];r=R(mk({missed:2,master:true}),b);a.equal(r.relic,null);a.equal(r.gold,Math.round(2560*1.2));a.equal(r.prosperity,3,'the master raises prosperity more');
   b.seal.wonYears=[0];r=R(mk({round:3,flawless:true}),b);deq({repeat:r.repeat,gold:r.gold,exp:r.exp,c:r.contribution,bones:r.bones,p:r.prosperity,relic:r.relic},{repeat:true,gold:150,exp:0,c:0,bones:1,p:0,relic:null},'second win in a year is practice');
 }
 
