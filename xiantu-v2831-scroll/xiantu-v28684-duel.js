@@ -1619,11 +1619,12 @@ function resetMapAliveV2893(full=false){
 }
 
 // ------------------------------------------------------------ 2. world canvas DPR ----
-// PERF_CONFIG.lowEnd stays as it is (it drives the 3D avatar, decor counts and skill effects); only the map resolution changes.
+// Manual low quality also limits backing resolution; automatic desktop fallback remains active.
 function worldDprCapV2893(){
  const D=MAP_ALIVE_V2893.dpr;
+ if(PERF_CONFIG.graphicsQuality==='low')return 1;
  if(typeof PERF_CONFIG!=='undefined'&&PERF_CONFIG.mobile)return 1;
- const mem=Number(navigator?.deviceMemory);if(Number.isFinite(mem)&&mem>0&&mem<D.memoryFloorGB)return 1;
+ const mem=Number(navigator?.deviceMemory);if(PERF_CONFIG.graphicsQuality!=='high'&&Number.isFinite(mem)&&mem>0&&mem<D.memoryFloorGB)return 1;
  return ALIVE_V2893.dprDowngraded?1:D.desktopCap;
 }
 function watchDprV2893(){
@@ -2760,4 +2761,24 @@ function installStatsV2901(){
 }
 installStatsV2901();
 // END ONBOARDING_V2901
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.75';
+// V2903: local graphics preference; no game-state/reward changes or extra animation loop.
+function ensureGraphicsButtonV2903(){
+ const host=document.getElementById('characterUtilityActions');if(!host||document.getElementById('graphicsButtonV2903'))return;
+ const b=document.createElement('button');b.type='button';b.id='graphicsButtonV2903';b.textContent='画质设置';b.onclick=showGraphicsV2903;host.appendChild(b);
+}
+function setGraphicsQualityV2903(mode){
+ if(!forgeAllowedV2825()||!['auto','low','high'].includes(mode))return false;
+ let saved=true;try{localStorage.setItem('xiantu_gfx_quality_v2876',mode);}catch(_){saved=false;}
+ PERF_CONFIG.graphicsQuality=mode;PERF_CONFIG.lowEnd=graphicsLowV2903(mode);PERF_CONFIG.ultraSmooth=PERF_CONFIG.lowEnd;
+ ALIVE_V2893.dprDowngraded=false;ALIVE_V2893.dprStrikes=0;ALIVE_V2893.lastFpsAt=PERF_CONFIG.fpsStartedAt;
+ releaseStaticWorldCacheV2767();resizeWorldCanvas();updateWorldAtmosphere(getRegionInfo(currentRegion||'south').terrain);
+ showGraphicsV2903(saved?'已应用，下次打开沿用本机选择。':'已应用；浏览器禁止保存，下次打开可能恢复自动。');return true;
+}
+function showGraphicsV2903(message=''){
+ if(!forgeAllowedV2825())return;
+ const labels={auto:'自动',low:'省电',high:'精细'},mode=PERF_CONFIG.graphicsQuality;
+ const html='<section class="main-overview-v2822"><h3>画质设置</h3>'+Object.entries(labels).map(([k,v])=>`<button type="button" class="choice-btn" aria-pressed="${mode===k}" onclick="setGraphicsQualityV2903('${k}')">${v}${mode===k?' · 已选':''}</button>`).join('')+`<p>自动按设备选择，手机优先省电。省电简化光环与氛围；精细显示完整道纹与光影。</p><p>电脑精细画布最高1.5倍，持续掉帧会自动降低。手机保留帧率与分辨率上限。</p><p role="status">${message||'仅保存本机画质选择，不改变角色数据。'}</p></section>`;
+ toggleCharacterPanel(false);showStory(html,[{text:'返回地图',action:'return_to_map'}]);
+}
+
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.76';
