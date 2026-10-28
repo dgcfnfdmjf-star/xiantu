@@ -70,16 +70,28 @@ function safeEqual(a, b) {
   const hash = text => crypto.createHash('sha256').update(String(text)).digest();
   return crypto.timingSafeEqual(hash(a), hash(b));
 }
-function createHandler({ env = process.env, call = evaluate, now = Date.now, limiter = createLimiter(env, now) } = {}) {
+function createHandler({ env = process.env, call = evaluate, now = Date.now, limiter = createLimiter(env, now), log = line => console.warn(line) } = {}) {
   const cache = new Map();
+  // Bounded diagnostics: never include the request, IP, token, provider error or model output.
+  const logged = new Map();
+  const logCodes = new Set(['origin','method','not_configured','session_config','content_type','body_size','invalid_state','public_disabled','rate_limit_unavailable','rate_limit','access','jev_unavailable']);
+  function refused(status, code) {
+    if(env.JEV_LOG==='off'||status<400||!logCodes.has(code))return;
+    const time=now(),last=logged.get(code);
+    if(last!==undefined&&time>=last&&time-last<60000)return;
+    logged.set(code,time);
+    try{log(JSON.stringify({evt:'xiantu_jev',status,error:code}));}catch(_){}
+  }
   return async function main(event = {}) {
     const headers = Object.fromEntries(Object.entries(event.headers || {}).map(([k, v]) => [k.toLowerCase(), String(v)]));
     const allowed = (env.JEV_ALLOWED_ORIGINS || '').split(',').map(v => v.trim()).filter(Boolean);
     const origin = headers.origin || '', cors = allowed.includes(origin) ? origin : '';
-    const response = (status, data) => ({ statusCode: status, isBase64Encoded: false, headers: {
+    const response = (status, data) => {refused(status,data?.error);return { statusCode: status, isBase64Encoded: false, headers: {
       'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', Vary: 'Origin',
+      'X-Content-Type-Options':'nosniff', 'Content-Security-Policy':"default-src 'none'; frame-ancestors 'none'; base-uri 'none'",
+      'Referrer-Policy':'no-referrer', 'X-Frame-Options':'DENY', 'Strict-Transport-Security':'max-age=31536000',
       ...(cors ? { 'Access-Control-Allow-Origin': cors, 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-Xiantu-Access, X-Xiantu-Session', 'Access-Control-Max-Age': '600' } : {})
-    }, body: data ? JSON.stringify(data) : '' });
+    }, body: data ? JSON.stringify(data) : '' };};
     if (!cors) return response(403, { error: 'origin' });
     if (event.httpMethod === 'OPTIONS') return response(204);
     if (event.httpMethod !== 'POST') return response(405, { error: 'method' });
@@ -96,6 +108,7 @@ function createHandler({ env = process.env, call = evaluate, now = Date.now, lim
     if(input?.task==='session'){
       if(input.version!==1||Object.keys(input).some(k=>!['task','version'].includes(k)))return response(400,{error:'invalid_state'});
       if(!publicSession.enabled(env))return response(403,{error:'public_disabled'});
+      if(!publicSession.configured(env))return response(503,{error:'session_config'});
       // Trust only the gateway event field, never client-supplied forwarding headers.
       const client=String(event.requestContext?.sourceIp || 'unknown');
       let release;
@@ -104,6 +117,7 @@ function createHandler({ env = process.env, call = evaluate, now = Date.now, lim
       try{return response(200,publicSession.issue(origin,env,now()));}
       finally{await release().catch(()=>{});}
     }
+    if(!ownerAccess&&!publicSession.configured(env))return response(503,{error:'session_config'});
     if(!ownerAccess&&!publicSession.verify(headers['x-xiantu-session'],origin,env,now()))return response(401,{error:'access'});
     try{state=validState(input);}catch(_){return response(400,{error:'invalid_state'});}
     const time = now(), key = JSON.stringify(state), cached = cache.get(key);

@@ -1,6 +1,10 @@
-# 仙途 V28.68.69
+# 仙途 V28.68.70
 
-部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.69）；[上传步骤](downloads/README.md)。
+部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.70）；[上传步骤](downloads/README.md)。
+
+## V28.68.70 存档与接口安全
+
+修复修改道号导致保存失败及斜杠事件文本校验遗漏；五个入口加入 CSP。Jev 增加安全响应头、采样错误日志与可选独立票据密钥，保留现有预算和试玩配置。游戏与云函数下载包分别更新；闭关及历练数值不变。见 [取舍、配置与验证](docs/security-hardening.txt)。尚未部署腾讯云。
 
 ## V28.68.69 地图行路优化
 
@@ -325,6 +329,8 @@ npm run package:cloud
 | `JEV_MAX_REQUESTS_PER_DAY` | 300 | 付费请求24小时预算 |
 | `JEV_MAX_SESSIONS_PER_HOUR` | 300 | 公共票据小时签发预算 |
 | `JEV_MAX_SESSIONS_PER_DAY` | 3000 | 公共票据24小时签发预算 |
+| `JEV_SESSION_SECRET` | 不设置 | 可选独立票据签名密钥，随机串至少32字符；显式空值或过短返回503，不影响拥有者模式 |
+| `JEV_LOG` | 开启 | `off` 关闭错误日志；每实例每错误码每分钟最多一条，不含请求和密钥 |
 | `JEV_MAX_CONCURRENT` | 2 | 同时付费请求上限 |
 | `JEV_MAX_SESSIONS_PER_MINUTE` | 30 | 全部公共票据签发预算；每个来源 IP 最多 5 次/分钟 |
 | `JEV_REQUIRE_SHARED_LIMITER` | false | 设为 `true` 时强制要求共享限流，缺配置或故障返回 503，不调用付费提供方 |

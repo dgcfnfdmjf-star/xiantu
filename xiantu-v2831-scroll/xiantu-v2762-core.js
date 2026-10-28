@@ -133,7 +133,7 @@
         const {value,key,depth}=stack.pop();
         if(++nodes>300000||depth>60)throw Error('存档结构过于复杂');
         if(typeof value==='string'){
-          if(value.length>20000||/[<>]|&(?:#|quot;|apos;)|(?:^|[\s;"'])on[a-z]+\s*=|javascript\s*:/i.test(value))throw Error('存档含不安全的文本，请使用原始游戏导出的存档');
+          if(value.length>20000||/[<>]|&(?:#|quot;|apos;)|(?:^|[^a-z0-9_$])on[a-z]+\s*=|javascript\s*:/i.test(value))throw Error('存档含不安全的文本，请使用原始游戏导出的存档');
           if(/^(?:id|.*Id|.*ID)$/.test(key)&&/[^\p{L}\p{N}_.:\-]/u.test(value))throw Error('存档标识格式无效');
           if(identifier.test(key)&&/["'`\\&\r\n]/.test(value))throw Error('存档名称或标识含不支持的字符');
         }else if(value&&typeof value==='object'){
@@ -2670,9 +2670,14 @@
 
     function setDaoNameFromPanel() {
       const input=document.getElementById('panelDaoInput'); if(!input)return;
-      player.daoName=String(input.value||'').trim().slice(0,8);
-      input.value=''; updateCharacterPanelDeep(); autoSave?.();
+      const raw=String(input.value||'').trim();
+      try{validateSaveTextV2869({daoName:raw});}catch(_){showFloatingText?.('道号含不支持的符号，请使用文字、数字或空格','#ff8a80');return false;}
+      const previous=player.daoName;
+      player.daoName=Array.from(raw).slice(0,8).join('');
+      if(!saveGame()){player.daoName=previous;showFloatingText?.('道号未能保存，已保留原道号，请稍后重试','#ff8a80');return false;}
+      input.value=''; updateCharacterPanelDeep();
       showFloatingText?.(player.daoName?`道号已定：${player.daoName}`:'已清除道号','#ffd700');
+      return true;
     }
 
     function updateCharacterPanelDeep() {
@@ -14680,7 +14685,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.69";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.70";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

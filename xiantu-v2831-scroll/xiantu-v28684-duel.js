@@ -1917,7 +1917,7 @@ function mapAliveBuildingV2893(ctx,o){
 }
 // END MAP_ALIVE_V2893
 ;// BEGIN SAVE_UI_V2895
-// V28.68.69 存档护身 + 手机界面（内部标识 V2895）：
+// V28.68.70 存档护身 + 手机界面（内部标识 V2895）：
 //  1) 申请浏览器持久保存（navigator.storage.persist）；
 //  2) 主存档写入成功后，另存一份到 IndexedDB 备用库（独立于 localStorage），本地存档丢失时可在开场恢复；
 //  3) 定期提醒导出存档（7天未导出且有进展、或新入大境界）；
@@ -2396,4 +2396,4 @@ function resolvePlayerMotionV2896(fromX,fromY,toX,toY,actorRadius=17){
 }
 // END MAP_MOVEMENT_V2896
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.69';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.70';
