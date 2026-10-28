@@ -68,4 +68,4 @@
 发布
 版本 V28.68.74；缓存 286874-onboarding-20261028；40个构建戳、入口、CSS及校验清单同步。
 完整游戏ZIP保留顶层 xiantu-v2831-scroll。本轮只更新静态游戏，无需更新Jev。
-开发分支 codex/onboarding-notices-stats；GitHub上传与PR完成后，main合并及腾讯云部署另行进行。
+开发分支 codex/onboarding-notices-stats；已随PR #30合并main，腾讯云尚未部署。

@@ -38,4 +38,4 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser：7�
 
 交付
 版本28.68.75；40脚本顺序不变，全部build标记、样式校验和缓存参数同步。静态包顶层保持xiantu-v2831-scroll。Jev云函数没有改动，无需更新。
-本批基于PR #30的指引/提示/本机统计，另开后期经济PR，不自动合并main或部署腾讯云。
+本批基于PR #30的指引/提示/本机统计，已随PR #31合并main；尚未部署腾讯云。
