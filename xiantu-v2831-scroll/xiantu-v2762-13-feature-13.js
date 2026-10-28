@@ -123,4 +123,4 @@ function showCombatPetsV2884(){
  el.onkeydown=e=>{e.stopPropagation();if(e.key==='Escape'){closeCombatPetsV2884();document.getElementById('combatSwitchPetV2884')?.focus();}else trapJourneyFocusV2838(e,el);};
  document.body.appendChild(el);el.querySelector('button:not([disabled])')?.focus();return true;
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-13-feature-13.js"]="28.68.66";
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-13-feature-13.js"]="28.68.67";

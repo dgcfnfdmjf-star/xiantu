@@ -279,6 +279,7 @@ function buyPetGrowthBatchV286845(item,count=1){
   if(!petBatchAllowedV286845()||![1,5,10].includes(count))return false;
   const entry=PET_GROWTH_SHOP_V286845.find(x=>x.item===item);if(!entry||entry.realm&&!hasReachedRealm(entry.realm))return false;
   const total=entry.cost*count;if(!Number.isFinite(player.gold)||player.gold<total){showFloatingText?.(`❌ 灵石不足，需要 ${total} 灵石`,'#ff6b6b');return false;}
+  if(!confirmPurchaseV286867(item,total,count))return false;
   player.gold-=total;givePetMatV210(item,count,false);showFloatingText?.(`✅ 获得【${item}】×${count}`,'#8fe3c4');
   autoSave?.();updateStats?.();showPetGrowthShopV210();return true;
 }
@@ -300,7 +301,7 @@ const v210BondBase=window.startBondingProcess;if(typeof v210BondBase==='function
 // 每次打开灵宠界面时都进行旧档迁移；旧存档无需重开。
 const v210ShowPetsBase=window.showPets;window.showPets=function(){ensureAllPetGrowthV210();const r=v210ShowPetsBase?.apply(this,arguments);updatePetPanel?.();return r};
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-15-petgrowthsystemv210.js"]="28.68.66";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-15-petgrowthsystemv210.js"]="28.68.67";
 
 const PET_SYNTH_RECIPES_V2870={
  '优质血脉精元':{inputs:{'普通血脉精元':3},gold:200,realm:0},
