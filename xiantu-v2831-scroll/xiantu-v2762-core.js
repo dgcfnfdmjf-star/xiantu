@@ -8506,6 +8506,7 @@
     function getEquipQualitySummary(){let highest=-1;for(const slot of Object.keys(EQUIPMENT_SLOTS)){const d=getEquipData(player.equipment?.[slot]);if(!d)continue;highest=Math.max(highest,QUALITY_KEYS.indexOf(d.quality));}return highest<0?'无':EQUIPMENT_QUALITIES[QUALITY_KEYS[highest]].name;}
 
     function showEquipmentPanel(){
+      resetWorldMovementV28686();
       toggleCharacterPanel?.(false);document.getElementById('equipmentPanel')?.remove();migrateLooseEquipmentToEquipmentInventory(player);checkSetBonuses();
       const panel=document.createElement('div');panel.id='equipmentPanel';panel.className='equipment-panel-overlay';
       const content=document.createElement('div');content.className='equipment-panel-content';
@@ -13225,7 +13226,7 @@
       if(document.getElementById('jevWorldPanelV2846'))return true;
       if(document.getElementById('warPanelV2839')||document.getElementById('helpManual'))return true;
       if(document.getElementById('sceneV2838')||document.getElementById('journeyPrepareV2838')||document.getElementById('scrollMapV2831'))return true;
-      if(document.getElementById('taskPanel')) return true;
+      if(document.getElementById('taskPanel')||document.getElementById('equipmentPanel')) return true;
       if(document.getElementById('mobileInventoryOverlay')) return true;
       if(document.getElementById('longevityOverlay')) return true;
       if(document.getElementById('saveManagerV2768')) return true;
@@ -13315,14 +13316,16 @@
       tickNavigationV2830(dt);
       revealExplorationV2828();
       const oldPX=FLAT_WORLD.player.x, oldPY=FLAT_WORLD.player.y;
+      const moveSpeed=typeof mapMoveSpeedV2896==='function'?mapMoveSpeedV2896():FLAT_WORLD.player.speed;
+      const moveStep=moveSpeed*Math.max(0,Number.isFinite(dt)?dt:0);
       let dx=0,dy=0,k=FLAT_WORLD.keys;
       if(k.w||k.arrowup)dy--; if(k.s||k.arrowdown)dy++; if(k.a||k.arrowleft)dx--; if(k.d||k.arrowright)dx++;
       if(dx||dy){ const l=Math.hypot(dx,dy)||1; dx/=l;dy/=l; FLAT_WORLD.target=null; }
-      else if(FLAT_WORLD.target){ const tx=FLAT_WORLD.target.x-FLAT_WORLD.player.x, ty=FLAT_WORLD.target.y-FLAT_WORLD.player.y, l=Math.hypot(tx,ty); if(l<(autoNavigationV2830?1:8)){FLAT_WORLD.target=null;FLAT_WORLD.tapTargetFx=null;} else {const scale=autoNavigationV2830?Math.min(1,l/Math.max(.001,FLAT_WORLD.player.speed*dt)):1;dx=tx/l*scale;dy=ty/l*scale;} }
+      else if(FLAT_WORLD.target){ const tx=FLAT_WORLD.target.x-FLAT_WORLD.player.x, ty=FLAT_WORLD.target.y-FLAT_WORLD.player.y, l=Math.hypot(tx,ty); if(l<(autoNavigationV2830?1:8)){FLAT_WORLD.target=null;FLAT_WORLD.tapTargetFx=null;} else {const scale=Math.min(1,l/Math.max(.001,moveStep));dx=tx/l*scale;dy=ty/l*scale;} }
       FLAT_WORLD.moving=!!(dx||dy); FLAT_WORLD.moveDirX=dx; FLAT_WORLD.moveDirY=dy;
-      const desiredX=Math.max(30,Math.min(FLAT_WORLD.width-30,FLAT_WORLD.player.x+dx*FLAT_WORLD.player.speed*dt));
-      const desiredY=Math.max(30,Math.min(FLAT_WORLD.height-30,FLAT_WORLD.player.y+dy*FLAT_WORLD.player.speed*dt));
-      const resolvedPlayerPos=resolveWorldCollisionForActor(oldPX, oldPY, desiredX, desiredY, FLAT_WORLD.player.r || 17);
+      const desiredX=Math.max(30,Math.min(FLAT_WORLD.width-30,FLAT_WORLD.player.x+dx*moveStep));
+      const desiredY=Math.max(30,Math.min(FLAT_WORLD.height-30,FLAT_WORLD.player.y+dy*moveStep));
+      const resolvedPlayerPos=(typeof resolvePlayerMotionV2896==='function'?resolvePlayerMotionV2896:resolveWorldCollisionForActor)(oldPX, oldPY, desiredX, desiredY, FLAT_WORLD.player.r || 17);
       FLAT_WORLD.player.x=resolvedPlayerPos.x;
       FLAT_WORLD.player.y=resolvedPlayerPos.y;
       if (FLAT_WORLD.target && Math.hypot(FLAT_WORLD.target.x-FLAT_WORLD.player.x,FLAT_WORLD.target.y-FLAT_WORLD.player.y) < (autoNavigationV2830?1:Math.max(10,(FLAT_WORLD.player.r||17)+4))) {
@@ -14134,6 +14137,7 @@
 
     function updateWorldHUD(){
       if(typeof ensureMapAliveButtonV2893==='function')ensureMapAliveButtonV2893();
+      if(typeof ensureSwordFlightV2896==='function')ensureSwordFlightV2896();
       if(typeof syncFirstJourneyV28687==='function')syncFirstJourneyV28687();
       if(typeof syncSectTodoV2868==='function')syncSectTodoV2868();
       ensureScrollButtonV2831();
@@ -14676,7 +14680,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.68";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.69";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

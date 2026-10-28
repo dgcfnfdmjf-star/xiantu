@@ -127,6 +127,7 @@ function renderEquipSlots(slots){
 }
 
 function showEquipmentPanel(){
+  resetWorldMovementV28686();
   toggleCharacterPanel?.(false);document.getElementById('equipmentPanel')?.remove();migrateLooseEquipmentToEquipmentInventory(player);ensureEquipmentManagerState();checkSetBonuses();
   const panel=document.createElement('div');panel.id='equipmentPanel';panel.className='equipment-panel-overlay';
   const content=document.createElement('div');content.className='equipment-panel-content';
@@ -333,7 +334,7 @@ function showGradeUpgradePanelV2869(){
 // 初始化锁定字段；旧存档无需迁移结构，下一次保存会自动写入 player。
 try{ensureEquipmentManagerState();}catch(_){ }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-12-v277equipmentmanager.js"]="28.68.68";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-12-v277equipmentmanager.js"]="28.68.69";
 
 const LOADOUT_NAMES_V2870=['方案一·日常','方案二·爆发','方案三·护体'];
 function saveLoadoutPresetV2870(index){

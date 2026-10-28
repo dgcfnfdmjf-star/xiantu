@@ -1917,7 +1917,7 @@ function mapAliveBuildingV2893(ctx,o){
 }
 // END MAP_ALIVE_V2893
 ;// BEGIN SAVE_UI_V2895
-// V28.68.68 存档护身 + 手机界面（内部标识 V2895）：
+// V28.68.69 存档护身 + 手机界面（内部标识 V2895）：
 //  1) 申请浏览器持久保存（navigator.storage.persist）；
 //  2) 主存档写入成功后，另存一份到 IndexedDB 备用库（独立于 localStorage），本地存档丢失时可在开场恢复；
 //  3) 定期提醒导出存档（7天未导出且有进展、或新入大境界）；
@@ -2328,4 +2328,72 @@ installSaveUiV2895();
 
 // END SAVE_UI_V2895
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.68';
+// BEGIN MAP_MOVEMENT_V2896
+// Movement stays in the existing update loop; this device preference never changes actor base speed.
+const MAP_MOVEMENT_V2896=Object.freeze({key:'xiantu_sword_flight_v2870',multiplier:1.6,skin:.05,contacts:4});
+let swordFlightV2896=false;
+try{swordFlightV2896=localStorage.getItem(MAP_MOVEMENT_V2896.key)==='1';}catch(_){}
+function mapMoveSpeedV2896(){return FLAT_WORLD.player.speed*(swordFlightV2896?MAP_MOVEMENT_V2896.multiplier:1);}
+function syncSwordFlightV2896(){
+ const button=document.getElementById('swordFlightBtnV2870');if(!button)return;
+ button.textContent=swordFlightV2896?'御剑疾行 · 开':'御剑疾行 · 关';
+ button.setAttribute('aria-pressed',String(swordFlightV2896));
+ button.title='开启后地图移动速度提升60%；仍需绕开障碍，可能更快遇到怪物。';
+}
+function toggleSwordFlightV2870(){
+ if(gameState!=='exploring'||player?.breakthrough?.isAnimating)return false;
+ swordFlightV2896=!swordFlightV2896;
+ try{localStorage.setItem(MAP_MOVEMENT_V2896.key,swordFlightV2896?'1':'0');}catch(_){}
+ syncSwordFlightV2896();
+ showFloatingText?.(swordFlightV2896?'御剑疾行：地图移速提升60%，仍受障碍限制。':'已恢复常速行走。','#e5cf87');
+ return swordFlightV2896;
+}
+function ensureSwordFlightV2896(){
+ const host=document.getElementById('worldExploreActions');if(!host)return;
+ if(!document.getElementById('swordFlightBtnV2870')){const b=document.createElement('button');b.type='button';b.id='swordFlightBtnV2870';b.onclick=toggleSwordFlightV2870;host.appendChild(b);}
+ syncSwordFlightV2896();
+}
+window.addEventListener('storage',e=>{if(e.key!==MAP_MOVEMENT_V2896.key&&e.key!==null)return;swordFlightV2896=e.newValue==='1';syncSwordFlightV2896();});
+
+// Sweep the player's circle through the complete displacement, then project the remaining motion
+// onto the contact tangent. Monster physics keeps its existing collision routine and RNG.
+function resolvePlayerMotionV2896(fromX,fromY,toX,toY,actorRadius=17){
+ if(![fromX,fromY,toX,toY,actorRadius].every(Number.isFinite)||actorRadius<0)return {x:fromX,y:fromY};
+ const skin=MAP_MOVEMENT_V2896.skin,colliders=FLAT_WORLD.colliders||[];
+ let x=fromX,y=fromY,vx=toX-fromX,vy=toY-fromY;
+ const valid=c=>Number.isFinite(c.x)&&Number.isFinite(c.y)&&Number.isFinite(c.radius)&&c.radius>=0;
+ const overlaps=(px,py)=>colliders.some(c=>valid(c)&&Math.hypot(px-c.x,py-c.y)<c.radius+actorRadius-1e-5);
+ // Recover an old/teleported overlap without carrying momentum across a map transition.
+ if(overlaps(x,y)){
+  const fixed=resolveWorldCollisionForActor(x,y,x,y,actorRadius);x=fixed.x;y=fixed.y;
+  if(overlaps(x,y))return {x,y};
+ }
+ const safeX=x,safeY=y;
+ for(let pass=0;pass<MAP_MOVEMENT_V2896.contacts;pass++){
+  const a=vx*vx+vy*vy;if(a<1e-12)break;
+  let hit=null,first=1;
+  for(const c of colliders){
+   if(!valid(c))continue;
+   const r=c.radius+actorRadius+skin,fx=x-c.x,fy=y-c.y;
+   // Cheap segment bounding box rejection before the quadratic intersection.
+   if(c.x<Math.min(x,x+vx)-r||c.x>Math.max(x,x+vx)+r||c.y<Math.min(y,y+vy)-r||c.y>Math.max(y,y+vy)+r)continue;
+   const b=fx*vx+fy*vy;if(b>=0)continue;
+   const outside=fx*fx+fy*fy-r*r,disc=b*b-a*outside;if(disc<0)continue;
+   const t=outside<=0?0:(-b-Math.sqrt(disc))/a;
+   if(t<0||t>first)continue;
+   first=t;hit=c;
+  }
+  if(!hit){x+=vx;y+=vy;break;}
+  const cx=x+vx*first,cy=y+vy*first,norm=Math.hypot(cx-hit.x,cy-hit.y)||1;
+  const nx=(cx-hit.x)/norm,ny=(cy-hit.y)/norm;
+  const advance=Math.max(0,first-1e-6);x+=vx*advance;y+=vy*advance;
+  vx*=1-first;vy*=1-first;
+  const inward=Math.min(0,vx*nx+vy*ny);vx-=nx*inward;vy-=ny*inward;
+ }
+ x=Math.max(30,Math.min(FLAT_WORLD.width-30,x));y=Math.max(30,Math.min(FLAT_WORLD.height-30,y));
+ // Crowded corners may exhaust the contact budget; never resolve them by crossing an obstacle.
+ return overlaps(x,y)?{x:safeX,y:safeY}:{x,y};
+}
+// END MAP_MOVEMENT_V2896
+
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.69';
