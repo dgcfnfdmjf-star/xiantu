@@ -164,4 +164,4 @@ WAR_FRONTS_V2839[0].objective='夺回前哨阵旗，接续传讯灵光';
 WAR_FRONTS_V2839[0].intro='前哨阵旗被煞气遮蔽，传讯玉碑断了灵光。守阵弟子结印护住阵基，剑修等待破开魔障，将山门间的灵讯重新接通。';
 WAR_FRONTS_V2839[1].intro='灵脉上空魔焰翻涌，护阵光幕已经出现裂纹。医修在阵后接应伤者，护阵弟子稳住灵流，御剑修士正设法截断魔焰来路。';
 WAR_FRONTS_V2839[2].intro='魔阵核心终于显露。双方修士围绕阵眼施法相抗，必须破开核心禁制才能结束这场斗法。此战只是一域之争，三万年仙魔战仍未落幕。';
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2841-dharma-war.js']='28.68.72';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2841-dharma-war.js']='28.68.73';
