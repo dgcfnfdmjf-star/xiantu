@@ -4,7 +4,7 @@ const TUTORIAL_STEPS={
   movement:{title:'🕹️ 行走四方',desc:'你可以 <b>拖动左下角摇杆</b>，也可以<b>轻点地面</b>让人物自动走过去。松开摇杆会立即停下，点地后人物会向目标点移动。<br><br>现在试着移动一小段。',compact:'轻点地面或拖动摇杆，移动一小段',target:'#virtualJoystick',placement:'right',waitFor:'movement'},
   interaction:{title:'✋ 与地点交互',desc:'地图上的建筑与地点都有进入范围。走进地点外圈后，右下角<b>【交互】</b>即可进入。<br><br>现在靠近任意地点并按一次【交互】。',compact:'靠近任意地点，进入外圈后按【交互】',target:'#touchAction',placement:'left',waitFor:'interaction'},
   combat:{title:'⚔️ 演武入门',desc:'先用一具低阶演武傀儡熟悉战斗。战斗中可以使用<b>普通攻击</b>或已掌握的功法，灵力不足时要留意恢复。',placement:'center',actions:[{text:'开始演武',action:'training'}]},
-  combat_attack:{title:'⚔️ 先出一剑',desc:'点击<b>【普通攻击】</b>完成第一击。之后自由应战，击败演武傀儡即可。',compact:'点击【普通攻击】完成第一击',target:'#combatChoices .choice-btn',placement:'left',waitFor:'attack'},
+  combat_attack:{title:'⚔️ 先出一剑',desc:'点击<b>【普攻】</b>完成第一击。之后自由应战，击败演武傀儡即可。',compact:'点击【普攻】完成第一击',target:'#combatChoices .choice-btn',placement:'left',waitFor:'attack'},
   equipment:{title:'🎒 穿戴所得',desc:'演武奖励已经放入<b>装备背包</b>。打开装备栏，点击【背包装备】，再点【布衣】穿到法袍位。<br><br>装备有品质与境界要求，高阶装备必须达到相应境界才能使用。',placement:'left',actions:[{text:'打开装备栏',action:'equipment'}]},
   tasks:{title:'📜 宗门差事',desc:'宗门任务是稳定获取<b>修为、贡献与灵石</b>的途径。接取后可以查看详细指引与任务追踪；可循指引采药、猎妖，或将珍材捐入宗门。',placement:'center',actions:[{text:'查看宗门任务',action:'tasks'},{text:'继续了解修炼',action:'next',nextStep:'cultivation'}]},
   cultivation:{title:'🧘 修炼与突破',desc:'修为达到当前瓶颈后，会进入突破流程，突破存在失败风险。失败后需要调息，时间会随仙历流逝而减少。<br><br><b>闭关十年最多推进一个小段</b>，不会连续跨越多个境界；渡劫圆满必须真正渡过飞升天劫，方能进入地仙。',placement:'center',actions:[{text:'我已明白',action:'finish'}]}
@@ -157,7 +157,7 @@ function handleTutorialInteractionV28685(){
 function installTutorialInteractionHooks(){
   const pad=document.getElementById('virtualJoystick');if(pad&&!pad.dataset.tutorialHook){pad.dataset.tutorialHook='1';let start=null;pad.addEventListener('pointerdown',e=>{start={x:e.clientX,y:e.clientY}},{passive:true});pad.addEventListener('pointermove',e=>{if(tutorialState.currentStepId!=='movement'||!start)return;if(Math.hypot(e.clientX-start.x,e.clientY-start.y)>16){start=null;goTutorialNext('movement','interaction');showTutorialToast('✅ 已掌握移动操作',1800)}},{passive:true})}
   const action=document.getElementById('touchAction');if(action&&!action.dataset.tutorialHook){action.dataset.tutorialHook='1';action.addEventListener('click',e=>{if(tutorialState.currentStepId!=='interaction')return;e.preventDefault();e.stopImmediatePropagation();handleTutorialInteractionV28685()},true)}
-  document.addEventListener('click',e=>{if(tutorialState.currentStepId!=='combat_attack'||!currentEnemy?._isTutorial)return;const btn=e.target?.closest?.('#combatChoices .choice-btn');if(btn&&btn.textContent.includes('普通攻击')){completeTutorialStep('combat_attack');closeTutorialBubble();showTutorialToast('⚔️ 很好。继续战斗，击败演武傀儡。',2400)}},true)
+  document.addEventListener('click',e=>{if(tutorialState.currentStepId!=='combat_attack'||!currentEnemy?._isTutorial)return;const btn=e.target?.closest?.('#combatChoices .choice-btn');if(btn&&/普通攻击|普攻/.test(btn.textContent)){completeTutorialStep('combat_attack');closeTutorialBubble();showTutorialToast('⚔️ 很好。继续战斗，击败演武傀儡。',2400)}},true)
 }
 
 // 装备成功后推进引导
@@ -168,7 +168,12 @@ function installTutorialInteractionHooks(){
 })();
 
 // ===== 境界解锁提示：只讲真实开放内容 =====
-function showTutorialUnlockPopup(key,title,body){const t=ensureTutorialState();if(!t||t.readPopups.includes(key))return;t.readPopups.push(key);autoSave?.();document.getElementById('tutorialUnlock')?.remove();const el=document.createElement('div');el.id='tutorialUnlock';el.className='tutorial-unlock';el.innerHTML=`<h3>${title}</h3><p>${body}</p><button onclick="document.getElementById('tutorialUnlock')?.remove()">记下了</button>`;document.body.appendChild(el)}
+function showTutorialUnlockPopup(key,title,body){
+ if(player?.tutorial?.readPopups?.includes(key))return;
+ const owner=player;if(typeof noticePushV2901==='function')return noticePushV2901({key:'unlock:'+key,kind:'modal',show:()=>player===owner?renderTutorialUnlockV2901(key,title,body):null});
+ return renderTutorialUnlockV2901(key,title,body);
+}
+function renderTutorialUnlockV2901(key,title,body){const t=ensureTutorialState();if(!t||t.readPopups.includes(key))return;document.getElementById('tutorialUnlock')?.remove();const el=document.createElement('div');el.id='tutorialUnlock';el.className='tutorial-unlock';el.innerHTML=`<h3>${title}</h3><p>${body}</p><button onclick="document.getElementById('tutorialUnlock')?.remove()">记下了</button>`;document.body.appendChild(el);t.readPopups.push(key);autoSave?.();return el;}
 function checkTutorialRealm(level){
   const unlock=typeof REGION_UNLOCK_LEVEL==='object'?REGION_UNLOCK_LEVEL:{east:2,north:2,west:3};
   if(level>=unlock.east)showTutorialUnlockPopup('unlock_east','🌲 东域可行','你已踏入筑基，东域之路开放。可前往迷雾森林、灵兽谷；万宗秘境仍需宗门取得本世纪资格。');
@@ -200,7 +205,7 @@ function installGuideEntry(){
 
 window.addEventListener('load',()=>setTimeout(()=>{installTutorialInteractionHooks();installGuideEntry();installTutorialTooltips()},650));
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-04-tutorial-guide-script.js"]="28.68.73";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-04-tutorial-guide-script.js"]="28.68.74";
 
 // 初入仙途：只突出下一步，奖励随进度一次性保存。
 function firstJourneyV28687(){

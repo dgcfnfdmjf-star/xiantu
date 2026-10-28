@@ -6323,6 +6323,7 @@
     let playerPressureStun = false;
 
     function resetRuntimeState() {
+      if(typeof resetOnboardingV2901==='function')resetOnboardingV2901();
       document.getElementById('saveRemindV2895')?.remove();
       if(typeof resetMapAliveV2893==='function')resetMapAliveV2893(true);
       if(typeof closeCombatPetsV2884==='function')closeCombatPetsV2884();
@@ -6686,6 +6687,7 @@
       gearBattleV2790.delete(currentEnemy);
       setupTacticsV286821();
       gameState = 'combat';
+      if(typeof statsFightStartV2901==='function')statsFightStartV2901();
       player.hp=Math.min(getMaxHp(),player.hp+Math.ceil(getMaxHp()*miniBoonV286840('hp')));
       player.mp=Math.min(getMaxMp(),player.mp+Math.ceil(getMaxMp()*miniBoonV286840('mp')));
       isPlayerTurn = true;
@@ -13252,6 +13254,7 @@
     }
 
     function isWorldOverlayOpen() {
+      if(document.getElementById('firstPathPanelV2901')||document.getElementById('pacingStatsV2901'))return true;
       if(['rainChapterV286822','expansionV286827','postCaseV286826','storyBossPrepV286826'].some(id=>document.getElementById(id)))return true;
       if(document.getElementById('jevWorldPanelV2846'))return true;
       if(document.getElementById('warPanelV2839')||document.getElementById('helpManual'))return true;
@@ -14758,7 +14761,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.73";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.74";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

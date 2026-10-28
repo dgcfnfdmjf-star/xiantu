@@ -12,7 +12,7 @@ const root=process.env.XIANTU_TEST_ROOT||path.resolve(__dirname,'..'),fixture=re
 const html=fs.readFileSync(root+'/game-v2762.html','utf8'),files=JSON.parse(html.match(/var files=(\[[^;]+\]);/)[1]);
 const ME='xiantu-v28684-duel.js';
 function game(skip=[]){const f=fixture(root);f.c.console.log=()=>{};f.c.console.warn=(...x)=>f.errors.push(['warn',...x]);for(const file of files){if(file===ME&&skip.length)f.run(fs.readFileSync(root+'/'+file,'utf8').replace(/\/\/ BEGIN SCENE25D_V2888[\s\S]*?\/\/ END SCENE25D_V2888/,'').replace(/\/\/ BEGIN BATTLE25D_V2889[\s\S]*?\/\/ END BATTLE25D_V2889/,''));else f.load(file);}return f;}
-const fresh=(f,setup='')=>f.run(`resetRuntimeState();player=createDefaultPlayer();gameState='exploring';${setup}`);
+const fresh=(f,setup='')=>f.run(`resetRuntimeState();player=createDefaultPlayer();gameState='exploring';closeWorldOverlay();document.getElementById('gameScreen').classList.remove('hidden');document.getElementById('startScreen').classList.add('hidden');${setup}`);
 const runTimers=f=>{for(let i=0;i<10&&f.timers.size;i++)for(const [id,t] of [...f.timers]){f.timers.delete(id);try{t.f();}catch(e){f.errors.push(['timer',e]);}}};
 const text=el=>{const out=[];const walk=n=>{out.push(n._text||'',n._html||'');n.children.forEach(walk);};walk(el);return out.join(' ');};
 const body=f=>f.run("document.getElementById('guideBodyV2890')").innerHTML;
@@ -139,7 +139,7 @@ f.run('closeHelpManual()');
 
 // ---------------------------------------------------------------- next steps ----
 fresh(f,"player.level=0;player.sect='散修';player.firstJourneyV28687=null");f.run("showHelpManual('start')");
-a(body(f).includes('初入仙途】五步引导'));a(body(f).includes('尚无宗门'));
+a(body(f).includes('起步之路 0/11'));a(body(f).includes('尚无宗门'));
 fresh(f,"player.level=4;player.phase=0;player.sect='凌霄宗';player.exp=getCurrentExpNeed();player.worldTime.totalDays=270");f.run("showHelpManual('start')");
 a(body(f).includes('修为已至瓶颈'),'exp full');a(body(f).includes('镇岳台封印松动中（余 10 天）'),'boss window open');a(!body(f).includes('尚无宗门'));
 fresh(f,"player.level=4;player.sect='凌霄宗';player.exp=0;player.worldTime.totalDays=100;player.firstJourneyV28687={step:5}");f.run("showHelpManual('start')");
@@ -151,11 +151,11 @@ f.run('closeHelpManual()');
 {const d=f.run('TUTORIAL_STEPS.cultivation.desc');a(d.includes('每次突破只进一段')&&d.includes('不会自行破境')&&!d.includes('闭关十年最多推进一个小段'));}
 const g=game();fresh(g,"player.level=4;player.sect='散修'");g.run('checkTutorialRealm(4)');
 a(!g.run('player.tutorial.readPopups').includes('unlock_boss_v2890'),'no 镇岳台 popup outside a sect');
-fresh(g,"player.level=4;player.sect='凌霄宗'");g.run("player.tutorial.readPopups=['unlock_east','unlock_north','unlock_west']");g.run('checkTutorialRealm(4)');
-a(!g.run('player.tutorial.readPopups').includes('unlock_boss_v2890'),'existing unlock is not overwritten');g.run("document.getElementById('tutorialUnlock')?.remove();checkTutorialRealm(4)");
+fresh(g,"player.level=4;player.sect='凌霄宗'");g.run("player.tutorial.readPopups=['unlock_east','unlock_north','unlock_west'];showTutorialUnlockPopup('qa_existing','现有提示','x')");g.run('checkTutorialRealm(4)');
+a(!g.run('player.tutorial.readPopups').includes('unlock_boss_v2890'),'existing unlock is not overwritten');g.run("document.getElementById('tutorialUnlock')?.remove();noticeTickV2901();NQ_V2901.lastEnd=Date.now()-1000;noticeTickV2901();checkTutorialRealm(4)");
 a(g.run('player.tutorial.readPopups').includes('unlock_boss_v2890'),'popup recorded once');
 a(g.run("document.getElementById('tutorialUnlock')").innerHTML.includes('镇岳台可往'));a(g.run("document.getElementById('tutorialUnlock')").innerHTML.includes('10月1日～10月10日'));
-g.run("document.getElementById('tutorialUnlock')?.remove();checkTutorialRealm(4)");a.equal(g.run("document.getElementById('tutorialUnlock')"),null,'shown only once');
+g.run("document.getElementById('tutorialUnlock')?.remove();noticeTickV2901();NQ_V2901.lastEnd=Date.now()-1000;noticeTickV2901();checkTutorialRealm(4)");a.equal(g.run("document.getElementById('tutorialUnlock')"),null,'shown only once');
 fresh(g,"player.level=2;player.sect='凌霄宗'");g.run('checkTutorialRealm(2)');a(!g.run('player.tutorial.readPopups').includes('unlock_boss_v2890'),'not before 元婴');
 a(g.run('player.tutorial.readPopups').includes('unlock_east'),'old unlock popups still run');
 a.equal(g.run("guideEscV2890('<b>&')"),'&lt;b&gt;&amp;');

@@ -122,7 +122,7 @@ window.addEventListener('xiantu:combat-finishing',()=>{
   const pending=JEV_WORLD_V2846.pending;if(pending){pending.cancel();pending.controller?.abort();}
 });
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2849-npc-jev.js']='28.68.73';
+window.__xiantuBuildFilesV2814['xiantu-v2849-npc-jev.js']='28.68.74';
 
 // Rival trial records use entry-realm snapshots; rewards are claimed outside combat.
 const RIVAL_STYLES_V2874={sword:['兵刃剑枪','折锋障','防御提高12%'],thunder:['九天雷法','吞雷引','攻击提高10%'],fire:['焚世真火','寂灭灰','攻击提高10%'],ice:['玄冥寒冰','沸血煞','防御提高12%'],heal:['青莲生机','断生印','攻击提高10%']};
