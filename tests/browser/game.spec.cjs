@@ -40,11 +40,13 @@ for(const width of [360,390,430,1366])test(`navigation remains reachable at ${wi
  await page.keyboard.press('Enter');await expect(page.locator('#worldExploreActions')).toBeVisible();
  await page.locator('#scrollMapButtonV2831').click();await expect(page.locator('#scrollTitleV2837')).toBeVisible();await expect(page.locator('#worldExploreActions')).toBeHidden();
 });
-test('parallel preload keeps evaluation order and version failure remains actionable',async({page})=>{
+test('stylesheet precedes parallel scripts and version failure remains actionable',async({page})=>{
  await boot(page);const resources=await page.evaluate(()=>performance.getEntriesByType('resource').filter(r=>r.name.includes('.js?')).map(r=>({name:r.name,start:r.startTime,end:r.responseEnd})));
+ const styles=await page.evaluate(()=>performance.getEntriesByType('resource').filter(r=>r.name.includes('xiantu-v2762.css')).map(r=>({end:r.responseEnd})));
+ expect(styles).toHaveLength(1);expect(Math.min(...resources.filter(r=>!r.name.includes('core.js')).map(r=>r.start))).toBeGreaterThanOrEqual(styles[0].end);
  expect(resources).toHaveLength(40);expect(new Set(resources.map(r=>r.name)).size).toBe(40);
  const last=resources.at(-1),first=resources.find(r=>r.name.includes('core.js'));expect(last.start).toBeLessThan(first.end+500);
- await page.reload();await page.route('**/xiantu-v2762-core.js?*',async route=>{const response=await route.fetch();const original=await response.text(),body=original.replaceAll(JSON.stringify(require('../../package.json').version),'"bad-version"');expect(body).not.toBe(original);await route.fulfill({response,body});});
+ await page.route('**/xiantu-v2762-core.js?*',async route=>{const response=await route.fetch();const original=await response.text(),body=original.replaceAll(JSON.stringify(require('../../package.json').version),'"bad-version"');expect(body).not.toBe(original);await route.fulfill({response,body});});await page.reload();
  await page.locator('#xiantuSafeBootButton').click();await expect(page.locator('#xiantuSafeBootError')).toContainText('文件版本不一致');
 });
 test('rabbit turtle and bat use the new artwork in map and battle',async({page})=>{
