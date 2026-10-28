@@ -13156,44 +13156,46 @@
         if (k==='escape' && isWorldOverlayOpen()) closeWorldOverlay();
       });
       window.addEventListener('keyup', e=>{ FLAT_WORLD.keys[e.key.toLowerCase()]=false; });
-      const setWorldTapTarget = (clientX, clientY) => {
+      const setWorldTapTarget = (clientX, clientY, source='mouse') => {
         if (isWorldOverlayOpen()) return false;
         const rect=canvas.getBoundingClientRect();
         if(clientX<rect.left||clientX>rect.right||clientY<rect.top||clientY>rect.bottom) return false;
         const point=worldTapPointV2893(canvas,rect,clientX,clientY);
         const worldX=point.x,worldY=point.y;
-        if(!setWorldTapDestinationV2900(worldX,worldY))return false;
+        if(!handleWorldTapV2904(worldX,worldY,source))return false;
         if (typeof tutorialState!=='undefined' && tutorialState.currentStepId==='movement') {
           goTutorialNext('movement','interaction');
           showTutorialToast('✅ 已掌握点击移动',1800);
         }
         return true;
       };
-      canvas.addEventListener('pointerdown', e=>{
-        if (e.pointerType && e.pointerType !== 'mouse') return;
-        setWorldTapTarget(e.clientX, e.clientY);
+      // One gesture pipeline: commit only a short primary tap, never a drag/cancel or synthetic mouse after touch.
+      let worldMouseTap=null,worldTouchTap=null,lastWorldTouchAt=-Infinity;
+      const clearTap=()=>{worldMouseTap=null;worldTouchTap=null;};
+      canvas.addEventListener('pointerdown',e=>{
+        if(e.pointerType&&e.pointerType!=='mouse'||e.button!==0||Date.now()-lastWorldTouchAt<700||isWorldOverlayOpen())return;
+        worldMouseTap={id:e.pointerId,x:e.clientX,y:e.clientY,moved:false};
       });
-      let worldTouchTap=null;
-      canvas.addEventListener('touchstart', e=>{
-        if (isWorldOverlayOpen() || e.touches.length!==1) return;
-        const t=e.touches[0];
-        worldTouchTap={x:t.clientX,y:t.clientY,moved:false};
-      }, {passive:false});
-      canvas.addEventListener('touchmove', e=>{
-        if (worldTouchTap && e.touches[0]) {
-          const t=e.touches[0];
-          if (Math.hypot(t.clientX-worldTouchTap.x,t.clientY-worldTouchTap.y)>14) worldTouchTap.moved=true;
-        }
+      canvas.addEventListener('pointermove',e=>{if(worldMouseTap&&e.pointerId===worldMouseTap.id&&Math.hypot(e.clientX-worldMouseTap.x,e.clientY-worldMouseTap.y)>14)worldMouseTap.moved=true;});
+      canvas.addEventListener('pointerup',e=>{const tap=worldMouseTap;worldMouseTap=null;if(tap&&tap.id===e.pointerId&&!tap.moved&&Math.hypot(e.clientX-tap.x,e.clientY-tap.y)<=14)setWorldTapTarget(e.clientX,e.clientY);});
+      canvas.addEventListener('pointercancel',clearTap);canvas.addEventListener('pointerleave',()=>{worldMouseTap=null;});
+      canvas.addEventListener('touchstart',e=>{
+        lastWorldTouchAt=Date.now();worldMouseTap=null;
+        if(isWorldOverlayOpen()||e.touches.length!==1){worldTouchTap=null;return;}
+        const t=e.touches[0];worldTouchTap={id:t.identifier,x:t.clientX,y:t.clientY,moved:false};
+      },{passive:false});
+      canvas.addEventListener('touchmove',e=>{
+        if(e.touches.length!==1)worldTouchTap=null;
+        const t=e.touches[0];if(worldTouchTap&&t&&(t.identifier!==worldTouchTap.id||Math.hypot(t.clientX-worldTouchTap.x,t.clientY-worldTouchTap.y)>14))worldTouchTap.moved=true;
         e.preventDefault();
-      }, {passive:false});
-      canvas.addEventListener('touchend', e=>{
-        if (!worldTouchTap) return;
-        const touch=e.changedTouches?.[0];
-        const moved=worldTouchTap.moved;
-        worldTouchTap=null;
-        if (!moved && touch) setWorldTapTarget(touch.clientX,touch.clientY);
+      },{passive:false});
+      canvas.addEventListener('touchend',e=>{
+        lastWorldTouchAt=Date.now();const tap=worldTouchTap;worldTouchTap=null;
+        const t=Array.from(e.changedTouches||[]).find(t=>t.identifier===tap?.id);
+        if(tap&&!tap.moved&&t&&e.touches.length===0&&Math.hypot(t.clientX-tap.x,t.clientY-tap.y)<=14)setWorldTapTarget(t.clientX,t.clientY,'touch');
         e.preventDefault();
-      }, {passive:false});
+      },{passive:false});
+      canvas.addEventListener('touchcancel',clearTap,{passive:true});window.addEventListener('xiantu-movement-reset',clearTap);
       document.querySelectorAll('.touch-pad button').forEach(btn=>{
         const d=btn.dataset.dir;
         const key={up:'w',down:'s',left:'a',right:'d'}[d];
@@ -13374,7 +13376,7 @@
     function updateFlatWorld(dt) {
       if(typeof syncWarMapV2840==='function')syncWarMapV2840();
       if(document.getElementById("scrollMapV2831"))return;
-      tickNavigationV2830(dt);
+      if(tickNavigationV2830(dt)===true)return; // Arrival may open a panel: do not also move or encounter a monster this frame.
       revealExplorationV2828();
       const oldPX=FLAT_WORLD.player.x, oldPY=FLAT_WORLD.player.y;
       const moveSpeed=typeof mapMoveSpeedV2896==='function'?mapMoveSpeedV2896():FLAT_WORLD.player.speed;
@@ -13689,12 +13691,50 @@
       if(!forgeAllowedV2825()||!goal||!Number.isFinite(goal.x)||!Number.isFinite(goal.y))return false;
       goal={...goal,r:Number.isFinite(goal.r)?Math.max(0,goal.r):0};
       stopNavigationV2830();const p=FLAT_WORLD.player;
-      if(Math.hypot(p.x-goal.x,p.y-goal.y)<(goal.exact?1:goal.r+55)){closeWorldOverlay();if(!goal.silent)showFloatingText?.('已在目标附近，请点击交互。','#9edcff');return true;}
+      if(Math.hypot(p.x-goal.x,p.y-goal.y)<(goal.exact?1:goal.r+(goal.enterPoiV2904?62:55))){if(goal.enterPoiV2904)return enterTappedPoiV2904({owner:player,region:currentRegion,poi:goal.enterPoiV2904});closeWorldOverlay();if(!goal.silent)showFloatingText?.('已在目标附近，请点击交互。','#9edcff');return true;}
       const route=planNavigationV2830(goal);if(!route?.length){showFloatingText?.('暂未找到安全路线，请点附近空地或手动绕行。','#ffd76a');return false;}
       if(goal.id&&goal.mark!==false){explorationV2828();player.explorationV2828.marked={region:currentRegion,id:goal.id};autoSave();}closeWorldOverlay();
-      autoNavigationV2830={owner:player,region:currentRegion,goal:goal.id||null,silent:!!goal.silent,route,index:0,target:route[0],lastX:p.x,lastY:p.y,stuck:0};
+      autoNavigationV2830={owner:player,region:currentRegion,poi:goal.enterPoiV2904||null,goal:goal.id||null,silent:!!goal.silent,route,index:0,target:route[0],lastX:p.x,lastY:p.y,stuck:0};
       FLAT_WORLD.keys={};FLAT_WORLD.target=route[0];FLAT_WORLD.tapTargetFx={...route[0],startedAt:performance.now()};
       if(!goal.silent)showFloatingText?.('🧭 自动寻路中，操作摇杆或点击地图可接管。','#9edcff');return true;
+    }
+    // Visible architecture uses the same atlas choice, dimensions and world transforms as drawing.
+    function poiTapBoxV2904(o){
+      if(!o||o.action==='explore_v2828'||o.action==='war_map_v2840')return null;
+      let w=0,h=0,bottom=32;const regional=regionBuildingCellV2835(o),art=SCROLL_ART_V2831;
+      if(regional&&art.regionalBuildings?.width>0&&art.regionalBuildings?.height>0){w=architectureWidthV2900(o,o.action==='lingxiao_building'?100:regional.row===2?180:regional.row===0?150:125);h=w*(art.regionalBuildings.height/4)/(art.regionalBuildings.width/3);}
+      else if(scrollPalacePoiV2831(o)&&art.palace?.width>0&&art.palace?.height>0){w=architectureWidthV2900(o,o.action==='lingxiao_building'?128:180);h=w*art.palace.height/art.palace.width;bottom=42;}
+      else {const cell=scrollBuildingCellV2832(o);if(cell>=0){w=architectureWidthV2900(o,o.action==='lingxiao_building'?96:(cell===0||cell===2?150:120));h=w;}
+        else if(getPoiVisualKind(o)==='npc'||o.action==='yewuji_v2810'){w=56;h=96;bottom=20;}
+        else if(['rest','faction_gate_v2806'].includes(o.action)||o.action==='lingxiao_building'){w=Math.max(64,(o.r||30)*2);h=w;}
+      }
+      if(!w)return null;
+      const a=landmarkPointV2893(o,-w/2,bottom-h),b=landmarkPointV2893(o,w/2,bottom);
+      return {left:a.x,right:b.x,top:a.y,bottom:b.y};
+    }
+    function tappedPoiV2904(x,y){
+      // Last painted (largest y) wins when roofs overlap, rather than choosing a hidden building centre.
+      return [...FLAT_WORLD.pois].reverse().sort((a,b)=>b.y-a.y).find(o=>{const b=poiTapBoxV2904(o);return b&&x>=b.left&&x<=b.right&&y>=b.top&&y<=b.bottom;})||null;
+    }
+    function enterTappedPoiV2904(nav){
+      stopNavigationV2830();const o=nav.poi;
+      if(nav.owner!==player||nav.region!==currentRegion||!canMapNpcActV2864()||isWorldOverlayOpen()||document.hidden||!o||!FLAT_WORLD.pois.includes(o)||Math.hypot(FLAT_WORLD.player.x-o.x,FLAT_WORLD.player.y-o.y)>o.r+62)return false;
+      const access=scrollPoiAccessV2837(o);if(!access.allowed){showFloatingText(access.reason||'尚未满足进入条件。','#ffd76a');return false;}
+      resetWorldMovementV28686();FLAT_WORLD.nearby=o;interactFlatWorld();return true;
+    }
+    let lastGroundTapTipV2904=0;
+    function handleWorldTapV2904(x,y,source='mouse'){
+      if(!canMapNpcActV2864()||isWorldOverlayOpen()||document.hidden||![x,y].every(Number.isFinite))return false;
+      resetWorldMovementV28686();const poi=tappedPoiV2904(x,y);
+      if(poi){
+        const access=scrollPoiAccessV2837(poi);if(!access.allowed){showFloatingText(access.reason||'尚未满足进入条件。','#ffd76a');return false;}
+        const ok=startPointNavigationV28685({...poi,silent:true,mark:false,enterPoiV2904:poi});
+        if(ok&&autoNavigationV2830)showFloatingText(`前往${poi.name}，抵达后自动进入；操作摇杆或键盘可取消。`,'#9edcff');return ok;
+      }
+      if(source==='touch'&&player.controlMode!=='touch'){
+        if(Date.now()-lastGroundTapTipV2904>1600){lastGroundTapTipV2904=Date.now();showFloatingText('摇杆模式：轻点建筑可自动进入；点地行走请切换点触模式。','#9edcff');}return false;
+      }
+      return setWorldTapDestinationV2900(x,y);
     }
     // A tap plans once, using the same collision footprint as deliberate navigation.
     // Straight clear paths keep the existing cheap movement; no per-frame path search.
@@ -13714,12 +13754,12 @@
     }
     function tickNavigationV2830(dt){
       const nav=autoNavigationV2830;if(!nav)return;const p=FLAT_WORLD.player;
-      if(nav.owner!==player||nav.region!==currentRegion||!forgeAllowedV2825()||Object.values(FLAT_WORLD.keys||{}).some(Boolean))return stopNavigationV2830();
+      if(nav.owner!==player||nav.region!==currentRegion||!forgeAllowedV2825()||isWorldOverlayOpen()||document.hidden||(nav.poi&&!FLAT_WORLD.pois.includes(nav.poi))||Object.values(FLAT_WORLD.keys||{}).some(Boolean))return stopNavigationV2830();
       const near=Math.hypot(p.x-nav.target.x,p.y-nav.target.y)<1;
       if(FLAT_WORLD.target!==nav.target&&!(FLAT_WORLD.target===null&&near))return stopNavigationV2830();
       const moved=Math.hypot(p.x-nav.lastX,p.y-nav.lastY);nav.stuck=moved<.1?nav.stuck+Math.min(dt,.1):0;nav.lastX=p.x;nav.lastY=p.y;
       if(nav.stuck>2)return stopNavigationV2830('路径受阻，已停止；可手动移动后重试。');
-      if(near){nav.index++;if(nav.index>=nav.route.length)return stopNavigationV2830(nav.silent?'':'已到目标附近，请点击交互。');nav.target=nav.route[nav.index];FLAT_WORLD.target=nav.target;FLAT_WORLD.tapTargetFx={...nav.target,startedAt:performance.now()};}
+      if(near){nav.index++;if(nav.index>=nav.route.length){if(nav.poi)return enterTappedPoiV2904(nav);return stopNavigationV2830(nav.silent?'':'已到目标附近，请点击交互。');}nav.target=nav.route[nav.index];FLAT_WORLD.target=nav.target;FLAT_WORLD.tapTargetFx={...nav.target,startedAt:performance.now()};}
     }
 
     function explorationProgressV2829(){
@@ -14806,7 +14846,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.76";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.77";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
