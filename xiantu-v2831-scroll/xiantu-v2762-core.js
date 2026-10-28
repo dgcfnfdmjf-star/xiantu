@@ -2582,6 +2582,17 @@
       const d=calculateBreakthroughSuccess();
       return `<p>本次成功率：${Math.round(d.rate*100)}% · 当前瓶颈已失败 ${d.failures} 次${d.guaranteed?' · 本次保底成功':''}<br>基础 ${Math.round(d.base*100)}% · 丹药 +${Math.round(d.pillBonus*100)}% · 宗门 +${Math.round(d.sectBonus*100)}% · 状态/心结 -${Math.round(d.statusPenalty*100)}%<br>常规概率限制在5%—95%，再加失败保护 +${Math.round(d.pityBonus*100)} 个百分点；连续失败5次后下一次必成。成功后清零，读档保留。</p><p>本次丹药：${d.pillName||'不使用'}。开始尝试时消耗一颗，成功或失败均消耗；预览不消耗，不叠加多种丹药；保底时不消耗丹药。<br>失败损失 ${Math.floor(getCurrentExpNeed()*.15)} 修为，气血变为上限60%、灵力变为上限50%，调息30—49个游戏日。飞升天劫不适用此保底。</p>`;
     }
+    // V2902: late-game income/cost calibration. No new save fields or balance compensation.
+    const LATE_ECONOMY_V2902=Object.freeze({
+      fromLevel:4,
+      perKill:Object.freeze([0,0,0,0,320,380,450,550,650,750,900,1100,1350,1550,1800,2050,2300]),
+      shopCosts:Object.freeze([600,2400,9600,19200,38400,76800]),
+      eliteMultiplier:1.5,firstEliteKills:4,annualBossKills:8
+    });
+    function lateGoldPerKillV2902(level){
+      const n=Number(level);if(!Number.isFinite(n))return 0;
+      return LATE_ECONOMY_V2902.perKill[Math.max(0,Math.min(16,Math.floor(n)))]||0;
+    }
     function battleGoldV28683(enemy){
       const base=Math.max(0,Number(enemy?.gold)||0);
       if(!base||enemy._isTutorial||enemy._isTaskBattle||enemy._taskId||enemy._warV2839||enemy.tournamentFight||isBossFight||isTribulation)return base;
@@ -2590,7 +2601,9 @@
       // Early elites consume healing before higher-realm skill/gear sustain exists.
       // Only this tier receives the additional gold floor; scripted fights stay excluded.
       if(lv===2&&enemy._isElite)return Math.max(base,280);
-      return Math.max(base,Math.floor(Math.min(400,40*(lv+1))*(enemy._isElite?1.5:1)));
+      const old=Math.max(base,Math.floor(Math.min(400,40*(lv+1))*(enemy._isElite?1.5:1)));
+      if(lv<LATE_ECONOMY_V2902.fromLevel||player.level<LATE_ECONOMY_V2902.fromLevel||authoredStoryCombatV286835(enemy)||enemy._nightRivalV2810||enemy._rainChapterV286822||enemy._miniRunV2778)return old;
+      return Math.max(old,Math.floor(lateGoldPerKillV2902(Math.min(lv,player.level))*(enemy._isElite?LATE_ECONOMY_V2902.eliteMultiplier:1)));
     }
     function battleExpV28683(enemy){
       const base=Math.max(0,Number(enemy?.exp)||0);
@@ -4202,12 +4215,12 @@
       '裂星穿云':{family:'spear',color:'#f1cf9b',names:['九霄寂灭枪','逐星凌劲袍','破云束星冠','掠影追风靴','流星破戒'],slots:['weapon','robe','head','boots','ring'],look:['陨星玄金枪，菱形寒锋与赤金枪缨。','银白劲袍，碎星灵丝轻甲，利落如风。','银玉束冠，中央嵌碎星晶石。','银纹轻底战靴，刻破空纹。','银星指环，嵌陨星碎晶。'],lore:'上古星陨枪修传承，以穿刺和连击破除坚甲。',mods:[{atkPct:.33,pierce:.15},{atkPct:.24},{critDmg:.10},{follow:.12},{crit:.14}],tiers:[{count:2,bonus:{atk:15}},{count:4,bonus:{crit:5}},{count:5,bonus:{atk:40}}],mechanic:'2件：枪击有15%概率追加20%伤害；4件：枪击额外穿透30%防御；全套仙器：对满血敌人枪击伤害+35%，穿云贯日击杀恢复15%最大灵力。'},
       '万象玄霆':{family:'wand',color:'#c5a4ff',names:['九霄玄霆杖','万法霄宸袍','御雷宸冠','踏雷虚宸履','万象雷灵珠'],slots:['weapon','robe','head','boots','jade'],look:['万年雷击神木法杖，紫金雷纹，杖首托雷核宝珠。','紫黑渐变仙袍，广袖织雷纹星图。','紫金雷云法冠，嵌雷晶珠。','紫黑云纹法靴，靴底雷光印。','球形雷玉，内部电光流转。'],lore:'上古雷尊传承，聚天地雷力，以雷云持续轰击强敌。',mods:[{spellPct:.35,thunderPct:.22},{spellPct:.26,mpPct:.25,pierce:.12},{spellCrit:.12},{followSpell:.14},{mpRegen:.18,spellPct:.13}],tiers:[{count:2,bonus:{mp:40}},{count:4,bonus:{atk:20}},{count:5,bonus:{mp:120}}],mechanic:'2件：雷系伤害+15%；4件：雷系命中25%概率麻痹1回合；全套仙器：九霄雷云附加2次持续雷伤，攻击法术有20%概率追加30%伤害。'}
     };
-    const GRADES_V2790=[{name:'灵品',quality:'LING_PIN',level:2,scale:.4,cost:600},{name:'宝器',quality:'BAO_QI',level:3,scale:.7,cost:2400},{name:'仙器',quality:'IMMORTAL',level:7,scale:1,cost:9600},
+    const GRADES_V2790=[{name:'灵品',quality:'LING_PIN',level:2,scale:.4,cost:LATE_ECONOMY_V2902.shopCosts[0]},{name:'宝器',quality:'BAO_QI',level:3,scale:.7,cost:LATE_ECONOMY_V2902.shopCosts[1]},{name:'仙器',quality:'IMMORTAL',level:7,scale:1,cost:LATE_ECONOMY_V2902.shopCosts[2]},
       // Post-地仙 grades extend the existing curve: level 2/3/7 -> 10/12/14, mod scale +.3 per grade,
-      // old-set stat curve steps +.6/+.8 -> +1.0/+1.2/+1.4, price x4 per grade. Earlier grades are unchanged.
-      {name:'天器',quality:'TIAN_QI',level:10,scale:1.3,statScale:1.42,cost:38400},
-      {name:'圣器',quality:'SHENG_QI',level:12,scale:1.6,statScale:1.92,cost:153600},
-      {name:'道器',quality:'DAO_QI',level:14,scale:1.9,statScale:2.5,cost:614400}];
+      // old-set stat curve steps +.6/+.8 -> +1.0/+1.2/+1.4; V2902 caps later price growth at x2. Earlier grades are unchanged.
+      {name:'天器',quality:'TIAN_QI',level:10,scale:1.3,statScale:1.42,cost:LATE_ECONOMY_V2902.shopCosts[3]},
+      {name:'圣器',quality:'SHENG_QI',level:12,scale:1.6,statScale:1.92,cost:LATE_ECONOMY_V2902.shopCosts[4]},
+      {name:'道器',quality:'DAO_QI',level:14,scale:1.9,statScale:2.5,cost:LATE_ECONOMY_V2902.shopCosts[5]}];
     const GRADE_STAT_CURVE_V286838=[1,1.6,2.4,3.4,4.6,6];
     EQUIPMENT_QUALITIES.LING_PIN={name:'灵品',color:'#67e8b5',multiplier:1,icon:'◈'};
     EQUIPMENT_QUALITIES.BAO_QI={name:'宝器',color:'#cc9cff',multiplier:1,icon:'◆'};
@@ -14761,7 +14774,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.74";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.75";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

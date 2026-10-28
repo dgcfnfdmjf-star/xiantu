@@ -29,9 +29,9 @@ f.run("player.level=10;player.phase=3;player.exp=getCurrentExpNeed();player.brea
 f.run("player.gold=10;buyBreakthroughPillV28683('破障丹');");a.equal(f.run('player.gold'),10);
 console.log('PASS one-time grant idempotence, guaranteed attempt preserves pill, insufficient funds rejected');
 
-f.run('isBossFight=false;isTribulation=false;');
+f.run('player.level=10;isBossFight=false;isTribulation=false;');
 a.equal(f.run('battleGoldV28683({gold:10,_realmLevel:2})'),120);
-a.equal(f.run('battleGoldV28683({gold:10,_realmLevel:16,_isElite:true})'),600);
+a.equal(f.run('battleGoldV28683({gold:10,_realmLevel:16,_isElite:true})'),1350);
 a.equal(f.run('battleGoldV28683({gold:10,_realmLevel:0})'),10);
 a.equal(f.run('battleGoldV28683({gold:0,_realmLevel:16})'),0);
 a.equal(f.run('battleGoldV28683({gold:10,_realmLevel:16,_isTaskBattle:true})'),10);

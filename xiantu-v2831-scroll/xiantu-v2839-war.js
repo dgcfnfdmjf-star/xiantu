@@ -316,7 +316,7 @@ function showWarMeritV2839(){
  if(!warAllowedV2839())return;const w=warStateV2839();
  openWarPanelV2839('军功补给处',()=>`<div class="war-stats-v2839"><div><small>可用军功</small><b>${w.meritV2839}</b></div><div><small>累计所得</small><b>${w.meritEarnedV2839}</b></div></div><p>完成会战获得军功；每次亲自交锋获胜另计10军功，随战役胜利统一发放。</p>${WAR_GOODS_V2839.map((g,i)=>`<article class="war-history-v2839"><h3>${g.name}</h3><p>${g.desc}</p>${warButtonV2839(`兑换 · ${g.cost}军功`,()=>exchangeWarMeritV2839(i),w.meritV2839<g.cost)}</article>`).join('')}<p class="war-muted-v2839">点兑换后仍需确认，取消不会扣除军功。</p>`,()=>warButtonV2839('返回军务',showWarHubV2839)+warButtonV2839('历次战报',showWarHistory));
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2839-war.js']='28.68.74';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2839-war.js']='28.68.75';
 
 // V28.68: one readable entry for the long war, existing story and campaign routes.
 function showAncientWarV2859(){
@@ -646,7 +646,7 @@ function eliteActionV2883(enemy,sealed=false){
  }
  return null;
 }
-function eliteRewardV2883(p){const c=ELITES_V2883[p.id];return {gold:360+p.realm*140+(p.first?300+p.realm*120:0),exp:180+p.realm*85,merit:p.first?15:0,materials:c.materials,pets:c.pets};}
+function eliteRewardV2883(p){const c=ELITES_V2883[p.id],flat=360+p.realm*140+(p.first?300+p.realm*120:0);const gold=p.first?Math.max(flat,lateGoldPerKillV2902(p.realm)*LATE_ECONOMY_V2902.firstEliteKills):flat;return {gold,exp:180+p.realm*85,merit:p.first?15:0,materials:c.materials,pets:c.pets};}
 function eliteRewardTextV2883(p){const r=eliteRewardV2883(p);return `灵石${r.gold}、修为${r.exp}${r.merit?'、军功'+r.merit:''}、`+Object.entries({...r.materials,...r.pets}).map(([n,q])=>`${n}×${q}`).join('、');}
 function recordEliteFinishV2883(){
  const enemy=currentEnemy,b=eliteBattleV2883(enemy),p=COMBAT_FINISH_V2764.pending;

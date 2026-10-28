@@ -8,7 +8,7 @@ f.run('startGame();closeWorldOverlay()');f.timers.clear();
 const grades=f.run('GRADES_V2790.map(g=>({name:g.name,level:g.level,scale:g.scale,cost:g.cost,quality:g.quality}))');
 a.equal(JSON.stringify(grades.slice(0,3).map(g=>[g.name,g.level,g.scale,g.cost])),JSON.stringify([['灵品',2,.4,600],['宝器',3,.7,2400],['仙器',7,1,9600]]),'existing grades unchanged');
 a.equal(JSON.stringify(grades.slice(3).map(g=>[g.name,g.level])),JSON.stringify([['天器',10],['圣器',12],['道器',14]]));
-for(let i=1;i<grades.length;i++){a(grades[i].level>grades[i-1].level);a(grades[i].cost===grades[i-1].cost*4);}
+for(let i=1;i<grades.length;i++){a(grades[i].level>grades[i-1].level);a.equal(grades[i].cost,grades[i-1].cost*(i<3?4:2));}
 
 // Effective stat = stored stat x quality multiplier, the same value the runtime sums.
 const eff=name=>f.run(`(()=>{const d=EQUIPMENT_DB[${JSON.stringify(name)}];const m=getQualityInfo(d.quality).multiplier;const o={};for(const [k,v] of Object.entries(d.stats))o[k]=Math.round(v*m*1000)/1000;return {stats:o,realm:d.realmRequired,mods:d.modsV2790||{}}})()`);
