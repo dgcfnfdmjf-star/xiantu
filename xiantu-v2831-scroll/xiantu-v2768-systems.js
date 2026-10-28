@@ -87,6 +87,7 @@ function showSaveManagerV2768(){
  const el=document.createElement('div');el.id='saveManagerV2768';el.className='mobile-inventory-overlay';el.style.zIndex='100000';
  el.innerHTML='<div class="mobile-inventory-card" style="padding:20px;max-height:85vh;overflow:auto"><h3>📁 存档管理</h3><p>修行记录保存在当前浏览器。导出文件可转移到其他设备；导入会替换当前主存档。</p><button class="choice-btn" onclick="exportSaveV2768()">导出当前存档</button><button class="choice-btn" onclick="copySaveTextV2870()">复制当前存档文本</button><button class="choice-btn" onclick="exportSaveV2768(true)">导出上一次有效备份</button><p>导入存档文件（JSON，最大8MB）</p><input type="file" accept=".json,application/json" onchange="importSaveV2768(this.files[0]);this.value=\'\'"><button class="choice-btn" onclick="restoreBackupV2768()">恢复上一次有效备份</button><hr><h4>替换前记录</h4><p>导入或恢复前保留，仅存一份；空间不足时停止替换，请先导出。</p><button class="choice-btn" onclick="restoreBeforeReplaceV2870()">恢复替换前记录</button><button class="choice-btn" onclick="exportBeforeReplaceV2870()">导出替换前记录</button><hr><h4>上一位角色</h4><p>重新入世时保留，自动保存不会覆盖这里。</p><button class="choice-btn" onclick="restorePreviousV2838()">恢复上一位角色</button><button class="choice-btn" onclick="exportPreviousV2838()">导出上一位角色</button><p>导入和恢复前会要求确认。不要清除浏览器的网站数据。</p><button class="choice-btn" onclick="document.getElementById(\'saveManagerV2768\').remove()">关闭</button></div>';
  el.addEventListener('pointerdown',e=>{if(e.target===el)el.remove()});document.body.appendChild(el);
+ try{window.saveManagerExtraV2895?.(el)?.catch(()=>{});}catch(_){}
 }
 // Parse and normalize detached data before any reset or persistent replacement.
 function dryRunLoadV2870(raw){
@@ -115,26 +116,29 @@ function showRawSaveTextV2870(raw){
  const close=document.createElement('button');close.className='choice-btn';close.textContent='关闭';close.onclick=()=>overlay.remove();
  card.append(title,tip,area,close);overlay.appendChild(card);document.body.appendChild(overlay);area.focus();area.select?.();
 }
+// Showing a manual-copy window is not proof that the player copied the text.
 async function copyRawSaveV2870(raw){
  try{if(!navigator.clipboard?.writeText)throw Error('clipboard unavailable');await navigator.clipboard.writeText(raw);alert('存档文本已复制，请粘贴保存为 .json 文件。');}
- catch(_){showRawSaveTextV2870(raw);}
+ catch(_){showRawSaveTextV2870(raw);return false;}
+ return true;
 }
 async function exportRawSaveV2870(raw,name){
  if(!raw)throw Error('暂无可导出的记录');
  // Export is a recovery path, including records rejected by current import validation.
  try{parseSaveV2768(raw);}catch(_){alert('该记录未通过导入安全校验，仍将原样导出供备份或修复。');}
  if(isMobileV2870()&&typeof File==='function'&&navigator.share&&navigator.canShare){
-  try{const file=new File([raw],name,{type:'application/json'});if(navigator.canShare({files:[file]})){await navigator.share({files:[file]});return;}}
-  catch(e){if(e?.name==='AbortError')return;}
+  try{const file=new File([raw],name,{type:'application/json'});if(navigator.canShare({files:[file]})){await navigator.share({files:[file]});return true;}}
+  catch(e){if(e?.name==='AbortError')return false;}
  }
  let url,a;
  try{
   url=URL.createObjectURL(new Blob([raw],{type:'application/json'}));a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();
- }catch(_){await copyRawSaveV2870(raw);}
+  return true;
+ }catch(_){return await copyRawSaveV2870(raw);}
  finally{a?.remove();if(url)setTimeout(()=>URL.revokeObjectURL(url),10000);}
 }
 async function copySaveTextV2870(){
- try{const raw=currentSaveRawV2870();if(!raw)throw Error('暂无可导出的记录');await copyRawSaveV2870(raw);}catch(e){alert('导出失败：'+e.message);}
+ try{const raw=currentSaveRawV2870();if(!raw)throw Error('暂无可导出的记录');if(await copyRawSaveV2870(raw))window.saveExportedV2895?.('text',raw);}catch(e){alert('导出失败：'+e.message);}
 }
 // Fail closed when the old record cannot be archived. No quota override can silently lose it.
 function replaceSaveV2870(raw,prepared,archiveKey=BEFORE_REPLACE_SAVE_V2870){
@@ -151,6 +155,7 @@ function replaceSaveV2870(raw,prepared,archiveKey=BEFORE_REPLACE_SAVE_V2870){
   for(const k of written.reverse()){try{old.get(k)==null?localStorage.removeItem(k):localStorage.setItem(k,old.get(k));}catch(_){rollbackFailed=true;}}
   throw Error((e.name==='QuotaExceededError'?'存储空间不足，请先导出记录后再重试。':e.message)+(rollbackFailed?'部分备份未能回滚，请先导出检查。':'当前角色未切换。'));
  }
+ try{window.saveMirrorV2895?.(raw);}catch(_){}
  document.getElementById('saveManagerV2768')?.remove();loadAndStart(prepared);
 }
 function restoreBeforeReplaceV2870(){
@@ -163,7 +168,7 @@ async function exportBeforeReplaceV2870(){
  try{await exportRawSaveV2870(localStorage.getItem(BEFORE_REPLACE_SAVE_V2870),'xiantu-before-replace-'+Date.now()+'.json');}catch(e){alert('导出失败：'+e.message);}
 }
 async function exportSaveV2768(backup=false){
- try{await exportRawSaveV2870(backup?localStorage.getItem(SAVE_BACKUP_KEY):currentSaveRawV2870(),`xiantu-${backup?'backup':'save'}-${Date.now()}.json`);}
+ try{const raw=backup?localStorage.getItem(SAVE_BACKUP_KEY):currentSaveRawV2870();const ok=await exportRawSaveV2870(raw,`xiantu-${backup?'backup':'save'}-${Date.now()}.json`);if(ok&&!backup)window.saveExportedV2895?.('file',raw);}
  catch(e){alert('导出失败：'+e.message);}
 }
 let saveImportBusyV2768=false;
@@ -796,4 +801,4 @@ function reinforceSealV2887(token){
  if(ok){bossViewV2887=null;showSectAdminV2873();showFloatingText('九锁重鸣，旧账与加固已保存。','#ffd76a');}return ok;
 }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2768-systems.js"]="28.68.67";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2768-systems.js"]="28.68.68";

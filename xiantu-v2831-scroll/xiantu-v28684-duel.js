@@ -1916,4 +1916,416 @@ function mapAliveBuildingV2893(ctx,o){
  ctx.save();try{drawBuildingLifeV2893(ctx,[o],mapAliveCalmV2893()?0:(ALIVE_V2893.clock||0),mapDayPhaseV2893(),false);}finally{ctx.restore();}
 }
 // END MAP_ALIVE_V2893
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.67';
+;// BEGIN SAVE_UI_V2895
+// V28.68.68 存档护身 + 手机界面（内部标识 V2895）：
+//  1) 申请浏览器持久保存（navigator.storage.persist）；
+//  2) 主存档写入成功后，另存一份到 IndexedDB 备用库（独立于 localStorage），本地存档丢失时可在开场恢复；
+//  3) 定期提醒导出存档（7天未导出且有进展、或新入大境界）；
+//  4) 小地图缩放按钮与顶部状态文字放大。
+// 不改存档格式、数值、战斗或剧情。localStorage 仍是唯一的“主存档”；备用库只读出来做恢复，绝不自动覆盖主档。
+const SAVEUI_V2895=(()=>{const deep=o=>{for(const v of Object.values(o))if(v&&typeof v==='object')deep(v);return Object.freeze(o);};return deep({
+ mirror:{
+  db:'xiantu_save_mirror_v2895',store:'saves',
+  minIntervalMs:15000,        // at most one IndexedDB write per 15 s (autosave runs every 30 s); flushed on page hide
+  dailyMs:20*3600*1000,       // refresh the older fallback at most every 20 h; its age is not guaranteed to be a full day
+  openTimeoutMs:4000
+ },
+ persist:{
+  retryMs:3*86400*1000,       // re-ask the browser at most every 3 days until granted
+  autoAsk:true,               // ask on the first tap of a session (Chromium and Safari decide silently)
+  autoAskFirefox:false        // Firefox shows a permission prompt, so there it is only asked from the button
+ },
+ remind:{
+  everyDays:7,                // overdue after 7 days without an export, if the character progressed since
+  firstAfterDays:2,           // a character that was never exported: first reminder 2 days after it was first saved here
+  milestoneMinGapDays:1,      // a new major realm since the last export also reminds, at most once a day
+  snoozeHours:20,             // 稍后 hides it for 20 h
+  sessionDelayMs:90000,       // never in the first 90 s of a session
+  checkMs:60000
+ },
+ ui:{
+  zoomButton:36,              // minimap −/＋ visible size (was 26 px); the pill is only as wide as the minimap
+  zoomGap:2,                  // gap inside the zoom pill (was 5 px)
+  zoomLabelWidth:26,          // 1.0× label width (was 34 px)
+  hitTarget:44,               // invisible touch area around them
+  zoomFont:21,
+  realmText:12,               // 凡人初期 under the name (was 10 px)
+  hudButtonText:12,           // 任务 / 角色 / 物品 (was 11 px)
+  areaText:12,                // 南域 · 繁华人间 (was 11 px)
+  minimapHead:12,             // 小地图 (was 8 px)
+  zoomLabel:12,               // 1.0× (was 9 px)
+  saveIndicator:12,           // ✓ 已记入玉简 (was 11 px)
+  hudToggleMin:44,            // ▾ button width (was 36 px)
+  narrowWidth:379             // at or below this width the HUD buttons put the icon above the word instead of cutting it off
+ },
+ keys:{persist:'xiantu_persist_v2895',exported:'xiantu_export_v2895',firstSeen:'xiantu_first_seen_v2895',
+  snooze:'xiantu_export_snooze_v2895',cleared:'xiantu_mirror_cleared_v2895'}
+});})();
+
+const SAVEUI_STATE_V2895={
+ mirror:{epoch:0,clearing:null,pending:null,timer:null,busy:false,lastWrite:0,status:'idle',lastOkAt:0,lastMeta:null,writes:0},
+ persist:{state:'unknown',busy:false,askedThisSession:false},
+ remind:{sessionStart:Date.now(),shownThisSession:false,timer:null},
+ offerShown:false
+};
+
+// ---------------------------------------------------------------- small helpers
+function suLsGetV2895(k){try{return localStorage.getItem(k);}catch(_){return null;}}
+function suLsSetV2895(k,v){try{localStorage.setItem(k,v);return true;}catch(_){return false;}}
+function suJsonV2895(k){try{return JSON.parse(suLsGetV2895(k)||'null');}catch(_){return null;}}
+function suEscV2895(v){return typeof escapeGameText==='function'?escapeGameText(v):String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function suHasLocalSaveV2895(){
+ try{return localStorage.getItem(SAVE_KEY)!==null||localStorage.getItem(SAVE_BACKUP_KEY)!==null;}catch(_){return true;}
+}
+// gameState starts as 'exploring' even on the title screen, so the screen itself decides.
+function suOnStartScreenV2895(){const s=document.getElementById('startScreen'),g=document.getElementById('gameScreen');return !!s&&!s.classList.contains('hidden')&&(!g||g.classList.contains('hidden'));}
+function suIsIOSV2895(){const ua=navigator.userAgent||'';return /iPhone|iPad|iPod/i.test(ua)||(/Macintosh/i.test(ua)&&navigator.maxTouchPoints>1);}
+function suStandaloneV2895(){try{return navigator.standalone===true||!!window.matchMedia?.('(display-mode: standalone)').matches;}catch(_){return false;}}
+function suIsFirefoxV2895(){return /Firefox\//.test(navigator.userAgent||'');}
+function suAgoV2895(t){
+ if(!t)return'';const d=Date.now()-t;if(d<3600e3)return'不到一小时前';if(d<86400e3)return Math.floor(d/3600e3)+' 小时前';return Math.floor(d/86400e3)+' 天前';
+}
+function suMetaV2895(raw){
+ try{const d=JSON.parse(raw),p=d?.player||{};
+  const realm=typeof getCultivationName==='function'?getCultivationName(p.level,p.phase):String(p.level);
+  return {name:String(p.name||'无名').slice(0,24),realm,level:Number(p.level)||0,ts:Number(d.timestamp)||0};
+ }catch(_){return null;}
+}
+
+// ---------------------------------------------------------------- IndexedDB mirror
+let suDbPromiseV2895=null;
+function suDbV2895(){
+ if(suDbPromiseV2895)return suDbPromiseV2895;
+ const M=SAVEUI_V2895.mirror;
+ suDbPromiseV2895=new Promise((resolve,reject)=>{
+  let req;try{if(!window.indexedDB)throw Error('IndexedDB unavailable');req=indexedDB.open(M.db,1);}catch(e){reject(e);return;}
+  let ended=false;const fail=e=>{ended=true;reject(e);};
+  const timer=setTimeout(()=>fail(Error('IndexedDB open timeout')),M.openTimeoutMs);
+  req.onupgradeneeded=()=>{try{req.result.createObjectStore(M.store);}catch(_){}};
+  req.onsuccess=()=>{clearTimeout(timer);const db=req.result;if(ended){db.close();return;}db.onversionchange=()=>{try{db.close();}catch(_){}suDbPromiseV2895=null;};resolve(db);};
+  req.onerror=()=>{clearTimeout(timer);fail(req.error||Error('IndexedDB open failed'));};
+  req.onblocked=()=>{clearTimeout(timer);fail(Error('IndexedDB blocked'));};
+ });
+ suDbPromiseV2895.catch(()=>{suDbPromiseV2895=null;SAVEUI_STATE_V2895.mirror.status='unavailable';});
+ return suDbPromiseV2895;
+}
+function suTxV2895(mode,fn){
+ return suDbV2895().then(db=>new Promise((resolve,reject)=>{
+  const tx=db.transaction(SAVEUI_V2895.mirror.store,mode),st=tx.objectStore(SAVEUI_V2895.mirror.store);let out;
+  try{out=fn(st);}catch(e){try{tx.abort();}catch(_){}reject(e);return;}
+  tx.oncomplete=()=>resolve(out&&'result' in out?out.result:undefined);
+  tx.onerror=()=>reject(tx.error||Error('IndexedDB write failed'));tx.onabort=()=>reject(tx.error||Error('IndexedDB aborted'));
+ }));
+}
+function suIdbGetV2895(key){return suTxV2895('readonly',st=>st.get(key));}
+
+// Called by writeSaveV2768 after the localStorage main save succeeded. Coalesces to the latest raw.
+function saveMirrorV2895(raw){
+ if(typeof raw!=='string'||!raw||suLsGetV2895(SAVE_KEY)!==raw)return;
+ try{if(parseSaveV2768(raw).player.testAccount999)return;}catch(_){return;}
+ const S=SAVEUI_STATE_V2895.mirror;S.pending=raw;
+ if(!suLsGetV2895(SAVEUI_V2895.keys.firstSeen))suLsSetV2895(SAVEUI_V2895.keys.firstSeen,String(Date.now()));
+ suMirrorScheduleV2895();
+}
+function suMirrorScheduleV2895(now){
+ const S=SAVEUI_STATE_V2895.mirror;if(S.busy||!S.pending)return;
+ if(now){if(S.timer){clearTimeout(S.timer);S.timer=null;}suMirrorFlushV2895();return;}
+ if(S.timer)return;
+ const wait=Math.max(0,S.lastWrite+SAVEUI_V2895.mirror.minIntervalMs-Date.now());
+ S.timer=setTimeout(()=>{S.timer=null;suMirrorFlushV2895();},wait);
+}
+async function suMirrorFlushV2895(){
+ const S=SAVEUI_STATE_V2895.mirror;if(S.busy||!S.pending)return;
+ const raw=S.pending,epoch=S.epoch,queuedAt=Date.now();S.pending=null;S.busy=true;S.lastWrite=queuedAt;
+ try{
+  if(S.clearing)await S.clearing;
+  if(epoch!==S.epoch||suLsGetV2895(SAVE_KEY)!==raw)return;
+  const meta=suMetaV2895(raw);if(!meta)throw Error('存档无法读取');
+  const rec={raw,...meta,savedAt:Date.now()};
+  let written=false;
+  // Read/rotate/write in one transaction. A durable tombstone also blocks older writes from other tabs.
+  await suTxV2895('readwrite',st=>{
+   const cleared=st.get('cleared'),previous=st.get('main'),oldDaily=st.get('daily');
+   oldDaily.onsuccess=()=>{
+    if(epoch!==S.epoch||suLsGetV2895(SAVE_KEY)!==raw||queuedAt<=(Number(cleared.result)||0))return;
+    const prevMain=previous.result,daily=oldDaily.result;
+    const rotate=prevMain&&prevMain.raw!==raw&&(!daily||rec.savedAt-daily.savedAt>=SAVEUI_V2895.mirror.dailyMs);
+    st.put(rec,'main');if(rotate)st.put(prevMain,'daily');written=true;
+   };
+  });
+  if(!written||epoch!==S.epoch)return;
+  S.status='ok';S.lastOkAt=rec.savedAt;S.lastMeta=meta;S.writes++;
+ }catch(e){
+  S.status=S.status==='unavailable'||/unavailable|blocked|timeout|open/i.test(String(e?.message))?'unavailable':'error';
+  console.warn('备用库写入失败（不影响主存档）',e);
+ }finally{
+  S.busy=false;if(S.pending)suMirrorScheduleV2895();
+ }
+}
+// deleteSave() was called: older mirror records must never be offered back.
+function saveMirrorClearedV2895(){
+ const S=SAVEUI_STATE_V2895.mirror,at=Date.now();S.epoch++;
+ suLsSetV2895(SAVEUI_V2895.keys.cleared,String(at));
+ S.pending=null;if(S.timer)clearTimeout(S.timer);S.timer=null;
+ document.getElementById('mirrorOfferV2895')?.remove();
+ document.getElementById('saveRemindV2895')?.remove();
+ S.clearing=suTxV2895('readwrite',st=>{st.put(at,'cleared');st.delete('main');st.delete('daily');}).catch(()=>{});
+}
+function suMirrorCurrentV2895(rec,epoch){
+ return epoch===SAVEUI_STATE_V2895.mirror.epoch&&rec.savedAt>(Number(suLsGetV2895(SAVEUI_V2895.keys.cleared))||0);
+}
+// Newest valid mirror record that is newer than the last deliberate delete. Never throws.
+async function suMirrorBestV2895(onlyKey=null){
+ const epoch=SAVEUI_STATE_V2895.mirror.epoch;
+ if(SAVEUI_STATE_V2895.mirror.clearing)await SAVEUI_STATE_V2895.mirror.clearing;
+ let durable;try{durable=Number(await suIdbGetV2895('cleared'))||0;}catch(_){return null;}
+ const cleared=Math.max(durable,Number(suLsGetV2895(SAVEUI_V2895.keys.cleared))||0);
+ for(const key of onlyKey?[onlyKey]:['main','daily']){
+  try{
+   const rec=await suIdbGetV2895(key);
+   if(!rec||typeof rec.raw!=='string'||!Number.isFinite(rec.savedAt)||!(rec.savedAt>cleared)||!suMirrorCurrentV2895(rec,epoch))continue;
+   const data=dryRunLoadV2870(rec.raw);
+   return {key,rec,data,epoch};
+  }catch(_){}
+ }
+ return null;
+}
+
+// Start screen with no local save at all: offer the mirror copy. Only ever writes after the player agrees.
+async function saveMirrorOfferV2895(){
+ const st=SAVEUI_STATE_V2895;
+ if(st.offerShown||suHasLocalSaveV2895()||!suOnStartScreenV2895())return false;
+ st.offerShown=true;
+ const best=await suMirrorBestV2895();
+ if(!best||!suMirrorCurrentV2895(best.rec,best.epoch)||suHasLocalSaveV2895()||!suOnStartScreenV2895()){st.offerShown=false;return false;}
+ const {rec}=best,m=suMetaV2895(rec.raw)||{};
+ document.getElementById('mirrorOfferV2895')?.remove();
+ const el=document.createElement('div');el.id='mirrorOfferV2895';el.className='mobile-inventory-overlay';el.style.zIndex='100002';
+ el.innerHTML=`<div class="mobile-inventory-card su-card-v2895" role="dialog" aria-modal="true" aria-labelledby="mirrorOfferTitleV2895">
+  <h3 id="mirrorOfferTitleV2895">📜 找到备用玉简</h3>
+  <p>这台设备上的主存档已经不在了，但浏览器备用库里还留着一份修行记录：</p>
+  <p class="su-rec-v2895"><b>${suEscV2895(m.name)}</b> · ${suEscV2895(m.realm)}<br><small>保存于 ${suEscV2895(typeof formatSaveTime==='function'?formatSaveTime(rec.savedAt):new Date(rec.savedAt).toLocaleString())}${best.key==='daily'?'（较早的一份）':''}</small></p>
+  <p>恢复后可直接续行仙途。不恢复也不会删除它，之后仍可在【存档管理】里找到。</p>
+  <div class="su-row-v2895"><button type="button" class="choice-btn" data-su="restore">恢复这份记录</button><button type="button" class="choice-btn" data-su="skip">暂不恢复</button></div></div>`;
+ el.addEventListener('click',e=>{
+  const b=e.target.closest('[data-su]');if(!b)return;
+  if(b.dataset.su==='skip'){el.remove();return;}
+  try{
+   if(!el.isConnected||!suOnStartScreenV2895()||!suMirrorCurrentV2895(rec,best.epoch))throw Error('恢复入口已过期，请重新打开。');
+   dryRunLoadV2870(rec.raw);
+   if(suHasLocalSaveV2895())throw Error('本地已有存档，未覆盖。请到【存档管理】中操作。');
+   writeSaveV2768(rec.raw);
+   el.remove();
+   const info=document.getElementById('saveInfo');if(info)info.innerHTML='已从浏览器备用库恢复修行记录。<br>点击“续行仙途”继续。';
+   const dialog=document.getElementById('loadDialog');if(dialog)dialog.style.display='flex';
+  }catch(err){alert('恢复失败：'+(err?.message||err));}
+ });
+ document.body.appendChild(el);el.querySelector('[data-su="restore"]')?.focus?.();
+ return true;
+}
+
+// ---------------------------------------------------------------- persistent storage
+async function suPersistQueryV2895(){
+ const P=SAVEUI_STATE_V2895.persist;
+ if(!navigator.storage?.persist||!navigator.storage?.persisted){P.state='unsupported';return P.state;}
+ try{if(await navigator.storage.persisted())P.state='granted';else P.state='not';}catch(_){}
+ return P.state;
+}
+async function requestPersistV2895(){
+ const P=SAVEUI_STATE_V2895.persist;
+ if(!navigator.storage?.persist){P.state='unsupported';return P.state;}
+ if(P.busy)return P.state;P.busy=true;P.askedThisSession=true;
+ try{const ok=await navigator.storage.persist();P.state=ok?'granted':'denied';}
+ catch(_){P.state='error';}
+ finally{P.busy=false;suLsSetV2895(SAVEUI_V2895.keys.persist,JSON.stringify({at:Date.now(),state:P.state}));}
+ return P.state;
+}
+function suPersistAutoOkV2895(){
+ const C=SAVEUI_V2895.persist,P=SAVEUI_STATE_V2895.persist;
+ if(!C.autoAsk||P.askedThisSession||P.state==='granted'||P.state==='unsupported')return false;
+ if(suIsFirefoxV2895()&&!C.autoAskFirefox)return false;
+ if(suOnStartScreenV2895()||!suHasLocalSaveV2895())return false;
+ const last=suJsonV2895(SAVEUI_V2895.keys.persist);
+ return !(last&&Date.now()-last.at<C.retryMs);
+}
+function suPersistGestureV2895(){
+ if(!suPersistAutoOkV2895())return;
+ suPersistQueryV2895().then(state=>{if(state!=='granted'&&suPersistAutoOkV2895())requestPersistV2895();});
+}
+
+// ---------------------------------------------------------------- export reminder
+function suFingerprintV2895(p=player){
+ if(!p)return'';return [p.level|0,p.phase|0,Math.floor(Number(p.exp)||0),Math.floor(Number(p.gold)||0)].join('|');
+}
+// Called after a successful export or copy of the current save. Writes device-only keys, never the save,
+// so exporting cannot itself count as "progress since the export".
+function saveExportedV2895(kind,raw){
+ let source=player;try{if(raw)source=parseSaveV2768(raw).player;}catch(_){return null;}
+ if(source?.testAccount999)return null;
+ const rec={at:Date.now(),fp:suFingerprintV2895(source),level:source?.level|0,kind:String(kind||'file')};
+ suLsSetV2895(SAVEUI_V2895.keys.exported,JSON.stringify(rec));
+ document.getElementById('saveRemindV2895')?.remove();
+ return rec;
+}
+// Pure decision, testable: returns null or {reason, days}.
+function exportReminderDueV2895(now=Date.now(),p=player){
+ const C=SAVEUI_V2895.remind,K=SAVEUI_V2895.keys,day=86400e3;
+ if(!p||p.testAccount999)return null;
+ const snooze=Number(suLsGetV2895(K.snooze))||0;if(now-snooze<C.snoozeHours*3600e3)return null;
+ const last=suJsonV2895(K.exported);
+ if(!last){
+  const first=Number(suLsGetV2895(K.firstSeen))||0;
+  if(!first||now-first<C.firstAfterDays*day)return null;
+  return {reason:'never',days:Math.floor((now-first)/day)};
+ }
+ const days=Math.floor((now-last.at)/day),progressed=last.fp!==suFingerprintV2895(p);
+ if((p.level|0)>(last.level|0)&&now-last.at>=C.milestoneMinGapDays*day)return {reason:'realm',days};
+ if(days>=C.everyDays&&progressed)return {reason:'overdue',days};
+ return null;
+}
+function suQuietV2895(){
+ if(document.hidden||typeof gameState==='undefined'||gameState!=='exploring'||suOnStartScreenV2895())return false;
+ if(typeof isWorldOverlayOpen==='function'&&isWorldOverlayOpen())return false;
+ if(document.querySelector('.mobile-inventory-overlay, .help-manual-overlay.active, #tutorialUnlock, #saveRemindV2895, #mirrorOfferV2895'))return false;
+ if(player?.breakthrough?.isAnimating)return false;
+ return true;
+}
+function suIosHintV2895(){
+ if(!suIsIOSV2895()||suStandaloneV2895())return'';
+ return '<p class="su-small-v2895">iPhone / iPad：Safari 可能清理久未打开网站的数据。可先导出存档，再用「分享 → 添加到主屏幕」从主屏幕打开游戏，并在那里导入存档（不同打开方式的数据可能不共享，请先确认备份可用）。</p>';
+}
+function showExportReminderV2895(due){
+ document.getElementById('saveRemindV2895')?.remove();
+ const realm=typeof getCultivationName==='function'?getCultivationName():'';
+ const why=due.reason==='realm'?`你已踏入<b>${suEscV2895(realm)}</b>，建议把这一刻导出留存。`
+  :due.reason==='never'?'这位角色还没有导出过存档。'
+  :`距上次导出已 <b>${due.days}</b> 天，期间修为又有长进。`;
+ const el=document.createElement('div');el.id='saveRemindV2895';el.className='su-remind-v2895';el.setAttribute('role','status');
+ el.innerHTML=`<div class="su-remind-title-v2895">📜 玉简备份</div><p>${why}修行记录只存在这台设备的浏览器里，清理浏览器数据或换手机都会丢失。</p>${suIosHintV2895()}
+  <div class="su-row-v2895"><button type="button" class="choice-btn" data-su="export">导出存档</button><button type="button" class="choice-btn" data-su="copy">复制存档文本</button><button type="button" class="choice-btn su-later-v2895" data-su="later">稍后</button></div>`;
+ el.addEventListener('click',e=>{
+  const b=e.target.closest('[data-su]');if(!b)return;
+  if(b.dataset.su==='export')exportSaveV2768();
+  else if(b.dataset.su==='copy')copySaveTextV2870();
+  else{suLsSetV2895(SAVEUI_V2895.keys.snooze,String(Date.now()));el.remove();}
+ });
+ document.body.appendChild(el);SAVEUI_STATE_V2895.remind.shownThisSession=true;
+ return el;
+}
+function suRemindTickV2895(){
+ const R=SAVEUI_STATE_V2895.remind;
+ const card=document.getElementById('saveRemindV2895');if(card&&(document.hidden||gameState!=='exploring'||suOnStartScreenV2895()||isWorldOverlayOpen()||player?.breakthrough?.isAnimating))card.remove();
+ if(R.shownThisSession||Date.now()-R.sessionStart<SAVEUI_V2895.remind.sessionDelayMs||!suQuietV2895())return null;
+ const due=exportReminderDueV2895();if(!due)return null;
+ return showExportReminderV2895(due);
+}
+
+// ---------------------------------------------------------------- save manager section
+function suPersistTextV2895(state){
+ return {granted:'已获浏览器授予，可降低空间紧张时被清理的风险；手动清除网站数据仍会删除存档。',denied:'浏览器暂未授予。存档仍会保存，但空间紧张时可能被清理，请定期导出。',
+  not:'尚未授予。存档仍会保存，但空间紧张时可能被清理，请定期导出。',unsupported:'此浏览器不支持持久保存，请定期导出。',
+  error:'申请时出错，请稍后再试。',unknown:'正在查询…'}[state]||'正在查询…';
+}
+async function saveManagerExtraV2895(el){
+ const owner=player;const card=el?.querySelector?.('.mobile-inventory-card');if(!card)return;
+ card.querySelector('.su-manager-v2895')?.remove();
+ const sec=document.createElement('section');sec.className='su-manager-v2895';
+ const last=suJsonV2895(SAVEUI_V2895.keys.exported);
+ sec.innerHTML=`<hr><h4>🛡️ 存档护身</h4>
+  <p><b>持久保存：</b><span data-su="persist">${suPersistTextV2895(SAVEUI_STATE_V2895.persist.state)}</span></p>
+  <button type="button" class="choice-btn" data-su="ask" hidden>申请持久保存</button>
+  <p class="su-small-v2895">备用库与主档都在当前浏览器中。清除整站数据可能同时删除两份；请另行导出留存。</p>
+  <p><b>备用库：</b><span data-su="mirror">正在查询…</span></p>
+  <div class="su-row-v2895" data-su="mirrorBtns" hidden><button type="button" class="choice-btn" data-su="mrestore">从备用库恢复</button><button type="button" class="choice-btn" data-su="mexport">导出备用库记录</button></div>
+  <p><b>上次导出：</b>${last?suAgoV2895(last.at):'尚未导出过'}。建议每周导出一次，存到网盘、电脑或聊天文件里。</p>${suIosHintV2895()}`;
+ const close=[...card.querySelectorAll(':scope > button')].pop();
+ close?card.insertBefore(sec,close):card.appendChild(sec);
+ const ask=sec.querySelector('[data-su="ask"]');
+ const paint=state=>{sec.querySelector('[data-su="persist"]').textContent=suPersistTextV2895(state);ask.hidden=!(state==='not'||state==='denied'||state==='error');};
+ const state=await suPersistQueryV2895();if(!el.isConnected||player!==owner||!sec.querySelector('[data-su="persist"]'))return;paint(state);
+ ask.onclick=async()=>{ask.disabled=true;const state=await requestPersistV2895();if(el.isConnected&&sec.querySelector('[data-su="persist"]')){paint(state);ask.disabled=false;}};
+ const best=await suMirrorBestV2895();
+ if(!el.isConnected||player!==owner)return;
+ const mt=sec.querySelector('[data-su="mirror"]');
+ if(!best){mt.textContent=SAVEUI_STATE_V2895.mirror.status==='unavailable'?'此浏览器不能使用（例如无痕模式）。':'暂无记录（下次自动保存后生成）。';return;}
+ const m=suMetaV2895(best.rec.raw)||{};
+ mt.textContent=`${m.name} · ${m.realm} · ${suAgoV2895(best.rec.savedAt)}${best.key==='daily'?'（较早的一份）':''}`;
+ sec.querySelector('[data-su="mirrorBtns"]').hidden=false;
+ sec.querySelector('[data-su="mexport"]').onclick=()=>exportRawSaveV2870(best.rec.raw,'xiantu-mirror-'+Date.now()+'.json').catch(e=>alert('导出失败：'+e.message));
+ const restore=chosen=>{
+  const best=chosen,m=suMetaV2895(best.rec.raw)||{};
+  if(typeof saveChangeAllowedV2838==='function'&&!saveChangeAllowedV2838()){alert('请先结束战斗或突破。');return;}
+  try{const data=dryRunLoadV2870(best.rec.raw);
+   const before=JSON.stringify(player),main=suLsGetV2895(SAVE_KEY);
+   if(confirm(`将用备用库中的记录（${m.realm}，${suAgoV2895(best.rec.savedAt)}）替换当前修行记录，替换前的记录会单独保留（仅一份）。是否继续？`)){
+    if(!el.isConnected||player!==owner||!saveChangeAllowedV2838()||JSON.stringify(player)!==before||suLsGetV2895(SAVE_KEY)!==main||!suMirrorCurrentV2895(best.rec,best.epoch))throw Error('角色、存档或页面已变化，请重新打开。');
+    replaceSaveV2870(best.rec.raw,data);
+   }
+  }catch(e){alert('恢复失败：'+e.message);}
+ };
+ sec.querySelector('[data-su="mrestore"]').onclick=()=>restore(best);
+ const daily=await suMirrorBestV2895('daily');
+ if(daily&&daily.rec.raw!==best.rec.raw&&el.isConnected&&player===owner){
+  const older=document.createElement('div');older.className='su-row-v2895';
+  const label=document.createElement('p');const meta=suMetaV2895(daily.rec.raw);label.textContent=`较早备份：${meta.name} · ${meta.realm} · ${suAgoV2895(daily.rec.savedAt)}`;
+  const button=document.createElement('button');button.className='choice-btn';button.textContent='恢复较早备份';button.onclick=()=>restore(daily);
+  const exp=document.createElement('button');exp.className='choice-btn';exp.textContent='导出较早备份';exp.onclick=()=>exportRawSaveV2870(daily.rec.raw,'xiantu-mirror-older-'+Date.now()+'.json').catch(e=>alert('导出失败：'+e.message));
+  sec.appendChild(label);older.append(button,exp);sec.appendChild(older);
+ }
+}
+
+// ---------------------------------------------------------------- styles
+function installSaveUiStylesV2895(){
+ if(document.getElementById('saveUiStyleV2895'))return;
+ // ::after is positioned from inside the 1 px border, so add it back.
+ const U=SAVEUI_V2895.ui,pad=Math.max(0,(U.hitTarget-(U.zoomButton-2))/2);
+ const css=`
+html.xiantu-mobile-dedicated body .minimap-zoom-controls button{width:${U.zoomButton}px!important;height:${U.zoomButton}px!important;min-width:${U.zoomButton}px!important;font-size:${U.zoomFont}px!important;line-height:${U.zoomButton-2}px!important;position:relative!important}
+html.xiantu-mobile-dedicated body .minimap-zoom-controls button::after{content:'';position:absolute;inset:-${pad}px}
+html.xiantu-mobile-dedicated body .minimap-zoom-controls{gap:${U.zoomGap}px!important;padding:3px!important}
+html.xiantu-mobile-dedicated body .minimap-zoom-controls button{flex:0 0 auto!important}
+html.xiantu-mobile-dedicated body #minimapZoomLabel{font-size:${U.zoomLabel}px!important;min-width:${U.zoomLabelWidth}px!important}
+html.xiantu-mobile-dedicated body .world-minimap-head{font-size:${U.minimapHead}px!important}
+html.xiantu-mobile-dedicated body .world-realm{font-size:${U.realmText}px!important}
+html.xiantu-mobile-dedicated body .world-hud-actions>button,html.xiantu-mobile-dedicated body #panelToggleBtn,html.xiantu-mobile-dedicated body .mobile-menu-btn{font-size:${U.hudButtonText}px!important}
+html.xiantu-mobile-dedicated body #worldAreaName{font-size:${U.areaText}px!important}
+html.xiantu-mobile-dedicated body #mobileHudToggle{min-width:${U.hudToggleMin}px!important}
+body .save-indicator{font-size:${U.saveIndicator}px!important}
+@media (max-width:${U.narrowWidth}px){html.xiantu-mobile-dedicated body .world-hud-actions>button{white-space:normal!important;word-break:keep-all!important;line-height:1.15!important;padding:2px 1px!important}}
+.su-remind-v2895{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 132px);width:min(92vw,380px);z-index:99990;
+ background:rgba(14,20,16,.95);border:1px solid rgba(229,199,121,.45);border-radius:14px;padding:12px 14px;color:#efe6cc;font-size:14px;line-height:1.5;box-shadow:0 10px 28px rgba(0,0,0,.45)}
+.su-remind-v2895 p{margin:6px 0}
+.su-remind-title-v2895{font-weight:800;color:#f1d186;font-size:15px}
+.su-row-v2895{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.su-row-v2895>.choice-btn{flex:1 1 0;min-width:96px;min-height:44px;margin:0}
+.su-later-v2895{opacity:.85}
+.su-small-v2895{font-size:12px;color:#c9bfa4}
+.su-rec-v2895{background:rgba(255,255,255,.05);border-radius:10px;padding:8px 10px}
+.su-manager-v2895 p{margin:6px 0}
+.su-manager-v2895 [hidden]{display:none!important}
+@media (prefers-reduced-motion:no-preference){.su-remind-v2895{animation:suInV2895 .25s ease-out}}
+@keyframes suInV2895{from{opacity:0;transform:translate(-50%,-8px)}to{opacity:1;transform:translate(-50%,0)}}`;
+ const st=document.createElement('style');st.id='saveUiStyleV2895';st.textContent=css;document.head.appendChild(st);
+}
+
+// ---------------------------------------------------------------- install
+function installSaveUiV2895(){
+ installSaveUiStylesV2895();
+ window.saveMirrorV2895=saveMirrorV2895;window.saveMirrorClearedV2895=saveMirrorClearedV2895;
+ window.saveMirrorOfferV2895=saveMirrorOfferV2895;window.saveExportedV2895=saveExportedV2895;
+ window.saveManagerExtraV2895=saveManagerExtraV2895;
+ if(suHasLocalSaveV2895()&&!suLsGetV2895(SAVEUI_V2895.keys.firstSeen))suLsSetV2895(SAVEUI_V2895.keys.firstSeen,String(Date.now()));
+ const flushNow=()=>suMirrorScheduleV2895(true);
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){document.getElementById('saveRemindV2895')?.remove();flushNow();}});
+ window.addEventListener('pagehide',flushNow);
+ for(const ev of ['pointerdown','keydown'])document.addEventListener(ev,suPersistGestureV2895,{capture:true,passive:true});
+ SAVEUI_STATE_V2895.remind.timer=setInterval(suRemindTickV2895,SAVEUI_V2895.remind.checkMs);
+ suPersistQueryV2895();
+ // The start-screen check may have run before this file loaded.
+ setTimeout(()=>{try{if(suOnStartScreenV2895()&&!suHasLocalSaveV2895())saveMirrorOfferV2895();}catch(_){}},0);
+}
+installSaveUiV2895();
+
+// END SAVE_UI_V2895
+
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.68';
