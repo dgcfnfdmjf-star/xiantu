@@ -2409,4 +2409,355 @@ function resolvePlayerMotionV2896(fromX,fromY,toX,toY,actorRadius=17){
 }
 // END MAP_MOVEMENT_V2896
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.73';
+// BEGIN ONBOARDING_V2901
+// Serialized, owner-bound notices. Durable unlocks are marked read only by their renderer.
+const NOTICE_V2901=Object.freeze({gapMs:600,tickMs:250,ttl:Object.freeze({toast:8000,banner:20000,modal:0}),maxQueue:12,order:Object.freeze(['toast','banner','modal'])});
+const NQ_V2901={owner:null,queue:[],cur:null,lastEnd:0,timer:null,dropped:0};
+function noticeBusyV2901(){
+ if(document.hidden||gameState==='start'||document.getElementById('gameScreen')?.classList.contains('hidden'))return 'hidden';
+ if(gameState==='combat'||gameState==='combat-ending'||COMBAT_FINISH_V2764.settling)return 'combat';
+ if(player?.breakthrough?.isAnimating||document.getElementById('breakthroughSuccess')||document.getElementById('breakthroughFail'))return 'breakthrough';
+ if(document.getElementById('tutorialBubble')?.classList.contains('tutorial-modal'))return 'tutorial';
+ if(isWorldOverlayOpen()||document.querySelector('.mobile-inventory-overlay')||document.querySelector('.help-manual-overlay.active'))return 'panel';
+ return '';
+}
+function noticeBlockedV2901(kind,busy){return busy==='hidden'||(kind==='modal'?!!busy:kind==='banner'?['combat','breakthrough'].includes(busy):false);}
+function noticeResetV2901(){
+ clearInterval(NQ_V2901.timer);NQ_V2901.timer=null;NQ_V2901.cur?.el?.remove();
+ for(const id of ['tutorialUnlock','tutorialToast','worldRegionNotice'])document.getElementById(id)?.remove();
+ document.querySelectorAll('.achievement-popup').forEach(e=>e.remove());
+ NQ_V2901.queue=[];NQ_V2901.cur=null;NQ_V2901.lastEnd=0;NQ_V2901.owner=player;
+}
+function noticeOwnerV2901(){if(NQ_V2901.owner!==player)noticeResetV2901();}
+function noticeAliveV2901(c){return !!c&&!(c.el&&c.el.isConnected===false)&&(c.kind==='modal'?!!c.el:Date.now()<c.endAt);}
+function noticeEnsureTimerV2901(){if(!document.hidden&&!NQ_V2901.timer&&(NQ_V2901.cur||NQ_V2901.queue.length))NQ_V2901.timer=setInterval(noticeTickV2901,NOTICE_V2901.tickMs);}
+function noticeShowV2901(item){
+ if(item.owner!==player)return null;
+ let el=null;try{el=item.show()||null;}catch(e){console.warn('提示显示失败',item.key);}
+ NQ_V2901.cur=item.kind==='modal'&&!el?null:{...item,el,endAt:Date.now()+(item.dur||2400)};
+ noticeEnsureTimerV2901();return el;
+}
+function noticeTickV2901(){
+ noticeOwnerV2901();const now=Date.now(),busy=noticeBusyV2901(),c=NQ_V2901.cur;
+ if(c){
+  if(noticeAliveV2901(c)){if(c.kind==='modal'&&c.el)c.el.hidden=noticeBlockedV2901(c.kind,busy);return false;}
+  c.el?.remove();NQ_V2901.cur=null;NQ_V2901.lastEnd=now;
+ }
+ NQ_V2901.queue=NQ_V2901.queue.filter(q=>q.owner===player&&(!NOTICE_V2901.ttl[q.kind]||now-q.at<=NOTICE_V2901.ttl[q.kind]));
+ if(!NQ_V2901.queue.length){clearInterval(NQ_V2901.timer);NQ_V2901.timer=null;return false;}
+ if(now-NQ_V2901.lastEnd<NOTICE_V2901.gapMs)return false;
+ for(const kind of NOTICE_V2901.order){const i=NQ_V2901.queue.findIndex(q=>q.kind===kind&&!noticeBlockedV2901(kind,busy));if(i>=0){noticeShowV2901(NQ_V2901.queue.splice(i,1)[0]);return true;}}
+ return false;
+}
+function noticePushV2901(item){
+ if(!item?.key||typeof item.show!=='function'||!player)return null;
+ noticeOwnerV2901();const kind=NOTICE_V2901.order.includes(item.kind)?item.kind:'modal';
+ const it={...item,kind,owner:player,at:Date.now()},c=NQ_V2901.cur;
+ if(noticeAliveV2901(c)&&c.key===it.key&&kind==='modal')return null;
+ const old=NQ_V2901.queue.find(q=>q.key===it.key);if(old){Object.assign(old,it,{at:old.at});return null;}
+ if(kind==='toast'&&c?.kind==='toast'&&noticeAliveV2901(c)){c.el?.remove();NQ_V2901.cur=null;return noticeShowV2901(it);}
+ if(NQ_V2901.queue.length>=NOTICE_V2901.maxQueue){
+  const i=NQ_V2901.queue.findIndex(q=>q.kind!=='modal');
+  if(i>=0)NQ_V2901.queue.splice(i,1);else if(kind!=='modal'){NQ_V2901.dropped++;return null;} // Never discard durable unlocks; their fixed keys deduplicate.
+ }
+ NQ_V2901.queue.push(it);noticeTickV2901();noticeEnsureTimerV2901();return NQ_V2901.cur?.key===it.key?NQ_V2901.cur.el:null;
+}
+function installNoticeQueueV2901(){
+ const wrap=(name,fn)=>{const base=window[name];if(typeof base==='function')window[name]=fn(base);};
+ wrap('showTutorialToast',base=>function(text,duration=3600){return noticePushV2901({key:'toast:'+text,kind:'toast',dur:(Number(duration)||3600)+300,show:()=>{base(text,duration);return document.getElementById('tutorialToast');}});});
+ wrap('showAchievementPopup',base=>function(ach){return noticePushV2901({key:'ach:'+(ach?.id||ach?.name||''),kind:'banner',dur:2400,show:()=>{base(ach);return document.querySelector('.achievement-popup');}});});
+ wrap('showRegionEntryNotification',base=>function(region,message=''){return noticePushV2901({key:'region',kind:'banner',dur:PERF_CONFIG.lowEnd?1400:2000,show:()=>{base(region,message);return document.getElementById('worldRegionNotice');}});});
+ wrap('showExportReminderV2895',base=>function(due){return noticePushV2901({key:'save-remind',kind:'modal',show:()=>base(due)});});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){if(NQ_V2901.cur?.el)NQ_V2901.cur.el.hidden=true;clearInterval(NQ_V2901.timer);NQ_V2901.timer=null;}else{noticeTickV2901();noticeEnsureTimerV2901();}});
+}
+const FIRSTPATH_V2901=Object.freeze({doneKey:'path_v2901_done',hiddenKey:'path_v2901_hidden',maxLevel:1,tickMs:500});
+// ================================================================ first-hour path
+const PATH_TUTORIAL_V2901={welcome:1,movement:1,interaction:1,combat:2,combat_attack:2,equipment:3,tasks:4,cultivation:4};
+function pathTutDoneV2901(id){return !!(player?.tutorial?.skipped||player?.tutorial?.completedSteps?.includes(id));}
+function pathJourneyV2901(n){
+ const s=player?.firstJourneyV28687;
+ if(s&&typeof s==='object')return Math.max(0,Math.min(5,Math.floor(Number(s.step)||0)))>=n?'done':s.paused?'paused':'todo';
+ return (player.level|0)>=2?'done':'todo';   // 筑基以上的老角色本就不再显示初入仙途
+}
+function pathGoTutorialV2901(){if(typeof checkAndStartTutorial==='function')checkAndStartTutorial(true);}
+function pathGoJourneyV2901(){if(typeof beginFirstJourneyV28687==='function')beginFirstJourneyV28687();}
+function pathGoBreakV2901(){
+ if((Number(player.exp)||0)>=getCurrentExpNeed()&&!(player.breakthrough?.cooldownDays>0)&&typeof checkLevelUp==='function'){checkLevelUp();return;}
+ if(typeof showTutorialToast==='function')showTutorialToast('修为未满：去山野历练、接宗门差事，或到洞府闭关。经验条满后即可突破。',4200);
+}
+const PATH_STEPS_V2901=Object.freeze([
+ {id:'walk', title:'行走与交互',hint:'拖动摇杆或轻点地面移动，靠近地点后按【交互】。',state:()=>pathTutDoneV2901('interaction')?'done':'todo',go:pathGoTutorialV2901},
+ {id:'train',title:'演武入门', hint:'击败演武傀儡，取得布衣、灵石，并开放自由探索。',state:()=>player?.tutorial?.skipped||player?.tutorial?.readPopups?.includes('training_reward')?'done':'todo',go:()=>startTutorialTraining()},
+ {id:'robe', title:'穿戴布衣', hint:'装备栏 → 背包装备 → 布衣（已有其他法袍也可）。',state:()=>player.tutorial?.skipped||player.equipment?.robe?'done':'todo',go:()=>showEquipmentPanel()},
+ {id:'duty', title:'差事与修炼',hint:'了解宗门差事、修为瓶颈与突破。',state:()=>pathTutDoneV2901('cultivation')?'done':'todo',go:pathGoTutorialV2901},
+ {id:'wolf', title:'山脚试手', hint:'击败受伤野狼，得到木剑。',state:()=>pathJourneyV2901(1),go:pathGoJourneyV2901},
+ {id:'sword',title:'装备木剑', hint:'穿上木剑，攻击 +3、暴击 +1。',state:()=>pathJourneyV2901(2),go:pathGoJourneyV2901},
+ {id:'skill',title:'配置御剑术',hint:'把御剑术放进兵刃系技能栏。',state:()=>pathJourneyV2901(3),go:pathGoJourneyV2901},
+ {id:'pass', title:'守住山道', hint:'用御剑术击败山道壮狼，得 120 灵石。',state:()=>pathJourneyV2901(4),go:pathGoJourneyV2901},
+ {id:'letter',title:'雨夜来信',hint:'收好那封发往凌霄宗的密信。',state:()=>pathJourneyV2901(5),go:pathGoJourneyV2901},
+ {id:'task', title:'第一份宗门差事',hint:'练气后沿主线拜入宗门，再接取并交付一份宗门差事。',state:()=>player.sectTasks?.some(t=>t.completed)?'done':(!player.sect||player.sect==='散修')&&player.level<1?'paused':'todo',go:()=>{if(player.sect&&player.sect!=='散修')showSectTasks();else showTaskPanel();}},
+ {id:'break',title:'首次突破', hint:'修为满后突破到练气；历练、差事、闭关都能攒修为。',state:()=>(player.level|0)>=1?'done':'todo',go:pathGoBreakV2901}
+]);
+const PATH_RT_V2901={owner:null,sawOpen:false,lastText:'',timer:null};
+function pathStatesV2901(){return PATH_STEPS_V2901.map(s=>{let st='todo';try{st=s.state();}catch(_){}return {id:s.id,title:s.title,hint:s.hint,state:st};});}
+function pathFlagsV2901(){return player?.tutorial?.readPopups||[];}
+function pathEligibleV2901(){
+ if(typeof player==='undefined'||!player||player.testAccount999||Number(player.level)>FIRSTPATH_V2901.maxLevel)return false;
+ const f=pathFlagsV2901();if(f.includes(FIRSTPATH_V2901.doneKey))return false;
+ return (player.level|0)<=FIRSTPATH_V2901.maxLevel;
+}
+function pathNextV2901(list=pathStatesV2901()){return list.find(s=>s.state==='todo')||list.find(s=>s.state==='paused')||null;}
+function pathProgressV2901(list=pathStatesV2901()){return {done:list.filter(s=>s.state==='done').length,total:list.length};}
+// 走完：记一个键（readPopups，已有字段），本局里看着走完的才贺一句。
+function pathCheckDoneV2901(){
+ if(!pathEligibleV2901())return false;
+ const list=pathStatesV2901();
+ if(list.some(s=>s.state!=='done'))return false;   // 暂停不是完成；仅余暂停项时收起地图提示，仍可手动继续
+ ensureTutorialState().readPopups.push(FIRSTPATH_V2901.doneKey);try{autoSave?.();}catch(_){}
+ if(PATH_RT_V2901.sawOpen&&PATH_RT_V2901.owner===player&&!list.some(s=>s.state==='paused')&&typeof showTutorialToast==='function')showTutorialToast('🧭 起步之路已走完。之后的路，看【📖 修行指引 → 起步】里的「此刻宜行」。',5200);
+ document.getElementById('firstPathV2901')?.remove();return true;
+}
+function pathTrackerVisibleV2901(){
+ if(!pathEligibleV2901()||pathFlagsV2901().includes(FIRSTPATH_V2901.hiddenKey)||!pathStatesV2901().some(s=>s.state==='todo'))return false;
+ if(typeof gameState==='undefined'||gameState!=='exploring'||noticeBusyV2901())return false;
+ const s=document.getElementById('startScreen'),g=document.getElementById('gameScreen');if(s&&!s.classList.contains('hidden')&&(!g||g.classList.contains('hidden')))return false;
+ if(document.getElementById('tutorialBubble'))return false;   // 引路气泡自己带「起步之路 n/11」
+ const sp=document.getElementById('storyPanel');if(sp&&!sp.classList.contains('hidden'))return false;
+ try{if(typeof isWorldOverlayOpen==='function'&&isWorldOverlayOpen())return false;}catch(_){}
+ return true;
+}
+function pathTickV2901(){
+ if(typeof player==='undefined'||!player)return;
+ if(document.hidden||gameState==='start'||!pathEligibleV2901()||pathFlagsV2901().includes(FIRSTPATH_V2901.hiddenKey)){clearInterval(PATH_RT_V2901.timer);PATH_RT_V2901.timer=null;document.getElementById('firstPathV2901')?.remove();return;}
+ if(PATH_RT_V2901.owner!==player){PATH_RT_V2901.owner=player;PATH_RT_V2901.sawOpen=false;PATH_RT_V2901.lastText='';}
+ if(pathEligibleV2901()&&pathStatesV2901().some(s=>s.state!=='done'))PATH_RT_V2901.sawOpen=true;
+ if(pathCheckDoneV2901()){clearInterval(PATH_RT_V2901.timer);PATH_RT_V2901.timer=null;return;}
+ let el=document.getElementById('firstPathV2901');
+ if(!pathTrackerVisibleV2901()){if(el)el.hidden=true;return;}
+ const list=pathStatesV2901(),next=pathNextV2901(list),p=pathProgressV2901(list);if(!next){if(el)el.hidden=true;return;}
+ if(!el){el=document.createElement('button');el.type='button';el.id='firstPathV2901';el.className='first-path-v2901';el.addEventListener('click',()=>showFirstPathV2901());document.body.appendChild(el);}
+ const text=`🧭 起步 ${p.done}/${p.total} · ${next.state==='paused'?'可继续：':''}${next.title}`;
+ if(PATH_RT_V2901.lastText!==text||el.textContent!==text){el.textContent=text;el.setAttribute('aria-label',`起步之路 ${p.done}/${p.total}，下一步：${next.title}`);PATH_RT_V2901.lastText=text;}
+ const hud=document.querySelector('.world-hud');
+ try{const r=hud?.getBoundingClientRect?.();if(r&&r.bottom>0){el.style.top=Math.round(r.bottom+6)+'px';el.style.left=Math.round(Math.max(8,r.left))+'px';el.style.maxWidth=Math.round(Math.max(180,r.width))+'px';}}catch(_){}
+ el.hidden=false;
+}
+function pathEscV2901(v){return typeof escapeGameText==='function'?escapeGameText(String(v)):String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function showFirstPathV2901(){
+ if(typeof player==='undefined'||!player||!forgeAllowedV2825())return null;
+ closeHelpManual();stopNavigationV2830();resetWorldMovementV28686();
+ const owner=player;
+ document.getElementById('firstPathPanelV2901')?.remove();
+ const flags=pathFlagsV2901(),hi=flags.indexOf(FIRSTPATH_V2901.hiddenKey);if(hi>=0){flags.splice(hi,1);try{autoSave?.();}catch(_){}}
+ const list=pathStatesV2901(),next=pathNextV2901(list),p=pathProgressV2901(list);
+ const rows=list.map((s,i)=>{const cur=next&&s.id===next.id;const mark=s.state==='done'?'✓':s.state==='paused'?'⏸':cur?'▶':'·';
+  return `<li class="fp-step-v2901 ${s.state}${cur?' cur':''}"><span class="fp-mark-v2901">${mark}</span><span><b>${i+1}. ${pathEscV2901(s.title)}</b>${s.state==='paused'?'<em>（已收起，可继续）</em>':''}<br><small>${pathEscV2901(s.hint)}</small></span>${cur?`<button type="button" class="choice-btn" data-fp="go" data-id="${s.id}">前往</button>`:''}</li>`;}).join('');
+ const el=document.createElement('div');el.id='firstPathPanelV2901';el.className='mobile-inventory-overlay first-path-panel-v2901';el.style.zIndex='100003';el.setAttribute('role','dialog');el.setAttribute('aria-label','起步之路');
+ el.innerHTML=`<div class="mobile-inventory-card"><h3>🧭 起步之路 · ${p.done}/${p.total}</h3><p class="fp-lead-v2901">新入仙途的起步指引：引路、初入仙途、宗门差事与首次突破，一条路走完。每一步的奖励与原来相同。</p><ol class="fp-list-v2901">${rows}</ol>
+  <div class="su-row-v2895" style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="choice-btn" data-fp="hide">收起起步之路</button><button type="button" class="choice-btn" data-fp="close">关闭</button></div></div>`;
+ el.addEventListener('click',e=>{
+  if(player!==owner||!forgeAllowedV2825()){el.remove();return;}
+  const b=e.target?.closest?.('[data-fp]');if(!b){if(e.target===el)el.remove();return;}
+  const k=b.dataset.fp;
+  if(k==='close')el.remove();
+  else if(k==='hide'){if(!pathFlagsV2901().includes(FIRSTPATH_V2901.hiddenKey))ensureTutorialState().readPopups.push(FIRSTPATH_V2901.hiddenKey);try{autoSave?.();}catch(_){}el.remove();document.getElementById('firstPathV2901')?.remove();
+   if(typeof showTutorialToast==='function')showTutorialToast('起步之路已收起，可从【📖 修行指引】再打开。',3200);}
+  else if(k==='go'){const s=PATH_STEPS_V2901.find(x=>x.id===b.dataset.id);el.remove();closeWorldOverlay();try{s?.go();}catch(err){console.warn('起步之路跳转失败',err);}}
+ });
+ document.body.appendChild(el);el.querySelector('[data-fp="close"]')?.focus();pathEnsureTimerV2901();
+ try{[...el.querySelectorAll('.fp-step-v2901')].find(x=>x.classList.contains('cur'))?.scrollIntoView?.({block:'center'});}catch(_){}
+ return el;
+}
+// 统一编号：引路气泡、初入仙途标题都改成「起步之路 n/11」
+function pathRelabelTutorialV2901(id){
+ const b=document.getElementById('tutorialBubble'),n=PATH_TUTORIAL_V2901[id];if(!b||!n)return;
+ const total=PATH_STEPS_V2901.length;
+ const c=b.querySelector('.tutorial-counter');if(c)c.textContent=`起步之路 ${n} / ${total}`;
+ const m=b.querySelector('.tutorial-mini-progress');if(m)m.textContent=`${n}/${total}`;
+}
+function pathRelabelJourneyV2901(){
+ const box=document.getElementById('storyText'),s=typeof firstJourneyV28687==='function'?firstJourneyV28687():null;if(!box||!s)return;
+ const h=box.querySelector('h3');if(!h)return;
+ const total=PATH_STEPS_V2901.length,n=Math.min(4+s.step+1,9);
+ const txt=String(h.textContent||'');
+ if(/^初入仙途 · \d\/5 · /.test(txt))h.textContent=txt.replace(/^初入仙途 · \d\/5 · /,`起步之路 ${n}/${total} · 初入仙途 · `);
+}
+function pathRelabelJourneyButtonV2901(){
+ const b=document.getElementById('firstJourneyV28687');if(!b||!pathEligibleV2901())return;
+ const s=typeof firstJourneyV28687==='function'?firstJourneyV28687():null,total=PATH_STEPS_V2901.length;
+ const i=s?Math.min(4+s.step,8):4,label=`🧭 起步 ${i+1}/${total} · ${PATH_STEPS_V2901[i].title}`;
+ if(b.textContent!==label)b.textContent=label;
+}
+// V2890「此刻宜行」：起步之路未走完时，第一条就是它的下一步；指引底部加一个「起步之路」入口。
+function installPathGuideV2901(){
+ const ns=window.guideNextStepsV2890;
+ if(typeof ns==='function'&&!ns.__pathV2901){
+  const w=function(f){
+   let out=[];try{out=ns.apply(this,arguments)||[];}catch(_){out=[];}
+   try{if(pathEligibleV2901()&&!pathFlagsV2901().includes(FIRSTPATH_V2901.hiddenKey)){const list=pathStatesV2901(),next=pathNextV2901(list),p=pathProgressV2901(list);
+    if(next&&next.state!=='paused'){out=out.filter(t=>!/初入仙途/.test(t));out.unshift(`起步之路 ${p.done}/${p.total}：下一步【${pathEscV2901(next.title)}】——${pathEscV2901(next.hint)}`);out=out.slice(0,3);}}}catch(_){}
+   return out;
+  };w.__pathV2901=true;window.guideNextStepsV2890=w;
+ }
+ const ga=window.guideActionsV2890;
+ if(typeof ga==='function'&&!ga.__pathV2901){
+  const w=function(){
+   let html='';try{html=ga.apply(this,arguments)||'';}catch(_){html='';}
+   if(player&&!player.testAccount999)html='<button type="button" data-fp-open="1">🧭 起步之路</button>'+html;   // 原「继续初入仙途」保留
+   return html;
+  };w.__pathV2901=true;window.guideActionsV2890=w;
+ }
+ if(!window.__pathGuideClickV2901){window.__pathGuideClickV2901=true;
+  document.addEventListener('click',e=>{const b=e.target?.closest?.('[data-fp-open]');if(!b)return;try{closeHelpManual?.();}catch(_){}showFirstPathV2901();},true);}
+}
+function pathEnsureTimerV2901(){if(!document.hidden&&gameState!=='start'&&pathEligibleV2901()&&!pathFlagsV2901().includes(FIRSTPATH_V2901.hiddenKey)&&!PATH_RT_V2901.timer)PATH_RT_V2901.timer=setInterval(pathTickV2901,FIRSTPATH_V2901.tickMs);}
+function installPathV2901(){
+ const tt=window.triggerTutorial;
+ if(typeof tt==='function'&&!tt.__pathV2901){const w=function(id){const r=tt.apply(this,arguments);if(r)try{pathRelabelTutorialV2901(id);}catch(_){}return r;};w.__pathV2901=true;window.triggerTutorial=w;}
+ const sj=window.showFirstJourneyV28687;
+ if(typeof sj==='function'&&!sj.__pathV2901){const w=function(){const r=sj.apply(this,arguments);try{pathRelabelJourneyV2901();}catch(_){}return r;};w.__pathV2901=true;window.showFirstJourneyV28687=w;}
+ // 角色面板里初入仙途的按钮保留（同一入口），只换成起步之路的统一编号
+ const sync=window.syncFirstJourneyV28687;
+ if(typeof sync==='function'&&!sync.__pathV2901){const w=function(){const r=sync.apply(this,arguments);try{pathRelabelJourneyButtonV2901();pathEnsureTimerV2901();}catch(_){}return r;};w.__pathV2901=true;window.syncFirstJourneyV28687=w;}
+ installPathGuideV2901();
+ pathEnsureTimerV2901();
+ document.addEventListener('visibilitychange',()=>{pathTickV2901();pathEnsureTimerV2901();});
+}
+function installFirstPathStylesV2901(){
+ if(document.getElementById('firstPathStyleV2901'))return;
+ const st=document.createElement('style');st.id='firstPathStyleV2901';
+ st.textContent=`.first-path-v2901{position:fixed;top:132px;left:18px;z-index:2400;max-width:min(260px,calc(100vw - 32px));min-height:34px;padding:6px 12px;border-radius:999px;border:1px solid rgba(242,210,122,.55);background:rgba(14,16,14,.88);color:#f2d27a;font-size:14px;font-weight:700;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+.first-path-v2901[hidden]{display:none}
+.first-path-panel-v2901 .fp-list-v2901{list-style:none;margin:8px 0;padding:0;max-height:58vh;overflow-y:auto}
+.first-path-panel-v2901 .fp-step-v2901{display:flex;gap:8px;align-items:center;padding:7px 8px;border-radius:8px;margin:3px 0;background:rgba(255,255,255,.03);line-height:1.45}
+.first-path-panel-v2901 .fp-step-v2901>span:nth-child(2){flex:1;min-width:0}
+.first-path-panel-v2901 .fp-step-v2901 small{color:#bfb69e;font-size:13px}
+.first-path-panel-v2901 .fp-step-v2901.done{opacity:.6}
+.first-path-panel-v2901 .fp-step-v2901.cur{background:rgba(242,210,122,.12);border:1px solid rgba(242,210,122,.45)}
+.first-path-panel-v2901 .fp-step-v2901 .choice-btn{flex:none!important;width:auto!important;min-width:64px;max-width:96px;margin:0!important;padding:6px 12px!important}
+.first-path-panel-v2901 .fp-mark-v2901{flex:none;width:1.4em;text-align:center;color:#9ff5c8}
+.first-path-panel-v2901 .fp-lead-v2901{color:#d8ccb0;font-size:14px}`;
+ (document.head||document.documentElement).appendChild(st);
+}
+function installFirstPathV2901(){
+ try{installFirstPathStylesV2901();}catch(e){console.warn('起步之路样式失败',e);}
+ try{installNoticeQueueV2901();}catch(e){console.warn('提示队列安装失败',e);}
+ try{installPathV2901();}catch(e){console.warn('起步之路安装失败',e);}
+ Object.assign(window,{noticePushV2901,noticeTickV2901,noticeBusyV2901,noticeResetV2901,showFirstPathV2901,pathTickV2901});
+}
+installFirstPathV2901();
+
+
+function resetOnboardingV2901(){noticeResetV2901();clearInterval(PATH_RT_V2901.timer);PATH_RT_V2901.timer=null;PATH_RT_V2901.owner=null;PATH_RT_V2901.sawOpen=false;for(const id of ['firstPathV2901','firstPathPanelV2901','pacingStatsV2901'])document.getElementById(id)?.remove();if(typeof statsResetRuntimeV2901==='function')statsResetRuntimeV2901();}
+// Optional device-only aggregates. Never change reward formulas or persist into player saves.
+const STATS_V2901=Object.freeze({key:'xiantu_stats_v2901',enabledKey:'xiantu_stats_enabled_v2901',idleMs:60000,saveMs:15000});
+const STAT_LABELS_V2901=Object.freeze({combat:'战斗',retreat:'闭关',boss:'镇岳台',abyss:'归墟',mini:'迷阵',elite:'凶煞',explore:'探索',war:'宗门战',tournament:'大比',forge:'锻造',market:'购买',dismantle:'分解',sect:'宗门差事',trip:'游历',other:'其他'});
+const STAT_RT_V2901={enabled:false,data:null,owner:null,last:null,lastTick:0,lastInput:0,lastSave:0,dirty:false,ctx:'other',depth:0,fight:null,timer:null};
+function statsNumberV2901(v){return typeof v==='number'&&Number.isFinite(v)?Math.max(0,Math.min(1e15,v)):0;}
+function statsEmptyBucketV2901(){return {activeSec:0,gameDays:0,fights:0,wins:0,losses:0,exits:0,breakthroughs:0,failures:0,fightSec:{cinema:0,report:0},fightN:{cinema:0,report:0},exp:{},goldIn:{},goldOut:{}};}
+function statsLoadV2901(){
+ if(STAT_RT_V2901.data)return STAT_RT_V2901.data;
+ let raw;try{const text=localStorage.getItem(STATS_V2901.key);if(text&&text.length<100000)raw=JSON.parse(text);}catch(_){}
+ const data={v:1,realms:{}};
+ if(raw?.v===1&&raw.realms&&typeof raw.realms==='object'&&!Array.isArray(raw.realms))for(let lv=0;lv<=16;lv++){
+  const src=raw.realms[lv];if(!src||typeof src!=='object'||Array.isArray(src))continue;
+  const b=statsEmptyBucketV2901();for(const k of Object.keys(b)){
+   if(typeof b[k]==='number')b[k]=statsNumberV2901(src[k]);
+   else for(const sub of (k==='fightSec'||k==='fightN'?['cinema','report']:Object.keys(STAT_LABELS_V2901)))if(statsNumberV2901(src[k]?.[sub]))b[k][sub]=statsNumberV2901(src[k][sub]);
+  }data.realms[lv]=b;
+ }
+ return STAT_RT_V2901.data=data;
+}
+function statsBucketV2901(lv){const d=statsLoadV2901(),k=Math.max(0,Math.min(16,Math.floor(Number(lv)||0)));return d.realms[k]||(d.realms[k]=statsEmptyBucketV2901());}
+function statsCanRecordV2901(){return STAT_RT_V2901.enabled&&player&&!player.testAccount999&&gameState!=='start'&&!document.getElementById('gameScreen')?.classList.contains('hidden');}
+function statsSnapshotV2901(){return {exp:statsNumberV2901(player.exp),gold:statsNumberV2901(player.gold),days:statsNumberV2901(player.worldTime?.totalDays),level:Math.max(0,Math.min(16,Number(player.level)||0)),phase:Number(player.phase)||0};}
+function statsResetRuntimeV2901(){STAT_RT_V2901.owner=null;STAT_RT_V2901.last=null;STAT_RT_V2901.lastTick=Date.now();STAT_RT_V2901.lastInput=0;STAT_RT_V2901.fight=null;STAT_RT_V2901.ctx='other';STAT_RT_V2901.depth=0;}
+function statsSampleV2901(){
+ const R=STAT_RT_V2901,now=Date.now();if(!statsCanRecordV2901()){R.last=null;R.owner=null;R.fight=null;R.lastTick=now;return;}
+ const cur=statsSnapshotV2901();
+ if(R.owner!==player){R.owner=player;R.last=cur;R.lastTick=now;R.fight=null;return;}
+ const last=R.last;R.last=cur;
+ const dt=Math.min(2000,Math.max(0,now-R.lastTick));R.lastTick=now;
+ const active=!document.hidden&&document.visibilityState!=='hidden'&&R.lastInput>0&&now-R.lastInput<STATS_V2901.idleMs;
+ if(active&&dt){statsBucketV2901(cur.level).activeSec+=dt/1000;if(R.fight?.owner===player)R.fight.sec+=dt/1000;R.dirty=true;}
+ if(!last)return;
+ const b=statsBucketV2901(last.level),days=cur.days-last.days,exp=cur.exp-last.exp,gold=cur.gold-last.gold;
+ const ctx=R.ctx!=='other'?R.ctx:(gameState==='combat'||gameState==='combat-ending'?'combat':'other');
+ const add=(obj,key,v)=>obj[key]=Math.min(1e15,(obj[key]||0)+v);
+ if(days>0)b.gameDays+=days;
+ if(exp>0)add(b.exp,ctx==='other'&&days>=30?'retreat':ctx,exp);
+ if(cur.level>last.level||(cur.level===last.level&&cur.phase>last.phase))b.breakthroughs++;
+ else if(exp<0&&player.breakthrough?.cooldownDays>0)b.failures++;
+ if(gold>0)add(b.goldIn,ctx,gold);else if(gold<0)add(b.goldOut,ctx,-gold);
+ if(days||exp||gold)R.dirty=true;
+ if(R.dirty&&now-R.lastSave>=STATS_V2901.saveMs)statsSaveV2901();
+}
+function statsSaveV2901(){
+ const R=STAT_RT_V2901;if(!R.enabled||!R.dirty)return true;
+ try{localStorage.setItem(STATS_V2901.key,JSON.stringify(statsLoadV2901()));R.dirty=false;R.lastSave=Date.now();return true;}catch(_){return false;}
+}
+function statsSetEnabledV2901(enabled){
+ if(STAT_RT_V2901.enabled){statsSampleV2901();statsSaveV2901();}
+ STAT_RT_V2901.enabled=!!enabled;statsResetRuntimeV2901();
+ try{localStorage.setItem(STATS_V2901.enabledKey,enabled?'1':'0');}catch(_){}
+ clearInterval(STAT_RT_V2901.timer);STAT_RT_V2901.timer=null;
+ if(enabled&&!document.hidden){STAT_RT_V2901.lastInput=Date.now();statsSampleV2901();STAT_RT_V2901.timer=setInterval(statsSampleV2901,1000);}
+}
+function statsFightStartV2901(){
+ if(!statsCanRecordV2901())return;statsSampleV2901();let mode='cinema';try{if(localStorage.getItem('xiantu_battle_presentation_v2756')==='report')mode='report';}catch(_){}
+ STAT_RT_V2901.fight={owner:player,enemy:currentEnemy,level:player.level,mode,sec:0};
+}
+function statsFightEndV2901(){
+ statsSampleV2901();const R=STAT_RT_V2901,f=R.fight;R.fight=null;
+ if(!statsCanRecordV2901()||!f||f.owner!==player||f.enemy!==currentEnemy)return;
+ const b=statsBucketV2901(f.level),kind=COMBAT_FINISH_V2764.pending?.kind;b.fights++;b.fightN[f.mode]++;b.fightSec[f.mode]+=f.sec;
+ if(kind==='victory')b.wins++;else if(kind==='defeat')b.losses++;else b.exits++;R.dirty=true;
+}
+function statsRowsV2901(){return Object.entries(statsLoadV2901().realms).sort((a,b)=>a[0]-b[0]).map(([lv,b])=>({level:+lv,realm:CULTIVATION_REALMS[lv]?.name||String(lv),...b}));}
+function statsCsvV2901(){
+ const q=v=>'"'+String(v).replace(/"/g,'""')+'"',lines=['level,realm,metric,source,value'];
+ for(const r of statsRowsV2901())for(const [k,v] of Object.entries(r)){if(k==='level'||k==='realm')continue;
+  if(typeof v==='number')lines.push([r.level,q(r.realm),k,'',v.toFixed(3)].join(','));
+  else for(const [s,n] of Object.entries(v))lines.push([r.level,q(r.realm),k,q(s),n.toFixed(3)].join(','));
+ }return '\ufeff'+lines.join('\r\n')+'\r\n';
+}
+function statsDownloadV2901(){let url,a;try{url=URL.createObjectURL(new Blob([statsCsvV2901()],{type:'text/csv;charset=utf-8'}));a=document.createElement('a');a.href=url;a.download='xiantu-local-stats.csv';document.body.appendChild(a);a.click();return true;}catch(_){showFloatingText('导出失败，请稍后重试','#ffb38a');return false;}finally{a?.remove();if(url)setTimeout(()=>URL.revokeObjectURL(url),1000);}}
+function statsClearV2901(){
+ if(!confirm('清空本机统计？游戏存档不受影响。'))return false;
+ try{localStorage.removeItem(STATS_V2901.key);}catch(_){showFloatingText('无法清空本机统计，请稍后重试','#ffb38a');return false;}
+ STAT_RT_V2901.data={v:1,realms:{}};STAT_RT_V2901.dirty=false;statsResetRuntimeV2901();return true;
+}
+function showPacingStatsV2901(){
+ if(!forgeAllowedV2825())return;statsSampleV2901();statsSaveV2901();stopNavigationV2830();resetWorldMovementV28686();
+ document.getElementById('pacingStatsV2901')?.remove();const owner=player,esc=escapeGameText;
+ const el=document.createElement('div');el.id='pacingStatsV2901';el.className='mobile-inventory-overlay';el.style.zIndex='100003';el.setAttribute('role','dialog');el.setAttribute('aria-label','本机游玩统计');
+ const sum=o=>Object.values(o).reduce((s,v)=>s+v,0),sources=o=>Object.entries(o).map(([k,v])=>`${STAT_LABELS_V2901[k]} ${Math.round(v)}`).join(' · ')||'—';
+ el.innerHTML=`<div class="mobile-inventory-card" style="padding:16px;max-height:86vh;overflow:auto"><h3>📊 本机游玩统计</h3><p>默认关闭。开启后仅在本机累计，不上传、不写入角色存档。数据合计此设备上启用期间的角色；读档切换不计作收益。</p><p>在线及战斗时长仅计算页面可见且近期操作的时间。收支为实际余额变化，未识别来源归入“其他”；同次操作的收入与支出可能抵消。</p><button type="button" class="choice-btn" data-st="toggle">${STAT_RT_V2901.enabled?'暂停记录':'开启记录'}</button>
+ ${statsRowsV2901().map(r=>`<section style="border-top:1px solid #665c43;padding:8px 0"><b>${esc(r.realm)}</b><p>活跃 ${(r.activeSec/60).toFixed(1)} 分钟 · 仙历 ${Math.round(r.gameDays)} 日 · 战斗 ${r.fights} 场（胜 ${r.wins} / 负 ${r.losses} / 其他结束 ${r.exits}）<br>演出平均 ${r.fightN.cinema?(r.fightSec.cinema/r.fightN.cinema).toFixed(1):'—'} 秒 · 战报平均 ${r.fightN.report?(r.fightSec.report/r.fightN.report).toFixed(1):'—'} 秒<br>破境/进阶 ${r.breakthroughs} · 失败 ${r.failures}</p><p>修为 ${Math.round(sum(r.exp))}：${esc(sources(r.exp))}<br>灵石收入 ${Math.round(sum(r.goldIn))}：${esc(sources(r.goldIn))}<br>灵石支出 ${Math.round(sum(r.goldOut))}：${esc(sources(r.goldOut))}</p></section>`).join('')||'<p>暂无统计记录。</p>'}
+ <div style="display:flex;flex-wrap:wrap;gap:8px"><button class="choice-btn" data-st="csv">导出 CSV</button><button class="choice-btn" data-st="clear">清空统计</button><button class="choice-btn" data-st="close">关闭</button></div></div>`;
+ el.addEventListener('click',e=>{if(player!==owner){el.remove();return;}const k=e.target.closest('[data-st]')?.dataset.st;
+  if(k==='close'||e.target===el)el.remove();else if(k==='toggle'){statsSetEnabledV2901(!STAT_RT_V2901.enabled);showPacingStatsV2901();}else if(k==='csv')statsDownloadV2901();else if(k==='clear'&&statsClearV2901())showPacingStatsV2901();});
+ document.body.appendChild(el);el.querySelector('[data-st="close"]')?.focus();return el;
+}
+function saveManagerStatsV2901(el){
+ const card=el?.querySelector('.mobile-inventory-card');if(!card||card.querySelector('.stats-entry-v2901'))return;
+ const d=document.createElement('details');d.className='stats-entry-v2901';d.innerHTML='<summary>高级</summary><button type="button" class="choice-btn">📊 本机游玩统计（可选）</button>';
+ d.querySelector('button').onclick=()=>{el.remove();showPacingStatsV2901();};card.appendChild(d);
+}
+function installStatsV2901(){
+ // Scope source labels to actual synchronous mutations; preview formulas never start a source window.
+ const groups={combat:['checkBattleEnd'],boss:['bossCommitV2887'],mini:['finishMiniWeaveV286840','finishMiniRealmV2778'],war:['settleWarV2775'],tournament:['recordTournamentRound'],retreat:['executeRetreatV2782'],forge:['mutateForgeV2825'],market:['buyMarketGearV2800','buyGeneralV2801','buyFromMapNpc','buyPetGrowthBatchV286845','buyLongevityPill','buyBreakthroughPillV28683'],dismantle:['bulkDismantleEquipment','dismantleOneEquipmentEncoded'],sect:['completeSectTask'],abyss:['claimAbyssRewardV2882'],elite:['claimEliteV2883'],explore:['claimExplorationV2828'],trip:['claimTripV286821']};
+ for(const [kind,names] of Object.entries(groups))for(const name of names){const base=window[name];if(typeof base!=='function')continue;
+  window[name]=function(...args){if(!statsCanRecordV2901())return base.apply(this,args);const R=STAT_RT_V2901,old=R.ctx,outer=R.depth===0;if(outer)statsSampleV2901();R.depth++;R.ctx=kind;
+   try{return base.apply(this,args);}finally{R.depth--;if(outer)statsSampleV2901();R.ctx=old;}};Object.assign(window[name],base); // Preserve existing wrapper installation guards.
+ }
+ window.addEventListener('xiantu:combat-finishing',statsFightEndV2901);
+ for(const ev of ['pointerdown','keydown','touchstart'])document.addEventListener(ev,()=>{if(STAT_RT_V2901.enabled)STAT_RT_V2901.lastInput=Date.now();},{capture:true,passive:true});
+ document.addEventListener('visibilitychange',()=>{statsSampleV2901();statsSaveV2901();STAT_RT_V2901.lastTick=Date.now();clearInterval(STAT_RT_V2901.timer);STAT_RT_V2901.timer=null;if(!document.hidden&&STAT_RT_V2901.enabled)STAT_RT_V2901.timer=setInterval(statsSampleV2901,1000);});
+ window.addEventListener('pagehide',()=>{statsSampleV2901();statsSaveV2901();});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.getElementById('pacingStatsV2901')?.remove();document.getElementById('firstPathPanelV2901')?.remove();}});
+ let enabled=false;try{enabled=localStorage.getItem(STATS_V2901.enabledKey)==='1';}catch(_){}if(enabled)statsSetEnabledV2901(true);
+}
+installStatsV2901();
+// END ONBOARDING_V2901
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.74';

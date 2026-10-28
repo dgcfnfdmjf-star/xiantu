@@ -7,7 +7,7 @@ for(const n of JSON.parse(html.match(/var files=(\[[^;]+\]);/)[1]))f.load(n);
 f.run('startGame();closeWorldOverlay()');f.timers.clear();
 function fresh(){f.run("resetRuntimeState();player=createDefaultPlayer();gameState='exploring';COMBAT_FINISH_V2764.settling=false;COMBAT_FINISH_V2764.pending=null;currentEnemy=null;ensureTaskState();ensureTutorialState()");f.timers.clear();}
 
-fresh();f.run('player.tutorial.readPopups=[];checkTutorialRealm(REGION_UNLOCK_LEVEL.north)');
+fresh();f.run('player.tutorial.readPopups=[];closeWorldOverlay();noticeResetV2901();checkTutorialRealm(REGION_UNLOCK_LEVEL.north);document.getElementById("tutorialUnlock")?.remove();noticeTickV2901();NQ_V2901.lastEnd=Date.now()-1000;noticeTickV2901()');
 a(f.run("player.tutorial.readPopups.includes('unlock_north')"),'north popup fires at the real unlock level');
 a.equal(f.run("getBreakthroughStageLabel({ascension:true},3)"),'地仙道果 · 飞升仙界');
 a.doesNotMatch(fs.readFileSync(root+'/xiantu-v2762-04-tutorial-guide-script.js','utf8'),/进入金仙/);

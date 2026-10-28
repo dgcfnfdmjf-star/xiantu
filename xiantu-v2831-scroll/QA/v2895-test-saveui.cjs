@@ -225,9 +225,9 @@ fresh(f);
  const card=f.run('suRemindTickV2895()');a(card&&card.id==='saveRemindV2895','shown on a quiet map');a.match(card._html,/还没有导出过/);
  f.run("document.getElementById('saveRemindV2895').remove()");a.equal(f.run('suRemindTickV2895()'),null,'once per session');
  // buttons
- f.run('SAVEUI_STATE_V2895.remind.shownThisSession=false');const c2=f.run('suRemindTickV2895()');
+ f.run('noticeResetV2901();SAVEUI_STATE_V2895.remind.shownThisSession=false');const c2=f.run('suRemindTickV2895()');
  c2.listeners.click[0]({target:{closest:()=>({dataset:{su:'later'}})}});a.equal(f.run("document.getElementById('saveRemindV2895')"),null);a(Number(ls.getItem(K.snooze))>0,'稍后 snoozes');
- ls.removeItem(K.snooze);f.run('SAVEUI_STATE_V2895.remind.shownThisSession=false');const c3=f.run('suRemindTickV2895()');
+ ls.removeItem(K.snooze);f.run('noticeResetV2901();SAVEUI_STATE_V2895.remind.shownThisSession=false');const c3=f.run('suRemindTickV2895()');
  c3.listeners.click[0]({target:{closest:()=>({dataset:{su:'export'}})}});await drain();a(ls.getItem(K.exported),'导出存档 exports');a.equal(f.run("document.getElementById('saveRemindV2895')"),null,'card closes after export');
  // iPhone tip only outside home-screen mode
  a.match(f.run('suIosHintV2895()'),/添加到主屏幕/);f.c.navigator.standalone=true;a.equal(f.run('suIosHintV2895()'),'');delete f.c.navigator.standalone;}

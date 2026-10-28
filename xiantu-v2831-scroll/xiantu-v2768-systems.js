@@ -87,7 +87,7 @@ function showSaveManagerV2768(){
  const el=document.createElement('div');el.id='saveManagerV2768';el.className='mobile-inventory-overlay';el.style.zIndex='100000';
  el.innerHTML='<div class="mobile-inventory-card" style="padding:20px;max-height:85vh;overflow:auto"><h3>📁 存档管理</h3><p>修行记录保存在当前浏览器。导出文件可转移到其他设备；导入会替换当前主存档。</p><button class="choice-btn" onclick="exportSaveV2768()">导出当前存档</button><button class="choice-btn" onclick="copySaveTextV2870()">复制当前存档文本</button><button class="choice-btn" onclick="exportSaveV2768(true)">导出上一次有效备份</button><p>导入存档文件（JSON，最大8MB）</p><input type="file" accept=".json,application/json" onchange="importSaveV2768(this.files[0]);this.value=\'\'"><button class="choice-btn" onclick="restoreBackupV2768()">恢复上一次有效备份</button><hr><h4>替换前记录</h4><p>导入或恢复前保留，仅存一份；空间不足时停止替换，请先导出。</p><button class="choice-btn" onclick="restoreBeforeReplaceV2870()">恢复替换前记录</button><button class="choice-btn" onclick="exportBeforeReplaceV2870()">导出替换前记录</button><hr><h4>上一位角色</h4><p>重新入世时保留，自动保存不会覆盖这里。</p><button class="choice-btn" onclick="restorePreviousV2838()">恢复上一位角色</button><button class="choice-btn" onclick="exportPreviousV2838()">导出上一位角色</button><p>导入和恢复前会要求确认。不要清除浏览器的网站数据。</p><button class="choice-btn" onclick="document.getElementById(\'saveManagerV2768\').remove()">关闭</button></div>';
  el.addEventListener('pointerdown',e=>{if(e.target===el)el.remove()});document.body.appendChild(el);
- try{window.saveManagerExtraV2895?.(el)?.catch(()=>{});}catch(_){}
+ try{window.saveManagerExtraV2895?.(el)?.catch(()=>{});window.saveManagerStatsV2901?.(el);}catch(_){}
 }
 // Parse and normalize detached data before any reset or persistent replacement.
 function dryRunLoadV2870(raw){
@@ -801,4 +801,4 @@ function reinforceSealV2887(token){
  if(ok){bossViewV2887=null;showSectAdminV2873();showFloatingText('九锁重鸣，旧账与加固已保存。','#ffd76a');}return ok;
 }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2768-systems.js"]="28.68.73";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2768-systems.js"]="28.68.74";
