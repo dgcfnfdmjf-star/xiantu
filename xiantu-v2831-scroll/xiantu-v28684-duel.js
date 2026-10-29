@@ -603,7 +603,7 @@ function installWorld25dV2888(){
   const c=document.getElementById('worldCanvas'),dpr=c?._dpr||1;
   if(c)S25_V2888.frameVh=c.height/dpr;
   const r=baseDraw.apply(this,arguments);
-  if(c&&!document.hidden&&!isWorldOverlayOpen()&&document.body.classList.contains('flat-world-active')&&scene25dOnV2888()){
+  if(c&&!interiorV286886&&!document.hidden&&!isWorldOverlayOpen()&&document.body.classList.contains('flat-world-active')&&scene25dOnV2888()){
    const ctx=c.getContext('2d');
    try{ctx.save();ctx.setTransform(dpr,0,0,dpr,0,0);s25ForegroundV2888(ctx,t,c.width/dpr,c.height/dpr);}catch(e){console.warn('2.5D 前景失败',e);}finally{ctx.restore();}
   }
@@ -2786,7 +2786,112 @@ function showGraphicsV2903(message=''){
  toggleCharacterPanel(false);showStory(html,[{text:'返回地图',action:'return_to_map'}]);
 }
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.85';
+// Walkable interiors share the world loop and controls; outdoor coordinates are never replaced.
+let interiorV286886=null;
+const INTERIOR_HALLS_V286886=new Set(['task_hall','main_hall','guest_hall','outer_elder_hall','elder_hall','qingxuan_academy','library','alchemy_hall','night_yaolu','beast_hall','forge_hall','forbidden_library','dormitory']);
+function interiorKindV286886(p){
+ if(!p)return null;
+ if(p.action==='lingxiao_building'&&INTERIOR_HALLS_V286886.has(p.buildingId))return /alchemy|yaolu|forge/.test(p.buildingId)?'workshop':/library/.test(p.buildingId)?'library':p.buildingId==='dormitory'?'home':'hall';
+ return ({shop:'shop',market:'shop',home:'home',alchemy:'workshop'})[p.action]||null;
+}
+function clearInteriorV286886(){
+ const s=interiorV286886;interiorV286886=null;if(s?.floor){s.floor.width=s.floor.height=1;}
+ document.documentElement.classList.remove('interior-v286886');document.getElementById('interiorHudV286886')?.remove();
+ if(typeof resetPaintedMotionV2838==='function')resetPaintedMotionV2838();
+}
+function interiorStateV286886(){
+ const s=interiorV286886;if(!s)return null;
+ if(s.owner!==player||s.region!==currentRegion||!FLAT_WORLD.pois.includes(s.poi)){clearInteriorV286886();return null;}
+ return s;
+}
+function tryEnterInteriorV286886(p){
+ const kind=interiorKindV286886(p);if(!kind)return false;
+ if(!canMapNpcActV2864()||isWorldOverlayOpen()||!FLAT_WORLD.pois.includes(p)||Math.hypot(FLAT_WORLD.player.x-p.x,FLAT_WORLD.player.y-p.y)>p.r+62)return true;
+ if(p.action==='lingxiao_building'){const access=canAccessBuilding(p.buildingId);if(!access.allowed){showFloatingText(access.reason,'#ffd76a');return true;}syncTaskWithLingxiaoBuilding(p.buildingId);}
+ if(typeof tutorialFreeExploreUnlocked==='function'&&tutorialState.active&&!tutorialFreeExploreUnlocked())return false;
+ resetWorldMovementV28686();clearInteriorV286886();
+ const label=({shop:'交易柜台',home:'修行蒲团',workshop:'炼制工位',library:'典籍书案',hall:'宗门事务案'})[kind];
+ interiorV286886={owner:player,region:currentRegion,poi:p,kind,player:{x:288,y:352},path:[],floor:null,view:null,
+  stations:[{id:'host',x:176,y:176,name:kind==='home'?'洞府留笺':kind==='shop'?'掌柜':'值守弟子',dialog:true},{id:'service',x:400,y:176,name:label},{id:'door',x:288,y:400,name:'离开建筑'}]};
+ const session=interiorV286886;document.documentElement.classList.add('interior-v286886');
+ const hud=document.createElement('div');hud.id='interiorHudV286886';
+ const title=document.createElement('strong');title.textContent=p.name+' · 室内';hud.appendChild(title);
+ const hint=document.createElement('span');hint.id='interiorHintV286886';hint.textContent='摇杆 / 方向键移动 · 点地行走 · 靠近后交互';hud.appendChild(hint);
+ const menu=document.createElement('button');menu.type='button';menu.textContent='角色';menu.className='interior-menu-v286886';menu.onclick=()=>{if(interiorStateV286886()===session&&!isWorldOverlayOpen()){resetWorldMovementV28686();toggleCharacterPanel(true);}};hud.appendChild(menu);
+ const bag=document.createElement('button');bag.type='button';bag.textContent='行囊';bag.className='interior-bag-v286886';bag.onclick=()=>{if(interiorStateV286886()===session&&!isWorldOverlayOpen()){resetWorldMovementV28686();showMobileInventory();}};hud.appendChild(bag);
+ const exit=document.createElement('button');exit.type='button';exit.textContent='走向出口';exit.onclick=()=>{const s=interiorStateV286886();if(s===session&&!isWorldOverlayOpen())interiorRouteV286886(s,288,400);};hud.appendChild(exit);
+ document.getElementById('worldPanel').appendChild(hud);resetPaintedMotionV2838();return true;
+}
+function interiorCellV286886(x,y){
+ if(x<1||x>16||y<2||y>12||(y===5&&(x===5||x===12)))return false;
+ return !((y>=3&&y<=4&&((x>=2&&x<=4)||(x>=13&&x<=15)))||(y===3&&x>=7&&x<=10));
+}
+function interiorWalkV286886(x,y){return [[-10,-10],[10,-10],[-10,10],[10,10]].every(([dx,dy])=>interiorCellV286886(Math.floor((x+dx)/32),Math.floor((y+dy)/32)));}
+function interiorRouteV286886(s,x,y){
+ const sx=Math.floor(s.player.x/32),sy=Math.floor(s.player.y/32),tx=Math.floor(x/32),ty=Math.floor(y/32);
+ if(!interiorCellV286886(tx,ty))return false;
+ const key=(a,b)=>b*18+a,start=key(sx,sy),goal=key(tx,ty),prev=new Map([[start,null]]),queue=[start];
+ for(let n=0;n<queue.length&&!prev.has(goal);n++){const at=queue[n],cx=at%18,cy=Math.floor(at/18);for(const [dx,dy]of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=cx+dx,ny=cy+dy,k=key(nx,ny);if(interiorCellV286886(nx,ny)&&!prev.has(k)){prev.set(k,at);queue.push(k);}}}
+ if(!prev.has(goal))return false;const path=[];for(let k=goal;k!==null;k=prev.get(k))path.push({x:(k%18)*32+16,y:Math.floor(k/18)*32+16});path.reverse();
+ // First centre prevents diagonal corner-cutting when the actor is off the tile centre.
+ s.path=path;if(interiorWalkV286886(x,y))s.path.push({x,y});return true;
+}
+function interiorTapV286886(canvas,x,y){
+ const s=interiorStateV286886();if(!s)return false;if(isWorldOverlayOpen()||!s.view)return true;
+ const r=canvas.getBoundingClientRect(),v=s.view,wx=((x-r.left)*v.vw/r.width-v.x)/v.scale,wy=((y-r.top)*v.vh/r.height-v.y)/v.scale;
+ const station=s.stations.find(a=>Math.hypot(a.x-wx,a.y-wy)<30);
+ interiorRouteV286886(s,station?.x??wx,station?(station.y+(station.id==='door'?0:32)):wy);return true;
+}
+function leaveInteriorV286886(){if(!interiorStateV286886()||isWorldOverlayOpen())return;clearInteriorV286886();resetWorldMovementV28686();FLAT_WORLD._lastNearbyId=null;FLAT_WORLD._lastAreaKey='';updateWorldHUD();}
+function interiorInteractV286886(){
+ const s=interiorStateV286886();if(!s)return false;if(isWorldOverlayOpen()||!canMapNpcActV2864())return true;
+ const a=s.stations.find(a=>Math.hypot(a.x-s.player.x,a.y-s.player.y)<48);if(!a){showFloatingText('走近人物或设施，再点击交互','#e7d6ab');return true;}
+ if(a.id==='door'){leaveInteriorV286886();return true;}
+ resetWorldMovementV28686();
+ if(s.poi.action==='lingxiao_building'){const access=canAccessBuilding(s.poi.buildingId);if(!access.allowed){showFloatingText(access.reason,'#ffd76a');return true;}}
+ if(a.dialog){showStory('<h3>'+a.name+'</h3><p>进门先歇歇脚。右侧工位可办理这里的事务，所有材料、费用与修行门槛仍按原规矩执行。离开时走到南侧门口即可。</p>',[{text:'继续在室内走动',action:'return_to_map'}]);}
+ else if(s.poi.action==='lingxiao_building')enterLingxiaoBuilding(s.poi.buildingId);
+ else showLocation(s.poi.action);
+ return true;
+}
+function updateInteriorV286886(dt){
+ const s=interiorStateV286886();if(!s)return false;if(isWorldOverlayOpen()||!canMapNpcActV2864())return true;
+ const k=FLAT_WORLD.keys,p=s.player;let dx=Number(!!(k.d||k.arrowright))-Number(!!(k.a||k.arrowleft)),dy=Number(!!(k.s||k.arrowdown))-Number(!!(k.w||k.arrowup));
+ if(dx||dy)s.path=[];else if(s.path.length){const a=s.path[0],d=Math.hypot(a.x-p.x,a.y-p.y);if(d<2){p.x=a.x;p.y=a.y;s.path.shift();}else{dx=(a.x-p.x)/d;dy=(a.y-p.y)/d;}}
+ const d=Math.hypot(dx,dy)||1,step=Math.min(.05,Math.max(0,dt||0))*150,remaining=s.path.length?Math.hypot(s.path[0].x-p.x,s.path[0].y-p.y):step,travel=Math.min(step,remaining);
+ // Substeps preserve walls and furniture on a delayed frame.
+ for(let i=0,n=Math.max(1,Math.ceil(travel/3));i<n;i++){const x=p.x+dx/d*travel/n,y=p.y+dy/d*travel/n;if(interiorWalkV286886(x,p.y))p.x=x;if(interiorWalkV286886(p.x,y))p.y=y;}
+  if(Math.abs(p.x-288)<24&&p.y>390){leaveInteriorV286886();return true;}
+ const near=s.stations.find(a=>Math.hypot(a.x-p.x,a.y-p.y)<48),hint=document.getElementById('interiorHintV286886');
+ const message=near?'交互 · '+near.name:'摇杆 / 方向键移动 · 点地行走 · 靠近后交互';if(hint&&hint.textContent!==message)hint.textContent=message;return true;
+}
+function interiorFloorV286886(s){
+ if(s.floor)return s.floor;const c=document.createElement('canvas');c.width=576;c.height=448;const x=c.getContext('2d');
+ x.fillStyle='#22322d';x.fillRect(0,0,576,448);
+ for(let row=2;row<13;row++)for(let col=1;col<17;col++){x.fillStyle=(row+col)%2?'#897050':'#947959';x.fillRect(col*32,row*32,31,31);x.fillStyle='#5a4b37';x.fillRect(col*32+4,row*32+24,20,1);}
+ x.fillStyle='#364b40';x.fillRect(24,22,528,42);x.fillStyle='#ba9c65';x.fillRect(24,58,528,5);
+ for(const px of [32,528]){x.fillStyle='#704b35';x.fillRect(px,38,16,374);x.fillStyle='#c2a16b';x.fillRect(px+3,38,3,374);}
+ for(const px of [96,432]){x.fillStyle='#c8d7bb';x.fillRect(px,29,48,23);x.strokeStyle='#66563d';for(let i=0;i<5;i++){x.beginPath();x.moveTo(px+i*12,29);x.lineTo(px+i*12,52);x.stroke();}}
+ x.fillStyle=s.kind==='home'?'#406052':'#763e38';x.fillRect(224,144,128,224);x.strokeStyle='#d2b275';x.lineWidth=3;x.strokeRect(230,150,116,212);
+ for(const [px,w]of [[64,96],[416,96],[224,128]]){x.fillStyle='#302d23';x.fillRect(px,98,w,64);x.fillStyle='#654633';x.fillRect(px,86,w,64);x.fillStyle='#c8a36c';x.fillRect(px,86,w,7);for(let i=0;i<w/16;i++){x.fillStyle=['#799280','#a9926b','#7d8d9d'][i%3];x.fillRect(px+5+i*16,100,10,33);}}
+ if(s.kind==='home'){x.fillStyle='#d6c49c';x.fillRect(66,98,90,48);x.fillStyle='#547b76';x.fillRect(84,100,70,44);x.fillStyle='#ede0b8';x.fillRect(68,102,18,38);}
+ if(s.kind==='workshop'){x.fillStyle='#273e37';x.beginPath();x.arc(464,118,27,0,Math.PI*2);x.fill();x.strokeStyle='#bc995c';x.lineWidth=5;x.stroke();x.fillStyle='#d8985d';x.beginPath();x.arc(464,133,9,0,Math.PI*2);x.fill();}
+ x.fillStyle='#2b3732';x.fillRect(256,400,64,48);x.fillStyle='#d2b478';x.fillRect(256,400,64,5);x.font='16px serif';x.textAlign='center';x.fillText('出口',288,433);
+ s.floor=c;return c;
+}
+function drawInteriorV286886(){
+ const s=interiorStateV286886();if(!s)return false;const canvas=document.getElementById('worldCanvas'),ctx=canvas.getContext('2d'),dpr=canvas._dpr||1,vw=canvas.width/dpr,vh=canvas.height/dpr;
+ const landscape=vw>vh,top=landscape?52:90,bottom=landscape?16:155,scale=Math.min((vw-24)/576,Math.max(100,vh-top-bottom)/448),x=(vw-576*scale)/2,y=top+Math.max(0,(vh-top-bottom-448*scale)/2);
+ s.view={x,y,scale,vw,vh};ctx.setTransform(dpr,0,0,dpr,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.fillStyle='#101d19';ctx.fillRect(0,0,vw,vh);ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);ctx.drawImage(interiorFloorV286886(s),0,0);
+ for(const a of s.stations){if(a.id==='door')continue;ctx.fillStyle='#e5ce9c';ctx.font='bold 20px serif';ctx.textAlign='center';ctx.fillText(a.name,a.x,a.y-38);
+  if(a.dialog){ctx.fillStyle='#344f51';ctx.beginPath();ctx.moveTo(a.x,a.y-25);ctx.lineTo(a.x-13,a.y+10);ctx.lineTo(a.x+13,a.y+10);ctx.closePath();ctx.fill();ctx.fillStyle='#d7b990';ctx.beginPath();ctx.arc(a.x,a.y-28,7,0,Math.PI*2);ctx.fill();}
+  else{ctx.fillStyle='#b29667';ctx.fillRect(a.x-21,a.y-18,42,25);ctx.fillStyle=s.kind==='workshop'?'#526f65':'#ece0bc';ctx.fillRect(a.x-13,a.y-26,26,11);}
+ }
+ if(s.path.length){const t=s.path.at(-1);ctx.strokeStyle='#efcf82';ctx.lineWidth=2;ctx.beginPath();ctx.arc(t.x,t.y,9,0,Math.PI*2);ctx.stroke();}
+ drawActor25DV2770(ctx,s.player);ctx.restore();return true;
+}
+
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.86';
 
 
 if(typeof installBagViewV2905==='function')installBagViewV2905();
