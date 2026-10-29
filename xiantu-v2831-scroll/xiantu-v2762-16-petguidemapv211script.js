@@ -67,4 +67,4 @@ function installMapLabelControlsV211(){const actions=document.getElementById('wo
 const v211EnableWorldBase=window.enableWorldMode;window.enableWorldMode=function(){const r=v211EnableWorldBase?.apply(this,arguments);setTimeout(installMapLabelControlsV211,0);return r};
 setTimeout(()=>{installPetGuideButtonV211();installMapLabelControlsV211()},100);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-16-petguidemapv211script.js"]="28.68.78";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-16-petguidemapv211script.js"]="28.68.79";

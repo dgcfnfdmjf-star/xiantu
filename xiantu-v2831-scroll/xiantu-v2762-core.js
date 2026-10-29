@@ -8424,7 +8424,7 @@
       if(!loadout)return false;
       const before=cloneCurrentEquipment(),beforeScore=calculateEquipmentLoadoutScore(before),all=getEquipmentOwnedList();
       let changed=0;for(const slot of Object.keys(EQUIPMENT_SLOTS))if((before[slot]||null)!==(loadout[slot]||null))changed++;
-      if(!changed){if(toast)showFloatingText?.('✅ 当前已是最佳装备组合','#69f0ae');if(reopen)setTimeout(showEquipmentPanel,80);return false;}
+      if(!changed){if(toast)showFloatingText?.('✅ 当前已是最佳装备组合','#69f0ae');if(reopen)queueEquipmentRefreshV2906('panel',80);return false;}
 
       const bag=[...all],next=createEmptyEquipmentSlots();
       for(const slot of Object.keys(EQUIPMENT_SLOTS)){
@@ -8436,7 +8436,7 @@
       updateStats();updateWorldHUD?.();autoSave?.();
       const afterScore=calculateEquipmentLoadoutScore(player.equipment);
       if(toast)showFloatingText?.(`⚡ 一键换装：调整${changed}格 · 评分 ${Math.round(beforeScore)}→${Math.round(afterScore)}`,'#69f0ae');
-      if(reopen)setTimeout(showEquipmentPanel,100);return true;
+      if(reopen)queueEquipmentRefreshV2906('panel',100);return true;
     }
 
     function autoEquipBest(){const best=getBestEquipmentLoadout();return applyEquipmentLoadout(best.loadout,{reopen:true,toast:true});}
@@ -8445,7 +8445,7 @@
       const count=Object.values(player.equipment||{}).filter(Boolean).length;if(!count){showFloatingText?.('装备栏已经是空的','#aaa');return false;}
       if(typeof confirm==='function'&&!confirm(`确定卸下全部 ${count} 件装备吗？`))return false;
       for(const slot of Object.keys(EQUIPMENT_SLOTS)){const name=player.equipment?.[slot];if(name)player.equipmentInventory.push(name);player.equipment[slot]=null;}
-      checkSetBonuses();player.hp=Math.min(player.hp,getMaxHp());player.mp=Math.min(player.mp,getMaxMp());updateStats();updateWorldHUD?.();autoSave?.();showFloatingText?.(`↩️ 已卸下全部 ${count} 件装备`,'#ffd700');setTimeout(showEquipmentPanel,80);return true;
+      checkSetBonuses();player.hp=Math.min(player.hp,getMaxHp());player.mp=Math.min(player.mp,getMaxMp());updateStats();updateWorldHUD?.();autoSave?.();showFloatingText?.(`↩️ 已卸下全部 ${count} 件装备`,'#ffd700');queueEquipmentRefreshV2906('panel',80);return true;
     }
 
     function getEquipCompareTarget(itemName){
@@ -8511,7 +8511,7 @@
       player.equipmentInventory.push(name);player.equipment[slot]=null;checkSetBonuses();
       player.hp=Math.min(player.hp,getMaxHp());player.mp=Math.min(player.mp,getMaxMp());
       updateStats();updateWorldHUD?.();autoSave();showFloatingText?.(`↩️ 已卸下【${name}】`,'#ffd700');
-      if(reopen)setTimeout(showEquipmentPanel,80);return true;
+      if(reopen)queueEquipmentRefreshV2906('panel',80);return true;
     }
 
     function renderEquipSlots(slots){
@@ -8557,7 +8557,18 @@
       html+=`</div><div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="choice-btn" style="flex:1;min-width:150px;background:linear-gradient(135deg,#237a52,#14543a);border-color:#69f0ae" onclick="autoEquipBest()">⚡ 一键装备最佳</button><button class="choice-btn" style="flex:1;min-width:150px" onclick="showEquipmentPanel()">← 返回装备栏</button></div>`;showStory(html,[]);
     }
 
-    function equipItemFromInventory(name){if(equipItem(name))setTimeout(showEquipmentPanel,100);}
+    // A deferred equipment refresh belongs to the view and character that requested it.
+    // Closing/replacing that view or entering combat must not reopen it later.
+    function queueEquipmentRefreshV2906(target='panel',delay=80){
+      const owner=player,panel=document.getElementById('equipmentPanel'),story=document.getElementById('storyPanel');
+      const source=panel||(!story?.classList.contains('hidden')&&(document.getElementById('bagViewV2905')||document.getElementById('storyText')?.firstChild));
+      if(!source)return false;
+      setTimeout(()=>{
+        if(player!==owner||gameState!=='exploring'||!forgeAllowedV2825()||document.hidden||!source.isConnected||(!panel&&story?.classList.contains('hidden')))return;
+        if(target==='bag')showEquipmentInventory({preserveView:true});else showEquipmentPanel();
+      },delay);return true;
+    }
+    function equipItemFromInventory(name){if(equipItem(name))queueEquipmentRefreshV2906('panel',100);}
     function showEquipmentMenu(){showEquipmentPanel();}
     function equipGear(itemName){return equipItem(itemName);}
     function unequipGear(slot){return unequipItem(slot,true);}
@@ -12013,7 +12024,7 @@
     });
     function sectStewardArtV286865(key){
       const s=SECT_STEWARDS_V286865[key];if(!s)return '';
-      return `<span class="sect-steward-art" style="aspect-ratio:${s.w}/941"><img src="./art/npc/sect-stewards-v286865.png" alt="${s.name}立绘" width="1672" height="941" loading="lazy" decoding="async" style="width:${1672/s.w*100}%;left:${-s.x/s.w*100}%" onerror="this.parentElement.hidden=true"></span>`;
+      return `<span class="sect-steward-art" style="aspect-ratio:${s.w}/941"><img src="./art/npc/sect-stewards-v286879.webp" alt="${s.name}立绘" width="1672" height="941" loading="lazy" decoding="async" style="width:${1672/s.w*100}%;left:${-s.x/s.w*100}%" onerror="this.parentElement.hidden=true"></span>`;
     }
     function sectStewardCardV286865(key){
       const s=SECT_STEWARDS_V286865[key];if(!s)return '';
@@ -13798,7 +13809,16 @@
     }
 
     const SCROLL_ART_V2831={started:false,landscape:null,palace:null};
+    function loadRegionalBuildingsV286879(){
+      if(!['north','demon_domain','immortal_domain'].includes(currentRegion)||SCROLL_ART_V2831.regionalBuildingsRequested)return;
+      SCROLL_ART_V2831.regionalBuildingsRequested=true;
+      const img=new Image();img.decoding='async';
+      img.onload=()=>{SCROLL_ART_V2831.regionalBuildings=img;img.onload=img.onerror=null;};
+      img.onerror=()=>{SCROLL_ART_V2831.regionalBuildings=null;img.onload=img.onerror=null;};
+      img.src='./region-buildings-v2835.webp';
+    }
     function loadScrollArtV2831(){
+      loadRegionalBuildingsV286879();
       if(SCROLL_ART_V2831.started)return;SCROLL_ART_V2831.started=true;
       const request=(key,file,ground=false)=>{
         const img=new Image();img.decoding='async';
@@ -13807,7 +13827,7 @@
         img.src='./'+file;
       };
       request('regions','scroll-regions-v2834.webp',true);
-      for(const [key,file] of [['smallBeastsV28682','monster-small-beasts-v28682.webp'],['palace','scroll-palace-v2831.webp'],['buildings','scroll-buildings-v2832.webp'],['monstersV2853','monster-map-v2853.webp?v=2868-mini-return-20261015'],['regionalBuildings','region-buildings-v2835.webp']])request(key,file);
+      for(const [key,file] of [['smallBeastsV28682','monster-small-beasts-v28682.webp'],['palace','scroll-palace-v2831.webp'],['buildings','scroll-buildings-v2832.webp'],['monstersV2853','monster-map-v2853.webp?v=2868-mini-return-20261015']])request(key,file);
     }
     function scrollRegionCellV2834(region=currentRegion){
       const n=['south','east','west','north','human_peaks','human_valleys','demon_domain','immortal_domain'].indexOf(region);return n<0?0:n;
@@ -14842,7 +14862,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.78";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.79";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
@@ -15083,7 +15103,7 @@ function showTripV286821(){
 }
 
 // V2905: item counts and synchronous, save-or-rollback actions. No save schema change.
-const ITEM_ACTION_V2905={depth:0,effects:[]};
+const ITEM_ACTION_V2905={depth:0,effects:[],committing:false};
 function itemCountV2905(value){
  const n=typeof value==='number'?value:typeof value==='string'&&/^\s*\d+(?:\.\d+)?\s*$/.test(value)?Number(value):0;
  return Number.isFinite(n)?Math.max(0,Math.min(Number.MAX_SAFE_INTEGER,Math.floor(n))):0;
@@ -15109,9 +15129,14 @@ function addStoredItemV2905(store,name,count=1){
  return true;
 }
 function itemActionV2905(label,fn,self,args){
+ if(ITEM_ACTION_V2905.committing)return false;
  if(ITEM_ACTION_V2905.depth||miniSaveDeferredV286840)return fn.apply(self,args||[]);
  if(!player||gameState==='start'||gameState==='combat'||gameState==='combat-ending'||player.breakthrough?.isAnimating||COMBAT_FINISH_V2764?.settling)return false;
  const owner=player,raw=JSON.stringify(player),progress=JSON.stringify(achievementProgress),completed=[...completedAchievements],state=gameState,choices=currentChoices;
+ // Keep owned object identities: open pet/artifact controls may retain these references.
+ const ownedLists=['pets','artifacts'].map(key=>({key,list:owner[key],entries:Array.isArray(owner[key])?owner[key].slice():null}));
+ const activeArtifactIndex=Array.isArray(owner.artifacts)?owner.artifacts.indexOf(owner.activeArtifact):-1;
+ const evolutionOpen=typeof petEvolutionOpenIdV210==='undefined'?null:petEvolutionOpenIdV210;
  const lastUse=lastItemUseV2768;ITEM_ACTION_V2905.depth++;ITEM_ACTION_V2905.effects=[];miniSaveDeferredV286840=true;
  let result,error=null;
  try{normalizeItemCountsV2905(player);result=fn.apply(self,args||[]);}catch(e){error=e;}
@@ -15119,9 +15144,20 @@ function itemActionV2905(label,fn,self,args){
  const effects=ITEM_ACTION_V2905.effects;ITEM_ACTION_V2905.effects=[];
  if(player!==owner)return false; // Never switch back to an old character.
  let changed=false,saved=false;
- try{changed=JSON.stringify(player)!==raw||JSON.stringify(achievementProgress)!==progress||JSON.stringify([...completedAchievements])!==JSON.stringify(completed);saved=!error&&(!changed||saveGame()===true);}catch(e){error=e;}
+ try{changed=JSON.stringify(player)!==raw||JSON.stringify(achievementProgress)!==progress||JSON.stringify([...completedAchievements])!==JSON.stringify(completed);ITEM_ACTION_V2905.committing=true;saved=!error&&(!changed||saveGame()===true);}catch(e){error=e;}finally{ITEM_ACTION_V2905.committing=false;}
+ if(player!==owner)return false;
  if(saved){for(const effect of effects){try{effect();}catch(e){console.warn('物品操作显示失败',e);}}return result;}
- const restore=()=>{for(const key of Object.keys(owner))delete owner[key];Object.assign(owner,JSON.parse(raw));if(owner.activePet?._petId)owner.activePet=owner.pets?.find(p=>p._petId===owner.activePet._petId)||null;};restore();
+ const restore=()=>{
+  for(const key of Object.keys(owner))delete owner[key];Object.assign(owner,JSON.parse(raw));
+  for(const {key,list,entries} of ownedLists){
+   if(!entries||!Array.isArray(owner[key]))continue;
+   const restored=owner[key].map((value,i)=>{const ref=entries[i];if(!ref||typeof ref!=='object'||!value||typeof value!=='object')return value;for(const field of Object.keys(ref))delete ref[field];Object.assign(ref,value);return ref;});
+   list.length=0;for(const value of restored)list.push(value);owner[key]=list;
+  }
+  if(owner.activePet?._petId)owner.activePet=owner.pets?.find(p=>p._petId===owner.activePet._petId)||null;
+  if(activeArtifactIndex>=0)owner.activeArtifact=owner.artifacts[activeArtifactIndex];
+ };restore();
+ if(typeof petEvolutionOpenIdV210!=='undefined')petEvolutionOpenIdV210=evolutionOpen;
  achievementProgress=JSON.parse(progress);completedAchievements=new Set(completed);lastItemUseV2768=lastUse;gameState=state;currentChoices=choices;
  try{updateStats();updateWorldHUD?.();if(document.getElementById('mobileInventoryOverlay'))renderMobileInventory();if(state==='alchemy')updateAlchemyPanel();}catch(_){}
  // Legacy HUD refreshers may normalize unrelated fields; a failed action must still restore the exact snapshot.
@@ -15131,11 +15167,11 @@ function itemActionV2905(label,fn,self,args){
 }
 function installItemSafetyV2905(){
  // UI side effects run only after the enclosing action commits, including achievement notifications.
- for(const name of ['showStory','showShop','showRarePillShop','showNewGearShopV2790','showOldGearShopV2792','showMarketGearV2800','showPetGrowthShopV210','showSectShop','showFloatingText','showAchievementPopup','showBreakthroughNotice','renderMobileInventory','updateAlchemyPanel','showLongevityPanel']){
+ for(const name of ['showStory','showShop','showRarePillShop','showNewGearShopV2790','showOldGearShopV2792','showMarketGearV2800','showPetGrowthShopV210','showSectShop','showFloatingText','showAchievementPopup','showBreakthroughNotice','renderMobileInventory','updateAlchemyPanel','showLongevityPanel','showPetGrowthResultV210','flashPetCardV210','updatePetPanel','updateArtifactPanel','showMaterialWorkshop','playSound']){
   const base=window[name];if(typeof base!=='function')continue;
   window[name]=function(...args){if(ITEM_ACTION_V2905.depth){ITEM_ACTION_V2905.effects.push(()=>base.apply(this,args));return;}return base.apply(this,args);};
  }
- for(const name of ['useItem','useLongevityPill','craftPill','buyGeneralV2801','buyLongevityPill','buyBreakthroughPillV28683','buySectItem','buyMarketGearV2800','buyNewGearV2790','buyOldGearV2792','buyPetGrowthBatchV286845','bulkDismantleEquipment','dismantleOneEquipmentEncoded']){
+ for(const name of ['useItem','useLongevityPill','craftPill','buyGeneralV2801','buyLongevityPill','buyBreakthroughPillV28683','buySectItem','buyMarketGearV2800','buyNewGearV2790','buyOldGearV2792','buyPetGrowthBatchV286845','bulkDismantleEquipment','dismantleOneEquipmentEncoded','craftPetMaterialBatchV286846','feedPet','feedPetMaxByIdV286845','advancePetByIdV210','mutatePetByIdV210','evolvePetByIdV210','upgradeArtifact','upgradeArtifactMaxV286845']){
   const base=window[name];if(typeof base!=='function')continue;
   window[name]=function(...args){return itemActionV2905(name,base,this,args);};
  }
