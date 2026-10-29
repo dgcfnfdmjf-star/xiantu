@@ -136,4 +136,4 @@
   else boot();
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-09-control-mode-switch-script.js"]="28.68.86";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-09-control-mode-switch-script.js"]="28.68.87";

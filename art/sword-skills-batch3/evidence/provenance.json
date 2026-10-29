@@ -1,0 +1,32 @@
+{
+  "command": "python3 scripts/render-sword-skills-batch3-evidence.py",
+  "inputs": {
+    "art/sword-skills-batch3/preview/index.html": "976ec3c44fa740ec36842070c12a6e18f3da4c3db2ca8c00ad85754931723d9c",
+    "art/sword-skills-batch3/preview/preview.js": "dba0c15d86303c1aff12c4553c352dda1c12d78b338147fd44273cbd87df9766",
+    "art/sword-skills-batch3/preview/definition.js": "ba7ca05c5f3083fb18f81ee64bf30984d1534d8e68f865ac86093e984299078e",
+    "art/sword-skills-batch3/preview/effect-manifest.json": "3e44f32304e0901e4755252020257374c9b85e89005177b78cecb148611f5afe",
+    "art/sword-skills-batch3/sampler.js": "410d36c36ccc7077e57431cc69826eea33556d1e1ed2d799e12519eeaa47ef66",
+    "art/sword-skills-batch3/preview/stage-reference.webp": "d88933abbf05d2c3506b73545dde8fcb030583304d55781bcdc491d8514361b3",
+    "art/sword-skills-batch3/design/storyboard-draft.png": "65973925609a5e138f416ad8504e397b454a4ec438cff21660b2d0c5264957de",
+    "art/element-skills-v286838/preview/effect-manifest.json": "64ab0e8d897ca0b7a67e78123a11cdfd0ceacffa53bf8de0e2bb2cd64cd149f0",
+    "xiantu-v2831-scroll/element-skills-v286838/sword_qi_body.png": "149330393923b43c0d75ee42b81d6e23fb6e1828b72845e980e1999f495c35d7",
+    "art/sword-skills-batch3/preview/soul_chase_residue.png": "3eefd9b08c74c7b2a359354065e710b701522488de8ae57bed0d1506f8dd14a3",
+    "art/sword-skills-batch3/preview/astral_guard_telegraph.png": "46a1c12d9b1fd6a2d087b7a35de42273ed4bd271180987334d1ca86c6ffc8fb8",
+    "art/sword-skills-batch3/preview/astral_guard_impact.png": "23b188e15b2808281c122b8319df2db1e6b014aec39e708fa41725d872d9062e",
+    "art/sword-skills-batch3/preview/soul_chase_impact.png": "a122d2c65d594d32a0b460362200595415dabb3d3a71e73e6bb56e4a4ca93ecf",
+    "art/sword-skills-batch3/preview/blood_return_residue.png": "fbbe58542cb42f3e429fa6675951ec58c3fe1e2e954c8ab2b72637a3c744231c",
+    "art/sword-skills-batch3/preview/soul_chase_body.png": "e4b27143780f6b095c46a56b193707d02896eb3ab6b5ddddeba1abf90497988b",
+    "art/sword-skills-batch3/preview/blood_return_telegraph.png": "754a0fd615dc3718ce14cfb651ec27192adaa9020a9d2084cdfc2e5dc29ceb53",
+    "art/sword-skills-batch3/preview/soul_chase_telegraph.png": "0a79c7501081eac7bc3ae6c69d8fd5a20815c3040ba9d3c8aaaf5a4594e7ce86",
+    "art/sword-skills-batch3/preview/blood_return_impact.png": "233e5efc39a6ee1eb62c2ec3e9ccb8ee26676473177ff164f2e909d38e07017e",
+    "art/sword-skills-batch3/preview/astral_guard_body.png": "695edb024f15b78a2b784c83c8a7b3aa1a7a6e6dc35976506d9d8d6d6093b809",
+    "art/sword-skills-batch3/preview/blood_return_support.png": "3ad87e58fe0f25df0a35a182a2193a4dc6a61fb0235e3cecf8df4f10cafc1eeb",
+    "art/sword-skills-batch3/preview/astral_guard_residue.png": "6040efb1c5d79a453cfc6b88d941998dfaba5f436a63fe5e91f9b8b177032470",
+    "art/sword-skills-batch3/preview/blood_return_body.png": "4c9776481ced723348765e38227b94e64f219e96cb3ca1f096d79ff9eb2f2d76",
+    "art/sword-skills-batch3/preview/astral_guard_support.png": "042798d3aaa4c684aedf42d04d0ed3565916b58378bed49e24082c2563430950",
+    "art/sword-skills-batch3/source/astral_guard/master-original.png": "12c2c81fbb238f91dfd14d7d8f7420c716cad7100c601dc31becdf92a4f3665a",
+    "art/sword-skills-batch3/source/blood_return/master-original.png": "a575257c552d60072fff8d9d08a600e6b80d74a060eaadcfe472e9a35ad3e514",
+    "art/sword-skills-batch3/source/soul_chase/master-original.png": "8db096f9ba725e5364a989e28ef81e027a4d2bbc60525529b8dba1c56633c46f"
+  },
+  "scope": "Resource choreography on actual stage reference; not live combat footage"
+}
