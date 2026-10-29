@@ -2759,6 +2759,7 @@ function installStatsV2901(){
  document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.getElementById('pacingStatsV2901')?.remove();document.getElementById('firstPathPanelV2901')?.remove();}});
  let enabled=false;try{enabled=localStorage.getItem(STATS_V2901.enabledKey)==='1';}catch(_){}if(enabled)statsSetEnabledV2901(true);
 }
+if(typeof installItemSafetyV2905==='function')installItemSafetyV2905();
 installStatsV2901();
 // END ONBOARDING_V2901
 // V2903: local graphics preference; no game-state/reward changes or extra animation loop.
@@ -2781,4 +2782,7 @@ function showGraphicsV2903(message=''){
  toggleCharacterPanel(false);showStory(html,[{text:'返回地图',action:'return_to_map'}]);
 }
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.77';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.78';
+
+
+if(typeof installBagViewV2905==='function')installBagViewV2905();
