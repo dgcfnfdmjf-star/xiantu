@@ -1,0 +1,58 @@
+Xiantu V28.68.84 — short landscape combat layout verification
+Date: 2026-10-29
+
+Scope and cause
+The old coarse-pointer landscape cinema rules cap combatArena at 178px (height <=390px) or 220px. In real Chromium at 844x390, the 471.59px-wide arena was 178px tall, while its 12:7 stage was 469.59x273.92px plus 48px vertical margins. Arena clientHeight was 176 and scrollHeight 322: overflow:hidden cropped the lower characters and scene. The canvas still rendered the full stage; this was not a useful rendering-cost limit.
+
+Implementation
+Only landscape + pointer:coarse + viewport height <=500px matches. The existing CSS now budgets the viewport minus max(12px,safe-top), max(12px,safe-bottom), and the panel's 24px padding + 2px border. The duel width fits the remaining stage height after its 48px margins and 2px arena border, preserving 12:7. A vh fallback precedes the supported dvh path. The non-atlas fallback receives the available height and bounded portrait sizing. No game JavaScript, timers, battle numbers or loader entries were added.
+At width >=640px the existing grid remains; the arena spans its rows and explicitly stays top-aligned. Below 640px the original scrolling flex layout remains. Root review corrected align-self specificity to start!important; the long-content check below uses that final rule.
+
+Environment and method
+Headless system Chromium on the shared cloud host. Fresh temporary profiles; all non-127.0.0.1 requests blocked. Phone emulation: 844x390 baseline, device DPR 3, coarse pointer, touch, iPhone UA. Duel renderer caps its own DPR at 1.5. Real local assets loaded. Temporary paused 苍山野狼 encounter with 50000 enemy HP; CSS disabled/enabled in the same live document for comparisons. No real saves or paid Jev calls.
+
+Real layout measurements (arena border-box height, CSS px)
+viewport      old      new       result
+844x390       178      323.92    stage and bottom fully visible
+932x430       220      354.72    no internal clipping
+740x360       178      287.52    no internal clipping; panel may scroll
+667x375       178      246.58    width-limited 12:7 stage; panel may scroll
+1024x471      220      386.92    no internal clipping
+568x320       178      269.98    flex layout; controls below fold, genuinely scrollable
+390x844       248.33   248.33    portrait unchanged
+844x390 again 178      323.92    rotation restored original landscape dimensions
+All new duel arena scrollHeight values fit clientHeight (within one rounding pixel).
+
+Additional checks
+- 568x320: real mouse-wheel scrolling moved combatPanel.scrollTop to 258. A real click on cinemaSpeedBtnV2756 changed 1x to 2x. Its bounds were x161.92 y151 w131.55 h30; elementFromPoint at its centre returned that same button. This intentionally retains scrolling rather than shrinking the controls.
+- 1280x480 and 1280x800 desktop contexts with fine pointer: coarse=false, new height-budget variable absent. Existing arena 566.39x300 retained; no mobile rule matched.
+- Heights 399, 401, 499 matched the combat fix; 501 did not. Above the selected 500px scope the historical landscape cap still applies; this batch does not redefine tablet/taller layouts.
+- Unknown-enemy non-atlas fallback at 844x390: old arena 178px/client174/scroll251, new 340px/client336/scroll336. Portraits, names and vitals remained visible.
+- Real click on “跳到战报”, then “普攻” reduced enemy HP. Finishing the temporary encounter opened the existing victory overlay (x237 y84 w370 h262.17), with every button inside the viewport. Clicking “回看本场战斗” opened the existing battle-review content.
+- Expanded battle settings plus 24 repeated long-narration sentences increased panel scrollHeight to 1164. Arena stayed at y25 (panel y12 + border/padding), computed align-self=start; no downward centering.
+- Safe-area budget is explicit max(12px,env(...)), not 12px plus env. This Chromium build did not support Emulation.setSafeAreaInsets; physical notch behavior was not measured here.
+
+Same-scene rendering sample
+Final 3-second samples, paused wolf encounter, 844x390, warm assets; temporary requestAnimationFrame timing and duel-canvas clearRect counter.
+                    before        after
+RAF callbacks       194           194
+actual duel paints  45            45
+paint JS median     0.30ms        0.30ms
+paint JS p95        0.40ms        0.50ms
+all RAF JS total    34.9ms        47.9ms
+canvas backing      705x411       705x411
+One static backdrop remained 720x420. Thus this scene displays more of the already rendered image without increasing its backing pixels or repaint count. The 13ms total-CPU difference across one 3-second pair is not a reliable performance trend; it includes other callback work and shared-host noise. No GPU cost, physical iPhone frame rate or power claim is made. The earlier trial pair also produced 45 paints in each 3 seconds with 0.30/0.50ms median/p95.
+
+Evidence (ignored raw artifacts)
+output/playwright/landscape-v286884/measurements.json
+output/playwright/landscape-v286884/before-844x390.png
+output/playwright/landscape-v286884/after-844x390.png
+output/playwright/landscape-v286884/after-568x320.png
+output/playwright/landscape-v286884/after-390x844.png
+output/playwright/landscape-v286884/narrow-controls-scrolled.png
+output/playwright/landscape-v286884/fallback-844x390.png
+output/playwright/landscape-v286884/victory-844x390.png
+output/playwright/landscape-v286884/long-settings-top.png
+
+Limitations
+This is Chromium emulation, not physical Safari. Very narrow landscape controls remain below the scene and require scrolling. The media rule intentionally excludes fine-pointer desktop, portrait, and landscape heights above 500px. Automated regression suites are run separately by the coordinating agent; this report records real-browser exploratory evidence rather than counting static CSS assertions as layout tests.

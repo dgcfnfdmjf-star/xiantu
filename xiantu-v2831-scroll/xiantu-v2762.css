@@ -3942,7 +3942,7 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 /* V28.12 洞府管理 */
 .home-board-v2812{padding:16px;border:1px solid #9eb781;border-radius:16px;background:linear-gradient(135deg,#14251e,#18202b);color:#e9eee3;line-height:1.65}.home-board-v2812 h3{color:#ead592;margin:0 0 12px}.home-grid-v2812{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-grid-v2812 article{padding:14px;border:1px solid #526454;border-radius:12px;background:#ffffff08}.home-grid-v2812 h4{margin:0;color:#e8d594}.home-grid-v2812 p{color:#d0dbd1}.home-grid-v2812 strong{color:#83ddb6}.home-notice-v2812{padding:12px;background:#31534066;border-radius:10px}@media(max-width:600px){.home-grid-v2812{grid-template-columns:1fr}.home-board-v2812{padding:12px;font-size:14px}}
 
-:root{--xiantu-build:286883;}
+:root{--xiantu-build:286884;}
 #xiantuBuildBadgeV2814{font-size:11px;min-height:32px;padding:5px 9px;white-space:nowrap;color:#b4d4bd;background:#18251f;border:1px solid #718475;border-radius:8px;}
 
 /* V28.68 战斗数值可视层 */
@@ -4507,3 +4507,47 @@ body:has(#storyPanel.loop-panel-v286840:not(.hidden)) .save-controls,body:has(#s
 /* V2905 batch controls keep the row hit target separate from multi-use actions. */
 .bag-batch-v2905{display:flex;gap:6px;margin:0 0 8px;grid-column:1/-1}
 .bag-batch-v2905 .choice-btn{flex:1;min-height:40px;font-size:13px;margin:0;padding:6px}
+
+/* V28.68.84: fit short touch-screen battles without cropping the 12:7 stage. */
+@media (orientation:landscape) and (pointer:coarse) and (max-height:500px){
+ html body #gameScreen #combatPanel.battle-clean-v286816{
+  --combat-view-height-v286884:100vh;
+  --combat-inset-top-v286884:max(12px,env(safe-area-inset-top,0px));
+  --combat-inset-bottom-v286884:max(12px,env(safe-area-inset-bottom,0px));
+  /* Panel: 12px padding + 1px border on each side. Stage: 28px + 20px margins, 2px arena border. */
+  --combat-available-v286884:calc(var(--combat-view-height-v286884) - var(--combat-inset-top-v286884) - var(--combat-inset-bottom-v286884) - 26px);
+ }
+ @supports (height:100dvh){html body #gameScreen #combatPanel.battle-clean-v286816{--combat-view-height-v286884:100dvh;}}
+ html body #gameScreen.world-mode #combatPanel.battle-clean-v286816:not(.hidden){
+  top:var(--combat-inset-top-v286884)!important;bottom:var(--combat-inset-bottom-v286884)!important;
+  left:max(12px,env(safe-area-inset-left,0px))!important;right:max(12px,env(safe-area-inset-right,0px))!important;
+  width:auto!important;max-width:none!important;margin:0!important;
+  max-height:calc(var(--combat-view-height-v286884) - var(--combat-inset-top-v286884) - var(--combat-inset-bottom-v286884))!important;
+ }
+ html body #gameScreen #combatPanel.battle-clean-v286816 #combatArena.duel25-active{
+  width:min(100%,calc((var(--combat-available-v286884) - 50px) * 12 / 7 + 2px))!important;
+  min-height:0!important;max-height:none!important;height:auto!important;align-self:center;justify-self:center;
+ }
+ html body #gameScreen #combatPanel.battle-clean-v286816 #combatArena:not(.duel25-active){
+  min-height:0!important;height:var(--combat-available-v286884)!important;max-height:var(--combat-available-v286884)!important;
+ }
+ html body #gameScreen #combatPanel.battle-clean-v286816 #combatArena:not(.duel25-active) #playerAvatarContainer,
+ html body #gameScreen #combatPanel.battle-clean-v286816 #combatArena:not(.duel25-active) #enemyAvatarContainer{
+  width:clamp(80px,calc(var(--combat-available-v286884) * .28),120px)!important;
+  height:clamp(104px,calc(var(--combat-available-v286884) * .36),154px)!important;
+ }
+}
+@media (orientation:landscape) and (pointer:coarse) and (min-width:640px) and (max-height:500px){
+ html body #gameScreen.world-mode #combatPanel.battle-clean-v286816:not(.hidden){grid-template-rows:repeat(7,auto) 1fr!important;}
+ html body #gameScreen #combatPanel.battle-clean-v286816>#combatArena{grid-row:1 / -1!important;align-self:start!important;}
+}
+
+/* Keep the short-screen action beside the minimap column and the nearby hint above it. */
+@media (orientation:landscape) and (pointer:coarse) and (max-height:400px){
+ html.xiantu-mobile-dedicated #touchAction{right:calc(var(--mx-safe-r) + 140px)!important;}
+ html.xiantu-mobile-dedicated #worldInteract{
+  bottom:calc(var(--mx-safe-b) + 104px)!important;min-width:0!important;max-width:none!important;
+  left:calc((100% + var(--mx-safe-l) - var(--mx-safe-r) + 12px) / 2)!important;
+  width:clamp(120px,calc(100% - var(--mx-safe-l) - var(--mx-safe-r) - 276px),230px)!important;
+ }
+}
