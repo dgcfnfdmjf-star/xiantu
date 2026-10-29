@@ -221,7 +221,7 @@
   window.enableWorldMode=function(){unifyLegacyMaterialPools();const out=oldEnableWorldMode?.apply(this,arguments);updateWorldHUD?.();return out;};
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-08-feature-08.js"]="28.68.84";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-08-feature-08.js"]="28.68.85";
 
 const MAT_REFINE_RECIPES_V2870={
  '仙灵草':{'灵草':5,'仙果':1},'千年灵芝':{'灵草':6,'兽骨':2},'星辰砂':{'妖丹':2,'灵木':2},'万年寒玉':{'冰晶石':3,'雪莲':1},'龙血果':{'仙果':3,'血玉':1}

@@ -1548,10 +1548,11 @@ const MAP_ALIVE_V2893=(()=>{const deep=o=>{for(const v of Object.values(o))if(v&
  weatherTint:{rain:'rgba(70,86,104,.10)',mist:'rgba(232,238,240,.10)',snow:'rgba(236,244,255,.08)',ash:'rgba(60,30,40,.10)'},
  buildings:{   // local anchors (before scaling) of small idle effects, by building kind
   sect:[{fx:'banner',x:-25,y:-8},{fx:'banner',x:25,y:-8},{fx:'lantern',x:0,y:4}],
-  faction_gate:[{fx:'banner',x:-30,y:-18},{fx:'banner',x:30,y:-18}],
+  faction_gate:[{fx:'banner',x:-30,y:-18},{fx:'banner',x:30,y:-18},{fx:'lantern',x:-25,y:4},{fx:'lantern',x:25,y:4}],
+  lingxiao_building:[{fx:'lantern',x:-25,y:4},{fx:'lantern',x:25,y:4}],
   alchemy:[{fx:'smoke',x:16,y:-14},{fx:'lantern',x:16,y:-10}],
   home:[{fx:'smoke',x:-14,y:-22},{fx:'lantern',x:4,y:6}],
-  village:[{fx:'smoke',x:-36,y:-12},{fx:'smoke',x:8,y:-22}],
+  village:[{fx:'smoke',x:-36,y:-12},{fx:'smoke',x:8,y:-22},{fx:'lantern',x:-25,y:4},{fx:'lantern',x:25,y:4}],
   market:[{fx:'lantern',x:-32,y:23},{fx:'lantern',x:0,y:23},{fx:'lantern',x:32,y:23}],
   shop:[{fx:'lantern',x:0,y:6}],
   artifacts:[{fx:'pulse',x:0,y:-6}],
@@ -1667,6 +1668,8 @@ function mapWeatherV2893(day,region){
  let r=((h>>>0)%10000)/10000;for(const [k,p] of Object.entries(table)){if(r<p)return k;r-=p;}return 'clear';
 }
 function mapDayPhaseV2893(hour){
+ // Explicit game night also drives the existing tint, lamps and night ambience.
+ if(hour===undefined&&typeof isLingxiaoNight==='function'&&isLingxiaoNight())return 'night';
  const D=MAP_ALIVE_V2893.dayNight;if(D.mode!=='realtime')return 'day';
  if(hour===undefined)hour=new Date().getHours();
  if(hour>=D.dawn[0]&&hour<D.dawn[1])return 'dawn';if(hour>=D.dawn[1]&&hour<D.dusk[0])return 'day';if(hour>=D.dusk[0]&&hour<D.dusk[1])return 'dusk';return 'night';
@@ -1795,6 +1798,7 @@ function playerJuiceV2893(ctx,p){
 function drawBuildingLifeV2893(ctx,items,t,phase,ground){
  const night=phase==='night'||phase==='dusk',sp=aliveSpritesV2893(),FX=MAP_ALIVE_V2893.buildings;
  for(const o of items){
+  if(o.buildingId==='spirit_spring')continue;
   const k=landmarkKindV2893(o),list=k&&FX[k];if(!list)continue;
   for(const a of list){
    const isGround=a.fx==='formation';if(isGround!==ground)continue;
@@ -2782,7 +2786,7 @@ function showGraphicsV2903(message=''){
  toggleCharacterPanel(false);showStory(html,[{text:'返回地图',action:'return_to_map'}]);
 }
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.84';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.85';
 
 
 if(typeof installBagViewV2905==='function')installBagViewV2905();

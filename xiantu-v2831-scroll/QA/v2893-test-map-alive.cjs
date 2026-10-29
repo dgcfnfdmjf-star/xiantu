@@ -106,6 +106,8 @@ f.run("setMapAliveQualityV2893('off')");frames(f,3);a.equal(f.run('ALIVE_V2893.f
  {const seq=()=>f.run("Array.from({length:30},(_,d)=>mapWeatherV2893(d,'east')).join()");a.equal(seq(),seq(),'deterministic per day');}
  a(!Object.keys(count).includes('snow'),'no snow in the south');}
 a.deepEqual([3,6,12,18,23].map(h=>f.run(`mapDayPhaseV2893(${h})`)),['night','dawn','day','dusk','night']);
+f.run('player.worldTime.night=true');a.equal(f.run('mapDayPhaseV2893()'),'night','manual night drives environment');a.equal(f.run('mapDayPhaseV2893(12)'),'day','explicit hour remains deterministic');f.run('player.worldTime.night=false');
+
 a.equal(f.run("mapFallKindV2893('south','spring','clear')"),'petal');a.equal(f.run("mapFallKindV2893('south','autumn','clear')"),'leaf');
 a.equal(f.run("mapFallKindV2893('south','spring','rain')"),null,'rain replaces petals');a.equal(f.run("mapFallKindV2893('north','summer','clear')"),'snow');
 a.equal(f.run("mapFallKindV2893('demon_domain','spring','clear')"),'ember');a.equal(f.run("mapFallKindV2893('south','winter','clear')"),'snow');
