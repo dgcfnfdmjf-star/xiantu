@@ -36,4 +36,4 @@ output/playwright/sect-courts-v286880、camera-v286880、map-labels-before/after
 
 交付
 与V28.68.79稳定性修复一起更新PR #35。静态游戏ZIP保留xiantu-v2831-scroll目录。
-Jev代码和云函数包不变；本轮尚未合并main或部署腾讯云。
+Jev代码和云函数包不变；本批通过PR #35交付main，尚未部署腾讯云。

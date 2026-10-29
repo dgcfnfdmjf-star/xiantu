@@ -53,4 +53,4 @@ output/playwright/dao-ui-*.png与dao-ui-report.json。
 交付
 游戏包逐文件核对420个运行资源，保持xiantu-v2831-scroll顶层目录。
 Jev云函数代码与下载包未改，无需更新。
-随现有开发分支上传，尚未合并main或部署腾讯云。
+本批通过PR #35统一交付main，下载入口使用main；尚未部署腾讯云。

@@ -49,5 +49,5 @@ route-display-before/after.png、route-display-metrics.json、tree-variants-*.pn
 测试全部通过；同步40脚本、样式和入口版本，420个运行文件逐项校验通过。
 
 交付
-静态游戏包保持xiantu-v2831-scroll顶层目录，包含V28.68.79—80的未合并优化。
-本轮不修改Jev云函数；GitHub开发分支更新后仍需另行合并main和部署腾讯云。
+静态游戏包保持xiantu-v2831-scroll顶层目录，包含V28.68.79—80的优化。
+本轮不修改Jev云函数；本批通过PR #35交付main，尚未部署腾讯云。
