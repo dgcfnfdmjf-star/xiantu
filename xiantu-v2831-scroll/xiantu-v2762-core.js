@@ -12932,6 +12932,7 @@
       if(!region.monsters?.length) return null;
 
       let x=0,y=0,valid=false;
+      const monsterRadius=22;
       const b=region.bounds;
       for(let attempts=0;attempts<45 && !valid;attempts++){
         // 以玩家附近为优先，同时严格限制在当前象限。
@@ -12941,7 +12942,9 @@
         const farFromPlayer=Math.hypot(x-FLAT_WORLD.player.x,y-FLAT_WORLD.player.y)>220;
         const farFromMonster=!FLAT_WORLD.monsters.some(m=>m.alive&&Math.hypot(x-m.x,y-m.y)<90);
         const outsideServices=!(getWorldMapConfig(regionId).safeZones||[]).some(z=>Math.hypot(x-z.x,y-z.y)<z.r);
-        valid=outsideServices&&farFromPoi&&farFromPlayer&&farFromMonster&&isPointInRegion(x,y,regionId);
+        // Spawn on walkable ground; movement already resolves these same trunks, rocks and buildings.
+        valid=outsideServices&&farFromPoi&&farFromPlayer&&farFromMonster&&isPointInRegion(x,y,regionId)
+          &&!(FLAT_WORLD.colliders||[]).some(c=>Math.hypot(x-c.x,y-c.y)<(c.radius||0)+monsterRadius);
       }
       if(!valid)return null;
 
@@ -12972,7 +12975,7 @@
       balanceEnemyV2802(enemy);
       const dirX=Math.random()-.5,dirY=Math.random()-.5,len=Math.hypot(dirX,dirY)||1;
       const monster={
-        id:`wm_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,x,y,radius:22,
+        id:`wm_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,x,y,radius:monsterRadius,
         speed:18+Math.random()*28,enemy,regionId,
         dir:{x:dirX/len,y:dirY/len},dirTimer:1+Math.random()*4,
         alive:true,inCombat:false,battleCooldown:1.5
@@ -13542,6 +13545,17 @@
       return cache;
     }
 
+    function architectureInViewV286881(o,cam,vw,vh){
+      // Painted roofs may extend well above their centre. Reuse the atlas/landmark/depth bounds
+      // used for architecture interaction, while keeping actors, trees and war-unit culling unchanged.
+      if(!o||o.enemy||o.t||o._warUnitV2840||o.action==='explore_v2828'||o.action==='war_map_v2840')return false;
+      if(o.action==='yewuji_v2810'||typeof getPoiVisualKind==='function'&&getPoiVisualKind(o)==='npc')return false;
+      if(typeof poiTapBoxV2904!=='function'||typeof landmarkPointV2893!=='function')return false;
+      const box=poiTapBoxV2904(o);if(!box)return false;
+      const pad=24; // conservative edge allowance for outlines, light and the building base
+      return box.right+pad>=cam.x&&box.left-pad<=cam.x+vw&&box.bottom+pad>=cam.y&&box.top-pad<=cam.y+vh;
+    }
+
     function drawFlatWorld(t=performance.now(),dt=1/60) {
       const c=document.getElementById('worldCanvas'); if(!c)return; const ctx=c.getContext('2d');
       const dpr=c._dpr||1, vw=c.width/dpr, vh=c.height/dpr;
@@ -13569,9 +13583,10 @@
 
       ctx.save(); ctx.translate(-camDraw.x,-camDraw.y);
       const items=FLAT_WORLD._drawItems; items.length=0;
-      const minX=cam.x-130,maxX=cam.x+vw+130,minY=cam.y-130,maxY=cam.y+vh+130;
+      const minX=camDraw.x-130,maxX=camDraw.x+vw+130,minY=camDraw.y-130,maxY=camDraw.y+vh+130;
       const visible=o=>o.x>=minX&&o.x<=maxX&&o.y>=minY&&o.y<=maxY;
-      for(const poi of FLAT_WORLD.pois)if(visible(poi)&&(poi.action!=='explore_v2828'||exploredPointV2828(poi.x,poi.y)))items.push(poi);
+      const visiblePoi=o=>visible(o)||architectureInViewV286881(o,camDraw,vw,vh);
+      for(const poi of FLAT_WORLD.pois)if(visiblePoi(poi)&&(poi.action!=='explore_v2828'||exploredPointV2828(poi.x,poi.y)))items.push(poi);
       for(const mon of FLAT_WORLD.monsters)if(mon.alive&&!mon.inCombat&&visible(mon)&&exploredPointV2828(mon.x,mon.y))items.push(mon);
       for(const tree of FLAT_WORLD.decor)if(tree.t==='tree'&&visible(tree)&&exploredPointV2828(tree.x,tree.y))items.push(tree);
       const warViewV2840={minX,maxX,minY,maxY};
@@ -13580,11 +13595,12 @@
       drawWorldAmbient(ctx, t, minX, maxX, minY, maxY);
       if(typeof mapAliveGroundV2893==='function')mapAliveGroundV2893(ctx,t);
       if(typeof drawWarGroundV2840==='function')drawWarGroundV2840(ctx,warViewV2840);
+      drawWorldRouteV2881(ctx);
       FLAT_WORLD.deferLabelsV2836=true;
       let playerDrawn=false;
       for(const it of items){
         if(!playerDrawn && worldDepthV2770(it)>p.y+17){drawWorldPlayer(ctx,p);playerDrawn=true;}
-        if(it.x<minX||it.x>maxX||it.y<minY||it.y>maxY) continue;
+        if(!visiblePoi(it))continue;
         if(it._warUnitV2840)drawWarUnitV2840(ctx,it);else if(it.action==='war_map_v2840')drawWarPostV2840(ctx,it);else if(it.t==='tree')drawDepthTreeV2770(ctx,it);else if(it.enemy)drawWorldMonster(ctx,it);else{
           const fade=worldDepthV2770(it)>p.y+17&&Math.abs(it.x-p.x)<82&&it.y-p.y<165;
           ctx.save();if(fade)ctx.globalAlpha=.38;drawWorldPoi(ctx,it);if(typeof mapAliveBuildingV2893==='function')mapAliveBuildingV2893(ctx,it);ctx.restore();
@@ -13654,6 +13670,8 @@
       ctx.beginPath();ctx.arc(w/2,h/2,Math.min(w,h)/2-3,0,Math.PI*2);ctx.clip();
       ctx.fillStyle=cfg.bg;ctx.fillRect(0,0,w,h);
       drawRegionScrollV2834(ctx,mx(0),my(0),FLAT_WORLD.width*sx,FLAT_WORLD.height*sy);
+      const route=worldRouteDisplayV2881();
+      drawWorldRouteV2881(ctx,route,{x:mx,y:my});
 
       for(const poi of FLAT_WORLD.pois){
         if(!visible(poi.x,poi.y,10)||(poi.action==='explore_v2828'&&!exploredPointV2828(poi.x,poi.y))) continue;
@@ -13668,7 +13686,7 @@
         if(!monster.alive||monster.inCombat||!visible(monster.x,monster.y,6)||!exploredPointV2828(monster.x,monster.y))continue;
         ctx.fillStyle=monster.battleCooldown>0?'rgba(255,155,90,.78)':'rgba(255,78,78,.92)';ctx.beginPath();ctx.arc(mx(monster.x),my(monster.y),2.6,0,Math.PI*2);ctx.fill();
       }
-      if(FLAT_WORLD.target&&visible(FLAT_WORLD.target.x,FLAT_WORLD.target.y,8)){
+      if(!route&&FLAT_WORLD.target&&visible(FLAT_WORLD.target.x,FLAT_WORLD.target.y,8)){
         ctx.strokeStyle='rgba(191,239,255,.95)';ctx.lineWidth=1.7;ctx.beginPath();ctx.arc(mx(FLAT_WORLD.target.x),my(FLAT_WORLD.target.y),5.8,0,Math.PI*2);ctx.stroke();
       }
       if(typeof drawWarMinimapV2840==='function')drawWarMinimapV2840(ctx,mx,my);
@@ -13739,6 +13757,39 @@
     }
 
     let autoNavigationV2830=null;
+    // Read only the route the movement controller is currently following. A target is
+    // its next waypoint, not the building centre; drawing must not invent a shortcut.
+    function worldRouteDisplayV2881(){
+      const p=FLAT_WORLD.player,target=FLAT_WORLD.target,nav=autoNavigationV2830;
+      if(!p||!Number.isFinite(p.x)||!Number.isFinite(p.y)||!player||gameState!=='exploring'||document.hidden||!forgeAllowedV2825()||isWorldOverlayOpen()||Object.values(FLAT_WORLD.keys||{}).some(Boolean))return null;
+      if(nav){
+        if(nav.owner!==player||nav.region!==currentRegion||(nav.poi&&!FLAT_WORLD.pois.includes(nav.poi))||!Array.isArray(nav.route)||!Number.isInteger(nav.index)||nav.index<0||nav.index>=nav.route.length||nav.target!==nav.route[nav.index])return null;
+        const reached=target===null&&Math.hypot(p.x-nav.target.x,p.y-nav.target.y)<1;
+        if(target!==nav.target&&!reached)return null;
+        const index=nav.index+(reached?1:0);
+        if(index>=nav.route.length)return null;
+        for(let i=index;i<nav.route.length;i++){const q=nav.route[i];if(!q||!Number.isFinite(q.x)||!Number.isFinite(q.y))return null;}
+        return {start:p,points:nav.route,index,end:nav.route[nav.route.length-1]};
+      }
+      if(!target||![target.x,target.y].every(Number.isFinite))return null;
+      // Legacy direct targets may point into an obstacle. Show no misleading line
+      // in that case; the path planner is never called by rendering.
+      const radius=(p.r||17)+4;
+      if((FLAT_WORLD.colliders||[]).some(c=>worldDistanceSegmentV2827(c.x,c.y,p,target)<c.radius+radius))return null;
+      return {start:p,points:[target],index:0,end:target};
+    }
+    function drawWorldRouteV2881(ctx,route=worldRouteDisplayV2881(),project=null){
+      if(!route)return false;
+      const x=project?.x||((v)=>v),y=project?.y||((v)=>v),mini=!!project;
+      ctx.save();ctx.lineCap='round';ctx.lineJoin='round';ctx.setLineDash(mini?[4,3]:[9,7]);
+      ctx.beginPath();ctx.moveTo(x(route.start.x),y(route.start.y));
+      for(let i=route.index;i<route.points.length;i++){const q=route.points[i];ctx.lineTo(x(q.x),y(q.y));}
+      ctx.strokeStyle='rgba(36,31,21,.55)';ctx.lineWidth=mini?3:4;ctx.stroke();
+      ctx.strokeStyle='rgba(255,224,130,.9)';ctx.lineWidth=mini?1.6:2;ctx.stroke();
+      ctx.setLineDash([]);ctx.lineWidth=mini?1.5:2;
+      ctx.beginPath();ctx.arc(x(route.end.x),y(route.end.y),mini?5:10,0,Math.PI*2);ctx.stroke();
+      ctx.restore();return true;
+    }
     function planNavigationV2830(goal){
       if(!goal||![goal.x,goal.y].every(Number.isFinite))return null;
       const p=FLAT_WORLD.player,step=40,cols=Math.ceil(FLAT_WORLD.width/step),rows=Math.ceil(FLAT_WORLD.height/step),radius=(p.r||17)+4;
@@ -14174,17 +14225,21 @@
     }
 
     function drawBiomeTreeV2827(ctx,o){
-      const s=o.s||1,t=worldThemeV2827(),region=currentRegion||'south';ctx.save();ctx.translate(o.x,o.y);ctx.scale(s,s);ctx.strokeStyle=t.dark;ctx.lineWidth=2;
+      // Existing seeded variants are baked into the three 128px atlas cells, never regenerated per frame.
+      const s=o.s||1,t=worldThemeV2827(),region=currentRegion||'south',variant=Math.max(0,Math.min(2,Math.floor(Number(o.v)||0)));ctx.save();ctx.translate(o.x,o.y);ctx.scale(s,s);ctx.strokeStyle=t.dark;ctx.lineWidth=2;
       ctx.fillStyle='rgba(12,23,22,.18)';ctx.beginPath();ctx.ellipse(0,25,23,7,0,0,Math.PI*2);ctx.fill();
       if(region==='demon_domain'||region==='west'){
-        ctx.strokeStyle=region==='demon_domain'?'#292731':'#544238';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(0,26);ctx.lineTo(-3,-12);ctx.lineTo(3,-46);ctx.stroke();ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(-2,-3);ctx.lineTo(-20,-20);ctx.lineTo(-26,-34);ctx.moveTo(0,-20);ctx.lineTo(20,-31);ctx.lineTo(27,-45);ctx.stroke();
+        const forks=variant===1?[[-2,-3,-22,-14,-27,-27],[0,-20,14,-34,17,-48]]:variant===2?[[-2,-3,-13,-25,-23,-43],[0,-20,21,-21,25,-34]]:[[-2,-3,-20,-20,-26,-34],[0,-20,20,-31,27,-45]];
+        ctx.strokeStyle=region==='demon_domain'?'#292731':'#544238';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(0,26);ctx.lineTo(variant===1?2:-3,-12);ctx.lineTo(variant===2?-4:3,-46);ctx.stroke();ctx.lineWidth=4;ctx.beginPath();for(const [x,y,mx,my,ex,ey] of forks){ctx.moveTo(x,y);ctx.lineTo(mx,my);ctx.lineTo(ex,ey);}ctx.stroke();
         ctx.strokeStyle=t.leaf;ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(2,20);ctx.lineTo(0,-9);ctx.stroke();
       }else if(region==='north'||region==='human_peaks'){
         ctx.fillStyle='#5f5142';ctx.fillRect(-4,0,8,28);
-        for(let i=0;i<3;i++){const y=8-i*16,width=29-i*6;ctx.fillStyle=t.dark;ctx.beginPath();ctx.moveTo(-width,y+10);ctx.lineTo(0,y-30);ctx.lineTo(width,y+10);ctx.lineTo(10,y+6);ctx.lineTo(0,y+12);ctx.closePath();ctx.fill();ctx.stroke();if(region==='north'){ctx.fillStyle=t.leaf;ctx.beginPath();ctx.moveTo(0,y-30);ctx.lineTo(-width*.6,y-4);ctx.lineTo(0,y-9);ctx.lineTo(width*.55,y-5);ctx.closePath();ctx.fill();}}
+        const tiers=variant===1?[[0,8,25],[1,-4,22],[-1,-16,17],[0,-24,11]]:variant===2?[[-3,8,29],[4,-8,22],[-2,-24,16]]:[[0,8,29],[0,-8,23],[0,-24,17]];
+        for(const [x,y,width] of tiers){ctx.fillStyle=t.dark;ctx.beginPath();ctx.moveTo(x-width,y+10);ctx.lineTo(x,y-30);ctx.lineTo(x+width,y+10);ctx.lineTo(x+10,y+6);ctx.lineTo(x,y+12);ctx.closePath();ctx.fill();ctx.stroke();if(region==='north'){ctx.fillStyle=t.leaf;ctx.beginPath();ctx.moveTo(x,y-30);ctx.lineTo(x-width*.6,y-4);ctx.lineTo(x,y-9);ctx.lineTo(x+width*.55,y-5);ctx.closePath();ctx.fill();}}
       }else{
         ctx.fillStyle='#66513d';ctx.fillRect(-4,-5,8,33);
-        const colors=[t.dark,t.leaf,t.patch];for(let i=0;i<3;i++){ctx.fillStyle=colors[i];ctx.beginPath();ctx.ellipse((i-1)*12,-14-i*8,22-i*3,27-i*3,(i-1)*.25,0,Math.PI*2);ctx.fill();ctx.stroke();}
+        const colors=[t.dark,t.leaf,t.patch],crowns=variant===1?[[-14,-13,20,22,-.18],[14,-15,20,22,.18],[0,-29,18,25,0]]:variant===2?[[-15,-7,18,28,-.2],[11,-19,21,24,.18],[0,-25,17,20,-.1]]:[[-12,-14,22,27,-.25],[0,-22,19,24,0],[12,-30,16,21,.25]];
+        crowns.forEach(([x,y,rx,ry,angle],i)=>{ctx.fillStyle=colors[i];ctx.beginPath();ctx.ellipse(x,y,rx,ry,angle,0,Math.PI*2);ctx.fill();ctx.stroke();});
         ctx.strokeStyle=t.dark;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,2);ctx.lineTo(3,-24);ctx.moveTo(2,-7);ctx.lineTo(-9,-16);ctx.stroke();
       }ctx.restore();
     }
@@ -14945,7 +15000,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.80";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.81";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

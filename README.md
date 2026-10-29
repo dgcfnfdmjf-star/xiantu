@@ -1,6 +1,10 @@
-# 仙途 V28.68.80
+# 仙途 V28.68.81
 
-部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.80）；[上传步骤](downloads/README.md)。
+部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.81）；[上传步骤](downloads/README.md)。
+
+## V28.68.81 地图边缘与寻路显示
+
+大建筑按实际屋顶边界参与裁剪，保持原深度排序，避免还在屏幕内就提前消失；主图和小地图显示真实剩余绕障路线。原有三格树木缓存加入地域树形变化，保留数量与碰撞；野怪刷新补上静态障碍避让，沿用原概率、上限和安全区。见 [实现与验证](docs/map-edges-routes.txt)、[刷新对照](docs/spawn-safety-v286881.txt)。包含V28.68.79—80优化；无需更新Jev，尚未合并main或部署腾讯云。
 
 ## V28.68.80 宗门地图与行路入口
 
@@ -224,7 +228,7 @@ npm test
 npm run test:browser
 ```
 
-`npm test` 运行选定的 115 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
+`npm test` 运行选定的 118 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
 
 浏览器测试覆盖恶意存档拒绝且原主档/备份不变、正常导入与刷新恢复、360/390/430/1366px 导航入口可达性、预加载去重与版本错误提示。外部请求被拦截，不调用付费服务。已有 Chromium 的云环境可使用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`。
 
