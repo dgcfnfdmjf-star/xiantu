@@ -1887,6 +1887,8 @@
     .world-realm { color:#d8c2ef; }
     .world-bar { background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.18)); box-shadow:inset 0 1px 2px rgba(0,0,0,.28); }
     .world-resource-row span,#worldRegionDisplay,#worldRegionStatus { background:rgba(255,255,255,.035); border:1px solid rgba(255,255,255,.055); border-radius:999px; padding:3px 8px; }
+    #worldRegionStatus { display:block;box-sizing:border-box;width:100%;min-height:44px;margin-top:7px;padding:6px 9px;border-radius:8px;font:inherit;font-size:12px;line-height:1.5;text-align:left;white-space:normal;cursor:pointer; }
+    #worldRegionStatus:focus-visible { outline:2px solid #f2d27a;outline-offset:-3px; }
     .world-location-card { overflow:hidden; text-shadow:0 0 10px rgba(0,0,0,.24); }
     .world-minimap { overflow:hidden; }
     #minimapCanvas { box-shadow:inset 0 0 0 1px rgba(255,255,255,.05),0 6px 16px rgba(0,0,0,.22); }
@@ -2381,6 +2383,35 @@ html.mobile-game body{background-attachment:scroll!important;} html.mobile-game 
 
 
     /* ================== 境界突破沉浸式过场 ================== */
+    .dao-panel-v286883{margin:12px 0;padding:12px;border:1px solid #bea35855;border-radius:12px;background:#0c1917;color:#e7e7d9;font-size:13px;line-height:1.65;overflow-wrap:anywhere}
+    .dao-panel-v286883 p{margin:7px 0}
+    .dao-total-v286883{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#f4dd99}
+    .dao-total-v286883 strong{font-size:26px;line-height:1.3;font-variant-numeric:tabular-nums}
+    .dao-panel-v286883 .dao-note-v286883{font-size:12px;color:#b7c5bb}
+    .dao-factors-v286883{margin:10px 0}
+    .dao-factors-v286883>div{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:10px;padding:7px 0;border-top:1px solid #d7e4c91c}
+    .dao-factors-v286883 dt,.dao-factors-v286883 dd{margin:0;min-width:0}
+    .dao-factors-v286883 dt small{display:block;color:#b7c5bb;font-size:11px}
+    .dao-factors-v286883 dd{font-variant-numeric:tabular-nums;text-align:right;font-size:12px;white-space:nowrap}
+    .dao-panel-v286883 .up{color:#a2e5ba}.dao-panel-v286883 .down{color:#ffb0a3}
+    .dao-formula-v286883,.dao-cost-v286883{padding:9px;border-radius:8px;background:#d8cb7920}
+    .dao-risk-v286883{background:#b75d4326}
+    .dao-outcomes-v286883{margin-top:10px;border:1px solid #d7e4c92b;border-radius:8px;padding:0 9px}
+    .dao-outcomes-v286883 summary{min-height:44px;padding:11px 0;cursor:pointer;color:#f4dd99;line-height:1.6}
+    .dao-outcomes-v286883 summary:focus-visible{outline:2px solid #ffe6a4;outline-offset:2px;border-radius:4px}
+    .dao-outcomes-v286883 ul{margin:8px 0;padding:0;list-style:none}
+    .dao-outcomes-v286883 li{padding:8px 0;border-top:1px solid #d7e4c91c}
+    .dao-outcomes-v286883 li small{display:block;font-size:12px;color:#cbd5ca}
+    .dao-outcome-head-v286883{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+    .dao-outcome-head-v286883 span{color:#f4dd99;font-variant-numeric:tabular-nums;white-space:nowrap}
+    html #storyPanel:has(.dao-panel-v286883) .story-protagonist-card{display:none!important}
+    html #gameScreen #storyPanel:has(.dao-panel-v286883) .story-with-protagonist{display:block!important}
+    html #storyPanel:has(.dao-panel-v286883) #storyText{max-height:58vh!important;overflow:auto!important;padding-right:3px}
+    @media(max-width:560px),(pointer:coarse){
+      html.xiantu-mobile-dedicated #gameScreen.world-mode #storyPanel:has(.dao-panel-v286883):not(.hidden){max-height:82vh!important}
+      html.xiantu-mobile-dedicated #storyPanel:has(.dao-panel-v286883) #storyText{max-height:58vh!important}
+      .dao-panel-v286883{padding:10px}
+    }
     body.breakthrough-playing { overflow:hidden!important; }
     body.breakthrough-playing .touch-controls, body.breakthrough-playing #mobileQuickMenu { pointer-events:none!important; opacity:.18!important; }
     .breakthrough-overlay{position:fixed;inset:0;z-index:12000;display:none;overflow:hidden;pointer-events:none;background:rgba(2,5,14,0);transition:background .25s ease,opacity .25s ease;}
@@ -3911,7 +3942,7 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 /* V28.12 洞府管理 */
 .home-board-v2812{padding:16px;border:1px solid #9eb781;border-radius:16px;background:linear-gradient(135deg,#14251e,#18202b);color:#e9eee3;line-height:1.65}.home-board-v2812 h3{color:#ead592;margin:0 0 12px}.home-grid-v2812{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-grid-v2812 article{padding:14px;border:1px solid #526454;border-radius:12px;background:#ffffff08}.home-grid-v2812 h4{margin:0;color:#e8d594}.home-grid-v2812 p{color:#d0dbd1}.home-grid-v2812 strong{color:#83ddb6}.home-notice-v2812{padding:12px;background:#31534066;border-radius:10px}@media(max-width:600px){.home-grid-v2812{grid-template-columns:1fr}.home-board-v2812{padding:12px;font-size:14px}}
 
-:root{--xiantu-build:286878;}
+:root{--xiantu-build:286883;}
 #xiantuBuildBadgeV2814{font-size:11px;min-height:32px;padding:5px 9px;white-space:nowrap;color:#b4d4bd;background:#18251f;border:1px solid #718475;border-radius:8px;}
 
 /* V28.68 战斗数值可视层 */
@@ -3982,6 +4013,8 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 .scroll-map-v2837 .scroll-poi-v2831.is-selected span{background:#a4402e;color:#fff5da;border-color:#a4402e;}
 .scroll-map-v2837 .scroll-field-v2831[data-overview="true"] .scroll-poi-v2831:not(.is-selected) span{display:none;}
 .scroll-map-v2837 .scroll-poi-v2831.is-claimed{opacity:.6;}
+.scroll-anchor-v286882{position:absolute;transform:translate(-50%,-50%);width:9px;height:9px;border:2px solid #fff2cf;border-radius:50%;background:#416453;box-shadow:0 0 0 1px #416453;z-index:2;pointer-events:none;box-sizing:border-box;}
+.scroll-anchor-v286882.is-selected{width:13px;height:13px;background:#a4402e;box-shadow:0 0 0 2px #e8bd56;z-index:3;}
 .scroll-result-v2837{font-size:11px;color:#786142;padding:5px 12px;flex-shrink:0;}
 .scroll-directory-v2837{flex-shrink:0;border-top:1px solid #c4ad7b;border-bottom:1px solid #c4ad7b;background:#f4e9cd;}
 .scroll-directory-v2837 summary{padding:10px 12px;min-height:44px;cursor:pointer;font-size:13px;font-weight:700;}
@@ -4466,7 +4499,7 @@ body:has(#storyPanel.loop-panel-v286840:not(.hidden)) .save-controls,body:has(#s
 .battle-review-v2878 summary{padding:12px 0;cursor:pointer;color:#efd48b;}
 .battle-review-v2878 details p{line-height:1.7;border-bottom:1px solid #ffffff12;padding-bottom:8px;}
 
-/* V28.68.78: touch-friendly, wrapping combat pet control. */
+/* V28.68.83: touch-friendly, wrapping combat pet control. */
 .battle-readout-head-v2856 .combat-pet-switch-v2884{min-height:44px;max-width:100%;white-space:normal;overflow-wrap:anywhere;padding:6px 10px;border:1px solid #729486;border-radius:8px;background:#163027;color:#b8ebcf;font:inherit;cursor:pointer}
 .battle-readout-head-v2856 .combat-pet-switch-v2884:disabled{opacity:.55;cursor:default}
 #combatPetsV2884 button{min-height:44px;max-width:100%;white-space:normal;overflow-wrap:anywhere}

@@ -17,8 +17,8 @@ function toggleEquipmentLock(name){
   else{player.equipmentLocks.push(name);showFloatingText?.(`🔒 已锁定【${name}】`,'#ffd76a');}
   autoSave?.();return i<0;
 }
-function toggleEquipmentLockEncoded(encoded){const name=decodeURIComponent(encoded);toggleEquipmentLock(name);setTimeout(showEquipmentInventory,30);}
-function toggleEquippedLockEncoded(encoded){const name=decodeURIComponent(encoded);toggleEquipmentLock(name);setTimeout(showEquipmentPanel,30);}
+function toggleEquipmentLockEncoded(encoded){const name=decodeURIComponent(encoded);toggleEquipmentLock(name);queueEquipmentRefreshV2906('bag',30);}
+function toggleEquippedLockEncoded(encoded){const name=decodeURIComponent(encoded);toggleEquipmentLock(name);queueEquipmentRefreshV2906('panel',30);}
 function equipItemFromEncoded(encoded){return equipItemFromInventory(decodeURIComponent(encoded));}
 
 function getEquippedPower(){return Math.max(0,calculateEquipmentLoadoutScore(player.equipment||{}));}
@@ -98,7 +98,7 @@ function unequipAllGear(){
   if(typeof confirm==='function'&&!confirm(`确定卸下 ${movable.length} 件未锁定装备吗？${lockedCount?`\n另有 ${lockedCount} 件锁定装备会保留。`:''}`))return false;
   for(const [slot,name] of movable){player.equipmentInventory.push(name);player.equipment[slot]=null;}
   checkSetBonuses();player.hp=Math.min(player.hp,getMaxHp());player.mp=Math.min(player.mp,getMaxMp());updateStats();updateWorldHUD?.();autoSave?.();
-  showFloatingText?.(`↩️ 已卸下 ${movable.length} 件${lockedCount?` · 保留锁定${lockedCount}件`:''}`,'#ffd700');setTimeout(showEquipmentPanel,80);return true;
+  showFloatingText?.(`↩️ 已卸下 ${movable.length} 件${lockedCount?` · 保留锁定${lockedCount}件`:''}`,'#ffd700');queueEquipmentRefreshV2906('panel',80);return true;
 }
 
 // 手动操作锁定装备仍允许，但增加一次确认，避免误点。
@@ -127,6 +127,7 @@ function renderEquipSlots(slots){
 }
 
 function showEquipmentPanel(){
+  if(!player||gameState!=='exploring'||!forgeAllowedV2825())return false;
   resetWorldMovementV28686();
   toggleCharacterPanel?.(false);document.getElementById('equipmentPanel')?.remove();migrateLooseEquipmentToEquipmentInventory(player);ensureEquipmentManagerState();checkSetBonuses();
   const panel=document.createElement('div');panel.id='equipmentPanel';panel.className='equipment-panel-overlay';
@@ -149,28 +150,39 @@ function getDismantleOptionsV286846(){return ['MORTAL','GOOD','FINE','EXCELLENT'
 function setEquipmentDismantleQuality(key){if(!getDismantleOptionsV286846().includes(key))return false;equipmentDismantleQuality=key;showEquipmentInventory();return true;}
 function getBagCountByName(name){return (player.equipmentInventory||[]).reduce((n,x)=>n+(x===name?1:0),0);}
 function getEquippedCountByName(name){return Object.values(player.equipment||{}).reduce((n,x)=>n+(x===name?1:0),0);}
-function getProtectedBagCount(name){
-  const bagCount=getBagCountByName(name);if(!bagCount)return 0;if(getEquipData(name)?.forgeBaseV2825||isEquipmentLocked(name))return bagCount;
-  let protect=0;
-  // 更优装备至少保留一件；套装关键件如果当前没穿，也至少保留一件。
-  if(isInventoryEquipUpgrade(name))protect=Math.max(protect,1);
-  // 当前境界尚不能穿的装备可能是未来成长装备，至少保留一件。
-  if(!canEquipItem(name).ok)protect=Math.max(protect,1);
-  if(isEquipmentSetPiece(name)&&getEquippedCountByName(name)===0)protect=Math.max(protect,1);
-  return Math.min(bagCount,protect);
+function getDismantleProtectionV286879(){
+  // 一次预览/渲染只求一次配装；不要为每种装备重复扫描和优化整个背包。
+  if(!EQC_V2905.pass)return equipPassV2905(getDismantleProtectionV286879,this,[]);
+  const memo=EQC_V2905.memo,key='dismantleProtectionV286879';if(memo?.has(key))return memo.get(key);
+  const best=getBestEquipmentLoadout()?.loadout||{},counts=new Map(),equipped=new Map(),wanted=new Map(),protectedCounts=new Map();
+  const add=(map,name)=>{if(name)map.set(name,(map.get(name)||0)+1);};
+  for(const name of player.equipmentInventory||[])add(counts,name);
+  for(const name of Object.values(player.equipment||{}))add(equipped,name);
+  for(const [slot,name] of Object.entries(best))if(name&&isEquipSlotUnlocked(slot)&&getAllowedSlotsForEquip(getEquipData(name)).includes(slot))add(wanted,name);
+  for(const [name,bagCount] of counts){
+    const data=getEquipData(name);
+    if(!data||data.forgeBaseV2825||isEquipmentLocked(name)){protectedCounts.set(name,bagCount);continue;}
+    // 双戒指、三法宝等多槽要保留配装需要的全部副本；已穿戴的同名件先抵扣。
+    let protect=Math.max(0,(wanted.get(name)||0)-(equipped.get(name)||0));
+    // 保留原有的更优装、未来境界成长装和未穿套装关键件保护。
+    if(isInventoryEquipUpgrade(name)||!canEquipItem(name).ok||isEquipmentSetPiece(name)&&!equipped.get(name))protect=Math.max(protect,1);
+    protectedCounts.set(name,Math.min(bagCount,protect));
+  }
+  const result={counts,protectedCounts};memo?.set(key,result);return result;
 }
-function getSafeDismantleCountForName(name){if(getEquipData(name)?.forgeBaseV2825)return 0;return Math.max(0,getBagCountByName(name)-getProtectedBagCount(name));}
+function getProtectedBagCount(name){return getDismantleProtectionV286879().protectedCounts.get(name)||0;}
+function getSafeDismantleCountForName(name){const plan=getDismantleProtectionV286879();return Math.max(0,(plan.counts.get(name)||0)-(plan.protectedCounts.get(name)||0));}
 function getDismantleValue(name){
   const d=getEquipData(name);if(!d)return 0;const bases={MORTAL:5,GOOD:12,FINE:30,EXCELLENT:75,LING_PIN:180,BAO_QI:500,SPIRIT:180,IMMORTAL:1400,TIAN_QI:3600,SHENG_QI:8500,DAO_QI:18000,GOD:25000};
   return Math.max(1,Math.round((bases[d.quality]||5)*(1+Math.max(0,Number(d.realmRequired)||0)*.12)));
 }
 function getBulkDismantlePreview(threshold=equipmentDismantleQuality){
   if(!getDismantleOptionsV286846().includes(threshold))threshold='EXCELLENT';
-  const maxIdx=Math.max(0,QUALITY_KEYS.indexOf(threshold)),counts={};for(const n of (player.equipmentInventory||[]))counts[n]=(counts[n]||0)+1;
+  const maxIdx=Math.max(0,QUALITY_KEYS.indexOf(threshold)),plan=getDismantleProtectionV286879();
   const rows=[];let count=0,gold=0;
-  for(const [name,total] of Object.entries(counts)){
+  for(const [name,total] of plan.counts){
     const d=getEquipData(name);if(!d)continue;const qi=QUALITY_KEYS.indexOf(d.quality);if(qi<0||qi>maxIdx)continue;
-    const safe=Math.max(0,total-getProtectedBagCount(name));if(!safe)continue;const each=getDismantleValue(name);rows.push({name,count:safe,each,total:each*safe});count+=safe;gold+=each*safe;
+    const safe=Math.max(0,total-(plan.protectedCounts.get(name)||0));if(!safe)continue;const each=getDismantleValue(name);rows.push({name,count:safe,each,total:each*safe});count+=safe;gold+=each*safe;
   }
   return {rows,count,gold};
 }
@@ -185,7 +197,7 @@ function bulkDismantleEquipment(){
   const remove={};for(const r of preview.rows)remove[r.name]=r.count;const next=[];
   for(const name of (player.equipmentInventory||[])){if((remove[name]||0)>0)remove[name]--;else next.push(name);}
   player.equipmentInventory=next;player.gold=(Number(player.gold)||0)+preview.gold;updateStats();updateWorldHUD?.();autoSave?.();
-  showFloatingText?.(`🧩 分解 ${preview.count} 件装备 · +${preview.gold} 灵石`,'#ffbd8e');setTimeout(()=>{if(player===owner&&gameState!=='start'&&forgeAllowedV2825())showEquipmentInventory();},60);return true;
+  showFloatingText?.(`🧩 分解 ${preview.count} 件装备 · +${preview.gold} 灵石`,'#ffbd8e');queueEquipmentRefreshV2906('bag',60);return true;
 }
 function dismantleOneEquipmentEncoded(encoded){
   if(gameState==='start'||!forgeAllowedV2825())return false;const owner=player;
@@ -194,7 +206,7 @@ function dismantleOneEquipmentEncoded(encoded){
   if(qi>=4&&typeof confirm==='function'&&!confirm(`【${name}】为${q?.name||'高品质'}装备，确定分解 1 件吗？`))return false;
   if(player!==owner||gameState==='start'||!forgeAllowedV2825()||!getSafeDismantleCountForName(name))return false;
   const idx=player.equipmentInventory.indexOf(name);if(idx<0)return false;player.equipmentInventory.splice(idx,1);player.gold=(Number(player.gold)||0)+value;
-  updateStats();updateWorldHUD?.();autoSave?.();showFloatingText?.(`🧩 分解【${name}】 · +${value} 灵石`,'#ffbd8e');setTimeout(()=>{if(player===owner&&gameState!=='start'&&forgeAllowedV2825())showEquipmentInventory();},50);return true;
+  updateStats();updateWorldHUD?.();autoSave?.();showFloatingText?.(`🧩 分解【${name}】 · +${value} 灵石`,'#ffbd8e');queueEquipmentRefreshV2906('bag',50);return true;
 }
 
 let equipmentBagExpandedV2803=true;
@@ -334,7 +346,7 @@ function showGradeUpgradePanelV2869(){
 // 初始化锁定字段；旧存档无需迁移结构，下一次保存会自动写入 player。
 try{ensureEquipmentManagerState();}catch(_){ }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-12-v277equipmentmanager.js"]="28.68.78";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-12-v277equipmentmanager.js"]="28.68.83";
 
 const LOADOUT_NAMES_V2870=['方案一·日常','方案二·爆发','方案三·护体'];
 function saveLoadoutPresetV2870(index){
@@ -435,6 +447,7 @@ function bagSearchWordsV2905(s){
  return words.concat(ss.trim()?ss.trim().split(/\s+/):[]).filter(Boolean);
 }
 function bagRowsV2905(){
+ if(!EQC_V2905.pass)return equipPassV2905(bagRowsV2905,this,[]);
  const bag=player.equipmentInventory||[],counts=new Map(),last=new Map();
  bag.forEach((n,i)=>{counts.set(n,(counts.get(n)||0)+1);last.set(n,i);});
  const rows=[];
@@ -495,8 +508,13 @@ function bagRenderListV2905(){
  const box=document.getElementById('bagListV2905');if(!box)return false;
  equipPassV2905(()=>{box.innerHTML=bagListHtmlV2905();},null,[]);return true;
 }
-function showEquipmentInventoryV2905(){
+function showEquipmentInventoryV2905(options){
  if(!player||gameState==='start'||!forgeAllowedV2825())return false;resetWorldMovementV28686();
+ const oldRoot=document.getElementById('bagViewV2905'),oldPanel=document.getElementById('storyPanel'),focused=document.activeElement;
+ const previous=options?.preserveView&&BAG_RT_V2905.owner===player&&oldRoot?.isConnected&&!oldPanel?.classList.contains('hidden')?{
+  scroll:oldPanel.scrollTop,salvage:!!oldRoot.querySelector('.bv-salvage')?.open,
+  focus:oldRoot.contains(focused)?{id:focused.id,kind:focused.dataset?.bv,enc:focused.dataset?.enc,value:focused.dataset?.v}:null
+ }:null;
  if(BAG_RT_V2905.owner!==player){clearTimeout(BAG_RT_V2905.timer);BAG_RT_V2905.owner=player;BAG_RT_V2905.search='';BAG_RT_V2905.open=null;}
  migrateLooseEquipmentToEquipmentInventory(player);ensureEquipmentManagerState();document.getElementById('equipmentPanel')?.remove();
  const prefs=bagPrefsV2905(),items=player.equipmentInventory||[];
@@ -506,12 +524,12 @@ function showEquipmentInventoryV2905(){
  const qualityOpts=[['ALL','全部品质'],...QUALITY_KEYS.map(k=>[k,getQualityInfo(k).name])].map(([k,l])=>`<option value="${k}"${prefs.quality===k?' selected':''}>${bagEscV2905(l)}</option>`).join('');
  const sortOpts=Object.entries(BAGVIEW_V2905.sorts).map(([k,l])=>`<option value="${k}"${prefs.sort===k?' selected':''}>按${l}</option>`).join('');
  const dOpts=dismantle.map(k=>`<option value="${k}"${equipmentDismantleQuality===k?' selected':''}>≤${bagEscV2905(getQualityInfo(k).name)}</option>`).join('');
- const html=`<section id="bagViewV2905" class="bag-view-v2905"><div class="equipment-bag-toolbar-v2803"><strong>装备背包</strong><div><button type="button" id="equipmentBagSizeV2803" onclick="toggleEquipmentBagSizeV2803()">收起面板</button><button type="button" onclick="closeWorldOverlay()" aria-label="关闭装备背包">关闭 ✕</button></div></div>`
-  +`<p class="bv-summary">📦 <b>${items.length}</b> 件 · <span class="equip-power-chip">⚡ 当前装备 ${Math.round(getEquippedPower())}</span>${lockedCount?` · 🔒 ${lockedCount}`:''}</p>`
+ const html=`<section id="bagViewV2905" class="bag-view-v2905"><div class="bv-sticky"><div class="equipment-bag-toolbar-v2803"><strong>装备背包</strong><div><button type="button" id="equipmentBagSizeV2803" onclick="toggleEquipmentBagSizeV2803()">收起面板</button><button type="button" onclick="closeWorldOverlay()" aria-label="关闭装备背包">关闭 ✕</button></div></div>`
   +`<div class="bv-tools"><input type="search" id="bagSearchV2905" class="bv-search" placeholder="搜索名称、部位、品质、套装" value="${bagEscV2905(BAG_RT_V2905.search)}" aria-label="搜索装备" maxlength="60" enterkeyhint="search">`
   +`<div class="bv-chips" role="group" aria-label="部位">${groupChips}</div>`
   +`<div class="bv-selects"><label><span>品质</span><select data-bv="quality" aria-label="品质筛选">${qualityOpts}</select></label><label><span>排序</span><select data-bv="sort" aria-label="排序方式">${sortOpts}</select></label></div>`
-  +`<div class="bv-chips"><button type="button" class="bv-chip${prefs.wearable?' on':''}" data-bv="wearable" aria-pressed="${prefs.wearable}">只看可穿</button><button type="button" class="bv-chip${prefs.upgrades?' on':''}" data-bv="upgrades" aria-pressed="${prefs.upgrades}">只看更优</button></div></div>`
+  +`<div class="bv-chips"><button type="button" class="bv-chip${prefs.wearable?' on':''}" data-bv="wearable" aria-pressed="${prefs.wearable}">只看可穿</button><button type="button" class="bv-chip${prefs.upgrades?' on':''}" data-bv="upgrades" aria-pressed="${prefs.upgrades}">只看更优</button></div></div></div>`
+  +`<p class="bv-summary">📦 <b>${items.length}</b> 件 · <span class="equip-power-chip">⚡ 当前装备 ${Math.round(getEquippedPower())}</span>${lockedCount?` · 🔒 ${lockedCount}`:''}</p>`
   +`<details class="bv-salvage"><summary>🧩 安全分解 ${preview.count?`· 可分 ${preview.count} 件`:''}</summary><p>只处理背包中的低品质冗余装备；锁定、更优装备、未达境界装备、必要套装件自动保留。</p>`
   +`<label><span>分解上限</span><select data-bv="dq" aria-label="分解上限">${dOpts}</select></label><button type="button" class="equip-dismantle-btn" data-bv="bulk">🔥 一键安全分解 ${preview.count?`${preview.count}件 · +${preview.gold}灵石`:'（无可分解）'}</button></details>`
   +`<div id="bagListV2905" class="bv-list"></div>`
@@ -519,7 +537,14 @@ function showEquipmentInventoryV2905(){
  showStory(html,[]);
  const panel=document.getElementById('storyPanel');panel?.classList.add('equipment-bag-view-v2803');try{syncEquipmentBagSizeV2803();}catch(_){}if(panel)panel.scrollTop=0;
  const root=document.getElementById('bagViewV2905');if(root)bagBindV2905(root);
- bagRenderListV2905();return true;
+ bagRenderListV2905();
+ if(previous&&root){
+  const salvage=root.querySelector('.bv-salvage');if(salvage)salvage.open=previous.salvage;
+  const f=previous.focus,focus=f?.id?document.getElementById(f.id):f?.kind?Array.from(root.querySelectorAll('[data-bv]')).find(el=>el.dataset.bv===f.kind&&el.dataset.enc===f.enc&&el.dataset.v===f.value):null;
+  try{focus?.focus({preventScroll:true});}catch(_){}
+  if(panel)panel.scrollTop=previous.scroll;
+ }
+ return true;
 }
 function bagBindV2905(root){
  const owner=player,active=()=>owner===player&&root.isConnected&&gameState!=='start'&&forgeAllowedV2825();
@@ -577,7 +602,9 @@ function installBagStylesV2905(){
  st.textContent=`
 .bag-view-v2905{font-size:14px;line-height:1.5}
 .bag-view-v2905 .bv-summary{margin:6px 0;font-size:14px}
-.bag-view-v2905 .bv-tools{position:sticky;top:0;z-index:2;display:grid;gap:6px;padding:8px 0;background:rgba(14,18,16,.97);border-bottom:1px solid rgba(242,210,122,.18)}
+.bag-view-v2905 .bv-sticky{position:sticky;top:-12px;z-index:5;margin:-12px -12px 0;padding:0 12px;background:#111c1c}
+.bag-view-v2905 .equipment-bag-toolbar-v2803{position:static;margin:0 -12px}
+.bag-view-v2905 .bv-tools{display:grid;gap:6px;padding:8px 0;background:rgba(14,18,16,.97);border-bottom:1px solid rgba(242,210,122,.18)}
 .bag-view-v2905 .bv-search{width:100%;box-sizing:border-box;min-height:40px;padding:8px 12px;border-radius:10px;border:1px solid rgba(242,210,122,.35);background:rgba(255,255,255,.06);color:#f3ecd8;font-size:16px}
 .bag-view-v2905 .bv-chips{display:flex;gap:6px;flex-wrap:wrap}
 .bag-view-v2905 .bv-chip{min-height:36px;padding:4px 12px;border-radius:999px;border:1px solid rgba(242,210,122,.3);background:rgba(255,255,255,.04);color:#d8ccb0;font-size:14px}

@@ -147,6 +147,8 @@
       if(p.inventory.some(n=>typeof n!=='string')||p.inventory.length>100000)throw Error('背包数据无效');
       for(const k of ['gold','exp','hp','mp'])if(!Number.isFinite(p[k])||p[k]<0)throw Error('角色数值无效');
       validateSaveTextV2869(data);
+      // Older realm schemas must migrate their stage before establishing the new reward boundary.
+      if(Number(p.realmSchemaVersion)>=4)normalizeDaoV286883(p);else delete p.daoV286883;
       return data;
     }
     // Incomplete battles save the pre-battle snapshot, never a paid half-action.
@@ -156,7 +158,7 @@
       if(gameState==='combat' && battleCheckpointV286812?.owner===player){
         return {...JSON.parse(battleCheckpointV286812.raw),timestamp:Date.now(),interruptedBattleV286812:true};
       }
-      const clean=JSON.parse(JSON.stringify(player));normalizeItemCountsV2905(clean);
+      const clean=JSON.parse(JSON.stringify(player));normalizeItemCountsV2905(clean);normalizeDaoV286883(clean);
       return {player:clean,achievements:{progress:{...achievementProgress},completed:Array.from(completedAchievements)},timestamp:Date.now(),version:SAVE_VERSION};
     }
     function writeSaveV2768(raw) {
@@ -2455,7 +2457,7 @@
       return Object.entries(LONGEVITY_PILLS).reduce((sum,[name,d])=>sum+state.uses[name]*d.years,0);
     }
     function getTotalMaxLifespan(p=player) {
-      return calculateMaxLifespan(p?.level||0)+getLongevityBonus(p)+Math.max(0,Number(p?.realmLifeCreditV2793)||0);
+      return Math.max(1,calculateMaxLifespan(p?.level||0)+getLongevityBonus(p)+Math.max(0,Number(p?.realmLifeCreditV2793)||0)+daoBonusesV286883(p).life);
     }
     function useLongevityPill(name) {
       const d=LONGEVITY_PILLS[name];
@@ -2563,10 +2565,10 @@
       return d&&player.level>=d.level&&player.inventory?.includes(name)?name:null;
     }
     function selectBreakthroughPillV28683(name){
-      if(gameState==='combat'||gameState==='combat-ending'||player.breakthrough?.isAnimating)return;
+      if(breakthroughBusyV2905()||breakthroughRunV2781||player.breakthrough?.isAnimating||player.breakthrough?.pendingV28683)return false;
       if(name&&(!BREAKTHROUGH_PILLS_V28683[name]||player.level<BREAKTHROUGH_PILLS_V28683[name].level||!player.inventory.includes(name)))return;
-      player.breakthrough ||= {};player.breakthrough.pillV28683=name||null;
-      autoSave();showRetreatBreakthroughV2798();
+      if(!commitBreakthroughV2905(()=>{player.breakthrough||={};player.breakthrough.pillV28683=name||null;return true;}))return false;
+      showRetreatBreakthroughV2798();return true;
     }
     function buyBreakthroughPillV28683(name){
       const d=BREAKTHROUGH_PILLS_V28683[name];
@@ -2576,7 +2578,35 @@
     }
     function breakthroughDetailsV28683(){
       const d=calculateBreakthroughSuccess();
-      return `<p>本次成功率：${Math.round(d.rate*100)}% · 当前瓶颈已失败 ${d.failures} 次${d.guaranteed?' · 本次保底成功':''}<br>基础 ${Math.round(d.base*100)}% · 丹药 +${Math.round(d.pillBonus*100)}% · 宗门 +${Math.round(d.sectBonus*100)}% · 状态/心结 -${Math.round(d.statusPenalty*100)}%<br>常规概率限制在5%—95%，再加失败保护 +${Math.round(d.pityBonus*100)} 个百分点；连续失败5次后下一次必成。成功后清零，读档保留。</p><p>本次丹药：${d.pillName||'不使用'}。开始尝试时消耗一颗，成功或失败均消耗；预览不消耗，不叠加多种丹药；保底时不消耗丹药。<br>失败损失 ${Math.floor(getCurrentExpNeed()*.15)} 修为，气血变为上限60%、灵力变为上限50%，调息30—49个游戏日。飞升天劫不适用此保底。</p>`;
+      if(!d.daoActive)return `<p>本次成功率：${Math.round(d.rate*100)}% · 当前瓶颈已失败 ${d.failures} 次${d.guaranteed?' · 本次保底成功':''}<br>基础 ${Math.round(d.base*100)}% · 丹药 +${Math.round(d.pillBonus*100)}% · 宗门 +${Math.round(d.sectBonus*100)}% · 状态/心结 -${Math.round(d.statusPenalty*100)}%<br>常规概率限制在5%—95%，再加失败保护 +${Math.round(d.pityBonus*100)} 个百分点；连续失败5次后下一次必成。成功后清零，读档保留。</p><p>本次丹药：${d.pillName||'不使用'}。开始尝试时消耗一颗，成功或失败均消耗；预览不消耗，不叠加多种丹药；保底时不消耗丹药。<br>失败损失 ${Math.floor(getCurrentExpNeed()*.15)} 修为，气血变为上限60%、灵力变为上限50%，调息30—49个游戏日。飞升天劫不适用此保底。</p>`;
+      const P=v=>`${Number((v*100).toFixed(1))}%`,points=v=>`${v>0?'+':v<0?'−':'±'}${Number((Math.abs(v)*100).toFixed(1))} 个百分点`;
+      const rows=d.factorsV286883,sum=rows.reduce((n,r)=>n+r.v,0),limited=Math.max(.05,Math.min(.95,sum)),afterPity=limited+d.pityBonus;
+      const state=daoStateV286883(),bonus=daoBonusesV286883(),repeat=daoRewardedV286883(`${player.level}:${player.phase||0}`);
+      const q=daoQualityOddsV286883(d.rate,d.guaranteed),f=daoFailOddsV286883(),major=(player.phase||0)===3,need=getCurrentExpNeed();
+      const qualityRows=Object.entries(DAO_BT_V286883.quality).map(([kind,def])=>{
+        const stat=repeat?0:Math.max(0,Math.min(def.stat,DAO_BT_V286883.statCap-bonus.stat));
+        const life=repeat||!major?0:Math.floor(calculateMaxLifespan(player.level+1)*def.life);
+        return `<li><div class="dao-outcome-head-v286883"><b>${def.name}</b><span>${P(q[kind])}</span></div><small>${repeat?'此阶段奖励已领取':`攻击／防御／气血 +${P(stat)}${life?`；寿元上限 +${life} 年（新境界寿元的 ${P(def.life)}）`:'；本次无额外寿元'}；根基记录 ${def.point>0?'+':''}${def.point}${kind==='perfect'?'；同时治愈经脉暗伤':''}`}</small></li>`;
+      }).join('');
+      const failNotes={
+        minor:'持续60游戏日：突破率 −10 个百分点，灵力恢复 −20%；随游戏日自然恢复，玄玉护脉丹可治愈。',
+        moderate:'持续60游戏日：战斗与修炼修为 −20%；任务、丹药和一次性奖励不受影响。',
+        severe:'降一小阶段至后期，当前修为清零；根基动摇360游戏日，突破率 −10 个百分点。每个瓶颈最多一次，原瓶颈失败保护保留。',
+        epiphany:`基础失败扣损后，额外获得 ${Math.floor(need*.30)} 修为（本次门槛的30%）。`,
+        lifespan:`寿元上限减少 ${Math.max(1,Math.floor(getTotalMaxLifespan()*.02))} 年（当前总上限的2%，向下取整，至少1年）。`
+      };
+      const failRows=Object.entries(f).filter(([,chance])=>chance>0).map(([kind,chance])=>`<li><div class="dao-outcome-head-v286883"><b>${DAO_BT_V286883.failure[kind]}</b><span>${P(chance)}</span></div><small>${failNotes[kind]}</small></li>`).join('');
+      return `<section class="dao-panel-v286883" aria-label="突破概率与代价">
+        <div class="dao-total-v286883"><span>本次成功率</span><strong>${P(d.rate)}</strong></div>
+        <p class="dao-note-v286883">当前瓶颈已失败 ${d.failures} 次${d.guaranteed?' · 本次保底成功':''}</p>
+        <dl class="dao-factors-v286883">${rows.map(r=>`<div><dt>${escapeGameText(r.name)}${r.note?`<small>${escapeGameText(r.note)}</small>`:''}</dt><dd class="${r.v>0?'up':r.v<0?'down':''}">${r.key==='base'?P(r.v):points(r.v)}</dd></div>`).join('')}</dl>
+        <div class="dao-formula-v286883"><p>各项相加 <b>${P(sum)}</b> → 限制在5%—95%后 <b>${P(limited)}</b>${Math.abs(limited-sum)>.000001?`（截断调整 ${points(limited-sum)}）`:''}</p>
+        ${d.guaranteed?'<p><b>连续失败5次，本次直接保底100%。</b></p>':`<p>失败保护 ${points(d.pityBonus)} → ${P(afterPity)} → 最终 <b>${P(d.rate)}</b>${afterPity>.95?'（超过95%的部分不计入）':''}</p>`}
+        <p class="dao-note-v286883">每失败一次 +15 个百分点，常规最终上限95%；连续失败5次后下一次必成。成功后清零，读档保留。飞升天劫不适用。</p></div>
+        <p class="dao-cost-v286883"><b>本次丹药：${escapeGameText(d.pillName||'不使用')}</b><br>${d.guaranteed?'本次保底，不消耗丹药。':'开始尝试时消耗所选丹药一颗，成功或失败均消耗。'}预览不消耗，丹药不叠加。</p>
+        <details class="dao-outcomes-v286883"><summary>成功品质 · 查看概率与奖励</summary><p class="dao-note-v286883">以下为成功后的条件概率；每次只获得一种品质。每个阶段首次成功才发奖，重修不重复发放。${repeat?'此阶段已领取品质奖励。':''}</p><ul>${qualityRows}</ul><p class="dao-note-v286883">品质累计属性 +${P(bonus.stat)}／上限 +${P(DAO_BT_V286883.statCap)}。额外寿元仅大境界首次成功可得，勉强／顺利／完美分别为新境界寿元的 ${Object.values(DAO_BT_V286883.quality).map(v=>P(v.life)).join('／')}。最近5次首次成功品质影响根基与后续突破。</p></details>
+        ${d.guaranteed?'<p class="dao-note-v286883">本次必成，不会发生失败代价或失败分支。</p>':`<p class="dao-cost-v286883 dao-risk-v286883"><b>失败基础代价</b><br>损失 ${Math.floor(need*.15)} 修为；气血变为上限60%，灵力变为上限50%；调息30—49个游戏日。之后另抽取下方一种失败分支。</p><details class="dao-outcomes-v286883"><summary>若失败 · 查看分支与后果</summary><p class="dao-note-v286883">以下为失败后的条件概率。所有分支都先结算上述基础代价，再触发一种额外后果。</p><ul>${failRows}</ul>${!f.severe?`<p class="dao-note-v286883">本次无跌境风险：${state.heldProtection?.key===`${player.level}:${player.phase||0}`?'此瓶颈已发生过一次跌境。':'仅炼虚及以后圆满阶段冲击大境界时可能发生。'}</p>`:''}</details>`}
+      </section>`;
     }
     // V2902: late-game income/cost calibration. No new save fields or balance compensation.
     const LATE_ECONOMY_V2902=Object.freeze({
@@ -2628,7 +2658,106 @@
       const heartDemonRisk=level>=3?Math.min(.75,.10+(level-3)*.03+(player.heartDemon?.broken?0:.08)):0;
       const {failures}=breakthroughProtectionV28683(),guaranteed=failures>=5&&!isFinalTribulationGate(),pityBonus=isFinalTribulationGate()?0:failures*.15;
       const rate=guaranteed?1:Math.min(.95,Math.max(.05,Math.min(.95,base+pillBonus+sectBonus-statusPenalty))+pityBonus);
-      return {rate,base,failures,guaranteed,pityBonus,pillName,heartDemonRisk,hasHeartDemon:hasStatusEffect('xinmo'),pillBonus,sectBonus,statusPenalty};
+      const details={rate,base,failures,guaranteed,pityBonus,pillName,heartDemonRisk,hasHeartDemon:hasStatusEffect('xinmo'),pillBonus,sectBonus,statusPenalty};
+      if(daoActiveV286883(level,phase)){
+        details.daoActive=true;details.factorsV286883=daoFactorsV286883(details);
+        const sum=details.factorsV286883.reduce((n,r)=>n+r.v,0);
+        details.rate=guaranteed?1:Math.min(.95,Math.max(.05,Math.min(.95,sum))+pityBonus);
+      }
+      return details;
+    }
+
+    // Breakthrough depth: first-success ledger, bounded factors, and precommitted outcomes.
+    const DAO_BT_V286883=Object.freeze({
+      quality:Object.freeze({barely:Object.freeze({name:'勉强突破',stat:.001,life:0,point:-1}),normal:Object.freeze({name:'顺利突破',stat:.002,life:.02,point:0}),perfect:Object.freeze({name:'完美突破',stat:.004,life:.05,point:1})}),
+      failure:Object.freeze({minor:'经脉暗伤',moderate:'道心受损',severe:'境界跌落',epiphany:'败中顿悟',lifespan:'折损寿元'}),statCap:.10
+    });
+    function daoActiveV286883(level=player?.level,phase=player?.phase||0){return Number.isInteger(level)&&level>=4&&level<=16&&Number.isInteger(phase)&&phase>=0&&phase<=3&&!(level===9&&phase===3)&&!(level===16&&phase===3);}
+    function daoKeyV286883(key){
+      if(typeof key!=='string'||!/^\d{1,2}:[0-3]$/.test(key))return null;
+      const [level,phase]=key.split(':').map(Number);return key===`${level}:${phase}`&&daoActiveV286883(level,phase)?{level,phase}:null;
+    }
+    function daoStateV286883(p=player){
+      const raw=p?.daoV286883,s=raw&&typeof raw==='object'&&!Array.isArray(raw)?raw:{},awards={};
+      const stage=Math.max(0,Math.min(67,(Number(p?.level)||0)*4+(Number(p?.phase)||0)));
+      const held=s.heldProtection,heldAt=daoKeyV286883(held?.key),n=held?.failures;
+      const heldProtection=heldAt&&heldAt.level>=6&&heldAt.phase===3&&heldAt.level===p?.level&&[2,3].includes(p?.phase)&&Number.isFinite(n)&&n>=1?{key:held.key,failures:Math.min(5,Math.floor(n))}:null;
+      const introducedAt=Number.isInteger(s.introducedAt)&&s.introducedAt>=0&&s.introducedAt<=stage+(heldProtection&&p?.phase===2?1:0)?s.introducedAt:stage;
+      const rawAwards=s.awards&&typeof s.awards==='object'&&!Array.isArray(s.awards)?s.awards:{};
+      for(const key of Object.keys(rawAwards).slice(0,80)){
+        const at=daoKeyV286883(key),kind=rawAwards[key];
+        if(at&&at.level*4+at.phase>=introducedAt&&(at.level*4+at.phase<stage||heldProtection&&p?.phase===2&&at.level*4+at.phase===stage)&&typeof kind==='string'&&Object.hasOwn(DAO_BT_V286883.quality,kind))awards[key]=kind;
+      }
+      const history=Array.isArray(s.history)?[...new Set(s.history.filter(k=>typeof k==='string'&&Object.hasOwn(awards,k)))].slice(-5):[];
+      const loss=s.lifeLoss,lifeLoss=typeof loss==='number'&&Number.isFinite(loss)?Math.max(0,Math.min(1e9,Math.floor(loss))):0;
+      const last=s.last&&typeof s.last==='object'&&daoKeyV286883(s.last.key)&&typeof s.last.kind==='string'&&(Object.hasOwn(DAO_BT_V286883.quality,s.last.kind)||Object.hasOwn(DAO_BT_V286883.failure,s.last.kind))?{key:s.last.key,kind:s.last.kind}:null;
+      return {v:1,introducedAt,awards,history,lifeLoss,heldProtection,last};
+    }
+    function normalizeDaoV286883(p){if(p&&typeof p==='object')p.daoV286883=daoStateV286883(p);}
+    function daoRewardedV286883(key){const s=daoStateV286883(),at=daoKeyV286883(key);return !at||at.level*4+at.phase<s.introducedAt||Object.hasOwn(s.awards,key);}
+    function daoBonusesV286883(p=player){
+      if(!p?.daoV286883)return {stat:0,life:0};
+      const s=daoStateV286883(p);let stat=0,life=-s.lifeLoss;
+      for(const [key,kind] of Object.entries(s.awards)){const at=daoKeyV286883(key),q=DAO_BT_V286883.quality[kind];stat+=q.stat;if(at.phase===3)life+=Math.floor(calculateMaxLifespan(at.level+1)*q.life);}
+      return {stat:Math.min(DAO_BT_V286883.statCap,Math.round(stat*10000)/10000),life};
+    }
+    function daoFoundationV286883(){const s=daoStateV286883();return Math.max(-2,Math.min(3,s.history.reduce((n,k)=>n+DAO_BT_V286883.quality[s.awards[k]].point,0)));}
+    function daoLuckV286883(){return Math.min(4,Math.floor((typeof completedAchievements!=='undefined'?completedAchievements.size:0)/8));}
+    function daoFactorsV286883(d){
+      const hp=Math.max(0,Number(player.hp)||0)/Math.max(1,getMaxHp()),body=hp>=.8?.02:hp<.4?-.04:0;
+      const heart=(hasStatusEffect('xinmo')?.20:0)+getHeartDemonBreakthroughPenalty(),jing=hasStatusEffect('jingmai')?.10:0;
+      const art=player.activeArtifact,owned=!!art&&!!ARTIFACT_TYPES[art.type]&&Array.isArray(player.artifacts)&&player.artifacts.some(a=>a===art||a?.id&&a.id===art.id);
+      const bad=!!activeRegionDebuff,vein=hasStatusEffect('lingmai'),place=(vein?.03:0)-(bad?.03:0);
+      return [{key:'base',name:'境界基础',v:d.base},{key:'heart',name:'道心',v:-heart,note:heart?'心结／心魔影响':'心境澄明'},
+        {key:'luck',name:'气运',v:daoLuckV286883()*.005,note:'每8项成就+0.5，上限2个百分点'},
+        {key:'foundation',name:'根基',v:daoFoundationV286883()*.01-(hasStatusEffect('jichuV286883')?.10:0),note:hasStatusEffect('jichuV286883')?'根基动摇':'最近5次首次成功品质'},
+        {key:'body',name:'体魄',v:body-jing,note:`气血${Math.round(hp*100)}%${jing?' · 经脉暗伤':''}`},
+        {key:'aids',name:'外物',v:d.pillBonus+(owned?.02:0),note:[d.pillName,owned?'已装备法宝':null].filter(Boolean).join('、')||'无'},
+        {key:'sect',name:'宗门',v:d.sectBonus},{key:'place',name:'地利',v:place,note:[vein?'灵脉通透':null,bad?'地域不利状态':null].filter(Boolean).join('、')||'无加减'}];
+    }
+    function daoQualityOddsV286883(){const shift=Math.max(-4,Math.min(8,daoFoundationV286883()+daoLuckV286883()*.5));return {barely:(10-shift)/100,normal:.78,perfect:(12+shift)/100};}
+    function daoFailOddsV286883(level=player.level,phase=player.phase||0){
+      const severe=level>=6&&phase===3&&daoStateV286883().heldProtection?.key!==`${level}:${phase}`;
+      return {minor:severe?.72:.74,moderate:.16,severe:severe?.02:0,epiphany:.06,lifespan:.04};
+    }
+    function validateDaoPlanV286883(plan,result,success){
+      const level=result?.snapshot?.level,phase=result?.snapshot?.phase;
+      if(!plan||typeof plan!=='object'||plan.v!==1||result?.forced||result?.noAdvance||result?.ascension||!daoActiveV286883(level,phase)||plan.fromLevel!==level||plan.fromPhase!==phase)return null;
+      if(typeof plan.kind!=='string'||!Object.hasOwn(success?DAO_BT_V286883.quality:DAO_BT_V286883.failure,plan.kind))return null;
+      if(plan.kind==='severe'&&(level<6||phase!==3))return null;
+      return {v:1,kind:plan.kind,fromLevel:level,fromPhase:phase};
+    }
+    function planDaoBreakthroughV2905(result,success){
+      if(result?.forced||result?.noAdvance||result?.ascension||!daoActiveV286883(result?.snapshot?.level,result?.snapshot?.phase))return null;
+      const odds=success?daoQualityOddsV286883():daoFailOddsV286883(),roll=Math.random();let acc=0,kind;
+      for(const [k,p] of Object.entries(odds)){acc+=p;if(roll<acc){kind=k;break;}}
+      return {v:1,kind:kind||Object.keys(odds).at(-1),fromLevel:result.snapshot.level,fromPhase:result.snapshot.phase};
+    }
+    function applyDaoBreakthroughV2905(result,success){
+      const plan=validateDaoPlanV286883(result?.daoV2905,result,success);if(!plan)return;
+      const s=daoStateV286883(),key=`${plan.fromLevel}:${plan.fromPhase}`,kind=plan.kind;
+      player.daoV286883=s;
+      const add=(id,name,days,desc)=>{const effect={id,name,type:'debuff',icon:'🌫️',remainingDays:days,desc};const list=Array.isArray(player.statusEffects)?player.statusEffects:[];player.statusEffects=[...list.filter(e=>e?.id!==id),effect];};
+      let text;
+      if(success){
+        const q=DAO_BT_V286883.quality[kind],repeat=daoRewardedV286883(key),oldBonus=daoBonusesV286883().stat;
+        if(!repeat){s.awards[key]=kind;s.history=[...s.history.filter(k=>k!==key),key].slice(-5);}
+        const stat=daoBonusesV286883().stat-oldBonus,life=!repeat&&plan.fromPhase===3?Math.floor(calculateMaxLifespan(plan.fromLevel+1)*q.life):0;
+        text=repeat?'重修已完成阶段，品质属性与寿元不重复发放。':`${q.name} · 攻击／防御／气血 +${Math.max(0,stat*100).toFixed(1)}%${life?` · 寿元上限 +${life}年`:''}`;
+        if(!repeat&&kind==='perfect')player.statusEffects=(player.statusEffects||[]).filter(e=>e?.id!=='jingmai');
+        if(s.heldProtection?.key===`${player.level}:${player.phase}`)player.breakthrough.protectionV28683={...s.heldProtection};
+        if(s.heldProtection?.key===key)s.heldProtection=null;
+      }else{
+        if(s.heldProtection?.key===key)s.heldProtection.failures=player.breakthrough.protectionV28683?.failures||s.heldProtection.failures;
+        if(kind==='minor'){add('jingmai','经脉暗伤',60,'突破成功率 -10个百分点，灵力恢复 -20%；可自然调养或服玄玉护脉丹。');text='经脉暗伤60游戏日；玄玉护脉丹可治愈。';}
+        else if(kind==='moderate'){add('daoshangV286883','道心受损',60,'战斗与修炼修为 -20%；任务、丹药和一次性奖励不受影响。');text='道心受损60游戏日，战斗与修炼修为 -20%。';}
+        else if(kind==='severe'){
+          if(s.heldProtection?.key!==key){s.heldProtection={key,failures:player.breakthrough.protectionV28683?.failures||1};player.phase=2;player.exp=0;player.breakthrough.pendingBreakthrough=false;}
+          add('jichuV286883','根基动摇',360,'突破成功率 -10个百分点');text=`跌落至${getCultivationName()}，当前修为清零；根基动摇360游戏日。原瓶颈失败保护保留。`;
+        }else if(kind==='epiphany'){const gain=Math.floor((Number(result.expNeed)||getCurrentExpNeed())*.30);player.exp=Math.min(Number.MAX_SAFE_INTEGER,player.exp+gain);player.breakthrough.pendingBreakthrough=player.exp>=getCurrentExpNeed();text=`败中顿悟：额外获得${gain}修为（基础失败扣损已结算）。`;}
+        else{const loss=Math.max(1,Math.floor(getTotalMaxLifespan()*.02));s.lifeLoss=Math.min(1e9,s.lifeLoss+loss);text=`折损寿元：寿元上限 -${loss}年。`;}
+      }
+      s.last={key,kind};player.maxLifespan=getTotalMaxLifespan();result.daoTextV286883=text;
     }
 
     function isAtRealmBottleneck() { return (Number(player?.exp)||0) >= getCurrentExpNeed(); }
@@ -5533,6 +5662,7 @@
           cooldownDays: 0,
           pendingBreakthrough: false
         },
+        daoV286883:{v:1,introducedAt:0,awards:{},history:[],lifeLoss:0,heldProtection:null,last:null},
         // ====== 新手引路 ======
         tutorial: {
           completedSteps: [],
@@ -5625,6 +5755,7 @@
 
     function normalizePlayer(saved = {}) {
       saved={...saved};
+      const hadDaoV286883=Number(saved.realmSchemaVersion)>=4&&!!saved.daoV286883&&typeof saved.daoV286883==='object'&&!Array.isArray(saved.daoV286883);
       const record=v=>v&&typeof v==='object'&&!Array.isArray(v)?{...v}:{};
       for(const group of ['mapNpc','tasks']){
         saved[group]=record(saved[group]);
@@ -5776,6 +5907,8 @@
       if(typeof normalizeRelationshipsV2852==='function')merged.relationshipStoriesV2852=normalizeRelationshipsV2852(saved.relationshipStoriesV2852);
       migrateCultivationV2793(merged,saved);
       migrateImmortalV2794(merged,saved);
+      if(!hadDaoV286883)delete merged.daoV286883;
+      normalizeDaoV286883(merged);
       merged.skills=merged.skills.map(s=>({...s,...(SKILLS.find(k=>k.name===s?.name)||{})}));
       // 旧存档按已经流逝的仙历自动补算年龄；寿元由当前大境界与永久延寿次数共同决定。
       merged.age = Math.max(18, merged.age, 18 + Math.floor((merged.worldTime?.totalDays || 0) / GAME_DAYS_PER_YEAR));
@@ -6333,6 +6466,7 @@
     let playerPressureStun = false;
 
     function resetRuntimeState() {
+      clearBreakthroughRuntimeV2905();
       if(typeof resetOnboardingV2901==='function')resetOnboardingV2901();
       document.getElementById('saveRemindV2895')?.remove();
       if(typeof resetMapAliveV2893==='function')resetMapAliveV2893(true);
@@ -6448,21 +6582,21 @@
     function getAtk(){
       let atk=player.baseAtk+getPhaseScaledBonus('atkBonus')+getEquipAtk()+calculateFurnitureBonus().atk;
       if(player.activePet){const t=PET_TYPES[player.activePet.type];if(t?.bonus?.type==='atk')atk+=t.bonus.value+player.activePet.level*2;}
-      return Math.floor(atk*(1+(gearModsV2790().atkPct||0))*(1+miniBoonV286840('atk')));
+      return Math.floor(atk*(1+(gearModsV2790().atkPct||0))*(1+miniBoonV286840('atk'))*(1+daoBonusesV286883().stat));
     }
     
     function getDef(){
       let def=player.baseDef+getPhaseScaledBonus('defBonus')+getEquipDef()+calculateFurnitureBonus().def;
       if(player.activePet){const t=PET_TYPES[player.activePet.type];if(t?.bonus?.type==='def')def+=t.bonus.value+player.activePet.level*3;}
       if(hasStatusEffect('guyuan'))def=Math.floor(def*1.10);
-      return Math.floor(def*(1+(gearModsV2790().defPct||0))*(1+miniBoonV286840('def'))*(1+ownerPetTraitBonusV286849('def')));
+      return Math.floor(def*(1+(gearModsV2790().defPct||0))*(1+miniBoonV286840('def'))*(1+ownerPetTraitBonusV286849('def'))*(1+daoBonusesV286883().stat));
     }
     
     function getCritRateWithSet(){return getCritRate();}
     
     function getDamageBonusWithSet(){return getSetBonusStats().damage||0;}
     
-    function getMaxHp(){let max=player.maxHp+getPhaseScaledBonus('hpBonus')+getEquipHp();if(activeRegionDebuff?.type==='corruption')max=Math.floor(max*.90);return Math.max(1,Math.floor(max*(1+(gearModsV2790().hpPct||0))*(1+ownerPetTraitBonusV286849('hp'))));}
+    function getMaxHp(){let max=player.maxHp+getPhaseScaledBonus('hpBonus')+getEquipHp();if(activeRegionDebuff?.type==='corruption')max=Math.floor(max*.90);return Math.max(1,Math.floor(max*(1+(gearModsV2790().hpPct||0))*(1+ownerPetTraitBonusV286849('hp'))*(1+daoBonusesV286883().stat)));}
     
     function getMaxMp(){const base=Math.max(0,Number(player.maxMp)||0)+Math.floor(player.level*12+(player.phase||0)*4);let max=base*2+getEquipMp();return Math.max(1,Math.floor(max*(1+(gearModsV2790().mpPct||0))));}
 
@@ -6510,7 +6644,10 @@
       return bonus;
     }
     
-    function getExpBonus() {
+    function daoInjuryDaysV286883() {
+      return (player?.statusEffects||[]).reduce((days,e)=>e?.id==='daoshangV286883'&&Number.isFinite(Number(e.remainingDays))?Math.max(days,Math.max(0,Number(e.remainingDays))):days,0);
+    }
+    function getExpBonus(elapsedDays=0) {
       let bonus = 1;
       if (player.activeArtifact) {
         const artType = ARTIFACT_TYPES[player.activeArtifact.type];
@@ -6518,6 +6655,8 @@
           bonus += artType.effect.value + player.activeArtifact.level * 0.02;
         }
       }
+      const hurtDays=daoInjuryDaysV286883(),days=Number(elapsedDays);
+      if(hurtDays>0)bonus*=Number.isFinite(days)&&days>0?1-.2*Math.min(days,hurtDays)/days:.8;
       return bonus;
     }
     
@@ -7861,15 +8000,97 @@
       };
     }
 
-    function recoverPendingBreakthroughV28683(){
+    const BREAKTHROUGH_TX_V2905={active:false,owner:null,sequence:0};
+    function breakthroughBusyV2905(){
+      return !player||gameState!=='exploring'||COMBAT_FINISH_V2764.settling||BREAKTHROUGH_TX_V2905.active||(typeof ITEM_ACTION_V2905!=='undefined'&&ITEM_ACTION_V2905.depth>0);
+    }
+    // The attempt and its result each commit once. Nested achievement/task saves and
+    // notifications stay inside the same transaction, including during load recovery.
+    function commitBreakthroughV2905(change){
+      if(BREAKTHROUGH_TX_V2905.active)return false;
+      const owner=player,raw=JSON.stringify(owner),progress=JSON.stringify(achievementProgress),completed=[...completedAchievements],state=gameState,choices=currentChoices;
+      const artifactIndex=Array.isArray(owner.artifacts)?owner.artifacts.indexOf(owner.activeArtifact):-1;
+      const deferred=miniSaveDeferredV286840,effects=[],originals=[];
+      const timers=[],schedule=window.setTimeout;
+      const scheduleOwned=function(callback,delay,...args){const id=schedule.call(this,()=>{if(player===owner&&typeof callback==='function')callback(...args);},delay);timers.push(id);return id;};
+      window.setTimeout=scheduleOwned;
+      for(const name of ['showBreakthroughSuccess','showBreakthroughFailure','showAchievementPopup','showFloatingText','showStory','showBreakthroughNotice','playSound']){
+        const base=window[name];if(typeof base!=='function')continue;
+        const wrapped=function(...args){effects.push(()=>base.apply(this,args));};originals.push({name,base,wrapped});window[name]=wrapped;
+      }
+      BREAKTHROUGH_TX_V2905.active=true;BREAKTHROUGH_TX_V2905.owner=owner;miniSaveDeferredV286840=true;
+      let result=false,saved=false,error=null;
+      try{result=change();if(player===owner&&result!==false){miniSaveDeferredV286840=false;saved=saveGame()===true;}}
+      catch(e){error=e;}
+      finally{
+        miniSaveDeferredV286840=deferred;BREAKTHROUGH_TX_V2905.active=false;BREAKTHROUGH_TX_V2905.owner=null;
+        if(window.setTimeout===scheduleOwned)window.setTimeout=schedule;
+        for(const {name,base,wrapped} of originals)if(window[name]===wrapped)window[name]=base;
+      }
+      if(player!==owner){for(const id of timers)clearTimeout(id);return false;}
+      if(saved){for(const effect of effects){if(player!==owner)break;try{effect();}catch(e){console.warn('突破结果显示失败',e);}}return result;}
+      for(const id of timers)clearTimeout(id);
+      const restore=()=>{for(const key of Object.keys(owner))delete owner[key];Object.assign(owner,JSON.parse(raw));if(owner.activePet?._petId)owner.activePet=owner.pets?.find(p=>p._petId===owner.activePet._petId)||null;if(artifactIndex>=0)owner.activeArtifact=owner.artifacts[artifactIndex];};
+      restore();achievementProgress=JSON.parse(progress);completedAchievements=new Set(completed);gameState=state;currentChoices=choices;
+      try{updateStats();updateWorldHUD?.();}catch(_){}
+      if(JSON.stringify(owner)!==raw)restore();
+      if(error)console.warn('突破操作已撤回',error);
+      showFloatingText?.('本次突破未保存，已恢复原状态；请稍后重试。','#ff8a80');return false;
+    }
+    function nextBreakthroughIdV2905(){return `${Date.now()}:${++BREAKTHROUGH_TX_V2905.sequence}:${player.level}:${player.phase||0}`;}
+    function validPendingBreakthroughV2905(pending){
+      const result=pending?.result,snapshot=result?.snapshot;
+      if(!pending||pending.key!==`${player.level}:${player.phase||0}`||typeof pending.success!=='boolean'||!result||typeof result!=='object'||Array.isArray(result)||!snapshot||typeof snapshot!=='object')return false;
+      if(result.forced||result.noAdvance||result.ascension)return pending.success&&result.forced===true&&result.noAdvance===true&&result.ascension===true&&player.level===10&&(player.phase||0)===0&&snapshot.level===9&&snapshot.phase===3;
+      return snapshot.level===player.level&&snapshot.phase===(player.phase||0);
+    }
+    function preparePendingBreakthroughV2905(){
       const pending=player.breakthrough?.pendingV28683;
-      if(!pending)return false;
-      player.breakthrough.pendingV28683=null;
-      if(pending.key!==`${player.level}:${player.phase||0}`)return false;
-      if(pending.success)applyBreakthroughSuccess(pending.result);else applyBreakthroughFailure(pending.result);
-      return true;
+      if(!validPendingBreakthroughV2905(pending))return false;
+      const result=pending.result;
+      let changed=false;
+      if(typeof result.attemptIdV2905!=='string'||!result.attemptIdV2905){result.attemptIdV2905=nextBreakthroughIdV2905();changed=true;}
+      if(!pending.success&&(!Number.isInteger(result.cooldownDaysV2905)||result.cooldownDaysV2905<30||result.cooldownDaysV2905>49)){result.cooldownDaysV2905=30+Math.floor(Math.random()*20);changed=true;}
+      if(result.daoV2905){
+        const plan=typeof validateDaoPlanV286883==='function'?validateDaoPlanV286883(result.daoV2905,result,pending.success):null;
+        if(!plan){delete result.daoV2905;changed=true;}
+        else if(JSON.stringify(plan)!==JSON.stringify(result.daoV2905)){result.daoV2905=plan;changed=true;}
+      }
+      return {pending,changed};
+    }
+    function settlePendingBreakthroughV2905(result,success){
+      if(breakthroughBusyV2905())return false;
+      const pending=player.breakthrough?.pendingV28683;
+      if(!validPendingBreakthroughV2905(pending)||pending.success!==success||!result?.attemptIdV2905||pending.result?.attemptIdV2905!==result.attemptIdV2905)return false;
+      const copy=JSON.parse(JSON.stringify(pending.result));
+      return commitBreakthroughV2905(()=>{
+        player.breakthrough.pendingV28683=null;
+        const out=success?applyBreakthroughSuccess(copy):applyBreakthroughFailure(copy);
+        if(out===false)return false;
+        player.breakthrough.completedAttemptV2905=copy.attemptIdV2905;return true;
+      });
+    }
+    function recoverPendingBreakthroughV28683(){
+      if(breakthroughBusyV2905()||breakthroughRunV2781?.owner===player)return false;
+      let prepared;
+      // Lock missing legacy cooldown/identity before settlement; old attempts do not
+      // acquire a new quality or punishment merely because the client was upgraded.
+      const pending=player.breakthrough?.pendingV28683;if(!pending)return false;
+      if(!validPendingBreakthroughV2905(pending)){
+        commitBreakthroughV2905(()=>{player.breakthrough.pendingV28683=null;player.breakthrough.isAnimating=false;return true;});return false;
+      }
+      const raw=JSON.stringify(pending);
+      prepared=preparePendingBreakthroughV2905();
+      if(!prepared)return false;
+      if(prepared.changed){
+        const fixed=JSON.stringify(prepared.pending);player.breakthrough.pendingV28683=JSON.parse(raw);
+        if(!commitBreakthroughV2905(()=>{player.breakthrough.pendingV28683=JSON.parse(fixed);player.breakthrough.isAnimating=false;return true;}))return false;
+      }
+      player.breakthrough.isAnimating=false;
+      return settlePendingBreakthroughV2905(player.breakthrough.pendingV28683.result,player.breakthrough.pendingV28683.success);
     }
     function canAttemptBreakthrough() {
+      if(breakthroughBusyV2905())return false;
       if(player.breakthrough?.pendingV28683&&!player.breakthrough.isAnimating){recoverPendingBreakthroughV28683();return false;}
       if(!player.breakthrough) player.breakthrough={isAnimating:false,attemptCount:0,lastAttemptTime:0,cooldownDays:0,pendingBreakthrough:false};
       const bt=player.breakthrough;
@@ -7893,28 +8114,27 @@
 
     function triggerBreakthrough(skipAnimation=false) {
       if(!canAttemptBreakthrough())return;
-      const bt=player.breakthrough;
-      const snapshot=createBreakthroughSnapshot();
-      const result={...calculateBreakthroughSuccess(),snapshot,fromName:snapshot.name,toName:getNextCultivationName(),expNeed:getCurrentExpNeed(),forced:false,noAdvance:false};
-      if(result.pillName)player.inventory.splice(player.inventory.indexOf(result.pillName),1);
-      bt.pillV28683=null;
-      bt.isAnimating=true;
-      bt.pendingBreakthrough=false;
-      bt.attemptCount=(bt.attemptCount||0)+1;
-      bt.lastAttemptTime=Date.now();
-      const isSuccess=result.guaranteed||Math.random()<result.rate;
-      bt.pendingV28683={key:`${player.level}:${player.phase||0}`,success:isSuccess,result};
-      autoSave();
-      playBreakthroughAnimation(isSuccess,result,skipAnimation);
+      let pending;
+      if(!commitBreakthroughV2905(()=>{
+        const bt=player.breakthrough,snapshot=createBreakthroughSnapshot();
+        const result={...calculateBreakthroughSuccess(),snapshot,fromName:snapshot.name,toName:getNextCultivationName(),expNeed:getCurrentExpNeed(),forced:false,noAdvance:false,attemptIdV2905:nextBreakthroughIdV2905()};
+        const isSuccess=result.guaranteed||Math.random()<result.rate;
+        if(!isSuccess)result.cooldownDaysV2905=30+Math.floor(Math.random()*20);
+        if(typeof planDaoBreakthroughV2905==='function')result.daoV2905=planDaoBreakthroughV2905(result,isSuccess);
+        if(result.pillName){const index=player.inventory.indexOf(result.pillName);if(index<0)return false;player.inventory.splice(index,1);}
+        bt.pillV28683=null;bt.isAnimating=true;bt.pendingBreakthrough=false;
+        bt.attemptCount=(bt.attemptCount||0)+1;bt.lastAttemptTime=Date.now();
+        pending=bt.pendingV28683={key:`${player.level}:${player.phase||0}`,success:isSuccess,result};return true;
+      }))return false;
+      playBreakthroughAnimation(pending.success,pending.result,skipAnimation);return true;
     }
 
     function playForcedAscensionBreakthrough(snapshot=null) {
-      if(!player.breakthrough) player.breakthrough={isAnimating:false,attemptCount:0,lastAttemptTime:0,cooldownDays:0,pendingBreakthrough:false};
-      player.breakthrough.isAnimating=true;
-      player.breakthrough.pendingBreakthrough=false;
+      if(breakthroughBusyV2905()||player.breakthrough?.isAnimating||player.breakthrough?.pendingV28683)return false;
       const before=snapshot||{name:'渡劫圆满',level:9,phase:3,atk:0,def:0,hp:0,mp:0,lifespan:0,skills:[],unlockedRegions:[]};
-      const result={rate:1,heartDemonRisk:0,snapshot:before,fromName:before.name||'渡劫圆满',toName:getCultivationName(),forced:true,noAdvance:true,ascension:true,expNeed:0};
-      playBreakthroughAnimation(true,result);
+      const result={rate:1,heartDemonRisk:0,snapshot:before,fromName:before.name||'渡劫圆满',toName:getCultivationName(),forced:true,noAdvance:true,ascension:true,expNeed:0,attemptIdV2905:nextBreakthroughIdV2905()};
+      if(!commitBreakthroughV2905(()=>{player.breakthrough||={};player.breakthrough.isAnimating=true;player.breakthrough.pendingBreakthrough=false;player.breakthrough.pendingV28683={key:`${player.level}:${player.phase||0}`,success:true,result};return true;}))return false;
+      playBreakthroughAnimation(true,result);return true;
     }
 
     function getBreakthroughStageLabel(result,stage,success=true){
@@ -7947,22 +8167,23 @@
     }
 
     let breakthroughRunV2781=null;
+    function clearBreakthroughRuntimeV2905(){
+      const run=breakthroughRunV2781;
+      if(run){run.done=true;clearTimeout(run.timer);try{run.cleanup?.();}catch(_){}breakthroughRunV2781=null;}
+      clearTimeout(breakthroughFinishTimer);breakthroughFinishTimer=null;
+      if(breakthroughAnimFrame)cancelAnimationFrame(breakthroughAnimFrame);breakthroughAnimFrame=null;
+      document.getElementById('breakthroughOverlay')?.remove();document.body.classList.remove('breakthrough-playing');
+    }
     function settleBreakthroughV2781(success,result){
       const run=breakthroughRunV2781;
       if(!run||run.done||run.result!==result)return;
-      run.done=true;clearTimeout(run.timer);breakthroughRunV2781=null;
-      clearTimeout(breakthroughFinishTimer);breakthroughFinishTimer=null;
-      if(breakthroughAnimFrame)cancelAnimationFrame(breakthroughAnimFrame);breakthroughAnimFrame=null;
-      run.cleanup?.();
-      document.getElementById('breakthroughOverlay')?.remove();
-      document.body.classList.remove('breakthrough-playing');
+      clearBreakthroughRuntimeV2905();
       if(player!==run.owner)return;
       player.breakthrough.isAnimating=false;
-      player.breakthrough.pendingV28683=null;
-      if(success)applyBreakthroughSuccess(result);else applyBreakthroughFailure(result);
+      return settlePendingBreakthroughV2905(result,success);
     }
     function playBreakthroughAnimation(isSuccess,result={},skipAnimation=false){
-      if(breakthroughRunV2781){clearTimeout(breakthroughRunV2781.timer);breakthroughRunV2781.cleanup?.();}
+      clearBreakthroughRuntimeV2905();
       const run={owner:player,result,success:isSuccess,done:false,timer:0,cleanup:null};
       breakthroughRunV2781=run;
       run.timer=setTimeout(()=>settleBreakthroughV2781(isSuccess,result),8000);
@@ -8019,10 +8240,11 @@
       choices.push({text:'暂不突破，返回洞府',action:'home'});showStory(text,choices);
     }
     function restBreakthroughV2798(expectedDays){
-      if(gameState==='combat'||gameState==='combat-ending'||player.breakthrough?.isAnimating)return;
+      if(breakthroughBusyV2905()||breakthroughRunV2781||player.breakthrough?.isAnimating||player.breakthrough?.pendingV28683)return false;
       const days=Math.ceil(player.breakthrough?.cooldownDays||0);
       if(player.exp<getCurrentExpNeed()||days<=0||days!==Number(expectedDays))return showRetreatBreakthroughV2798();
-      advanceGameTime(days,'突破前经脉调息');autoSave();updateStats();showRetreatBreakthroughV2798();
+      if(!commitBreakthroughV2905(()=>{advanceGameTime(days,'突破前经脉调息');updateStats();return true;}))return false;
+      showRetreatBreakthroughV2798();return true;
     }
     function makeBreakthroughSceneV2784(overlay,success,reduced){
       const box=document.createElement('div');box.className='breakthrough-scene-v2784';box.setAttribute('aria-hidden','true');overlay.appendChild(box);
@@ -8188,6 +8410,7 @@
     }
 
     function applyBreakthroughSuccess(result={}) {
+      if(!BREAKTHROUGH_TX_V2905.active||BREAKTHROUGH_TX_V2905.owner!==player)return settlePendingBreakthroughV2905(result,true);
       const bt=player.breakthrough||{};
       bt.isAnimating=false;bt.cooldownDays=0;bt.pendingBreakthrough=false;player.breakthrough=bt;
       bt.protectionV28683=null;
@@ -8201,6 +8424,7 @@
         else if(player.level<CULTIVATION_REALMS.length-1){player.level++;player.phase=0;}
         majorBreakthrough=player.level!==oldLevel;
       }else majorBreakthrough=(before.level||0)!==(player.level||0);
+      if(!result.forced&&!result.noAdvance&&!result.ascension&&typeof applyDaoBreakthroughV2905==='function')applyDaoBreakthroughV2905(result,true);
       syncUnlockedSkills();
       player.maxLifespan=getTotalMaxLifespan();
       player.hp=getMaxHp();player.mp=getMaxMp();
@@ -8211,6 +8435,7 @@
       onRealmBreakthrough?.(player.level,player.phase||0);
       showBreakthroughSuccess(result);
       updateStats();updateWorldHUD?.();autoSave();
+      return true;
     }
 
     function showBreakthroughSuccess(result={}) {
@@ -8222,6 +8447,7 @@
       const html=`<div class="breakthrough-success show" id="breakthroughSuccess">
         <div class="title">✦ ${result.ascension?'飞升成功':'突破成功'}！ ✦</div>
         <div class="subtitle">${result.fromName||before.name||''} → <span>${result.toName||after.name||getCultivationName()}</span></div>
+        ${result.daoTextV286883?`<p class="breakthrough-outcome-v286883">${escapeGameText(result.daoTextV286883)}</p>`:''}
         <hr class="divider"><div class="reward-list">
           <div class="item"><span class="icon">⏳</span><span class="label">寿元上限</span><span class="value">${after.lifespan||getTotalMaxLifespan()}${d(after.lifespan,before.lifespan)?`（+${d(after.lifespan,before.lifespan)}）`:''}</span></div>
           <div class="item"><span class="icon">⚔️</span><span class="label">攻击</span><span class="value">${after.atk}${d(after.atk,before.atk)?`（+${d(after.atk,before.atk)}）`:''}</span></div>
@@ -8232,35 +8458,40 @@
         </div><hr class="divider"><button class="btn-continue" onclick="closeBreakthroughSuccess(false)">继续修仙</button><div class="auto-close-v2764">轻触按钮继续 · 5秒后自动收起</div></div>`;
       document.getElementById('breakthroughSuccess')?.remove();
       const wrap=document.createElement('div'),panelId=Symbol('breakthroughSuccess');
-      wrap.innerHTML=html;const panel=wrap.firstElementChild;panel._v2764PanelId=panelId;document.body.appendChild(panel);
-      setTimeout(()=>{if(panel.isConnected&&panel._v2764PanelId===panelId)closeBreakthroughSuccess(true)},5200);
+      wrap.innerHTML=html;const panel=wrap.firstElementChild,owner=player;panel._v2764PanelId=panelId;panel._ownerV2905=owner;document.body.appendChild(panel);
+      setTimeout(()=>{if(player===owner&&panel.isConnected&&panel._v2764PanelId===panelId)closeBreakthroughSuccess(true)},5200);
     }
 
     function closeBreakthroughSuccess(autoClose=false) {
-      const el=document.getElementById('breakthroughSuccess');if(el){el.classList.remove('show');setTimeout(()=>el.remove(),420);}
+      const el=document.getElementById('breakthroughSuccess');if(el?._ownerV2905&&el._ownerV2905!==player)return;if(el){el.classList.remove('show');setTimeout(()=>el.remove(),420);}
       updateStats();updateWorldHUD?.();
       // 手动继续时允许逐次突破；自动收起只登记待突破，避免无人操作时连续弹出。
       if(player.exp>=getCurrentExpNeed() && !isFinalTribulationGate() && !(player.level===CULTIVATION_REALMS.length-1&&(player.phase||0)>=3)){
         player.breakthrough.pendingBreakthrough=true;
-        if(!autoClose)setTimeout(()=>checkLevelUp(),650);
+        const owner=player;if(!autoClose)setTimeout(()=>{if(player===owner&&gameState==='exploring')checkLevelUp();},650);
       }
     }
 
     function applyBreakthroughFailure(result={}) {
+      if(!BREAKTHROUGH_TX_V2905.active||BREAKTHROUGH_TX_V2905.owner!==player)return settlePendingBreakthroughV2905(result,false);
       const protection=breakthroughProtectionV28683();
-      const bt=player.breakthrough||{};bt.isAnimating=false;bt.cooldownDays=30+Math.floor(Math.random()*20);
+      const bt=player.breakthrough||{};bt.isAnimating=false;bt.cooldownDays=result.cooldownDaysV2905;
       bt.protectionV28683={key:protection.key,failures:Math.min(5,protection.failures+1)};player.breakthrough=bt;
       const loss=Math.floor(getCurrentExpNeed()*.15);player.exp=Math.max(0,player.exp-loss);
       bt.pendingBreakthrough=player.exp>=getCurrentExpNeed();
+      if(!result.forced&&!result.noAdvance&&!result.ascension&&typeof applyDaoBreakthroughV2905==='function')applyDaoBreakthroughV2905(result,false);
+      bt.pendingBreakthrough=player.exp>=getCurrentExpNeed();player.maxLifespan=getTotalMaxLifespan();
       player.hp=Math.max(1,Math.floor(getMaxHp()*.60));player.mp=Math.max(1,Math.floor(getMaxMp()*.50));
       playSound?.('defeat');showBreakthroughFailure(result,loss);updateStats();updateWorldHUD?.();autoSave();
+      return true;
     }
 
     function showBreakthroughFailure(result,loss) {
       const html=`<div class="breakthrough-fail show" id="breakthroughFail"><div class="title">💔 突破失败</div><div class="subtitle">灵力反噬，经脉受损</div><hr class="divider">
-        <div class="fail-list"><div>📉 修为损失：<b>-${loss}</b></div><div>❤️ 当前气血：<b>${player.hp}/${getMaxHp()}</b></div><div>⏳ 调息时间：<b>${Math.ceil(player.breakthrough.cooldownDays)} 天</b></div><div class="hint">沉淀心境，稳固修为后再尝试。调息会随仙历流逝逐日消退。</div></div>
+        ${result.daoTextV286883?`<p class="breakthrough-outcome-v286883">${escapeGameText(result.daoTextV286883)}</p>`:''}
+        <div class="fail-list"><div>📉 基础修为损失：<b>-${loss}</b></div><div>当前境界：<b>${getCultivationName()}</b></div><div>当前修为：<b>${player.exp}/${getCurrentExpNeed()}</b></div><div>❤️ 当前气血：<b>${player.hp}/${getMaxHp()}</b></div><div>⏳ 调息时间：<b>${Math.ceil(player.breakthrough.cooldownDays)} 天</b></div><div class="hint">沉淀心境，稳固修为后再尝试。调息会随仙历流逝逐日消退。</div></div>
         <button class="btn-retry" onclick="closeBreakthroughFail()">我明白了</button><div class="auto-close-v2764">轻触按钮关闭 · 5秒后自动收起</div></div>`;
-      document.getElementById('breakthroughFail')?.remove();const wrap=document.createElement('div');wrap.innerHTML=html;const panel=wrap.firstElementChild;document.body.appendChild(panel);setTimeout(()=>{if(panel.isConnected)closeBreakthroughFail()},5200);
+      document.getElementById('breakthroughFail')?.remove();const wrap=document.createElement('div');wrap.innerHTML=html;const panel=wrap.firstElementChild,owner=player;panel._ownerV2905=owner;document.body.appendChild(panel);setTimeout(()=>{if(player===owner&&panel.isConnected)closeBreakthroughFail()},5200);
     }
 
     function closeBreakthroughFail(){const el=document.getElementById('breakthroughFail');if(el){el.classList.remove('show');setTimeout(()=>el.remove(),360);}updateStats();updateWorldHUD?.();}
@@ -8424,7 +8655,7 @@
       if(!loadout)return false;
       const before=cloneCurrentEquipment(),beforeScore=calculateEquipmentLoadoutScore(before),all=getEquipmentOwnedList();
       let changed=0;for(const slot of Object.keys(EQUIPMENT_SLOTS))if((before[slot]||null)!==(loadout[slot]||null))changed++;
-      if(!changed){if(toast)showFloatingText?.('✅ 当前已是最佳装备组合','#69f0ae');if(reopen)setTimeout(showEquipmentPanel,80);return false;}
+      if(!changed){if(toast)showFloatingText?.('✅ 当前已是最佳装备组合','#69f0ae');if(reopen)queueEquipmentRefreshV2906('panel',80);return false;}
 
       const bag=[...all],next=createEmptyEquipmentSlots();
       for(const slot of Object.keys(EQUIPMENT_SLOTS)){
@@ -8436,7 +8667,7 @@
       updateStats();updateWorldHUD?.();autoSave?.();
       const afterScore=calculateEquipmentLoadoutScore(player.equipment);
       if(toast)showFloatingText?.(`⚡ 一键换装：调整${changed}格 · 评分 ${Math.round(beforeScore)}→${Math.round(afterScore)}`,'#69f0ae');
-      if(reopen)setTimeout(showEquipmentPanel,100);return true;
+      if(reopen)queueEquipmentRefreshV2906('panel',100);return true;
     }
 
     function autoEquipBest(){const best=getBestEquipmentLoadout();return applyEquipmentLoadout(best.loadout,{reopen:true,toast:true});}
@@ -8445,7 +8676,7 @@
       const count=Object.values(player.equipment||{}).filter(Boolean).length;if(!count){showFloatingText?.('装备栏已经是空的','#aaa');return false;}
       if(typeof confirm==='function'&&!confirm(`确定卸下全部 ${count} 件装备吗？`))return false;
       for(const slot of Object.keys(EQUIPMENT_SLOTS)){const name=player.equipment?.[slot];if(name)player.equipmentInventory.push(name);player.equipment[slot]=null;}
-      checkSetBonuses();player.hp=Math.min(player.hp,getMaxHp());player.mp=Math.min(player.mp,getMaxMp());updateStats();updateWorldHUD?.();autoSave?.();showFloatingText?.(`↩️ 已卸下全部 ${count} 件装备`,'#ffd700');setTimeout(showEquipmentPanel,80);return true;
+      checkSetBonuses();player.hp=Math.min(player.hp,getMaxHp());player.mp=Math.min(player.mp,getMaxMp());updateStats();updateWorldHUD?.();autoSave?.();showFloatingText?.(`↩️ 已卸下全部 ${count} 件装备`,'#ffd700');queueEquipmentRefreshV2906('panel',80);return true;
     }
 
     function getEquipCompareTarget(itemName){
@@ -8511,7 +8742,7 @@
       player.equipmentInventory.push(name);player.equipment[slot]=null;checkSetBonuses();
       player.hp=Math.min(player.hp,getMaxHp());player.mp=Math.min(player.mp,getMaxMp());
       updateStats();updateWorldHUD?.();autoSave();showFloatingText?.(`↩️ 已卸下【${name}】`,'#ffd700');
-      if(reopen)setTimeout(showEquipmentPanel,80);return true;
+      if(reopen)queueEquipmentRefreshV2906('panel',80);return true;
     }
 
     function renderEquipSlots(slots){
@@ -8557,7 +8788,18 @@
       html+=`</div><div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="choice-btn" style="flex:1;min-width:150px;background:linear-gradient(135deg,#237a52,#14543a);border-color:#69f0ae" onclick="autoEquipBest()">⚡ 一键装备最佳</button><button class="choice-btn" style="flex:1;min-width:150px" onclick="showEquipmentPanel()">← 返回装备栏</button></div>`;showStory(html,[]);
     }
 
-    function equipItemFromInventory(name){if(equipItem(name))setTimeout(showEquipmentPanel,100);}
+    // A deferred equipment refresh belongs to the view and character that requested it.
+    // Closing/replacing that view or entering combat must not reopen it later.
+    function queueEquipmentRefreshV2906(target='panel',delay=80){
+      const owner=player,panel=document.getElementById('equipmentPanel'),story=document.getElementById('storyPanel');
+      const source=panel||(!story?.classList.contains('hidden')&&(document.getElementById('bagViewV2905')||document.getElementById('storyText')?.firstChild));
+      if(!source)return false;
+      setTimeout(()=>{
+        if(player!==owner||gameState!=='exploring'||!forgeAllowedV2825()||document.hidden||!source.isConnected||(!panel&&story?.classList.contains('hidden')))return;
+        if(target==='bag')showEquipmentInventory({preserveView:true});else showEquipmentPanel();
+      },delay);return true;
+    }
+    function equipItemFromInventory(name){if(equipItem(name))queueEquipmentRefreshV2906('panel',100);}
     function showEquipmentMenu(){showEquipmentPanel();}
     function equipGear(itemName){return equipItem(itemName);}
     function unequipGear(slot){return unequipItem(slot,true);}
@@ -8569,7 +8811,8 @@
       const now=performance.now();if(now-lastItemUseV2768<350)return;
       const def=ITEMS[itemName];
       if(def?.type==='breakthrough')return showFloatingText?.('请在修为圆满后的闭关突破预览中选用，此处不消耗','#ffd76a');
-      if(def?.type==='heal'&&player.hp>=getMaxHp())return showFloatingText?.('气血已满，未消耗丹药','#ffd76a');
+      const curesMeridians=itemName==='玄玉护脉丹'&&hasStatusEffect('jingmai');
+      if(def?.type==='heal'&&player.hp>=getMaxHp()&&!curesMeridians)return showFloatingText?.('气血已满，未消耗丹药','#ffd76a');
       if(def?.type==='mp'&&player.mp>=getMaxMp())return showFloatingText?.('灵力已满，未消耗丹药','#ffd76a');
       lastItemUseV2768=now;
       if(LONGEVITY_PILLS[itemName])return useLongevityPill(itemName);
@@ -8581,9 +8824,11 @@
       if (!item) return;
       
       if (item.type === 'heal') {
+        const beforeHp=player.hp;
         player.hp = Math.min(getMaxHp(), player.hp + item.value);
+        if(curesMeridians)removeStatusEffect('jingmai');
         removeItem(itemName);
-        showStory(`使用${itemName}，恢复${item.value}点气血！`, [{ text: '继续', action: player.location }]);
+        showStory(`使用${itemName}，恢复${player.hp-beforeHp}点气血${curesMeridians?'，经脉暗伤已痊愈':''}！`, [{ text: '继续', action: player.location }]);
       } else if (item.type === 'mp') {
         player.mp = Math.min(getMaxMp(), player.mp + item.value);
         removeItem(itemName);
@@ -10919,7 +11164,7 @@
           
         case 'cultivate': {
           const expGain = 30 + player.level * 35 + (player.phase || 0) * 12;
-          const gain=Math.floor(expGain * getExpBonus());
+          const gain=Math.floor(expGain * getExpBonus(GAME_DAYS_PER_YEAR));
           player.exp += gain;
           advanceGameTime(GAME_DAYS_PER_YEAR,'宗门修炼一年');
           checkLevelUp();
@@ -11387,13 +11632,16 @@
       maxYears=maxYears===1?1:10;
       const need=getCurrentExpNeed(),exp=Math.max(0,Number(player.exp)||0),missing=Math.max(0,need-exp);
       const now=Math.max(0,player.worldTime?.totalDays||0),remaining=getTotalMaxLifespan()-player.age;
-      const bonus=Math.max(1,Number(getExpBonus())||1)*(home?Math.max(1,1+(Number(calculateFurnitureBonus().exp)||0)):1);
+      const expBonus=Number(getExpBonus());
+      const bonus=(Number.isFinite(expBonus)&&expBonus>0?expBonus:1)*(home?Math.max(1,1+(Number(calculateFurnitureBonus().exp)||0)):1);
       const rate=need/(GAME_DAYS_PER_YEAR*10)*bonus;
-      const fullDays=missing?Math.ceil(missing/rate):0;
+      // The injury affects only its remaining game days, even during a multi-year retreat.
+      const hurtDays=daoInjuryDaysV286883(),recoveredRate=hurtDays>0?rate/.8:rate,hurtGain=hurtDays*rate;
+      const fullDays=missing?Math.ceil(missing<=hurtGain?missing/rate:hurtDays+(missing-hurtGain)/recoveredRate):0;
       const safeDays=Math.max(0,Math.floor((remaining-1)*GAME_DAYS_PER_YEAR-(now%GAME_DAYS_PER_YEAR)));
       const tournamentDays=Math.max(0,(getNextTournamentYear()-1)*GAME_DAYS_PER_YEAR-now);
       const days=Math.min(GAME_DAYS_PER_YEAR*maxYears,fullDays,safeDays,tournamentDays);
-      const gain=Math.min(missing,Math.floor(days*rate+1e-8));
+      const gain=Math.min(missing,Math.floor(Math.min(days,hurtDays)*rate+Math.max(0,days-hurtDays)*recoveredRate+1e-8));
       let reason=maxYears===1?'达到一年上限':'达到十年上限';
       if(!missing)reason='修为已满，可直接尝试突破';
       else if(safeDays===0)reason='寿元不足，先延寿或突破';
@@ -12013,7 +12261,7 @@
     });
     function sectStewardArtV286865(key){
       const s=SECT_STEWARDS_V286865[key];if(!s)return '';
-      return `<span class="sect-steward-art" style="aspect-ratio:${s.w}/941"><img src="./art/npc/sect-stewards-v286865.png" alt="${s.name}立绘" width="1672" height="941" loading="lazy" decoding="async" style="width:${1672/s.w*100}%;left:${-s.x/s.w*100}%" onerror="this.parentElement.hidden=true"></span>`;
+      return `<span class="sect-steward-art" style="aspect-ratio:${s.w}/941"><img src="./art/npc/sect-stewards-v286879.webp" alt="${s.name}立绘" width="1672" height="941" loading="lazy" decoding="async" style="width:${1672/s.w*100}%;left:${-s.x/s.w*100}%" onerror="this.parentElement.hidden=true"></span>`;
     }
     function sectStewardCardV286865(key){
       const s=SECT_STEWARDS_V286865[key];if(!s)return '';
@@ -12066,7 +12314,7 @@
       let rows='';
       if(tab==='all'||tab==='heal'||tab==='mp'){
         const list=pills.filter(it=>tab==='all'||it.type===tab);
-        rows=list.length?list.map(it=>{const ready=combatMedicineAvailabilityV2856(it.name),esc=skillTextEscapeV212;return `<button type="button" class="combat-item-btn" ${ready.ok?'':'disabled'} onclick="useCombatBagItem(${esc(JSON.stringify(it.name))})"><span>${it.type==='heal'?'💊':'🔹'} ${esc(it.name)}<span class="count">×${it.count}</span></span><span class="meta">${ready.ok?`实际恢复 ${ready.gain} 点${it.type==='heal'?'气血':'灵力'}`:esc(ready.reason)}${ready.ok&&ready.waste>0?` · 超出上限 ${ready.waste} 点`:''}<br>${esc(it.desc||'')}<br>使用消耗一个回合</span></button>`}).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无丹药<span class="meta">去商铺或 NPC 处补给</span></button>`;
+        rows=list.length?list.map(it=>{const ready=combatMedicineAvailabilityV2856(it.name),esc=skillTextEscapeV212;return `<button type="button" class="combat-item-btn" ${ready.ok?'':'disabled'} onclick="useCombatBagItem(${esc(JSON.stringify(it.name))})"><span>${it.type==='heal'?'💊':'🔹'} ${esc(it.name)}<span class="count">×${it.count}</span></span><span class="meta">${ready.ok?`实际恢复 ${ready.gain} 点${it.type==='heal'?'气血':'灵力'}${ready.curesMeridians?' · 清除经脉暗伤':''}`:esc(ready.reason)}${ready.ok&&ready.waste>0?` · 超出上限 ${ready.waste} 点`:''}<br>${esc(it.desc||'')}<br>使用消耗一个回合</span></button>`}).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无丹药<span class="meta">去商铺或 NPC 处补给</span></button>`;
       }else{
         const list=extras.filter(it=>tab==='equip'?['weapon','armor'].includes(it.type):!['weapon','armor'].includes(it.type));
         rows=list.length?list.map(it=>`<button class="combat-item-btn combat-readonly" disabled><span>${['weapon','armor'].includes(it.type)?(it.type==='weapon'?'⚔️':'🛡️'):'🎐'} ${it.name}<span class="count">x${it.count}</span></span><span class="meta">${it.desc||'背包道具'}<br>${tab==='equip'?'战斗中可查看，脱战后再正式换装':'当前战斗仅查看，不会误用'}</span></button>`).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无物品<span class="meta">获得后会自动显示在这里</span></button>`;
@@ -12087,25 +12335,27 @@
       if(!Number.isFinite(value)||value<=0||!Number.isFinite(gain))return {ok:false,reason:'补给数据无效',gain:0};
       if(gameState!=='combat'||!currentEnemy||currentEnemy.hp<=0||COMBAT_FINISH_V2764.settling)return {ok:false,reason:'当前不在可行动的战斗中',gain};
       if(!isPlayerTurn)return {ok:false,reason:'等待行动结算',gain};
-      if(gain<=0)return {ok:false,reason:item.type==='heal'?'气血已满，无需服用':'灵力已满，无需服用',gain:0};
-      return {ok:true,item,index,gain,waste:Math.max(0,value-gain)};
+      const curesMeridians=itemName==='玄玉护脉丹'&&hasStatusEffect('jingmai');
+      if(gain<=0&&!curesMeridians)return {ok:false,reason:item.type==='heal'?'气血已满，无需服用':'灵力已满，无需服用',gain:0};
+      return {ok:true,item,index,gain,waste:Math.max(0,value-gain),curesMeridians};
     }
 
     function useCombatBagItem(itemName) {
       const ready=combatMedicineAvailabilityV2856(itemName);
       if(!ready.ok){showFloatingText?.(ready.reason,'#ffd76a');renderCombatMedicineDrawer();return;}
-      const {item,index,gain}=ready;
+      const {item,index,gain,curesMeridians}=ready;
       isPlayerTurn=false;
       player.inventory.splice(index,1);
       if(item.type==='heal'){
         player.hp=Math.min(getMaxHp(),player.hp+gain);
+        if(curesMeridians)removeStatusEffect('jingmai');
         showDamageNumber(gain,'player',true,false,false,false,itemName);
         playSound('heal');
       }else{
         player.mp=Math.min(getMaxMp(),player.mp+gain);
         playSound('heal');
       }
-      addCombatLog(`使用${itemName}，实际恢复 ${gain} 点${item.type==='heal'?'气血':'灵力'}。`,'heal');
+      addCombatLog(`使用${itemName}，实际恢复 ${gain} 点${item.type==='heal'?'气血':'灵力'}${curesMeridians?'，经脉暗伤已痊愈':''}。`,'heal');
       updateCombatUI();updateCombatChoices();renderCombatMedicineDrawer();updateStats?.();
       battleLaterV2838(()=>enemyTurn(),500);
     }
@@ -12467,13 +12717,76 @@
       for(const tier of order){const list=getBuildingsByTier(tier);if(!list.length)continue;const meta=LINGXIAO_TIER_META[tier]||{};html+=`<div class="lx-directory-group"><div class="lx-directory-title" style="color:${meta.color||'#f2d68d'}">${meta.label||tier} · ${list.length}处</div><div class="lx-directory-grid">${list.map(b=>{const a=canAccessBuilding(b.id);return `<div class="lx-directory-item ${a.allowed?'':'locked'}" onclick="enterLingxiaoBuilding('${b.id}')"><div class="lx-directory-name">${b.icon} ${b.shortName||b.name}</div><div class="lx-directory-access">${a.allowed?'✅ 可进入':'🔒 '+a.reason}</div></div>`;}).join('')}</div></div>`;}
       html+='<div class="lx-building-tip">🌙 月下观星台、禁阁夜廊、深夜药庐只在设备当地 18:00–06:00 开放互动。</div>';showStory(html,[{text:'📍 返回宗门总览',action:'sect'},{text:'← 返回地图',action:'return_to_map'}]);
     }
+    // Eight districts share public courts, rather than repeating a large halo below every building.
+    // The two distant secret entrances deliberately have separate, smaller landing courts.
+    const LINGXIAO_COURTS_V286880=Object.freeze([
+      {tier:'outer',anchor:'gate',rx:255,ry:62,dy:4,motif:'tiles'},
+      {tier:'middle',anchor:'stone_steps',rx:83,ry:42,dy:16,motif:'steps'},
+      {tier:'inner',anchor:'main_hall',rx:245,ry:78,dy:16,motif:'tiles'},
+      {tier:'core',anchor:'array_core',rx:218,ry:56,dy:14,motif:'array'},
+      {tier:'back',anchor:'spirit_spring',rx:94,ry:48,dy:10,motif:'grove'},
+      {tier:'function',anchor:'defense_wall',rx:105,ry:44,dy:12,motif:'guard'},
+      {tier:'secret',anchor:'secret_realm_gate',rx:80,ry:44,dy:12,motif:'gate'},
+      {tier:'secret',anchor:'mini_secret_realm',rx:80,ry:44,dy:12,motif:'gate'},
+      {tier:'forbidden',anchor:'ancestor_cave',rx:91,ry:48,dy:12,motif:'sealed'}
+    ]);
+    function lingxiaoCourtLayoutV286880(){
+      return LINGXIAO_COURTS_V286880.flatMap(c=>{
+        const b=getBuildingData(c.anchor);if(!b||b.tier!==c.tier)return [];
+        return [{...c,x:b.x,y:b.y+c.dy*WORLD_SCALE_V2900,rx:c.rx*WORLD_SCALE_V2900,ry:c.ry*WORLD_SCALE_V2900,color:getBuildingTierColor(b)}];
+      });
+    }
+    function lingxiaoCourtOutlineV286880(ctx,rx,ry,inset=1){
+      const points=[[-.78,-1],[.78,-1],[1,-.4],[1,.4],[.78,1],[-.78,1],[-1,.4],[-1,-.4]];
+      ctx.beginPath();points.forEach(([x,y],i)=>ctx[i?'lineTo':'moveTo'](x*rx*inset,y*ry*inset));ctx.closePath();
+    }
+    function drawLingxiaoCourtsV286880(ctx){
+      // Called only while baking the existing static map canvas. No extra canvas, animation or gradients.
+      const low=PERF_CONFIG.lowEnd;
+      for(const c of lingxiaoCourtLayoutV286880()){
+        ctx.save();ctx.translate(c.x,c.y);ctx.setLineDash([]);
+        lingxiaoCourtOutlineV286880(ctx,c.rx,c.ry);ctx.fillStyle='rgba(43,65,65,.09)';ctx.fill();
+        ctx.strokeStyle='rgba(220,234,225,.27)';ctx.lineWidth=2;ctx.stroke();
+        lingxiaoCourtOutlineV286880(ctx,c.rx,c.ry,.9);ctx.strokeStyle='rgba(48,70,72,.19)';ctx.lineWidth=1.3;ctx.stroke();
+        ctx.strokeStyle=c.color;ctx.globalAlpha=.24;ctx.lineWidth=1.6;
+        // Short district-colour inlays read as stonework, not an unlocked/quest halo.
+        ctx.beginPath();for(const side of [-1,1]){ctx.moveTo(side*c.rx*.82,c.ry*.6);ctx.lineTo(side*c.rx*.64,c.ry*.82);}ctx.stroke();ctx.globalAlpha=1;
+        if(!low){
+          ctx.save();lingxiaoCourtOutlineV286880(ctx,c.rx,c.ry,.88);ctx.clip();ctx.strokeStyle='rgba(51,76,76,.12)';ctx.lineWidth=1;
+          ctx.beginPath();
+          if(c.motif==='tiles'||c.motif==='steps'){
+            for(const y of [-.45,.15,.65]){ctx.moveTo(-c.rx*.9,c.ry*y);ctx.lineTo(c.rx*.9,c.ry*y);}
+            for(const x of [-.5,0,.5]){ctx.moveTo(c.rx*x,-c.ry*.85);ctx.lineTo(c.rx*x,c.ry*.85);}
+          }else if(c.motif==='array'||c.motif==='gate'){
+            for(const k of [.48,.68]){ctx.moveTo(0,-c.ry*k);ctx.lineTo(c.rx*k,0);ctx.lineTo(0,c.ry*k);ctx.lineTo(-c.rx*k,0);ctx.closePath();}
+          }else if(c.motif==='guard'){
+            for(const x of [-.55,0,.55]){ctx.moveTo(c.rx*(x-.15),c.ry*.55);ctx.lineTo(c.rx*x,-c.ry*.4);ctx.lineTo(c.rx*(x+.15),c.ry*.55);}
+          }else{ctx.setLineDash(c.motif==='sealed'?[7,9]:[2,10]);ctx.ellipse(0,0,c.rx*.64,c.ry*.57,0,.12,Math.PI*1.86);}
+          ctx.stroke();ctx.restore();
+        }
+        ctx.restore();
+      }
+    }
+    function drawLingxiaoCloudStepsV286880(ctx){
+      const a=getBuildingData('stone_steps'),b=getBuildingData('main_hall');if(!a||!b)return;
+      const dx=b.x-a.x,dy=b.y-a.y,length=Math.hypot(dx,dy);if(!length)return;
+      const ux=dx/length,uy=dy/length,half=13*WORLD_SCALE_V2900;
+      ctx.save();ctx.setLineDash([]);ctx.lineWidth=1.4;ctx.strokeStyle='rgba(225,237,234,.5)';ctx.beginPath();
+      // Fixed spacing uses the expanded world scale. End margins keep treads clear of the buildings.
+      for(let d=42*WORLD_SCALE_V2900;d<length-52*WORLD_SCALE_V2900;d+=13*WORLD_SCALE_V2900){
+        const x=a.x+ux*d,y=a.y+12+uy*d;ctx.moveTo(x-uy*half,y+ux*half);ctx.lineTo(x+uy*half,y-ux*half);
+      }
+      ctx.stroke();ctx.restore();
+    }
     function drawLingxiaoBuildingPaths(ctx,transform=null){
       if(currentRegion!=='north')return;ctx.save();ctx.lineCap='round';
+      // Transformed callers retain their existing schematic paths; ground detail is for the world cache.
+      if(!transform)drawLingxiaoCourtsV286880(ctx);
       for(const [a,b] of BUILDING_PATHS){const start=getBuildingData(a),end=getBuildingData(b);if(!start||!end)continue;
         const from=transform?transform(start.x,start.y+12):{x:start.x,y:start.y+12},to=transform?transform(end.x,end.y+12):{x:end.x,y:end.y+12};
         ctx.setLineDash([]);ctx.strokeStyle='rgba(32,52,56,.25)';ctx.lineWidth=14;ctx.beginPath();ctx.moveTo(from.x,from.y);ctx.lineTo(to.x,to.y);ctx.stroke();
         ctx.strokeStyle='rgba(224,240,242,.55)';ctx.lineWidth=7;ctx.setLineDash([8,5]);ctx.stroke();
-      }ctx.restore();
+      }if(!transform)drawLingxiaoCloudStepsV286880(ctx);ctx.restore();
     }
 
     const WORLD_SCALE_V2900=1.45;
@@ -12586,10 +12899,18 @@
       applyWorldMapLayout(player?.worldMapId||'south',true);
     }
 
+    let worldTravelMenuNonceV2880=0;
+    function worldTravelAllowedV2880(){
+      return !!player&&gameState==='exploring'&&!document.hidden&&!player.breakthrough?.isAnimating&&!COMBAT_FINISH_V2764.settling;
+    }
     function showWorldTravelMenu() {
+      if(!worldTravelAllowedV2880())return false;
+      resetWorldMovementV28686();
+      const owner=player,nonce=String(++worldTravelMenuNonceV2880);
+      const active=()=>player===owner&&worldTravelAllowedV2880()&&document.getElementById('worldTravelMenuV2880')?.dataset.travelNonce===nonce&&!document.getElementById('storyPanel')?.classList.contains('hidden');
       const here=currentRegion || player?.worldMapId || 'south';
       const region=getRegionInfo(here);
-      let html=`<p>🗺️ <b>三界行路</b></p><p>你当前位于：<b>${region.icon} ${region.name}</b></p><p style="color:#aaa;font-size:12px">四域与三族山门通过驿道、界门相连；仙界需地仙境，魔域需元婴境。</p>`;
+      let html=`<section id="worldTravelMenuV2880" data-travel-nonce="${nonce}"><p>🗺️ <b>三界行路</b></p><p>你当前位于：<b>${region.icon} ${region.name}</b></p><p style="color:#aaa;font-size:12px">四域与三族山门通过驿道、界门相连；仙界需地仙境，魔域需元婴境。</p></section>`;
       const order=Object.keys(WORLD_MAP_CONFIGS);
       const choices=[];
       for(const id of order){
@@ -12598,15 +12919,16 @@
         choices.push({
           text:unlocked?`${r.icon} 前往${r.shortName} · ${r.name.replace(/^.*?·\s*/, '')}`:`🔒 ${r.shortName} · 需要${req}境`,
           action:'travel_world_map', regionId:id,
-          condition:()=>isRegionUnlocked(id)
+          condition:()=>active()&&isRegionUnlocked(id)
         });
       }
-      if(FACTION_MAPS_V2806[here])choices.unshift({text:'🧭 本图宗门导航',action:'faction_guide_v2806'});
-      choices.push({text:'← 暂不启程',action:'return_to_map'});
-      showStory(html,choices);
+      if(FACTION_MAPS_V2806[here])choices.unshift({text:'🧭 本图宗门导航',action:'faction_guide_v2806',condition:active});
+      choices.push({text:'← 暂不启程',action:'return_to_map',condition:active});
+      showStory(html,choices);return true;
     }
 
     function travelToWorldMap(regionId, targetPoiId=null) {
+      if(!worldTravelAllowedV2880()||!Object.hasOwn(WORLD_MAP_CONFIGS,regionId))return false;
       if(!isRegionUnlocked(regionId)) { warnRegionLocked(regionId,'无法前往'); return showWorldTravelMenu(); }
       if(!applyWorldMapLayout(regionId,false,targetPoiId)) return;
       closeWorldOverlay();
@@ -12663,16 +12985,27 @@
     function updateRegionStatusHUD(){
       const region=getRegionInfo(currentRegion || getPlayerRegion());
       let el=document.getElementById('worldRegionStatus');
+      if(el&&el.tagName!=='BUTTON'){el.remove();el=null;}
       if(!el){
         const hud=document.querySelector('.world-hud'); if(!hud)return;
-        el=document.createElement('div'); el.id='worldRegionStatus';
-        el.style.cssText='display:flex;align-items:center;gap:7px;font-size:11px;margin-top:7px;padding:5px 8px;border-radius:8px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.08)';
+        el=document.createElement('button'); el.id='worldRegionStatus';el.type='button';
+        el.title='打开三界行路，查看可前往的地域';el.setAttribute('aria-controls','storyPanel');
+        // Keep native button activation; the map's Space shortcut must not consume it.
+        el.onkeydown=el.onkeyup=e=>{if(e.key==='Enter'||e.key===' ')e.stopPropagation();};
         hud.appendChild(el);
+      }
+      if(el._travelOwnerV2880!==player||!el.onclick){
+        const owner=player;el._travelOwnerV2880=owner;
+        el.onclick=e=>{
+          e.stopPropagation();
+          if(player!==owner||document.getElementById('worldRegionStatus')!==el||!el.isConnected||!worldTravelAllowedV2880())return;
+          showWorldTravelMenu();
+        };
       }
       let text=`${region.icon} ${region.name} · 危险${region.dangerLevel}`;
       if(activeRegionDebuff) text+=`　⚠ ${activeRegionDebuff.desc}`;
       if(activeRegionBuff) text+=`　✨ ${activeRegionBuff.desc}`;
-      el.textContent=text; el.style.color=region.color;
+      el.textContent=`${text} · ⇄ 行路`;el.setAttribute('aria-label',`打开三界行路。${text}`);el.style.color=region.color;
     }
 
     function clearRegionEffects(){ activeRegionDebuff=null; activeRegionBuff=null; updateRegionStatusHUD(); }
@@ -12838,6 +13171,7 @@
       if(!region.monsters?.length) return null;
 
       let x=0,y=0,valid=false;
+      const monsterRadius=22;
       const b=region.bounds;
       for(let attempts=0;attempts<45 && !valid;attempts++){
         // 以玩家附近为优先，同时严格限制在当前象限。
@@ -12847,7 +13181,9 @@
         const farFromPlayer=Math.hypot(x-FLAT_WORLD.player.x,y-FLAT_WORLD.player.y)>220;
         const farFromMonster=!FLAT_WORLD.monsters.some(m=>m.alive&&Math.hypot(x-m.x,y-m.y)<90);
         const outsideServices=!(getWorldMapConfig(regionId).safeZones||[]).some(z=>Math.hypot(x-z.x,y-z.y)<z.r);
-        valid=outsideServices&&farFromPoi&&farFromPlayer&&farFromMonster&&isPointInRegion(x,y,regionId);
+        // Spawn on walkable ground; movement already resolves these same trunks, rocks and buildings.
+        valid=outsideServices&&farFromPoi&&farFromPlayer&&farFromMonster&&isPointInRegion(x,y,regionId)
+          &&!(FLAT_WORLD.colliders||[]).some(c=>Math.hypot(x-c.x,y-c.y)<(c.radius||0)+monsterRadius);
       }
       if(!valid)return null;
 
@@ -12878,7 +13214,7 @@
       balanceEnemyV2802(enemy);
       const dirX=Math.random()-.5,dirY=Math.random()-.5,len=Math.hypot(dirX,dirY)||1;
       const monster={
-        id:`wm_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,x,y,radius:22,
+        id:`wm_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,x,y,radius:monsterRadius,
         speed:18+Math.random()*28,enemy,regionId,
         dir:{x:dirX/len,y:dirY/len},dirTimer:1+Math.random()*4,
         alive:true,inCombat:false,battleCooldown:1.5
@@ -13343,19 +13679,29 @@
       FLAT_WORLD.raf=requestAnimationFrame(flatWorldLoop);
     }
 
+    function gatheringCountV286882(level,rng=Math.random){
+      const realm=Number(level);if(!Number.isFinite(realm)||realm<3)return 1;
+      if(realm>=7&&rng()<.05)return 3;
+      return rng()<(realm>=7?.20:.15)?2:1;
+    }
     function checkResourceCollection(distanceMoved=0) {
-      if(distanceMoved<=0 || !player?.materials)return;
-      FLAT_WORLD.resourceTravelAccumulator=(FLAT_WORLD.resourceTravelAccumulator||0)+distanceMoved;
+      if(!Number.isFinite(distanceMoved)||distanceMoved<=0||!player?.materials||typeof player.materials!=='object'||Array.isArray(player.materials))return;
+      const previous=FLAT_WORLD.resourceTravelAccumulator;
+      const traveled=(Number.isFinite(previous)&&previous>0?previous:0)+distanceMoved;
+      if(!Number.isFinite(traveled))return;
+      FLAT_WORLD.resourceTravelAccumulator=traveled;
       if(FLAT_WORLD.resourceTravelAccumulator<150)return;
       FLAT_WORLD.resourceTravelAccumulator%=150;
       // 每行走约150世界单位进行一次发现判定，避免原补丁按帧随机导致站桩刷材料。
-      if(Math.random()>.14)return;
+      if(Math.random()>=.18)return;
       const region=getRegionInfo(currentRegion || getPlayerRegion());
       const pool=region.materials?.filter(m=>MATERIALS[m])||[]; if(!pool.length)return;
       const mat=pool[Math.floor(Math.random()*pool.length)];
-      player.materials[mat]=(player.materials[mat]||0)+1;
-      onCollectMaterial?.(mat,1);
-      showFloatingText(`${MATERIALS[mat]?.icon||'🌿'} 发现 ${mat}`,region.color);
+      const held=itemCountV2905(player.materials[mat]);
+      const count=Math.min(gatheringCountV286882(player.level),Number.MAX_SAFE_INTEGER-held);if(count<1)return;
+      player.materials[mat]=held+count;
+      onCollectMaterial?.(mat,count);
+      showFloatingText(`${MATERIALS[mat]?.icon||'🌿'} 发现 ${mat}${count>1?` ×${count}`:''}`,region.color);
       // 不在行走采集瞬间序列化整个存档，避免移动时随机顿帧；交给定时自动保存。
     }
 
@@ -13448,6 +13794,17 @@
       return cache;
     }
 
+    function architectureInViewV286881(o,cam,vw,vh){
+      // Painted roofs may extend well above their centre. Reuse the atlas/landmark/depth bounds
+      // used for architecture interaction, while keeping actors, trees and war-unit culling unchanged.
+      if(!o||o.enemy||o.t||o._warUnitV2840||o.action==='explore_v2828'||o.action==='war_map_v2840')return false;
+      if(o.action==='yewuji_v2810'||typeof getPoiVisualKind==='function'&&getPoiVisualKind(o)==='npc')return false;
+      if(typeof poiTapBoxV2904!=='function'||typeof landmarkPointV2893!=='function')return false;
+      const box=poiTapBoxV2904(o);if(!box)return false;
+      const pad=24; // conservative edge allowance for outlines, light and the building base
+      return box.right+pad>=cam.x&&box.left-pad<=cam.x+vw&&box.bottom+pad>=cam.y&&box.top-pad<=cam.y+vh;
+    }
+
     function drawFlatWorld(t=performance.now(),dt=1/60) {
       const c=document.getElementById('worldCanvas'); if(!c)return; const ctx=c.getContext('2d');
       const dpr=c._dpr||1, vw=c.width/dpr, vh=c.height/dpr;
@@ -13475,9 +13832,10 @@
 
       ctx.save(); ctx.translate(-camDraw.x,-camDraw.y);
       const items=FLAT_WORLD._drawItems; items.length=0;
-      const minX=cam.x-130,maxX=cam.x+vw+130,minY=cam.y-130,maxY=cam.y+vh+130;
+      const minX=camDraw.x-130,maxX=camDraw.x+vw+130,minY=camDraw.y-130,maxY=camDraw.y+vh+130;
       const visible=o=>o.x>=minX&&o.x<=maxX&&o.y>=minY&&o.y<=maxY;
-      for(const poi of FLAT_WORLD.pois)if(visible(poi)&&(poi.action!=='explore_v2828'||exploredPointV2828(poi.x,poi.y)))items.push(poi);
+      const visiblePoi=o=>visible(o)||architectureInViewV286881(o,camDraw,vw,vh);
+      for(const poi of FLAT_WORLD.pois)if(visiblePoi(poi)&&(poi.action!=='explore_v2828'||exploredPointV2828(poi.x,poi.y)))items.push(poi);
       for(const mon of FLAT_WORLD.monsters)if(mon.alive&&!mon.inCombat&&visible(mon)&&exploredPointV2828(mon.x,mon.y))items.push(mon);
       for(const tree of FLAT_WORLD.decor)if(tree.t==='tree'&&visible(tree)&&exploredPointV2828(tree.x,tree.y))items.push(tree);
       const warViewV2840={minX,maxX,minY,maxY};
@@ -13486,11 +13844,12 @@
       drawWorldAmbient(ctx, t, minX, maxX, minY, maxY);
       if(typeof mapAliveGroundV2893==='function')mapAliveGroundV2893(ctx,t);
       if(typeof drawWarGroundV2840==='function')drawWarGroundV2840(ctx,warViewV2840);
+      drawWorldRouteV2881(ctx,undefined,null,t);
       FLAT_WORLD.deferLabelsV2836=true;
       let playerDrawn=false;
       for(const it of items){
         if(!playerDrawn && worldDepthV2770(it)>p.y+17){drawWorldPlayer(ctx,p);playerDrawn=true;}
-        if(it.x<minX||it.x>maxX||it.y<minY||it.y>maxY) continue;
+        if(!visiblePoi(it))continue;
         if(it._warUnitV2840)drawWarUnitV2840(ctx,it);else if(it.action==='war_map_v2840')drawWarPostV2840(ctx,it);else if(it.t==='tree')drawDepthTreeV2770(ctx,it);else if(it.enemy)drawWorldMonster(ctx,it);else{
           const fade=worldDepthV2770(it)>p.y+17&&Math.abs(it.x-p.x)<82&&it.y-p.y<165;
           ctx.save();if(fade)ctx.globalAlpha=.38;drawWorldPoi(ctx,it);if(typeof mapAliveBuildingV2893==='function')mapAliveBuildingV2893(ctx,it);ctx.restore();
@@ -13560,6 +13919,8 @@
       ctx.beginPath();ctx.arc(w/2,h/2,Math.min(w,h)/2-3,0,Math.PI*2);ctx.clip();
       ctx.fillStyle=cfg.bg;ctx.fillRect(0,0,w,h);
       drawRegionScrollV2834(ctx,mx(0),my(0),FLAT_WORLD.width*sx,FLAT_WORLD.height*sy);
+      const route=worldRouteDisplayV2881();
+      drawWorldRouteV2881(ctx,route,{x:mx,y:my});
 
       for(const poi of FLAT_WORLD.pois){
         if(!visible(poi.x,poi.y,10)||(poi.action==='explore_v2828'&&!exploredPointV2828(poi.x,poi.y))) continue;
@@ -13574,7 +13935,7 @@
         if(!monster.alive||monster.inCombat||!visible(monster.x,monster.y,6)||!exploredPointV2828(monster.x,monster.y))continue;
         ctx.fillStyle=monster.battleCooldown>0?'rgba(255,155,90,.78)':'rgba(255,78,78,.92)';ctx.beginPath();ctx.arc(mx(monster.x),my(monster.y),2.6,0,Math.PI*2);ctx.fill();
       }
-      if(FLAT_WORLD.target&&visible(FLAT_WORLD.target.x,FLAT_WORLD.target.y,8)){
+      if(!route&&FLAT_WORLD.target&&visible(FLAT_WORLD.target.x,FLAT_WORLD.target.y,8)){
         ctx.strokeStyle='rgba(191,239,255,.95)';ctx.lineWidth=1.7;ctx.beginPath();ctx.arc(mx(FLAT_WORLD.target.x),my(FLAT_WORLD.target.y),5.8,0,Math.PI*2);ctx.stroke();
       }
       if(typeof drawWarMinimapV2840==='function')drawWarMinimapV2840(ctx,mx,my);
@@ -13645,6 +14006,53 @@
     }
 
     let autoNavigationV2830=null;
+    // Read only the route the movement controller is currently following. A target is
+    // its next waypoint, not the building centre; drawing must not invent a shortcut.
+    function worldRouteDisplayV2881(){
+      const p=FLAT_WORLD.player,target=FLAT_WORLD.target,nav=autoNavigationV2830;
+      if(!p||!Number.isFinite(p.x)||!Number.isFinite(p.y)||!player||gameState!=='exploring'||document.hidden||!forgeAllowedV2825()||isWorldOverlayOpen()||Object.values(FLAT_WORLD.keys||{}).some(Boolean))return null;
+      if(nav){
+        if(nav.owner!==player||nav.region!==currentRegion||(nav.poi&&!FLAT_WORLD.pois.includes(nav.poi))||!Array.isArray(nav.route)||!Number.isInteger(nav.index)||nav.index<0||nav.index>=nav.route.length||nav.target!==nav.route[nav.index])return null;
+        const reached=target===null&&Math.hypot(p.x-nav.target.x,p.y-nav.target.y)<1;
+        if(target!==nav.target&&!reached)return null;
+        const index=nav.index+(reached?1:0);
+        if(index>=nav.route.length)return null;
+        for(let i=index;i<nav.route.length;i++){const q=nav.route[i];if(!q||!Number.isFinite(q.x)||!Number.isFinite(q.y))return null;}
+        return {start:p,points:nav.route,index,end:nav.route[nav.route.length-1]};
+      }
+      if(!target||![target.x,target.y].every(Number.isFinite))return null;
+      // Legacy direct targets may point into an obstacle. Show no misleading line
+      // in that case; the path planner is never called by rendering.
+      const radius=(p.r||17)+4;
+      if((FLAT_WORLD.colliders||[]).some(c=>worldDistanceSegmentV2827(c.x,c.y,p,target)<c.radius+radius))return null;
+      return {start:p,points:[target],index:0,end:target};
+    }
+    function drawWorldRouteV2881(ctx,route=worldRouteDisplayV2881(),project=null,t=0){
+      if(!route)return false;
+      const x=project?.x||((v)=>v),y=project?.y||((v)=>v),mini=!!project;
+      const flowing=!mini&&Number.isFinite(t)&&!PERF_CONFIG.lowEnd&&typeof mapAliveCalmV2893==='function'&&!mapAliveCalmV2893()&&mapAliveQualityV2893()==='high';
+      ctx.save();ctx.lineCap='round';ctx.lineJoin='round';ctx.setLineDash(mini?[4,3]:[9,7]);
+      ctx.lineDashOffset=flowing?-((Math.max(0,t)*.018)%16):0;
+      ctx.beginPath();ctx.moveTo(x(route.start.x),y(route.start.y));
+      for(let i=route.index;i<route.points.length;i++){const q=route.points[i];ctx.lineTo(x(q.x),y(q.y));}
+      ctx.strokeStyle='rgba(36,31,21,.55)';ctx.lineWidth=mini?3:4;ctx.stroke();
+      ctx.strokeStyle='rgba(255,224,130,.9)';ctx.lineWidth=mini?1.6:2;ctx.stroke();
+      ctx.setLineDash([]);ctx.lineDashOffset=0;
+      // Mark actual bends in the remaining route, without decorating straight
+      // intermediate points or adding clutter to the small, throttled minimap.
+      if(!mini){
+        ctx.fillStyle='rgba(255,230,154,.9)';ctx.strokeStyle='rgba(48,39,23,.75)';ctx.lineWidth=1;
+        for(let i=route.index;i<route.points.length-1;i++){
+          const q=route.points[i],a=i===route.index?route.start:route.points[i-1],b=route.points[i+1];
+          const ax=q.x-a.x,ay=q.y-a.y,bx=b.x-q.x,by=b.y-q.y,length=Math.hypot(ax,ay)*Math.hypot(bx,by);
+          if(length<1||(ax*bx+ay*by)/length>.985)continue;
+          ctx.beginPath();ctx.arc(q.x,q.y,3.2,0,Math.PI*2);ctx.fill();ctx.stroke();
+        }
+      }
+      ctx.strokeStyle='rgba(255,224,130,.9)';ctx.lineWidth=mini?1.5:2;
+      ctx.beginPath();ctx.arc(x(route.end.x),y(route.end.y),mini?5:10,0,Math.PI*2);ctx.stroke();
+      ctx.restore();return true;
+    }
     function planNavigationV2830(goal){
       if(!goal||![goal.x,goal.y].every(Number.isFinite))return null;
       const p=FLAT_WORLD.player,step=40,cols=Math.ceil(FLAT_WORLD.width/step),rows=Math.ceil(FLAT_WORLD.height/step),radius=(p.r||17)+4;
@@ -13694,9 +14102,32 @@
       FLAT_WORLD.keys={};FLAT_WORLD.target=route[0];FLAT_WORLD.tapTargetFx={...route[0],startedAt:performance.now()};
       if(!goal.silent)showFloatingText?.('🧭 自动寻路中，操作摇杆或点击地图可接管。','#9edcff');return true;
     }
+    // Only these three POIs use vector art even when the building atlases are ready.
+    // Grow their art around the ground baseline, leaving interaction rings and collision untouched.
+    const VECTOR_LANDMARKS_V286882={
+      spirit_spring:{scale:1.20,left:-54,right:54,top:-46,bottom:41},
+      rest:{scale:1.35,left:-29,right:29,top:-15,bottom:26},
+      battlefield:{scale:1.35,left:-34,right:34,top:-11,bottom:27}
+    };
+    function vectorLandmarkProfileV286882(o){
+      if(!o)return null;
+      return VECTOR_LANDMARKS_V286882[o.buildingId==='spirit_spring'?'spirit_spring':getPoiVisualKind(o)]||null;
+    }
+    function applyVectorLandmarkScaleV286882(ctx,o){
+      const profile=vectorLandmarkProfileV286882(o);if(!profile)return;
+      ctx.translate(0,30);ctx.scale(profile.scale,profile.scale);ctx.translate(0,-30);
+    }
+    function vectorLandmarkBoundsV286882(o){
+      const profile=vectorLandmarkProfileV286882(o);if(!profile)return null;
+      const depth=typeof scene25dOnV2888==='function'&&scene25dOnV2888()&&typeof s25DepthScaleV2888==='function'?s25DepthScaleV2888(o.y):1;
+      const point=(x,y)=>typeof landmarkPointV2893==='function'?landmarkPointV2893(o,x,y):{x:o.x+depth*x,y:o.y+depth*y};
+      const a=point(profile.left*profile.scale,30+(profile.top-30)*profile.scale),b=point(profile.right*profile.scale,30+(profile.bottom-30)*profile.scale);
+      return {left:a.x,right:b.x,top:a.y,bottom:b.y};
+    }
     // Visible architecture uses the same atlas choice, dimensions and world transforms as drawing.
     function poiTapBoxV2904(o){
       if(!o||o.action==='explore_v2828'||o.action==='war_map_v2840')return null;
+      const vector=vectorLandmarkBoundsV286882(o);if(vector)return vector;
       let w=0,h=0,bottom=32;const regional=regionBuildingCellV2835(o),art=SCROLL_ART_V2831;
       if(regional&&art.regionalBuildings?.width>0&&art.regionalBuildings?.height>0){w=architectureWidthV2900(o,o.action==='lingxiao_building'?100:regional.row===2?180:regional.row===0?150:125);h=w*(art.regionalBuildings.height/4)/(art.regionalBuildings.width/3);}
       else if(scrollPalacePoiV2831(o)&&art.palace?.width>0&&art.palace?.height>0){w=architectureWidthV2900(o,o.action==='lingxiao_building'?128:180);h=w*art.palace.height/art.palace.width;bottom=42;}
@@ -13798,7 +14229,16 @@
     }
 
     const SCROLL_ART_V2831={started:false,landscape:null,palace:null};
+    function loadRegionalBuildingsV286879(){
+      if(!['north','demon_domain','immortal_domain'].includes(currentRegion)||SCROLL_ART_V2831.regionalBuildingsRequested)return;
+      SCROLL_ART_V2831.regionalBuildingsRequested=true;
+      const img=new Image();img.decoding='async';
+      img.onload=()=>{SCROLL_ART_V2831.regionalBuildings=img;img.onload=img.onerror=null;};
+      img.onerror=()=>{SCROLL_ART_V2831.regionalBuildings=null;img.onload=img.onerror=null;};
+      img.src='./region-buildings-v2835.webp';
+    }
     function loadScrollArtV2831(){
+      loadRegionalBuildingsV286879();
       if(SCROLL_ART_V2831.started)return;SCROLL_ART_V2831.started=true;
       const request=(key,file,ground=false)=>{
         const img=new Image();img.decoding='async';
@@ -13807,7 +14247,7 @@
         img.src='./'+file;
       };
       request('regions','scroll-regions-v2834.webp',true);
-      for(const [key,file] of [['smallBeastsV28682','monster-small-beasts-v28682.webp'],['palace','scroll-palace-v2831.webp'],['buildings','scroll-buildings-v2832.webp'],['monstersV2853','monster-map-v2853.webp?v=2868-mini-return-20261015'],['regionalBuildings','region-buildings-v2835.webp']])request(key,file);
+      for(const [key,file] of [['smallBeastsV28682','monster-small-beasts-v28682.webp'],['palace','scroll-palace-v2831.webp'],['buildings','scroll-buildings-v2832.webp'],['monstersV2853','monster-map-v2853.webp?v=2868-mini-return-20261015']])request(key,file);
     }
     function scrollRegionCellV2834(region=currentRegion){
       const n=['south','east','west','north','human_peaks','human_valleys','demon_domain','immortal_domain'].indexOf(region);return n<0?0:n;
@@ -13936,12 +14376,12 @@
     function scrollSessionV2837(){
       const wrap=document.getElementById('scrollMapV2831'),state=wrap?._scrollStateV2837;
       if(!state)return null;
-      if(state.region!==currentRegion||state.owner!==player){wrap.remove();return null;}
+      if(state.region!==currentRegion||state.owner!==player){wrap._scrollResizeV286882?.disconnect();wrap.remove();return null;}
       return {wrap,state};
     }
     function closeScrollMapV2837(){
       const wrap=document.getElementById('scrollMapV2831');if(!wrap)return;
-      const opener=wrap._scrollStateV2837?.opener;wrap.remove();FLAT_WORLD.keys={};
+      const opener=wrap._scrollStateV2837?.opener;wrap._scrollResizeV286882?.disconnect();wrap.remove();FLAT_WORLD.keys={};
       if(opener?.isConnected)opener.focus({preventScroll:true});
     }
     function renderScrollTargetsV2837(){
@@ -13949,20 +14389,37 @@
       const {wrap,state}=session,esc=discipleEscV2815,cfg=getWorldMapConfig(),p=FLAT_WORLD.player,pois=scrollFilteredPoisV2837(state);
       if(!pois.some(o=>o.id===state.selected))state.selected=null;
       const field=document.getElementById('scrollFieldV2831');if(!field)return;
+      const directory=document.getElementById('scrollDirectoryV2837'),focused=document.activeElement,fromDirectory=directory?.contains(focused);
+      const focusedPoi=field.contains(focused)||fromDirectory?focused?.dataset?.poi:null;
       field.innerHTML=pois.map(o=>`<button type="button" data-scroll-action="select" data-poi="${esc(o.id)}" class="scroll-poi-v2831 ${state.selected===o.id?'is-selected':''} ${scrollPoiDoneV2837(o)?'is-claimed':''}" style="left:${o.x/cfg.width*100}%;top:${o.y/cfg.height*100}%" aria-label="${esc(o.name)}" aria-pressed="${state.selected===o.id}">${scrollPoiArtV2832(o)}<span>${esc(o.name)}</span></button>`).join('')+`<div class="scroll-player-v2831" style="left:${p.x/cfg.width*100}%;top:${p.y/cfg.height*100}%">●<span>你在此</span></div>`;
+      // Use the actual rendered hit boxes, including labels and the 44px minimum.
+      // Dense landmarks keep their real position as dots; the existing directory remains the selector.
+      const buttons=Array.from(field.querySelectorAll('.scroll-poi-v2831')),boxes=buttons.map(b=>b.getBoundingClientRect()),dense=new Set();
+      for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){
+        const a=boxes[i],b=boxes[j];if(a.width&&a.height&&b.width&&b.height&&a.left<b.right-1&&a.right>b.left+1&&a.top<b.bottom-1&&a.bottom>b.top+1){dense.add(i);dense.add(j);}
+      }
+      for(const i of dense){
+        const b=buttons[i],dot=document.createElement('span');dot.className='scroll-anchor-v286882'+(b.dataset.poi===state.selected?' is-selected':'');
+        dot.style.left=b.style.left;dot.style.top=b.style.top;dot.dataset.poi=b.dataset.poi;dot.setAttribute('aria-hidden','true');field.insertBefore(dot,b);b.remove();
+      }
       const list=document.getElementById('scrollDirectoryV2837');
       list.innerHTML=pois.length?pois.map(o=>`<button type="button" class="scroll-directory-row-v2837 ${state.selected===o.id?'is-selected':''}" data-scroll-action="locate" data-poi="${esc(o.id)}" aria-pressed="${state.selected===o.id}"><span><strong>${esc(o.name)}</strong><small>${scrollPoiDoneV2837(o)?'已领取':!scrollPoiAccessV2837(o).allowed?'未解锁':esc(explorationDirectionV2829(o))}</small></span><span aria-hidden="true">定位 ›</span></button>`).join(''):'<p class="scroll-empty-v2837">没有找到已知地点，试试其他名称或分类。</p>';
       document.getElementById('scrollCountV2837').textContent=String(pois.length);
-      document.getElementById('scrollResultV2837').textContent=`显示 ${pois.length} / ${scrollKnownPoisV2837().length} 个已知地点`;
+      document.getElementById('scrollResultV2837').textContent=`显示 ${pois.length} / ${scrollKnownPoisV2837().length} 个已知地点${dense.size?' · 地标较密，圆点请从目录选择，或放大地图。':''}`;
+      if(dense.size&&!state.denseNoticedV286882){state.denseNoticedV286882=true;document.getElementById('scrollDetailsV2837').open=true;}
       for(const b of wrap.querySelectorAll('[data-scroll-filter]'))b.setAttribute('aria-pressed',String(b.dataset.scrollFilter===state.filter));
       renderScrollSelectionV2837();
+      if(focusedPoi){const mapButton=Array.from(field.querySelectorAll('[data-poi]')).find(b=>b.tagName==='BUTTON'&&b.dataset.poi===focusedPoi),row=Array.from(list.querySelectorAll('[data-poi]')).find(b=>b.dataset.poi===focusedPoi),target=fromDirectory?row:mapButton||(document.getElementById('scrollDetailsV2837').open?row:null);(target||wrap.querySelector('[data-scroll-action="close"]'))?.focus({preventScroll:true});}
     }
     function renderScrollSelectionV2837(){
       const session=scrollSessionV2837(),el=document.getElementById('scrollSelectionV2831');if(!session||!el)return;
+      const action=el.contains(document.activeElement)?document.activeElement?.dataset?.scrollAction:null;
+      const restoreFocus=()=>{if(!action)return;const button=Array.from(el.querySelectorAll('button')).find(b=>b.dataset.scrollAction===action&&!b.disabled&&b.getClientRects().length);(button||session.wrap.querySelector('[data-scroll-action="close"]'))?.focus({preventScroll:true});};
       const poi=scrollKnownPoisV2837().find(p=>p.id===session.state.selected),esc=discipleEscV2815;
-      if(!poi){el.innerHTML='<p>点选地标或展开地点目录，再选择前往方式。</p>';return;}
+      if(!poi){el.innerHTML='<p>点选地标或展开地点目录，再选择前往方式。</p>';restoreFocus();return;}
       const access=scrollPoiAccessV2837(poi),done=scrollPoiDoneV2837(poi),disabled=!access.allowed||done;
       el.innerHTML=`<strong>${esc(poi.name)}</strong><p>${esc(explorationDirectionV2829(poi))}${!access.allowed?' · 未解锁':done?' · 已领取':''}</p><p class="scroll-detail-v2837">${esc(poi.desc||'')}${poi.action==='village'&&rainStateV286822().step>=13?' · 青云渡口已复航 · '+esc(rainSummaryV286822()):''}${!access.allowed&&access.reason?' · '+esc(access.reason):''}</p><div class="scroll-journey-v2837"><button type="button" data-scroll-action="go" ${disabled?'disabled':''}>${done?'已完成探索':!access.allowed?'尚未解锁':'自动前往'}</button><button type="button" data-scroll-action="mark" ${disabled?'disabled':''}>标记方向</button></div>`;
+      restoreFocus();
     }
     function centerScrollPointV2837(point){
       const view=document.getElementById('scrollWindowV2831'),field=document.getElementById('scrollFieldV2831');if(!view||!field)return;
@@ -13976,7 +14433,7 @@
       const anchor=point||{x:Math.min(1,(view.scrollLeft+view.clientWidth/2)/oldW)*cfg.width,y:Math.min(1,(view.scrollTop+view.clientHeight/2)/oldH)*cfg.height};
       const next=Math.max(1,Math.min(4,Number(zoom)||1));session.state.zoom=next;
       field.style.width=next===1?'100%':`${Math.round(Math.max(1,view.clientWidth)*next)}px`;
-      field.dataset.overview=String(next<2);centerScrollPointV2837(anchor);
+      field.dataset.overview=String(next<2);renderScrollTargetsV2837();centerScrollPointV2837(anchor);
       document.getElementById('scrollZoomV2837').textContent=`${next.toFixed(1)}×`;
       for(const b of session.wrap.querySelectorAll('[data-scroll-action="minus"]'))b.disabled=next<=1;
       for(const b of session.wrap.querySelectorAll('[data-scroll-action="plus"]'))b.disabled=next>=4;
@@ -14008,14 +14465,14 @@
       if(typeof syncWarMapV2840==='function')syncWarMapV2840();
       if(!forgeAllowedV2825())return;
       const opener=document.activeElement;stopNavigationV2830();FLAT_WORLD.keys={};FLAT_WORLD.target=null;FLAT_WORLD.moving=false;FLAT_WORLD.tapTargetFx=null;
-      document.getElementById('scrollMapV2831')?.remove();loadScrollArtV2831();
+      const old=document.getElementById('scrollMapV2831');old?._scrollResizeV286882?.disconnect();old?.remove();loadScrollArtV2831();
       const esc=discipleEscV2815,cfg=getWorldMapConfig(),wrap=document.createElement('div');wrap.id='scrollMapV2831';wrap.className='scroll-map-v2831 scroll-map-v2837';
       wrap.setAttribute('role','dialog');wrap.setAttribute('aria-modal','true');wrap.setAttribute('aria-labelledby','scrollTitleV2837');
       wrap._scrollStateV2837={region:currentRegion,owner:player,opener,filter:'all',query:'',zoom:1,selected:null};
       wrap.innerHTML=`<section class="scroll-sheet-v2831"><header><div><small>仙途 · 山河绘卷</small><h2 id="scrollTitleV2837">${esc(getRegionInfo(currentRegion||'south').name)}</h2></div><button type="button" data-scroll-action="close" aria-label="关闭山河图">✕</button></header><div class="scroll-search-v2837"><input type="search" id="scrollSearchV2837" maxlength="40" placeholder="搜索已知地点名称" aria-label="搜索已知地点名称"><button type="button" data-scroll-action="rest">最近补给</button></div><nav class="scroll-filters-v2837" aria-label="地点分类">${[['all','全部'],['service','生活补给'],['sect','宗门'],['explore','探索']].map(([id,name])=>`<button type="button" data-scroll-filter="${id}" aria-pressed="${id==='all'}">${name}</button>`).join('')}</nav><div class="scroll-toolbar-v2837"><button type="button" data-scroll-action="minus" aria-label="缩小地图" disabled>−</button><output id="scrollZoomV2837">1.0×</output><button type="button" data-scroll-action="plus" aria-label="放大地图">＋</button><button type="button" data-scroll-action="fit">全图</button><button type="button" data-scroll-action="player">回到主角</button></div><div class="scroll-window-v2831" id="scrollWindowV2831"><div class="scroll-field-v2831" id="scrollFieldV2831" data-overview="true" style="aspect-ratio:${cfg.width}/${cfg.height};${scrollRegionStyleV2834()}"></div></div><div class="scroll-result-v2837" id="scrollResultV2837" aria-live="polite"></div><details class="scroll-directory-v2837" id="scrollDetailsV2837"><summary>地点目录 · <span id="scrollCountV2837">0</span><span>按距离排列</span></summary><div id="scrollDirectoryV2837"></div></details><div id="scrollSelectionV2831" class="scroll-selection-v2831" aria-live="polite"></div></section>`;
       wrap.onclick=e=>{
         const b=e.target.closest('button');if(!b||!wrap.contains(b)||b.disabled)return;
-        const session=scrollSessionV2837();if(!session)return;
+        const session=scrollSessionV2837();if(!session||session.wrap!==wrap)return;
         if(b.dataset.scrollFilter){session.state.filter=b.dataset.scrollFilter;renderScrollTargetsV2837();return;}
         const action=b.dataset.scrollAction;
         if(action==='close')closeScrollMapV2837();
@@ -14026,8 +14483,9 @@
         else if(action==='rest')nearestScrollRestV2837();
         else if(action==='go'||action==='mark')startScrollJourneyV2837(action==='mark');
       };
-      wrap.oninput=e=>{if(e.target.id!=='scrollSearchV2837')return;const session=scrollSessionV2837();if(!session)return;session.state.query=e.target.value.slice(0,40);renderScrollTargetsV2837();};
+      wrap.oninput=e=>{if(e.target.id!=='scrollSearchV2837')return;const session=scrollSessionV2837();if(!session||session.wrap!==wrap)return;session.state.query=e.target.value.slice(0,40);renderScrollTargetsV2837();};
       wrap.onkeydown=e=>{
+        if(scrollSessionV2837()?.wrap!==wrap)return;
         e.stopPropagation();if(e.key==='Escape'){e.preventDefault();closeScrollMapV2837();return;}
         if(e.key==='Tab'){
           const focusable=Array.from(wrap.querySelectorAll('button:not([disabled]),input,summary')).filter(el=>el.getClientRects().length),first=focusable[0],last=focusable[focusable.length-1];
@@ -14035,6 +14493,11 @@
         }
       };
       document.body.appendChild(wrap);renderScrollTargetsV2837();wrap.querySelector('[data-scroll-action="close"]').focus({preventScroll:true});
+      if(typeof ResizeObserver==='function'){
+        const view=document.getElementById('scrollWindowV2831');let width=view.clientWidth;
+        wrap._scrollResizeV286882=new ResizeObserver(()=>{const session=scrollSessionV2837();if(session?.wrap!==wrap){wrap._scrollResizeV286882?.disconnect();return;}const next=view.clientWidth;if(next>0&&next!==width){width=next;zoomScrollV2837(session.state.zoom);}});
+        wrap._scrollResizeV286882.observe(view);
+      }
     }
 
     function worldThemeV2827(){
@@ -14071,17 +14534,21 @@
     }
 
     function drawBiomeTreeV2827(ctx,o){
-      const s=o.s||1,t=worldThemeV2827(),region=currentRegion||'south';ctx.save();ctx.translate(o.x,o.y);ctx.scale(s,s);ctx.strokeStyle=t.dark;ctx.lineWidth=2;
+      // Existing seeded variants are baked into the three 128px atlas cells, never regenerated per frame.
+      const s=o.s||1,t=worldThemeV2827(),region=currentRegion||'south',variant=Math.max(0,Math.min(2,Math.floor(Number(o.v)||0)));ctx.save();ctx.translate(o.x,o.y);ctx.scale(s,s);ctx.strokeStyle=t.dark;ctx.lineWidth=2;
       ctx.fillStyle='rgba(12,23,22,.18)';ctx.beginPath();ctx.ellipse(0,25,23,7,0,0,Math.PI*2);ctx.fill();
       if(region==='demon_domain'||region==='west'){
-        ctx.strokeStyle=region==='demon_domain'?'#292731':'#544238';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(0,26);ctx.lineTo(-3,-12);ctx.lineTo(3,-46);ctx.stroke();ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(-2,-3);ctx.lineTo(-20,-20);ctx.lineTo(-26,-34);ctx.moveTo(0,-20);ctx.lineTo(20,-31);ctx.lineTo(27,-45);ctx.stroke();
+        const forks=variant===1?[[-2,-3,-22,-14,-27,-27],[0,-20,14,-34,17,-48]]:variant===2?[[-2,-3,-13,-25,-23,-43],[0,-20,21,-21,25,-34]]:[[-2,-3,-20,-20,-26,-34],[0,-20,20,-31,27,-45]];
+        ctx.strokeStyle=region==='demon_domain'?'#292731':'#544238';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(0,26);ctx.lineTo(variant===1?2:-3,-12);ctx.lineTo(variant===2?-4:3,-46);ctx.stroke();ctx.lineWidth=4;ctx.beginPath();for(const [x,y,mx,my,ex,ey] of forks){ctx.moveTo(x,y);ctx.lineTo(mx,my);ctx.lineTo(ex,ey);}ctx.stroke();
         ctx.strokeStyle=t.leaf;ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(2,20);ctx.lineTo(0,-9);ctx.stroke();
       }else if(region==='north'||region==='human_peaks'){
         ctx.fillStyle='#5f5142';ctx.fillRect(-4,0,8,28);
-        for(let i=0;i<3;i++){const y=8-i*16,width=29-i*6;ctx.fillStyle=t.dark;ctx.beginPath();ctx.moveTo(-width,y+10);ctx.lineTo(0,y-30);ctx.lineTo(width,y+10);ctx.lineTo(10,y+6);ctx.lineTo(0,y+12);ctx.closePath();ctx.fill();ctx.stroke();if(region==='north'){ctx.fillStyle=t.leaf;ctx.beginPath();ctx.moveTo(0,y-30);ctx.lineTo(-width*.6,y-4);ctx.lineTo(0,y-9);ctx.lineTo(width*.55,y-5);ctx.closePath();ctx.fill();}}
+        const tiers=variant===1?[[0,8,25],[1,-4,22],[-1,-16,17],[0,-24,11]]:variant===2?[[-3,8,29],[4,-8,22],[-2,-24,16]]:[[0,8,29],[0,-8,23],[0,-24,17]];
+        for(const [x,y,width] of tiers){ctx.fillStyle=t.dark;ctx.beginPath();ctx.moveTo(x-width,y+10);ctx.lineTo(x,y-30);ctx.lineTo(x+width,y+10);ctx.lineTo(x+10,y+6);ctx.lineTo(x,y+12);ctx.closePath();ctx.fill();ctx.stroke();if(region==='north'){ctx.fillStyle=t.leaf;ctx.beginPath();ctx.moveTo(x,y-30);ctx.lineTo(x-width*.6,y-4);ctx.lineTo(x,y-9);ctx.lineTo(x+width*.55,y-5);ctx.closePath();ctx.fill();}}
       }else{
         ctx.fillStyle='#66513d';ctx.fillRect(-4,-5,8,33);
-        const colors=[t.dark,t.leaf,t.patch];for(let i=0;i<3;i++){ctx.fillStyle=colors[i];ctx.beginPath();ctx.ellipse((i-1)*12,-14-i*8,22-i*3,27-i*3,(i-1)*.25,0,Math.PI*2);ctx.fill();ctx.stroke();}
+        const colors=[t.dark,t.leaf,t.patch],crowns=variant===1?[[-14,-13,20,22,-.18],[14,-15,20,22,.18],[0,-29,18,25,0]]:variant===2?[[-15,-7,18,28,-.2],[11,-19,21,24,.18],[0,-25,17,20,-.1]]:[[-12,-14,22,27,-.25],[0,-22,19,24,0],[12,-30,16,21,.25]];
+        crowns.forEach(([x,y,rx,ry,angle],i)=>{ctx.fillStyle=colors[i];ctx.beginPath();ctx.ellipse(x,y,rx,ry,angle,0,Math.PI*2);ctx.fill();ctx.stroke();});
         ctx.strokeStyle=t.dark;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,2);ctx.lineTo(3,-24);ctx.moveTo(2,-7);ctx.lineTo(-9,-16);ctx.stroke();
       }ctx.restore();
     }
@@ -14181,6 +14648,7 @@
         const roof=o.factionGroup==='demon'?'#6d344c':o.factionGroup==='immortal'?'#8b87b8':'#477365';
         drawIsoHouse(ctx,{w:78,h:64,roof,front:o.factionGroup==='demon'?'#756371':'#d3d5c7',side:'#7e8b86',style:o.factionGroup==='human'?'pagoda':o.factionGroup,trim:o.factionGroup==='demon'?'#c18b9f':'#e5d5a3'});
       }else if(o.buildingId==='spirit_spring'){
+        applyVectorLandmarkScaleV286882(ctx,o);
         ctx.fillStyle='#526f75';ctx.beginPath();ctx.ellipse(0,9,54,32,0,0,Math.PI*2);ctx.fill();
         ctx.fillStyle='#3bafc8';ctx.beginPath();ctx.ellipse(0,4,46,26,0,0,Math.PI*2);ctx.fill();
         ctx.strokeStyle='#b9f4ff';ctx.lineWidth=2;
@@ -14232,6 +14700,7 @@
         ctx.fillStyle='#9ca6bb';ctx.beginPath();ctx.moveTo(0,-26);ctx.lineTo(25,-6);ctx.lineTo(0,14);ctx.lineTo(-25,-6);ctx.closePath();ctx.fill();
         ctx.strokeStyle='rgba(190,227,255,.48)';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='rgba(126,201,255,.56)';ctx.beginPath();ctx.arc(0,-6,7,0,Math.PI*2);ctx.fill();
       }else if(kind==='rest'){
+        applyVectorLandmarkScaleV286882(ctx,o);
         ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(0,18,28,8,0,0,Math.PI*2);ctx.fill();
         const pool=ctx.createRadialGradient(0,4,2,0,4,24);pool.addColorStop(0,'#b5f3ff');pool.addColorStop(.55,'#70bdd5');pool.addColorStop(1,'#2b6377');
         ctx.fillStyle=pool;ctx.beginPath();ctx.ellipse(0,4,28,18,0,0,Math.PI*2);ctx.fill();
@@ -14249,6 +14718,7 @@
         ctx.fillStyle='#8d9aab';ctx.beginPath();ctx.moveTo(-14,-16);ctx.lineTo(0,-2);ctx.lineTo(20,-28);ctx.lineTo(8,-2);ctx.closePath();ctx.fill();
         ctx.fillStyle='rgba(255,255,255,.76)';ctx.beginPath();ctx.moveTo(-15,-18);ctx.lineTo(-7,-9);ctx.lineTo(-2,-14);ctx.lineTo(3,-6);ctx.lineTo(9,-12);ctx.lineTo(20,-28);ctx.closePath();ctx.fill();
       }else if(kind==='battlefield'){
+        applyVectorLandmarkScaleV286882(ctx,o);
         ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(0,18,34,9,0,0,Math.PI*2);ctx.fill();
         ctx.strokeStyle='#7a5d49';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-18,-8);ctx.lineTo(16,20);ctx.moveTo(16,-8);ctx.lineTo(-18,20);ctx.stroke();
         ctx.strokeStyle='rgba(255,160,120,.4)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-12,-2);ctx.lineTo(10,16);ctx.moveTo(10,-2);ctx.lineTo(-12,16);ctx.stroke();
@@ -14842,7 +15312,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.78";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.83";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
@@ -15083,7 +15553,7 @@ function showTripV286821(){
 }
 
 // V2905: item counts and synchronous, save-or-rollback actions. No save schema change.
-const ITEM_ACTION_V2905={depth:0,effects:[]};
+const ITEM_ACTION_V2905={depth:0,effects:[],committing:false};
 function itemCountV2905(value){
  const n=typeof value==='number'?value:typeof value==='string'&&/^\s*\d+(?:\.\d+)?\s*$/.test(value)?Number(value):0;
  return Number.isFinite(n)?Math.max(0,Math.min(Number.MAX_SAFE_INTEGER,Math.floor(n))):0;
@@ -15109,9 +15579,14 @@ function addStoredItemV2905(store,name,count=1){
  return true;
 }
 function itemActionV2905(label,fn,self,args){
+ if(ITEM_ACTION_V2905.committing)return false;
  if(ITEM_ACTION_V2905.depth||miniSaveDeferredV286840)return fn.apply(self,args||[]);
  if(!player||gameState==='start'||gameState==='combat'||gameState==='combat-ending'||player.breakthrough?.isAnimating||COMBAT_FINISH_V2764?.settling)return false;
  const owner=player,raw=JSON.stringify(player),progress=JSON.stringify(achievementProgress),completed=[...completedAchievements],state=gameState,choices=currentChoices;
+ // Keep owned object identities: open pet/artifact controls may retain these references.
+ const ownedLists=['pets','artifacts'].map(key=>({key,list:owner[key],entries:Array.isArray(owner[key])?owner[key].slice():null}));
+ const activeArtifactIndex=Array.isArray(owner.artifacts)?owner.artifacts.indexOf(owner.activeArtifact):-1;
+ const evolutionOpen=typeof petEvolutionOpenIdV210==='undefined'?null:petEvolutionOpenIdV210;
  const lastUse=lastItemUseV2768;ITEM_ACTION_V2905.depth++;ITEM_ACTION_V2905.effects=[];miniSaveDeferredV286840=true;
  let result,error=null;
  try{normalizeItemCountsV2905(player);result=fn.apply(self,args||[]);}catch(e){error=e;}
@@ -15119,9 +15594,20 @@ function itemActionV2905(label,fn,self,args){
  const effects=ITEM_ACTION_V2905.effects;ITEM_ACTION_V2905.effects=[];
  if(player!==owner)return false; // Never switch back to an old character.
  let changed=false,saved=false;
- try{changed=JSON.stringify(player)!==raw||JSON.stringify(achievementProgress)!==progress||JSON.stringify([...completedAchievements])!==JSON.stringify(completed);saved=!error&&(!changed||saveGame()===true);}catch(e){error=e;}
+ try{changed=JSON.stringify(player)!==raw||JSON.stringify(achievementProgress)!==progress||JSON.stringify([...completedAchievements])!==JSON.stringify(completed);ITEM_ACTION_V2905.committing=true;saved=!error&&(!changed||saveGame()===true);}catch(e){error=e;}finally{ITEM_ACTION_V2905.committing=false;}
+ if(player!==owner)return false;
  if(saved){for(const effect of effects){try{effect();}catch(e){console.warn('物品操作显示失败',e);}}return result;}
- const restore=()=>{for(const key of Object.keys(owner))delete owner[key];Object.assign(owner,JSON.parse(raw));if(owner.activePet?._petId)owner.activePet=owner.pets?.find(p=>p._petId===owner.activePet._petId)||null;};restore();
+ const restore=()=>{
+  for(const key of Object.keys(owner))delete owner[key];Object.assign(owner,JSON.parse(raw));
+  for(const {key,list,entries} of ownedLists){
+   if(!entries||!Array.isArray(owner[key]))continue;
+   const restored=owner[key].map((value,i)=>{const ref=entries[i];if(!ref||typeof ref!=='object'||!value||typeof value!=='object')return value;for(const field of Object.keys(ref))delete ref[field];Object.assign(ref,value);return ref;});
+   list.length=0;for(const value of restored)list.push(value);owner[key]=list;
+  }
+  if(owner.activePet?._petId)owner.activePet=owner.pets?.find(p=>p._petId===owner.activePet._petId)||null;
+  if(activeArtifactIndex>=0)owner.activeArtifact=owner.artifacts[activeArtifactIndex];
+ };restore();
+ if(typeof petEvolutionOpenIdV210!=='undefined')petEvolutionOpenIdV210=evolutionOpen;
  achievementProgress=JSON.parse(progress);completedAchievements=new Set(completed);lastItemUseV2768=lastUse;gameState=state;currentChoices=choices;
  try{updateStats();updateWorldHUD?.();if(document.getElementById('mobileInventoryOverlay'))renderMobileInventory();if(state==='alchemy')updateAlchemyPanel();}catch(_){}
  // Legacy HUD refreshers may normalize unrelated fields; a failed action must still restore the exact snapshot.
@@ -15131,11 +15617,11 @@ function itemActionV2905(label,fn,self,args){
 }
 function installItemSafetyV2905(){
  // UI side effects run only after the enclosing action commits, including achievement notifications.
- for(const name of ['showStory','showShop','showRarePillShop','showNewGearShopV2790','showOldGearShopV2792','showMarketGearV2800','showPetGrowthShopV210','showSectShop','showFloatingText','showAchievementPopup','showBreakthroughNotice','renderMobileInventory','updateAlchemyPanel','showLongevityPanel']){
+ for(const name of ['showStory','showShop','showRarePillShop','showNewGearShopV2790','showOldGearShopV2792','showMarketGearV2800','showPetGrowthShopV210','showSectShop','showFloatingText','showAchievementPopup','showBreakthroughNotice','renderMobileInventory','updateAlchemyPanel','showLongevityPanel','showPetGrowthResultV210','flashPetCardV210','updatePetPanel','updateArtifactPanel','showMaterialWorkshop','playSound']){
   const base=window[name];if(typeof base!=='function')continue;
   window[name]=function(...args){if(ITEM_ACTION_V2905.depth){ITEM_ACTION_V2905.effects.push(()=>base.apply(this,args));return;}return base.apply(this,args);};
  }
- for(const name of ['useItem','useLongevityPill','craftPill','buyGeneralV2801','buyLongevityPill','buyBreakthroughPillV28683','buySectItem','buyMarketGearV2800','buyNewGearV2790','buyOldGearV2792','buyPetGrowthBatchV286845','bulkDismantleEquipment','dismantleOneEquipmentEncoded']){
+ for(const name of ['useItem','useLongevityPill','craftPill','buyGeneralV2801','buyLongevityPill','buyBreakthroughPillV28683','buySectItem','buyMarketGearV2800','buyNewGearV2790','buyOldGearV2792','buyPetGrowthBatchV286845','bulkDismantleEquipment','dismantleOneEquipmentEncoded','craftPetMaterialBatchV286846','feedPet','feedPetMaxByIdV286845','advancePetByIdV210','mutatePetByIdV210','evolvePetByIdV210','upgradeArtifact','upgradeArtifactMaxV286845']){
   const base=window[name];if(typeof base!=='function')continue;
   window[name]=function(...args){return itemActionV2905(name,base,this,args);};
  }
@@ -15145,24 +15631,24 @@ function installItemSafetyV2905(){
 function pillBatchCountV2905(name,mode){
  const item=ITEMS[name],kind=item?.type,have=player.inventory.filter(n=>n===name).length;
  if(!['heal','mp','exp'].includes(kind)||!(item.value>0)||!have)return 0;
- const needed=kind==='heal'?Math.ceil((getMaxHp()-player.hp)/item.value):kind==='mp'?Math.ceil((getMaxMp()-player.mp)/item.value):999;
+ const needed=kind==='heal'?Math.max(name==='玄玉护脉丹'&&hasStatusEffect('jingmai')?1:0,Math.ceil((getMaxHp()-player.hp)/item.value)):kind==='mp'?Math.ceil((getMaxMp()-player.mp)/item.value):999;
  const max=Math.max(0,Math.min(999,have,needed));
  return [5,10].includes(mode)?Math.min(mode,max):mode==='full'&&kind!=='exp'||mode==='all'&&kind==='exp'?max:0;
 }
 function useItemBatchV2905(name,mode){
  if(gameState!=='exploring')return false;
  return itemActionV2905('批量服用',()=>{
-  const n=pillBatchCountV2905(name,mode);if(!n)return false;const item=ITEMS[name],kind=item.type;
+  const n=pillBatchCountV2905(name,mode);if(!n)return false;const item=ITEMS[name],kind=item.type,curesMeridians=name==='玄玉护脉丹'&&hasStatusEffect('jingmai');
   const owner=player,before=JSON.stringify(player);
-  if(typeof confirm==='function'&&!confirm(`服用【${name}】×${n}？`))return false;
+  if(typeof confirm==='function'&&!confirm(`服用【${name}】×${n}${curesMeridians?'，并清除经脉暗伤':''}？`))return false;
   if(player!==owner||JSON.stringify(player)!==before)return false;
   if(gameState!=='exploring'||player.breakthrough?.isAnimating||COMBAT_FINISH_V2764.settling||pillBatchCountV2905(name,mode)!==n)return false;
   for(let i=0;i<n;i++)removeItem(name);
   let gain;
-  if(kind==='heal'){const old=player.hp;player.hp=Math.min(getMaxHp(),old+item.value*n);gain=player.hp-old;}
+  if(kind==='heal'){const old=player.hp;player.hp=Math.min(getMaxHp(),old+item.value*n);gain=player.hp-old;if(curesMeridians)removeStatusEffect('jingmai');}
   else if(kind==='mp'){const old=player.mp;player.mp=Math.min(getMaxMp(),old+item.value*n);gain=player.mp-old;}
   else{gain=item.value*n;player.exp+=gain;checkLevelUp();}
-  updateStats();renderMobileInventory();showFloatingText(`服用 ${name} ×${n} · ${kind==='heal'?'气血':kind==='mp'?'灵力':'修为'} +${gain}`,'#69f0ae');return true;
+  updateStats();renderMobileInventory();showFloatingText(`服用 ${name} ×${n} · ${kind==='heal'?'气血':kind==='mp'?'灵力':'修为'} +${gain}${curesMeridians?' · 经脉暗伤已痊愈':''}`,'#69f0ae');return true;
  });
 }
 function pillBatchButtonsV2905(row,index){

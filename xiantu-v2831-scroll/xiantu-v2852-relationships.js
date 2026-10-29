@@ -175,7 +175,7 @@ async function relationshipChatV2852(id,topic){
   const warning='',esc=relationshipEscV2852;
   relationshipMountV2852(id,'chat',`<span class="rs-eyebrow-v2852">${esc(relationshipContextV2852(id))}</span>${relationshipChatTextV2852(id,record)}<p class="rs-hint-v2852" role="status">${esc(warning||answer.note||'已记入札记。')}</p><button class="rs-primary-v2852" onclick="showRelationshipsV2852('${id}','chat')">再聊一个话题</button><button class="rs-back-v2852" onclick="showRelationshipsV2852('${id}','diary')">翻开相处札记</button>`,{kind:'reply'});
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2852-relationships.js']='28.68.78';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2852-relationships.js']='28.68.83';
 
 function relationshipWarMomentV2865(){
  const story=player.yewujiStoryV2816;

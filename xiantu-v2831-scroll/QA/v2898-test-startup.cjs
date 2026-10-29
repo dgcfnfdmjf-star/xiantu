@@ -20,10 +20,22 @@ function harness(styleBuild=cssBuild){
  await h.nodes.get('xiantuSafeBootButton').click();a.equal(h.added.length,1,'double tap does not duplicate bootstrap');
  h.added[0].onload();await done;a.deepEqual(h.evaluated,files,'original script evaluation order');
  const links=h.added.filter(n=>n.as==='script');a.equal(links.length,39);a(links.every(n=>n.fetchPriority==='high'));a(!links.some(n=>n.href.includes(files[0])),'core already preloaded in head');
- for(const mode of ['network','timeout','wrong-version']){
- const x=harness(mode==='wrong-version'?'old':cssBuild),p=x.nodes.get('xiantuSafeBootButton').click();
- if(mode==='network')x.added[0].onerror();else if(mode==='timeout')[...x.timers.values()].find(t=>t.ms===15000).f();else x.added[0].onload();
- await p;a.equal(x.evaluated.length,0);a.equal(x.added.filter(n=>n.as==='script').length,0);a.equal(x.stopped,1);a.match(x.nodes.get('xiantuSafeBootError').textContent,mode==='wrong-version'?/样式版本不一致/:mode==='timeout'?/加载超时/:/加载失败/);
+ for(const mode of ['slow','automatic-retry','manual-retry','wrong-version']){
+ const x=harness(mode==='wrong-version'?'old':cssBuild),p=x.nodes.get('xiantuSafeBootButton').click(),button=x.nodes.get('xiantuSafeBootButton');
+ if(mode==='slow'){
+   [...x.timers.values()].find(t=>t.ms===15000).f();a.equal(x.stopped,0);a.match(x.nodes.get('xiantuSafeBootProgress').textContent,/仍在加载/);a.equal(button.disabled,true);a.equal(x.added.length,1);
+ }else if(mode.includes('retry')){
+   const fail=x.added[0].onerror;fail();fail();a.equal(x.stopped,0);a.equal(x.added.length,1);
+   [...x.timers.values()].find(t=>t.ms===750).f();a.equal(x.added.length,2);a.equal(x.added[1].href,href+'&retry=1');
+   if(mode==='manual-retry'){
+     x.added[1].onerror();a.equal(button.disabled,false);a.match(button.textContent,/重试继续/);
+     const retry=button.onclick;retry();retry();a.equal(x.added.length,3,'repeated retry taps never duplicate pending downloads');a.equal(x.added[2].href,href+'&retry=2');
+   }
+ }
+ x.added.at(-1).onload();await p;
+ if(mode==='wrong-version'){
+   a.equal(x.evaluated.length,0);a.equal(x.added.filter(n=>n.as==='script').length,0);a.equal(x.stopped,1);a.match(x.nodes.get('xiantuSafeBootError').textContent,/样式版本不一致/);
+ }else{a.deepEqual(x.evaluated,files);a.equal(x.stopped,0);a.equal(x.nodes.get('xiantuSafeBootError').style.display,'none');}
  }
  // The actual embedded video code retains one playback, sound toggle, and cleanup on all exits.
  for(const mode of ['skip','ended','error','stall','deadline','denied','pagehide']){
@@ -45,5 +57,5 @@ function harness(styleBuild=cssBuild){
  choice.checked=true;choice.onchange();if(persisted!=='blocked')a.equal(store.get('xiantu_skip_intro_v2898'),'1');
  await c.window.XiantuIntroV2860.start();a.equal(plays,0);a.equal(srcs,0);a.equal(choice.disabled,true);a.equal(els.introPanelV2860.hidden,true);
  }
- console.log('PASS CSS-first startup, single download/evaluation order, invalid CSS prevents scripts, intro exit/autoplay/sound cleanup');
+ console.log('PASS CSS-first startup, slow/retry recovery, single evaluation order, invalid CSS prevents scripts, intro exit/autoplay/sound cleanup');
 })().catch(e=>{console.error(e);process.exitCode=1;});
