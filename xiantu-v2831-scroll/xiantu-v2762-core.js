@@ -6466,6 +6466,7 @@
     let playerPressureStun = false;
 
     function resetRuntimeState() {
+      if(typeof clearInteriorV286886==='function')clearInteriorV286886();
       clearBreakthroughRuntimeV2905();
       if(typeof resetOnboardingV2901==='function')resetOnboardingV2901();
       document.getElementById('saveRemindV2895')?.remove();
@@ -6759,7 +6760,8 @@
         if (c.boss) btnClass += ' boss-btn';
         if (c.story) btnClass += ' story-btn';
         if (c.tribulation) btnClass += ' tribulation-btn';
-        return `<button class="${btnClass}" onclick="handleChoice(${i})" ${disabled}>${c.text}</button>`;
+        const label=typeof interiorV286886!=='undefined'&&interiorV286886&&c.action==='return_to_map'?'← 返回室内':c.text;
+        return `<button class="${btnClass}" onclick="handleChoice(${i})" ${disabled}>${label}</button>`;
       }).join('');
       
       gameState = 'exploring';
@@ -12869,6 +12871,7 @@
       stopNavigationV2830();
       if(!WORLD_MAP_CONFIGS[regionId]) regionId='south';
       if(!isRegionUnlocked(regionId)) { warnRegionLocked(regionId,'无法前往'); return false; }
+      if(typeof clearInteriorV286886==='function')clearInteriorV286886();
       const cfg=WORLD_MAP_CONFIGS[regionId];
       if(typeof resetMapAliveV2893==='function')resetMapAliveV2893();
       closeScrollMapV2837();
@@ -13490,6 +13493,7 @@
       window.addEventListener('keyup', e=>{ FLAT_WORLD.keys[e.key.toLowerCase()]=false; });
       const setWorldTapTarget = (clientX, clientY, source='mouse') => {
         if (isWorldOverlayOpen()) return false;
+        if(typeof interiorTapV286886==='function'&&interiorTapV286886(canvas,clientX,clientY))return true;
         const rect=canvas.getBoundingClientRect();
         if(clientX<rect.left||clientX>rect.right||clientY<rect.top||clientY>rect.bottom) return false;
         const point=worldTapPointV2893(canvas,rect,clientX,clientY);
@@ -13570,6 +13574,7 @@
 
     // Shared reset for keyboard, point navigation and control-mode transitions.
     function resetWorldMovementV28686(){
+      if(typeof interiorV286886!=='undefined'&&interiorV286886)interiorV286886.path=[];
       stopNavigationV2830();
       FLAT_WORLD.keys={};FLAT_WORLD.target=null;FLAT_WORLD.tapTargetFx=null;
       FLAT_WORLD.moving=false;FLAT_WORLD.moveDirX=0;FLAT_WORLD.moveDirY=0;
@@ -13716,6 +13721,7 @@
     }
 
     function updateFlatWorld(dt) {
+      if(typeof updateInteriorV286886==='function'&&updateInteriorV286886(dt))return;
       if(typeof syncWarMapV2840==='function')syncWarMapV2840();
       if(document.getElementById("scrollMapV2831"))return;
       if(tickNavigationV2830(dt)===true)return; // Arrival may open a panel: do not also move or encounter a monster this frame.
@@ -13756,9 +13762,11 @@
     }
 
     function interactFlatWorld() {
+      if(typeof interiorInteractV286886==='function'&&interiorInteractV286886())return;
       if(!canMapNpcActV2864())return;
       const p=FLAT_WORLD.nearby; if(!p||!FLAT_WORLD.pois.includes(p)||Math.hypot(FLAT_WORLD.player.x-p.x,FLAT_WORLD.player.y-p.y)>p.r+62)return;
       playSound?.('click');
+      if(typeof tryEnterInteriorV286886==='function'&&tryEnterInteriorV286886(p))return;
       if(p.action==='war_map_v2840'){openWarOrdersV2840();return;}
       if(p.action==='world_travel_menu') showWorldTravelMenu();
       else if(p.action==='yewuji_v2810')showYeWujiV2810();
@@ -13806,6 +13814,7 @@
     }
 
     function drawFlatWorld(t=performance.now(),dt=1/60) {
+      if(typeof drawInteriorV286886==='function'&&drawInteriorV286886())return;
       const c=document.getElementById('worldCanvas'); if(!c)return; const ctx=c.getContext('2d');
       const dpr=c._dpr||1, vw=c.width/dpr, vh=c.height/dpr;
       ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -14092,6 +14101,7 @@
       return startPointNavigationV28685(goal);
     }
     function startPointNavigationV28685(goal){
+      if(typeof interiorV286886!=='undefined'&&interiorV286886){clearInteriorV286886();resetWorldMovementV28686();}
       if(!forgeAllowedV2825()||!goal||!Number.isFinite(goal.x)||!Number.isFinite(goal.y))return false;
       goal={...goal,r:Number.isFinite(goal.r)?Math.max(0,goal.r):0};
       stopNavigationV2830();const p=FLAT_WORLD.player;
@@ -15312,7 +15322,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.83";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.86";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

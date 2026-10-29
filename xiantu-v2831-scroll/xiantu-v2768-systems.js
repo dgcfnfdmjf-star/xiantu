@@ -802,4 +802,4 @@ function reinforceSealV2887(token){
  if(ok){bossViewV2887=null;showSectAdminV2873();showFloatingText('九锁重鸣，旧账与加固已保存。','#ffd76a');}return ok;
 }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2768-systems.js"]="28.68.83";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2768-systems.js"]="28.68.86";

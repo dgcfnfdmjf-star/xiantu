@@ -18,7 +18,7 @@
     const panel=getVisibleWorldOverlay();
     if(!wrap||!panel)return;
     const btn=wrap.querySelector('button');
-    if(btn){btn.textContent='← 地图';btn.title='返回地图';btn.setAttribute('aria-label','返回地图');}
+    if(btn){const indoor=document.documentElement.classList.contains('interior-v286886');btn.textContent=indoor?'← 室内':'← 地图';btn.title=indoor?'返回室内':'返回地图';btn.setAttribute('aria-label',btn.title);}
     const rect=panel.getBoundingClientRect();
     const vw=document.documentElement.clientWidth||window.innerWidth;
     const top=Math.max(8,Math.round(rect.top-40));
@@ -56,4 +56,4 @@
   if(document.body.classList.contains('flat-world-active'))requestAnimationFrame(install);
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-07-v12-stable-map-ui-script.js"]="28.68.83";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-07-v12-stable-map-ui-script.js"]="28.68.86";
