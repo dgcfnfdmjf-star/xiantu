@@ -147,6 +147,8 @@
       if(p.inventory.some(n=>typeof n!=='string')||p.inventory.length>100000)throw Error('背包数据无效');
       for(const k of ['gold','exp','hp','mp'])if(!Number.isFinite(p[k])||p[k]<0)throw Error('角色数值无效');
       validateSaveTextV2869(data);
+      // Older realm schemas must migrate their stage before establishing the new reward boundary.
+      if(Number(p.realmSchemaVersion)>=4)normalizeDaoV286883(p);else delete p.daoV286883;
       return data;
     }
     // Incomplete battles save the pre-battle snapshot, never a paid half-action.
@@ -156,7 +158,7 @@
       if(gameState==='combat' && battleCheckpointV286812?.owner===player){
         return {...JSON.parse(battleCheckpointV286812.raw),timestamp:Date.now(),interruptedBattleV286812:true};
       }
-      const clean=JSON.parse(JSON.stringify(player));normalizeItemCountsV2905(clean);
+      const clean=JSON.parse(JSON.stringify(player));normalizeItemCountsV2905(clean);normalizeDaoV286883(clean);
       return {player:clean,achievements:{progress:{...achievementProgress},completed:Array.from(completedAchievements)},timestamp:Date.now(),version:SAVE_VERSION};
     }
     function writeSaveV2768(raw) {
@@ -2455,7 +2457,7 @@
       return Object.entries(LONGEVITY_PILLS).reduce((sum,[name,d])=>sum+state.uses[name]*d.years,0);
     }
     function getTotalMaxLifespan(p=player) {
-      return calculateMaxLifespan(p?.level||0)+getLongevityBonus(p)+Math.max(0,Number(p?.realmLifeCreditV2793)||0);
+      return Math.max(1,calculateMaxLifespan(p?.level||0)+getLongevityBonus(p)+Math.max(0,Number(p?.realmLifeCreditV2793)||0)+daoBonusesV286883(p).life);
     }
     function useLongevityPill(name) {
       const d=LONGEVITY_PILLS[name];
@@ -2563,10 +2565,10 @@
       return d&&player.level>=d.level&&player.inventory?.includes(name)?name:null;
     }
     function selectBreakthroughPillV28683(name){
-      if(gameState==='combat'||gameState==='combat-ending'||player.breakthrough?.isAnimating)return;
+      if(breakthroughBusyV2905()||breakthroughRunV2781||player.breakthrough?.isAnimating||player.breakthrough?.pendingV28683)return false;
       if(name&&(!BREAKTHROUGH_PILLS_V28683[name]||player.level<BREAKTHROUGH_PILLS_V28683[name].level||!player.inventory.includes(name)))return;
-      player.breakthrough ||= {};player.breakthrough.pillV28683=name||null;
-      autoSave();showRetreatBreakthroughV2798();
+      if(!commitBreakthroughV2905(()=>{player.breakthrough||={};player.breakthrough.pillV28683=name||null;return true;}))return false;
+      showRetreatBreakthroughV2798();return true;
     }
     function buyBreakthroughPillV28683(name){
       const d=BREAKTHROUGH_PILLS_V28683[name];
@@ -2576,7 +2578,35 @@
     }
     function breakthroughDetailsV28683(){
       const d=calculateBreakthroughSuccess();
-      return `<p>本次成功率：${Math.round(d.rate*100)}% · 当前瓶颈已失败 ${d.failures} 次${d.guaranteed?' · 本次保底成功':''}<br>基础 ${Math.round(d.base*100)}% · 丹药 +${Math.round(d.pillBonus*100)}% · 宗门 +${Math.round(d.sectBonus*100)}% · 状态/心结 -${Math.round(d.statusPenalty*100)}%<br>常规概率限制在5%—95%，再加失败保护 +${Math.round(d.pityBonus*100)} 个百分点；连续失败5次后下一次必成。成功后清零，读档保留。</p><p>本次丹药：${d.pillName||'不使用'}。开始尝试时消耗一颗，成功或失败均消耗；预览不消耗，不叠加多种丹药；保底时不消耗丹药。<br>失败损失 ${Math.floor(getCurrentExpNeed()*.15)} 修为，气血变为上限60%、灵力变为上限50%，调息30—49个游戏日。飞升天劫不适用此保底。</p>`;
+      if(!d.daoActive)return `<p>本次成功率：${Math.round(d.rate*100)}% · 当前瓶颈已失败 ${d.failures} 次${d.guaranteed?' · 本次保底成功':''}<br>基础 ${Math.round(d.base*100)}% · 丹药 +${Math.round(d.pillBonus*100)}% · 宗门 +${Math.round(d.sectBonus*100)}% · 状态/心结 -${Math.round(d.statusPenalty*100)}%<br>常规概率限制在5%—95%，再加失败保护 +${Math.round(d.pityBonus*100)} 个百分点；连续失败5次后下一次必成。成功后清零，读档保留。</p><p>本次丹药：${d.pillName||'不使用'}。开始尝试时消耗一颗，成功或失败均消耗；预览不消耗，不叠加多种丹药；保底时不消耗丹药。<br>失败损失 ${Math.floor(getCurrentExpNeed()*.15)} 修为，气血变为上限60%、灵力变为上限50%，调息30—49个游戏日。飞升天劫不适用此保底。</p>`;
+      const P=v=>`${Number((v*100).toFixed(1))}%`,points=v=>`${v>0?'+':v<0?'−':'±'}${Number((Math.abs(v)*100).toFixed(1))} 个百分点`;
+      const rows=d.factorsV286883,sum=rows.reduce((n,r)=>n+r.v,0),limited=Math.max(.05,Math.min(.95,sum)),afterPity=limited+d.pityBonus;
+      const state=daoStateV286883(),bonus=daoBonusesV286883(),repeat=daoRewardedV286883(`${player.level}:${player.phase||0}`);
+      const q=daoQualityOddsV286883(d.rate,d.guaranteed),f=daoFailOddsV286883(),major=(player.phase||0)===3,need=getCurrentExpNeed();
+      const qualityRows=Object.entries(DAO_BT_V286883.quality).map(([kind,def])=>{
+        const stat=repeat?0:Math.max(0,Math.min(def.stat,DAO_BT_V286883.statCap-bonus.stat));
+        const life=repeat||!major?0:Math.floor(calculateMaxLifespan(player.level+1)*def.life);
+        return `<li><div class="dao-outcome-head-v286883"><b>${def.name}</b><span>${P(q[kind])}</span></div><small>${repeat?'此阶段奖励已领取':`攻击／防御／气血 +${P(stat)}${life?`；寿元上限 +${life} 年（新境界寿元的 ${P(def.life)}）`:'；本次无额外寿元'}；根基记录 ${def.point>0?'+':''}${def.point}${kind==='perfect'?'；同时治愈经脉暗伤':''}`}</small></li>`;
+      }).join('');
+      const failNotes={
+        minor:'持续60游戏日：突破率 −10 个百分点，灵力恢复 −20%；随游戏日自然恢复，玄玉护脉丹可治愈。',
+        moderate:'持续60游戏日：战斗与修炼修为 −20%；任务、丹药和一次性奖励不受影响。',
+        severe:'降一小阶段至后期，当前修为清零；根基动摇360游戏日，突破率 −10 个百分点。每个瓶颈最多一次，原瓶颈失败保护保留。',
+        epiphany:`基础失败扣损后，额外获得 ${Math.floor(need*.30)} 修为（本次门槛的30%）。`,
+        lifespan:`寿元上限减少 ${Math.max(1,Math.floor(getTotalMaxLifespan()*.02))} 年（当前总上限的2%，向下取整，至少1年）。`
+      };
+      const failRows=Object.entries(f).filter(([,chance])=>chance>0).map(([kind,chance])=>`<li><div class="dao-outcome-head-v286883"><b>${DAO_BT_V286883.failure[kind]}</b><span>${P(chance)}</span></div><small>${failNotes[kind]}</small></li>`).join('');
+      return `<section class="dao-panel-v286883" aria-label="突破概率与代价">
+        <div class="dao-total-v286883"><span>本次成功率</span><strong>${P(d.rate)}</strong></div>
+        <p class="dao-note-v286883">当前瓶颈已失败 ${d.failures} 次${d.guaranteed?' · 本次保底成功':''}</p>
+        <dl class="dao-factors-v286883">${rows.map(r=>`<div><dt>${escapeGameText(r.name)}${r.note?`<small>${escapeGameText(r.note)}</small>`:''}</dt><dd class="${r.v>0?'up':r.v<0?'down':''}">${r.key==='base'?P(r.v):points(r.v)}</dd></div>`).join('')}</dl>
+        <div class="dao-formula-v286883"><p>各项相加 <b>${P(sum)}</b> → 限制在5%—95%后 <b>${P(limited)}</b>${Math.abs(limited-sum)>.000001?`（截断调整 ${points(limited-sum)}）`:''}</p>
+        ${d.guaranteed?'<p><b>连续失败5次，本次直接保底100%。</b></p>':`<p>失败保护 ${points(d.pityBonus)} → ${P(afterPity)} → 最终 <b>${P(d.rate)}</b>${afterPity>.95?'（超过95%的部分不计入）':''}</p>`}
+        <p class="dao-note-v286883">每失败一次 +15 个百分点，常规最终上限95%；连续失败5次后下一次必成。成功后清零，读档保留。飞升天劫不适用。</p></div>
+        <p class="dao-cost-v286883"><b>本次丹药：${escapeGameText(d.pillName||'不使用')}</b><br>${d.guaranteed?'本次保底，不消耗丹药。':'开始尝试时消耗所选丹药一颗，成功或失败均消耗。'}预览不消耗，丹药不叠加。</p>
+        <details class="dao-outcomes-v286883"><summary>成功品质 · 查看概率与奖励</summary><p class="dao-note-v286883">以下为成功后的条件概率；每次只获得一种品质。每个阶段首次成功才发奖，重修不重复发放。${repeat?'此阶段已领取品质奖励。':''}</p><ul>${qualityRows}</ul><p class="dao-note-v286883">品质累计属性 +${P(bonus.stat)}／上限 +${P(DAO_BT_V286883.statCap)}。额外寿元仅大境界首次成功可得，勉强／顺利／完美分别为新境界寿元的 ${Object.values(DAO_BT_V286883.quality).map(v=>P(v.life)).join('／')}。最近5次首次成功品质影响根基与后续突破。</p></details>
+        ${d.guaranteed?'<p class="dao-note-v286883">本次必成，不会发生失败代价或失败分支。</p>':`<p class="dao-cost-v286883 dao-risk-v286883"><b>失败基础代价</b><br>损失 ${Math.floor(need*.15)} 修为；气血变为上限60%，灵力变为上限50%；调息30—49个游戏日。之后另抽取下方一种失败分支。</p><details class="dao-outcomes-v286883"><summary>若失败 · 查看分支与后果</summary><p class="dao-note-v286883">以下为失败后的条件概率。所有分支都先结算上述基础代价，再触发一种额外后果。</p><ul>${failRows}</ul>${!f.severe?`<p class="dao-note-v286883">本次无跌境风险：${state.heldProtection?.key===`${player.level}:${player.phase||0}`?'此瓶颈已发生过一次跌境。':'仅炼虚及以后圆满阶段冲击大境界时可能发生。'}</p>`:''}</details>`}
+      </section>`;
     }
     // V2902: late-game income/cost calibration. No new save fields or balance compensation.
     const LATE_ECONOMY_V2902=Object.freeze({
@@ -2628,7 +2658,106 @@
       const heartDemonRisk=level>=3?Math.min(.75,.10+(level-3)*.03+(player.heartDemon?.broken?0:.08)):0;
       const {failures}=breakthroughProtectionV28683(),guaranteed=failures>=5&&!isFinalTribulationGate(),pityBonus=isFinalTribulationGate()?0:failures*.15;
       const rate=guaranteed?1:Math.min(.95,Math.max(.05,Math.min(.95,base+pillBonus+sectBonus-statusPenalty))+pityBonus);
-      return {rate,base,failures,guaranteed,pityBonus,pillName,heartDemonRisk,hasHeartDemon:hasStatusEffect('xinmo'),pillBonus,sectBonus,statusPenalty};
+      const details={rate,base,failures,guaranteed,pityBonus,pillName,heartDemonRisk,hasHeartDemon:hasStatusEffect('xinmo'),pillBonus,sectBonus,statusPenalty};
+      if(daoActiveV286883(level,phase)){
+        details.daoActive=true;details.factorsV286883=daoFactorsV286883(details);
+        const sum=details.factorsV286883.reduce((n,r)=>n+r.v,0);
+        details.rate=guaranteed?1:Math.min(.95,Math.max(.05,Math.min(.95,sum))+pityBonus);
+      }
+      return details;
+    }
+
+    // Breakthrough depth: first-success ledger, bounded factors, and precommitted outcomes.
+    const DAO_BT_V286883=Object.freeze({
+      quality:Object.freeze({barely:Object.freeze({name:'勉强突破',stat:.001,life:0,point:-1}),normal:Object.freeze({name:'顺利突破',stat:.002,life:.02,point:0}),perfect:Object.freeze({name:'完美突破',stat:.004,life:.05,point:1})}),
+      failure:Object.freeze({minor:'经脉暗伤',moderate:'道心受损',severe:'境界跌落',epiphany:'败中顿悟',lifespan:'折损寿元'}),statCap:.10
+    });
+    function daoActiveV286883(level=player?.level,phase=player?.phase||0){return Number.isInteger(level)&&level>=4&&level<=16&&Number.isInteger(phase)&&phase>=0&&phase<=3&&!(level===9&&phase===3)&&!(level===16&&phase===3);}
+    function daoKeyV286883(key){
+      if(typeof key!=='string'||!/^\d{1,2}:[0-3]$/.test(key))return null;
+      const [level,phase]=key.split(':').map(Number);return key===`${level}:${phase}`&&daoActiveV286883(level,phase)?{level,phase}:null;
+    }
+    function daoStateV286883(p=player){
+      const raw=p?.daoV286883,s=raw&&typeof raw==='object'&&!Array.isArray(raw)?raw:{},awards={};
+      const stage=Math.max(0,Math.min(67,(Number(p?.level)||0)*4+(Number(p?.phase)||0)));
+      const held=s.heldProtection,heldAt=daoKeyV286883(held?.key),n=held?.failures;
+      const heldProtection=heldAt&&heldAt.level>=6&&heldAt.phase===3&&heldAt.level===p?.level&&[2,3].includes(p?.phase)&&Number.isFinite(n)&&n>=1?{key:held.key,failures:Math.min(5,Math.floor(n))}:null;
+      const introducedAt=Number.isInteger(s.introducedAt)&&s.introducedAt>=0&&s.introducedAt<=stage+(heldProtection&&p?.phase===2?1:0)?s.introducedAt:stage;
+      const rawAwards=s.awards&&typeof s.awards==='object'&&!Array.isArray(s.awards)?s.awards:{};
+      for(const key of Object.keys(rawAwards).slice(0,80)){
+        const at=daoKeyV286883(key),kind=rawAwards[key];
+        if(at&&at.level*4+at.phase>=introducedAt&&(at.level*4+at.phase<stage||heldProtection&&p?.phase===2&&at.level*4+at.phase===stage)&&typeof kind==='string'&&Object.hasOwn(DAO_BT_V286883.quality,kind))awards[key]=kind;
+      }
+      const history=Array.isArray(s.history)?[...new Set(s.history.filter(k=>typeof k==='string'&&Object.hasOwn(awards,k)))].slice(-5):[];
+      const loss=s.lifeLoss,lifeLoss=typeof loss==='number'&&Number.isFinite(loss)?Math.max(0,Math.min(1e9,Math.floor(loss))):0;
+      const last=s.last&&typeof s.last==='object'&&daoKeyV286883(s.last.key)&&typeof s.last.kind==='string'&&(Object.hasOwn(DAO_BT_V286883.quality,s.last.kind)||Object.hasOwn(DAO_BT_V286883.failure,s.last.kind))?{key:s.last.key,kind:s.last.kind}:null;
+      return {v:1,introducedAt,awards,history,lifeLoss,heldProtection,last};
+    }
+    function normalizeDaoV286883(p){if(p&&typeof p==='object')p.daoV286883=daoStateV286883(p);}
+    function daoRewardedV286883(key){const s=daoStateV286883(),at=daoKeyV286883(key);return !at||at.level*4+at.phase<s.introducedAt||Object.hasOwn(s.awards,key);}
+    function daoBonusesV286883(p=player){
+      if(!p?.daoV286883)return {stat:0,life:0};
+      const s=daoStateV286883(p);let stat=0,life=-s.lifeLoss;
+      for(const [key,kind] of Object.entries(s.awards)){const at=daoKeyV286883(key),q=DAO_BT_V286883.quality[kind];stat+=q.stat;if(at.phase===3)life+=Math.floor(calculateMaxLifespan(at.level+1)*q.life);}
+      return {stat:Math.min(DAO_BT_V286883.statCap,Math.round(stat*10000)/10000),life};
+    }
+    function daoFoundationV286883(){const s=daoStateV286883();return Math.max(-2,Math.min(3,s.history.reduce((n,k)=>n+DAO_BT_V286883.quality[s.awards[k]].point,0)));}
+    function daoLuckV286883(){return Math.min(4,Math.floor((typeof completedAchievements!=='undefined'?completedAchievements.size:0)/8));}
+    function daoFactorsV286883(d){
+      const hp=Math.max(0,Number(player.hp)||0)/Math.max(1,getMaxHp()),body=hp>=.8?.02:hp<.4?-.04:0;
+      const heart=(hasStatusEffect('xinmo')?.20:0)+getHeartDemonBreakthroughPenalty(),jing=hasStatusEffect('jingmai')?.10:0;
+      const art=player.activeArtifact,owned=!!art&&!!ARTIFACT_TYPES[art.type]&&Array.isArray(player.artifacts)&&player.artifacts.some(a=>a===art||a?.id&&a.id===art.id);
+      const bad=!!activeRegionDebuff,vein=hasStatusEffect('lingmai'),place=(vein?.03:0)-(bad?.03:0);
+      return [{key:'base',name:'境界基础',v:d.base},{key:'heart',name:'道心',v:-heart,note:heart?'心结／心魔影响':'心境澄明'},
+        {key:'luck',name:'气运',v:daoLuckV286883()*.005,note:'每8项成就+0.5，上限2个百分点'},
+        {key:'foundation',name:'根基',v:daoFoundationV286883()*.01-(hasStatusEffect('jichuV286883')?.10:0),note:hasStatusEffect('jichuV286883')?'根基动摇':'最近5次首次成功品质'},
+        {key:'body',name:'体魄',v:body-jing,note:`气血${Math.round(hp*100)}%${jing?' · 经脉暗伤':''}`},
+        {key:'aids',name:'外物',v:d.pillBonus+(owned?.02:0),note:[d.pillName,owned?'已装备法宝':null].filter(Boolean).join('、')||'无'},
+        {key:'sect',name:'宗门',v:d.sectBonus},{key:'place',name:'地利',v:place,note:[vein?'灵脉通透':null,bad?'地域不利状态':null].filter(Boolean).join('、')||'无加减'}];
+    }
+    function daoQualityOddsV286883(){const shift=Math.max(-4,Math.min(8,daoFoundationV286883()+daoLuckV286883()*.5));return {barely:(10-shift)/100,normal:.78,perfect:(12+shift)/100};}
+    function daoFailOddsV286883(level=player.level,phase=player.phase||0){
+      const severe=level>=6&&phase===3&&daoStateV286883().heldProtection?.key!==`${level}:${phase}`;
+      return {minor:severe?.72:.74,moderate:.16,severe:severe?.02:0,epiphany:.06,lifespan:.04};
+    }
+    function validateDaoPlanV286883(plan,result,success){
+      const level=result?.snapshot?.level,phase=result?.snapshot?.phase;
+      if(!plan||typeof plan!=='object'||plan.v!==1||result?.forced||result?.noAdvance||result?.ascension||!daoActiveV286883(level,phase)||plan.fromLevel!==level||plan.fromPhase!==phase)return null;
+      if(typeof plan.kind!=='string'||!Object.hasOwn(success?DAO_BT_V286883.quality:DAO_BT_V286883.failure,plan.kind))return null;
+      if(plan.kind==='severe'&&(level<6||phase!==3))return null;
+      return {v:1,kind:plan.kind,fromLevel:level,fromPhase:phase};
+    }
+    function planDaoBreakthroughV2905(result,success){
+      if(result?.forced||result?.noAdvance||result?.ascension||!daoActiveV286883(result?.snapshot?.level,result?.snapshot?.phase))return null;
+      const odds=success?daoQualityOddsV286883():daoFailOddsV286883(),roll=Math.random();let acc=0,kind;
+      for(const [k,p] of Object.entries(odds)){acc+=p;if(roll<acc){kind=k;break;}}
+      return {v:1,kind:kind||Object.keys(odds).at(-1),fromLevel:result.snapshot.level,fromPhase:result.snapshot.phase};
+    }
+    function applyDaoBreakthroughV2905(result,success){
+      const plan=validateDaoPlanV286883(result?.daoV2905,result,success);if(!plan)return;
+      const s=daoStateV286883(),key=`${plan.fromLevel}:${plan.fromPhase}`,kind=plan.kind;
+      player.daoV286883=s;
+      const add=(id,name,days,desc)=>{const effect={id,name,type:'debuff',icon:'🌫️',remainingDays:days,desc};const list=Array.isArray(player.statusEffects)?player.statusEffects:[];player.statusEffects=[...list.filter(e=>e?.id!==id),effect];};
+      let text;
+      if(success){
+        const q=DAO_BT_V286883.quality[kind],repeat=daoRewardedV286883(key),oldBonus=daoBonusesV286883().stat;
+        if(!repeat){s.awards[key]=kind;s.history=[...s.history.filter(k=>k!==key),key].slice(-5);}
+        const stat=daoBonusesV286883().stat-oldBonus,life=!repeat&&plan.fromPhase===3?Math.floor(calculateMaxLifespan(plan.fromLevel+1)*q.life):0;
+        text=repeat?'重修已完成阶段，品质属性与寿元不重复发放。':`${q.name} · 攻击／防御／气血 +${Math.max(0,stat*100).toFixed(1)}%${life?` · 寿元上限 +${life}年`:''}`;
+        if(!repeat&&kind==='perfect')player.statusEffects=(player.statusEffects||[]).filter(e=>e?.id!=='jingmai');
+        if(s.heldProtection?.key===`${player.level}:${player.phase}`)player.breakthrough.protectionV28683={...s.heldProtection};
+        if(s.heldProtection?.key===key)s.heldProtection=null;
+      }else{
+        if(s.heldProtection?.key===key)s.heldProtection.failures=player.breakthrough.protectionV28683?.failures||s.heldProtection.failures;
+        if(kind==='minor'){add('jingmai','经脉暗伤',60,'突破成功率 -10个百分点，灵力恢复 -20%；可自然调养或服玄玉护脉丹。');text='经脉暗伤60游戏日；玄玉护脉丹可治愈。';}
+        else if(kind==='moderate'){add('daoshangV286883','道心受损',60,'战斗与修炼修为 -20%；任务、丹药和一次性奖励不受影响。');text='道心受损60游戏日，战斗与修炼修为 -20%。';}
+        else if(kind==='severe'){
+          if(s.heldProtection?.key!==key){s.heldProtection={key,failures:player.breakthrough.protectionV28683?.failures||1};player.phase=2;player.exp=0;player.breakthrough.pendingBreakthrough=false;}
+          add('jichuV286883','根基动摇',360,'突破成功率 -10个百分点');text=`跌落至${getCultivationName()}，当前修为清零；根基动摇360游戏日。原瓶颈失败保护保留。`;
+        }else if(kind==='epiphany'){const gain=Math.floor((Number(result.expNeed)||getCurrentExpNeed())*.30);player.exp=Math.min(Number.MAX_SAFE_INTEGER,player.exp+gain);player.breakthrough.pendingBreakthrough=player.exp>=getCurrentExpNeed();text=`败中顿悟：额外获得${gain}修为（基础失败扣损已结算）。`;}
+        else{const loss=Math.max(1,Math.floor(getTotalMaxLifespan()*.02));s.lifeLoss=Math.min(1e9,s.lifeLoss+loss);text=`折损寿元：寿元上限 -${loss}年。`;}
+      }
+      s.last={key,kind};player.maxLifespan=getTotalMaxLifespan();result.daoTextV286883=text;
     }
 
     function isAtRealmBottleneck() { return (Number(player?.exp)||0) >= getCurrentExpNeed(); }
@@ -5533,6 +5662,7 @@
           cooldownDays: 0,
           pendingBreakthrough: false
         },
+        daoV286883:{v:1,introducedAt:0,awards:{},history:[],lifeLoss:0,heldProtection:null,last:null},
         // ====== 新手引路 ======
         tutorial: {
           completedSteps: [],
@@ -5625,6 +5755,7 @@
 
     function normalizePlayer(saved = {}) {
       saved={...saved};
+      const hadDaoV286883=Number(saved.realmSchemaVersion)>=4&&!!saved.daoV286883&&typeof saved.daoV286883==='object'&&!Array.isArray(saved.daoV286883);
       const record=v=>v&&typeof v==='object'&&!Array.isArray(v)?{...v}:{};
       for(const group of ['mapNpc','tasks']){
         saved[group]=record(saved[group]);
@@ -5776,6 +5907,8 @@
       if(typeof normalizeRelationshipsV2852==='function')merged.relationshipStoriesV2852=normalizeRelationshipsV2852(saved.relationshipStoriesV2852);
       migrateCultivationV2793(merged,saved);
       migrateImmortalV2794(merged,saved);
+      if(!hadDaoV286883)delete merged.daoV286883;
+      normalizeDaoV286883(merged);
       merged.skills=merged.skills.map(s=>({...s,...(SKILLS.find(k=>k.name===s?.name)||{})}));
       // 旧存档按已经流逝的仙历自动补算年龄；寿元由当前大境界与永久延寿次数共同决定。
       merged.age = Math.max(18, merged.age, 18 + Math.floor((merged.worldTime?.totalDays || 0) / GAME_DAYS_PER_YEAR));
@@ -6333,6 +6466,7 @@
     let playerPressureStun = false;
 
     function resetRuntimeState() {
+      clearBreakthroughRuntimeV2905();
       if(typeof resetOnboardingV2901==='function')resetOnboardingV2901();
       document.getElementById('saveRemindV2895')?.remove();
       if(typeof resetMapAliveV2893==='function')resetMapAliveV2893(true);
@@ -6448,21 +6582,21 @@
     function getAtk(){
       let atk=player.baseAtk+getPhaseScaledBonus('atkBonus')+getEquipAtk()+calculateFurnitureBonus().atk;
       if(player.activePet){const t=PET_TYPES[player.activePet.type];if(t?.bonus?.type==='atk')atk+=t.bonus.value+player.activePet.level*2;}
-      return Math.floor(atk*(1+(gearModsV2790().atkPct||0))*(1+miniBoonV286840('atk')));
+      return Math.floor(atk*(1+(gearModsV2790().atkPct||0))*(1+miniBoonV286840('atk'))*(1+daoBonusesV286883().stat));
     }
     
     function getDef(){
       let def=player.baseDef+getPhaseScaledBonus('defBonus')+getEquipDef()+calculateFurnitureBonus().def;
       if(player.activePet){const t=PET_TYPES[player.activePet.type];if(t?.bonus?.type==='def')def+=t.bonus.value+player.activePet.level*3;}
       if(hasStatusEffect('guyuan'))def=Math.floor(def*1.10);
-      return Math.floor(def*(1+(gearModsV2790().defPct||0))*(1+miniBoonV286840('def'))*(1+ownerPetTraitBonusV286849('def')));
+      return Math.floor(def*(1+(gearModsV2790().defPct||0))*(1+miniBoonV286840('def'))*(1+ownerPetTraitBonusV286849('def'))*(1+daoBonusesV286883().stat));
     }
     
     function getCritRateWithSet(){return getCritRate();}
     
     function getDamageBonusWithSet(){return getSetBonusStats().damage||0;}
     
-    function getMaxHp(){let max=player.maxHp+getPhaseScaledBonus('hpBonus')+getEquipHp();if(activeRegionDebuff?.type==='corruption')max=Math.floor(max*.90);return Math.max(1,Math.floor(max*(1+(gearModsV2790().hpPct||0))*(1+ownerPetTraitBonusV286849('hp'))));}
+    function getMaxHp(){let max=player.maxHp+getPhaseScaledBonus('hpBonus')+getEquipHp();if(activeRegionDebuff?.type==='corruption')max=Math.floor(max*.90);return Math.max(1,Math.floor(max*(1+(gearModsV2790().hpPct||0))*(1+ownerPetTraitBonusV286849('hp'))*(1+daoBonusesV286883().stat)));}
     
     function getMaxMp(){const base=Math.max(0,Number(player.maxMp)||0)+Math.floor(player.level*12+(player.phase||0)*4);let max=base*2+getEquipMp();return Math.max(1,Math.floor(max*(1+(gearModsV2790().mpPct||0))));}
 
@@ -6510,7 +6644,10 @@
       return bonus;
     }
     
-    function getExpBonus() {
+    function daoInjuryDaysV286883() {
+      return (player?.statusEffects||[]).reduce((days,e)=>e?.id==='daoshangV286883'&&Number.isFinite(Number(e.remainingDays))?Math.max(days,Math.max(0,Number(e.remainingDays))):days,0);
+    }
+    function getExpBonus(elapsedDays=0) {
       let bonus = 1;
       if (player.activeArtifact) {
         const artType = ARTIFACT_TYPES[player.activeArtifact.type];
@@ -6518,6 +6655,8 @@
           bonus += artType.effect.value + player.activeArtifact.level * 0.02;
         }
       }
+      const hurtDays=daoInjuryDaysV286883(),days=Number(elapsedDays);
+      if(hurtDays>0)bonus*=Number.isFinite(days)&&days>0?1-.2*Math.min(days,hurtDays)/days:.8;
       return bonus;
     }
     
@@ -7861,15 +8000,97 @@
       };
     }
 
-    function recoverPendingBreakthroughV28683(){
+    const BREAKTHROUGH_TX_V2905={active:false,owner:null,sequence:0};
+    function breakthroughBusyV2905(){
+      return !player||gameState!=='exploring'||COMBAT_FINISH_V2764.settling||BREAKTHROUGH_TX_V2905.active||(typeof ITEM_ACTION_V2905!=='undefined'&&ITEM_ACTION_V2905.depth>0);
+    }
+    // The attempt and its result each commit once. Nested achievement/task saves and
+    // notifications stay inside the same transaction, including during load recovery.
+    function commitBreakthroughV2905(change){
+      if(BREAKTHROUGH_TX_V2905.active)return false;
+      const owner=player,raw=JSON.stringify(owner),progress=JSON.stringify(achievementProgress),completed=[...completedAchievements],state=gameState,choices=currentChoices;
+      const artifactIndex=Array.isArray(owner.artifacts)?owner.artifacts.indexOf(owner.activeArtifact):-1;
+      const deferred=miniSaveDeferredV286840,effects=[],originals=[];
+      const timers=[],schedule=window.setTimeout;
+      const scheduleOwned=function(callback,delay,...args){const id=schedule.call(this,()=>{if(player===owner&&typeof callback==='function')callback(...args);},delay);timers.push(id);return id;};
+      window.setTimeout=scheduleOwned;
+      for(const name of ['showBreakthroughSuccess','showBreakthroughFailure','showAchievementPopup','showFloatingText','showStory','showBreakthroughNotice','playSound']){
+        const base=window[name];if(typeof base!=='function')continue;
+        const wrapped=function(...args){effects.push(()=>base.apply(this,args));};originals.push({name,base,wrapped});window[name]=wrapped;
+      }
+      BREAKTHROUGH_TX_V2905.active=true;BREAKTHROUGH_TX_V2905.owner=owner;miniSaveDeferredV286840=true;
+      let result=false,saved=false,error=null;
+      try{result=change();if(player===owner&&result!==false){miniSaveDeferredV286840=false;saved=saveGame()===true;}}
+      catch(e){error=e;}
+      finally{
+        miniSaveDeferredV286840=deferred;BREAKTHROUGH_TX_V2905.active=false;BREAKTHROUGH_TX_V2905.owner=null;
+        if(window.setTimeout===scheduleOwned)window.setTimeout=schedule;
+        for(const {name,base,wrapped} of originals)if(window[name]===wrapped)window[name]=base;
+      }
+      if(player!==owner){for(const id of timers)clearTimeout(id);return false;}
+      if(saved){for(const effect of effects){if(player!==owner)break;try{effect();}catch(e){console.warn('突破结果显示失败',e);}}return result;}
+      for(const id of timers)clearTimeout(id);
+      const restore=()=>{for(const key of Object.keys(owner))delete owner[key];Object.assign(owner,JSON.parse(raw));if(owner.activePet?._petId)owner.activePet=owner.pets?.find(p=>p._petId===owner.activePet._petId)||null;if(artifactIndex>=0)owner.activeArtifact=owner.artifacts[artifactIndex];};
+      restore();achievementProgress=JSON.parse(progress);completedAchievements=new Set(completed);gameState=state;currentChoices=choices;
+      try{updateStats();updateWorldHUD?.();}catch(_){}
+      if(JSON.stringify(owner)!==raw)restore();
+      if(error)console.warn('突破操作已撤回',error);
+      showFloatingText?.('本次突破未保存，已恢复原状态；请稍后重试。','#ff8a80');return false;
+    }
+    function nextBreakthroughIdV2905(){return `${Date.now()}:${++BREAKTHROUGH_TX_V2905.sequence}:${player.level}:${player.phase||0}`;}
+    function validPendingBreakthroughV2905(pending){
+      const result=pending?.result,snapshot=result?.snapshot;
+      if(!pending||pending.key!==`${player.level}:${player.phase||0}`||typeof pending.success!=='boolean'||!result||typeof result!=='object'||Array.isArray(result)||!snapshot||typeof snapshot!=='object')return false;
+      if(result.forced||result.noAdvance||result.ascension)return pending.success&&result.forced===true&&result.noAdvance===true&&result.ascension===true&&player.level===10&&(player.phase||0)===0&&snapshot.level===9&&snapshot.phase===3;
+      return snapshot.level===player.level&&snapshot.phase===(player.phase||0);
+    }
+    function preparePendingBreakthroughV2905(){
       const pending=player.breakthrough?.pendingV28683;
-      if(!pending)return false;
-      player.breakthrough.pendingV28683=null;
-      if(pending.key!==`${player.level}:${player.phase||0}`)return false;
-      if(pending.success)applyBreakthroughSuccess(pending.result);else applyBreakthroughFailure(pending.result);
-      return true;
+      if(!validPendingBreakthroughV2905(pending))return false;
+      const result=pending.result;
+      let changed=false;
+      if(typeof result.attemptIdV2905!=='string'||!result.attemptIdV2905){result.attemptIdV2905=nextBreakthroughIdV2905();changed=true;}
+      if(!pending.success&&(!Number.isInteger(result.cooldownDaysV2905)||result.cooldownDaysV2905<30||result.cooldownDaysV2905>49)){result.cooldownDaysV2905=30+Math.floor(Math.random()*20);changed=true;}
+      if(result.daoV2905){
+        const plan=typeof validateDaoPlanV286883==='function'?validateDaoPlanV286883(result.daoV2905,result,pending.success):null;
+        if(!plan){delete result.daoV2905;changed=true;}
+        else if(JSON.stringify(plan)!==JSON.stringify(result.daoV2905)){result.daoV2905=plan;changed=true;}
+      }
+      return {pending,changed};
+    }
+    function settlePendingBreakthroughV2905(result,success){
+      if(breakthroughBusyV2905())return false;
+      const pending=player.breakthrough?.pendingV28683;
+      if(!validPendingBreakthroughV2905(pending)||pending.success!==success||!result?.attemptIdV2905||pending.result?.attemptIdV2905!==result.attemptIdV2905)return false;
+      const copy=JSON.parse(JSON.stringify(pending.result));
+      return commitBreakthroughV2905(()=>{
+        player.breakthrough.pendingV28683=null;
+        const out=success?applyBreakthroughSuccess(copy):applyBreakthroughFailure(copy);
+        if(out===false)return false;
+        player.breakthrough.completedAttemptV2905=copy.attemptIdV2905;return true;
+      });
+    }
+    function recoverPendingBreakthroughV28683(){
+      if(breakthroughBusyV2905()||breakthroughRunV2781?.owner===player)return false;
+      let prepared;
+      // Lock missing legacy cooldown/identity before settlement; old attempts do not
+      // acquire a new quality or punishment merely because the client was upgraded.
+      const pending=player.breakthrough?.pendingV28683;if(!pending)return false;
+      if(!validPendingBreakthroughV2905(pending)){
+        commitBreakthroughV2905(()=>{player.breakthrough.pendingV28683=null;player.breakthrough.isAnimating=false;return true;});return false;
+      }
+      const raw=JSON.stringify(pending);
+      prepared=preparePendingBreakthroughV2905();
+      if(!prepared)return false;
+      if(prepared.changed){
+        const fixed=JSON.stringify(prepared.pending);player.breakthrough.pendingV28683=JSON.parse(raw);
+        if(!commitBreakthroughV2905(()=>{player.breakthrough.pendingV28683=JSON.parse(fixed);player.breakthrough.isAnimating=false;return true;}))return false;
+      }
+      player.breakthrough.isAnimating=false;
+      return settlePendingBreakthroughV2905(player.breakthrough.pendingV28683.result,player.breakthrough.pendingV28683.success);
     }
     function canAttemptBreakthrough() {
+      if(breakthroughBusyV2905())return false;
       if(player.breakthrough?.pendingV28683&&!player.breakthrough.isAnimating){recoverPendingBreakthroughV28683();return false;}
       if(!player.breakthrough) player.breakthrough={isAnimating:false,attemptCount:0,lastAttemptTime:0,cooldownDays:0,pendingBreakthrough:false};
       const bt=player.breakthrough;
@@ -7893,28 +8114,27 @@
 
     function triggerBreakthrough(skipAnimation=false) {
       if(!canAttemptBreakthrough())return;
-      const bt=player.breakthrough;
-      const snapshot=createBreakthroughSnapshot();
-      const result={...calculateBreakthroughSuccess(),snapshot,fromName:snapshot.name,toName:getNextCultivationName(),expNeed:getCurrentExpNeed(),forced:false,noAdvance:false};
-      if(result.pillName)player.inventory.splice(player.inventory.indexOf(result.pillName),1);
-      bt.pillV28683=null;
-      bt.isAnimating=true;
-      bt.pendingBreakthrough=false;
-      bt.attemptCount=(bt.attemptCount||0)+1;
-      bt.lastAttemptTime=Date.now();
-      const isSuccess=result.guaranteed||Math.random()<result.rate;
-      bt.pendingV28683={key:`${player.level}:${player.phase||0}`,success:isSuccess,result};
-      autoSave();
-      playBreakthroughAnimation(isSuccess,result,skipAnimation);
+      let pending;
+      if(!commitBreakthroughV2905(()=>{
+        const bt=player.breakthrough,snapshot=createBreakthroughSnapshot();
+        const result={...calculateBreakthroughSuccess(),snapshot,fromName:snapshot.name,toName:getNextCultivationName(),expNeed:getCurrentExpNeed(),forced:false,noAdvance:false,attemptIdV2905:nextBreakthroughIdV2905()};
+        const isSuccess=result.guaranteed||Math.random()<result.rate;
+        if(!isSuccess)result.cooldownDaysV2905=30+Math.floor(Math.random()*20);
+        if(typeof planDaoBreakthroughV2905==='function')result.daoV2905=planDaoBreakthroughV2905(result,isSuccess);
+        if(result.pillName){const index=player.inventory.indexOf(result.pillName);if(index<0)return false;player.inventory.splice(index,1);}
+        bt.pillV28683=null;bt.isAnimating=true;bt.pendingBreakthrough=false;
+        bt.attemptCount=(bt.attemptCount||0)+1;bt.lastAttemptTime=Date.now();
+        pending=bt.pendingV28683={key:`${player.level}:${player.phase||0}`,success:isSuccess,result};return true;
+      }))return false;
+      playBreakthroughAnimation(pending.success,pending.result,skipAnimation);return true;
     }
 
     function playForcedAscensionBreakthrough(snapshot=null) {
-      if(!player.breakthrough) player.breakthrough={isAnimating:false,attemptCount:0,lastAttemptTime:0,cooldownDays:0,pendingBreakthrough:false};
-      player.breakthrough.isAnimating=true;
-      player.breakthrough.pendingBreakthrough=false;
+      if(breakthroughBusyV2905()||player.breakthrough?.isAnimating||player.breakthrough?.pendingV28683)return false;
       const before=snapshot||{name:'渡劫圆满',level:9,phase:3,atk:0,def:0,hp:0,mp:0,lifespan:0,skills:[],unlockedRegions:[]};
-      const result={rate:1,heartDemonRisk:0,snapshot:before,fromName:before.name||'渡劫圆满',toName:getCultivationName(),forced:true,noAdvance:true,ascension:true,expNeed:0};
-      playBreakthroughAnimation(true,result);
+      const result={rate:1,heartDemonRisk:0,snapshot:before,fromName:before.name||'渡劫圆满',toName:getCultivationName(),forced:true,noAdvance:true,ascension:true,expNeed:0,attemptIdV2905:nextBreakthroughIdV2905()};
+      if(!commitBreakthroughV2905(()=>{player.breakthrough||={};player.breakthrough.isAnimating=true;player.breakthrough.pendingBreakthrough=false;player.breakthrough.pendingV28683={key:`${player.level}:${player.phase||0}`,success:true,result};return true;}))return false;
+      playBreakthroughAnimation(true,result);return true;
     }
 
     function getBreakthroughStageLabel(result,stage,success=true){
@@ -7947,22 +8167,23 @@
     }
 
     let breakthroughRunV2781=null;
+    function clearBreakthroughRuntimeV2905(){
+      const run=breakthroughRunV2781;
+      if(run){run.done=true;clearTimeout(run.timer);try{run.cleanup?.();}catch(_){}breakthroughRunV2781=null;}
+      clearTimeout(breakthroughFinishTimer);breakthroughFinishTimer=null;
+      if(breakthroughAnimFrame)cancelAnimationFrame(breakthroughAnimFrame);breakthroughAnimFrame=null;
+      document.getElementById('breakthroughOverlay')?.remove();document.body.classList.remove('breakthrough-playing');
+    }
     function settleBreakthroughV2781(success,result){
       const run=breakthroughRunV2781;
       if(!run||run.done||run.result!==result)return;
-      run.done=true;clearTimeout(run.timer);breakthroughRunV2781=null;
-      clearTimeout(breakthroughFinishTimer);breakthroughFinishTimer=null;
-      if(breakthroughAnimFrame)cancelAnimationFrame(breakthroughAnimFrame);breakthroughAnimFrame=null;
-      run.cleanup?.();
-      document.getElementById('breakthroughOverlay')?.remove();
-      document.body.classList.remove('breakthrough-playing');
+      clearBreakthroughRuntimeV2905();
       if(player!==run.owner)return;
       player.breakthrough.isAnimating=false;
-      player.breakthrough.pendingV28683=null;
-      if(success)applyBreakthroughSuccess(result);else applyBreakthroughFailure(result);
+      return settlePendingBreakthroughV2905(result,success);
     }
     function playBreakthroughAnimation(isSuccess,result={},skipAnimation=false){
-      if(breakthroughRunV2781){clearTimeout(breakthroughRunV2781.timer);breakthroughRunV2781.cleanup?.();}
+      clearBreakthroughRuntimeV2905();
       const run={owner:player,result,success:isSuccess,done:false,timer:0,cleanup:null};
       breakthroughRunV2781=run;
       run.timer=setTimeout(()=>settleBreakthroughV2781(isSuccess,result),8000);
@@ -8019,10 +8240,11 @@
       choices.push({text:'暂不突破，返回洞府',action:'home'});showStory(text,choices);
     }
     function restBreakthroughV2798(expectedDays){
-      if(gameState==='combat'||gameState==='combat-ending'||player.breakthrough?.isAnimating)return;
+      if(breakthroughBusyV2905()||breakthroughRunV2781||player.breakthrough?.isAnimating||player.breakthrough?.pendingV28683)return false;
       const days=Math.ceil(player.breakthrough?.cooldownDays||0);
       if(player.exp<getCurrentExpNeed()||days<=0||days!==Number(expectedDays))return showRetreatBreakthroughV2798();
-      advanceGameTime(days,'突破前经脉调息');autoSave();updateStats();showRetreatBreakthroughV2798();
+      if(!commitBreakthroughV2905(()=>{advanceGameTime(days,'突破前经脉调息');updateStats();return true;}))return false;
+      showRetreatBreakthroughV2798();return true;
     }
     function makeBreakthroughSceneV2784(overlay,success,reduced){
       const box=document.createElement('div');box.className='breakthrough-scene-v2784';box.setAttribute('aria-hidden','true');overlay.appendChild(box);
@@ -8188,6 +8410,7 @@
     }
 
     function applyBreakthroughSuccess(result={}) {
+      if(!BREAKTHROUGH_TX_V2905.active||BREAKTHROUGH_TX_V2905.owner!==player)return settlePendingBreakthroughV2905(result,true);
       const bt=player.breakthrough||{};
       bt.isAnimating=false;bt.cooldownDays=0;bt.pendingBreakthrough=false;player.breakthrough=bt;
       bt.protectionV28683=null;
@@ -8201,6 +8424,7 @@
         else if(player.level<CULTIVATION_REALMS.length-1){player.level++;player.phase=0;}
         majorBreakthrough=player.level!==oldLevel;
       }else majorBreakthrough=(before.level||0)!==(player.level||0);
+      if(!result.forced&&!result.noAdvance&&!result.ascension&&typeof applyDaoBreakthroughV2905==='function')applyDaoBreakthroughV2905(result,true);
       syncUnlockedSkills();
       player.maxLifespan=getTotalMaxLifespan();
       player.hp=getMaxHp();player.mp=getMaxMp();
@@ -8211,6 +8435,7 @@
       onRealmBreakthrough?.(player.level,player.phase||0);
       showBreakthroughSuccess(result);
       updateStats();updateWorldHUD?.();autoSave();
+      return true;
     }
 
     function showBreakthroughSuccess(result={}) {
@@ -8222,6 +8447,7 @@
       const html=`<div class="breakthrough-success show" id="breakthroughSuccess">
         <div class="title">✦ ${result.ascension?'飞升成功':'突破成功'}！ ✦</div>
         <div class="subtitle">${result.fromName||before.name||''} → <span>${result.toName||after.name||getCultivationName()}</span></div>
+        ${result.daoTextV286883?`<p class="breakthrough-outcome-v286883">${escapeGameText(result.daoTextV286883)}</p>`:''}
         <hr class="divider"><div class="reward-list">
           <div class="item"><span class="icon">⏳</span><span class="label">寿元上限</span><span class="value">${after.lifespan||getTotalMaxLifespan()}${d(after.lifespan,before.lifespan)?`（+${d(after.lifespan,before.lifespan)}）`:''}</span></div>
           <div class="item"><span class="icon">⚔️</span><span class="label">攻击</span><span class="value">${after.atk}${d(after.atk,before.atk)?`（+${d(after.atk,before.atk)}）`:''}</span></div>
@@ -8232,35 +8458,40 @@
         </div><hr class="divider"><button class="btn-continue" onclick="closeBreakthroughSuccess(false)">继续修仙</button><div class="auto-close-v2764">轻触按钮继续 · 5秒后自动收起</div></div>`;
       document.getElementById('breakthroughSuccess')?.remove();
       const wrap=document.createElement('div'),panelId=Symbol('breakthroughSuccess');
-      wrap.innerHTML=html;const panel=wrap.firstElementChild;panel._v2764PanelId=panelId;document.body.appendChild(panel);
-      setTimeout(()=>{if(panel.isConnected&&panel._v2764PanelId===panelId)closeBreakthroughSuccess(true)},5200);
+      wrap.innerHTML=html;const panel=wrap.firstElementChild,owner=player;panel._v2764PanelId=panelId;panel._ownerV2905=owner;document.body.appendChild(panel);
+      setTimeout(()=>{if(player===owner&&panel.isConnected&&panel._v2764PanelId===panelId)closeBreakthroughSuccess(true)},5200);
     }
 
     function closeBreakthroughSuccess(autoClose=false) {
-      const el=document.getElementById('breakthroughSuccess');if(el){el.classList.remove('show');setTimeout(()=>el.remove(),420);}
+      const el=document.getElementById('breakthroughSuccess');if(el?._ownerV2905&&el._ownerV2905!==player)return;if(el){el.classList.remove('show');setTimeout(()=>el.remove(),420);}
       updateStats();updateWorldHUD?.();
       // 手动继续时允许逐次突破；自动收起只登记待突破，避免无人操作时连续弹出。
       if(player.exp>=getCurrentExpNeed() && !isFinalTribulationGate() && !(player.level===CULTIVATION_REALMS.length-1&&(player.phase||0)>=3)){
         player.breakthrough.pendingBreakthrough=true;
-        if(!autoClose)setTimeout(()=>checkLevelUp(),650);
+        const owner=player;if(!autoClose)setTimeout(()=>{if(player===owner&&gameState==='exploring')checkLevelUp();},650);
       }
     }
 
     function applyBreakthroughFailure(result={}) {
+      if(!BREAKTHROUGH_TX_V2905.active||BREAKTHROUGH_TX_V2905.owner!==player)return settlePendingBreakthroughV2905(result,false);
       const protection=breakthroughProtectionV28683();
-      const bt=player.breakthrough||{};bt.isAnimating=false;bt.cooldownDays=30+Math.floor(Math.random()*20);
+      const bt=player.breakthrough||{};bt.isAnimating=false;bt.cooldownDays=result.cooldownDaysV2905;
       bt.protectionV28683={key:protection.key,failures:Math.min(5,protection.failures+1)};player.breakthrough=bt;
       const loss=Math.floor(getCurrentExpNeed()*.15);player.exp=Math.max(0,player.exp-loss);
       bt.pendingBreakthrough=player.exp>=getCurrentExpNeed();
+      if(!result.forced&&!result.noAdvance&&!result.ascension&&typeof applyDaoBreakthroughV2905==='function')applyDaoBreakthroughV2905(result,false);
+      bt.pendingBreakthrough=player.exp>=getCurrentExpNeed();player.maxLifespan=getTotalMaxLifespan();
       player.hp=Math.max(1,Math.floor(getMaxHp()*.60));player.mp=Math.max(1,Math.floor(getMaxMp()*.50));
       playSound?.('defeat');showBreakthroughFailure(result,loss);updateStats();updateWorldHUD?.();autoSave();
+      return true;
     }
 
     function showBreakthroughFailure(result,loss) {
       const html=`<div class="breakthrough-fail show" id="breakthroughFail"><div class="title">💔 突破失败</div><div class="subtitle">灵力反噬，经脉受损</div><hr class="divider">
-        <div class="fail-list"><div>📉 修为损失：<b>-${loss}</b></div><div>❤️ 当前气血：<b>${player.hp}/${getMaxHp()}</b></div><div>⏳ 调息时间：<b>${Math.ceil(player.breakthrough.cooldownDays)} 天</b></div><div class="hint">沉淀心境，稳固修为后再尝试。调息会随仙历流逝逐日消退。</div></div>
+        ${result.daoTextV286883?`<p class="breakthrough-outcome-v286883">${escapeGameText(result.daoTextV286883)}</p>`:''}
+        <div class="fail-list"><div>📉 基础修为损失：<b>-${loss}</b></div><div>当前境界：<b>${getCultivationName()}</b></div><div>当前修为：<b>${player.exp}/${getCurrentExpNeed()}</b></div><div>❤️ 当前气血：<b>${player.hp}/${getMaxHp()}</b></div><div>⏳ 调息时间：<b>${Math.ceil(player.breakthrough.cooldownDays)} 天</b></div><div class="hint">沉淀心境，稳固修为后再尝试。调息会随仙历流逝逐日消退。</div></div>
         <button class="btn-retry" onclick="closeBreakthroughFail()">我明白了</button><div class="auto-close-v2764">轻触按钮关闭 · 5秒后自动收起</div></div>`;
-      document.getElementById('breakthroughFail')?.remove();const wrap=document.createElement('div');wrap.innerHTML=html;const panel=wrap.firstElementChild;document.body.appendChild(panel);setTimeout(()=>{if(panel.isConnected)closeBreakthroughFail()},5200);
+      document.getElementById('breakthroughFail')?.remove();const wrap=document.createElement('div');wrap.innerHTML=html;const panel=wrap.firstElementChild,owner=player;panel._ownerV2905=owner;document.body.appendChild(panel);setTimeout(()=>{if(player===owner&&panel.isConnected)closeBreakthroughFail()},5200);
     }
 
     function closeBreakthroughFail(){const el=document.getElementById('breakthroughFail');if(el){el.classList.remove('show');setTimeout(()=>el.remove(),360);}updateStats();updateWorldHUD?.();}
@@ -8580,7 +8811,8 @@
       const now=performance.now();if(now-lastItemUseV2768<350)return;
       const def=ITEMS[itemName];
       if(def?.type==='breakthrough')return showFloatingText?.('请在修为圆满后的闭关突破预览中选用，此处不消耗','#ffd76a');
-      if(def?.type==='heal'&&player.hp>=getMaxHp())return showFloatingText?.('气血已满，未消耗丹药','#ffd76a');
+      const curesMeridians=itemName==='玄玉护脉丹'&&hasStatusEffect('jingmai');
+      if(def?.type==='heal'&&player.hp>=getMaxHp()&&!curesMeridians)return showFloatingText?.('气血已满，未消耗丹药','#ffd76a');
       if(def?.type==='mp'&&player.mp>=getMaxMp())return showFloatingText?.('灵力已满，未消耗丹药','#ffd76a');
       lastItemUseV2768=now;
       if(LONGEVITY_PILLS[itemName])return useLongevityPill(itemName);
@@ -8592,9 +8824,11 @@
       if (!item) return;
       
       if (item.type === 'heal') {
+        const beforeHp=player.hp;
         player.hp = Math.min(getMaxHp(), player.hp + item.value);
+        if(curesMeridians)removeStatusEffect('jingmai');
         removeItem(itemName);
-        showStory(`使用${itemName}，恢复${item.value}点气血！`, [{ text: '继续', action: player.location }]);
+        showStory(`使用${itemName}，恢复${player.hp-beforeHp}点气血${curesMeridians?'，经脉暗伤已痊愈':''}！`, [{ text: '继续', action: player.location }]);
       } else if (item.type === 'mp') {
         player.mp = Math.min(getMaxMp(), player.mp + item.value);
         removeItem(itemName);
@@ -10930,7 +11164,7 @@
           
         case 'cultivate': {
           const expGain = 30 + player.level * 35 + (player.phase || 0) * 12;
-          const gain=Math.floor(expGain * getExpBonus());
+          const gain=Math.floor(expGain * getExpBonus(GAME_DAYS_PER_YEAR));
           player.exp += gain;
           advanceGameTime(GAME_DAYS_PER_YEAR,'宗门修炼一年');
           checkLevelUp();
@@ -11398,13 +11632,16 @@
       maxYears=maxYears===1?1:10;
       const need=getCurrentExpNeed(),exp=Math.max(0,Number(player.exp)||0),missing=Math.max(0,need-exp);
       const now=Math.max(0,player.worldTime?.totalDays||0),remaining=getTotalMaxLifespan()-player.age;
-      const bonus=Math.max(1,Number(getExpBonus())||1)*(home?Math.max(1,1+(Number(calculateFurnitureBonus().exp)||0)):1);
+      const expBonus=Number(getExpBonus());
+      const bonus=(Number.isFinite(expBonus)&&expBonus>0?expBonus:1)*(home?Math.max(1,1+(Number(calculateFurnitureBonus().exp)||0)):1);
       const rate=need/(GAME_DAYS_PER_YEAR*10)*bonus;
-      const fullDays=missing?Math.ceil(missing/rate):0;
+      // The injury affects only its remaining game days, even during a multi-year retreat.
+      const hurtDays=daoInjuryDaysV286883(),recoveredRate=hurtDays>0?rate/.8:rate,hurtGain=hurtDays*rate;
+      const fullDays=missing?Math.ceil(missing<=hurtGain?missing/rate:hurtDays+(missing-hurtGain)/recoveredRate):0;
       const safeDays=Math.max(0,Math.floor((remaining-1)*GAME_DAYS_PER_YEAR-(now%GAME_DAYS_PER_YEAR)));
       const tournamentDays=Math.max(0,(getNextTournamentYear()-1)*GAME_DAYS_PER_YEAR-now);
       const days=Math.min(GAME_DAYS_PER_YEAR*maxYears,fullDays,safeDays,tournamentDays);
-      const gain=Math.min(missing,Math.floor(days*rate+1e-8));
+      const gain=Math.min(missing,Math.floor(Math.min(days,hurtDays)*rate+Math.max(0,days-hurtDays)*recoveredRate+1e-8));
       let reason=maxYears===1?'达到一年上限':'达到十年上限';
       if(!missing)reason='修为已满，可直接尝试突破';
       else if(safeDays===0)reason='寿元不足，先延寿或突破';
@@ -12077,7 +12314,7 @@
       let rows='';
       if(tab==='all'||tab==='heal'||tab==='mp'){
         const list=pills.filter(it=>tab==='all'||it.type===tab);
-        rows=list.length?list.map(it=>{const ready=combatMedicineAvailabilityV2856(it.name),esc=skillTextEscapeV212;return `<button type="button" class="combat-item-btn" ${ready.ok?'':'disabled'} onclick="useCombatBagItem(${esc(JSON.stringify(it.name))})"><span>${it.type==='heal'?'💊':'🔹'} ${esc(it.name)}<span class="count">×${it.count}</span></span><span class="meta">${ready.ok?`实际恢复 ${ready.gain} 点${it.type==='heal'?'气血':'灵力'}`:esc(ready.reason)}${ready.ok&&ready.waste>0?` · 超出上限 ${ready.waste} 点`:''}<br>${esc(it.desc||'')}<br>使用消耗一个回合</span></button>`}).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无丹药<span class="meta">去商铺或 NPC 处补给</span></button>`;
+        rows=list.length?list.map(it=>{const ready=combatMedicineAvailabilityV2856(it.name),esc=skillTextEscapeV212;return `<button type="button" class="combat-item-btn" ${ready.ok?'':'disabled'} onclick="useCombatBagItem(${esc(JSON.stringify(it.name))})"><span>${it.type==='heal'?'💊':'🔹'} ${esc(it.name)}<span class="count">×${it.count}</span></span><span class="meta">${ready.ok?`实际恢复 ${ready.gain} 点${it.type==='heal'?'气血':'灵力'}${ready.curesMeridians?' · 清除经脉暗伤':''}`:esc(ready.reason)}${ready.ok&&ready.waste>0?` · 超出上限 ${ready.waste} 点`:''}<br>${esc(it.desc||'')}<br>使用消耗一个回合</span></button>`}).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无丹药<span class="meta">去商铺或 NPC 处补给</span></button>`;
       }else{
         const list=extras.filter(it=>tab==='equip'?['weapon','armor'].includes(it.type):!['weapon','armor'].includes(it.type));
         rows=list.length?list.map(it=>`<button class="combat-item-btn combat-readonly" disabled><span>${['weapon','armor'].includes(it.type)?(it.type==='weapon'?'⚔️':'🛡️'):'🎐'} ${it.name}<span class="count">x${it.count}</span></span><span class="meta">${it.desc||'背包道具'}<br>${tab==='equip'?'战斗中可查看，脱战后再正式换装':'当前战斗仅查看，不会误用'}</span></button>`).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无物品<span class="meta">获得后会自动显示在这里</span></button>`;
@@ -12098,25 +12335,27 @@
       if(!Number.isFinite(value)||value<=0||!Number.isFinite(gain))return {ok:false,reason:'补给数据无效',gain:0};
       if(gameState!=='combat'||!currentEnemy||currentEnemy.hp<=0||COMBAT_FINISH_V2764.settling)return {ok:false,reason:'当前不在可行动的战斗中',gain};
       if(!isPlayerTurn)return {ok:false,reason:'等待行动结算',gain};
-      if(gain<=0)return {ok:false,reason:item.type==='heal'?'气血已满，无需服用':'灵力已满，无需服用',gain:0};
-      return {ok:true,item,index,gain,waste:Math.max(0,value-gain)};
+      const curesMeridians=itemName==='玄玉护脉丹'&&hasStatusEffect('jingmai');
+      if(gain<=0&&!curesMeridians)return {ok:false,reason:item.type==='heal'?'气血已满，无需服用':'灵力已满，无需服用',gain:0};
+      return {ok:true,item,index,gain,waste:Math.max(0,value-gain),curesMeridians};
     }
 
     function useCombatBagItem(itemName) {
       const ready=combatMedicineAvailabilityV2856(itemName);
       if(!ready.ok){showFloatingText?.(ready.reason,'#ffd76a');renderCombatMedicineDrawer();return;}
-      const {item,index,gain}=ready;
+      const {item,index,gain,curesMeridians}=ready;
       isPlayerTurn=false;
       player.inventory.splice(index,1);
       if(item.type==='heal'){
         player.hp=Math.min(getMaxHp(),player.hp+gain);
+        if(curesMeridians)removeStatusEffect('jingmai');
         showDamageNumber(gain,'player',true,false,false,false,itemName);
         playSound('heal');
       }else{
         player.mp=Math.min(getMaxMp(),player.mp+gain);
         playSound('heal');
       }
-      addCombatLog(`使用${itemName}，实际恢复 ${gain} 点${item.type==='heal'?'气血':'灵力'}。`,'heal');
+      addCombatLog(`使用${itemName}，实际恢复 ${gain} 点${item.type==='heal'?'气血':'灵力'}${curesMeridians?'，经脉暗伤已痊愈':''}。`,'heal');
       updateCombatUI();updateCombatChoices();renderCombatMedicineDrawer();updateStats?.();
       battleLaterV2838(()=>enemyTurn(),500);
     }
@@ -15073,7 +15312,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.82";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.83";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
@@ -15392,24 +15631,24 @@ function installItemSafetyV2905(){
 function pillBatchCountV2905(name,mode){
  const item=ITEMS[name],kind=item?.type,have=player.inventory.filter(n=>n===name).length;
  if(!['heal','mp','exp'].includes(kind)||!(item.value>0)||!have)return 0;
- const needed=kind==='heal'?Math.ceil((getMaxHp()-player.hp)/item.value):kind==='mp'?Math.ceil((getMaxMp()-player.mp)/item.value):999;
+ const needed=kind==='heal'?Math.max(name==='玄玉护脉丹'&&hasStatusEffect('jingmai')?1:0,Math.ceil((getMaxHp()-player.hp)/item.value)):kind==='mp'?Math.ceil((getMaxMp()-player.mp)/item.value):999;
  const max=Math.max(0,Math.min(999,have,needed));
  return [5,10].includes(mode)?Math.min(mode,max):mode==='full'&&kind!=='exp'||mode==='all'&&kind==='exp'?max:0;
 }
 function useItemBatchV2905(name,mode){
  if(gameState!=='exploring')return false;
  return itemActionV2905('批量服用',()=>{
-  const n=pillBatchCountV2905(name,mode);if(!n)return false;const item=ITEMS[name],kind=item.type;
+  const n=pillBatchCountV2905(name,mode);if(!n)return false;const item=ITEMS[name],kind=item.type,curesMeridians=name==='玄玉护脉丹'&&hasStatusEffect('jingmai');
   const owner=player,before=JSON.stringify(player);
-  if(typeof confirm==='function'&&!confirm(`服用【${name}】×${n}？`))return false;
+  if(typeof confirm==='function'&&!confirm(`服用【${name}】×${n}${curesMeridians?'，并清除经脉暗伤':''}？`))return false;
   if(player!==owner||JSON.stringify(player)!==before)return false;
   if(gameState!=='exploring'||player.breakthrough?.isAnimating||COMBAT_FINISH_V2764.settling||pillBatchCountV2905(name,mode)!==n)return false;
   for(let i=0;i<n;i++)removeItem(name);
   let gain;
-  if(kind==='heal'){const old=player.hp;player.hp=Math.min(getMaxHp(),old+item.value*n);gain=player.hp-old;}
+  if(kind==='heal'){const old=player.hp;player.hp=Math.min(getMaxHp(),old+item.value*n);gain=player.hp-old;if(curesMeridians)removeStatusEffect('jingmai');}
   else if(kind==='mp'){const old=player.mp;player.mp=Math.min(getMaxMp(),old+item.value*n);gain=player.mp-old;}
   else{gain=item.value*n;player.exp+=gain;checkLevelUp();}
-  updateStats();renderMobileInventory();showFloatingText(`服用 ${name} ×${n} · ${kind==='heal'?'气血':kind==='mp'?'灵力':'修为'} +${gain}`,'#69f0ae');return true;
+  updateStats();renderMobileInventory();showFloatingText(`服用 ${name} ×${n} · ${kind==='heal'?'气血':kind==='mp'?'灵力':'修为'} +${gain}${curesMeridians?' · 经脉暗伤已痊愈':''}`,'#69f0ae');return true;
  });
 }
 function pillBatchButtonsV2905(row,index){

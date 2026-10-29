@@ -24,13 +24,13 @@
   // 区域材料真正进入炼丹循环。
   if(typeof ITEMS!=='undefined'){
     ITEMS['冰魄丹']={type:'mp',value:80,desc:'北域寒气凝丹，恢复80点灵力',icon:'🧊'};
-    ITEMS['玄玉护脉丹']={type:'heal',value:150,desc:'寒玉护脉，恢复150点气血',icon:'💠'};
+    ITEMS['玄玉护脉丹']={type:'heal',value:150,desc:'恢复150点气血，清除经脉暗伤；满血时仍可治伤',icon:'💠'};
     ITEMS['幽冥悟道丹']={type:'exp',value:260,desc:'炼化幽冥之气，增加260点修为',icon:'🌑'};
     ITEMS['血玉淬体丹']={type:'exp',value:180,desc:'以龙血果与血玉淬炼，增加180点修为',icon:'❤️‍🔥'};
   }
   if(typeof RECIPES!=='undefined'){
     RECIPES['冰魄丹']={materials:{'雪莲':2,'冰晶石':1},baseSuccess:.78,result:'冰魄丹',desc:'恢复80点灵力',alchemyLevelRequired:2};
-    RECIPES['玄玉护脉丹']={materials:{'万年寒玉':1,'仙灵草':2},baseSuccess:.64,result:'玄玉护脉丹',desc:'恢复150点气血',alchemyLevelRequired:4};
+    RECIPES['玄玉护脉丹']={materials:{'万年寒玉':1,'仙灵草':2},baseSuccess:.64,result:'玄玉护脉丹',desc:'恢复150点气血并清除经脉暗伤',alchemyLevelRequired:4};
     RECIPES['幽冥悟道丹']={materials:{'暗灵草':2,'幽冥花':1,'魔核':1},baseSuccess:.58,result:'幽冥悟道丹',desc:'增加260点修为',alchemyLevelRequired:4};
     RECIPES['血玉淬体丹']={materials:{'血玉':1,'龙血果':1,'灵草':2},baseSuccess:.66,result:'血玉淬体丹',desc:'增加180点修为',alchemyLevelRequired:3};
   }
@@ -221,7 +221,7 @@
   window.enableWorldMode=function(){unifyLegacyMaterialPools();const out=oldEnableWorldMode?.apply(this,arguments);updateWorldHUD?.();return out;};
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-08-feature-08.js"]="28.68.82";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-08-feature-08.js"]="28.68.83";
 
 const MAT_REFINE_RECIPES_V2870={
  '仙灵草':{'灵草':5,'仙果':1},'千年灵芝':{'灵草':6,'兽骨':2},'星辰砂':{'妖丹':2,'灵木':2},'万年寒玉':{'冰晶石':3,'雪莲':1},'龙血果':{'仙果':3,'血玉':1}

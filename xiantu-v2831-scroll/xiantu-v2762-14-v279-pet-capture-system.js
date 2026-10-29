@@ -232,7 +232,7 @@ window.updatePetPanel=function(){
 // 培养遵循品质等级上限；兼容旧宠物并支持一次多级。
 window.feedPet=function(index,foodName){ensurePetSystemState?.();ensurePetCaptureState();const pet=player.pets[index],food=PET_FOOD[foodName],count=Math.max(0,Number(player.petMaterials?.[foodName])||0);if(!pet||!food||count<=0)return;const maxLv=getPetQualityInfo(pet.quality).maxLevel;if((pet.level||1)>=maxLv){showFloatingText?.(`✅ ${pet.name} 已达到${getPetQualityInfo(pet.quality).label}等级上限 Lv.${maxLv}`,'#69f0ae');return}player.petMaterials[foodName]=count-1;if(player.petMaterials[foodName]<=0)delete player.petMaterials[foodName];pet.exp=Math.max(0,Number(pet.exp)||0)+Number(food.exp||0);let gained=0,safe=0;while(safe++<50&&(pet.level||1)<maxLv){const need=Math.max(1,Number(pet.level||1)*30);if(pet.exp<need)break;pet.exp-=need;pet.level=Math.min(maxLv,Math.max(1,Number(pet.level)||1)+1);gained++}if((pet.level||1)>=maxLv)pet.exp=0;if(gained){playSound?.('levelup');showFloatingText?.(`🎉 ${pet.name} 提升 ${gained} 级 → Lv.${pet.level}`,'#8ff0cf')}else showFloatingText?.(`🍖 ${pet.name} 经验 +${food.exp}`,'#d9c98e');updatePetPanel?.();updateStats?.();autoSave?.()};
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-14-v279-pet-capture-system.js"]="28.68.82";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-14-v279-pet-capture-system.js"]="28.68.83";
 
 function fieldEncounterV2870(enemy,boss,trib,monster){return !!monster&&!!enemy&&!boss&&!trib&&!enemy._isTutorial&&!enemy._isTaskBattle&&!enemy._taskId&&!enemy._warV2839&&!enemy.tournamentFight&&!enemy._nightRivalV2810&&!authoredStoryCombatV286835(enemy);}
 function mercyBabyV2870(){
@@ -244,5 +244,5 @@ function mercyBabyV2870(){
 function emergencyFieldHealV2870(enemy,boss,trib,monster){
  if(player.fieldAidV2870?.heal!==true||!fieldEncounterV2870(enemy,boss,trib,monster)||player.hp<=0||player.hp/getMaxHp()>=.30)return null;
  const candidates=(player.inventory||[]).filter(n=>ITEMS[n]?.type==='heal'&&Number.isFinite(ITEMS[n].value)&&ITEMS[n].value>0).sort((a,b)=>ITEMS[a].value-ITEMS[b].value);
- const name=candidates[0];if(!name)return null;const before=player.hp;consumeInventoryItem(name);player.hp=Math.min(getMaxHp(),before+ITEMS[name].value);return {name,heal:player.hp-before};
+ const name=candidates[0];if(!name)return null;const before=player.hp;consumeInventoryItem(name);player.hp=Math.min(getMaxHp(),before+ITEMS[name].value);if(name==='玄玉护脉丹')removeStatusEffect('jingmai');return {name,heal:player.hp-before};
 }

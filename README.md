@@ -1,6 +1,10 @@
-# 仙途 V28.68.82
+# 仙途 V28.68.83
 
-部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.82）；[上传步骤](downloads/README.md)。
+部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.83）；[上传步骤](downloads/README.md)。
+
+## V28.68.83 突破品质与结算保护
+
+元婴以后加入三种突破品质及暗伤、道伤、跌境、顿悟、折寿分支，面板展开显示实际概率和后果。永久属性累加上限10%，每阶段只首次领奖；跌境每瓶颈最多一次并保留原失败保护。突破先保存锁定结果，失败回滚，刷新不重抽；护脉丹治伤和道伤到期收益接入实际流程。旧境界编号先迁移再建立奖励起点。见 [实现与验证](docs/breakthrough-depth.txt)、[平衡评估](docs/breakthrough-balance-v286883.txt)。包含V28.68.79—82优化；无需更新Jev，尚未合并main或部署腾讯云。
 
 ## V28.68.82 山河图与采集校准
 
@@ -232,7 +236,7 @@ npm test
 npm run test:browser
 ```
 
-`npm test` 运行选定的 120 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
+`npm test` 运行选定的 124 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
 
 浏览器测试覆盖恶意存档拒绝且原主档/备份不变、正常导入与刷新恢复、360/390/430/1366px 导航入口可达性、预加载去重与版本错误提示。外部请求被拦截，不调用付费服务。已有 Chromium 的云环境可使用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`。
 

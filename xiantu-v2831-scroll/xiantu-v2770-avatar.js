@@ -104,7 +104,7 @@ function worldDepthV2770(o){return o.y+(o.t==='tree'?28*(o.s||1):0);}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseAvatar25DV2770();});
 window.addEventListener('pagehide',releaseAvatar25DV2770);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2770-avatar.js"]="28.68.82";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2770-avatar.js"]="28.68.83";
 
 const PAINTED_ACTOR_ROWS_V2838=[{"y": 0, "h": 256, "feet": [244, 250, 249, 249]}, {"y": 256, "h": 244, "feet": [238, 232, 238, 232]}, {"y": 500, "h": 268, "feet": [243, 244, 243, 245]}];
 const PAINTED_ACTOR_V2838={image:null,ready:false,failed:false,phase:0,lastX:null,lastY:null,lastTime:0,dir:0,moving:false,reduced:!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches};

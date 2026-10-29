@@ -10,10 +10,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="仙途">
   <meta name="mobile-web-app-capable" content="yes">
-  <link rel="preload" as="style" href="./xiantu-v2762.css?v=286882-scroll-gathering-20261029" fetchpriority="high">
-  <link rel="preload" as="script" href="./xiantu-v2762-core.js?v=286882-scroll-gathering-20261029" fetchpriority="high">
+  <link rel="preload" as="style" href="./xiantu-v2762.css?v=286883-breakthrough-20261029" fetchpriority="high">
+  <link rel="preload" as="script" href="./xiantu-v2762-core.js?v=286883-breakthrough-20261029" fetchpriority="high">
   
-  <title>仙途 V28.68.82 · 开场动画版</title>
+  <title>仙途 V28.68.83 · 开场动画版</title>
 
 
 
@@ -70,7 +70,7 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
     </div>
     <div class="boot-mark">☯</div>
     <h1 id="xiantuSafeBootTitle">仙途</h1>
-    <div class="boot-version">V28.68.82</div>
+    <div class="boot-version">V28.68.83</div>
     <button id="xiantuSafeBootButton" type="button">进入仙途</button>
     <label class="boot-skip-choice"><input id="introSkipChoiceV2898" type="checkbox">跳过开场动画（记住选择）</label>
     <div id="xiantuSafeBootProgress" class="boot-progress"></div>
@@ -408,7 +408,7 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
   if(done){resolveIntro();return promise;}
   choice.disabled=true;
   if(choice.checked){finish();return promise;}
-  panel.hidden=false;video.muted=true;video.src='./intro-v2860.mp4?v=286882-scroll-gathering-20261029';
+  panel.hidden=false;video.muted=true;video.src='./intro-v2860.mp4?v=286883-breakthrough-20261029';
   deadline=setTimeout(finish,45000);waiting();
   try{var play=video.play();if(play&&play.catch)play.catch(finish);}catch(_){finish();}
   return promise;
@@ -422,7 +422,7 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
   'use strict';
   // iOS Safari before 15.4 lacks Object.hasOwn, which several modules use.
   if(typeof Object.hasOwn!=='function')Object.defineProperty(Object,'hasOwn',{value:function(o,k){return Object.prototype.hasOwnProperty.call(o,k);},configurable:true,writable:true});
-  var expectedBuild='28.68.82';
+  var expectedBuild='28.68.83';
   var files=["xiantu-v2762-core.js", "xiantu-v2762-03-virtual-joystick-script.js", "xiantu-v2762-04-tutorial-guide-script.js", "xiantu-v2762-05-mobile-dedicated-script.js", "xiantu-v2762-06-local-test-bootstrap.js", "xiantu-v2762-07-v12-stable-map-ui-script.js", "xiantu-v2762-08-feature-08.js", "xiantu-v2762-09-control-mode-switch-script.js", "xiantu-v2762-10-upgrade-material-hint-script.js", "xiantu-v2762-11-feature-11.js", "xiantu-v2762-12-v277equipmentmanager.js", "xiantu-v2762-13-feature-13.js", "xiantu-v2762-14-v279-pet-capture-system.js", "xiantu-v2762-15-petgrowthsystemv210.js", "xiantu-v2762-16-petguidemapv211script.js", "xiantu-v2762-17-combatskillloadoutv212.js", "xiantu-v2762-18-skillswapmenuv213.js", "xiantu-v2762-19-v27-15-enemy-portrait-script.js", "xiantu-v2762-20-v27-16-enemy-batch1-script.js", "xiantu-v2762-21-v27-17-enemy-batch2-script.js", "xiantu-v2762-22-v2756-cinematic-combat-script.js", "xiantu-v2768-systems.js", "xiantu-v2770-avatar.js", "xiantu-v2773-economy.js", "xiantu-v2838-journey.js", "xiantu-v2839-war.js", "xiantu-v2840-war-map.js", "xiantu-v2841-dharma-war.js", "xiantu-v2842-jev-forge.js", "xiantu-v2850-jev-friends.js", "xiantu-v2844-monster-jev.js", "xiantu-v2846-world-jev.js", "xiantu-v2849-npc-jev.js", "xiantu-v2852-relationship-stories.js", "xiantu-v2852-relationships.js", "xiantu-v2853-monster-art.js", "xiantu-v2855-skill-fx.js", "xiantu-v2856-battle-clarity.js", "xiantu-v2868-sect-life.js", "xiantu-v28684-duel.js"];
   var button=document.getElementById('xiantuSafeBootButton');
   var progress=document.getElementById('xiantuSafeBootProgress');
@@ -461,14 +461,14 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
       attempt();
     });
   }
-  function loadStyle(){return loadResource(function(attempt){var link=document.createElement('link');link.rel='stylesheet';link.fetchPriority='high';link.href='./xiantu-v2762.css?v=286882-scroll-gathering-20261029';if(attempt)link.href+='&retry='+attempt;return link;},document.head);}
+  function loadStyle(){return loadResource(function(attempt){var link=document.createElement('link');link.rel='stylesheet';link.fetchPriority='high';link.href='./xiantu-v2762.css?v=286883-breakthrough-20261029';if(attempt)link.href+='&retry='+attempt;return link;},document.head);}
   function preloadScripts(){
-    files.slice(1).forEach(function(name){var link=document.createElement('link');link.rel='preload';link.as='script';link.fetchPriority='high';link.href='./'+name+'?v=286882-scroll-gathering-20261029';document.head.appendChild(link);});
+    files.slice(1).forEach(function(name){var link=document.createElement('link');link.rel='preload';link.as='script';link.fetchPriority='high';link.href='./'+name+'?v=286883-breakthrough-20261029';document.head.appendChild(link);});
   }
-  function loadScript(name){return loadResource(function(attempt){var s=document.createElement('script');s.src='./'+name+'?v=286882-scroll-gathering-20261029';if(attempt)s.src+='&retry='+attempt;s.async=false;return s;},document.body,function(){if(!window.__xiantuBuildFilesV2814||window.__xiantuBuildFilesV2814[name]!==expectedBuild)return new Error('文件版本不一致：'+name+'。请上传完整 V28.68.82 文件夹覆盖后刷新，勿清除网站数据。');});}
+  function loadScript(name){return loadResource(function(attempt){var s=document.createElement('script');s.src='./'+name+'?v=286883-breakthrough-20261029';if(attempt)s.src+='&retry='+attempt;s.async=false;return s;},document.body,function(){if(!window.__xiantuBuildFilesV2814||window.__xiantuBuildFilesV2814[name]!==expectedBuild)return new Error('文件版本不一致：'+name+'。请上传完整 V28.68.83 文件夹覆盖后刷新，勿清除网站数据。');});}
   function addInstallLinks(){
-    var manifest=document.createElement('link');manifest.rel='manifest';manifest.href='./manifest-v2762.webmanifest?v=286882-scroll-gathering-20261029';document.head.appendChild(manifest);
-    var icon=document.createElement('link');icon.rel='apple-touch-icon';icon.href='./v2762-apple-touch-icon.png?v=286882-scroll-gathering-20261029';document.head.appendChild(icon);
+    var manifest=document.createElement('link');manifest.rel='manifest';manifest.href='./manifest-v2762.webmanifest?v=286883-breakthrough-20261029';document.head.appendChild(manifest);
+    var icon=document.createElement('link');icon.rel='apple-touch-icon';icon.href='./v2762-apple-touch-icon.png?v=286883-breakthrough-20261029';document.head.appendChild(icon);
   }
   function restoreCanvasSizes(){
     var list=document.querySelectorAll('canvas[data-v2762-width]');
@@ -493,7 +493,7 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
     var introDone=window.XiantuIntroV2860.start();
     try{
       restoreCanvasSizes();
-      currentStep='1/4 · 加载界面样式';setProgress(currentStep);await loadStyle();if(getComputedStyle(document.documentElement).getPropertyValue('--xiantu-build').trim()!=='286882')throw new Error('样式版本不一致，请完整覆盖 V28.68.82 文件夹。');await nextPaint();
+      currentStep='1/4 · 加载界面样式';setProgress(currentStep);await loadStyle();if(getComputedStyle(document.documentElement).getPropertyValue('--xiantu-build').trim()!=='286883')throw new Error('样式版本不一致，请完整覆盖 V28.68.83 文件夹。');await nextPaint();
       // Keep the critical stylesheet ahead of bulk script traffic on mobile connections.
       preloadScripts();
       currentStep='2/4 · 加载修仙世界';setProgress(currentStep);await loadScript(files[0]);if(fatalError)throw fatalError;await nextPaint();
@@ -509,7 +509,7 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
       addInstallLinks();
       bootJevFriendsV2850();
       var buildBadge=document.createElement('button');buildBadge.id='xiantuBuildBadgeV2814';buildBadge.textContent='版本信息';buildBadge.title='查看当前版本';
-      buildBadge.onclick=function(){alert('仙途 · V28.68.82\n遇到问题时，可提供此版本号与画面截图。');};
+      buildBadge.onclick=function(){alert('仙途 · V28.68.83\n遇到问题时，可提供此版本号与画面截图。');};
       document.getElementById('characterUtilityActions').appendChild(buildBadge);
       document.body.classList.remove('xiantu-v2762-booting');
       document.getElementById('xiantuSafeBoot').remove();
