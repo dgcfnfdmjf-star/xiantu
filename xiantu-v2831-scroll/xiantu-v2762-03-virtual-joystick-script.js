@@ -18,7 +18,7 @@
     }
     function apply(x,y){
       if(typeof FLAT_WORLD==='undefined'||!FLAT_WORLD?.keys)return;
-      FLAT_WORLD.target=null;FLAT_WORLD.tapTargetFx=null;
+      if(typeof stopNavigationV2830==='function')stopNavigationV2830();FLAT_WORLD.target=null;FLAT_WORLD.tapTargetFx=null;
       const mag=Math.hypot(x,y);if(mag<DEAD){clear();return;}
       const nx=x/mag,ny=y/mag,t=.28;
       FLAT_WORLD.keys.a=nx<-t;FLAT_WORLD.keys.d=nx>t;
@@ -68,4 +68,4 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2762-03-virtual-joystick-script.js']='28.68.76';
+window.__xiantuBuildFilesV2814['xiantu-v2762-03-virtual-joystick-script.js']='28.68.77';
