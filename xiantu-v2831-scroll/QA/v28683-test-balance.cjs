@@ -44,7 +44,7 @@ const bootsText='防御+57.6 · 速度+144 · 闪避+48%';
 a(f.run('renderEquipSlots(["boots"])').includes(bootsText));
 a.equal(f.run('getEquipDef()'),57);a.equal(f.run('getEquipmentStat("speed")'),144);a.equal(f.run('getEquipDodge()'),48);a.equal(f.run('getDodgeRate()'),.30);a.equal(f.run('getItemPowerDisplay("天星履·仙器")'),252);
 f.run('showMarketGearV2800("armor",3,"天星")');a(f.ids.get('storyText').innerHTML.includes(bootsText));
-f.run('showEquipmentInventory()');a(f.ids.get('storyText').innerHTML.includes(bootsText));
+f.run('gameState="exploring";showEquipmentInventory();BAG_RT_V2905.open=player.equipmentInventory[0];bagRenderListV2905()');a(f.ids.get('bagListV2905').innerHTML.includes(bootsText));
 f.run('showForgeV2825()');a(f.ids.get('storyText').innerHTML.includes(bootsText));
 f.run('selectForgeV2825("slot","boots")');a(f.ids.get('storyText').innerHTML.includes('下级基础属性（未含词条）：防御+60.48'));
 f.run('player.forgeV2825={next:2,items:{"天星履·仙器〔铭器1〕":{base:"天星履·仙器",level:1,affixes:[{stat:"def",value:6}]}}};forgeRegisterV2825("天星履·仙器〔铭器1〕",player.forgeV2825.items["天星履·仙器〔铭器1〕"]);player.equipment.boots="天星履·仙器〔铭器1〕";');

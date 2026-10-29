@@ -43,15 +43,7 @@
 
     function sortAndConsolidateBagV2870(){
       if(!Array.isArray(player?.inventory)||gameState!=='exploring'||player.breakthrough?.isAnimating||COMBAT_FINISH_V2764.settling)return false;
-      const priority={heal:1,mp:2,exp:3,pet:4,capture:5,pet_contract:6};
-      const original=player.inventory;
-      const sorted=[...original].sort((a,b)=>(priority[ITEMS[a]?.type]||9)-(priority[ITEMS[b]?.type]||9)||a.localeCompare(b,'zh-CN'));
-      if(sorted.some((name,i)=>name!==original[i])){
-        player.inventory=sorted;
-        if(!saveGame()){player.inventory=original;return false;}
-      }
-      renderMobileInventory();
-      showFloatingText('🎒 已按品类和名称整理，物品数量不变','#8fe3c4');return true;
+      return bagItemSortToggleV2905();
     }
 
     function showMobileInventory() {
@@ -73,8 +65,9 @@
     function renderMobileInventory() {
       const card=document.getElementById('mobileInventoryCard');
       if(!card || !player) return;
-      const itemRows=groupInventoryItems();
+      const itemRows=bagItemOrderV2905(groupInventoryItems());
       const materialRows=Object.entries(player.materials||{}).filter(([,count])=>Number(count)>0).map(([name,count])=>({name,count,data:MATERIALS?.[name]||null}));
+      materialRows.push(...Object.entries(player.petMaterials||{}).filter(([,n])=>Number(n)>0).map(([name,count])=>({name,count,data:{icon:'🐾',desc:'灵宠材料 · 培养、捕捉或契约所用'}})));
       const equipmentRows=(player.equipmentInventory||[]).map(name=>({name,count:1,data:EQUIPMENT_DB?.[name]||ITEMS?.[name]||null}));
       const tabs=[['items','💊 丹药/物品'],['materials','🌿 材料'],['equipment','⚔️ 装备']];
       let rows=[], footer='';
@@ -93,7 +86,7 @@
         const icon=d.icon || (d.type==='heal'?'💊':d.type==='mp'?'🔹':mobileInventoryTab==='materials'?'🌿':mobileInventoryTab==='equipment'?'⚔️':'🎐');
         const desc=d.desc || (mobileInventoryTab==='materials'?'修仙材料':mobileInventoryTab==='equipment'?'装备物品':'储物袋物品');
         if(mobileInventoryTab==='items'){
-          return `<button class="mobile-inventory-item usable" data-bag-index="${index}"><span class="name">${escapeGameText(icon)} ${escapeGameText(row.name)}</span><span class="count">×${row.count}</span><span class="desc">${escapeGameText(desc)}</span></button>`;
+          return `<button class="mobile-inventory-item usable" data-bag-index="${index}"><span class="name">${escapeGameText(icon)} ${escapeGameText(row.name)}</span><span class="count">×${row.count}</span><span class="desc">${escapeGameText(desc)}</span></button>${pillBatchButtonsV2905(row,index)}`;
         }
         return `<div class="mobile-inventory-item"><span class="name">${escapeGameText(icon)} ${escapeGameText(row.name)}</span><span class="count">×${row.count}</span><span class="desc">${escapeGameText(desc)}</span></div>`;
       }).join(''):`<div class="mobile-inventory-empty">这一栏目前是空的</div>`;
@@ -101,12 +94,14 @@
         <div class="mobile-inventory-head"><div><div class="mobile-inventory-title">🎒 储物袋</div><div style="font-size:10px;color:#8f99a4;margin-top:2px">随身物资与修行资源</div></div><button aria-label="关闭" class="mobile-inventory-close" onclick="closeMobileInventory()">✕</button></div>
         <div class="mobile-inventory-summary"><span>💰 灵石 ${player.gold||0}</span><span>💠 灵力 ${Math.max(0,Math.round(player.mp||0))} / ${typeof getMaxMp==='function'?getMaxMp():Math.max(0,Math.round(player.maxMp||0))}</span><span>🎐 物品 ${itemRows.reduce((a,b)=>a+b.count,0)}</span><span>🌿 材料 ${materialRows.reduce((a,b)=>a+Number(b.count||0),0)}</span><span>⚔️ 装备 ${equipmentRows.length}</span></div>
         <div class="mobile-inventory-tabs">${tabs.map(([id,label])=>`<button class="mobile-inventory-tab ${mobileInventoryTab===id?'active':''}" onclick="setMobileInventoryTab('${id}')">${label}</button>`).join('')}</div>
-        ${mobileInventoryTab==='items'?'<button id="sortBagBtnV2870" class="choice-btn" style="width:100%;margin:8px 0" onclick="sortAndConsolidateBagV2870()">🔄 按品类整理物品</button>':''}
+        ${mobileInventoryTab==='items'?'<button id="sortBagBtnV2870" class="choice-btn" style="width:100%;margin:8px 0" onclick="sortAndConsolidateBagV2870()">'+(bagPrefsV2905().items==='category'?'↩️ 恢复获得顺序':'🔄 按品类整理物品')+'</button>':''}
         <div class="mobile-inventory-grid">${htmlRows}</div>
         ${mobileInventoryTab==='equipment'?`<button class="choice-btn" style="margin-top:10px;width:100%" onclick="closeMobileInventory();showEquipmentPanel();">📦 打开完整装备栏</button>`:''}
         <div class="mobile-inventory-footer">${footer}</div>`;
       const owner=player;
       card.onclick=e=>{
+        const batch=e.target.closest('[data-bag-batch]');
+        if(batch&&card.contains(batch)&&player===owner&&gameState==='exploring'&&forgeAllowedV2825()){const row=rows[Number(batch.dataset.bagBatch)];if(row&&mobileInventoryTab==='items')useItemBatchV2905(row.name,/^\d+$/.test(batch.dataset.mode)?Number(batch.dataset.mode):batch.dataset.mode);return;}
         const button=e.target.closest('[data-bag-index]');
         if(!button||!card.contains(button)||player!==owner||gameState!=='exploring'||player.breakthrough?.isAnimating||COMBAT_FINISH_V2764.settling)return;
         const row=rows[Number(button.dataset.bagIndex)];if(!row||mobileInventoryTab!=='items')return;
@@ -161,7 +156,8 @@
       if(gameState==='combat' && battleCheckpointV286812?.owner===player){
         return {...JSON.parse(battleCheckpointV286812.raw),timestamp:Date.now(),interruptedBattleV286812:true};
       }
-      return {player:JSON.parse(JSON.stringify(player)),achievements:{progress:{...achievementProgress},completed:Array.from(completedAchievements)},timestamp:Date.now(),version:SAVE_VERSION};
+      const clean=JSON.parse(JSON.stringify(player));normalizeItemCountsV2905(clean);
+      return {player:clean,achievements:{progress:{...achievementProgress},completed:Array.from(completedAchievements)},timestamp:Date.now(),version:SAVE_VERSION};
     }
     function writeSaveV2768(raw) {
       parseSaveV2768(raw);
@@ -2486,7 +2482,7 @@
       if(used+owned>=d.limit)return showFloatingText?.('已服用与库存已足够达到终身上限，无需再买','#ffd76a');
       if(player.gold<d.cost)return showFloatingText?.('灵石不足','#ffd76a');
       if(!confirmPurchaseV286867(name,d.cost))return;
-      player.gold-=d.cost; player.inventory.push(name);
+      if(!addStoredItemV2905('inventory',name))return;player.gold-=d.cost;
       updateStats(); autoSave(); showRarePillShop();
       showFloatingText?.(`已购买${name}，请在储物袋中服用`,'#69f0ae');
     }
@@ -2576,7 +2572,7 @@
       const d=BREAKTHROUGH_PILLS_V28683[name];
       if(!d||gameState==='combat'||gameState==='combat-ending'||player.breakthrough?.isAnimating||player.level<d.level||player.gold<d.cost)return;
       if(!confirmPurchaseV286867(name,d.cost))return;
-      player.gold-=d.cost;player.inventory.push(name);autoSave();updateStats();showRarePillShop();
+      if(!addStoredItemV2905('inventory',name))return;player.gold-=d.cost;autoSave();updateStats();showRarePillShop();
     }
     function breakthroughDetailsV28683(){
       const d=calculateBreakthroughSuccess();
@@ -4313,7 +4309,7 @@
       if(gameState==='combat'||!NEW_SETS_V2790[family]||!Number.isInteger(piece)||piece<0||piece>4||!Number.isInteger(grade)||grade<1||grade>GRADES_V2790.length)return;
       const name=newGearNameV2790(family,piece,grade),d=EQUIPMENT_DB[name];if(!canEquipItem(name).ok||player.gold<d.priceV2790)return;
       if(!confirmGearPurchaseV2804(name,d.priceV2790))return;
-      player.gold-=d.priceV2790;(player.equipmentInventory||=[]).push(name);autoSave();updateStats();showNewGearShopV2790(family,grade);
+      if(!addStoredItemV2905('equipmentInventory',name))return;player.gold-=d.priceV2790;autoSave();updateStats();showNewGearShopV2790(family,grade);
     }
 
     // Old set pieces gain three versions. Baseline embeds the former quality multiplier.
@@ -4363,7 +4359,7 @@
       if(gameState==='combat'||!OLD_SET_VERSIONS_V2792[family]||!Number.isInteger(piece)||piece<0||piece>=OLD_SET_VERSIONS_V2792[family].length||!Number.isInteger(grade)||grade<1||grade>GRADES_V2790.length)return;
       const name=oldVersionNameV2792(family,piece,grade),d=EQUIPMENT_DB[name];if(player.gold<d.priceV2790||!canEquipItem(name).ok)return;
       if(!confirmGearPurchaseV2804(name,d.priceV2790))return;
-      player.gold-=d.priceV2790;(player.equipmentInventory||=[]).push(name);autoSave();updateStats();showOldGearShopV2792(family,grade);
+      if(!addStoredItemV2905('equipmentInventory',name))return;player.gold-=d.priceV2790;autoSave();updateStats();showOldGearShopV2792(family,grade);
     }
 
     const FORGE_KEYS_V2825=new Set();
@@ -5637,6 +5633,7 @@
       saved.materials=record(saved.materials);
       saved.petMaterials=record(saved.petMaterials);
       saved.artifactMaterials=record(saved.artifactMaterials);
+      normalizeItemCountsV2905(saved);
       forgeRestoreV2825(saved);
       saved=migrateUnifiedGearV2792(migrateGearNamesV2790(saved));
       const base = createDefaultPlayer();
@@ -8666,6 +8663,7 @@
       const recipe=Object.prototype.hasOwnProperty.call(RECIPES,recipeName)?RECIPES[recipeName]:null;
       if(!recipe||![1,5,10].includes(times))return {count:0,reason:'无效丹方或炉数'};
       if(!player||gameState==='start'||!forgeAllowedV2825())return {count:0,reason:'当前状态无法炼丹'};
+      if(player.inventory.length>=100000)return {count:0,reason:'储物空间不足'};
       if(player.alchemyLevel<recipe.alchemyLevelRequired)return {count:0,reason:`需要炼丹等级 ${recipe.alchemyLevelRequired}`};
       const result=recipe.result,limit=LONGEVITY_PILLS[result];
       if(limit&&normalizeLongevity(player.longevity).uses[result]+player.inventory.filter(n=>n===result).length>=limit.limit)return {count:0,reason:'库存与已服用数量已达终身上限'};
@@ -9103,7 +9101,7 @@
       const [name,d]=entry;
       if(!canEquipItem(name).ok||!Number.isFinite(d.priceV2790)||d.priceV2790<=0||player.gold<d.priceV2790)return;
       if(!confirmGearPurchaseV2804(name,d.priceV2790))return;
-      player.gold-=d.priceV2790;(player.equipmentInventory||=[]).push(name);autoSave();updateStats();showMarketGearV2800(category,grade,filter);
+      if(!addStoredItemV2905('equipmentInventory',name))return;player.gold-=d.priceV2790;autoSave();updateStats();showMarketGearV2800(category,grade,filter);
     }
 
     function showHome() {
@@ -9489,9 +9487,8 @@
       const item=GENERAL_SHOP_V2801[index];if(!item||![1,5].includes(qty)||(item.category==='gear'&&qty!==1))return;
       if(!hasReachedRealm(item.level)||player.gold<item.cost*qty)return;
       if(!(item.category==='gear'?confirmGearPurchaseV2804(item.name,item.cost*qty,qty):confirmPurchaseV286867(item.name,item.cost*qty,qty)))return;
+      if(!addStoredItemV2905(item.store!=='auto'?item.store:EQUIPMENT_DB[item.name]?'equipmentInventory':'inventory',item.name,qty))return;
       player.gold-=item.cost*qty;
-      if(item.store!=='auto'){player[item.store]||={};player[item.store][item.name]=(Number(player[item.store][item.name])||0)+qty;}
-      else{const bucket=EQUIPMENT_DB[item.name]?'equipmentInventory':'inventory';player[bucket]||=[];for(let i=0;i<qty;i++)player[bucket].push(item.name);}
       autoSave();updateStats();showShop(item.category,`已购买 ${item.name} ×${qty}，花费 ${item.cost*qty} 灵石。`);
     }
 
@@ -10132,9 +10129,8 @@
       cost=itemDef.cost;
       if (player.sectContribution < cost) return showStory('贡献不足！', [{text:'返回', action:'sect_shop'}]);
       if(!confirmPurchaseV286867(itemName,cost,1,'sectContribution'))return;
+      if(!addStoredItemV2905(itemDef.type==='material'?'materials':'inventory',itemDef.type==='material'?itemDef.value:itemName))return;
       player.sectContribution -= cost;
-      if (itemDef.type === 'material') player.materials[itemDef.value] = (player.materials[itemDef.value] || 0) + 1;
-      else player.inventory.push(itemName);
       autoSave();
       showStory(`✅ 购买成功！获得【${itemName}】<br><span style="color:#aaa">剩余贡献：${player.sectContribution}</span>`, [{text:'继续', action:'sect_shop'}]);
     }
@@ -10742,8 +10738,8 @@
           
         case 'buy':
           if (player.gold >= choice.cost) {
+            if(!addStoredItemV2905(EQUIPMENT_DB[choice.item]?'equipmentInventory':'inventory',choice.item))break;
             player.gold -= choice.cost;
-            if(EQUIPMENT_DB[choice.item])player.equipmentInventory.push(choice.item);else player.inventory.push(choice.item);
             showStory(`购买了 ${choice.item}！${EQUIPMENT_DB[choice.item]?' 已放入装备背包。':''}`, [{ text: '继续', action: 'shop' }]);
           } else {
             showStory('灵石不足！', [{ text: '继续', action: 'shop' }]);
@@ -10752,8 +10748,8 @@
           
         case 'buyMaterial':
           if (player.gold >= choice.cost) {
+            if(!addStoredItemV2905('materials',choice.item))break;
             player.gold -= choice.cost;
-            player.materials[choice.item] = (player.materials[choice.item] || 0) + 1;
             autoSave?.();
             updateStats?.();
             showStory(`购买了 ${choice.item}！`, [{ text: '继续', action: 'shop' }]);
@@ -10765,8 +10761,8 @@
         case 'buyArtifactMaterial': {
           if (!player.materials || typeof player.materials !== 'object') player.materials = {};
           if (player.gold >= choice.cost) {
+            if(!addStoredItemV2905('materials',choice.item))break;
             player.gold -= choice.cost;
-            player.materials[choice.item] = (player.materials[choice.item] || 0) + 1;
             autoSave?.();
             updateStats?.();
 
@@ -10802,8 +10798,8 @@
           
         case 'buyPetMaterial':
           if (player.gold >= choice.cost) {
+            if(!addStoredItemV2905('petMaterials',choice.item))break;
             player.gold -= choice.cost;
-            player.petMaterials[choice.item] = (player.petMaterials[choice.item] || 0) + 1;
             showStory(`购买了 ${choice.item}！`, [{ text: '继续', action: 'shop' }]);
           } else {
             showStory('灵石不足！', [{ text: '继续', action: 'shop' }]);
@@ -11092,8 +11088,8 @@
           
         case 'buy_set_item':
           if (player.gold >= choice.cost) {
+            if(!addStoredItemV2905('inventory',choice.item))break;
             player.gold -= choice.cost;
-            player.inventory.push(choice.item);
             showStory(`购买了 ${choice.item}！`, [{ text: '继续', action: 'market' }]);
           } else {
             showStory('灵石不足！', [{ text: '继续', action: 'market' }]);
@@ -11945,7 +11941,7 @@
       if(!Number.isFinite(player.gold)||player.gold<total)return false;
       const owner=player,before=JSON.stringify(player),owned=player.inventory.filter(x=>x===item).length;
       if(!window.confirm(`购买 ${item} ×${count}？消耗 ${total} 灵石，剩余 ${player.gold-total}。\n当前持有 ${owned} 枚。`)||player!==owner||!jevCanActV2846()||JSON.stringify(player)!==before)return false;
-      player.gold-=total;player.inventory.push(...Array(count).fill(item));
+      if(!addStoredItemV2905('inventory',item,count))return false;player.gold-=total;
       let saved=false;try{saved=saveGame();}catch(_){}
       if(!saved){player.gold+=total;player.inventory.splice(-count,count);showFloatingText('购买未保存，灵石与物品已恢复，可重试','#ff8a80');return false;}
       updateStats();showMapNpcShop(npcId);showFloatingText(`已购入 ${item} ×${count}`,'#69f0ae');return true;
@@ -14846,7 +14842,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.77";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.78";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
@@ -15084,4 +15080,92 @@ function showTripV286821(){
  if(r)html+=`<p>${r.name} · 已积累${y.units*10}分钟 / 480分钟，灵石${y.gold}、灵草${y.herbs}。${Date.now()<s.active.started?'设备时间早于出发时间，暂不累计收益。':''}</p><button class="choice-btn" onclick="claimTripV286821()" ${y.units?'':'disabled'}>领取并结束本趟</button><button class="choice-btn" onclick="showTripV286821()">刷新游历进度</button>`;
  else html+=TRIP_ROUTES_V286821.map((r,i)=>{const n=s.wins[r.key],ok=Number.isInteger(n)&&player.level>=n+1;return `<p>${r.name}：每10分钟${r.gold}灵石，每小时1灵草。${n===undefined?'需先击败该类普通怪':ok?'可派遣':'需高于已击败敌人至少一个大境界'}</p><button class="choice-btn" onclick="startTripV286821(${i})" ${ok?'':'disabled'}>派遣 · ${r.name}</button>`;}).join('');
  showStory(html+'<button class="choice-btn" onclick="showReturnBriefV286840()">归来简报 · 宗门与洞府</button>'+buildGuideV286821(),[{text:'返回洞府',action:'home'}]);
+}
+
+// V2905: item counts and synchronous, save-or-rollback actions. No save schema change.
+const ITEM_ACTION_V2905={depth:0,effects:[]};
+function itemCountV2905(value){
+ const n=typeof value==='number'?value:typeof value==='string'&&/^\s*\d+(?:\.\d+)?\s*$/.test(value)?Number(value):0;
+ return Number.isFinite(n)?Math.max(0,Math.min(Number.MAX_SAFE_INTEGER,Math.floor(n))):0;
+}
+function normalizeItemCountsV2905(p){
+ if(!p||typeof p!=='object')return;
+ for(const key of ['materials','petMaterials','artifactMaterials']){
+  const map=p[key];if(!map||typeof map!=='object'||Array.isArray(map))continue;
+  for(const name of Object.keys(map))map[name]=itemCountV2905(map[name]);
+ }
+}
+function addStoredItemV2905(store,name,count=1){
+ if(!player||!['inventory','equipmentInventory','materials','petMaterials','artifactMaterials'].includes(store)||typeof name!=='string'||!name||['__proto__','prototype','constructor'].includes(name)||!Number.isSafeInteger(count)||count<1)return false;
+ if(store==='inventory'||store==='equipmentInventory'){
+  const bag=player[store]||=[];
+  if(!Array.isArray(bag)||bag.length+count>100000){showFloatingText('储物空间不足，未扣除费用。','#ffd76a');return false;}
+  for(let i=0;i<count;i++)bag.push(name);
+ }else{
+  const map=player[store]||={};if(typeof map!=='object'||Array.isArray(map)){showFloatingText('材料数据异常，未扣除费用。','#ffd76a');return false;}const n=itemCountV2905(map[name]);
+  if(!Number.isSafeInteger(n+count)){showFloatingText('材料数量已达上限，未扣除费用。','#ffd76a');return false;}
+  map[name]=n+count;
+ }
+ return true;
+}
+function itemActionV2905(label,fn,self,args){
+ if(ITEM_ACTION_V2905.depth||miniSaveDeferredV286840)return fn.apply(self,args||[]);
+ if(!player||gameState==='start'||gameState==='combat'||gameState==='combat-ending'||player.breakthrough?.isAnimating||COMBAT_FINISH_V2764?.settling)return false;
+ const owner=player,raw=JSON.stringify(player),progress=JSON.stringify(achievementProgress),completed=[...completedAchievements],state=gameState,choices=currentChoices;
+ const lastUse=lastItemUseV2768;ITEM_ACTION_V2905.depth++;ITEM_ACTION_V2905.effects=[];miniSaveDeferredV286840=true;
+ let result,error=null;
+ try{normalizeItemCountsV2905(player);result=fn.apply(self,args||[]);}catch(e){error=e;}
+ finally{miniSaveDeferredV286840=false;ITEM_ACTION_V2905.depth--;}
+ const effects=ITEM_ACTION_V2905.effects;ITEM_ACTION_V2905.effects=[];
+ if(player!==owner)return false; // Never switch back to an old character.
+ let changed=false,saved=false;
+ try{changed=JSON.stringify(player)!==raw||JSON.stringify(achievementProgress)!==progress||JSON.stringify([...completedAchievements])!==JSON.stringify(completed);saved=!error&&(!changed||saveGame()===true);}catch(e){error=e;}
+ if(saved){for(const effect of effects){try{effect();}catch(e){console.warn('物品操作显示失败',e);}}return result;}
+ const restore=()=>{for(const key of Object.keys(owner))delete owner[key];Object.assign(owner,JSON.parse(raw));if(owner.activePet?._petId)owner.activePet=owner.pets?.find(p=>p._petId===owner.activePet._petId)||null;};restore();
+ achievementProgress=JSON.parse(progress);completedAchievements=new Set(completed);lastItemUseV2768=lastUse;gameState=state;currentChoices=choices;
+ try{updateStats();updateWorldHUD?.();if(document.getElementById('mobileInventoryOverlay'))renderMobileInventory();if(state==='alchemy')updateAlchemyPanel();}catch(_){}
+ // Legacy HUD refreshers may normalize unrelated fields; a failed action must still restore the exact snapshot.
+ if(player===owner&&JSON.stringify(owner)!==raw)restore();
+ if(error)console.warn('物品操作已撤回：'+label,error);
+ showFloatingText('本次操作未保存，物品、灵石和角色状态已恢复，请稍后重试。','#ff8a80');return false;
+}
+function installItemSafetyV2905(){
+ // UI side effects run only after the enclosing action commits, including achievement notifications.
+ for(const name of ['showStory','showShop','showRarePillShop','showNewGearShopV2790','showOldGearShopV2792','showMarketGearV2800','showPetGrowthShopV210','showSectShop','showFloatingText','showAchievementPopup','showBreakthroughNotice','renderMobileInventory','updateAlchemyPanel','showLongevityPanel']){
+  const base=window[name];if(typeof base!=='function')continue;
+  window[name]=function(...args){if(ITEM_ACTION_V2905.depth){ITEM_ACTION_V2905.effects.push(()=>base.apply(this,args));return;}return base.apply(this,args);};
+ }
+ for(const name of ['useItem','useLongevityPill','craftPill','buyGeneralV2801','buyLongevityPill','buyBreakthroughPillV28683','buySectItem','buyMarketGearV2800','buyNewGearV2790','buyOldGearV2792','buyPetGrowthBatchV286845','bulkDismantleEquipment','dismantleOneEquipmentEncoded']){
+  const base=window[name];if(typeof base!=='function')continue;
+  window[name]=function(...args){return itemActionV2905(name,base,this,args);};
+ }
+ const base=window.handleChoice;
+ window.handleChoice=function(index){return ['buy','buyMaterial','buyArtifactMaterial','buyPetMaterial','buy_set_item'].includes(currentChoices?.[index]?.action)?itemActionV2905('购买',base,this,[index]):base.apply(this,arguments);};
+}
+function pillBatchCountV2905(name,mode){
+ const item=ITEMS[name],kind=item?.type,have=player.inventory.filter(n=>n===name).length;
+ if(!['heal','mp','exp'].includes(kind)||!(item.value>0)||!have)return 0;
+ const needed=kind==='heal'?Math.ceil((getMaxHp()-player.hp)/item.value):kind==='mp'?Math.ceil((getMaxMp()-player.mp)/item.value):999;
+ const max=Math.max(0,Math.min(999,have,needed));
+ return [5,10].includes(mode)?Math.min(mode,max):mode==='full'&&kind!=='exp'||mode==='all'&&kind==='exp'?max:0;
+}
+function useItemBatchV2905(name,mode){
+ if(gameState!=='exploring')return false;
+ return itemActionV2905('批量服用',()=>{
+  const n=pillBatchCountV2905(name,mode);if(!n)return false;const item=ITEMS[name],kind=item.type;
+  const owner=player,before=JSON.stringify(player);
+  if(typeof confirm==='function'&&!confirm(`服用【${name}】×${n}？`))return false;
+  if(player!==owner||JSON.stringify(player)!==before)return false;
+  if(gameState!=='exploring'||player.breakthrough?.isAnimating||COMBAT_FINISH_V2764.settling||pillBatchCountV2905(name,mode)!==n)return false;
+  for(let i=0;i<n;i++)removeItem(name);
+  let gain;
+  if(kind==='heal'){const old=player.hp;player.hp=Math.min(getMaxHp(),old+item.value*n);gain=player.hp-old;}
+  else if(kind==='mp'){const old=player.mp;player.mp=Math.min(getMaxMp(),old+item.value*n);gain=player.mp-old;}
+  else{gain=item.value*n;player.exp+=gain;checkLevelUp();}
+  updateStats();renderMobileInventory();showFloatingText(`服用 ${name} ×${n} · ${kind==='heal'?'气血':kind==='mp'?'灵力':'修为'} +${gain}`,'#69f0ae');return true;
+ });
+}
+function pillBatchButtonsV2905(row,index){
+ const kind=row.data?.type;if(!['heal','mp','exp'].includes(kind)||row.count<2)return '';
+ return `<div class="bag-batch-v2905">${[[5,'×5'],[10,'×10'],kind==='exp'?['all','全部（最多999）']:['full','用至满']].map(([mode,label])=>`<button type="button" class="choice-btn" data-bag-batch="${index}" data-mode="${mode}" ${pillBatchCountV2905(row.name,mode)?'':'disabled'}>${label}</button>`).join('')}</div>`;
 }

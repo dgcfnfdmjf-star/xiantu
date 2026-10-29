@@ -51,8 +51,8 @@
     player.materials = player.materials || {};
     player.artifactMaterials = player.artifactMaterials || {};
     for(const [name,count] of Object.entries(player.artifactMaterials)){
-      const n=Number(count)||0;
-      if(n>0) player.materials[name]=(player.materials[name]||0)+n;
+      const n=itemCountV2905(count);
+      if(n>0) player.materials[name]=itemCountV2905(player.materials[name])+n;
     }
     player.artifactMaterials={};
   };
@@ -221,7 +221,7 @@
   window.enableWorldMode=function(){unifyLegacyMaterialPools();const out=oldEnableWorldMode?.apply(this,arguments);updateWorldHUD?.();return out;};
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-08-feature-08.js"]="28.68.77";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-08-feature-08.js"]="28.68.78";
 
 const MAT_REFINE_RECIPES_V2870={
  '仙灵草':{'灵草':5,'仙果':1},'千年灵芝':{'灵草':6,'兽骨':2},'星辰砂':{'妖丹':2,'灵木':2},'万年寒玉':{'冰晶石':3,'雪莲':1},'龙血果':{'仙果':3,'血玉':1}

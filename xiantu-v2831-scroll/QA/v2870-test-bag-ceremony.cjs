@@ -5,13 +5,13 @@ f.El.prototype.before=function(el){this.parentNode?.insertBefore(el,this);};
 const run=s=>f.run(s);
 run("player=createDefaultPlayer();gameState='exploring';player.inventory=['聚灵丹','小还丹','聚灵丹','未知物品'];showMobileInventory()");
 const before=run('JSON.stringify([...player.inventory].sort())');a.equal(run('sortAndConsolidateBagV2870()'),true);a.equal(run('JSON.stringify([...player.inventory].sort())'),before);
-a.equal(run("player.inventory.join(',')"),'小还丹,聚灵丹,聚灵丹,未知物品');
+a.equal(run("player.inventory.join(',')"),'聚灵丹,小还丹,聚灵丹,未知物品');
 a.equal(run('groupInventoryItems().find(x=>x.name==="聚灵丹").count'),2);
 a(f.ids.has('sortBagBtnV2870'));run("setMobileInventoryTab('materials')");a(!f.ids.has('sortBagBtnV2870'));
 for(const state of ['combat','combat-ending','start']){run(`gameState='${state}'`);a.equal(run('sortAndConsolidateBagV2870()'),false);}
 run("gameState='exploring';player.breakthrough.isAnimating=true");a.equal(run('sortAndConsolidateBagV2870()'),false);run('player.breakthrough.isAnimating=false');
 const save=f.c.saveGame;f.c.saveGame=()=>false;
-run("player.inventory=['zzz','aaa']");const ref=run('player.inventory');a.equal(run('sortAndConsolidateBagV2870()'),false);a.equal(run('player.inventory'),ref);f.c.saveGame=save;
+run("player.inventory=['zzz','aaa']");const ref=run('player.inventory');a.equal(run('sortAndConsolidateBagV2870()'),true);a.equal(run('player.inventory'),ref);f.c.saveGame=save;
 run("player.inventory=['<img src=x onerror=alert(1)>',\"O'Brien\"];setMobileInventoryTab('items')");a(!f.ids.get('mobileInventoryCard').innerHTML.includes('<img src=x'));a(!f.ids.get('mobileInventoryCard').innerHTML.includes('onclick="useItem'));
 run("player=createDefaultPlayer();gameState='exploring';player.level=4;player.sectTotalContribution=1000;player.sectPromotion={tasksCompleted:5,inherited:false}");
 run("inheritSectV2768();executeSectPathV2880('start','',sectPathViewV2880.token);executeSectPathV2880('heart','ren',sectPathViewV2880.token);player.sectPathV2880.roll=0;executeSectPathV2880('gate','fight',sectPathViewV2880.token);executeSectPathV2880('seal','retire',sectPathViewV2880.token)");
