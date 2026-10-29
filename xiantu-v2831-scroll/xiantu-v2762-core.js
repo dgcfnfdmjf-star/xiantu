@@ -12478,13 +12478,76 @@
       for(const tier of order){const list=getBuildingsByTier(tier);if(!list.length)continue;const meta=LINGXIAO_TIER_META[tier]||{};html+=`<div class="lx-directory-group"><div class="lx-directory-title" style="color:${meta.color||'#f2d68d'}">${meta.label||tier} · ${list.length}处</div><div class="lx-directory-grid">${list.map(b=>{const a=canAccessBuilding(b.id);return `<div class="lx-directory-item ${a.allowed?'':'locked'}" onclick="enterLingxiaoBuilding('${b.id}')"><div class="lx-directory-name">${b.icon} ${b.shortName||b.name}</div><div class="lx-directory-access">${a.allowed?'✅ 可进入':'🔒 '+a.reason}</div></div>`;}).join('')}</div></div>`;}
       html+='<div class="lx-building-tip">🌙 月下观星台、禁阁夜廊、深夜药庐只在设备当地 18:00–06:00 开放互动。</div>';showStory(html,[{text:'📍 返回宗门总览',action:'sect'},{text:'← 返回地图',action:'return_to_map'}]);
     }
+    // Eight districts share public courts, rather than repeating a large halo below every building.
+    // The two distant secret entrances deliberately have separate, smaller landing courts.
+    const LINGXIAO_COURTS_V286880=Object.freeze([
+      {tier:'outer',anchor:'gate',rx:255,ry:62,dy:4,motif:'tiles'},
+      {tier:'middle',anchor:'stone_steps',rx:83,ry:42,dy:16,motif:'steps'},
+      {tier:'inner',anchor:'main_hall',rx:245,ry:78,dy:16,motif:'tiles'},
+      {tier:'core',anchor:'array_core',rx:218,ry:56,dy:14,motif:'array'},
+      {tier:'back',anchor:'spirit_spring',rx:94,ry:48,dy:10,motif:'grove'},
+      {tier:'function',anchor:'defense_wall',rx:105,ry:44,dy:12,motif:'guard'},
+      {tier:'secret',anchor:'secret_realm_gate',rx:80,ry:44,dy:12,motif:'gate'},
+      {tier:'secret',anchor:'mini_secret_realm',rx:80,ry:44,dy:12,motif:'gate'},
+      {tier:'forbidden',anchor:'ancestor_cave',rx:91,ry:48,dy:12,motif:'sealed'}
+    ]);
+    function lingxiaoCourtLayoutV286880(){
+      return LINGXIAO_COURTS_V286880.flatMap(c=>{
+        const b=getBuildingData(c.anchor);if(!b||b.tier!==c.tier)return [];
+        return [{...c,x:b.x,y:b.y+c.dy*WORLD_SCALE_V2900,rx:c.rx*WORLD_SCALE_V2900,ry:c.ry*WORLD_SCALE_V2900,color:getBuildingTierColor(b)}];
+      });
+    }
+    function lingxiaoCourtOutlineV286880(ctx,rx,ry,inset=1){
+      const points=[[-.78,-1],[.78,-1],[1,-.4],[1,.4],[.78,1],[-.78,1],[-1,.4],[-1,-.4]];
+      ctx.beginPath();points.forEach(([x,y],i)=>ctx[i?'lineTo':'moveTo'](x*rx*inset,y*ry*inset));ctx.closePath();
+    }
+    function drawLingxiaoCourtsV286880(ctx){
+      // Called only while baking the existing static map canvas. No extra canvas, animation or gradients.
+      const low=PERF_CONFIG.lowEnd;
+      for(const c of lingxiaoCourtLayoutV286880()){
+        ctx.save();ctx.translate(c.x,c.y);ctx.setLineDash([]);
+        lingxiaoCourtOutlineV286880(ctx,c.rx,c.ry);ctx.fillStyle='rgba(43,65,65,.09)';ctx.fill();
+        ctx.strokeStyle='rgba(220,234,225,.27)';ctx.lineWidth=2;ctx.stroke();
+        lingxiaoCourtOutlineV286880(ctx,c.rx,c.ry,.9);ctx.strokeStyle='rgba(48,70,72,.19)';ctx.lineWidth=1.3;ctx.stroke();
+        ctx.strokeStyle=c.color;ctx.globalAlpha=.24;ctx.lineWidth=1.6;
+        // Short district-colour inlays read as stonework, not an unlocked/quest halo.
+        ctx.beginPath();for(const side of [-1,1]){ctx.moveTo(side*c.rx*.82,c.ry*.6);ctx.lineTo(side*c.rx*.64,c.ry*.82);}ctx.stroke();ctx.globalAlpha=1;
+        if(!low){
+          ctx.save();lingxiaoCourtOutlineV286880(ctx,c.rx,c.ry,.88);ctx.clip();ctx.strokeStyle='rgba(51,76,76,.12)';ctx.lineWidth=1;
+          ctx.beginPath();
+          if(c.motif==='tiles'||c.motif==='steps'){
+            for(const y of [-.45,.15,.65]){ctx.moveTo(-c.rx*.9,c.ry*y);ctx.lineTo(c.rx*.9,c.ry*y);}
+            for(const x of [-.5,0,.5]){ctx.moveTo(c.rx*x,-c.ry*.85);ctx.lineTo(c.rx*x,c.ry*.85);}
+          }else if(c.motif==='array'||c.motif==='gate'){
+            for(const k of [.48,.68]){ctx.moveTo(0,-c.ry*k);ctx.lineTo(c.rx*k,0);ctx.lineTo(0,c.ry*k);ctx.lineTo(-c.rx*k,0);ctx.closePath();}
+          }else if(c.motif==='guard'){
+            for(const x of [-.55,0,.55]){ctx.moveTo(c.rx*(x-.15),c.ry*.55);ctx.lineTo(c.rx*x,-c.ry*.4);ctx.lineTo(c.rx*(x+.15),c.ry*.55);}
+          }else{ctx.setLineDash(c.motif==='sealed'?[7,9]:[2,10]);ctx.ellipse(0,0,c.rx*.64,c.ry*.57,0,.12,Math.PI*1.86);}
+          ctx.stroke();ctx.restore();
+        }
+        ctx.restore();
+      }
+    }
+    function drawLingxiaoCloudStepsV286880(ctx){
+      const a=getBuildingData('stone_steps'),b=getBuildingData('main_hall');if(!a||!b)return;
+      const dx=b.x-a.x,dy=b.y-a.y,length=Math.hypot(dx,dy);if(!length)return;
+      const ux=dx/length,uy=dy/length,half=13*WORLD_SCALE_V2900;
+      ctx.save();ctx.setLineDash([]);ctx.lineWidth=1.4;ctx.strokeStyle='rgba(225,237,234,.5)';ctx.beginPath();
+      // Fixed spacing uses the expanded world scale. End margins keep treads clear of the buildings.
+      for(let d=42*WORLD_SCALE_V2900;d<length-52*WORLD_SCALE_V2900;d+=13*WORLD_SCALE_V2900){
+        const x=a.x+ux*d,y=a.y+12+uy*d;ctx.moveTo(x-uy*half,y+ux*half);ctx.lineTo(x+uy*half,y-ux*half);
+      }
+      ctx.stroke();ctx.restore();
+    }
     function drawLingxiaoBuildingPaths(ctx,transform=null){
       if(currentRegion!=='north')return;ctx.save();ctx.lineCap='round';
+      // Transformed callers retain their existing schematic paths; ground detail is for the world cache.
+      if(!transform)drawLingxiaoCourtsV286880(ctx);
       for(const [a,b] of BUILDING_PATHS){const start=getBuildingData(a),end=getBuildingData(b);if(!start||!end)continue;
         const from=transform?transform(start.x,start.y+12):{x:start.x,y:start.y+12},to=transform?transform(end.x,end.y+12):{x:end.x,y:end.y+12};
         ctx.setLineDash([]);ctx.strokeStyle='rgba(32,52,56,.25)';ctx.lineWidth=14;ctx.beginPath();ctx.moveTo(from.x,from.y);ctx.lineTo(to.x,to.y);ctx.stroke();
         ctx.strokeStyle='rgba(224,240,242,.55)';ctx.lineWidth=7;ctx.setLineDash([8,5]);ctx.stroke();
-      }ctx.restore();
+      }if(!transform)drawLingxiaoCloudStepsV286880(ctx);ctx.restore();
     }
 
     const WORLD_SCALE_V2900=1.45;
@@ -12597,10 +12660,18 @@
       applyWorldMapLayout(player?.worldMapId||'south',true);
     }
 
+    let worldTravelMenuNonceV2880=0;
+    function worldTravelAllowedV2880(){
+      return !!player&&gameState==='exploring'&&!document.hidden&&!player.breakthrough?.isAnimating&&!COMBAT_FINISH_V2764.settling;
+    }
     function showWorldTravelMenu() {
+      if(!worldTravelAllowedV2880())return false;
+      resetWorldMovementV28686();
+      const owner=player,nonce=String(++worldTravelMenuNonceV2880);
+      const active=()=>player===owner&&worldTravelAllowedV2880()&&document.getElementById('worldTravelMenuV2880')?.dataset.travelNonce===nonce&&!document.getElementById('storyPanel')?.classList.contains('hidden');
       const here=currentRegion || player?.worldMapId || 'south';
       const region=getRegionInfo(here);
-      let html=`<p>🗺️ <b>三界行路</b></p><p>你当前位于：<b>${region.icon} ${region.name}</b></p><p style="color:#aaa;font-size:12px">四域与三族山门通过驿道、界门相连；仙界需地仙境，魔域需元婴境。</p>`;
+      let html=`<section id="worldTravelMenuV2880" data-travel-nonce="${nonce}"><p>🗺️ <b>三界行路</b></p><p>你当前位于：<b>${region.icon} ${region.name}</b></p><p style="color:#aaa;font-size:12px">四域与三族山门通过驿道、界门相连；仙界需地仙境，魔域需元婴境。</p></section>`;
       const order=Object.keys(WORLD_MAP_CONFIGS);
       const choices=[];
       for(const id of order){
@@ -12609,15 +12680,16 @@
         choices.push({
           text:unlocked?`${r.icon} 前往${r.shortName} · ${r.name.replace(/^.*?·\s*/, '')}`:`🔒 ${r.shortName} · 需要${req}境`,
           action:'travel_world_map', regionId:id,
-          condition:()=>isRegionUnlocked(id)
+          condition:()=>active()&&isRegionUnlocked(id)
         });
       }
-      if(FACTION_MAPS_V2806[here])choices.unshift({text:'🧭 本图宗门导航',action:'faction_guide_v2806'});
-      choices.push({text:'← 暂不启程',action:'return_to_map'});
-      showStory(html,choices);
+      if(FACTION_MAPS_V2806[here])choices.unshift({text:'🧭 本图宗门导航',action:'faction_guide_v2806',condition:active});
+      choices.push({text:'← 暂不启程',action:'return_to_map',condition:active});
+      showStory(html,choices);return true;
     }
 
     function travelToWorldMap(regionId, targetPoiId=null) {
+      if(!worldTravelAllowedV2880()||!Object.hasOwn(WORLD_MAP_CONFIGS,regionId))return false;
       if(!isRegionUnlocked(regionId)) { warnRegionLocked(regionId,'无法前往'); return showWorldTravelMenu(); }
       if(!applyWorldMapLayout(regionId,false,targetPoiId)) return;
       closeWorldOverlay();
@@ -12674,16 +12746,27 @@
     function updateRegionStatusHUD(){
       const region=getRegionInfo(currentRegion || getPlayerRegion());
       let el=document.getElementById('worldRegionStatus');
+      if(el&&el.tagName!=='BUTTON'){el.remove();el=null;}
       if(!el){
         const hud=document.querySelector('.world-hud'); if(!hud)return;
-        el=document.createElement('div'); el.id='worldRegionStatus';
-        el.style.cssText='display:flex;align-items:center;gap:7px;font-size:11px;margin-top:7px;padding:5px 8px;border-radius:8px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.08)';
+        el=document.createElement('button'); el.id='worldRegionStatus';el.type='button';
+        el.title='打开三界行路，查看可前往的地域';el.setAttribute('aria-controls','storyPanel');
+        // Keep native button activation; the map's Space shortcut must not consume it.
+        el.onkeydown=el.onkeyup=e=>{if(e.key==='Enter'||e.key===' ')e.stopPropagation();};
         hud.appendChild(el);
+      }
+      if(el._travelOwnerV2880!==player||!el.onclick){
+        const owner=player;el._travelOwnerV2880=owner;
+        el.onclick=e=>{
+          e.stopPropagation();
+          if(player!==owner||document.getElementById('worldRegionStatus')!==el||!el.isConnected||!worldTravelAllowedV2880())return;
+          showWorldTravelMenu();
+        };
       }
       let text=`${region.icon} ${region.name} · 危险${region.dangerLevel}`;
       if(activeRegionDebuff) text+=`　⚠ ${activeRegionDebuff.desc}`;
       if(activeRegionBuff) text+=`　✨ ${activeRegionBuff.desc}`;
-      el.textContent=text; el.style.color=region.color;
+      el.textContent=`${text} · ⇄ 行路`;el.setAttribute('aria-label',`打开三界行路。${text}`);el.style.color=region.color;
     }
 
     function clearRegionEffects(){ activeRegionDebuff=null; activeRegionBuff=null; updateRegionStatusHUD(); }
@@ -14862,7 +14945,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.79";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.80";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

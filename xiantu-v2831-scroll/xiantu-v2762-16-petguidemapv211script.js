@@ -33,6 +33,14 @@ function getPoiTypeLabelV211(o){const k=getPoiVisualKind?.(o)||'';const map={vil
 // One bounded layout per frame, prioritizing the current interaction target.
 let labelBoxesV2836=null;
 function labelOverlapV2836(a,b){return a.x<b.x+b.w+4&&a.x+a.w+4>b.x&&a.y<b.y+b.h+4&&a.y+a.h+4>b.y}
+function poiNameAnchorV286880(o){
+  const kind=getPoiVisualKind(o),grand=scrollPalacePoiV2831(o)||o.buildingId==='gate';
+  const architecture=grand||o.action==='lingxiao_building'||['village','shop','market','home','alchemy','artifacts'].includes(kind);
+  const oldY=o.y+Math.max(31,(Number(o.r)||60)*.72)-10;
+  // Share the real painted bounds, including regional art and depth/landmark scale.
+  const bounds=architecture&&typeof poiTapBoxV2904==='function'&&typeof landmarkPointV2893==='function'?poiTapBoxV2904(o):null;
+  return {architecture,grand,y:bounds?Math.max(oldY,Math.ceil(bounds.bottom+(grand?14:10))):oldY};
+}
 function drawWorldLabelsV2836(ctx,items){
   const p=FLAT_WORLD.player,near=FLAT_WORLD.nearby?.id;
   labelBoxesV2836=[{x:p.x-22,y:p.y-66,w:44,h:85}];
@@ -45,19 +53,20 @@ function drawPoiNamePlateV211(ctx,o){
   const near=FLAT_WORLD.nearby?.id===o.id,important=['rest','travel_gate','lx_spirit_spring'].includes(o.id);
   if(PERF_CONFIG.mobile&&!near&&!important&&Math.hypot(o.x-FLAT_WORLD.player.x,o.y-FLAT_WORLD.player.y)>260)return;
   const access=o.action==='lingxiao_building'?canAccessBuilding(o.buildingId):{allowed:true};
-  const fs=PERF_CONFIG.mobile?12:(o.action==='lingxiao_building'?11:13);
+  const anchor=poiNameAnchorV286880(o),fs=anchor.grand?14:PERF_CONFIG.mobile?12:13;
   const name=String(o.name||'地点'),sub=(near?'● ':'')+getPoiTypeLabelV211(o)+(access.allowed?'':' · 未解锁');
   ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`800 ${fs}px Microsoft YaHei`;
-  const nameW=ctx.measureText(name).width;ctx.font='700 9px Microsoft YaHei';
-  const w=Math.max(54,nameW+18,ctx.measureText(sub).width+18),h=34,baseY=o.y+Math.max(31,(Number(o.r)||60)*.72)-10;
+  const nameW=ctx.measureText(name).width;ctx.font='700 10px Microsoft YaHei';
+  const w=Math.max(60,nameW+18,ctx.measureText(sub).width+18),h=36,baseY=anchor.y;
   let box=null;
-  for(const dy of [0,38,-40]){const q={x:o.x-w/2,y:baseY+dy,w,h};if(!labelBoxesV2836||!labelBoxesV2836.some(b=>labelOverlapV2836(q,b))){box=q;break;}}
+  // A building label may move below another label, never back up into its own doorway.
+  for(const dy of anchor.architecture?[0,40,80]:[0,40,-40]){const q={x:o.x-w/2,y:baseY+dy,w,h};if(!labelBoxesV2836||!labelBoxesV2836.some(b=>labelOverlapV2836(q,b))){box=q;break;}}
   if(!box){ctx.restore();return;}
   if(labelBoxesV2836)labelBoxesV2836.push(box);
-  roundedRectPathV211(ctx,box.x,box.y,w,h,8);ctx.fillStyle=access.allowed?'rgba(250,238,204,.96)':'rgba(222,211,182,.94)';ctx.fill();
-  ctx.strokeStyle=near?'#a16f24':'rgba(143,102,52,.65)';ctx.lineWidth=near?2:1;ctx.stroke();
-  ctx.fillStyle=access.allowed?'#533b28':'#72695f';ctx.font=`800 ${fs}px Microsoft YaHei`;ctx.fillText(name,o.x,box.y+11);
-  ctx.fillStyle=near?'#a64031':'#765f41';ctx.font='700 9px Microsoft YaHei';ctx.fillText(sub,o.x,box.y+25);ctx.restore();
+  roundedRectPathV211(ctx,box.x,box.y,w,h,7);ctx.fillStyle=anchor.architecture?(near?'rgba(42,34,22,.95)':'rgba(16,29,27,.94)'):(access.allowed?'rgba(250,238,204,.96)':'rgba(222,211,182,.94)');ctx.fill();
+  ctx.strokeStyle=anchor.architecture?(near?'#f2d27a':anchor.grand?'rgba(220,191,120,.85)':'rgba(172,186,157,.7)'):(near?'#a16f24':'rgba(143,102,52,.65)');ctx.lineWidth=near?2:1;ctx.stroke();
+  ctx.fillStyle=anchor.architecture?(access.allowed?'#f5e7bf':'#b7bdb3'):(access.allowed?'#533b28':'#72695f');ctx.font=`800 ${fs}px Microsoft YaHei`;ctx.fillText(name,o.x,box.y+12);
+  ctx.fillStyle=anchor.architecture?(near?'#f2ce79':'#b5c5b9'):(near?'#a64031':'#765f41');ctx.font='700 10px Microsoft YaHei';ctx.fillText(sub,o.x,box.y+27);ctx.restore();
 }
 const v211DrawWorldPoiBase=window.drawWorldPoi;window.drawWorldPoi=function(ctx,o){const r=v211DrawWorldPoiBase?.apply(this,arguments);if(!FLAT_WORLD.deferLabelsV2836)drawPoiNamePlateV211(ctx,o);return r};
 function drawMinimapLabelsV211(){if(!ensureMapLabelStateV211())return;const canvas=document.getElementById('minimapCanvas');if(!canvas||!FLAT_WORLD?.pois)return;const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height,view=getMinimapWorldViewport(),sx=w/view.width,sy=h/view.height,mx=x=>(x-view.left)*sx,my=y=>(y-view.top)*sy;ctx.save();ctx.beginPath();ctx.arc(w/2,h/2,Math.min(w,h)/2-4,0,Math.PI*2);ctx.clip();const boxes=[];for(const o of [...FLAT_WORLD.pois].sort((a,b)=>(a.id===FLAT_WORLD.nearby?.id?-1:b.id===FLAT_WORLD.nearby?.id?1:0))){if(!isMajorPoiV211(o)||(o.action==='explore_v2828'&&!exploredPointV2828(o.x,o.y)))continue;const x=mx(o.x),y=my(o.y);if(x<10||x>w-10||y<8||y>h-8)continue;const important=['shop','market','sect','pets','alchemy','artifacts','travel_gate','village','home'].includes(o.id)||o.action==='lingxiao_building';if(!important&&view.zoom<1.5)continue;ctx.font=`800 ${important?8:7}px Microsoft YaHei`;ctx.textAlign='center';ctx.textBaseline='middle';const label=String(o.name||'').slice(0,6),tw=ctx.measureText(label).width;const box={x:x-tw/2-3,y:y+5,w:tw+6,h:11};if(boxes.some(b=>labelOverlapV2836(box,b)))continue;boxes.push(box);ctx.fillStyle='rgba(7,12,14,.74)';roundedRectPathV211(ctx,x-tw/2-3,y+5,tw+6,11,4);ctx.fill();ctx.fillStyle='#f1dda0';ctx.fillText(label,x,y+10.5)}ctx.restore()}
@@ -67,4 +76,4 @@ function installMapLabelControlsV211(){const actions=document.getElementById('wo
 const v211EnableWorldBase=window.enableWorldMode;window.enableWorldMode=function(){const r=v211EnableWorldBase?.apply(this,arguments);setTimeout(installMapLabelControlsV211,0);return r};
 setTimeout(()=>{installPetGuideButtonV211();installMapLabelControlsV211()},100);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-16-petguidemapv211script.js"]="28.68.79";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-16-petguidemapv211script.js"]="28.68.80";
