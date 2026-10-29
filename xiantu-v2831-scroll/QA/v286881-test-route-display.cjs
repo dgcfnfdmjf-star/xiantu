@@ -4,7 +4,7 @@ const root=process.env.XIANTU_TEST_ROOT||path.resolve(__dirname,'..'),f=require(
 f.c.console.log=()=>{};for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);
 const run=s=>f.run(s),json=s=>JSON.parse(run(`JSON.stringify(${s})`));
 function fresh(){run('resetRuntimeState();player=createDefaultPlayer();gameState="exploring";currentRegion="south";document.hidden=false;closeWorldOverlay();document.getElementById("equipmentPanel")?.remove();FLAT_WORLD.width=1200;FLAT_WORLD.height=900;FLAT_WORLD.player={x:200,y:300,r:17,speed:250};FLAT_WORLD.pois=[];FLAT_WORLD.colliders=[{type:"tree",x:400,y:300,radius:35}];FLAT_WORLD.keys={};FLAT_WORLD.target=null;FLAT_WORLD.monsters=[];autoNavigationV2830=null;updateWorldMonsters=()=>{};revealExplorationV2828=()=>{};syncWarMapV2840=()=>{};checkResourceCollection=()=>{};');}
-function recorder(){const events=[],ctx={save(){events.push(['save'])},restore(){events.push(['restore'])},setLineDash(v){events.push(['dash',...v])},beginPath(){events.push(['begin'])},moveTo(x,y){events.push(['move',x,y])},lineTo(x,y){events.push(['line',x,y])},arc(x,y,r){events.push(['arc',x,y,r])},stroke(){events.push(['stroke'])}};return {ctx,events};}
+function recorder(){const events=[],ctx={save(){events.push(['save'])},restore(){events.push(['restore'])},setLineDash(v){events.push(['dash',...v])},beginPath(){events.push(['begin'])},moveTo(x,y){events.push(['move',x,y])},lineTo(x,y){events.push(['line',x,y])},arc(x,y,r){events.push(['arc',x,y,r])},fill(){events.push(['fill'])},stroke(){events.push(['stroke',this.lineDashOffset||0])}};return {ctx,events};}
 fresh();a.equal(run('setWorldTapDestinationV2900(600,300)'),true);a(run('autoNavigationV2830.route.length')>1);
 const original=json('autoNavigationV2830.route'),display=json('worldRouteDisplayV2881()');a.deepEqual(display.points,original);a.equal(display.index,0);a.deepEqual(display.end,{x:600,y:300});
 let prev=display.start;for(const point of display.points){f.c.segment2881={a:prev,b:point};a(run('worldDistanceSegmentV2827(400,300,segment2881.a,segment2881.b)')>=56-1e-6);prev=point;}
@@ -15,6 +15,14 @@ const main=recorder();f.c.routeCtx2881=main.ctx;a.equal(run('drawWorldRouteV2881
 a.deepEqual(main.events.filter(e=>e[0]==='line').map(e=>({x:e[1],y:e[2]})),original);a.equal(plans,0);a.equal(run('JSON.stringify([player,autoNavigationV2830,FLAT_WORLD.player,FLAT_WORLD.target])'),before);
 const mini=recorder();f.c.routeCtx2881=mini.ctx;run('drawWorldRouteV2881(routeCtx2881,worldRouteDisplayV2881(),{x:v=>(v-100)*.25,y:v=>(v-50)*.5})');
 a.deepEqual(mini.events.filter(e=>e[0]==='line').map(e=>[e[1],e[2]]),original.map(q=>[(q.x-100)*.25,(q.y-50)*.5]));a.deepEqual(mini.events[0],['save']);a.deepEqual(mini.events.at(-1),['restore']);a.equal(plans,0);a.equal(randomCalls,0);f.c.planNavigationV2830=plan;f.c.Math.random=random;
+// Reduced-motion and economy preferences keep the route static; the minimap
+// never animates, even when a frame time is supplied by a caller.
+run('PERF_CONFIG.lowEnd=false;aliveQualityV2893="high"');
+const calm=f.c.mapAliveCalmV2893;f.c.mapAliveCalmV2893=()=>false;
+const offset=(t,mini=false)=>{const rec=recorder();f.c.routeCtx2881=rec.ctx;run(`drawWorldRouteV2881(routeCtx2881,undefined,${mini?'{x:v=>v,y:v=>v}':'null'},${t})`);return rec.events.find(e=>e[0]==='stroke')[1];};
+a.notEqual(offset(1000),offset(1200));f.c.mapAliveCalmV2893=()=>true;a.equal(offset(1000),0);a.equal(offset(1200),0);
+f.c.mapAliveCalmV2893=()=>false;run('PERF_CONFIG.lowEnd=true');a.equal(offset(1000),0);run('PERF_CONFIG.lowEnd=false;aliveQualityV2893="low"');a.equal(offset(1000),0);
+run('aliveQualityV2893="off"');a.equal(offset(1000),0);run('aliveQualityV2893="high"');a.equal(offset(1000,true),0);a.equal(offset(1200,true),0);f.c.mapAliveCalmV2893=calm;
 // Progress omits consumed waypoints, including the frame between movement and tick.
 run('FLAT_WORLD.player.x=autoNavigationV2830.target.x;FLAT_WORLD.player.y=autoNavigationV2830.target.y;FLAT_WORLD.target=null');
 a.equal(run('worldRouteDisplayV2881().index'),1);run('tickNavigationV2830(.016)');a.equal(run('worldRouteDisplayV2881().index'),1);
@@ -35,4 +43,4 @@ run('FLAT_WORLD.pois=[]');a.equal(run('worldRouteDisplayV2881()'),null);
 const code=fs.readFileSync(root+'/xiantu-v2762-core.js','utf8'),minimap=code.slice(code.indexOf('function drawWorldMinimap('),code.indexOf('let exploreCellV2828='));
 a(minimap.indexOf('ctx.clip()')<minimap.indexOf('drawWorldRouteV2881('));a(minimap.indexOf('drawWorldRouteV2881(')<minimap.indexOf('ctx.restore()'));
 a.match(code,/if\(t-PERF_CONFIG.lastMinimapDraw>=PERF_CONFIG.minimapInterval\)\{\s*PERF_CONFIG.lastMinimapDraw=t;\s*drawWorldMinimap\(vw,vh\)/);
-console.log('PASS exact remaining route/projection, read-only drawing without path search, obstacle-safe direct targets, waypoint progress, arrival/cancel/busy/owner/region guards, building endpoint and existing minimap clip/throttle');
+console.log('PASS exact remaining route/projection, read-only drawing without path search, reduced-motion/low-quality/static minimap, obstacle-safe direct targets, waypoint progress, arrival/cancel/busy/owner/region guards, building endpoint and existing minimap clip/throttle');

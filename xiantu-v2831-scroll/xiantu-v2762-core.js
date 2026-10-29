@@ -13440,19 +13440,29 @@
       FLAT_WORLD.raf=requestAnimationFrame(flatWorldLoop);
     }
 
+    function gatheringCountV286882(level,rng=Math.random){
+      const realm=Number(level);if(!Number.isFinite(realm)||realm<3)return 1;
+      if(realm>=7&&rng()<.05)return 3;
+      return rng()<(realm>=7?.20:.15)?2:1;
+    }
     function checkResourceCollection(distanceMoved=0) {
-      if(distanceMoved<=0 || !player?.materials)return;
-      FLAT_WORLD.resourceTravelAccumulator=(FLAT_WORLD.resourceTravelAccumulator||0)+distanceMoved;
+      if(!Number.isFinite(distanceMoved)||distanceMoved<=0||!player?.materials||typeof player.materials!=='object'||Array.isArray(player.materials))return;
+      const previous=FLAT_WORLD.resourceTravelAccumulator;
+      const traveled=(Number.isFinite(previous)&&previous>0?previous:0)+distanceMoved;
+      if(!Number.isFinite(traveled))return;
+      FLAT_WORLD.resourceTravelAccumulator=traveled;
       if(FLAT_WORLD.resourceTravelAccumulator<150)return;
       FLAT_WORLD.resourceTravelAccumulator%=150;
       // 每行走约150世界单位进行一次发现判定，避免原补丁按帧随机导致站桩刷材料。
-      if(Math.random()>.14)return;
+      if(Math.random()>=.18)return;
       const region=getRegionInfo(currentRegion || getPlayerRegion());
       const pool=region.materials?.filter(m=>MATERIALS[m])||[]; if(!pool.length)return;
       const mat=pool[Math.floor(Math.random()*pool.length)];
-      player.materials[mat]=(player.materials[mat]||0)+1;
-      onCollectMaterial?.(mat,1);
-      showFloatingText(`${MATERIALS[mat]?.icon||'🌿'} 发现 ${mat}`,region.color);
+      const held=itemCountV2905(player.materials[mat]);
+      const count=Math.min(gatheringCountV286882(player.level),Number.MAX_SAFE_INTEGER-held);if(count<1)return;
+      player.materials[mat]=held+count;
+      onCollectMaterial?.(mat,count);
+      showFloatingText(`${MATERIALS[mat]?.icon||'🌿'} 发现 ${mat}${count>1?` ×${count}`:''}`,region.color);
       // 不在行走采集瞬间序列化整个存档，避免移动时随机顿帧；交给定时自动保存。
     }
 
@@ -13595,7 +13605,7 @@
       drawWorldAmbient(ctx, t, minX, maxX, minY, maxY);
       if(typeof mapAliveGroundV2893==='function')mapAliveGroundV2893(ctx,t);
       if(typeof drawWarGroundV2840==='function')drawWarGroundV2840(ctx,warViewV2840);
-      drawWorldRouteV2881(ctx);
+      drawWorldRouteV2881(ctx,undefined,null,t);
       FLAT_WORLD.deferLabelsV2836=true;
       let playerDrawn=false;
       for(const it of items){
@@ -13778,15 +13788,29 @@
       if((FLAT_WORLD.colliders||[]).some(c=>worldDistanceSegmentV2827(c.x,c.y,p,target)<c.radius+radius))return null;
       return {start:p,points:[target],index:0,end:target};
     }
-    function drawWorldRouteV2881(ctx,route=worldRouteDisplayV2881(),project=null){
+    function drawWorldRouteV2881(ctx,route=worldRouteDisplayV2881(),project=null,t=0){
       if(!route)return false;
       const x=project?.x||((v)=>v),y=project?.y||((v)=>v),mini=!!project;
+      const flowing=!mini&&Number.isFinite(t)&&!PERF_CONFIG.lowEnd&&typeof mapAliveCalmV2893==='function'&&!mapAliveCalmV2893()&&mapAliveQualityV2893()==='high';
       ctx.save();ctx.lineCap='round';ctx.lineJoin='round';ctx.setLineDash(mini?[4,3]:[9,7]);
+      ctx.lineDashOffset=flowing?-((Math.max(0,t)*.018)%16):0;
       ctx.beginPath();ctx.moveTo(x(route.start.x),y(route.start.y));
       for(let i=route.index;i<route.points.length;i++){const q=route.points[i];ctx.lineTo(x(q.x),y(q.y));}
       ctx.strokeStyle='rgba(36,31,21,.55)';ctx.lineWidth=mini?3:4;ctx.stroke();
       ctx.strokeStyle='rgba(255,224,130,.9)';ctx.lineWidth=mini?1.6:2;ctx.stroke();
-      ctx.setLineDash([]);ctx.lineWidth=mini?1.5:2;
+      ctx.setLineDash([]);ctx.lineDashOffset=0;
+      // Mark actual bends in the remaining route, without decorating straight
+      // intermediate points or adding clutter to the small, throttled minimap.
+      if(!mini){
+        ctx.fillStyle='rgba(255,230,154,.9)';ctx.strokeStyle='rgba(48,39,23,.75)';ctx.lineWidth=1;
+        for(let i=route.index;i<route.points.length-1;i++){
+          const q=route.points[i],a=i===route.index?route.start:route.points[i-1],b=route.points[i+1];
+          const ax=q.x-a.x,ay=q.y-a.y,bx=b.x-q.x,by=b.y-q.y,length=Math.hypot(ax,ay)*Math.hypot(bx,by);
+          if(length<1||(ax*bx+ay*by)/length>.985)continue;
+          ctx.beginPath();ctx.arc(q.x,q.y,3.2,0,Math.PI*2);ctx.fill();ctx.stroke();
+        }
+      }
+      ctx.strokeStyle='rgba(255,224,130,.9)';ctx.lineWidth=mini?1.5:2;
       ctx.beginPath();ctx.arc(x(route.end.x),y(route.end.y),mini?5:10,0,Math.PI*2);ctx.stroke();
       ctx.restore();return true;
     }
@@ -13839,9 +13863,32 @@
       FLAT_WORLD.keys={};FLAT_WORLD.target=route[0];FLAT_WORLD.tapTargetFx={...route[0],startedAt:performance.now()};
       if(!goal.silent)showFloatingText?.('🧭 自动寻路中，操作摇杆或点击地图可接管。','#9edcff');return true;
     }
+    // Only these three POIs use vector art even when the building atlases are ready.
+    // Grow their art around the ground baseline, leaving interaction rings and collision untouched.
+    const VECTOR_LANDMARKS_V286882={
+      spirit_spring:{scale:1.20,left:-54,right:54,top:-46,bottom:41},
+      rest:{scale:1.35,left:-29,right:29,top:-15,bottom:26},
+      battlefield:{scale:1.35,left:-34,right:34,top:-11,bottom:27}
+    };
+    function vectorLandmarkProfileV286882(o){
+      if(!o)return null;
+      return VECTOR_LANDMARKS_V286882[o.buildingId==='spirit_spring'?'spirit_spring':getPoiVisualKind(o)]||null;
+    }
+    function applyVectorLandmarkScaleV286882(ctx,o){
+      const profile=vectorLandmarkProfileV286882(o);if(!profile)return;
+      ctx.translate(0,30);ctx.scale(profile.scale,profile.scale);ctx.translate(0,-30);
+    }
+    function vectorLandmarkBoundsV286882(o){
+      const profile=vectorLandmarkProfileV286882(o);if(!profile)return null;
+      const depth=typeof scene25dOnV2888==='function'&&scene25dOnV2888()&&typeof s25DepthScaleV2888==='function'?s25DepthScaleV2888(o.y):1;
+      const point=(x,y)=>typeof landmarkPointV2893==='function'?landmarkPointV2893(o,x,y):{x:o.x+depth*x,y:o.y+depth*y};
+      const a=point(profile.left*profile.scale,30+(profile.top-30)*profile.scale),b=point(profile.right*profile.scale,30+(profile.bottom-30)*profile.scale);
+      return {left:a.x,right:b.x,top:a.y,bottom:b.y};
+    }
     // Visible architecture uses the same atlas choice, dimensions and world transforms as drawing.
     function poiTapBoxV2904(o){
       if(!o||o.action==='explore_v2828'||o.action==='war_map_v2840')return null;
+      const vector=vectorLandmarkBoundsV286882(o);if(vector)return vector;
       let w=0,h=0,bottom=32;const regional=regionBuildingCellV2835(o),art=SCROLL_ART_V2831;
       if(regional&&art.regionalBuildings?.width>0&&art.regionalBuildings?.height>0){w=architectureWidthV2900(o,o.action==='lingxiao_building'?100:regional.row===2?180:regional.row===0?150:125);h=w*(art.regionalBuildings.height/4)/(art.regionalBuildings.width/3);}
       else if(scrollPalacePoiV2831(o)&&art.palace?.width>0&&art.palace?.height>0){w=architectureWidthV2900(o,o.action==='lingxiao_building'?128:180);h=w*art.palace.height/art.palace.width;bottom=42;}
@@ -14090,12 +14137,12 @@
     function scrollSessionV2837(){
       const wrap=document.getElementById('scrollMapV2831'),state=wrap?._scrollStateV2837;
       if(!state)return null;
-      if(state.region!==currentRegion||state.owner!==player){wrap.remove();return null;}
+      if(state.region!==currentRegion||state.owner!==player){wrap._scrollResizeV286882?.disconnect();wrap.remove();return null;}
       return {wrap,state};
     }
     function closeScrollMapV2837(){
       const wrap=document.getElementById('scrollMapV2831');if(!wrap)return;
-      const opener=wrap._scrollStateV2837?.opener;wrap.remove();FLAT_WORLD.keys={};
+      const opener=wrap._scrollStateV2837?.opener;wrap._scrollResizeV286882?.disconnect();wrap.remove();FLAT_WORLD.keys={};
       if(opener?.isConnected)opener.focus({preventScroll:true});
     }
     function renderScrollTargetsV2837(){
@@ -14103,20 +14150,37 @@
       const {wrap,state}=session,esc=discipleEscV2815,cfg=getWorldMapConfig(),p=FLAT_WORLD.player,pois=scrollFilteredPoisV2837(state);
       if(!pois.some(o=>o.id===state.selected))state.selected=null;
       const field=document.getElementById('scrollFieldV2831');if(!field)return;
+      const directory=document.getElementById('scrollDirectoryV2837'),focused=document.activeElement,fromDirectory=directory?.contains(focused);
+      const focusedPoi=field.contains(focused)||fromDirectory?focused?.dataset?.poi:null;
       field.innerHTML=pois.map(o=>`<button type="button" data-scroll-action="select" data-poi="${esc(o.id)}" class="scroll-poi-v2831 ${state.selected===o.id?'is-selected':''} ${scrollPoiDoneV2837(o)?'is-claimed':''}" style="left:${o.x/cfg.width*100}%;top:${o.y/cfg.height*100}%" aria-label="${esc(o.name)}" aria-pressed="${state.selected===o.id}">${scrollPoiArtV2832(o)}<span>${esc(o.name)}</span></button>`).join('')+`<div class="scroll-player-v2831" style="left:${p.x/cfg.width*100}%;top:${p.y/cfg.height*100}%">●<span>你在此</span></div>`;
+      // Use the actual rendered hit boxes, including labels and the 44px minimum.
+      // Dense landmarks keep their real position as dots; the existing directory remains the selector.
+      const buttons=Array.from(field.querySelectorAll('.scroll-poi-v2831')),boxes=buttons.map(b=>b.getBoundingClientRect()),dense=new Set();
+      for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){
+        const a=boxes[i],b=boxes[j];if(a.width&&a.height&&b.width&&b.height&&a.left<b.right-1&&a.right>b.left+1&&a.top<b.bottom-1&&a.bottom>b.top+1){dense.add(i);dense.add(j);}
+      }
+      for(const i of dense){
+        const b=buttons[i],dot=document.createElement('span');dot.className='scroll-anchor-v286882'+(b.dataset.poi===state.selected?' is-selected':'');
+        dot.style.left=b.style.left;dot.style.top=b.style.top;dot.dataset.poi=b.dataset.poi;dot.setAttribute('aria-hidden','true');field.insertBefore(dot,b);b.remove();
+      }
       const list=document.getElementById('scrollDirectoryV2837');
       list.innerHTML=pois.length?pois.map(o=>`<button type="button" class="scroll-directory-row-v2837 ${state.selected===o.id?'is-selected':''}" data-scroll-action="locate" data-poi="${esc(o.id)}" aria-pressed="${state.selected===o.id}"><span><strong>${esc(o.name)}</strong><small>${scrollPoiDoneV2837(o)?'已领取':!scrollPoiAccessV2837(o).allowed?'未解锁':esc(explorationDirectionV2829(o))}</small></span><span aria-hidden="true">定位 ›</span></button>`).join(''):'<p class="scroll-empty-v2837">没有找到已知地点，试试其他名称或分类。</p>';
       document.getElementById('scrollCountV2837').textContent=String(pois.length);
-      document.getElementById('scrollResultV2837').textContent=`显示 ${pois.length} / ${scrollKnownPoisV2837().length} 个已知地点`;
+      document.getElementById('scrollResultV2837').textContent=`显示 ${pois.length} / ${scrollKnownPoisV2837().length} 个已知地点${dense.size?' · 地标较密，圆点请从目录选择，或放大地图。':''}`;
+      if(dense.size&&!state.denseNoticedV286882){state.denseNoticedV286882=true;document.getElementById('scrollDetailsV2837').open=true;}
       for(const b of wrap.querySelectorAll('[data-scroll-filter]'))b.setAttribute('aria-pressed',String(b.dataset.scrollFilter===state.filter));
       renderScrollSelectionV2837();
+      if(focusedPoi){const mapButton=Array.from(field.querySelectorAll('[data-poi]')).find(b=>b.tagName==='BUTTON'&&b.dataset.poi===focusedPoi),row=Array.from(list.querySelectorAll('[data-poi]')).find(b=>b.dataset.poi===focusedPoi),target=fromDirectory?row:mapButton||(document.getElementById('scrollDetailsV2837').open?row:null);(target||wrap.querySelector('[data-scroll-action="close"]'))?.focus({preventScroll:true});}
     }
     function renderScrollSelectionV2837(){
       const session=scrollSessionV2837(),el=document.getElementById('scrollSelectionV2831');if(!session||!el)return;
+      const action=el.contains(document.activeElement)?document.activeElement?.dataset?.scrollAction:null;
+      const restoreFocus=()=>{if(!action)return;const button=Array.from(el.querySelectorAll('button')).find(b=>b.dataset.scrollAction===action&&!b.disabled&&b.getClientRects().length);(button||session.wrap.querySelector('[data-scroll-action="close"]'))?.focus({preventScroll:true});};
       const poi=scrollKnownPoisV2837().find(p=>p.id===session.state.selected),esc=discipleEscV2815;
-      if(!poi){el.innerHTML='<p>点选地标或展开地点目录，再选择前往方式。</p>';return;}
+      if(!poi){el.innerHTML='<p>点选地标或展开地点目录，再选择前往方式。</p>';restoreFocus();return;}
       const access=scrollPoiAccessV2837(poi),done=scrollPoiDoneV2837(poi),disabled=!access.allowed||done;
       el.innerHTML=`<strong>${esc(poi.name)}</strong><p>${esc(explorationDirectionV2829(poi))}${!access.allowed?' · 未解锁':done?' · 已领取':''}</p><p class="scroll-detail-v2837">${esc(poi.desc||'')}${poi.action==='village'&&rainStateV286822().step>=13?' · 青云渡口已复航 · '+esc(rainSummaryV286822()):''}${!access.allowed&&access.reason?' · '+esc(access.reason):''}</p><div class="scroll-journey-v2837"><button type="button" data-scroll-action="go" ${disabled?'disabled':''}>${done?'已完成探索':!access.allowed?'尚未解锁':'自动前往'}</button><button type="button" data-scroll-action="mark" ${disabled?'disabled':''}>标记方向</button></div>`;
+      restoreFocus();
     }
     function centerScrollPointV2837(point){
       const view=document.getElementById('scrollWindowV2831'),field=document.getElementById('scrollFieldV2831');if(!view||!field)return;
@@ -14130,7 +14194,7 @@
       const anchor=point||{x:Math.min(1,(view.scrollLeft+view.clientWidth/2)/oldW)*cfg.width,y:Math.min(1,(view.scrollTop+view.clientHeight/2)/oldH)*cfg.height};
       const next=Math.max(1,Math.min(4,Number(zoom)||1));session.state.zoom=next;
       field.style.width=next===1?'100%':`${Math.round(Math.max(1,view.clientWidth)*next)}px`;
-      field.dataset.overview=String(next<2);centerScrollPointV2837(anchor);
+      field.dataset.overview=String(next<2);renderScrollTargetsV2837();centerScrollPointV2837(anchor);
       document.getElementById('scrollZoomV2837').textContent=`${next.toFixed(1)}×`;
       for(const b of session.wrap.querySelectorAll('[data-scroll-action="minus"]'))b.disabled=next<=1;
       for(const b of session.wrap.querySelectorAll('[data-scroll-action="plus"]'))b.disabled=next>=4;
@@ -14162,14 +14226,14 @@
       if(typeof syncWarMapV2840==='function')syncWarMapV2840();
       if(!forgeAllowedV2825())return;
       const opener=document.activeElement;stopNavigationV2830();FLAT_WORLD.keys={};FLAT_WORLD.target=null;FLAT_WORLD.moving=false;FLAT_WORLD.tapTargetFx=null;
-      document.getElementById('scrollMapV2831')?.remove();loadScrollArtV2831();
+      const old=document.getElementById('scrollMapV2831');old?._scrollResizeV286882?.disconnect();old?.remove();loadScrollArtV2831();
       const esc=discipleEscV2815,cfg=getWorldMapConfig(),wrap=document.createElement('div');wrap.id='scrollMapV2831';wrap.className='scroll-map-v2831 scroll-map-v2837';
       wrap.setAttribute('role','dialog');wrap.setAttribute('aria-modal','true');wrap.setAttribute('aria-labelledby','scrollTitleV2837');
       wrap._scrollStateV2837={region:currentRegion,owner:player,opener,filter:'all',query:'',zoom:1,selected:null};
       wrap.innerHTML=`<section class="scroll-sheet-v2831"><header><div><small>仙途 · 山河绘卷</small><h2 id="scrollTitleV2837">${esc(getRegionInfo(currentRegion||'south').name)}</h2></div><button type="button" data-scroll-action="close" aria-label="关闭山河图">✕</button></header><div class="scroll-search-v2837"><input type="search" id="scrollSearchV2837" maxlength="40" placeholder="搜索已知地点名称" aria-label="搜索已知地点名称"><button type="button" data-scroll-action="rest">最近补给</button></div><nav class="scroll-filters-v2837" aria-label="地点分类">${[['all','全部'],['service','生活补给'],['sect','宗门'],['explore','探索']].map(([id,name])=>`<button type="button" data-scroll-filter="${id}" aria-pressed="${id==='all'}">${name}</button>`).join('')}</nav><div class="scroll-toolbar-v2837"><button type="button" data-scroll-action="minus" aria-label="缩小地图" disabled>−</button><output id="scrollZoomV2837">1.0×</output><button type="button" data-scroll-action="plus" aria-label="放大地图">＋</button><button type="button" data-scroll-action="fit">全图</button><button type="button" data-scroll-action="player">回到主角</button></div><div class="scroll-window-v2831" id="scrollWindowV2831"><div class="scroll-field-v2831" id="scrollFieldV2831" data-overview="true" style="aspect-ratio:${cfg.width}/${cfg.height};${scrollRegionStyleV2834()}"></div></div><div class="scroll-result-v2837" id="scrollResultV2837" aria-live="polite"></div><details class="scroll-directory-v2837" id="scrollDetailsV2837"><summary>地点目录 · <span id="scrollCountV2837">0</span><span>按距离排列</span></summary><div id="scrollDirectoryV2837"></div></details><div id="scrollSelectionV2831" class="scroll-selection-v2831" aria-live="polite"></div></section>`;
       wrap.onclick=e=>{
         const b=e.target.closest('button');if(!b||!wrap.contains(b)||b.disabled)return;
-        const session=scrollSessionV2837();if(!session)return;
+        const session=scrollSessionV2837();if(!session||session.wrap!==wrap)return;
         if(b.dataset.scrollFilter){session.state.filter=b.dataset.scrollFilter;renderScrollTargetsV2837();return;}
         const action=b.dataset.scrollAction;
         if(action==='close')closeScrollMapV2837();
@@ -14180,8 +14244,9 @@
         else if(action==='rest')nearestScrollRestV2837();
         else if(action==='go'||action==='mark')startScrollJourneyV2837(action==='mark');
       };
-      wrap.oninput=e=>{if(e.target.id!=='scrollSearchV2837')return;const session=scrollSessionV2837();if(!session)return;session.state.query=e.target.value.slice(0,40);renderScrollTargetsV2837();};
+      wrap.oninput=e=>{if(e.target.id!=='scrollSearchV2837')return;const session=scrollSessionV2837();if(!session||session.wrap!==wrap)return;session.state.query=e.target.value.slice(0,40);renderScrollTargetsV2837();};
       wrap.onkeydown=e=>{
+        if(scrollSessionV2837()?.wrap!==wrap)return;
         e.stopPropagation();if(e.key==='Escape'){e.preventDefault();closeScrollMapV2837();return;}
         if(e.key==='Tab'){
           const focusable=Array.from(wrap.querySelectorAll('button:not([disabled]),input,summary')).filter(el=>el.getClientRects().length),first=focusable[0],last=focusable[focusable.length-1];
@@ -14189,6 +14254,11 @@
         }
       };
       document.body.appendChild(wrap);renderScrollTargetsV2837();wrap.querySelector('[data-scroll-action="close"]').focus({preventScroll:true});
+      if(typeof ResizeObserver==='function'){
+        const view=document.getElementById('scrollWindowV2831');let width=view.clientWidth;
+        wrap._scrollResizeV286882=new ResizeObserver(()=>{const session=scrollSessionV2837();if(session?.wrap!==wrap){wrap._scrollResizeV286882?.disconnect();return;}const next=view.clientWidth;if(next>0&&next!==width){width=next;zoomScrollV2837(session.state.zoom);}});
+        wrap._scrollResizeV286882.observe(view);
+      }
     }
 
     function worldThemeV2827(){
@@ -14339,6 +14409,7 @@
         const roof=o.factionGroup==='demon'?'#6d344c':o.factionGroup==='immortal'?'#8b87b8':'#477365';
         drawIsoHouse(ctx,{w:78,h:64,roof,front:o.factionGroup==='demon'?'#756371':'#d3d5c7',side:'#7e8b86',style:o.factionGroup==='human'?'pagoda':o.factionGroup,trim:o.factionGroup==='demon'?'#c18b9f':'#e5d5a3'});
       }else if(o.buildingId==='spirit_spring'){
+        applyVectorLandmarkScaleV286882(ctx,o);
         ctx.fillStyle='#526f75';ctx.beginPath();ctx.ellipse(0,9,54,32,0,0,Math.PI*2);ctx.fill();
         ctx.fillStyle='#3bafc8';ctx.beginPath();ctx.ellipse(0,4,46,26,0,0,Math.PI*2);ctx.fill();
         ctx.strokeStyle='#b9f4ff';ctx.lineWidth=2;
@@ -14390,6 +14461,7 @@
         ctx.fillStyle='#9ca6bb';ctx.beginPath();ctx.moveTo(0,-26);ctx.lineTo(25,-6);ctx.lineTo(0,14);ctx.lineTo(-25,-6);ctx.closePath();ctx.fill();
         ctx.strokeStyle='rgba(190,227,255,.48)';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='rgba(126,201,255,.56)';ctx.beginPath();ctx.arc(0,-6,7,0,Math.PI*2);ctx.fill();
       }else if(kind==='rest'){
+        applyVectorLandmarkScaleV286882(ctx,o);
         ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(0,18,28,8,0,0,Math.PI*2);ctx.fill();
         const pool=ctx.createRadialGradient(0,4,2,0,4,24);pool.addColorStop(0,'#b5f3ff');pool.addColorStop(.55,'#70bdd5');pool.addColorStop(1,'#2b6377');
         ctx.fillStyle=pool;ctx.beginPath();ctx.ellipse(0,4,28,18,0,0,Math.PI*2);ctx.fill();
@@ -14407,6 +14479,7 @@
         ctx.fillStyle='#8d9aab';ctx.beginPath();ctx.moveTo(-14,-16);ctx.lineTo(0,-2);ctx.lineTo(20,-28);ctx.lineTo(8,-2);ctx.closePath();ctx.fill();
         ctx.fillStyle='rgba(255,255,255,.76)';ctx.beginPath();ctx.moveTo(-15,-18);ctx.lineTo(-7,-9);ctx.lineTo(-2,-14);ctx.lineTo(3,-6);ctx.lineTo(9,-12);ctx.lineTo(20,-28);ctx.closePath();ctx.fill();
       }else if(kind==='battlefield'){
+        applyVectorLandmarkScaleV286882(ctx,o);
         ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(0,18,34,9,0,0,Math.PI*2);ctx.fill();
         ctx.strokeStyle='#7a5d49';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-18,-8);ctx.lineTo(16,20);ctx.moveTo(16,-8);ctx.lineTo(-18,20);ctx.stroke();
         ctx.strokeStyle='rgba(255,160,120,.4)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-12,-2);ctx.lineTo(10,16);ctx.moveTo(10,-2);ctx.lineTo(-12,16);ctx.stroke();
@@ -15000,7 +15073,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.81";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.82";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

@@ -37,6 +37,8 @@ function poiNameAnchorV286880(o){
   const kind=getPoiVisualKind(o),grand=scrollPalacePoiV2831(o)||o.buildingId==='gate';
   const architecture=grand||o.action==='lingxiao_building'||['village','shop','market','home','alchemy','artifacts'].includes(kind);
   const oldY=o.y+Math.max(31,(Number(o.r)||60)*.72)-10;
+  const vector=typeof vectorLandmarkBoundsV286882==='function'?vectorLandmarkBoundsV286882(o):null;
+  if(vector)return {architecture,grand,vector:true,y:Math.ceil(vector.bottom+10)};
   // Share the real painted bounds, including regional art and depth/landmark scale.
   const bounds=architecture&&typeof poiTapBoxV2904==='function'&&typeof landmarkPointV2893==='function'?poiTapBoxV2904(o):null;
   return {architecture,grand,y:bounds?Math.max(oldY,Math.ceil(bounds.bottom+(grand?14:10))):oldY};
@@ -60,7 +62,8 @@ function drawPoiNamePlateV211(ctx,o){
   const w=Math.max(60,nameW+18,ctx.measureText(sub).width+18),h=36,baseY=anchor.y;
   let box=null;
   // A building label may move below another label, never back up into its own doorway.
-  for(const dy of anchor.architecture?[0,40,80]:[0,40,-40]){const q={x:o.x-w/2,y:baseY+dy,w,h};if(!labelBoxesV2836||!labelBoxesV2836.some(b=>labelOverlapV2836(q,b))){box=q;break;}}
+  const offsets=anchor.vector?(near?[0,40,80,120]:[0,40,80]):anchor.architecture?[0,40,80]:[0,40,-40];
+  for(const dy of offsets){const q={x:o.x-w/2,y:baseY+dy,w,h};if(!labelBoxesV2836||!labelBoxesV2836.some(b=>labelOverlapV2836(q,b))){box=q;break;}}
   if(!box){ctx.restore();return;}
   if(labelBoxesV2836)labelBoxesV2836.push(box);
   roundedRectPathV211(ctx,box.x,box.y,w,h,7);ctx.fillStyle=anchor.architecture?(near?'rgba(42,34,22,.95)':'rgba(16,29,27,.94)'):(access.allowed?'rgba(250,238,204,.96)':'rgba(222,211,182,.94)');ctx.fill();
@@ -76,4 +79,4 @@ function installMapLabelControlsV211(){const actions=document.getElementById('wo
 const v211EnableWorldBase=window.enableWorldMode;window.enableWorldMode=function(){const r=v211EnableWorldBase?.apply(this,arguments);setTimeout(installMapLabelControlsV211,0);return r};
 setTimeout(()=>{installPetGuideButtonV211();installMapLabelControlsV211()},100);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-16-petguidemapv211script.js"]="28.68.81";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-16-petguidemapv211script.js"]="28.68.82";
