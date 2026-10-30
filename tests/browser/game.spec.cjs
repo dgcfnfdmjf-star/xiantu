@@ -1,7 +1,7 @@
 const {test,expect}=require('@playwright/test');
 async function boot(page){
  await page.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());
- await page.goto('/game-v2762.html');await page.locator('#xiantuSafeBootButton').click();await page.locator('#introSkipV2860').click();
+ await page.goto('/game-v2762.html');await page.locator('#introSkipChoiceV2898').check();await page.locator('#xiantuSafeBootButton').click();
  await expect(page.locator('html')).toHaveClass(/xiantu-v2762-ready/);
 }
 async function start(page){await expect(page.locator('#guideHudBtn')).toBeAttached();await page.locator('#playerName').fill('八字角色测试姓名');await page.getByRole('button',{name:'开始修仙',exact:true}).click();await page.evaluate(()=>closeWorldOverlay());}
@@ -19,7 +19,7 @@ test('save import rejects executable text without replacing either save, valid s
   return {attempts,gold:player.gold,saved:loadGame().player.gold,injected:!!window.auditInjected};
  });
  expect(result).toEqual({attempts:Array.from({length:5},()=>({main:true,backup:true,gold:732,mainGold:732})),gold:998,saved:998,injected:false});expect(errors).toEqual([]);
- await page.reload();await page.locator('#xiantuSafeBootButton').click();await page.locator('#introSkipV2860').click();await expect(page.locator('html')).toHaveClass(/xiantu-v2762-ready/);await page.evaluate(()=>loadAndStart());expect(await page.evaluate(()=>player.gold)).toBe(998);
+ await page.reload();await page.locator('#introSkipChoiceV2898').check();await page.locator('#xiantuSafeBootButton').click();await expect(page.locator('html')).toHaveClass(/xiantu-v2762-ready/);await page.evaluate(()=>loadAndStart());expect(await page.evaluate(()=>player.gold)).toBe(998);
 });
 for(const width of [360,390,430,1366])test(`navigation remains reachable at ${width}px`,async({page})=>{
  await page.setViewportSize({width,height:844});await boot(page);await start(page);
@@ -62,6 +62,6 @@ test('rabbit turtle and bat use the new artwork in map and battle',async({page})
  });
  expect(result).toEqual({keys:['rabbit','turtle','bat'],unchanged:true,loaded:1});
  await page.locator('#beastPreview').screenshot({path:'test-results/beasts-preview.png'});
- await page.route('**/monster-small-beasts-v28682.webp',r=>r.abort());await page.reload();await page.locator('#xiantuSafeBootButton').click();await page.locator('#introSkipV2860').click();await expect(page.locator('html')).toHaveClass(/xiantu-v2762-ready/);await page.evaluate(()=>{loadAndStart();closeWorldOverlay();});
+ await page.route('**/monster-small-beasts-v28682.webp',r=>r.abort());await page.reload();await page.locator('#introSkipChoiceV2898').check();await page.locator('#xiantuSafeBootButton').click();await expect(page.locator('html')).toHaveClass(/xiantu-v2762-ready/);await page.evaluate(()=>{loadAndStart();closeWorldOverlay();});
  expect(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=180;c.height=225;return ['rabbit','turtle','bat'].every(key=>drawScrollMonsterPortraitV2853(c,key));})).toBe(true);
 });

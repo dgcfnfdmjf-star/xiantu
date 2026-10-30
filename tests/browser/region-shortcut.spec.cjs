@@ -2,7 +2,7 @@ const {test,expect}=require('@playwright/test');
 test('mobile region status opens the existing travel menu by touch, Enter and Space',async({page})=>{
  await page.setViewportSize({width:390,height:844});
  await page.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());
- await page.goto('/game-v2762.html');await page.locator('#xiantuSafeBootButton').click();await page.locator('#introSkipV2860').click();
+ await page.goto('/game-v2762.html');await page.locator('#introSkipChoiceV2898').check();await page.locator('#xiantuSafeBootButton').click();
  await expect(page.locator('html')).toHaveClass(/xiantu-v2762-ready/);await expect(page.locator('#guideHudBtn')).toBeAttached();
  await page.getByRole('button',{name:'开始修仙',exact:true}).click();await page.evaluate(()=>closeWorldOverlay());
  const hud=page.locator('.world-hud');if(await hud.evaluate(el=>el.classList.contains('mobile-hud-collapsed')))await page.locator('#mobileHudToggle').click();
