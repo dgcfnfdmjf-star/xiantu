@@ -1,6 +1,10 @@
-# 仙途 V28.68.86
+# 仙途 V28.68.87
 
-部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.86）；[上传步骤](downloads/README.md)。
+部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.87）；[上传步骤](downloads/README.md)。
+
+## V28.68.87 剑系独立特效收尾
+
+追魂一剑、饮血剑诀、玄罡护体剑接入独立透明动画，分别表现紫剑追击、实际回血回流和一次承伤护体。护体跟随角色并在消费、替换、退出时清理；保留原伤害、耗蓝和回合规则。9招剑系独立素材已齐，治疗系8招仍待后续。见 [接入与验证](docs/vfx/sword-skills-batch3-integration.txt)。无需更新Jev；通过PR #37交付main；尚未部署腾讯云。
 
 ## V28.68.86 可走动室内
 

@@ -1,0 +1,45 @@
+### Result
+{"soul_chase":"追魂一剑 · 330 ms · body:0.50 / impact:0.50","blood_return":"饮血剑诀 · 330 ms · body:0.50 / impact:0.50","astral_guard":"玄罡护体剑 · 330 ms · body:0.50 / impact:0.50 / guard:0:0.20 / guard:1:0.20 / guard:2:0.20","errors":[],"controls":"PASS"}
+### Ran Playwright code
+```js
+await (async(page)=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());
+ await page.waitForFunction(()=>window.SwordPreview?.inspect().ready);
+ const setSkill=async key=>page.locator('#skill').selectOption(key);
+ const seek=async t=>page.evaluate(t=>SwordPreview.seek(t),t);
+ const status=()=>page.locator('#status').innerText();
+ const report={};
+ for(const key of ['soul_chase','blood_return','astral_guard']){
+  await setSkill(key);await seek(330);report[key]=await status();
+  await page.screenshot({path:`output/playwright/sword3-${key}-impact.png`});
+ }
+ await setSkill('blood_return');await seek(600);
+ if(!(await status()).includes('return'))throw Error('missing return');
+ await page.locator('#heal').uncheck();if((await status()).includes('return'))throw Error('false healing');
+ await page.locator('#heal').check();await page.locator('#miss').check();if((await status()).includes('return'))throw Error('miss returned HP');
+ await page.locator('#miss').uncheck();
+ await setSkill('astral_guard');await seek(900);if(!(await status()).includes('guard:2'))throw Error('missing guard');
+ await page.locator('#guard').uncheck();if((await status()).includes('guard:'))throw Error('false guard');await page.locator('#guard').check();
+ await seek(1820);if((await status()).includes('guard:'))throw Error('guard not cleared');
+ await seek(900);await page.locator('#reduced').check();
+ for(const [w,h] of [[390,844],[844,390]]){
+  await page.setViewportSize({width:w,height:h});
+  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);
+  if(overflow)throw Error('horizontal overflow');
+  await page.screenshot({path:`output/playwright/sword3-${w}x${h}.png`,fullPage:true});
+ }
+ await page.locator('#bg').selectOption('#e7e0c8');await page.locator('#bg').selectOption('#101920');await page.locator('#bg').selectOption('stage');
+ await page.locator('#fps').selectOption('60');await page.locator('#step').click();
+ const t=await page.evaluate(()=>SwordPreview.inspect().age);if(!(t>900))throw Error('step failed');
+ await page.locator('#restart').click();if(await page.evaluate(()=>SwordPreview.inspect().age)!==0)throw Error('restart failed');
+ await page.locator('#x').fill('15');await page.locator('#y').fill('10');
+ await page.locator('#scale').fill('1.2');await setSkill('soul_chase');
+ if(await page.locator('#scale').inputValue()!=='1')throw Error('scale not reset');
+ await page.locator('#play').click();await page.waitForTimeout(100);const t1=await page.evaluate(()=>SwordPreview.inspect().age);
+ await page.locator('#play').click();const pausedAt=await page.evaluate(()=>SwordPreview.inspect().age);await page.waitForTimeout(100);if(await page.evaluate(()=>SwordPreview.inspect().age)!==pausedAt)throw Error('pause failed');
+ report.errors=errors;report.controls='PASS';if(errors.length)throw Error(errors.join(';'));
+ return report;
+}
+)(page);
+```

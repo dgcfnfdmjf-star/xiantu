@@ -1,0 +1,25 @@
+### Result
+{"portable":"PASS","missingAssetIsolation":"PASS","restored":true}
+### Ran Playwright code
+```js
+await (async(page)=>{
+ await page.goto('http://127.0.0.1:8778/art/sword-skills-batch3/evidence/sword-skills-preview.html');
+ await page.waitForFunction(()=>SwordPreview.inspect().ready);
+ if(await page.evaluate(()=>SwordPreview.inspect().failed))throw Error('portable asset failure');
+ await page.locator('#skill').selectOption('blood_return');await page.evaluate(()=>SwordPreview.seek(600));
+ if(!(await page.locator('#status').innerText()).includes('return'))throw Error('portable animation missing');
+ await page.screenshot({path:'output/playwright/sword3-portable.png',fullPage:true});
+ await page.route('**/soul_chase_body.png',r=>r.abort());
+ await page.goto('http://127.0.0.1:8778/art/sword-skills-batch3/preview/index.html');
+ await page.waitForFunction(()=>SwordPreview.inspect().ready);
+ if(!(await page.locator('#status').innerText()).includes('资源加载失败'))throw Error('missing asset not reported');
+ await page.locator('#skill').selectOption('astral_guard');await page.evaluate(()=>SwordPreview.seek(900));
+ if(!(await page.locator('#status').innerText()).includes('guard:2'))throw Error('other effect blocked by failure');
+ await page.unroute('**/soul_chase_body.png');await page.reload();
+ await page.waitForFunction(()=>SwordPreview.inspect().ready);
+ return {portable:'PASS',missingAssetIsolation:'PASS',restored:!await page.evaluate(()=>SwordPreview.inspect().failed)};
+}
+)(page);
+```
+### Events
+- New console entries: .playwright-cli/console-2026-10-29T09-47-27-361Z.log#L1

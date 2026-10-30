@@ -7186,17 +7186,20 @@
     }
     
     const guardsV2785 = new WeakMap();
+    function notifySwordVfxV286887(kind,detail={}){try{window.InkSkillFxV2854?.swordFinale?.notify(kind,{...detail,owner:player,target:currentEnemy});}catch(_){}}
     function applyGuardV2785(skill) {
       if(!currentEnemy || !skill.guardRatio)return;
       const old=guardsV2785.get(currentEnemy);
       const ratio=Math.max(old?.owner===player?old.ratio:0,skill.guardRatio);
       guardsV2785.set(currentEnemy,{owner:player,ratio});
+      notifySwordVfxV286887('guard',{name:skill.name,retain:old?.owner===player&&old.ratio>skill.guardRatio});
       addCombatLog(`护体生效：本场下一次命中伤害降低${Math.round(ratio*100)}%（同类取最高，不叠加）。`,'heal');
     }
     function consumeGuardV2785(damage) {
       const guard=guardsV2785.get(currentEnemy);
       if(!guard || guard.owner!==player || damage<=0)return damage;
       guardsV2785.delete(currentEnemy);
+      notifySwordVfxV286887('consume');
       const after=Math.max(0,Math.floor(damage*(1-guard.ratio)));
       addCombatLog(`护体抵消 ${damage-after} 点伤害，护体已消耗。`,'heal');
       return after;
@@ -7218,7 +7221,7 @@
       if(skill.element!=='sword')return;
       if(skill.lifeSteal){
         const heal=Math.max(0,Math.min(getMaxHp()-player.hp,Math.floor(actualLoss*skill.lifeSteal),Math.floor(getMaxHp()*.15)));
-        player.hp+=heal;showDamageNumber(heal,'player',true,false,false,false,skill.name+'·吸血');
+        player.hp+=heal;notifySwordVfxV286887('heal',{name:skill.name,actualHeal:heal});showDamageNumber(heal,'player',true,false,false,false,skill.name+'·吸血');
         addCombatLog(`饮血剑意实际恢复 ${heal} 点气血。`,'heal');
       }
       applyGuardV2785(skill);
@@ -15322,7 +15325,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.86";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.87";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

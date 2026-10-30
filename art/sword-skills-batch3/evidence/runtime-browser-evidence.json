@@ -1,0 +1,211 @@
+{
+  "conditions": "Headless Chromium, fresh temporary contexts, external requests blocked, 390x844/844x390 DPR2 coarse touch, baseline routes three pre-integration files with only release labels normalized; RAF CPU is not GPU timing",
+  "reports": {
+    "sword87-live": {
+      "before": {
+        "casts": [
+          {
+            "name": "玄罡护体剑",
+            "spent": 50,
+            "mp": 50,
+            "hp": 125,
+            "drawn": [],
+            "events": [],
+            "overflow": false
+          }
+        ],
+        "perf": {
+          "cpu": {
+            "n": 201,
+            "median": 0.30000000074505806,
+            "p95": 0.8000000007450581
+          },
+          "interval": {
+            "n": 180,
+            "median": 16.699999999999818,
+            "p95": 16.800000000000182
+          }
+        },
+        "errors": []
+      },
+      "after": {
+        "casts": [
+          {
+            "name": "追魂一剑",
+            "spent": 38,
+            "mp": 62,
+            "hp": 98,
+            "drawn": [
+              "soul_chase_telegraph.png",
+              "soul_chase_body.png",
+              "soul_chase_impact.png",
+              "soul_chase_residue.png"
+            ],
+            "events": [],
+            "overflow": false
+          },
+          {
+            "name": "饮血剑诀",
+            "spent": 42,
+            "mp": 58,
+            "hp": 119,
+            "drawn": [
+              "blood_return_telegraph.png",
+              "blood_return_body.png",
+              "blood_return_impact.png",
+              "blood_return_support.png",
+              "blood_return_residue.png"
+            ],
+            "events": [
+              {
+                "kind": "heal",
+                "heal": 19,
+                "name": "饮血剑诀"
+              }
+            ],
+            "overflow": false
+          },
+          {
+            "name": "玄罡护体剑",
+            "spent": 50,
+            "mp": 50,
+            "hp": 110,
+            "drawn": [
+              "astral_guard_telegraph.png",
+              "astral_guard_body.png",
+              "astral_guard_support.png",
+              "astral_guard_impact.png",
+              "astral_guard_residue.png"
+            ],
+            "events": [
+              {
+                "kind": "guard",
+                "name": "玄罡护体剑"
+              },
+              {
+                "kind": "consume"
+              }
+            ],
+            "overflow": false
+          }
+        ],
+        "perf": {
+          "cpu": {
+            "n": 200,
+            "median": 0.30000000074505806,
+            "p95": 0.8000000007450581
+          },
+          "interval": {
+            "n": 179,
+            "median": 16.69999999999891,
+            "p95": 16.700000000000728
+          }
+        },
+        "errors": []
+      }
+    },
+    "sword87-live-held-guard": {
+      "before": {
+        "casts": [
+          {
+            "name": "玄罡护体剑",
+            "spent": 50,
+            "mp": 50,
+            "hp": 125,
+            "drawn": [],
+            "events": [],
+            "overflow": false
+          }
+        ],
+        "perf": {
+          "cpu": {
+            "n": 199,
+            "median": 0.30000000074505806,
+            "p95": 0.9000000022351742
+          },
+          "interval": {
+            "n": 179,
+            "median": 16.699999999999818,
+            "p95": 16.799999999999272
+          }
+        },
+        "errors": []
+      },
+      "after": {
+        "casts": [
+          {
+            "name": "追魂一剑",
+            "spent": 38,
+            "mp": 62,
+            "hp": 98,
+            "drawn": [
+              "soul_chase_telegraph.png",
+              "soul_chase_body.png",
+              "soul_chase_impact.png",
+              "soul_chase_residue.png"
+            ],
+            "events": [],
+            "overflow": false
+          },
+          {
+            "name": "饮血剑诀",
+            "spent": 42,
+            "mp": 58,
+            "hp": 114,
+            "drawn": [
+              "blood_return_telegraph.png",
+              "blood_return_body.png",
+              "blood_return_impact.png",
+              "blood_return_support.png",
+              "blood_return_residue.png"
+            ],
+            "events": [
+              {
+                "kind": "heal",
+                "heal": 16,
+                "name": "饮血剑诀"
+              }
+            ],
+            "overflow": false
+          },
+          {
+            "name": "玄罡护体剑",
+            "spent": 50,
+            "mp": 50,
+            "hp": 101,
+            "drawn": [
+              "astral_guard_telegraph.png",
+              "astral_guard_body.png",
+              "astral_guard_support.png",
+              "astral_guard_impact.png",
+              "astral_guard_residue.png"
+            ],
+            "events": [
+              {
+                "kind": "guard",
+                "name": "玄罡护体剑"
+              },
+              {
+                "kind": "consume"
+              }
+            ],
+            "overflow": false
+          }
+        ],
+        "perf": {
+          "cpu": {
+            "n": 201,
+            "median": 0.30000000074505806,
+            "p95": 0.7999999970197678
+          },
+          "interval": {
+            "n": 180,
+            "median": 16.69999999999891,
+            "p95": 16.799999999999272
+          }
+        },
+        "errors": []
+      }
+    }
+  }
+}
