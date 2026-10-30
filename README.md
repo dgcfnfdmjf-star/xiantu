@@ -1,6 +1,10 @@
-# 仙途 V28.68.90
+# 仙途 V28.68.91
 
-部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.90）；[上传步骤](downloads/README.md)。
+部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.91）；[上传步骤](downloads/README.md)。
+
+## V28.68.91 开场与加载页优化
+
+开场默认只播首次，保留记住跳过和主动重看；手机低清版约2.83MB，游戏就绪可直接进入。增加原片封面、横竖屏加载布局、文件体积加权进度和慢网提示，保留失败重试及顺序执行保护。无需更新Jev，尚未部署腾讯云。见 [行为与验证](docs/intro-loading-v286891.txt)。
 
 ## V28.68.90 治疗系独立特效第一批
 
@@ -264,7 +268,7 @@ npm test
 npm run test:browser
 ```
 
-`npm test` 运行选定的 124 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
+`npm test` 运行选定的 130 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
 
 浏览器测试覆盖恶意存档拒绝且原主档/备份不变、正常导入与刷新恢复、360/390/430/1366px 导航入口可达性、预加载去重与版本错误提示。外部请求被拦截，不调用付费服务。已有 Chromium 的云环境可使用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`。
 
