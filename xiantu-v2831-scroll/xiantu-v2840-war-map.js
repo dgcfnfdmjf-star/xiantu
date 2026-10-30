@@ -1,6 +1,7 @@
 // V28.47: the existing world renderer owns war animation, visibility and cadence.
 // Formation sprites express campaign state; only the combat/command rules award results.
 const WAR_MAP_V2840={owner:null,source:null,key:'',scene:null,clock:0,hudKey:'',reduced:!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches};
+const WAR_ART_V286888={unit:1.38,post:1.55};
 const WAR_MAP_POI_V2840='war_command_v2840';
 function warMapSourceV2840(){
  const w=player?.warState,c=w?.campaignV2775;
@@ -93,7 +94,12 @@ function updateWarMapBarV2840(scene){
  const owner=player,record=c;el.onclick=e=>{const b=e.target.closest('button');if(!b||!el.contains(b)||owner!==player||warMapSourceV2840()?.record!==record||!warAllowedV2839())return;e.stopPropagation?.();if(b.dataset.warMap==='view')viewWarMapV2840();else openWarOrdersV2840();};
  el.onpointerdown=e=>e.stopPropagation();el.onkeydown=e=>e.stopPropagation();
 }
-function warSceneVisibleV2840(scene,view){const p=scene.site;return scene.local&&p.x+190>=view.minX&&p.x-190<=view.maxX&&p.y+160>=view.minY&&p.y-200<=view.maxY;}
+function warSpriteInViewV286888(o,view){
+ const scale=o?._warUnitV2840?WAR_ART_V286888.unit:o?.action==='war_map_v2840'?WAR_ART_V286888.post:0;if(!scale)return false;
+ const half=(o._warUnitV2840?46:40)*scale,top=(o._warUnitV2840?90:86)*scale,bottom=(o._warUnitV2840?16:34)*scale;
+ return o.x+half>=view.minX&&o.x-half<=view.maxX&&o.y+bottom>=view.minY&&o.y-top<=view.maxY;
+}
+function warSceneVisibleV2840(scene,view){const p=scene.site;return scene.local&&p.x+210>=view.minX&&p.x-210<=view.maxX&&p.y+200>=view.minY&&p.y-240<=view.maxY;}
 function appendWarUnitsV2840(items,dt,view){
  const state=WAR_MAP_V2840,scene=state.scene;if(!scene||!warSceneVisibleV2840(scene,view))return;
  if(!state.reduced)state.clock+=Math.max(0,Math.min(.05,dt));
@@ -103,7 +109,7 @@ function appendWarUnitsV2840(items,dt,view){
   u.x=scene.site.x-dir*(68+u.rank*44)+dir*charge;
   u.y=scene.site.y+(u.row-(scene.rows-1)/2)*31+u.rank*8+(active&&!state.reduced?Math.sin(cycle*2)*2:0);
   u.attack=active&&!state.reduced&&Math.sin(cycle)>.84;u.frame=active&&!state.reduced?1+Math.floor((time*5+u.phase)%3):0;
-  if(u.x>=view.minX&&u.x<=view.maxX&&u.y>=view.minY&&u.y<=view.maxY)items.push(u);
+  if(warSpriteInViewV286888(u,view))items.push(u);
  }
 }
 function warFlagV2840(ctx,x,y,side,time,label){
@@ -126,7 +132,7 @@ function drawWarGroundV2840(ctx,view){
 }
 function drawWarUnitV2840(ctx,u){
  const state=WAR_MAP_V2840,s=state.scene;if(!s)return;
- ctx.save();ctx.translate(u.x,u.y);ctx.fillStyle=u.side?'#56323740':'#30483d40';ctx.beginPath();ctx.ellipse(0,3,11,4,0,0,Math.PI*2);ctx.fill();
+ ctx.save();ctx.translate(u.x,u.y);ctx.scale(WAR_ART_V286888.unit,WAR_ART_V286888.unit);ctx.fillStyle=u.side?'#56323740':'#30483d40';ctx.beginPath();ctx.ellipse(0,3,11,4,0,0,Math.PI*2);ctx.fill();
  const dir=u.side?-1:1;ctx.scale(dir,1);if(u.attack)ctx.rotate(.10);
  const hero=PAINTED_ACTOR_V2838,im=SCROLL_ART_V2831.enemies;
  if(!u.side&&u.rank===0&&hero.ready){const b=PAINTED_ACTOR_ROWS_V2838[1],f=u.frame,scale=52/256;ctx.drawImage(hero.image,f*192,b.y,192,b.h,-192*scale/2,-b.feet[f]*scale,192*scale,b.h*scale);}
@@ -154,8 +160,9 @@ function drawWarEffectsV2840(ctx,view){
  ctx.font='12px serif';ctx.fillStyle='#274e46';ctx.fillText(player.sect+'联军',x-86,y-116);ctx.fillStyle='#733d42';ctx.fillText(s.record.enemy,x+86,y-116);ctx.restore();
 }
 function drawWarPostV2840(ctx,p){
+ ctx.save();ctx.translate(p.x,p.y);ctx.scale(WAR_ART_V286888.post,WAR_ART_V286888.post);ctx.translate(-p.x,-p.y);
  warFlagV2840(ctx,p.x,p.y,0,0,'令');
- ctx.save();ctx.textAlign='center';ctx.font='bold 12px serif';ctx.fillStyle='#172923e8';ctx.fillRect(p.x-37,p.y+10,74,23);ctx.fillStyle='#f3dfab';ctx.fillText('军令台',p.x,p.y+26);ctx.restore();
+ ctx.save();ctx.textAlign='center';ctx.font='bold 12px serif';ctx.fillStyle='#172923e8';ctx.fillRect(p.x-37,p.y+10,74,23);ctx.fillStyle='#f3dfab';ctx.fillText('军令台',p.x,p.y+26);ctx.restore();ctx.restore();
 }
 function drawWarMinimapV2840(ctx,mx,my){
  const s=WAR_MAP_V2840.scene;if(!s?.local)return;
@@ -171,4 +178,4 @@ const warRetreatBeforeV2840=retreatWarV2775;
 retreatWarV2775=function(){warRetreatBeforeV2840();syncWarMapV2840();};
 // Refresh a limited preference flag; do not start a second animation loop.
 window.matchMedia?.('(prefers-reduced-motion: reduce)').addEventListener?.('change',e=>{WAR_MAP_V2840.reduced=e.matches;});
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2840-war-map.js']='28.68.87';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2840-war-map.js']='28.68.88';
