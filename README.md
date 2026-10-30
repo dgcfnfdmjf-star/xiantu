@@ -1,6 +1,10 @@
-# 仙途 V28.68.91
+# 仙途 V28.68.92
 
-部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.91）；[上传步骤](downloads/README.md)。
+部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.92）；[上传步骤](downloads/README.md)。
+
+## V28.68.92 手绘仙侠室内
+
+五类可走动室内换为墨线手绘、木石材质、暖色窗光和分层家具；弟子居保留床榻与蒲团，大殿使用屏风座椅与龙柱。同步斜俯视点击映射、人物遮挡与手机视野，保留原碰撞、行路、费用和存档。新资源约600KB，进入室内按需加载。无需更新Jev，尚未部署腾讯云。见 [说明与验证](docs/interior-painted-v286892.txt)。
 
 ## V28.68.91 开场与加载页优化
 
@@ -268,7 +272,7 @@ npm test
 npm run test:browser
 ```
 
-`npm test` 运行选定的 130 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
+`npm test` 运行选定的 131 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
 
 浏览器测试覆盖恶意存档拒绝且原主档/备份不变、正常导入与刷新恢复、360/390/430/1366px 导航入口可达性、预加载去重与版本错误提示。外部请求被拦截，不调用付费服务。已有 Chromium 的云环境可使用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`。
 

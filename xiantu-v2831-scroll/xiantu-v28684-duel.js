@@ -2822,7 +2822,7 @@ function tryEnterInteriorV286886(p){
  if(!canMapNpcActV2864()||isWorldOverlayOpen()||!FLAT_WORLD.pois.includes(p)||Math.hypot(FLAT_WORLD.player.x-p.x,FLAT_WORLD.player.y-p.y)>p.r+62)return true;
  if(p.action==='lingxiao_building'){const access=canAccessBuilding(p.buildingId);if(!access.allowed){showFloatingText(access.reason,'#ffd76a');return true;}syncTaskWithLingxiaoBuilding(p.buildingId);}
  if(typeof tutorialFreeExploreUnlocked==='function'&&tutorialState.active&&!tutorialFreeExploreUnlocked())return false;
- resetWorldMovementV28686();clearInteriorV286886();
+ resetWorldMovementV28686();clearInteriorV286886();prepareInteriorArtV286892();
  const label=({shop:'交易柜台',home:'修行蒲团',workshop:'炼制工位',library:'典籍书案',hall:'宗门事务案'})[kind];
  interiorV286886={owner:player,region:currentRegion,poi:p,kind,player:{x:288,y:352},path:[],floor:null,view:null,
   stations:[{id:'host',x:176,y:176,name:kind==='home'?'洞府留笺':kind==='shop'?'掌柜':'值守弟子',dialog:true},{id:'service',x:400,y:176,name:label},{id:'door',x:288,y:400,name:'离开建筑'}]};
@@ -2875,8 +2875,10 @@ function interiorRouteV286886(s,x,y){
 function interiorTapV286886(canvas,x,y){
  const s=interiorStateV286886();if(!s)return false;if(isWorldOverlayOpen()||!s.view)return true;
  const r=canvas.getBoundingClientRect(),v=s.view,wx=((x-r.left)*v.vw/r.width-v.x)/v.scale,wy=((y-r.top)*v.vh/r.height-v.y)/v.scale;
- const station=s.stations.find(a=>Math.hypot(a.x-wx,a.y-wy)<30);
- interiorRouteV286886(s,station?.x??wx,station?(station.y+(station.id==='door'?0:32)):wy);return true;
+ if(v.painted&&wx>=256&&wx<=320&&wy>=392&&wy<=444){interiorRouteV286886(s,288,400);return true;}
+ const point=v.painted?unprojectInteriorV286892(wx,wy):{x:wx,y:wy};if(!point){s.hallDestination=null;return true;}
+ const station=s.stations.find(a=>Math.hypot(a.x-point.x,a.y-point.y)<30);
+ interiorRouteV286886(s,station?.x??point.x,station?(station.y+(station.id==='door'?0:32)):point.y);return true;
 }
 function leaveInteriorV286886(){
  const s=interiorStateV286886();if(!s||isWorldOverlayOpen()||!canMapNpcActV2864()||document.hidden)return;
@@ -2921,10 +2923,67 @@ function interiorFloorV286886(s){
  x.fillStyle='#2b3732';x.fillRect(256,400,64,48);x.fillStyle='#d2b478';x.fillRect(256,400,64,5);x.font='16px serif';x.textAlign='center';x.fillText('出口',288,433);
  s.floor=c;return c;
 }
+// Bounded shared textures, requested only on entry. No per-room requests, RAFs or timers.
+const INTERIOR_ART_V286892={started:false,room:null,props:null,npc:null,ready:false};
+const INTERIOR_FRAMES_V286892={bed:[0,100,438,314],desk:[439,100,432,314],book:[930,0,310,429],furnace:[40,415,345,493],throne:[404,430,474,466],pillar:[980,425,200,479],cushion:[45,940,340,290],redRug:[407,898,454,345],jadeRug:[866,898,370,345]};
+function prepareInteriorArtV286892(){
+ const a=INTERIOR_ART_V286892;if(a.started)return;a.started=true;
+ for(const [key,url]of [['room','./interior-painted-v286892/room.webp'],['props','./interior-painted-v286892/props.webp'],['npc','./art/npc/sect-stewards-v286879.webp']]){
+  const image=new Image();image.decoding='async';
+  image.onload=()=>{if(image.naturalWidth>0)a[key]=image;image.onload=image.onerror=null;a.ready=!!(a.room&&a.props);};
+  image.onerror=()=>{image.onload=image.onerror=null;};image.src=url;
+ }
+}
+// The logical floor and its collision grid remain unchanged. Both drawing and picking use this mapping.
+function projectInteriorV286892(x,y){const t=(y-64)/352,w=388+138*t;return {x:288+(x-288)/512*w,y:132+t*276,k:w/512};}
+function unprojectInteriorV286892(x,y){const t=(y-132)/276,w=388+138*t;if(!Number.isFinite(x)||!Number.isFinite(y)||t<0||t>1||w<=0)return null;const wx=288+(x-288)*512/w;return wx>=32&&wx<=544?{x:wx,y:64+t*352}:null;}
+function interiorPropV286892(ctx,name,x,y,width,height){
+ const a=INTERIOR_ART_V286892,f=INTERIOR_FRAMES_V286892[name];if(!a.props||!f)return;
+ const h=height||width*f[3]/f[2];ctx.drawImage(a.props,...f,x-width/2,y-h,width,h);
+}
+function paintedInteriorFloorV286892(s){
+ if(s.floor&&s.floorPainted)return s.floor;
+ if(s.floor)s.floor.width=s.floor.height=1;
+ const c=document.createElement('canvas');c.width=1152;c.height=896;const ctx=c.getContext('2d');ctx.scale(2,2);
+ ctx.drawImage(INTERIOR_ART_V286892.room,0,0,576,448);
+ const rug=projectInteriorV286892(288,370);interiorPropV286892(ctx,s.kind==='home'?'jadeRug':'redRug',rug.x,rug.y,158,192);
+ // Door marker uses text drawn by the game, so generated art never dictates an interaction label.
+ ctx.fillStyle='rgba(30,24,18,.82)';ctx.fillRect(260,414,56,21);ctx.font='14px serif';ctx.textAlign='center';ctx.fillStyle='#ead39b';ctx.fillText('出口',288,430);
+ s.floor=c;s.floorPainted=true;return c;
+}
+function drawPaintedInteriorV286892(ctx,s){
+ ctx.drawImage(paintedInteriorFloorV286892(s),0,0,576,448);
+ const kinds={home:['bed','desk','book'],hall:['book','throne','furnace'],library:['book','desk','book'],workshop:['book','desk','furnace'],shop:['book','desk','book']},names=kinds[s.kind]||kinds.hall;
+ const items=[{type:'prop',name:names[0],x:112,y:160,w:104},{type:'prop',name:names[1],x:288,y:128,w:128},{type:'prop',name:names[2],x:464,y:160,w:100},
+  {type:s.kind==='home'?'prop':'npc',name:'desk',x:176,y:192,w:38},
+  {type:'prop',name:s.kind==='home'?'cushion':s.kind==='workshop'?'furnace':'desk',x:400,y:192,w:38},
+  {type:'player',x:s.player.x,y:s.player.y,w:0}];
+ if(s.kind==='hall')for(const x of [12,564]){const p=projectInteriorV286892(x,345);interiorPropV286892(ctx,'pillar',p.x,p.y,30,175);}
+ items.sort((a,b)=>a.y-b.y);
+ for(const item of items){const p=projectInteriorV286892(item.x,item.y);
+  if(item.type==='player'){
+   const scale=.95*p.k;ctx.save();ctx.translate(p.x-s.player.x*scale,p.y-(s.player.y+17)*scale);ctx.scale(scale,scale);drawActor25DV2770(ctx,s.player);ctx.restore();
+  }else if(item.type==='npc'){
+   const img=INTERIOR_ART_V286892.npc,key=s.kind==='workshop'?'medicine':s.kind==='library'?'teaching':'affairs',frame=SECT_STEWARDS_V286865[key],h=88*p.k;
+   if(img){const w=h*frame.w/941;ctx.drawImage(img,frame.x,0,frame.w,941,p.x-w/2,p.y-h,w,h);}
+   else{ctx.save();ctx.translate(p.x,p.y-23*p.k);ctx.scale(p.k,p.k);drawMapNpcV2863(ctx,{action:s.kind==='shop'?'npc_trader':'npc_elder'});ctx.restore();}
+  }else interiorPropV286892(ctx,item.name,p.x,p.y,item.w*p.k);
+ }
+ if(s.path.length){const t=projectInteriorV286892(s.path.at(-1).x,s.path.at(-1).y);ctx.strokeStyle='#ead59c';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(t.x,t.y,10,5,0,0,Math.PI*2);ctx.stroke();}
+ // Labels are grounded to the interactable locations, not baked into the image.
+ for(const a of s.stations){if(a.id==='door')continue;const p=projectInteriorV286892(a.x,a.y),near=Math.hypot(a.x-s.player.x,a.y-s.player.y)<48;
+  ctx.font='bold 14px serif';ctx.textAlign='center';const w=ctx.measureText(a.name).width+18;
+  ctx.fillStyle=near?'rgba(83,62,31,.92)':'rgba(18,27,25,.86)';ctx.fillRect(p.x-w/2,p.y+13,w,22);ctx.fillStyle=near?'#ffe5a3':'#e9d6b0';ctx.fillText(a.name,p.x,p.y+29);
+ }
+}
+
 function drawInteriorV286886(){
  const s=interiorStateV286886();if(!s)return false;const canvas=document.getElementById('worldCanvas'),ctx=canvas.getContext('2d'),dpr=canvas._dpr||1,vw=canvas.width/dpr,vh=canvas.height/dpr;
- const landscape=vw>vh,top=landscape?52:90,bottom=landscape?16:155,scale=Math.min((vw-24)/576,Math.max(100,vh-top-bottom)/448),x=(vw-576*scale)/2,y=top+Math.max(0,(vh-top-bottom-448*scale)/2);
- s.view={x,y,scale,vw,vh};ctx.setTransform(dpr,0,0,dpr,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.fillStyle='#101d19';ctx.fillRect(0,0,vw,vh);ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);ctx.drawImage(interiorFloorV286886(s),0,0);
+ const painted=INTERIOR_ART_V286892.ready,landscape=vw>vh,top=landscape?96:174,bottom=landscape?12:150;
+ const scale=painted&&!landscape?Math.min(1,(vw-16)/576*1.45,Math.max(100,vh-top-bottom)/448):Math.min((vw-24)/576,Math.max(100,vh-top-bottom)/448);
+ const point=painted?projectInteriorV286892(s.player.x,s.player.y):s.player;
+ const x=576*scale<=vw?(vw-576*scale)/2:Math.min(0,Math.max(vw-576*scale,vw/2-point.x*scale)),y=top+Math.max(0,(vh-top-bottom-448*scale)/2);
+ s.view={x,y,scale,vw,vh,painted};ctx.setTransform(dpr,0,0,dpr,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.fillStyle='#101d19';ctx.fillRect(0,0,vw,vh);ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);if(painted){drawPaintedInteriorV286892(ctx,s);ctx.restore();return true;}ctx.drawImage(interiorFloorV286886(s),0,0);
  for(const a of s.stations){if(a.id==='door')continue;ctx.fillStyle='#e5ce9c';ctx.font='bold 20px serif';ctx.textAlign='center';ctx.fillText(a.name,a.x,a.y-38);
   if(a.dialog){ctx.fillStyle='#344f51';ctx.beginPath();ctx.moveTo(a.x,a.y-25);ctx.lineTo(a.x-13,a.y+10);ctx.lineTo(a.x+13,a.y+10);ctx.closePath();ctx.fill();ctx.fillStyle='#d7b990';ctx.beginPath();ctx.arc(a.x,a.y-28,7,0,Math.PI*2);ctx.fill();}
   else{ctx.fillStyle='#b29667';ctx.fillRect(a.x-21,a.y-18,42,25);ctx.fillStyle=s.kind==='workshop'?'#526f65':'#ece0bc';ctx.fillRect(a.x-13,a.y-26,26,11);}
@@ -2933,7 +2992,7 @@ function drawInteriorV286886(){
  drawActor25DV2770(ctx,s.player);ctx.restore();return true;
 }
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.91';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.92';
 
 
 if(typeof installBagViewV2905==='function')installBagViewV2905();
