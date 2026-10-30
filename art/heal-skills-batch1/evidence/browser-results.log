@@ -1,0 +1,38 @@
+### Result
+{
+  "checks": [
+    "three effects loaded",
+    "dew_return drawable",
+    "dew_return full HP suppresses absorption",
+    "dew_return cancel clears",
+    "dew_return terminal cleanup",
+    "spring_return drawable",
+    "spring_return full HP suppresses absorption",
+    "spring_return cancel clears",
+    "spring_return terminal cleanup",
+    "verdant_bloom drawable",
+    "verdant_bloom full HP suppresses absorption",
+    "verdant_bloom cancel clears",
+    "verdant_bloom terminal cleanup",
+    "pause stable",
+    "restart",
+    "single frame at15FPS",
+    "switch restores project scale",
+    "reduced motion draws",
+    "portrait no horizontal overflow",
+    "landscape no horizontal overflow",
+    "missing texture isolated to one effect",
+    "other effect remains available",
+    "portable HTML ready without script errors"
+  ],
+  "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+  "viewport": [
+    844,
+    390
+  ],
+  "dpr": 1
+}
+### Ran Playwright code
+```js
+await page.evaluate('() => (({checks:window.__healChecks, browser:navigator.userAgent, viewport:[innerWidth,innerHeight],dpr:devicePixelRatio}))');
+```

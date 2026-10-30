@@ -5,7 +5,7 @@
 <div class="controls" style="margin:0 18px 16px"><button id="elementTurn">推进敌方回合</button><button id="guardHit">护盾承伤 30 点</button><button id="clearElements">清除缠绕与护盾</button></div>
 <div class="controls" style="margin:0 18px 16px"><label><input id="cloudDomain" type="checkbox"> 九霄雷云套装雷域</label><button id="thunderTurn">雷域推进一回合</button><button id="reflectHit">模拟承伤反噬</button><button id="clearThunder">清除雷域与雷铠</button></div>
 <div class="controls" style="margin:0 18px 16px"><label><input id="iceFreeze" type="checkbox" checked> 试演冻结命中（不代表实际概率）</label><button id="iceTick">冰蚀结算一次</button><button id="clearIce">清除冰系状态</button></div>
-<script src="./xiantu-v2855-skill-fx.js?v=286888-halls-20261030"></script><script src="./xiantu-v28684-duel.js?v=286888-halls-20261030"></script><script>
+<script src="./xiantu-v2855-skill-fx.js?v=286890-healing-20261030"></script><script src="./xiantu-v28684-duel.js?v=286890-healing-20261030"></script><script>
 const state={playerName:'青云剑修',enemyName:'苍山野狼',playerHp:720,playerMax:720,enemyHp:980,enemyMax:980};let scene;const selector=document.getElementById('enemySelect');XiantuDuel25D.roster.forEach(p=>{const option=document.createElement('option');option.value=p.key;option.textContent=p.name;selector.appendChild(option);});let timer=0,busy=false;const status=document.getElementById('status');
 function clearThunder(){state.thunderDomainTurns=0;state.thunderDomainDamage=0;state.thunderArmorTurns=0;}
 document.getElementById('clearThunder').onclick=clearThunder;
@@ -35,17 +35,21 @@ function perform(action,selected=null){
  const preset={thunder:'九天神雷',ice:'玄冰刺',fire:'天火焚世',heal:'青莲护心'};
  const effect=selected|| (preset[action]?InkSkillFxV2854.profile(preset[action]):null);
  const side=action==='wolf'?'enemy':'player',target=side==='player'?'enemy':'player',heal=effect?.family==='heal',self=effect?.self;
+ const healing=InkSkillFxV2854.healBatch1?.definition(effect?.name);
+ const healAmount=healing?Math.max(0,Math.min(state.playerMax-state.playerHp,Math.floor(state.playerMax*({'凝露诀':.15,'回春术':.3,'生生不息':.5}[effect.name])))):0;
  const amount=action==='finish'?state.enemyHp:heal?120:effect?210:96;
  busy=true;
  if(['炎阳护盾','冰甲护身'].includes(effect?.name)){state.guardPool=Math.max(state.guardPool||0,Math.floor(state.playerMax*.2));state.guardTurns=3;state.guardElement=effect.name==='冰甲护身'?'ice':'fire';}
  if(effect?.name==='雷神附体')state.thunderArmorTurns=3;
- scene.act(side,side==='enemy'?undefined:effect?.family||'sword',effect?.name||'');
+ if(healing)state.playerHp+=healAmount;
+ scene.act(side,side==='enemy'?undefined:effect?.family||'sword',effect?.name||'',false,healing?{actualHeal:healAmount}:null);
+ if(healing)scene.hit('player',healAmount,true);
  if(effect?.name==='玄罡护体剑'){state.swordGuardRatio=.35;scene.swordEvent('guard',{name:effect.name});}
  if(effect?.name==='冰甲护身')scene.iceEvent('guard',{name:effect.name});
  if(effect?.name==='雷神附体')scene.thunderEvent('armor',{name:effect.name});
  status.textContent=effect?effect.name+' · 起势、命中与余韵':side==='enemy'?state.enemyName+' 正在出招。':'剑修踏步出剑。';
  timer=setTimeout(()=>{
-  if(heal){state.playerHp=Math.min(state.playerHp,state.playerMax-120);state.playerHp+=120;scene.hit('player',120,true);}
+  if(heal&&!healing){state.playerHp=Math.min(state.playerHp,state.playerMax-120);state.playerHp+=120;scene.hit('player',120,true);}
   else if(!self){let loss=amount;if(target==='player'&&state.swordGuardRatio>0){loss=Math.floor(loss*(1-state.swordGuardRatio));state.swordGuardRatio=0;scene.swordEvent('consume');}if(target==='player'&&state.guardPool>0&&state.guardTurns>0){const absorbed=Math.min(loss,state.guardPool);state.guardPool-=absorbed;loss-=absorbed;}state[target+'Hp']=Math.max(0,state[target+'Hp']-loss);scene.hit(target,loss);if(side==='enemy'){if(state.thunderArmorTurns>0&&loss>0&&state.enemyHp>0){const reflected=Math.max(1,Math.floor(loss*.25));state.enemyHp=Math.max(0,state.enemyHp-reflected);scene.thunderEvent('reflect');scene.hit('enemy',reflected,false,false,false,'雷神附体·反噬');}finishElementTurn();}if(effect?.name==='炎爆术'&&document.getElementById('burnFixture').checked){state[target+'Hp']=Math.max(0,state[target+'Hp']-60);scene.hit(target,60,false,false,false,'灼烧引爆');clearBurn();}}
   if(effect?.name==='饮血剑诀'){const actualHeal=Math.max(0,Math.min(state.playerMax-state.playerHp,Math.floor(amount*.2),Math.floor(state.playerMax*.15)));state.playerHp+=actualHeal;scene.swordEvent('heal',{name:effect.name,actualHeal});scene.hit('player',actualHeal,true);}
   if(target==='enemy'&&['红莲业火','火墙术','三昧真火','天火焚世','赤焰龙息','燎原火域','流火飞索'].includes(effect?.name)){state.burnTurns=['三昧真火','天火焚世','流火飞索'].includes(effect.name)?2:3;state.burnDamage=42;state.burnHealBlock=!!state.burnHealBlock||effect.name==='红莲业火';}
@@ -60,6 +64,6 @@ function perform(action,selected=null){
  },effect&&!heal?310:155);
 }
 document.querySelector('.controls').onclick=e=>{if(e.target.dataset.act)perform(e.target.dataset.act)};
-document.getElementById('castSelected').onclick=()=>{if(busy)return;state.playerHp=skillSelect.value==='饮血剑诀'?500:720;state.enemyHp=980;clearBurn();clearElements();clearThunder();scene.reset();perform('selected',skills.find(p=>p.name===skillSelect.value))};
+document.getElementById('castSelected').onclick=()=>{if(busy)return;state.playerHp=InkSkillFxV2854.healBatch1?.definition(skillSelect.value)?(new URLSearchParams(location.search).get('fullHp')==='1'?720:200):skillSelect.value==='饮血剑诀'?500:720;state.enemyHp=980;clearBurn();clearElements();clearThunder();scene.reset();perform('selected',skills.find(p=>p.name===skillSelect.value))};
 window.addEventListener('pagehide',()=>{clearTimeout(timer);scene.destroy();});
 </script></html>

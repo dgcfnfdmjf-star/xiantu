@@ -37,6 +37,8 @@ function poiNameAnchorV286880(o){
   const kind=getPoiVisualKind(o),grand=scrollPalacePoiV2831(o)||o.buildingId==='gate';
   const architecture=grand||o.action==='lingxiao_building'||['village','shop','market','home','alchemy','artifacts'].includes(kind);
   const oldY=o.y+Math.max(31,(Number(o.r)||60)*.72)-10;
+  const presence=typeof mapPoiBoundsV286889==='function'?mapPoiBoundsV286889(o):null;
+  if(presence)return {architecture,grand,vector:true,y:Math.ceil(presence.bottom+10)};
   const vector=typeof vectorLandmarkBoundsV286882==='function'?vectorLandmarkBoundsV286882(o):null;
   if(vector)return {architecture,grand,vector:true,y:Math.ceil(vector.bottom+10)};
   // Share the real painted bounds, including regional art and depth/landmark scale.
@@ -79,4 +81,4 @@ function installMapLabelControlsV211(){const actions=document.getElementById('wo
 const v211EnableWorldBase=window.enableWorldMode;window.enableWorldMode=function(){const r=v211EnableWorldBase?.apply(this,arguments);setTimeout(installMapLabelControlsV211,0);return r};
 setTimeout(()=>{installPetGuideButtonV211();installMapLabelControlsV211()},100);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-16-petguidemapv211script.js"]="28.68.88";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-16-petguidemapv211script.js"]="28.68.90";

@@ -248,7 +248,7 @@ function create(host,read,enemyKey='wolf'){
      const hero={x:px+8,y:205};
      Object.assign(from,a.side==='player'?hero:torso);Object.assign(to,a.side==='player'?torso:hero);
     }
-    fxJobs.push({action:a,job:{id:a.side==='player'?1:2,profile:a.fxProfile,from,to,...a.anchors,width:W,clipBottom:355,scale:1.05,light:fxSettings.light,reduced,duration:ink.authoredDuration?.(a.name)||900,arriveAt:contactTime(a),hitAt:a.impactAt??(a.fxProfile.self?contactTime(a):null),guardActive:a.name==='炎阳护盾'?ink.fireFinale?.guardActive(data):a.name==='冰甲护身'?data.guardElement==='ice'&&data.guardPool>0&&data.guardTurns>0:undefined,detonationAt:a.detonationAt??null,actualHeal:a.actualHeal||0,groundDrawn:!!ink.drawGround}});
+    fxJobs.push({action:a,job:{id:a.side==='player'?1:2,profile:a.fxProfile,from,to,...a.anchors,width:W,clipBottom:355,scale:1.05,light:fxSettings.light,reduced,duration:ink.authoredDuration?.(a.name)||900,arriveAt:contactTime(a),hitAt:a.impactAt??(a.fxProfile.self?contactTime(a):null),guardActive:a.name==='炎阳护盾'?ink.fireFinale?.guardActive(data):a.name==='冰甲护身'?data.guardElement==='ice'&&data.guardPool>0&&data.guardTurns>0:undefined,detonationAt:a.detonationAt??null,actualHeal:a.actualHeal||0,alive:data.playerHp>0&&data.enemyHp>0,sameActor:!a.healOwner||a.healOwner===data.ownerToken,sameTarget:!a.healTarget||a.healTarget===data.targetToken,groundDrawn:!!ink.drawGround}});
    }
   }
   const thunderJobs=thunder?.collect((name,a)=>{
@@ -376,7 +376,7 @@ function create(host,read,enemyKey='wolf'){
  }else wake();}
  function destroy(){if(dead)return;dead=true;tools.destroy();thunder?.clear();ice?.clear();sword?.clear();unsubscribeThunder?.();unsubscribeIce?.();unsubscribeSword?.();thunderFloats=[];clearElements();domainSource=null;attack=null;queue=[];tails=[];hits=[];floats=[];cancelAnimationFrame(raf);raf=0;document.removeEventListener('visibilitychange',visibility);stage.remove();canvas.width=canvas.height=1;bg.width=bg.height=1;host.classList.remove('duel25-active');if(host.id==='combatArena')document.getElementById('combatPanel')?.classList.remove('duel25-panel');}
  document.addEventListener('visibilitychange',visibility);wake();
- function act(side,element,name='',enhance=false){
+ function act(side,element,name='',enhance=false,visualResult=null){
   if(dead)return;
   if(name==='雷神附体·反噬')return; // The acknowledged reflect event owns its own moving effect.
   syncDomain();
@@ -386,10 +386,10 @@ function create(host,read,enemyKey='wolf'){
   // The engine emits attack first, then its skill effect 150ms later: enrich that
   // same action instead of restarting the lunge or queuing a duplicate turn.
   const latest=queue.length?queue[queue.length-1]:attack;
-  if(enhance&&latest?.side===side&&(queue.length||performance.now()-latest.realAt<350)){
+  if(enhance&&!visualResult&&latest?.side===side&&(queue.length||performance.now()-latest.realAt<350)){
    latest.element=element;latest.name=name;latest.fxProfile=null;latest.anchors=null;if(name==='炎阳护盾'&&side==='player')guardIntro=latest;return;
   }
-  const next={side,element,name,at:elapsed,realAt:performance.now(),pendingHits:[]};
+  const next={side,element,name,at:elapsed,realAt:performance.now(),pendingHits:[],actualHeal:Number.isFinite(visualResult?.actualHeal)?Math.max(0,visualResult.actualHeal):0,healOwner:visualResult?.owner,healTarget:visualResult?.target};
   if(name==='炎阳护盾'&&side==='player')guardIntro=next;
   if(!attack||elapsed-attack.at>=620)attack=next;
   else {if(queue.length>=4)flushHits(queue.shift());next.waiting=true;queue.push(next);}
@@ -440,7 +440,7 @@ if(typeof window.startCombat==='function'){
  const start=window.startCombat;window.startCombat=function(...args){const result=start.apply(this,args);if(typeof currentEnemy!=='undefined'&&currentEnemy===args[0]&&gameState==='combat'){stop();const key=typeof scrollMonsterKeyV2853==='function'?scrollMonsterKeyV2853(currentEnemy.name):null;if(ROSTER.some(p=>p.key===key)){owner=player;foe=currentEnemy;scene=create(document.getElementById('combatArena'),()=>({...readCombatElements(foe,owner),targetToken:foe,active:player===owner&&currentEnemy===foe&&(gameState==='combat'||gameState==='combat-ending'),compact:!!document.getElementById('battleVitalsV286816'),pet:owner.activePet,playerName:owner.name,enemyName:foe.name,playerHp:owner.hp,playerMax:getMaxHp(),enemyHp:foe.hp,enemyMax:foe.maxHp,burnTurns:foe.burnTurns,burnDamage:foe.burnStacks,burnHealBlock:!!foe._burnHealBlockV286818}),key);}}return result;};
  for(const name of ['resetRuntimeState','endCombatAfterCapture']){const base=window[name];if(typeof base==='function')window[name]=function(...args){stop();return base.apply(this,args);};}
  const attack=window.playAttackAnimation;window.playAttackAnimation=function(side){if(scene?.ready){scene.act(side,side==='player'&&casting?casting.element||'sword':side==='enemy'?undefined:'sword',side==='player'&&casting?casting.name:'');return;}return attack.apply(this,arguments);};
- const skill=window.playSkillEffect;window.playSkillEffect=function(name,element,source){if(scene?.ready){scene.act('player',element||'sword',name,true);return;}return skill.apply(this,arguments);};
+ const skill=window.playSkillEffect;window.playSkillEffect=function(name,element,source,visualResult){if(scene?.ready){scene.act('player',element||'sword',name,true,visualResult);return;}return skill.apply(this,arguments);};
  const bossSkill=window.playBossSkillEffect;if(typeof bossSkill==='function')window.playBossSkillEffect=function(name){if(scene?.ready){scene.act('enemy',window.InkSkillFxV2854?.profile(name).family||'sword',name,true);return;}return bossSkill.apply(this,arguments);};
  const damage=window.showDamageNumber;window.showDamageNumber=function(amount,side,heal,crit,boss,pet,skillName){if(scene?.ready){scene.hit(side,amount,heal,crit,pet,skillName);return;}if(skillName==='灼烧引爆'&&Number(amount)>0)window.InkSkillFxV2854?.fireBatch?.detonate(side);return damage.apply(this,arguments);};
  const log=window.addCombatLog;if(typeof log==='function')window.addCombatLog=function(text){
@@ -2933,7 +2933,7 @@ function drawInteriorV286886(){
  drawActor25DV2770(ctx,s.player);ctx.restore();return true;
 }
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.88';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.90';
 
 
 if(typeof installBagViewV2905==='function')installBagViewV2905();

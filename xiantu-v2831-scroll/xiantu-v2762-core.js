@@ -1535,8 +1535,8 @@
       return true;
     }
 
-    function playSkillEffect(skillName, skillElement='', source='active') {
-      if(window.playInkSkillV2854?.(skillName,skillElement,'player',source))return;
+    function playSkillEffect(skillName, skillElement='', source='active', visualResult=null) {
+      if(window.playInkSkillV2854?.(skillName,skillElement,'player',source,visualResult))return;
       const effectContainer=document.getElementById('skillEffect');
       if(!effectContainer) return;
       clearSkillFxV2786();
@@ -7217,6 +7217,7 @@
         player.mp+=mp;addCombatLog(`归元恢复 ${mp} 点灵力。`,'heal');
       }
       applyGuardV2785(skill);
+      return amount; // Presentation metadata only; healing was already committed above.
     }
     function swordAfterHitV2785(skill,actualLoss) {
       if(skill.element!=='sword')return;
@@ -7368,9 +7369,9 @@
         }
         // 治愈技能
         if (skill.element === 'heal') {
-          healSkillV2785(skill);
+          const actualHeal=healSkillV2785(skill);
           playSound('heal');
-          playSkillEffect(skill.name, skill.element);
+          playSkillEffect(skill.name, skill.element,'active',{actualHeal,owner:player,target:currentEnemy});
           updateCombatUI();
           
           // 治愈后敌人回合
@@ -13574,6 +13575,17 @@
       if(plus) plus.disabled=MINIMAP_VIEW_STATE.zoom>=MINIMAP_VIEW_STATE.maxZoom;
       try{ drawWorldMinimap(window.innerWidth,window.innerHeight); }catch(_){ }
     }
+    function bindMinimapWheelV286889(){
+      const mini=document.getElementById('minimapCanvas');if(!mini||mini._wheelV286889)return;
+      let last=-Infinity;
+      mini._wheelV286889=true;mini.addEventListener('wheel',e=>{
+        if(e.ctrlKey||!Number.isFinite(e.deltaY)||e.deltaY===0||Math.abs(e.deltaX)>Math.abs(e.deltaY)||!canMapNpcActV2864()||isWorldOverlayOpen()||document.hidden||typeof interiorV286886!=='undefined'&&interiorV286886)return;
+        const r=mini.getBoundingClientRect(),radius=Math.min(r.width,r.height)/2;
+        if(Math.hypot(e.clientX-r.left-r.width/2,e.clientY-r.top-r.height/2)>radius)return;
+        e.preventDefault();const now=performance.now();if(now-last<100)return;last=now;
+        changeMinimapZoom(e.deltaY<0?.5:-.5);
+      },{passive:false});
+    }
     window.changeMinimapZoom=changeMinimapZoom;
 
     // Shared reset for keyboard, point navigation and control-mode transitions.
@@ -13848,7 +13860,7 @@
       const items=FLAT_WORLD._drawItems; items.length=0;
       const minX=camDraw.x-130,maxX=camDraw.x+vw+130,minY=camDraw.y-130,maxY=camDraw.y+vh+130;
       const visible=o=>o.x>=minX&&o.x<=maxX&&o.y>=minY&&o.y<=maxY;
-      const visiblePoi=o=>visible(o)||architectureInViewV286881(o,camDraw,vw,vh)||warSpriteInViewV286888(o,{minX:camDraw.x,maxX:camDraw.x+vw,minY:camDraw.y,maxY:camDraw.y+vh});
+      const visiblePoi=o=>visible(o)||mapPoiInViewV286889(o,camDraw,vw,vh)||architectureInViewV286881(o,camDraw,vw,vh)||warSpriteInViewV286888(o,{minX:camDraw.x,maxX:camDraw.x+vw,minY:camDraw.y,maxY:camDraw.y+vh});
       for(const poi of FLAT_WORLD.pois)if(visiblePoi(poi)&&(poi.action!=='explore_v2828'||exploredPointV2828(poi.x,poi.y)))items.push(poi);
       for(const mon of FLAT_WORLD.monsters)if(mon.alive&&!mon.inCombat&&visible(mon)&&exploredPointV2828(mon.x,mon.y))items.push(mon);
       for(const tree of FLAT_WORLD.decor)if(tree.t==='tree'&&visible(tree)&&exploredPointV2828(tree.x,tree.y))items.push(tree);
@@ -14069,32 +14081,43 @@
     }
     function planNavigationV2830(goal){
       if(!goal||![goal.x,goal.y].every(Number.isFinite))return null;
-      const p=FLAT_WORLD.player,step=40,cols=Math.ceil(FLAT_WORLD.width/step),rows=Math.ceil(FLAT_WORLD.height/step),radius=(p.r||17)+4;
-      const blockers=(FLAT_WORLD.colliders||[]).map(c=>({x:c.x,y:c.y,limit:c.radius+radius}));
-      const clear=(a,b)=>{
+      const p=FLAT_WORLD.player,radius=(p.r||17)+4;
+      const blockers=(FLAT_WORLD.colliders||[]).map(c=>({x:c.x,y:c.y,limit:c.radius+radius,physical:c.radius+(p.r||17)}));
+      const clear=(a,b,departure=false)=>{
         const minX=Math.min(a.x,b.x),maxX=Math.max(a.x,b.x),minY=Math.min(a.y,b.y),maxY=Math.max(a.y,b.y);
         for(const c of blockers){
           if(c.x<minX-c.limit||c.x>maxX+c.limit||c.y<minY-c.limit||c.y>maxY+c.limit)continue;
-          if(!(worldDistanceSegmentV2827(c.x,c.y,a,b)>=c.limit))return false;
+          const startDistance=Math.hypot(a.x-c.x,a.y-c.y);
+          // Contact may lie inside the planner's extra 4-unit padding. Only the
+          // first segment may leave it, monotonically away from the real collider.
+          const leaving=departure&&startDistance<c.limit&&startDistance>=c.physical-1e-6&&(a.x-c.x)*(b.x-a.x)+(a.y-c.y)*(b.y-a.y)>=0;
+          if(!(worldDistanceSegmentV2827(c.x,c.y,a,b)>=(leaving?c.physical-1e-6:c.limit)))return false;
         }
         return true;
       };
       if(goal.exact&&!clear(goal,goal))return null;
-      const point=id=>({x:(id%cols)*step+20,y:Math.floor(id/cols)*step+20});
-      const open=new Uint8Array(cols*rows);for(let id=0;id<open.length;id++){const q=point(id);open[id]=q.x>=30&&q.y>=30&&q.x<=FLAT_WORLD.width-30&&q.y<=FLAT_WORLD.height-30&&clear(q,q)?1:0;}
-      let start=-1,best=Infinity;for(let id=0;id<open.length;id++)if(open[id]){const q=point(id),d=Math.hypot(q.x-p.x,q.y-p.y);if(d<best&&d<120&&clear(p,q)){start=id;best=d;}}if(start<0)return null;
-      const queue=[start],prev=new Int32Array(open.length);prev.fill(-2);prev[start]=-1;let found=-1;
-      for(let head=0;head<queue.length;head++){
-        const id=queue[head],q=point(id);if(goal.exact?clear(q,goal):Math.hypot(q.x-goal.x,q.y-goal.y)<(Number(goal.r)||0)+(goal.id?43:28)){found=id;break;}
-        for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]]){
-          const x=id%cols+dx,y=Math.floor(id/cols)+dy,n=y*cols+x;
-          if(x<0||y<0||x>=cols||y>=rows||!open[n]||prev[n]!==-2||!clear(q,point(n)))continue;
-          prev[n]=id;queue.push(n);
+      const search=step=>{
+        const cols=Math.ceil(FLAT_WORLD.width/step),rows=Math.ceil(FLAT_WORLD.height/step);
+        if(cols*rows>100000)return null; // bounded fallback, never a per-frame search
+        const point=id=>({x:(id%cols)*step+step/2,y:Math.floor(id/cols)*step+step/2});
+        const open=new Uint8Array(cols*rows),prev=new Int32Array(cols*rows),queue=[];prev.fill(-2);
+        for(let id=0;id<open.length;id++){
+          const q=point(id);open[id]=q.x>=30&&q.y>=30&&q.x<=FLAT_WORLD.width-30&&q.y<=FLAT_WORLD.height-30&&clear(q,q)?1:0;
+          if(open[id]&&Math.hypot(q.x-p.x,q.y-p.y)<120&&clear(p,q,true)){prev[id]=-1;queue.push(id);}
         }
-      }
-      if(found<0)return null;const path=[];for(let id=found;id!==-1;id=prev[id])path.push(point(id));path.reverse();if(goal.exact)path.push({x:goal.x,y:goal.y});
-      // Smooth only across collision-free segments; never cut through a trunk or roof footprint.
-      const smooth=[];let anchor=p,i=0;while(i<path.length){let far=i;for(let j=i+1;j<path.length;j++){if(clear(anchor,path[j]))far=j;else break;}smooth.push(path[far]);anchor=path[far];i=far+1;}return smooth;
+        let found=-1;
+        for(let head=0;head<queue.length;head++){
+          const id=queue[head],q=point(id);if(goal.exact?clear(q,goal):Math.hypot(q.x-goal.x,q.y-goal.y)<(Number(goal.r)||0)+(goal.id?43:28)){found=id;break;}
+          for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]]){
+            const x=id%cols+dx,y=Math.floor(id/cols)+dy,n=y*cols+x;
+            if(x<0||y<0||x>=cols||y>=rows||!open[n]||prev[n]!==-2||!clear(q,point(n)))continue;
+            prev[n]=id;queue.push(n);
+          }
+        }
+        if(found<0)return null;const path=[];for(let id=found;id!==-1;id=prev[id])path.push(point(id));path.reverse();if(goal.exact)path.push({x:goal.x,y:goal.y});
+        const smooth=[];let anchor=p,i=0;while(i<path.length){let far=i;for(let j=i+1;j<path.length;j++){if(clear(anchor,path[j],anchor===p))far=j;else break;}smooth.push(path[far]);anchor=path[far];i=far+1;}return smooth;
+      };
+      return search(40)||search(20);
     }
     function stopNavigationV2830(message=''){
       if(autoNavigationV2830&&FLAT_WORLD.target===autoNavigationV2830.target){FLAT_WORLD.target=null;FLAT_WORLD.tapTargetFx=null;}
@@ -14142,6 +14165,7 @@
     // Visible architecture uses the same atlas choice, dimensions and world transforms as drawing.
     function poiTapBoxV2904(o){
       if(!o||o.action==='explore_v2828'||o.action==='war_map_v2840')return null;
+      const presence=mapPoiBoundsV286889(o);if(presence)return presence;
       const vector=vectorLandmarkBoundsV286882(o);if(vector)return vector;
       let w=0,h=0,bottom=32;const regional=regionBuildingCellV2835(o),art=SCROLL_ART_V2831;
       if(regional&&art.regionalBuildings?.width>0&&art.regionalBuildings?.height>0){w=architectureWidthV2900(o,o.action==='lingxiao_building'?100:regional.row===2?180:regional.row===0?150:125);h=w*(art.regionalBuildings.height/4)/(art.regionalBuildings.width/3);}
@@ -14641,6 +14665,37 @@
       ctx.restore();
     }
 
+    const EXPLORATION_BEACONS_V286889=new Map();
+    function explorationBeaconV286889(type){
+      type=[0,1,2].includes(type)?type:2;if(EXPLORATION_BEACONS_V286889.has(type))return EXPLORATION_BEACONS_V286889.get(type);
+      const c=document.createElement('canvas');c.width=56;c.height=100;const ctx=c.getContext('2d'),rgb=['105,240,174','255,215,106','142,212,255'][type],g=ctx.createLinearGradient(0,100,0,0);
+      g.addColorStop(0,`rgba(${rgb},.42)`);g.addColorStop(.6,`rgba(${rgb},.16)`);g.addColorStop(1,`rgba(${rgb},0)`);ctx.fillStyle=g;ctx.fillRect(6,0,44,100);EXPLORATION_BEACONS_V286889.set(type,c);return c;
+    }
+    function drawExplorationPresenceV286889(ctx,o){
+      const done=!!explorationV2828().claimed[o.id],quality=mapAliveQualityV2893(),active=!done&&exploredPointV2828(o.x,o.y)&&quality!=='off';
+      ctx.save();
+      if(active){
+        const animate=quality==='high'&&!PERF_CONFIG.lowEnd&&!mapAliveCalmV2893(),pulse=animate?(Math.sin(performance.now()*.002+o.x)+1)/2:0;
+        if(quality==='high'&&!PERF_CONFIG.lowEnd){ctx.globalAlpha*=.8+pulse*.2;ctx.drawImage(explorationBeaconV286889(o.exploreTypeV2828),-28,-80,56,100);}
+        ctx.strokeStyle=['#69bf98','#c8a34e','#72aabf'][o.exploreTypeV2828]||'#72aabf';ctx.lineWidth=1.8;ctx.beginPath();ctx.ellipse(0,15,28+pulse*3,10+pulse,0,0,Math.PI*2);ctx.stroke();
+      }
+      ctx.scale(1.38,1.38);ctx.fillStyle=done?'#7c8980':'#d4bd7e';ctx.beginPath();ctx.ellipse(0,13,20,7,0,0,Math.PI*2);ctx.fill();ctx.font='27px "Segoe UI Emoji"';ctx.textAlign='center';ctx.fillText(done?'✓':o.icon,0,5);ctx.restore();
+    }
+    function drawMapNpcPresenceV286889(ctx,o,status){
+      ctx.save();if(mapAliveQualityV2893()!=='off'){ctx.strokeStyle=o.action==='yewuji_v2810'?'rgba(180,120,210,.45)':'rgba(100,160,140,.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(0,24,36,11,0,0,Math.PI*2);ctx.stroke();}
+      ctx.translate(0,24);ctx.scale(1.35,1.35);ctx.translate(0,-24);drawMapNpcV2863(ctx,o);if(status)drawMapNpcStatusV2864(ctx,o);ctx.restore();
+    }
+    function mapPoiBoundsV286889(o){
+      if(!o||typeof landmarkPointV2893!=='function')return null;let half,top,bottom;
+      if(o.action==='explore_v2828'){half=33;top=-82;bottom=30;}
+      else if(getPoiVisualKind(o)==='npc'||o.action==='yewuji_v2810'){half=56;const offset=o.action==='yewuji_v2810'?16:0;top=24+(-90-24)*1.35+offset;bottom=40+offset;}
+      else return null;
+      const a=landmarkPointV2893(o,-half,top),b=landmarkPointV2893(o,half,bottom);return {left:a.x,right:b.x,top:a.y,bottom:b.y};
+    }
+    function mapPoiInViewV286889(o,cam,vw,vh){
+      const b=mapPoiBoundsV286889(o);return !!b&&b.right>=cam.x&&b.left<=cam.x+vw&&b.bottom>=cam.y&&b.top<=cam.y+vh;
+    }
+
     function drawWorldPoi(ctx,o){
       ctx.save();ctx.translate(o.x,o.y);
       const near=FLAT_WORLD.nearby?.id===o.id;
@@ -14649,8 +14704,7 @@
       ctx.save();
       if(typeof landmarkPoiApplyV2893==='function')landmarkPoiApplyV2893(ctx,o);
       if(kind==='npc'){
-        drawMapNpcV2863(ctx,o);
-        drawMapNpcStatusV2864(ctx,o);
+        drawMapNpcPresenceV286889(ctx,o,true);
       }else if(drawRegionBuildingV2835(ctx,o)){
         // Regional painted architecture shares existing collision and access rules.
       }else if(scrollPalacePoiV2831(o)&&drawScrollPalaceV2831(ctx,o)){
@@ -14658,7 +14712,7 @@
       }else if(drawScrollBuildingV2832(ctx,o)){
         // Shared painted atlas; gameplay location and access unchanged.
       }else if(o.action==='explore_v2828'){
-        const done=explorationV2828().claimed[o.id];ctx.fillStyle=done?'#7c8980':'#d4bd7e';ctx.beginPath();ctx.ellipse(0,13,20,7,0,0,Math.PI*2);ctx.fill();ctx.font='27px "Segoe UI Emoji"';ctx.textAlign='center';ctx.fillText(done?'✓':o.icon,0,5);
+        drawExplorationPresenceV286889(ctx,o);
       }else if(o.action==='faction_gate_v2806'){
         const roof=o.factionGroup==='demon'?'#6d344c':o.factionGroup==='immortal'?'#8b87b8':'#477365';
         drawIsoHouse(ctx,{w:78,h:64,roof,front:o.factionGroup==='demon'?'#756371':'#d3d5c7',side:'#7e8b86',style:o.factionGroup==='human'?'pagoda':o.factionGroup,trim:o.factionGroup==='demon'?'#c18b9f':'#e5d5a3'});
@@ -14749,12 +14803,12 @@
       }
       ctx.restore();
       ctx.textAlign='center';
-      if(o.action==='yewuji_v2810'){ctx.save();ctx.translate(0,16);drawMapNpcV2863(ctx,o);ctx.restore();}
+      if(o.action==='yewuji_v2810'){ctx.save();ctx.translate(0,16);drawMapNpcPresenceV286889(ctx,o,false);ctx.restore();}
       if(typeof drawSectTodoV2868==='function')drawSectTodoV2868(ctx,o);
       if(kind==='npc'||typeof drawPoiNamePlateV211!=='function'){
       ctx.font=kind==='lingxiao_building'?'700 11px Microsoft YaHei':'700 15px Microsoft YaHei';ctx.fillStyle=o.id==='travel_gate'?'#bfeaff':(kind==='npc'?'#ffd2ec':(kind==='lingxiao_building'?(canAccessBuilding(o.buildingId).allowed?getBuildingTierColor(getBuildingData(o.buildingId)):'#888'):'#ede1c0'));
-      if(!PERF_CONFIG.ultraSmooth){ctx.strokeStyle='#2b2a24';ctx.lineWidth=4;ctx.strokeText(o.name,0,o.r*.72)}
-      ctx.fillText(o.name,0,o.r*.72);
+      if(!PERF_CONFIG.ultraSmooth){ctx.strokeStyle='#2b2a24';ctx.lineWidth=4;ctx.strokeText(o.name,0,kind==='npc'?Math.max(46,o.r*.72):o.r*.72)}
+      ctx.fillText(o.name,0,kind==='npc'?Math.max(46,o.r*.72):o.r*.72);
       }
       ctx.restore();
     }
@@ -15327,7 +15381,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.88";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.90";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

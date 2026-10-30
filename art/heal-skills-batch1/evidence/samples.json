@@ -1,0 +1,1160 @@
+[
+  {
+    "key": "dew_return",
+    "t": 47.5,
+    "parts": [
+      {
+        "id": "telegraph",
+        "layer": "telegraph",
+        "anchor": "origin",
+        "x": 245,
+        "y": 286,
+        "width": 65,
+        "height": 65,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 2,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "dew_return",
+    "t": 130,
+    "parts": [
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 250,
+        "width": 150,
+        "height": 150,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 4,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "dew_return",
+    "t": 227.49999999999997,
+    "parts": [
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 230,
+        "width": 100,
+        "height": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 2,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "dew_return",
+    "t": 345,
+    "parts": [
+      {
+        "id": "residue",
+        "layer": "residue",
+        "anchor": "origin",
+        "x": 245,
+        "y": 226,
+        "width": 100,
+        "height": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "dew_return",
+    "t": 65.1,
+    "parts": [
+      {
+        "id": "telegraph",
+        "layer": "telegraph",
+        "anchor": "origin",
+        "x": 245,
+        "y": 286,
+        "width": 65,
+        "height": 65,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 2,
+        "opacity": 0.9966666666666668,
+        "rotation": 0
+      },
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 269.96923076923076,
+        "width": 150,
+        "height": 150,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.0033333333333331436,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "dew_return",
+    "t": 80,
+    "parts": [
+      {
+        "id": "telegraph",
+        "layer": "telegraph",
+        "anchor": "origin",
+        "x": 245,
+        "y": 286,
+        "width": 65,
+        "height": 65,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 0.5000000000000002,
+        "rotation": 0
+      },
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 265.38461538461536,
+        "width": 150,
+        "height": 150,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.5,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "dew_return",
+    "t": 94.9,
+    "parts": [
+      {
+        "id": "telegraph",
+        "layer": "telegraph",
+        "anchor": "origin",
+        "x": 245,
+        "y": 286,
+        "width": 65,
+        "height": 65,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 0.0033333333333331328,
+        "rotation": 0
+      },
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 260.8,
+        "width": 150,
+        "height": 150,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 1,
+        "opacity": 0.9966666666666668,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "dew_return",
+    "t": 170.1,
+    "parts": [
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 237.66153846153847,
+        "width": 150,
+        "height": 150,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 6,
+        "opacity": 0.996,
+        "rotation": 0
+      },
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 230,
+        "width": 100,
+        "height": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.003999999999999773,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "dew_return",
+    "t": 182.5,
+    "parts": [
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 233.84615384615384,
+        "width": 150,
+        "height": 150,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 7,
+        "opacity": 0.49999999999999994,
+        "rotation": 0
+      },
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 230,
+        "width": 100,
+        "height": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.5,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "dew_return",
+    "t": 194.9,
+    "parts": [
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 230.03076923076924,
+        "width": 150,
+        "height": 150,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 7,
+        "opacity": 0.00399999999999987,
+        "rotation": 0
+      },
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 230,
+        "width": 100,
+        "height": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 1,
+        "opacity": 0.9960000000000002,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "dew_return",
+    "t": 260.1,
+    "parts": [
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 230,
+        "width": 100,
+        "height": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 4,
+        "opacity": 0.9959999999999992,
+        "rotation": 0
+      },
+      {
+        "id": "residue",
+        "layer": "residue",
+        "anchor": "origin",
+        "x": 245,
+        "y": 229.99529411764706,
+        "width": 100,
+        "height": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.004000000000000909,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "dew_return",
+    "t": 272.5,
+    "parts": [
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 230,
+        "width": 100,
+        "height": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 5,
+        "opacity": 0.5000000000000002,
+        "rotation": 0
+      },
+      {
+        "id": "residue",
+        "layer": "residue",
+        "anchor": "origin",
+        "x": 245,
+        "y": 229.41176470588235,
+        "width": 100,
+        "height": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.5,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "dew_return",
+    "t": 284.9,
+    "parts": [
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 230,
+        "width": 100,
+        "height": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 5,
+        "opacity": 0.004000000000000692,
+        "rotation": 0
+      },
+      {
+        "id": "residue",
+        "layer": "residue",
+        "anchor": "origin",
+        "x": 245,
+        "y": 228.82823529411766,
+        "width": 100,
+        "height": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.9959999999999991,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "spring_return",
+    "t": 60,
+    "parts": [
+      {
+        "id": "telegraph",
+        "layer": "telegraph",
+        "anchor": "origin",
+        "x": 245,
+        "y": 286,
+        "width": 100,
+        "height": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 2,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "spring_return",
+    "t": 162.5,
+    "parts": [
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 260,
+        "height": 260,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 4,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "spring_return",
+    "t": 280.00000000000006,
+    "parts": [
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 135,
+        "height": 135,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "spring_return",
+    "t": 420,
+    "parts": [
+      {
+        "id": "residue",
+        "layer": "residue",
+        "anchor": "origin",
+        "x": 245,
+        "y": 241,
+        "width": 165,
+        "height": 165,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "spring_return",
+    "t": 90.1,
+    "parts": [
+      {
+        "id": "telegraph",
+        "layer": "telegraph",
+        "anchor": "origin",
+        "x": 245,
+        "y": 286,
+        "width": 100,
+        "height": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 0.996666666666667,
+        "rotation": 0
+      },
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 260,
+        "height": 260,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.003333333333333144,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "spring_return",
+    "t": 105,
+    "parts": [
+      {
+        "id": "telegraph",
+        "layer": "telegraph",
+        "anchor": "origin",
+        "x": 245,
+        "y": 286,
+        "width": 100,
+        "height": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 0.5,
+        "rotation": 0
+      },
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 260,
+        "height": 260,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.5,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "spring_return",
+    "t": 119.9,
+    "parts": [
+      {
+        "id": "telegraph",
+        "layer": "telegraph",
+        "anchor": "origin",
+        "x": 245,
+        "y": 286,
+        "width": 100,
+        "height": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 0.0033333333333329662,
+        "rotation": 0
+      },
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 260,
+        "height": 260,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 1,
+        "opacity": 0.9966666666666668,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "spring_return",
+    "t": 210.1,
+    "parts": [
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 260,
+        "height": 260,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 6,
+        "opacity": 0.9959999999999999,
+        "rotation": 0
+      },
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 135,
+        "height": 135,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.003999999999999773,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "spring_return",
+    "t": 222.5,
+    "parts": [
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 260,
+        "height": 260,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 7,
+        "opacity": 0.49999999999999967,
+        "rotation": 0
+      },
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 135,
+        "height": 135,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.5,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "spring_return",
+    "t": 234.9,
+    "parts": [
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 260,
+        "height": 260,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 7,
+        "opacity": 0.003999999999999493,
+        "rotation": 0
+      },
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 135,
+        "height": 135,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 1,
+        "opacity": 0.9960000000000002,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "spring_return",
+    "t": 320.1,
+    "parts": [
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 135,
+        "height": 135,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 4,
+        "opacity": 0.9966666666666659,
+        "rotation": 0
+      },
+      {
+        "id": "residue",
+        "layer": "residue",
+        "anchor": "origin",
+        "x": 245,
+        "y": 244.996,
+        "width": 165,
+        "height": 165,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.003333333333334091,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "spring_return",
+    "t": 335,
+    "parts": [
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 135,
+        "height": 135,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 5,
+        "opacity": 0.4999999999999998,
+        "rotation": 0
+      },
+      {
+        "id": "residue",
+        "layer": "residue",
+        "anchor": "origin",
+        "x": 245,
+        "y": 244.4,
+        "width": 165,
+        "height": 165,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.5,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "spring_return",
+    "t": 349.9,
+    "parts": [
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 135,
+        "height": 135,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 5,
+        "opacity": 0.0033333333333341506,
+        "rotation": 0
+      },
+      {
+        "id": "residue",
+        "layer": "residue",
+        "anchor": "origin",
+        "x": 245,
+        "y": 243.804,
+        "width": 165,
+        "height": 165,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.9966666666666659,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "verdant_bloom",
+    "t": 70,
+    "parts": [
+      {
+        "id": "telegraph",
+        "layer": "telegraph",
+        "anchor": "origin",
+        "x": 245,
+        "y": 286,
+        "width": 150,
+        "height": 150,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 2,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "verdant_bloom",
+    "t": 190,
+    "parts": [
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 340,
+        "height": 340,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 4,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "verdant_bloom",
+    "t": 325,
+    "parts": [
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 180,
+        "height": 180,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "verdant_bloom",
+    "t": 515,
+    "parts": [
+      {
+        "id": "residue",
+        "layer": "residue",
+        "anchor": "origin",
+        "x": 245,
+        "y": 241,
+        "width": 230,
+        "height": 230,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "verdant_bloom",
+    "t": 110.1,
+    "parts": [
+      {
+        "id": "telegraph",
+        "layer": "telegraph",
+        "anchor": "origin",
+        "x": 245,
+        "y": 286,
+        "width": 150,
+        "height": 150,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 0.996666666666667,
+        "rotation": 0
+      },
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 340,
+        "height": 340,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.0033333333333331436,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "verdant_bloom",
+    "t": 125,
+    "parts": [
+      {
+        "id": "telegraph",
+        "layer": "telegraph",
+        "anchor": "origin",
+        "x": 245,
+        "y": 286,
+        "width": 150,
+        "height": 150,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 0.4999999999999998,
+        "rotation": 0
+      },
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 340,
+        "height": 340,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.5,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "verdant_bloom",
+    "t": 139.9,
+    "parts": [
+      {
+        "id": "telegraph",
+        "layer": "telegraph",
+        "anchor": "origin",
+        "x": 245,
+        "y": 286,
+        "width": 150,
+        "height": 150,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 0.0033333333333331145,
+        "rotation": 0
+      },
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 340,
+        "height": 340,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 1,
+        "opacity": 0.9966666666666669,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "verdant_bloom",
+    "t": 240.1,
+    "parts": [
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 340,
+        "height": 340,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 6,
+        "opacity": 0.9966666666666667,
+        "rotation": 0
+      },
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 180,
+        "height": 180,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.0033333333333331436,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "verdant_bloom",
+    "t": 255,
+    "parts": [
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 340,
+        "height": 340,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 7,
+        "opacity": 0.5,
+        "rotation": 0
+      },
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 180,
+        "height": 180,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.5,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "verdant_bloom",
+    "t": 269.9,
+    "parts": [
+      {
+        "id": "body",
+        "layer": "body",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 340,
+        "height": 340,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 7,
+        "opacity": 0.0033333333333338544,
+        "rotation": 0
+      },
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 180,
+        "height": 180,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 1,
+        "opacity": 0.9966666666666658,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "verdant_bloom",
+    "t": 380.1,
+    "parts": [
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 180,
+        "height": 180,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 4,
+        "opacity": 0.996666666666666,
+        "rotation": 0
+      },
+      {
+        "id": "residue",
+        "layer": "residue",
+        "anchor": "origin",
+        "x": 245,
+        "y": 244.99703703703705,
+        "width": 230,
+        "height": 230,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.0033333333333340916,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "verdant_bloom",
+    "t": 395,
+    "parts": [
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 180,
+        "height": 180,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 5,
+        "opacity": 0.5000000000000001,
+        "rotation": 0
+      },
+      {
+        "id": "residue",
+        "layer": "residue",
+        "anchor": "origin",
+        "x": 245,
+        "y": 244.55555555555554,
+        "width": 230,
+        "height": 230,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.5,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "verdant_bloom",
+    "t": 409.9,
+    "parts": [
+      {
+        "id": "impact",
+        "layer": "impact",
+        "anchor": "origin",
+        "x": 245,
+        "y": 245,
+        "width": 180,
+        "height": 180,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 5,
+        "opacity": 0.0033333333333340764,
+        "rotation": 0
+      },
+      {
+        "id": "residue",
+        "layer": "residue",
+        "anchor": "origin",
+        "x": 245,
+        "y": 244.11407407407407,
+        "width": 230,
+        "height": 230,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.9966666666666659,
+        "rotation": 0
+      }
+    ]
+  }
+]
