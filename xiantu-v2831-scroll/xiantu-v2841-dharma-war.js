@@ -52,7 +52,7 @@ appendWarUnitsV2840=function(items,dt,view){
   u.x+=side*withdraw*26;u.y=s.site.y+v*69+u.rank*6+withdraw*12;u.fadeV2841=1-withdraw*.65;
   u.liftV2841=airborne?22+(fx.active?Math.sin(t*.9+u.phase)*3:0):0;
   u.frame=0;u.attack=false;u.channelV2841=fx.active&&(u.side?fx.phase===3:fx.phase===0||fx.phase===4);
-  if(u.x>=view.minX&&u.x<=view.maxX&&u.y>=view.minY&&u.y<=view.maxY)items.push(u);
+  if(warSpriteInViewV286888(u,view))items.push(u);
  }
 };
 function warRuneV2841(ctx,x,y,rx,ry,side,t,strength=1){
@@ -80,7 +80,7 @@ function warFigureV2841(ctx,side,height,adept=false){
 }
 drawWarUnitV2840=function(ctx,u){
  const s=WAR_MAP_V2840.scene;if(!s)return;const fx=warSpellStateV2841(s),t=WAR_MAP_V2840.reduced?0:WAR_MAP_V2840.clock,lift=u.liftV2841||0;
- ctx.save();ctx.globalAlpha=u.fadeV2841??1;ctx.translate(u.x,u.y);ctx.fillStyle=u.side?'#512c3f2e':'#304d402e';ctx.beginPath();ctx.ellipse(0,3,lift?9:12,3,0,0,Math.PI*2);ctx.fill();
+ ctx.save();ctx.globalAlpha=u.fadeV2841??1;ctx.translate(u.x,u.y);ctx.scale(WAR_ART_V286888.unit,WAR_ART_V286888.unit);ctx.fillStyle=u.side?'#512c3f2e':'#304d402e';ctx.beginPath();ctx.ellipse(0,3,lift?9:12,3,0,0,Math.PI*2);ctx.fill();
  ctx.translate(0,-lift);const dir=u.side?-1:1;
  if(lift){if(u.side)warRuneV2841(ctx,0,1,22,6,1,t,.8);else warSwordV2841(ctx,0,1,-.08,47,0,.94);}
  else warRuneV2841(ctx,0,2,13,4,u.side,0,.5);
@@ -164,4 +164,4 @@ WAR_FRONTS_V2839[0].objective='夺回前哨阵旗，接续传讯灵光';
 WAR_FRONTS_V2839[0].intro='前哨阵旗被煞气遮蔽，传讯玉碑断了灵光。守阵弟子结印护住阵基，剑修等待破开魔障，将山门间的灵讯重新接通。';
 WAR_FRONTS_V2839[1].intro='灵脉上空魔焰翻涌，护阵光幕已经出现裂纹。医修在阵后接应伤者，护阵弟子稳住灵流，御剑修士正设法截断魔焰来路。';
 WAR_FRONTS_V2839[2].intro='魔阵核心终于显露。双方修士围绕阵眼施法相抗，必须破开核心禁制才能结束这场斗法。此战只是一域之争，三万年仙魔战仍未落幕。';
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2841-dharma-war.js']='28.68.87';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2841-dharma-war.js']='28.68.88';

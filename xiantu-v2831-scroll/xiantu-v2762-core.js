@@ -6740,6 +6740,7 @@
     }
     
     function showStory(text, choices) {
+      if(typeof interiorV286886!=='undefined'&&interiorV286886?.hallDestination)resetWorldMovementV28686();
       document.getElementById('saveRemindV2895')?.remove();
       window.jevStoryChangedV2846?.();
       document.getElementById('storyPanel')?.classList.remove('equipment-bag-view-v2803','equipment-bag-expanded-v2803');
@@ -13577,7 +13578,7 @@
 
     // Shared reset for keyboard, point navigation and control-mode transitions.
     function resetWorldMovementV28686(){
-      if(typeof interiorV286886!=='undefined'&&interiorV286886)interiorV286886.path=[];
+      if(typeof interiorV286886!=='undefined'&&interiorV286886){interiorV286886.path=[];interiorV286886.hallDestination=null;}
       stopNavigationV2830();
       FLAT_WORLD.keys={};FLAT_WORLD.target=null;FLAT_WORLD.tapTargetFx=null;
       FLAT_WORLD.moving=false;FLAT_WORLD.moveDirX=0;FLAT_WORLD.moveDirY=0;
@@ -13653,6 +13654,7 @@
       FLAT_WORLD.raf=null;
       if(document.hidden)return;
       if(isWorldOverlayOpen() || !document.body.classList.contains('flat-world-active')) {
+        if(typeof interiorV286886!=='undefined'&&interiorV286886?.hallDestination)resetWorldMovementV28686();
         clearTimeout(mapIdleTimerV2865);
         mapIdleTimerV2865=setTimeout(()=>{mapIdleTimerV2865=null;resumeVisualsV2767();},200);
         return;
@@ -13846,7 +13848,7 @@
       const items=FLAT_WORLD._drawItems; items.length=0;
       const minX=camDraw.x-130,maxX=camDraw.x+vw+130,minY=camDraw.y-130,maxY=camDraw.y+vh+130;
       const visible=o=>o.x>=minX&&o.x<=maxX&&o.y>=minY&&o.y<=maxY;
-      const visiblePoi=o=>visible(o)||architectureInViewV286881(o,camDraw,vw,vh);
+      const visiblePoi=o=>visible(o)||architectureInViewV286881(o,camDraw,vw,vh)||warSpriteInViewV286888(o,{minX:camDraw.x,maxX:camDraw.x+vw,minY:camDraw.y,maxY:camDraw.y+vh});
       for(const poi of FLAT_WORLD.pois)if(visiblePoi(poi)&&(poi.action!=='explore_v2828'||exploredPointV2828(poi.x,poi.y)))items.push(poi);
       for(const mon of FLAT_WORLD.monsters)if(mon.alive&&!mon.inCombat&&visible(mon)&&exploredPointV2828(mon.x,mon.y))items.push(mon);
       for(const tree of FLAT_WORLD.decor)if(tree.t==='tree'&&visible(tree)&&exploredPointV2828(tree.x,tree.y))items.push(tree);
@@ -15325,7 +15327,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.87";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.88";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

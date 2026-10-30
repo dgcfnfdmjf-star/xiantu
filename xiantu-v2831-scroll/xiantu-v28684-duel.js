@@ -2833,7 +2833,29 @@ function tryEnterInteriorV286886(p){
  const menu=document.createElement('button');menu.type='button';menu.textContent='角色';menu.className='interior-menu-v286886';menu.onclick=()=>{if(interiorStateV286886()===session&&!isWorldOverlayOpen()){resetWorldMovementV28686();toggleCharacterPanel(true);}};hud.appendChild(menu);
  const bag=document.createElement('button');bag.type='button';bag.textContent='行囊';bag.className='interior-bag-v286886';bag.onclick=()=>{if(interiorStateV286886()===session&&!isWorldOverlayOpen()){resetWorldMovementV28686();showMobileInventory();}};hud.appendChild(bag);
  const exit=document.createElement('button');exit.type='button';exit.textContent='走向出口';exit.onclick=()=>{const s=interiorStateV286886();if(s===session&&!isWorldOverlayOpen())interiorRouteV286886(s,288,400);};hud.appendChild(exit);
+ addHallTravelV286888(hud,session);
  document.getElementById('worldPanel').appendChild(hud);resetPaintedMotionV2838();return true;
+}
+// Session-owned intent: walk to the door first, then reuse outdoor routing and entry guards.
+function hallDestinationsV286888(s){
+ if(!s||s.poi.action!=='lingxiao_building')return [];
+ return FLAT_WORLD.pois.filter(p=>p!==s.poi&&p.action==='lingxiao_building'&&INTERIOR_HALLS_V286886.has(p.buildingId)&&canAccessBuilding(p.buildingId).allowed);
+}
+function addHallTravelV286888(hud,s){
+ const halls=hallDestinationsV286888(s);if(!halls.length)return;
+ const row=document.createElement('div');row.className='interior-travel-v286888';row.onkeydown=e=>e.stopPropagation();
+ const select=document.createElement('select');select.setAttribute('aria-label','前往其他殿宇');
+ for(const p of halls){const option=document.createElement('option');option.value=p.id;option.textContent=p.name;select.appendChild(option);}
+ const button=document.createElement('button');button.type='button';button.textContent='步行前往';
+ button.onclick=()=>queueHallTravelV286888(s,select.value);
+ row.appendChild(select);row.appendChild(button);hud.appendChild(row);
+}
+function queueHallTravelV286888(s,id){
+ if(interiorStateV286886()!==s||isWorldOverlayOpen()||document.hidden||!canMapNpcActV2864())return false;
+ const goal=hallDestinationsV286888(s).find(p=>p.id===id);
+ if(!goal){showFloatingText('该殿宇当前不可前往。','#ffd76a');return false;}
+ resetWorldMovementV28686();if(!interiorRouteV286886(s,288,400))return false;
+ s.hallDestination=goal;showFloatingText('先走出门，再前往'+goal.name+'；移动或点地可取消。','#9edcff');return true;
 }
 function interiorCellV286886(x,y){
  if(x<1||x>16||y<2||y>12||(y===5&&(x===5||x===12)))return false;
@@ -2841,6 +2863,7 @@ function interiorCellV286886(x,y){
 }
 function interiorWalkV286886(x,y){return [[-10,-10],[10,-10],[-10,10],[10,10]].every(([dx,dy])=>interiorCellV286886(Math.floor((x+dx)/32),Math.floor((y+dy)/32)));}
 function interiorRouteV286886(s,x,y){
+ s.hallDestination=null;
  const sx=Math.floor(s.player.x/32),sy=Math.floor(s.player.y/32),tx=Math.floor(x/32),ty=Math.floor(y/32);
  if(!interiorCellV286886(tx,ty))return false;
  const key=(a,b)=>b*18+a,start=key(sx,sy),goal=key(tx,ty),prev=new Map([[start,null]]),queue=[start];
@@ -2855,7 +2878,13 @@ function interiorTapV286886(canvas,x,y){
  const station=s.stations.find(a=>Math.hypot(a.x-wx,a.y-wy)<30);
  interiorRouteV286886(s,station?.x??wx,station?(station.y+(station.id==='door'?0:32)):wy);return true;
 }
-function leaveInteriorV286886(){if(!interiorStateV286886()||isWorldOverlayOpen())return;clearInteriorV286886();resetWorldMovementV28686();FLAT_WORLD._lastNearbyId=null;FLAT_WORLD._lastAreaKey='';updateWorldHUD();}
+function leaveInteriorV286886(){
+ const s=interiorStateV286886();if(!s||isWorldOverlayOpen()||!canMapNpcActV2864()||document.hidden)return;
+ const goal=s.hallDestination;clearInteriorV286886();resetWorldMovementV28686();FLAT_WORLD._lastNearbyId=null;FLAT_WORLD._lastAreaKey='';updateWorldHUD();
+ if(!goal)return;
+ if(!FLAT_WORLD.pois.includes(goal)||!canAccessBuilding(goal.buildingId).allowed){showFloatingText('目标殿宇已不可前往。','#ffd76a');return;}
+ startPointNavigationV28685({...goal,mark:false,silent:true,enterPoiV2904:goal});
+}
 function interiorInteractV286886(){
  const s=interiorStateV286886();if(!s)return false;if(isWorldOverlayOpen()||!canMapNpcActV2864())return true;
  const a=s.stations.find(a=>Math.hypot(a.x-s.player.x,a.y-s.player.y)<48);if(!a){showFloatingText('走近人物或设施，再点击交互','#e7d6ab');return true;}
@@ -2868,9 +2897,9 @@ function interiorInteractV286886(){
  return true;
 }
 function updateInteriorV286886(dt){
- const s=interiorStateV286886();if(!s)return false;if(isWorldOverlayOpen()||!canMapNpcActV2864())return true;
+ const s=interiorStateV286886();if(!s)return false;if(isWorldOverlayOpen()||!canMapNpcActV2864()){if(s.hallDestination){s.hallDestination=null;s.path=[];}return true;}
  const k=FLAT_WORLD.keys,p=s.player;let dx=Number(!!(k.d||k.arrowright))-Number(!!(k.a||k.arrowleft)),dy=Number(!!(k.s||k.arrowdown))-Number(!!(k.w||k.arrowup));
- if(dx||dy)s.path=[];else if(s.path.length){const a=s.path[0],d=Math.hypot(a.x-p.x,a.y-p.y);if(d<2){p.x=a.x;p.y=a.y;s.path.shift();}else{dx=(a.x-p.x)/d;dy=(a.y-p.y)/d;}}
+ if(dx||dy){s.path=[];s.hallDestination=null;}else if(s.path.length){const a=s.path[0],d=Math.hypot(a.x-p.x,a.y-p.y);if(d<2){p.x=a.x;p.y=a.y;s.path.shift();}else{dx=(a.x-p.x)/d;dy=(a.y-p.y)/d;}}
  const d=Math.hypot(dx,dy)||1,step=Math.min(.05,Math.max(0,dt||0))*150,remaining=s.path.length?Math.hypot(s.path[0].x-p.x,s.path[0].y-p.y):step,travel=Math.min(step,remaining);
  // Substeps preserve walls and furniture on a delayed frame.
  for(let i=0,n=Math.max(1,Math.ceil(travel/3));i<n;i++){const x=p.x+dx/d*travel/n,y=p.y+dy/d*travel/n;if(interiorWalkV286886(x,p.y))p.x=x;if(interiorWalkV286886(p.x,y))p.y=y;}
@@ -2904,7 +2933,7 @@ function drawInteriorV286886(){
  drawActor25DV2770(ctx,s.player);ctx.restore();return true;
 }
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.87';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.88';
 
 
 if(typeof installBagViewV2905==='function')installBagViewV2905();
