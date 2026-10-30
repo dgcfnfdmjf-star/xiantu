@@ -1,0 +1,30 @@
+{
+  "command": "node scripts/render-heal-skills-batch1-evidence.cjs",
+  "scope": "Authored PNGs composed on real reference background; simulated healing, not live combat",
+  "inputs": {
+    "art/heal-skills-batch1/preview/dew_return_telegraph.png": "f41f405f7ba87e0b83b4d2e1e93bb65d4c12259513f4f0dd528fd6143b178145",
+    "art/heal-skills-batch1/preview/stage-reference.webp": "d88933abbf05d2c3506b73545dde8fcb030583304d55781bcdc491d8514361b3",
+    "art/heal-skills-batch1/preview/dew_return_body.png": "d2ede6803e9db40c1002b7f574604886cca27e2efa80c79b6591909c968ff015",
+    "art/heal-skills-batch1/preview/dew_return_impact.png": "b09d91e397fcc69fb865e9d113beba7083adb57be2e44f82c32d78922e7a94f2",
+    "art/heal-skills-batch1/preview/dew_return_residue.png": "375bd746cd8f4f479b35448401122d79a2e7ed6ed598708907a93c33db41b952",
+    "art/heal-skills-batch1/preview/spring_return_telegraph.png": "9de0c194a9b0aad77bc633bf93ddc0e79b63e91947e298d76464e907bb51d3a1",
+    "art/heal-skills-batch1/preview/spring_return_body.png": "45958a82283e0af7f52e6969652b616b79b1178fa90bf12df9a69d44e8484f04",
+    "art/heal-skills-batch1/preview/spring_return_impact.png": "2470aad035977da72cc50ef56ebb376e68466a439ea2d8f64418adc703f04499",
+    "art/heal-skills-batch1/preview/spring_return_residue.png": "d68dca338c6477fed7de2ac090581eb79eb309f329f0c02fad3d0079008d4ab7",
+    "art/heal-skills-batch1/preview/verdant_bloom_telegraph.png": "1eb2057daf760dd39cbe214d05e39b9889720ae24c011ba5b1670657c371029e",
+    "art/heal-skills-batch1/preview/verdant_bloom_body.png": "6bbaa3e9accce95ed113e7ea7f203d90e4262302a43804a90689c269b0f964ff",
+    "art/heal-skills-batch1/preview/verdant_bloom_impact.png": "1aca7af34f5c6424f8ad175e8883f623576c863f6059928bcb533a697108e777",
+    "art/heal-skills-batch1/preview/verdant_bloom_residue.png": "9e56d628f5b8e667dee359a3785319c8aaf59f728a6ebb35669b60ed2eaf9a5d",
+    "art/element-skills-v286838/preview/effect-manifest.json": "64ab0e8d897ca0b7a67e78123a11cdfd0ceacffa53bf8de0e2bb2cd64cd149f0",
+    "xiantu-v2831-scroll/element-skills-v286838/jade_lotus_heal_body.png": "9c61d956f7b9cabb0e59d15f870e780c4f2924f8bfe77c3e9de3268dd40dce5f",
+    "art/heal-skills-batch1/source/dew_return/master-original.png": "b897999d5b8c8c70fbe10c8a7c0a22275ac5ff03103ea3951ae3f873294f48db",
+    "art/heal-skills-batch1/source/spring_return/master-original.png": "484e905eea416866299c3b19ada915a96e341e2453b07929fa41ea03da239f48",
+    "art/heal-skills-batch1/source/verdant_bloom/master-original.png": "a8190505dcb20b59d5013baa84db5c368c89cfb73201f3d9d5058f7007a2a016",
+    "art/heal-skills-batch1/preview/definition.js": "29441ff8b85e9014e1765ac91e1e9ebab9390b3c3f7bfaefdbec48a6bebf2b95",
+    "art/heal-skills-batch1/preview/choreography.js": "67fa1310a83c6a400f1db8e77a1e733f06c6d7e4e604687cf87e9067a5d5e754",
+    "art/heal-skills-batch1/preview/preview.js": "404fc204a1f15a9f1d58ca27a28cd5eb2616ce6fa659220e739dfe907cc1144f",
+    "art/heal-skills-batch1/preview/index.html": "3ed9e0e40407aaef09437154aefc1cc8947980736bd4374fdd932130012064c3",
+    "art/heal-skills-batch1/preview/effect-manifest.json": "10b91b745d5059de3cc4e61a3093465b3dc95a11910dff730a488508972dce58",
+    "art/heal-skills-batch1/design/storyboard-draft.png": "23ed4a5068a407f9ab7dcfdcbf0360f6e7192e84d90543791b610d8ba94840bd"
+  }
+}

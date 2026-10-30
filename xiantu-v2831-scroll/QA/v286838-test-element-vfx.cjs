@@ -20,7 +20,7 @@ for(const D of b.definitions){
 }
 const all=b.definitions.flatMap(d=>d.skills);
 for(const D of b.definitions.filter(d=>d.element==='ice'))assert.equal(D.skills.length,1,D.key+' is dedicated to one ice skill');assert.equal(new Set(all).size,all.length,'each skill has one owner');
-for(const name of ['万雷噬狱','闪电链','雷神附体','御剑术','剑气纵横','万剑归宗','天地一剑','清风剑诀','破甲剑罡','追魂一剑','饮血剑诀','玄罡护体剑','回春术','生生不息','起死回生','凝露诀','青莲护心','灵泉归元','逆命回元','莲华济世','寒冰掌','玄冰刺','冰爆术','霜龙吐息','冰封千里','霜寒结界','冰河葬狱','寒渊领域','冰魄封魂','万载寒晶','冰甲护身','炎阳护盾','流火飞索','镇岳山河震','穿云贯日'])assert(all.includes(name)||fx.thunderBatch3.definition(name)||fx.swordBatch.definition(name)||fx.swordBatch2.definition(name)||fx.swordBatch3.definition(name),name+' covered by shared or dedicated resource');
+for(const name of ['万雷噬狱','闪电链','雷神附体','御剑术','剑气纵横','万剑归宗','天地一剑','清风剑诀','破甲剑罡','追魂一剑','饮血剑诀','玄罡护体剑','回春术','生生不息','起死回生','凝露诀','青莲护心','灵泉归元','逆命回元','莲华济世','寒冰掌','玄冰刺','冰爆术','霜龙吐息','冰封千里','霜寒结界','冰河葬狱','寒渊领域','冰魄封魂','万载寒晶','冰甲护身','炎阳护盾','流火飞索','镇岳山河震','穿云贯日'])assert(all.includes(name)||fx.thunderBatch3.definition(name)||fx.swordBatch.definition(name)||fx.swordBatch2.definition(name)||fx.swordBatch3.definition(name)||fx.healBatch1.definition(name),name+' covered by shared or dedicated resource');
 assert.equal(fx.authoredDuration('雷神附体·反噬'),0);for(const name of ['绝对零度','冰蝶幻舞','太阳真火','焚心炎'])assert.equal(b.definition(name),undefined,name+' keeps its own dedicated path');
 for(const name of ['冰甲护身','炎阳护盾'])assert(fx.profile(name).self,name+' is a self cast');
 const ctx=f.ids.get('combatPlayerChar').getContext('2d'),draws=[];ctx.drawImage=(im,...args)=>draws.push(im.src);
@@ -42,7 +42,7 @@ for(const D of b.definitions.filter(d=>d.skills.length)){
  assert.equal(b.sample(j,1150).length,0,'expires within the job');assert.equal(b.sample({...j,duration:200},210).length,0,'owner expiry wins');
  textures[0].onerror();assert(!b.ready(name));assert.doesNotThrow(()=>fx.draw(ctx,j,400));textures[0].onload();
 }
-const heal=b.sample({profile:fx.profile('回春术'),from:{x:260,y:205},to:{x:260,y:205},toGround:{x:260,y:305},duration:1100,arriveAt:310,hitAt:170,scale:1},400);
+const heal=b.sample({profile:fx.profile('青莲护心'),from:{x:260,y:205},to:{x:260,y:205},toGround:{x:260,y:305},duration:1100,arriveAt:310,hitAt:170,scale:1},400);
 assert(heal.length&&heal.every(p=>p.x===260&&p.y===305),'heal anchors on the caster foot');
 const ward=b.sample({profile:fx.profile('冰甲护身'),from:{x:260,y:205},to:{x:260,y:205},toGround:{x:260,y:305},duration:1100,arriveAt:310,hitAt:170,scale:1},400);
 assert(ward.length&&ward.every(p=>p.x===260&&p.y===305),'ice armor anchors on the caster foot');

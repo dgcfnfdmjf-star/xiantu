@@ -30,7 +30,7 @@
     const canvas=document.getElementById('minimapCanvas');
     if(canvas&&!canvas.dataset.v12ZoomInstalled){
       canvas.dataset.v12ZoomInstalled='1';
-      canvas.addEventListener('wheel',function(e){e.preventDefault();changeMinimapZoom(e.deltaY<0?0.5:-0.5);},{passive:false});
+      bindMinimapWheelV286889();
       canvas.addEventListener('dblclick',function(e){e.preventDefault();changeMinimapZoom((MINIMAP_VIEW_STATE.zoom||1)>=2?-1:1);});
     }
     positionReturnToMap();
@@ -56,4 +56,4 @@
   if(document.body.classList.contains('flat-world-active'))requestAnimationFrame(install);
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-07-v12-stable-map-ui-script.js"]="28.68.88";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-07-v12-stable-map-ui-script.js"]="28.68.90";

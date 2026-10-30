@@ -1,0 +1,359 @@
+{
+  "schemaVersion": 1,
+  "effects": [
+    {
+      "key": "dew_return",
+      "name": "凝露诀",
+      "element": "heal",
+      "visualArchetype": "ground-eruption",
+      "layers": {
+        "telegraph": {
+          "file": "dew_return_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "dew_return_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "dew_return_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "dew_return_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "display": {
+        "telegraph": 65,
+        "body": 150,
+        "impact": 100,
+        "residue": 100
+      },
+      "timing": {
+        "durationMs": 430
+      },
+      "acceptance": [
+        "Independent authored dew, leaf and branch materials",
+        "Self-only; authoritative actualHeal gates absorption",
+        "Preview only: no HP, MP, RNG, turns or save mutation",
+        "Crossfade, fixed-size body, explicit cleanup"
+      ],
+      "preview": {
+        "displayMode": "ground-eruption",
+        "durationMs": 430,
+        "distance": 0,
+        "layers": {
+          "telegraph": {
+            "start": 0,
+            "end": 0.22093023255813954,
+            "anchor": "origin",
+            "width": 65,
+            "height": 65,
+            "fadeIn": 0.3157894736842105,
+            "fadeOut": 0.3157894736842105
+          },
+          "body": {
+            "start": 0.1511627906976744,
+            "end": 0.45348837209302323,
+            "anchor": "origin",
+            "width": 150,
+            "height": 150,
+            "fadeIn": 0.23076923076923078,
+            "fadeOut": 0.19230769230769232
+          },
+          "impact": {
+            "start": 0.3953488372093023,
+            "end": 0.6627906976744186,
+            "anchor": "origin",
+            "width": 100,
+            "height": 100,
+            "fadeIn": 0.21739130434782608,
+            "fadeOut": 0.21739130434782608
+          },
+          "residue": {
+            "start": 0.6046511627906976,
+            "end": 1,
+            "anchor": "origin",
+            "width": 100,
+            "height": 100,
+            "fadeIn": 0.14705882352941177,
+            "fadeOut": 0.4117647058823529
+          }
+        }
+      },
+      "eventContract": {
+        "actualHeal": "actual HP restored by this cast; positive enables body and absorption",
+        "presentationOnly": true
+      }
+    },
+    {
+      "key": "spring_return",
+      "name": "回春术",
+      "element": "heal",
+      "visualArchetype": "ground-eruption",
+      "layers": {
+        "telegraph": {
+          "file": "spring_return_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "spring_return_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "spring_return_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "spring_return_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "display": {
+        "telegraph": 100,
+        "body": 260,
+        "impact": 135,
+        "residue": 165
+      },
+      "timing": {
+        "durationMs": 520
+      },
+      "acceptance": [
+        "Independent authored dew, leaf and branch materials",
+        "Self-only; authoritative actualHeal gates absorption",
+        "Preview only: no HP, MP, RNG, turns or save mutation",
+        "Crossfade, fixed-size body, explicit cleanup"
+      ],
+      "preview": {
+        "displayMode": "ground-eruption",
+        "durationMs": 520,
+        "distance": 0,
+        "layers": {
+          "telegraph": {
+            "start": 0,
+            "end": 0.23076923076923078,
+            "anchor": "origin",
+            "width": 100,
+            "height": 100,
+            "fadeIn": 0.25,
+            "fadeOut": 0.25
+          },
+          "body": {
+            "start": 0.17307692307692307,
+            "end": 0.4519230769230769,
+            "anchor": "origin",
+            "width": 260,
+            "height": 260,
+            "fadeIn": 0.20689655172413793,
+            "fadeOut": 0.1724137931034483
+          },
+          "impact": {
+            "start": 0.40384615384615385,
+            "end": 0.6730769230769231,
+            "anchor": "origin",
+            "width": 135,
+            "height": 135,
+            "fadeIn": 0.17857142857142858,
+            "fadeOut": 0.21428571428571427
+          },
+          "residue": {
+            "start": 0.6153846153846154,
+            "end": 1,
+            "anchor": "origin",
+            "width": 165,
+            "height": 165,
+            "fadeIn": 0.15,
+            "fadeOut": 0.35
+          }
+        }
+      },
+      "eventContract": {
+        "actualHeal": "actual HP restored by this cast; positive enables body and absorption",
+        "presentationOnly": true
+      }
+    },
+    {
+      "key": "verdant_bloom",
+      "name": "生生不息",
+      "element": "heal",
+      "visualArchetype": "ground-eruption",
+      "layers": {
+        "telegraph": {
+          "file": "verdant_bloom_telegraph.png",
+          "frames": 4,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "body": {
+          "file": "verdant_bloom_body.png",
+          "frames": 8,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "impact": {
+          "file": "verdant_bloom_impact.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        },
+        "residue": {
+          "file": "verdant_bloom_residue.png",
+          "frames": 6,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "pivotX": 0.5,
+          "pivotY": 0.5,
+          "fps": 30,
+          "loop": false,
+          "holdLast": false
+        }
+      },
+      "scale": 1,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trailLength": 0,
+      "display": {
+        "telegraph": 150,
+        "body": 340,
+        "impact": 180,
+        "residue": 230
+      },
+      "timing": {
+        "durationMs": 650
+      },
+      "acceptance": [
+        "Independent authored dew, leaf and branch materials",
+        "Self-only; authoritative actualHeal gates absorption",
+        "Preview only: no HP, MP, RNG, turns or save mutation",
+        "Crossfade, fixed-size body, explicit cleanup"
+      ],
+      "preview": {
+        "displayMode": "ground-eruption",
+        "durationMs": 650,
+        "distance": 0,
+        "layers": {
+          "telegraph": {
+            "start": 0,
+            "end": 0.2153846153846154,
+            "anchor": "origin",
+            "width": 150,
+            "height": 150,
+            "fadeIn": 0.21428571428571427,
+            "fadeOut": 0.21428571428571427
+          },
+          "body": {
+            "start": 0.16923076923076924,
+            "end": 0.4153846153846154,
+            "anchor": "origin",
+            "width": 340,
+            "height": 340,
+            "fadeIn": 0.1875,
+            "fadeOut": 0.1875
+          },
+          "impact": {
+            "start": 0.36923076923076925,
+            "end": 0.6307692307692307,
+            "anchor": "origin",
+            "width": 180,
+            "height": 180,
+            "fadeIn": 0.17647058823529413,
+            "fadeOut": 0.17647058823529413
+          },
+          "residue": {
+            "start": 0.5846153846153846,
+            "end": 1,
+            "anchor": "origin",
+            "width": 230,
+            "height": 230,
+            "fadeIn": 0.1111111111111111,
+            "fadeOut": 0.25925925925925924
+          }
+        }
+      },
+      "eventContract": {
+        "actualHeal": "actual HP restored by this cast; positive enables body and absorption",
+        "presentationOnly": true
+      }
+    }
+  ]
+}
