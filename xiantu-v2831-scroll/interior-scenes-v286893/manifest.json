@@ -1,0 +1,158 @@
+{
+  "version": 1,
+  "scenes": [
+    {
+      "id": "shop",
+      "name": "百宝阁",
+      "file": "shop.webp",
+      "width": 1152,
+      "height": 864,
+      "bytes": 179056,
+      "sha256": "9e3dde0c408ffa6f4fc9c10b15aaa34619628e9ab3b307ca2de1218437377115"
+    },
+    {
+      "id": "market",
+      "name": "仙市",
+      "file": "market.webp",
+      "width": 1152,
+      "height": 864,
+      "bytes": 220338,
+      "sha256": "d03059482ec4cee292bbb7815de1514811dc5299cc374cd978e5f4921966daaa"
+    },
+    {
+      "id": "home",
+      "name": "洞府",
+      "file": "home.webp",
+      "width": 1152,
+      "height": 864,
+      "bytes": 193996,
+      "sha256": "420ffc206ea1d0fcd947432ca690dce398387c2eb76b32a78b6ea346aaa0fe18"
+    },
+    {
+      "id": "alchemy",
+      "name": "炼丹房",
+      "file": "alchemy.webp",
+      "width": 1152,
+      "height": 864,
+      "bytes": 189516,
+      "sha256": "51fa53ad8bb56fe5794cfb71a550e0910971200b201465f0dd40bfffc0398d3a"
+    },
+    {
+      "id": "dormitory",
+      "name": "外门弟子居",
+      "file": "dormitory.webp",
+      "width": 1152,
+      "height": 864,
+      "bytes": 145050,
+      "sha256": "c034b1360453b5ecb8383d6881165a7778261a37f752427e0c4237bf43194a9a"
+    },
+    {
+      "id": "task_hall",
+      "name": "外门任务堂",
+      "file": "task_hall.webp",
+      "width": 1152,
+      "height": 864,
+      "bytes": 170466,
+      "sha256": "447e7d285d0471fef3557dd5c2c56e0b62940d24cfe72e582123f1020c0da712"
+    },
+    {
+      "id": "guest_hall",
+      "name": "迎宾殿",
+      "file": "guest_hall.webp",
+      "width": 1152,
+      "height": 864,
+      "bytes": 205238,
+      "sha256": "94beeacaaa8700b1a49a28e02cce78c847d18a47d7a2e4ebf929cd8d65105dc8"
+    },
+    {
+      "id": "outer_elder_hall",
+      "name": "外门长老院",
+      "file": "outer_elder_hall.webp",
+      "width": 1152,
+      "height": 864,
+      "bytes": 151126,
+      "sha256": "38baa83a24e09713eff947c36aa51ceb8e8e312afee306be4770c5fb4e5a0d8c"
+    },
+    {
+      "id": "main_hall",
+      "name": "凌霄大殿",
+      "file": "main_hall.webp",
+      "width": 1152,
+      "height": 864,
+      "bytes": 216554,
+      "sha256": "b212ef2eaba5194016ee2b919099b2f0c2c2513724525eb29a24313e4716ecfb"
+    },
+    {
+      "id": "elder_hall",
+      "name": "内门长老阁",
+      "file": "elder_hall.webp",
+      "width": 1152,
+      "height": 864,
+      "bytes": 170926,
+      "sha256": "fcbc0c02579f3a21748869a98deb2250d9651e331b27a7db1ef282d6039dd0a1"
+    },
+    {
+      "id": "qingxuan_academy",
+      "name": "清玄道院",
+      "file": "qingxuan_academy.webp",
+      "width": 1152,
+      "height": 864,
+      "bytes": 186760,
+      "sha256": "ca01fab0b430a3f51c22201705baa696877440e0b26ca816971c3d278e81ca23"
+    },
+    {
+      "id": "library",
+      "name": "藏经阁",
+      "file": "library.webp",
+      "width": 1152,
+      "height": 864,
+      "bytes": 173088,
+      "sha256": "9e3bd059fd9c338e4c4de1fa1cf14a690354f912df6a271d90b74597151ac1a4"
+    },
+    {
+      "id": "alchemy_hall",
+      "name": "丹庐药堂",
+      "file": "alchemy_hall.webp",
+      "width": 1152,
+      "height": 864,
+      "bytes": 191592,
+      "sha256": "1ce48136cfc69e1771e7a71ee2ffd4f74d110cf086962e4dfadae22c194ed7dd"
+    },
+    {
+      "id": "night_yaolu",
+      "name": "深夜药庐",
+      "file": "night_yaolu.webp",
+      "width": 1152,
+      "height": 864,
+      "bytes": 161702,
+      "sha256": "158fd4f6eae103968a13209428fcbf99fff22b60b1f636aca6092c172a5afce8"
+    },
+    {
+      "id": "beast_hall",
+      "name": "御兽堂",
+      "file": "beast_hall.webp",
+      "width": 1152,
+      "height": 864,
+      "bytes": 174114,
+      "sha256": "6b9b4b32857f5e7525c82c5cf9044cb757a080af9f65c7f4aef35660df5bcaf0"
+    },
+    {
+      "id": "forge_hall",
+      "name": "炼器阁",
+      "file": "forge_hall.webp",
+      "width": 1152,
+      "height": 864,
+      "bytes": 196836,
+      "sha256": "9f85bb805d4f736cef956b0a597cc15b8a953f2109f0dcd1547b748ad6e6d4d0"
+    },
+    {
+      "id": "forbidden_library",
+      "name": "禁书秘阁",
+      "file": "forbidden_library.webp",
+      "width": 1152,
+      "height": 864,
+      "bytes": 186144,
+      "sha256": "e1bab62b9ea0f0a8dad8117890a72972eed28899390676d4ee7fee8dd0bb36af"
+    }
+  ]
+}
