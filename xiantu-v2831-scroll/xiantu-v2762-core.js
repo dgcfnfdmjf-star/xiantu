@@ -12791,7 +12791,7 @@
     function drawLingxiaoBuildingPaths(ctx,transform=null){
       if(currentRegion!=='north')return;ctx.save();ctx.lineCap='round';
       // Transformed callers retain their existing schematic paths; ground detail is for the world cache.
-      if(!transform)drawLingxiaoCourtsV286880(ctx);
+      if(!transform&&!SCROLL_ART_V2831.joinedBuildings)drawLingxiaoCourtsV286880(ctx);
       if(transform){
         // Overview callers keep their small schematic lines, without full-size paving.
         for(const [a,b] of BUILDING_PATHS){const start=getBuildingData(a),end=getBuildingData(b);if(!start||!end)continue;
@@ -12812,7 +12812,7 @@
         const roads=chains.flatMap((chain,ci)=>chain.slice(1).flatMap((id,i)=>{
           const a=getBuildingData(chain[i]),b=getBuildingData(id);if(!a||!b)return [];
           const main=ci===0,rustic=ci>=6;
-          return [{points:stoneRoadPointsV286895({x:a.x,y:a.y+12},{x:b.x,y:b.y+12},main?0:(i%2?-1:1)),width:(main?29:rustic?16:21)*WORLD_SCALE_V2900,rustic}];
+          return [{points:stoneRoadPointsV286895(stoneRoadLandingV286896(a),stoneRoadLandingV286896(b),main?0:(i%2?-1:1)),width:(main?29:rustic?16:21)*WORLD_SCALE_V2900,rustic}];
         }));
         drawStoneRoadsV286895(ctx,roads);drawLingxiaoCloudStepsV286880(ctx);
       }ctx.restore();
@@ -13447,15 +13447,17 @@
       if(!FLAT_WORLD) return [];
       const colliders=[];
       for(const poi of (FLAT_WORLD.pois||[])) {
-        const radius=getPoiCollisionRadius(poi);
+        const radius=sectScenePoiV286896(poi)?0:getPoiCollisionRadius(poi);
         if(radius>0) colliders.push({type:'poi', id:poi.id, x:poi.x, y:poi.y, radius});
       }
       for(const d of (FLAT_WORLD.decor||[])) {
+        if(sectScenePointV286896(d.x,d.y))continue;
         let radius=0;
         if(d.t==='tree') radius=14*(d.s||1)+8;
         else if(d.t==='stone') radius=11*(d.s||1)+5;
         if(radius>0) colliders.push({type:d.t, x:d.x, y:d.y, radius});
       }
+      colliders.push(...sectSceneCollidersV286896());
       FLAT_WORLD.colliders=colliders;
       return colliders;
     }
@@ -13836,6 +13838,7 @@
       // 装饰物是静态的，预先绘制一次，避免每帧重画130棵树/石头/草。
       for(const d of FLAT_WORLD.decor) if(d.t!=='tree')drawWorldDecor(sctx,d);
       drawLingxiaoBuildingPaths(sctx);
+      drawSectSceneV286896(sctx);
       PERF_CONFIG.staticWorldCanvas=cache;
       PERF_CONFIG.staticWorldReady=true;
       return cache;
@@ -13876,7 +13879,8 @@
       // 静态背景只生成一次，并按当前视口裁切复制。
       const staticMap=ensureStaticWorldCache();
       ctx.drawImage(staticMap,camDraw.x,camDraw.y,vw,vh,0,0,vw,vh);
-      drawExplorationFogV2828(ctx,camDraw,vw,vh);
+      const joinedScene=joinedSceneReadyV286896();
+      if(!joinedScene)drawExplorationFogV2828(ctx,camDraw,vw,vh);
 
       ctx.save(); ctx.translate(-camDraw.x,-camDraw.y);
       const items=FLAT_WORLD._drawItems; items.length=0;
@@ -13885,7 +13889,7 @@
       const visiblePoi=o=>visible(o)||mapPoiInViewV286889(o,camDraw,vw,vh)||architectureInViewV286881(o,camDraw,vw,vh)||warSpriteInViewV286888(o,{minX:camDraw.x,maxX:camDraw.x+vw,minY:camDraw.y,maxY:camDraw.y+vh});
       for(const poi of FLAT_WORLD.pois)if(visiblePoi(poi)&&(poi.action!=='explore_v2828'||exploredPointV2828(poi.x,poi.y)))items.push(poi);
       for(const mon of FLAT_WORLD.monsters)if(mon.alive&&!mon.inCombat&&visible(mon)&&exploredPointV2828(mon.x,mon.y))items.push(mon);
-      for(const tree of FLAT_WORLD.decor)if(tree.t==='tree'&&visible(tree)&&exploredPointV2828(tree.x,tree.y))items.push(tree);
+      for(const tree of FLAT_WORLD.decor)if(tree.t==='tree'&&!sectScenePointV286896(tree.x,tree.y)&&visible(tree)&&exploredPointV2828(tree.x,tree.y))items.push(tree);
       const warViewV2840={minX,maxX,minY,maxY};
       if(typeof appendWarUnitsV2840==='function')appendWarUnitsV2840(items,dt,warViewV2840);
       items.sort((a,b)=>worldDepthV2770(a)-worldDepthV2770(b));
@@ -13900,10 +13904,19 @@
         if(!visiblePoi(it))continue;
         if(it._warUnitV2840)drawWarUnitV2840(ctx,it);else if(it.action==='war_map_v2840')drawWarPostV2840(ctx,it);else if(it.t==='tree')drawDepthTreeV2770(ctx,it);else if(it.enemy)drawWorldMonster(ctx,it);else{
           const fade=worldDepthV2770(it)>p.y+17&&Math.abs(it.x-p.x)<82&&it.y-p.y<165;
-          ctx.save();if(fade)ctx.globalAlpha=.38;drawWorldPoi(ctx,it);if(typeof mapAliveBuildingV2893==='function')mapAliveBuildingV2893(ctx,it);ctx.restore();
+          ctx.save();if(fade&&!sectScenePoiV286896(it))ctx.globalAlpha=.38;drawWorldPoi(ctx,it);if(typeof mapAliveBuildingV2893==='function'&&!sectScenePoiV286896(it))mapAliveBuildingV2893(ctx,it);ctx.restore();
         }
       }
       if(!playerDrawn)drawWorldPlayer(ctx,p);
+      if(joinedScene){
+        // The same clouds, world light and exploration veil cover terrain AND architecture.
+        // Apply before labels so unknown landmarks remain readable without revealing cells.
+        if(typeof scene25dOnV2888==='function'&&scene25dOnV2888()){
+          s25CloudShadowsV2888(ctx,t,minX,maxX,minY,maxY);
+          s25JoinedWorldLightV286896(ctx);
+        }
+        ctx.save();ctx.setTransform(dpr,0,0,dpr,0,0);drawExplorationFogV2828(ctx,camDraw,vw,vh);ctx.restore();
+      }
       FLAT_WORLD.deferLabelsV2836=false;
       if(typeof drawWorldLabelsV2836==='function')drawWorldLabelsV2836(ctx,items.filter(o=>!o._warUnitV2840&&o.action!=='war_map_v2840'));
       if(typeof drawWarEffectsV2840==='function')drawWarEffectsV2840(ctx,warViewV2840);
@@ -14103,6 +14116,7 @@
     }
     function planNavigationV2830(goal){
       if(!goal||![goal.x,goal.y].every(Number.isFinite))return null;
+      const sceneDoor=sectSceneDoorV286896(goal);if(sceneDoor&&!goal.exact)goal={...goal,...sceneDoor,exact:true};
       const p=FLAT_WORLD.player,radius=(p.r||17)+4;
       const blockers=(FLAT_WORLD.colliders||[]).map(c=>({x:c.x,y:c.y,limit:c.radius+radius,physical:c.radius+(p.r||17)}));
       const clear=(a,b,departure=false)=>{
@@ -14187,8 +14201,14 @@
     // Visible architecture uses the same atlas choice, dimensions and world transforms as drawing.
     function poiTapBoxV2904(o){
       if(!o||o.action==='explore_v2828'||o.action==='war_map_v2840')return null;
+      const sceneBox=sectSceneBoundsV286896(o);if(sceneBox)return sceneBox;
+      if(sectScenePoiV286896(o))return {left:o.x-45,right:o.x+45,top:o.y-18,bottom:o.y+25};
       const presence=mapPoiBoundsV286889(o);if(presence)return presence;
       const vector=vectorLandmarkBoundsV286882(o);if(vector)return vector;
+      if(joinedArchitectureReadyV286896(o)){
+        const box=joinedArchitectureLayoutV286896(o),a=landmarkPointV2893(o,box.left,box.top),b=landmarkPointV2893(o,box.left+box.width,box.bottom);
+        return {left:a.x,right:b.x,top:a.y,bottom:b.y};
+      }
       let w=0,h=0,bottom=32;const regional=regionBuildingCellV2835(o),art=SCROLL_ART_V2831;
       if(regional&&art.regionalBuildings?.width>0&&art.regionalBuildings?.height>0){w=architectureWidthV2900(o,o.action==='lingxiao_building'?100:regional.row===2?180:regional.row===0?150:125);h=w*(art.regionalBuildings.height/4)/(art.regionalBuildings.width/3);}
       else if(scrollPalacePoiV2831(o)&&art.palace?.width>0&&art.palace?.height>0){w=architectureWidthV2900(o,o.action==='lingxiao_building'?128:180);h=w*art.palace.height/art.palace.width;bottom=42;}
@@ -14290,6 +14310,160 @@
     }
 
     const SCROLL_ART_V2831={started:false,landscape:null,palace:null};
+    // One authored environment, not a collection of building cutouts. Pixel-space
+    // geometry below refers to the unchanged 1374x1145 source painting.
+    const SECT_SCENE_V286896={x:827,y:328,scale:.696,width:1374,height:1145,rooms:{
+      beast_hall:{door:[280,370],body:[155,235,398,306],roof:[[130,230],[205,192],[225,175],[358,180],[382,218],[418,226],[404,285],[139,283]]},
+      library:{door:[685,397],body:[570,265,795,335],roof:[[530,192],[582,158],[610,137],[680,120],[756,146],[797,174],[826,253],[792,278],[550,278]]},
+      forge_hall:{door:[1090,375],body:[986,248,1175,317],roof:[[950,252],[991,215],[1070,199],[1165,204],[1208,252],[1190,293],[970,291]]},
+      qingxuan_academy:{door:[265,724],body:[160,590,365,657],roof:[[140,590],[174,548],[312,540],[351,565],[395,596],[378,630],[150,630]]},
+      main_hall:{door:[685,772],body:[555,633,821,706],roof:[[520,581],[565,550],[574,497],[758,491],[792,535],[814,589],[860,632],[826,660],[530,660],[500,639]]},
+      elder_hall:{door:[1100,755],body:[982,615,1210,685],roof:[[970,607],[993,565],[1165,557],[1205,587],[1241,627],[1218,650],[976,650]]}
+    }};
+    function sectSceneReadyV286896(){return currentRegion==='north'&&!!SCROLL_ART_V2831.sectScene;}
+    function sectScenePointV286896(x,y){const s=SECT_SCENE_V286896;return sectSceneReadyV286896()&&x>=s.x&&x<=s.x+s.width*s.scale&&y>=s.y&&y<=s.y+s.height*s.scale;}
+    function sectSceneRoomV286896(p){return sectSceneReadyV286896()&&p?.action==='lingxiao_building'?SECT_SCENE_V286896.rooms[p.buildingId]||null:null;}
+    function sectScenePoiV286896(p){return !!sectSceneRoomV286896(p)||sectSceneReadyV286896()&&p?.id==='sect';}
+    function sectSceneWorldV286896(x,y){const s=SECT_SCENE_V286896;return {x:s.x+x*s.scale,y:s.y+y*s.scale};}
+    function sectSceneDoorV286896(p){const r=sectSceneRoomV286896(p);return r?sectSceneWorldV286896(...r.door):null;}
+    function sectSceneBoundsV286896(p){
+      const r=sectSceneRoomV286896(p);if(!r)return null;
+      const xs=r.roof.map(q=>q[0]),ys=r.roof.map(q=>q[1]),a=sectSceneWorldV286896(Math.min(...xs),Math.min(...ys)),b=sectSceneWorldV286896(Math.max(...xs),r.body[3]);
+      return {left:a.x,top:a.y,right:b.x,bottom:b.y};
+    }
+    function sectSceneCollidersV286896(){
+      if(!sectSceneReadyV286896())return [];
+      const out=[],s=SECT_SCENE_V286896;
+      for(const [id,r] of Object.entries(s.rooms)){
+        const [l,t,right,bottom]=r.body;
+        for(let y=t+22;y<=bottom-10;y+=32)for(let x=l+20;x<=right-10;x+=36){
+          out.push({...sectSceneWorldV286896(x,y),radius:25*s.scale,type:'sect-scene',id:`scene_${id}`});
+        }
+      }
+      // Painted ponds and large rock beds. Keep the connecting stairs/courts open.
+      for(const [x,y,radius] of [[360,365,32],[395,430,30],[540,430,32],[820,430,32],[980,420,30],[340,754,28],[485,765,28],[850,770,30],[510,870,40],[800,880,40],[1285,750,38],[325,1000,48],[1080,995,48]])out.push({...sectSceneWorldV286896(x,y),radius:radius*s.scale,type:'sect-scene',id:'scene_garden'});
+      return out;
+    }
+    function sectSceneSafePointV286896(x,y,radius=17){
+      if(!sectSceneReadyV286896()||!FLAT_WORLD.colliders.some(c=>c.type==='sect-scene'&&Math.hypot(x-c.x,y-c.y)<c.radius+radius))return null;
+      const clear=q=>!FLAT_WORLD.colliders.some(c=>Math.hypot(q.x-c.x,q.y-c.y)<c.radius+radius+1);
+      return Object.values(SECT_SCENE_V286896.rooms).map(r=>sectSceneWorldV286896(...r.door)).filter(clear).sort((a,b)=>Math.hypot(a.x-x,a.y-y)-Math.hypot(b.x-x,b.y-y))[0]||null;
+    }
+    function loadSectSceneV286896(){
+      if(currentRegion!=='north'||SCROLL_ART_V2831.sectSceneRequested)return;
+      SCROLL_ART_V2831.sectSceneRequested=true;const im=new Image();im.decoding='async';
+      im.onload=()=>{SCROLL_ART_V2831.sectScene=im.naturalWidth===1374&&im.naturalHeight===1145?im:null;im.onload=im.onerror=null;
+        if(currentRegion==='north'){releaseStaticWorldCacheV2767();rebuildWorldColliders();
+          const p=FLAT_WORLD.player,safe=sectSceneSafePointV286896(p.x,p.y,p.r||17);
+          if(safe){stopNavigationV2830();FLAT_WORLD.target=null;p.x=safe.x;p.y=safe.y;}}};
+      im.onerror=()=>{SCROLL_ART_V2831.sectScene=null;im.onload=im.onerror=null;};im.src='./sect-panorama-v286896.webp';
+    }
+    function drawSectSceneV286896(ctx){
+      if(!sectSceneReadyV286896())return false;const s=SECT_SCENE_V286896;
+      const w=s.width*s.scale,h=s.height*s.scale,edge=36;
+      ctx.drawImage(SCROLL_ART_V2831.sectScene,s.x,s.y,w,h);
+      // Continue the painting's perimeter mist into the parchment landscape;
+      // these four gradients bake once, never into the dynamic roof masks.
+      ctx.save();ctx.translate(s.x,s.y);
+      for(const [x0,y0,x1,y1,x,y,rw,rh] of [[0,0,edge,0,0,0,edge,h],[w,0,w-edge,0,w-edge,0,edge,h],[0,0,0,edge,0,0,w,edge],[0,h,0,h-edge,0,h-edge,w,edge]]){
+        const g=ctx.createLinearGradient(x0,y0,x1,y1);g.addColorStop(0,'rgba(232,231,214,1)');g.addColorStop(1,'rgba(232,231,214,0)');ctx.fillStyle=g;ctx.fillRect(x,y,rw,rh);
+      }
+      ctx.restore();return true;
+    }
+    function drawSectSceneRoofV286896(ctx,p){
+      const r=sectSceneRoomV286896(p);if(!r)return;
+      const s=SECT_SCENE_V286896,box=sectSceneBoundsV286896(p),actor=FLAT_WORLD.player;
+      ctx.save();ctx.beginPath();r.roof.forEach(([x,y],i)=>{const q=sectSceneWorldV286896(x,y);if(i)ctx.lineTo(q.x,q.y);else ctx.moveTo(q.x,q.y);});ctx.closePath();ctx.clip();
+      if(actor.x>=box.left-15&&actor.x<=box.right+15&&actor.y<box.bottom&&actor.y>box.top)ctx.globalAlpha*=.72;
+      const xs=r.roof.map(q=>q[0]),ys=r.roof.map(q=>q[1]),x=Math.min(...xs),y=Math.min(...ys),w=Math.max(...xs)-x,h=Math.max(...ys)-y;
+      ctx.drawImage(SCROLL_ART_V2831.sectScene,x,y,w,h,s.x+x*s.scale,s.y+y*s.scale,w*s.scale,h*s.scale);ctx.restore();
+    }
+    // One small regional atlas: each painting includes the building, its stairs and its own forecourt.
+    // Tight per-painting bounds preserve the complete eaves and pavilion finial.
+    const JOINED_ARCHITECTURE_V286896=[
+      {x:0,y:0,w:564,h:524,exitX:242,exitY:504},
+      {x:564,y:0,w:476,h:500,exitX:187,exitY:496},
+      {x:1040,y:0,w:496,h:532,exitX:210,exitY:516},
+      {x:0,y:532,w:558,h:492,exitX:260,exitY:466},
+      {x:558,y:500,w:448,h:524,exitX:225,exitY:496},
+      {x:1006,y:532,w:530,h:492,exitX:272,exitY:466}
+    ];
+    function joinedArchitectureCellV286896(p){
+      if(currentRegion!=='north'||!p)return -1;
+      if(p.action==='lingxiao_building'){
+        if(['spirit_spring','back_forest','hidden_caves','cliff_bridge','ancestor_cave'].includes(p.buildingId))return -1;
+        if(['gate','secret_realm_gate','mini_secret_realm','defense_wall'].includes(p.buildingId))return 2;
+        if(['main_hall','library','elder_hall','forbidden_library'].includes(p.buildingId))return 0;
+        if(['dormitory','qingxuan_academy','outer_elder_hall'].includes(p.buildingId))return 3;
+        if(['stone_steps','arena','inner_arena','insight_platform','array_core','night_platform','border_towers'].includes(p.buildingId))return 4;
+        if(['alchemy_hall','forge_hall','night_yaolu','herb_garden'].includes(p.buildingId))return 5;
+        return 1;
+      }
+      return p.id==='sect'?0:p.id==='travel_gate'||p.id==='factions'?2:-1;
+    }
+    function joinedSceneReadyV286896(){return sectSceneReadyV286896()||currentRegion==='north'&&!!SCROLL_ART_V2831.joinedBuildings&&!!SCROLL_ART_V2831.northernTerrain;}
+    function joinedArchitectureReadyV286896(p){return joinedArchitectureCellV286896(p)>=0&&!!SCROLL_ART_V2831.joinedBuildings;}
+    function joinedArchitectureLayoutV286896(p){
+      const cell=JOINED_ARCHITECTURE_V286896[joinedArchitectureCellV286896(p)];if(!cell)return null;
+      const width=architectureWidthV2900(p,p.action==='lingxiao_building'?136:p.id==='sect'?218:142),scale=width/cell.w;
+      return {cell,width,height:cell.h*scale,left:-cell.exitX*scale,top:30-cell.exitY*scale,bottom:30+(cell.h-cell.exitY)*scale};
+    }
+    function loadJoinedArchitectureV286896(){
+      if(currentRegion!=='north'||SCROLL_ART_V2831.joinedRequested)return;
+      SCROLL_ART_V2831.joinedRequested=true;const im=new Image();im.decoding='async';
+      im.onload=()=>{SCROLL_ART_V2831.joinedBuildings=im.naturalWidth===1536&&im.naturalHeight===1024?im:null;im.onload=im.onerror=null;if(currentRegion==='north')releaseStaticWorldCacheV2767();};
+      im.onerror=()=>{SCROLL_ART_V2831.joinedBuildings=null;im.onload=im.onerror=null;};im.src='./architecture-courtyards-v286896.webp';
+    }
+    function drawJoinedArchitectureV286896(ctx,p){
+      if(!joinedArchitectureReadyV286896(p))return false;
+      const a=joinedArchitectureLayoutV286896(p),c=a.cell,locked=p.action==='lingxiao_building'&&!canAccessBuilding(p.buildingId).allowed;
+      ctx.save();architectureFadeV2903(ctx,p,a.width,a.height,a.bottom,a.left);if(locked)ctx.globalAlpha*=.58;
+      ctx.drawImage(SCROLL_ART_V2831.joinedBuildings,c.x,c.y,c.w,c.h,a.left,a.top,a.width,a.height);
+      if(locked){ctx.font='14px sans-serif';ctx.textAlign='center';ctx.fillText('🔒',a.width*.25,-20);}ctx.restore();return true;
+    }
+    function stoneRoadLandingV286896(p){
+      const poi=p.action?p:getLingxiaoPoiByBuilding(p.id);
+      // The road joins the painted courtyard mouth, invariant under the building's depth/landmark scales.
+      return poi&&joinedArchitectureReadyV286896(poi)?{x:poi.x,y:poi.y+30}:{x:p.x,y:p.y+(p.action?0:12)};
+    }
+    function loadNorthernTerrainV286896(){
+      if(currentRegion!=='north'||SCROLL_ART_V2831.northernTerrainRequested)return;
+      SCROLL_ART_V2831.northernTerrainRequested=true;const im=new Image();im.decoding='async';
+      im.onload=()=>{SCROLL_ART_V2831.northernTerrain=im.naturalWidth>0&&im.naturalHeight>0?im:null;im.onload=im.onerror=null;if(currentRegion==='north')releaseStaticWorldCacheV2767();};
+      im.onerror=()=>{SCROLL_ART_V2831.northernTerrain=null;im.onload=im.onerror=null;};im.src='./north-terrain-v286896.webp';
+    }
+    function northernGroundStampsV286896(im){
+      if(SCROLL_ART_V2831.groundStampSource===im&&SCROLL_ART_V2831.groundStamps)return SCROLL_ART_V2831.groundStamps;
+      const stamps=[];
+      for(let i=0;i<4;i++){
+        const c=document.createElement('canvas');c.width=256;c.height=160;const x=c.getContext('2d');if(!x)return null;
+        const sw=im.naturalWidth*.72,sh=im.naturalHeight*.72,sx=(i%2)*(im.naturalWidth-sw),sy=Math.floor(i/2)*(im.naturalHeight-sh);
+        x.drawImage(im,sx,sy,sw,sh,0,0,256,160);
+        x.globalCompositeOperation='destination-in';x.scale(1,.625);
+        const g=x.createRadialGradient(128,128,0,128,128,128);g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(.55,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,256,256);stamps.push(c);
+      }
+      for(const old of SCROLL_ART_V2831.groundStamps||[]){old.width=1;old.height=1;}
+      SCROLL_ART_V2831.groundStamps=stamps;SCROLL_ART_V2831.groundStampSource=im;return stamps;
+    }
+    function drawNorthernTerrainV286896(ctx){
+      if(sectSceneReadyV286896()){
+        // The authored ink scene continues into the region's parchment landscape.
+        ctx.save();ctx.fillStyle='#e8e7d6';ctx.fillRect(0,0,FLAT_WORLD.width,FLAT_WORLD.height);ctx.globalAlpha=.25;drawRegionScrollV2834(ctx,0,0,FLAT_WORLD.width,FLAT_WORLD.height);ctx.restore();return true;
+      }
+      const im=SCROLL_ART_V2831.northernTerrain;if(currentRegion!=='north'||!im)return false;
+      const w=FLAT_WORLD.width,h=FLAT_WORLD.height,stamps=northernGroundStampsV286896(im);
+      ctx.save();ctx.fillStyle='#b8ad86';ctx.fillRect(0,0,w,h);
+      if(!stamps){ctx.drawImage(im,0,0,w,h);ctx.restore();return true;}
+      // Small, overlapping ground patches share the courtyard's projected detail scale.
+      // Coordinate-only variation avoids repeated mirror patterns and preserves light direction; no game RNG.
+      const hash=(x,y)=>{const n=Math.sin(x*12.9898+y*78.233)*43758.5453;return n-Math.floor(n);};
+      for(let y=-80,row=0;y<h+80;y+=70,row++)for(let x=-128,col=0;x<w+128;x+=110,col++){
+        const a=hash(col+7,row+31),b=hash(col+23,row+11),stamp=stamps[Math.floor(a*4)];
+        ctx.save();ctx.translate(x+(row%2?55:0)+(a-.5)*30,y+(b-.5)*20);ctx.drawImage(stamp,-128,-80);ctx.restore();
+      }
+      // No separate circular ground pad under each building.
+      ctx.restore();return true;
+    }
     function loadRegionalBuildingsV286879(){
       if(!['north','demon_domain','immortal_domain'].includes(currentRegion)||SCROLL_ART_V2831.regionalBuildingsRequested)return;
       SCROLL_ART_V2831.regionalBuildingsRequested=true;
@@ -14299,7 +14473,7 @@
       img.src='./region-buildings-v2835.webp';
     }
     function loadScrollArtV2831(){
-      loadRegionalBuildingsV286879();
+      loadRegionalBuildingsV286879();loadJoinedArchitectureV286896();loadNorthernTerrainV286896();loadSectSceneV286896();
       if(SCROLL_ART_V2831.started)return;SCROLL_ART_V2831.started=true;
       const request=(key,file,ground=false)=>{
         const img=new Image();img.decoding='async';
@@ -14346,10 +14520,10 @@
       if(major){ctx.strokeStyle='rgba(183,150,81,.55)';ctx.beginPath();ctx.ellipse(0,bottom-3,w*.36,12,0,0,Math.PI*2);ctx.stroke();}
       ctx.restore();
     }
-    function architectureFadeV2903(ctx,o,w,h,bottom){
+    function architectureFadeV2903(ctx,o,w,h,bottom,leftOffset=-w/2){
       if(ctx.canvas?.id!=='worldCanvas'||!FLAT_WORLD.player||typeof landmarkPointV2893!=='function')return;
       const p=FLAT_WORLD.player;if(o.y<=p.y+12)return;
-      const left=landmarkPointV2893(o,-w/2,bottom-h),right=landmarkPointV2893(o,w/2,bottom);
+      const left=landmarkPointV2893(o,leftOffset,bottom-h),right=landmarkPointV2893(o,leftOffset+w,bottom);
       if(p.x+12>left.x&&p.x-12<right.x&&p.y>left.y&&p.y-42<right.y)ctx.globalAlpha*=.42;
     }
     function drawScrollPalaceV2831(ctx,p){
@@ -14594,13 +14768,13 @@
     }
     // Draw once into the existing terrain cache. Fixed geometry-based grain never consumes game RNG.
     function drawStoneRoadsV286895(ctx,roads){
-      const north=currentRegion==='north',demon=currentRegion==='demon_domain',low=PERF_CONFIG.lowEnd;
+      const north=currentRegion==='north',demon=currentRegion==='demon_domain',low=PERF_CONFIG.lowEnd,blended=north&&!!SCROLL_ART_V2831.northernTerrain;
       const valid=roads.filter(r=>Number.isFinite(r.width)&&r.width>0&&r.points.length>1&&r.points.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y)));
       const trace=r=>{ctx.beginPath();r.points.forEach((p,i)=>ctx[i?'lineTo':'moveTo'](p.x,p.y));};
       const grain=(x,y)=>{const n=Math.sin(x*12.9898+y*78.233)*43758.5453;return n-Math.floor(n);};
       ctx.save();ctx.setLineDash([]);ctx.lineJoin='round';ctx.lineCap='round';
       // Soft earth shoulder and pale bedding; no opaque double outline around the whole network.
-      for(const [extra,color] of [[9,'rgba(102,95,75,.09)'],[4,'rgba(80,88,77,.18)'],[0,north?'rgba(166,179,169,.66)':'rgba(167,171,145,.62)']]){
+      for(const [extra,color] of [[north&&SCROLL_ART_V2831.northernTerrain?24:9,'rgba(102,95,75,.09)'],[north&&SCROLL_ART_V2831.northernTerrain?12:4,'rgba(80,88,77,.18)'],[0,blended?'rgba(142,149,139,.36)':north?'rgba(160,163,150,.72)':'rgba(167,171,145,.62)']]){
         ctx.strokeStyle=color;for(const r of valid){ctx.lineWidth=r.width+extra;trace(r);ctx.stroke();}
       }
       for(const r of valid){
@@ -14617,8 +14791,8 @@
             for(let col=0;col<columns;col++){
               const lo=col===0?-.93:split+.025,hi=col===columns-1?.93:split-.025;
               const near=d+.8,far=Math.max(near,end-1.1),points=[edge(near,lo),edge(near,hi),edge(far,hi),edge(far,lo)];
-              const shade=Math.floor(grain(p.x+col*19,p.y+index)*21),base=demon?[121,113,118]:north?[155,169,164]:[155,162,143];
-              ctx.fillStyle=`rgba(${base[0]+shade},${base[1]+shade},${base[2]+shade},.75)`;
+              const shade=Math.floor(grain(p.x+col*19,p.y+index)*21),base=demon?[121,113,118]:north?[146,151,141]:[155,162,143];
+              ctx.fillStyle=`rgba(${base[0]+shade},${base[1]+shade},${base[2]+shade},${blended?.48:.75})`;
               ctx.strokeStyle='rgba(58,72,67,.26)';ctx.lineWidth=.65;ctx.beginPath();points.forEach((p,i)=>ctx[i?'lineTo':'moveTo'](p.x,p.y));ctx.closePath();ctx.fill();ctx.stroke();
               if(!low){
                 ctx.strokeStyle='rgba(231,230,207,.38)';ctx.beginPath();ctx.moveTo(points[0].x+.5,points[0].y+.5);ctx.lineTo(points[1].x-.5,points[1].y+.5);ctx.stroke();
@@ -14636,7 +14810,7 @@
     function drawRoutesV2827(ctx){
       const routes=worldRoutesV2827();let links;
       if(currentRegion==='north'){
-        links=routes.map(r=>{const near=LINGXIAO_BUILDINGS.reduce((best,b)=>Math.hypot(b.x-r.b.x,b.y-r.b.y)<Math.hypot(best.x-r.b.x,best.y-r.b.y)?b:best,LINGXIAO_BUILDINGS[0]);return {a:{x:near.x,y:near.y+12},b:r.b};});
+        links=routes.map(r=>{const near=LINGXIAO_BUILDINGS.reduce((best,b)=>Math.hypot(b.x-r.b.x,b.y-r.b.y)<Math.hypot(best.x-r.b.x,best.y-r.b.y)?b:best,LINGXIAO_BUILDINGS[0]);return {a:stoneRoadLandingV286896(near),b:stoneRoadLandingV286896(r.b)};});
       }else{
         // Join nearby destinations into a village path network instead of eight spokes at one hub.
         const nodes=[getWorldMapConfig().hub,...routes.map(r=>r.b)],joined=new Set([0]);links=[];
@@ -14669,7 +14843,7 @@
     }
 
     function drawWorldGround(ctx) {
-      loadScrollArtV2831();if(drawRegionScrollV2834(ctx,0,0,FLAT_WORLD.width,FLAT_WORLD.height))return;
+      loadScrollArtV2831();if(drawNorthernTerrainV286896(ctx))return;if(drawRegionScrollV2834(ctx,0,0,FLAT_WORLD.width,FLAT_WORLD.height))return;
       const cfg=getWorldMapConfig(), region=getRegionInfo(currentRegion||'south');
       drawTerrainV2827(ctx);
       ctx.save();
@@ -14773,14 +14947,19 @@
     }
 
     function drawWorldPoi(ctx,o){
+      drawSectSceneRoofV286896(ctx,o);
       ctx.save();ctx.translate(o.x,o.y);
       const near=FLAT_WORLD.nearby?.id===o.id;
       const kind=getPoiVisualKind(o);
-      if(near){ctx.fillStyle='rgba(239,201,108,.12)';ctx.beginPath();ctx.arc(0,2,o.r+16,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(239,201,108,.78)';ctx.setLineDash([8,8]);ctx.lineWidth=3;ctx.stroke();ctx.setLineDash([])}
+      if(near&&!joinedArchitectureReadyV286896(o)&&!sectScenePoiV286896(o)){ctx.fillStyle='rgba(239,201,108,.12)';ctx.beginPath();ctx.arc(0,2,o.r+16,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(239,201,108,.78)';ctx.setLineDash([8,8]);ctx.lineWidth=3;ctx.stroke();ctx.setLineDash([])}
       ctx.save();
       if(typeof landmarkPoiApplyV2893==='function')landmarkPoiApplyV2893(ctx,o);
-      if(kind==='npc'){
+      if(sectScenePoiV286896(o)){
+        // Architecture, stairs and gardens are already painted together in the ground cache.
+      }else if(kind==='npc'){
         drawMapNpcPresenceV286889(ctx,o,true);
+      }else if(drawJoinedArchitectureV286896(ctx,o)){
+        // Building, stair and forecourt share one painted surface and a fixed road entrance.
       }else if(drawRegionBuildingV2835(ctx,o)){
         // Regional painted architecture shares existing collision and access rules.
       }else if(scrollPalacePoiV2831(o)&&drawScrollPalaceV2831(ctx,o)){
@@ -15457,7 +15636,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.95";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.96";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
