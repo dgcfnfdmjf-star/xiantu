@@ -86,4 +86,4 @@ async function jevFetchV2850(endpoint,options){
   }
 }
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2850-jev-friends.js']='28.68.92';
+window.__xiantuBuildFilesV2814['xiantu-v2850-jev-friends.js']='28.68.93';

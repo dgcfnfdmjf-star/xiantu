@@ -2802,6 +2802,257 @@ function showGraphicsV2903(message=''){
 // Walkable interiors share the world loop and controls; outdoor coordinates are never replaced.
 let interiorV286886=null;
 const INTERIOR_HALLS_V286886=new Set(['task_hall','main_hall','guest_hall','outer_elder_hall','elder_hall','qingxuan_academy','library','alchemy_hall','night_yaolu','beast_hall','forge_hall','forbidden_library','dormitory']);
+// Each supported POI has its own authored scene. A three-entry LRU bounds decoded backgrounds.
+const INTERIOR_SCENES_V286893={
+ "shop": {
+  "name": "百宝阁",
+  "host": "掌柜",
+  "service": "交易柜台",
+  "station": "desk",
+  "npc": "affairs",
+  "props": [
+   "book",
+   "desk",
+   "furnace"
+  ],
+  "description": "货柜里备有丹药、兵器与护甲。走到交易柜台可查看商品，购买时仍会核对数量与费用。"
+ },
+ "market": {
+  "name": "仙市",
+  "host": "仙市行商",
+  "service": "仙市交易案",
+  "station": "desk",
+  "npc": "affairs",
+  "props": [
+   "book",
+   "desk",
+   "throne"
+  ],
+  "description": "诸家货品汇于此处。走到仙市交易案可查看原有商铺与商品。"
+ },
+ "home": {
+  "name": "洞府",
+  "host": "洞府留笺",
+  "service": "洞府蒲团",
+  "station": "cushion",
+  "npc": "teaching",
+  "props": [
+   "book",
+   "desk",
+   "bed"
+  ],
+  "description": "窗外云山静好，蒲团已备。走近右侧蒲团可打开洞府原有修行与休息事务。"
+ },
+ "alchemy": {
+  "name": "炼丹房",
+  "host": "守炉丹师",
+  "service": "丹火工位",
+  "station": "furnace",
+  "npc": "medicine",
+  "props": [
+   "book",
+   "desk",
+   "furnace"
+  ],
+  "description": "西域丹火温烈，炼丹仍须备齐材料。右侧工位可打开原有炼丹事务。"
+ },
+ "dormitory": {
+  "name": "外门弟子居",
+  "host": "弟子居留笺",
+  "service": "修行蒲团",
+  "station": "cushion",
+  "npc": "teaching",
+  "props": [
+   "bed",
+   "desk",
+   "book"
+  ],
+  "description": "竹窗下可安置行囊，卧榻供弟子起居。右侧蒲团可办理弟子居原有休息与打坐事务。"
+ },
+ "task_hall": {
+  "name": "外门任务堂",
+  "host": "任务执事",
+  "service": "任务登记案",
+  "station": "desk",
+  "npc": "affairs",
+  "props": [
+   "book",
+   "desk",
+   "book"
+  ],
+  "description": "墙上卷轴记录宗门差事。右侧登记案可查看任务与功绩事务。"
+ },
+ "guest_hall": {
+  "name": "迎宾殿",
+  "host": "迎宾弟子",
+  "service": "迎宾茶案",
+  "station": "desk",
+  "npc": "affairs",
+  "props": [
+   "book",
+   "desk",
+   "throne"
+  ],
+  "description": "清茶迎客，礼册备妥。右侧茶案可查看迎宾殿原有事务。"
+ },
+ "outer_elder_hall": {
+  "name": "外门长老院",
+  "host": "外门执事",
+  "service": "外门事务案",
+  "station": "desk",
+  "npc": "affairs",
+  "props": [
+   "book",
+   "desk",
+   "book"
+  ],
+  "description": "外勤卷宗与巡防册分门归档。右侧事务案可查看外门管理。"
+ },
+ "main_hall": {
+  "name": "凌霄大殿",
+  "host": "大殿值守",
+  "service": "宗主议事案",
+  "station": "desk",
+  "npc": "discipline",
+  "props": [
+   "book",
+   "desk",
+   "book"
+  ],
+  "description": "大殿承接宗门议事与重大决议。右侧议事案沿用原有身份与事务权限。"
+ },
+ "elder_hall": {
+  "name": "内门长老阁",
+  "host": "长老阁执事",
+  "service": "长老议事案",
+  "station": "desk",
+  "npc": "discipline",
+  "props": [
+   "book",
+   "desk",
+   "book"
+  ],
+  "description": "五院卷宗在此汇集。右侧议事案可查看长老阁原有事务。"
+ },
+ "qingxuan_academy": {
+  "name": "清玄道院",
+  "host": "道院弟子",
+  "service": "清玄问道案",
+  "station": "desk",
+  "npc": "teaching",
+  "props": [
+   "book",
+   "desk",
+   "book"
+  ],
+  "description": "梅窗照琴，道院清宁。右侧问道案可办理原有师徒与道院事务。"
+ },
+ "library": {
+  "name": "藏经阁",
+  "host": "守阁弟子",
+  "service": "典籍书案",
+  "station": "desk",
+  "npc": "teaching",
+  "props": [
+   "book",
+   "desk",
+   "book"
+  ],
+  "description": "典籍按门类收存，查阅仍按原有资格。右侧书案可打开藏经阁事务。"
+ },
+ "alchemy_hall": {
+  "name": "丹庐药堂",
+  "host": "药堂弟子",
+  "service": "药堂丹炉",
+  "station": "furnace",
+  "npc": "medicine",
+  "props": [
+   "book",
+   "desk",
+   "furnace"
+  ],
+  "description": "药柜收存灵草，丹炉候火。右侧丹炉可进入原有炼丹与药堂事务。"
+ },
+ "night_yaolu": {
+  "name": "深夜药庐",
+  "host": "夜值药师",
+  "service": "夜庐药炉",
+  "station": "furnace",
+  "npc": "medicine",
+  "props": [
+   "book",
+   "desk",
+   "furnace"
+  ],
+  "description": "雨声绕窗，药灯未熄。右侧药炉可查看深夜药庐原有事务与剧情。"
+ },
+ "beast_hall": {
+  "name": "御兽堂",
+  "host": "御兽弟子",
+  "service": "灵兽契约案",
+  "station": "desk",
+  "npc": "affairs",
+  "props": [
+   "book",
+   "desk",
+   "book"
+  ],
+  "description": "兽栏、饲料与契约分处保管。右侧契约案可查看原有灵宠与御兽事务。"
+ },
+ "forge_hall": {
+  "name": "炼器阁",
+  "host": "炼器执事",
+  "service": "锻造工位",
+  "station": "desk",
+  "npc": "discipline",
+  "props": [
+   "book",
+   "desk",
+   "furnace"
+  ],
+  "description": "炉火锻铁，器架收锋。右侧锻造工位可办理原有炼器事务。"
+ },
+ "forbidden_library": {
+  "name": "禁书秘阁",
+  "host": "禁阁守卫",
+  "service": "封印书案",
+  "station": "desk",
+  "npc": "discipline",
+  "props": [
+   "book",
+   "desk",
+   "book"
+  ],
+  "description": "封绳护卷，禁典有序。右侧封印书案仍须按原有资格办理禁阁事务。"
+ }
+};
+const INTERIOR_SCENE_CACHE_V286893=new Map();
+function interiorSceneIdV286893(p){
+ const key=p?.action==='lingxiao_building'?p.buildingId:p?.action;
+ return Object.hasOwn(INTERIOR_SCENES_V286893,key)?key:null;
+}
+function prepareInteriorSceneV286893(p){
+ const id=interiorSceneIdV286893(p);if(!id)return null;
+ let entry=INTERIOR_SCENE_CACHE_V286893.get(id);
+ if(entry&&!entry.failed){INTERIOR_SCENE_CACHE_V286893.delete(id);INTERIOR_SCENE_CACHE_V286893.set(id,entry);return entry;}
+ if(entry)INTERIOR_SCENE_CACHE_V286893.delete(id); // A new visit may retry; drawing never retries.
+ entry={id,image:null,pending:null,failed:false};INTERIOR_SCENE_CACHE_V286893.set(id,entry);
+ while(INTERIOR_SCENE_CACHE_V286893.size>3){
+  const key=INTERIOR_SCENE_CACHE_V286893.keys().next().value,old=INTERIOR_SCENE_CACHE_V286893.get(key);
+  INTERIOR_SCENE_CACHE_V286893.delete(key);
+  if(old.pending){old.pending.onload=old.pending.onerror=null;old.pending.src='';old.pending=null;}old.image=null;
+ }
+ const image=new Image();entry.pending=image;image.decoding='async';
+ image.onload=()=>{
+  image.onload=image.onerror=null;entry.pending=null;
+  if(INTERIOR_SCENE_CACHE_V286893.get(id)!==entry)return;
+  if(image.naturalWidth>0)entry.image=image;else entry.failed=true;
+ };
+ image.onerror=()=>{image.onload=image.onerror=null;entry.pending=null;if(INTERIOR_SCENE_CACHE_V286893.get(id)===entry)entry.failed=true;};
+ image.src='./interior-scenes-v286893/'+id+'.webp';return entry;
+}
+function interiorSceneImageV286893(s){return INTERIOR_SCENE_CACHE_V286893.get(s.sceneId)?.image||null;}
+
 function interiorKindV286886(p){
  if(!p)return null;
  if(p.action==='lingxiao_building'&&INTERIOR_HALLS_V286886.has(p.buildingId))return /alchemy|yaolu|forge/.test(p.buildingId)?'workshop':/library/.test(p.buildingId)?'library':p.buildingId==='dormitory'?'home':'hall';
@@ -2822,11 +3073,11 @@ function tryEnterInteriorV286886(p){
  if(!canMapNpcActV2864()||isWorldOverlayOpen()||!FLAT_WORLD.pois.includes(p)||Math.hypot(FLAT_WORLD.player.x-p.x,FLAT_WORLD.player.y-p.y)>p.r+62)return true;
  if(p.action==='lingxiao_building'){const access=canAccessBuilding(p.buildingId);if(!access.allowed){showFloatingText(access.reason,'#ffd76a');return true;}syncTaskWithLingxiaoBuilding(p.buildingId);}
  if(typeof tutorialFreeExploreUnlocked==='function'&&tutorialState.active&&!tutorialFreeExploreUnlocked())return false;
- resetWorldMovementV28686();clearInteriorV286886();prepareInteriorArtV286892();
+ resetWorldMovementV28686();clearInteriorV286886();prepareInteriorArtV286892();prepareInteriorSceneV286893(p);
  const label=({shop:'交易柜台',home:'修行蒲团',workshop:'炼制工位',library:'典籍书案',hall:'宗门事务案'})[kind];
  interiorV286886={owner:player,region:currentRegion,poi:p,kind,player:{x:288,y:352},path:[],floor:null,view:null,
   stations:[{id:'host',x:176,y:176,name:kind==='home'?'洞府留笺':kind==='shop'?'掌柜':'值守弟子',dialog:true},{id:'service',x:400,y:176,name:label},{id:'door',x:288,y:400,name:'离开建筑'}]};
- const session=interiorV286886;document.documentElement.classList.add('interior-v286886');
+ const session=interiorV286886;session.sceneId=interiorSceneIdV286893(p);const scene=INTERIOR_SCENES_V286893[session.sceneId];if(scene){session.stations[0].name=scene.host;session.stations[1].name=scene.service;}document.documentElement.classList.add('interior-v286886');
  const hud=document.createElement('div');hud.id='interiorHudV286886';
  const title=document.createElement('strong');title.textContent=p.name+' · 室内';hud.appendChild(title);
  const hint=document.createElement('span');hint.id='interiorHintV286886';hint.textContent='摇杆 / 方向键移动 · 点地行走 · 靠近后交互';hud.appendChild(hint);
@@ -2893,7 +3144,7 @@ function interiorInteractV286886(){
  if(a.id==='door'){leaveInteriorV286886();return true;}
  resetWorldMovementV28686();
  if(s.poi.action==='lingxiao_building'){const access=canAccessBuilding(s.poi.buildingId);if(!access.allowed){showFloatingText(access.reason,'#ffd76a');return true;}}
- if(a.dialog){showStory('<h3>'+a.name+'</h3><p>进门先歇歇脚。右侧工位可办理这里的事务，所有材料、费用与修行门槛仍按原规矩执行。离开时走到南侧门口即可。</p>',[{text:'继续在室内走动',action:'return_to_map'}]);}
+ if(a.dialog){const description=INTERIOR_SCENES_V286893[s.sceneId]?.description||'右侧工位可办理这里的事务。';showStory('<h3>'+a.name+'</h3><p>'+description+'离开时走到南侧门口即可。</p>',[{text:'继续在室内走动',action:'return_to_map'}]);}
  else if(s.poi.action==='lingxiao_building')enterLingxiaoBuilding(s.poi.buildingId);
  else showLocation(s.poi.action);
  return true;
@@ -2942,29 +3193,30 @@ function interiorPropV286892(ctx,name,x,y,width,height){
  const h=height||width*f[3]/f[2];ctx.drawImage(a.props,...f,x-width/2,y-h,width,h);
 }
 function paintedInteriorFloorV286892(s){
- if(s.floor&&s.floorPainted)return s.floor;
+ const sceneImage=interiorSceneImageV286893(s);
+ if(s.floor&&s.floorPainted&&s.floorSceneImage===sceneImage)return s.floor;
  if(s.floor)s.floor.width=s.floor.height=1;
  const c=document.createElement('canvas');c.width=1152;c.height=896;const ctx=c.getContext('2d');ctx.scale(2,2);
- ctx.drawImage(INTERIOR_ART_V286892.room,0,0,576,448);
- const rug=projectInteriorV286892(288,370);interiorPropV286892(ctx,s.kind==='home'?'jadeRug':'redRug',rug.x,rug.y,158,192);
+ ctx.drawImage(sceneImage||INTERIOR_ART_V286892.room,0,0,576,448);
+ if(!sceneImage){const rug=projectInteriorV286892(288,370);interiorPropV286892(ctx,s.kind==='home'?'jadeRug':'redRug',rug.x,rug.y,158,192);}
  // Door marker uses text drawn by the game, so generated art never dictates an interaction label.
  ctx.fillStyle='rgba(30,24,18,.82)';ctx.fillRect(260,414,56,21);ctx.font='14px serif';ctx.textAlign='center';ctx.fillStyle='#ead39b';ctx.fillText('出口',288,430);
- s.floor=c;s.floorPainted=true;return c;
+ s.floor=c;s.floorPainted=true;s.floorSceneImage=sceneImage;return c;
 }
 function drawPaintedInteriorV286892(ctx,s){
  ctx.drawImage(paintedInteriorFloorV286892(s),0,0,576,448);
- const kinds={home:['bed','desk','book'],hall:['book','throne','furnace'],library:['book','desk','book'],workshop:['book','desk','furnace'],shop:['book','desk','book']},names=kinds[s.kind]||kinds.hall;
+ const kinds={home:['bed','desk','book'],hall:['book','throne','furnace'],library:['book','desk','book'],workshop:['book','desk','furnace'],shop:['book','desk','book']},scene=INTERIOR_SCENES_V286893[s.sceneId],names=scene?.props||kinds[s.kind]||kinds.hall;
  const items=[{type:'prop',name:names[0],x:112,y:160,w:104},{type:'prop',name:names[1],x:288,y:128,w:128},{type:'prop',name:names[2],x:464,y:160,w:100},
   {type:s.kind==='home'?'prop':'npc',name:'desk',x:176,y:192,w:38},
-  {type:'prop',name:s.kind==='home'?'cushion':s.kind==='workshop'?'furnace':'desk',x:400,y:192,w:38},
+  {type:'prop',name:scene?.station||(s.kind==='home'?'cushion':s.kind==='workshop'?'furnace':'desk'),x:400,y:192,w:38},
   {type:'player',x:s.player.x,y:s.player.y,w:0}];
- if(s.kind==='hall')for(const x of [12,564]){const p=projectInteriorV286892(x,345);interiorPropV286892(ctx,'pillar',p.x,p.y,30,175);}
+ if(s.kind==='hall'&&!interiorSceneImageV286893(s))for(const x of [12,564]){const p=projectInteriorV286892(x,345);interiorPropV286892(ctx,'pillar',p.x,p.y,30,175);}
  items.sort((a,b)=>a.y-b.y);
  for(const item of items){const p=projectInteriorV286892(item.x,item.y);
   if(item.type==='player'){
    const scale=.95*p.k;ctx.save();ctx.translate(p.x-s.player.x*scale,p.y-(s.player.y+17)*scale);ctx.scale(scale,scale);drawActor25DV2770(ctx,s.player);ctx.restore();
   }else if(item.type==='npc'){
-   const img=INTERIOR_ART_V286892.npc,key=s.kind==='workshop'?'medicine':s.kind==='library'?'teaching':'affairs',frame=SECT_STEWARDS_V286865[key],h=88*p.k;
+   const img=INTERIOR_ART_V286892.npc,key=scene?.npc||(s.kind==='workshop'?'medicine':s.kind==='library'?'teaching':'affairs'),frame=SECT_STEWARDS_V286865[key],h=88*p.k;
    if(img){const w=h*frame.w/941;ctx.drawImage(img,frame.x,0,frame.w,941,p.x-w/2,p.y-h,w,h);}
    else{ctx.save();ctx.translate(p.x,p.y-23*p.k);ctx.scale(p.k,p.k);drawMapNpcV2863(ctx,{action:s.kind==='shop'?'npc_trader':'npc_elder'});ctx.restore();}
   }else interiorPropV286892(ctx,item.name,p.x,p.y,item.w*p.k);
@@ -2979,7 +3231,7 @@ function drawPaintedInteriorV286892(ctx,s){
 
 function drawInteriorV286886(){
  const s=interiorStateV286886();if(!s)return false;const canvas=document.getElementById('worldCanvas'),ctx=canvas.getContext('2d'),dpr=canvas._dpr||1,vw=canvas.width/dpr,vh=canvas.height/dpr;
- const painted=INTERIOR_ART_V286892.ready,landscape=vw>vh,top=landscape?96:174,bottom=landscape?12:150;
+ const painted=!!(INTERIOR_ART_V286892.props&&(INTERIOR_ART_V286892.room||interiorSceneImageV286893(s))),landscape=vw>vh,top=landscape?96:174,bottom=landscape?12:150;
  const scale=painted&&!landscape?Math.min(1,(vw-16)/576*1.45,Math.max(100,vh-top-bottom)/448):Math.min((vw-24)/576,Math.max(100,vh-top-bottom)/448);
  const point=painted?projectInteriorV286892(s.player.x,s.player.y):s.player;
  const x=576*scale<=vw?(vw-576*scale)/2:Math.min(0,Math.max(vw-576*scale,vw/2-point.x*scale)),y=top+Math.max(0,(vh-top-bottom-448*scale)/2);
@@ -2992,7 +3244,7 @@ function drawInteriorV286886(){
  drawActor25DV2770(ctx,s.player);ctx.restore();return true;
 }
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.92';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.93';
 
 
 if(typeof installBagViewV2905==='function')installBagViewV2905();

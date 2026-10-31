@@ -1,0 +1,108 @@
+{
+  "reference": "art/interior-painted-v286892/room-source.png",
+  "prompt": "Create ONE production game background, not a collage. Use the supplied room image as exact camera/composition and unified Chinese xianxia ink-line hand-painted style reference, but redesign the room into the described unique location. 4:3 landscape. Same elevated symmetrical front-facing cutaway room, rear wall occupies upper 30%, walkable floor from y30% to y92% expands from x16..84% at back to x4..96% at front. Exit centered at bottom. Preserve this geometry precisely. All large furniture MUST be recessed into rear wall at y<32%, and side wall decorations confined outermost 8%. Keep entire floor y40..92% clear of raised furniture/columns/steps. Flat rugs or floor motifs allowed. No characters, animals, UI, words, letters, signage, floating effects, labels or watermark. Detailed warm/cool ambient illumination, textured surfaces, ink vignette outer edge. This is a distinct finished room illustration, not merely recoloring reference. Scene: ",
+  "scenes": [
+    {
+      "id": "shop",
+      "name": "百宝阁",
+      "description": "A prosperous curio and supply shop: honey-brown wood, many small apothecary drawers across rear wall, jade bottles, sword display, hanging brass scales, antique treasure cases, amber lattice light.",
+      "source": "/workspace/generated_images/exec-7c84ecc2-242f-4589-a3fa-916a6b775038.png"
+    },
+    {
+      "id": "market",
+      "name": "仙市",
+      "description": "An indoor merchant exchange pavilion: vermilion lanterns hung overhead, teal and ochre silk awnings along rear wall, distinct recessed stalls with fabric bolts, porcelain jars and jewel trays, octagonal tile floor.",
+      "source": "/workspace/generated_images/exec-627e192a-292c-4d04-98b3-e50d7fbaa0c1.png"
+    },
+    {
+      "id": "home",
+      "name": "洞府",
+      "description": "A tranquil private cultivation cave-residence: naturally carved pale rock and dark wood, round rear window overlooking misty mountains, wall niches with crystals, modest alcove bed and tea shelf at rear, jade inlaid stone floor with faint circular meditation design.",
+      "source": "/workspace/generated_images/exec-4bf1469b-fb15-4c2e-a7b6-d293586c3f1c.png"
+    },
+    {
+      "id": "alchemy",
+      "name": "炼丹房",
+      "description": "A rugged western alchemist outpost: ochre plaster and dark red wood, round bronze furnace embedded in rear alcove, hanging herbs and clay reagent vessels on wall racks, copper chimney, charcoal slate floor with warm copper inlay.",
+      "source": "/workspace/generated_images/exec-2d068100-3a7e-4667-bb4e-89ff5df3ca47.png"
+    },
+    {
+      "id": "dormitory",
+      "name": "外门弟子居",
+      "description": "A modest shared novice dormitory: bamboo lattice windows, two simple bed alcoves flush into rear wall, folded blue quilts, woven baskets and study shelves, pale wooden floor boards, gentle morning light, humble and comfortable.",
+      "source": "/workspace/generated_images/exec-a6c308f3-b16f-4439-a402-fbe19bc9a4ba.png"
+    },
+    {
+      "id": "task_hall",
+      "name": "外门任务堂",
+      "description": "A busy sect commission office: large rear-wall bulletin board covered in blank parchment slips and colored wax seals, orderly scroll pigeonholes, hanging tally tablets, ink brushes and ledger niche, worn honey wood and grey tile.",
+      "source": "/workspace/generated_images/exec-c938a242-1d6e-4f82-8077-525a6d333207.png"
+    },
+    {
+      "id": "guest_hall",
+      "name": "迎宾殿",
+      "description": "An elegant diplomatic reception hall: large crane-and-cloud silk screen on rear wall, peony porcelain vases in rear alcoves, tea service niches, gold-framed ivory lattice, pale limestone and muted rose carpet inlay, refined welcoming mood.",
+      "source": "/workspace/generated_images/exec-57ead8a3-49bf-4325-98d4-df2add30d9e4.png"
+    },
+    {
+      "id": "outer_elder_hall",
+      "name": "外门长老院",
+      "description": "An outer sect administration office: carved elm panels, rear wall relief map of mountain gates, patrol scrolls and wooden badge racks, modest green ceramic vessels, dark wood floor, practical dignified afternoon light.",
+      "source": "/workspace/generated_images/exec-7f3a07c6-9acb-4e68-a896-606e66514201.png"
+    },
+    {
+      "id": "main_hall",
+      "name": "凌霄大殿",
+      "description": "A magnificent sect sovereign throne hall: twin gilded dragon pillars attached to rear wall, elevated throne and carved folding screen in deep rear alcove, crimson and gold cloud panels, red carpet flat along central aisle, grey stone, ceremonial warm light.",
+      "source": "/workspace/generated_images/exec-27cdb6fc-1fc3-46ca-a27d-e7db244de2bf.png"
+    },
+    {
+      "id": "elder_hall",
+      "name": "内门长老阁",
+      "description": "A solemn council and disciplinary chamber: five narrow ancestral hanging scroll panels across rear wall, black-red lacquer cabinetry, ceremonial jade authority tablets in recessed niches, symmetrical bronze lamps attached to walls, dark polished stone floor.",
+      "source": "/workspace/generated_images/exec-b7d23d84-2e15-4726-9ff7-be077769f1f7.png"
+    },
+    {
+      "id": "qingxuan_academy",
+      "name": "清玄道院",
+      "description": "A serene Taoist scholar academy: pale bamboo and cream plaster, large circular rear window with distant plum blossoms, hanging landscape ink scroll, guqin instrument and calligraphy brushes displayed on rear shelves, cool jade floor, soft mint daylight.",
+      "source": "/workspace/generated_images/exec-836e136d-805a-4458-8b87-0cf56b53c6fb.png"
+    },
+    {
+      "id": "library",
+      "name": "藏经阁",
+      "description": "A grand classical scripture library: tall ornate wooden bookshelves packed with blue and ochre stitched books covering the rear wall, rolled scroll niches and small reading lanterns, circular star-chart wall medallion, warm walnut floor.",
+      "source": "/workspace/generated_images/exec-61ed1ad2-4e23-49d6-9f45-dc33a7bf8ecc.png"
+    },
+    {
+      "id": "alchemy_hall",
+      "name": "丹庐药堂",
+      "description": "A refined medicinal research hall: pale green herb drawers over rear wall, botanical scrolls and drying herbs overhead, white porcelain medicine jars, a small jade-inlaid bronze furnace in rear niche, celadon tile floor, warm daylight.",
+      "source": "/workspace/generated_images/exec-f4a1300f-38ea-40f0-ab81-6db0703a903a.png"
+    },
+    {
+      "id": "night_yaolu",
+      "name": "深夜药庐",
+      "description": "An intimate rainy midnight medicine cottage: indigo paper windows with visible rain streaks, a single warm amber lamp in rear wall niche, hanging drying herbs and blue medicine bottles, dark blue wooden beams, desaturated slate floor, tranquil moonlit atmosphere.",
+      "source": "/workspace/generated_images/exec-4adbdfc1-520b-4bef-ad74-33dfc3494368.png"
+    },
+    {
+      "id": "beast_hall",
+      "name": "御兽堂",
+      "description": "A beast taming sanctuary inside a Chinese sect: rear-wall recessed animal stalls with bamboo lattice gates, nest baskets and feather motifs, elegant painted tiger and crane panels, storage niches for harnesses and feed jars, warm moss-green stone floor. No living animals.",
+      "source": "/workspace/generated_images/exec-fa26f17f-7b28-4785-af86-e245ef37af21.png"
+    },
+    {
+      "id": "forge_hall",
+      "name": "炼器阁",
+      "description": "A weapon forging hall: rear-wall stone smithing hearth with small orange coals, recessed racks of swords hammers and metal ingots, riveted bronze wall plates, dark timber and soot weathering, charcoal stone paving with copper seams.",
+      "source": "/workspace/generated_images/exec-cfc9a892-264e-4dcd-afc5-2ba666bdcd68.png"
+    },
+    {
+      "id": "forbidden_library",
+      "name": "禁书秘阁",
+      "description": "A sealed forbidden scripture archive: dark ebony bookshelves with closed scroll reliquaries, taut golden sealing cords across rear bookcases, turquoise seal medallions and violet votive lamps fixed to walls, deep blue stone with restrained gold geometric floor inlay, mysterious but readable.",
+      "source": "/workspace/generated_images/exec-1eff43c5-134a-4921-b2cd-0292d2c9c56f.png"
+    }
+  ]
+}
