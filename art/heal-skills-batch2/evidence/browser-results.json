@@ -1,0 +1,44 @@
+{
+  "command": "bash scripts/browser-cli.sh -s=heal2 run-code \"$(cat art/heal-skills-batch2/evidence/browser-check.js)\"",
+  "browser": "Chromium /usr/bin/chromium",
+  "viewports": [
+    [
+      390,
+      844
+    ],
+    [
+      844,
+      390
+    ]
+  ],
+  "passed": 27,
+  "checks": [
+    "three effects loaded",
+    "spring_reflux drawable",
+    "spring_reflux full HP suppresses absorption",
+    "spring_reflux cancel clears",
+    "spring_reflux terminal cleanup",
+    "fate_mend drawable",
+    "fate_mend full HP suppresses absorption",
+    "fate_mend cancel clears",
+    "fate_mend terminal cleanup",
+    "vitality_plume drawable",
+    "vitality_plume full HP suppresses absorption",
+    "vitality_plume cancel clears",
+    "vitality_plume terminal cleanup",
+    "full HP keeps only actual MP recovery",
+    "pre-heal emergency selects gold seams",
+    "pause stable",
+    "restart",
+    "single frame at15FPS",
+    "switch restores project scale",
+    "reduced motion draws",
+    "portrait no horizontal overflow",
+    "landscape no horizontal overflow",
+    "missing texture isolated to one effect",
+    "other effect remains available",
+    "invalid frame count isolated",
+    "missing manifest reported",
+    "portable HTML ready without script errors"
+  ]
+}

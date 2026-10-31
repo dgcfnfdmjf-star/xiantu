@@ -1,0 +1,35 @@
+Xiantu V28.68.94 — Healing batch 2 integration
+Date: 2026-10-31
+Baseline: main 28b324f5193a1f0e0d68df93a56e21f1e1fce04e (V28.68.93)
+
+Delivered
+Lingquan Guiyuan / 灵泉归元: separate jade HP and blue MP streams, 550 ms.
+Niming Huiyuan / 逆命回元: repaired jade seal; thin ordinary gold seam versus stronger emergency seam, 620 ms.
+Qisi Huisheng / 起死回生: green/gold feather fan converging once, 720 ms. This is an instant heal, not resurrection.
+青莲护心 and 莲华济世 retain their existing shared art and await a separate guard-state batch.
+
+Integration contract
+healSkillV2785 retains its numeric return and authoritative calculations. An optional result object carries actualHeal, actualMpRestore and emergency, calculated from the same committed heal and pre-heal HP. MP restoration is captured immediately, not reconstructed after UI normalization. Both battle presentations receive this metadata and owner/target identities. No visual callback modifies HP, MP, turns, RNG or saves; the original 500 ms enemy-turn scheduling remains.
+Actual zero HP recovery suppresses successful HP layers independently of MP. A full-HP spring cast can still display blue MP restoration. Emergency means pre-heal HP <= 25% maximum. Missing sheets use the existing safe fallback without fabricating HP recovery. Expiry, death, actor/target replacement, hidden state, exit and scene destruction clear effects.
+
+Assets and routing
+24 PNG sheets plus the manifest were promoted byte-for-byte into xiantu-v2831-scroll/heal-skills-batch2. The promotion audit records hashes and 348 unaffected existing art files. 144 authored frames include the result variants. Three new names leave the old shared-healing routing only; other skills and source art remain intact.
+Lazy loading requests 8 spring HP/MP sheets, 8 fate ordinary/emergency sheets, or 4 plume sheets; repeat preparation reuses the cache. All sample transforms use the player's own anchor and the existing Canvas loop.
+Preview controls in battle-25d-preview.html cover ordinary, 20% HP, full HP and the simulated spring MP channel. This page does not read formal game saves.
+
+Verification
+- Resource checks: self anchors, independent HP/MP gating, emergency branch, every final frame, crossfades, cancellation, reduced motion and read-only sampling.
+- New QA/v286894-test-heal-batch2.cjs compares 40 old/new real combat cases using the saved pre-integration modules. Full player/enemy/guard/turn state and RNG calls match, including 24.9%, 25%, 25.1%, full HP and capped/partial MP. Consecutive real scene casts preserve independent result metadata and a single RAF lifecycle.
+- Existing shared-resource coverage assertion now recognizes healBatch2. Generated boot weights are refreshed for all 40 modules and CSS.
+- npm test: all 133 game regression scripts and four packaging tests passed. The wrapper subprocess test was blocked in the restricted sandbox; the API/rate-limit/save/wrapper suites were rerun with process permissions and all 20 tests passed.
+- Existing real-browser suite: 24 passed.
+- Local real combat: all three skills at five animation ages, full-HP blue-only spring, portrait and landscape; report presentation also checked. No browser page errors.
+- Preview: nine skill/scenario combinations asserted, reduced-motion context and quality toggle exercised; no page errors.
+
+Visual and performance conditions
+System Chromium, headless Linux cloud host; fresh temporary contexts, external requests blocked, no real saves or Jev calls. Mobile emulation 390x844 DPR2 and landscape 844x390. Screenshot review shows self effects below the face/HUD and away from the enemy. Assets were warmed before timings.
+150 direct draw samples for 起死回生 at age 220 ms on 720x420 canvas: median below timer resolution (reported 0 ms), p95 0.10 ms. This measures JavaScript draw submission, not GPU completion. Idle preview RAF intervals, 60 samples: median 16.7 ms, p95 16.8 ms; this is not a combat FPS benchmark. No physical iPhone or Safari performance claim.
+Raw local evidence is ignored under output/playwright/heal94-*. Resource-stage evidence remains under art/heal-skills-batch2/evidence; actual gameplay outcomes are recorded here.
+
+Release
+All 40 build markers, CSS token, loader expectation and cache query use V28.68.94 / 286894-healing-20261031. The game download retains exactly the xiantu-v2831-scroll root directory. Jev code and archive are unchanged. GitHub branch/PR publication is authorized; main merge and Tencent deployment are separate actions.

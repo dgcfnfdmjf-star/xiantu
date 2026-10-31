@@ -7205,18 +7205,20 @@
       addCombatLog(`护体抵消 ${damage-after} 点伤害，护体已消耗。`,'heal');
       return after;
     }
-    function healSkillV2785(skill) {
+    function healSkillV2785(skill,visualResult=null) {
       const max=getMaxHp(), before=player.hp;
       const ratio=skill.emergencyHeal && before<=max*.25?skill.emergencyHeal:skill.heal;
       const amount=Math.max(0,Math.min(max-before,Math.floor(max*ratio)));
       player.hp+=amount;
       showDamageNumber(amount,'player',true,false,false,false,skill.name,skill.mpCost);
       addCombatLog(`施展【${skill.name}】，实际恢复 ${amount} 点气血！`,'heal');
+      let actualMpRestore=0;
       if(skill.mpRestore){
         const mp=Math.max(0,Math.min(getMaxMp()-player.mp,skill.mpRestore));
-        player.mp+=mp;addCombatLog(`归元恢复 ${mp} 点灵力。`,'heal');
+        player.mp+=mp;actualMpRestore=mp;addCombatLog(`归元恢复 ${mp} 点灵力。`,'heal');
       }
       applyGuardV2785(skill);
+      if(visualResult){visualResult.actualHeal=amount;visualResult.actualMpRestore=actualMpRestore;visualResult.emergency=!!skill.emergencyHeal&&before<=max*.25;}
       return amount; // Presentation metadata only; healing was already committed above.
     }
     function swordAfterHitV2785(skill,actualLoss) {
@@ -7369,9 +7371,10 @@
         }
         // 治愈技能
         if (skill.element === 'heal') {
-          const actualHeal=healSkillV2785(skill);
+          const visualResult={owner:player,target:currentEnemy};
+          healSkillV2785(skill,visualResult);
           playSound('heal');
-          playSkillEffect(skill.name, skill.element,'active',{actualHeal,owner:player,target:currentEnemy});
+          playSkillEffect(skill.name, skill.element,'active',visualResult);
           updateCombatUI();
           
           // 治愈后敌人回合
@@ -15381,7 +15384,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.93";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.94";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

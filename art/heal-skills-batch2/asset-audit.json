@@ -1,0 +1,1941 @@
+{
+  "command": "node scripts/build-heal-skills-batch2-vfx.cjs",
+  "sourcePolicy": "All original source cells pass12% before slicing; rejected drafts regenerated, no corrective padding/cropping",
+  "effects": {
+    "spring_reflux": {
+      "inputs": {
+        "master": "6313d4065b4f3db4fcd14c35eba458a17f43cebfe57c7b4cd23aeb86eb78515f",
+        "keyplates": "1395b9a753d60abb0bac6b8d2644509eafd9cb4f76ed13ee8bf0e29f5511595e"
+      },
+      "checks": [
+        "PASS: master-original.png — 1 frame(s), 1 column(s), 1 row(s), 12% clean margin.",
+        "PASS: keyplates-original.png — 6 frame(s), 3 column(s), 2 row(s), 12% clean margin."
+      ],
+      "frames": {
+        "master": {
+          "bounds": [
+            269,
+            462,
+            994,
+            837
+          ],
+          "white": 0.03983547489069279,
+          "dominant": 0.985043931882592,
+          "hash": "98009ea3f1cb0704ce469cacc0ebd33ca7b68340ab7fcddd80c55a1c5cfe49bc"
+        },
+        "sourcePlates": [
+          {
+            "bounds": [
+              124,
+              238,
+              421,
+              403
+            ],
+            "white": 0.011353660677708198,
+            "dominant": 0.9865394744542635,
+            "hash": "02d7aae393d098368dd1f12b421e7e859dd7440b85da7a7195e01bc25999b443"
+          },
+          {
+            "bounds": [
+              87,
+              167,
+              422,
+              416
+            ],
+            "white": 0.014677390946985265,
+            "dominant": 0.9814477778430106,
+            "hash": "9cdb668ed0982f1581b4c7e77dee31414654ea01fe6cc7a217be89c3cf042783"
+          },
+          {
+            "bounds": [
+              82,
+              139,
+              396,
+              426
+            ],
+            "white": 0.011405485626339801,
+            "dominant": 0.9787830484252185,
+            "hash": "e02b123877a16fad2e79b26bed57ea1158dadde0c0e4ba60a00347b5ea1db41f"
+          },
+          {
+            "bounds": [
+              147,
+              167,
+              393,
+              324
+            ],
+            "white": 0.015984499878905305,
+            "dominant": 0.9797166384112376,
+            "hash": "2a1f12417b90c17b38239ddcd886d32ad2738ec089fa986489e44323e30e25bd"
+          },
+          {
+            "bounds": [
+              135,
+              151,
+              364,
+              338
+            ],
+            "white": 0.01924228170700419,
+            "dominant": 0.9715214230736338,
+            "hash": "b35f7416dfb89bd18ba2c1e54489bc541f04207a9678e710bb80e935ed490a8c"
+          },
+          {
+            "bounds": [
+              153,
+              205,
+              329,
+              307
+            ],
+            "white": 0.029984779299847792,
+            "dominant": 0.9480974124809741,
+            "hash": "bda2d50ee219f85b78662dc4bd72bdb715c1b3eb7226f7984033d7918adbfd37"
+          }
+        ],
+        "telegraph": [
+          {
+            "bounds": [
+              65,
+              93,
+              193,
+              164
+            ],
+            "white": 0.005304212168486739,
+            "dominant": 0.9784711388455538,
+            "hash": "25a511cfc45e96c21e999e1295e05dbd43df0770c9be3346db71d9b590ff0d4e"
+          },
+          {
+            "bounds": [
+              64,
+              93,
+              193,
+              164
+            ],
+            "white": 0.005203550658096113,
+            "dominant": 0.9767370676461585,
+            "hash": "c48894359554fc2686f4cf67da9e3fccef724d3d5db0ff37b214b8996eac00a0"
+          },
+          {
+            "bounds": [
+              64,
+              93,
+              193,
+              164
+            ],
+            "white": 0.005128205128205128,
+            "dominant": 0.975867269984917,
+            "hash": "1de0f494386bb999542725a5f41811ebd0c21f5fe20e6353da263190bfcf8322"
+          },
+          {
+            "bounds": [
+              64,
+              93,
+              193,
+              164
+            ],
+            "white": 0.005091344713986224,
+            "dominant": 0.9754417490266547,
+            "hash": "e2e7c8efdbefd383b32f9422b2b7dc799cbb3edffab43eaf3cca545a39934d94"
+          }
+        ],
+        "telegraph_hp": [
+          {
+            "bounds": [
+              65,
+              94,
+              156,
+              164
+            ],
+            "white": 0.009305210918114143,
+            "dominant": 0.957196029776675,
+            "hash": "6ad5a25b7351e3388326981b7e6e9fe84d4285d9d9872973dd304ce2dda6bb1f"
+          },
+          {
+            "bounds": [
+              64,
+              94,
+              156,
+              164
+            ],
+            "white": 0.009135200974421437,
+            "dominant": 0.953714981729598,
+            "hash": "8a123288927d7f0ac7e2e108e494a68cdfa20ed3aa178e969967da8fffaa0661"
+          },
+          {
+            "bounds": [
+              64,
+              94,
+              156,
+              164
+            ],
+            "white": 0.00900360144057623,
+            "dominant": 0.9519807923169268,
+            "hash": "439ef5c74a3ca7a29f3e03ced8644ddfd40fc2928ffdc7552e14b441b14a34d8"
+          },
+          {
+            "bounds": [
+              64,
+              94,
+              156,
+              164
+            ],
+            "white": 0.008976660682226212,
+            "dominant": 0.9509275882704967,
+            "hash": "c75c6b453022699a9e86b98273b8627bd84d6b2fd0e1ac83ed958bd592e7dca7"
+          }
+        ],
+        "telegraph_mp": [
+          {
+            "bounds": [
+              119,
+              93,
+              193,
+              164
+            ],
+            "white": 0.0012554927809165098,
+            "dominant": 1,
+            "hash": "d04b5fa90adc8581adfe2f135ff9d11e911a9bec187e7694d7cdaf128f611a94"
+          },
+          {
+            "bounds": [
+              119,
+              93,
+              193,
+              164
+            ],
+            "white": 0.0012307692307692308,
+            "dominant": 1,
+            "hash": "64d084caaceff180e873d947f3a82eb7e61ade1455d95e235b147074c4014f71"
+          },
+          {
+            "bounds": [
+              119,
+              93,
+              193,
+              164
+            ],
+            "white": 0.001212856276531231,
+            "dominant": 1,
+            "hash": "2fd197eca5e335b9613e6a5c6fcfea04d4714599bc4a26662b400240bbe04eab"
+          },
+          {
+            "bounds": [
+              119,
+              93,
+              193,
+              164
+            ],
+            "white": 0.001199040767386091,
+            "dominant": 1,
+            "hash": "592fa7b30374d8431533b9792bd9daa43eaf500912cf3dba06810e359e2dd9a2"
+          }
+        ],
+        "body": [
+          {
+            "bounds": [
+              51,
+              113,
+              205,
+              186
+            ],
+            "white": 0.006648005598320504,
+            "dominant": 0.9809307207837649,
+            "hash": "976efa045b6f1dab9cbb0a37c384bfb7d711a63d4e5bcbfcd99426224a4df190"
+          },
+          {
+            "bounds": [
+              51,
+              102,
+              205,
+              186
+            ],
+            "white": 0.008658008658008658,
+            "dominant": 0.9782057023436334,
+            "hash": "23e1eca85967c68df51269d5a380c2b8767bed29e19ae04de03d826c0c6468a5"
+          },
+          {
+            "bounds": [
+              51,
+              92,
+              205,
+              186
+            ],
+            "white": 0.00821297082979326,
+            "dominant": 0.9777683375814217,
+            "hash": "f9597da8fa10bb606d33dff85f7159b2c135021cd2f3ed9b889ae5379f5ca8e2"
+          },
+          {
+            "bounds": [
+              51,
+              80,
+              205,
+              186
+            ],
+            "white": 0.008236101578586136,
+            "dominant": 0.9774879890185312,
+            "hash": "a6003890f7d2f32ed342034fb435dbd820adebe4b2e8d67cd47db4a23fe1f19d"
+          },
+          {
+            "bounds": [
+              51,
+              72,
+              205,
+              186
+            ],
+            "white": 0.008263343267407207,
+            "dominant": 0.9771064752099702,
+            "hash": "f6460875c98e663604e4f0168546bf8686d5035431153fb0333d7476120ba778"
+          },
+          {
+            "bounds": [
+              51,
+              71,
+              205,
+              186
+            ],
+            "white": 0.008271186440677966,
+            "dominant": 0.9769491525423729,
+            "hash": "fa8917dd8a6b5454be0813c1f759f6bfe78bc4aff88020a21ee8fbf422163cef"
+          },
+          {
+            "bounds": [
+              51,
+              71,
+              205,
+              186
+            ],
+            "white": 0.00827006507592191,
+            "dominant": 0.9768167028199566,
+            "hash": "abc3efa0c7b1bb0a0e44f3dd2ce17d223c1ba361c2fdbe09158db35a15319732"
+          },
+          {
+            "bounds": [
+              51,
+              71,
+              205,
+              186
+            ],
+            "white": 0.00827006507592191,
+            "dominant": 0.9768167028199566,
+            "hash": "9e1569c47ebcc6741dd1dfeccc389783d31a70d8d0556bc50dad0ca1a8d38d22"
+          }
+        ],
+        "body_hp": [
+          {
+            "bounds": [
+              51,
+              113,
+              188,
+              186
+            ],
+            "white": 0.010272759475735034,
+            "dominant": 0.9628055260361318,
+            "hash": "8dfc4275d7a70847ceff325c7d85911135c3e2d3c130d313351ca99249a01565"
+          },
+          {
+            "bounds": [
+              51,
+              102,
+              188,
+              186
+            ],
+            "white": 0.012589928057553957,
+            "dominant": 0.9583333333333334,
+            "hash": "69d62fd505f59cbf0f59a475caa3fa18e16147185d8d7b769ffa645b38570fb9"
+          },
+          {
+            "bounds": [
+              51,
+              92,
+              188,
+              186
+            ],
+            "white": 0.011725293132328308,
+            "dominant": 0.9581239530988275,
+            "hash": "3509dd5c7a8fdd32205e02250f3bd857d9f915b724b2100ef6710b5d96f6802b"
+          },
+          {
+            "bounds": [
+              51,
+              80,
+              188,
+              186
+            ],
+            "white": 0.011963023382272975,
+            "dominant": 0.9573137574768896,
+            "hash": "0a7d7f6f8d997cb32773ca896472dee4e5c5148ee8bb897b2e9eb7b3417085ba"
+          },
+          {
+            "bounds": [
+              51,
+              72,
+              188,
+              186
+            ],
+            "white": 0.011945845500398195,
+            "dominant": 0.9569949561985664,
+            "hash": "a80b3bfe430b9a4706db3790931f4c45a3154def259eaf7de7e52c19a6b70257"
+          },
+          {
+            "bounds": [
+              51,
+              71,
+              188,
+              186
+            ],
+            "white": 0.011945845500398195,
+            "dominant": 0.9567294929652244,
+            "hash": "292e8e60acf0dab6b7b74cfa02cc0c86378fc8e033f33327e6b4679bc6da4a48"
+          },
+          {
+            "bounds": [
+              51,
+              71,
+              188,
+              186
+            ],
+            "white": 0.01194267515923567,
+            "dominant": 0.9564755838641189,
+            "hash": "27f99dca52e138ac65edfee939eafdb5d36494d16e08a788fe1e5c4743527bb7"
+          },
+          {
+            "bounds": [
+              51,
+              71,
+              188,
+              186
+            ],
+            "white": 0.01194267515923567,
+            "dominant": 0.9564755838641189,
+            "hash": "08ff4d23886cbd19d386eda8cf4899bf6d8068d47259a5436fdcee7e1032adcd"
+          }
+        ],
+        "body_mp": [
+          {
+            "bounds": [
+              82,
+              113,
+              205,
+              186
+            ],
+            "white": 0.0031109574835810577,
+            "dominant": 0.9986173522295195,
+            "hash": "80f9e0f059906a5091afec074889a5bebd6550c7bc9bbfd28b584a19c76df251"
+          },
+          {
+            "bounds": [
+              82,
+              102,
+              205,
+              186
+            ],
+            "white": 0.004757656853999405,
+            "dominant": 0.9979185251263752,
+            "hash": "1b1a4f16fba3c7370aeb9b440ccabd43359c2255a7a827cb12cf33111c483336"
+          },
+          {
+            "bounds": [
+              82,
+              92,
+              205,
+              186
+            ],
+            "white": 0.004597701149425287,
+            "dominant": 0.9979885057471264,
+            "hash": "81e8b79500e64fb3d8fdff1dbe552113883b3586d6d0dedd40ad570da9d89f4b"
+          },
+          {
+            "bounds": [
+              82,
+              82,
+              205,
+              186
+            ],
+            "white": 0.004435819240365955,
+            "dominant": 0.9980593290823399,
+            "hash": "4f05b6fdb2a5f1e597b28c2952a37718566558d332d773b7ef53faa6c8149c23"
+          },
+          {
+            "bounds": [
+              82,
+              82,
+              205,
+              186
+            ],
+            "white": 0.004426002766251729,
+            "dominant": 0.9980636237897649,
+            "hash": "ba5fe8a570ba34f1c7ded74ad4d2aecd2483bb367e7419be3d6ec47dc353788b"
+          },
+          {
+            "bounds": [
+              82,
+              82,
+              205,
+              186
+            ],
+            "white": 0.004434589800443459,
+            "dominant": 0.998059866962306,
+            "hash": "db752c048eaa1780aaf626ac4d4cd0dee91b7d51cd8dcb21135709c93fe2fc34"
+          },
+          {
+            "bounds": [
+              82,
+              82,
+              205,
+              186
+            ],
+            "white": 0.004434589800443459,
+            "dominant": 0.998059866962306,
+            "hash": "3bea9ef4d38d60ed8cc887d9f63a80820e51244cb15c9cea84a0b0ffef1f6b7b"
+          },
+          {
+            "bounds": [
+              82,
+              82,
+              205,
+              186
+            ],
+            "white": 0.004434589800443459,
+            "dominant": 0.998059866962306,
+            "hash": "5d6860353d545c586665cc9c74c387fc0fa57d97e71f7e695bce2af9ebf833e8"
+          }
+        ],
+        "impact": [
+          {
+            "bounds": [
+              51,
+              79,
+              205,
+              178
+            ],
+            "white": 0.013702801461632157,
+            "dominant": 0.9728989037758831,
+            "hash": "b50a5a8dced057cac60aaaf452d1173f87cbffe0c44e0c42e42854ae8ba8c7eb"
+          },
+          {
+            "bounds": [
+              51,
+              79,
+              205,
+              178
+            ],
+            "white": 0.013721603903033999,
+            "dominant": 0.9728617167251106,
+            "hash": "7add7defa8c933c08032fe2a533b0e2bd16a3e9378c0509b38868236878377ea"
+          },
+          {
+            "bounds": [
+              51,
+              79,
+              205,
+              178
+            ],
+            "white": 0.013780431786862656,
+            "dominant": 0.9727453682437606,
+            "hash": "804754fa361a4b8f1c4c36139a3d55e0940d9eefefdc2a860f96f2e0ea26d6b0"
+          },
+          {
+            "bounds": [
+              51,
+              79,
+              205,
+              178
+            ],
+            "white": 0.013891032566754129,
+            "dominant": 0.9726809692853835,
+            "hash": "ac1835570aab864f8efc0e3dd6bcebeac48aa288de808c0700fb483db47e97c1"
+          },
+          {
+            "bounds": [
+              51,
+              79,
+              205,
+              178
+            ],
+            "white": 0.014144271570014143,
+            "dominant": 0.9724972497249725,
+            "hash": "4c6660c314d9978fd66a5b0df0e9c218a8d4020c29793b06c66a8e9d354d0c75"
+          },
+          {
+            "bounds": [
+              52,
+              80,
+              205,
+              178
+            ],
+            "white": 0.014708285667592745,
+            "dominant": 0.9715639810426541,
+            "hash": "c0156f6a69dd5387599f16921a0ca751eef4b1b9926cd19ab5c0edf293eb45ea"
+          }
+        ],
+        "impact_hp": [
+          {
+            "bounds": [
+              51,
+              79,
+              179,
+              178
+            ],
+            "white": 0.02023809523809524,
+            "dominant": 0.9520833333333333,
+            "hash": "ed6268d6539dcc7c9a5482a3d1f960e4f9f9b112edcbaa1b955a273beefa11d6"
+          },
+          {
+            "bounds": [
+              51,
+              79,
+              179,
+              178
+            ],
+            "white": 0.020268256333830104,
+            "dominant": 0.9520119225037258,
+            "hash": "a0064aee6e1dd11a6aa8465e66c2252629311333b602f638f241fdd8ce73b276"
+          },
+          {
+            "bounds": [
+              51,
+              79,
+              179,
+              178
+            ],
+            "white": 0.02033492822966507,
+            "dominant": 0.9518540669856459,
+            "hash": "342af2709c95491c5d9e80e2db5ad756fb5f878997b082b3d8daf27d7b12db53"
+          },
+          {
+            "bounds": [
+              51,
+              79,
+              179,
+              178
+            ],
+            "white": 0.020494273658830622,
+            "dominant": 0.9517781796262809,
+            "hash": "66e28e510f9bf3fda42ef4d7f7b0ec6e29ac2cf3e49fad2adc5858f10e63225c"
+          },
+          {
+            "bounds": [
+              51,
+              79,
+              179,
+              178
+            ],
+            "white": 0.020833333333333332,
+            "dominant": 0.9515931372549019,
+            "hash": "274fd8f4183ac0edeb8f836c0ba4611989da167e6a7d7a5187d0d882de7ab35e"
+          },
+          {
+            "bounds": [
+              52,
+              80,
+              179,
+              178
+            ],
+            "white": 0.02158730158730159,
+            "dominant": 0.9501587301587302,
+            "hash": "7c43f871260e92afd833569a602750054d4b150635bd94941cea43c9847c1f96"
+          }
+        ],
+        "impact_mp": [
+          {
+            "bounds": [
+              80,
+              81,
+              205,
+              178
+            ],
+            "white": 0.00685785536159601,
+            "dominant": 0.9947007481296758,
+            "hash": "4c0978f6ccea5b4cb6621b88baedeeb54d022d733a26ddced44234a7f8307402"
+          },
+          {
+            "bounds": [
+              80,
+              81,
+              205,
+              178
+            ],
+            "white": 0.00686641697877653,
+            "dominant": 0.9946941323345818,
+            "hash": "dfbd5271e36d3d89d4f4d6aa567121adb75a17532f349ecc2d5fb397b2f62d83"
+          },
+          {
+            "bounds": [
+              80,
+              81,
+              205,
+              178
+            ],
+            "white": 0.006903043614684657,
+            "dominant": 0.9946658299341073,
+            "hash": "ddd9790c61252ac756b18c067f7c86e90cffeb3d04a7d06be26900f61b9c2008"
+          },
+          {
+            "bounds": [
+              80,
+              81,
+              205,
+              178
+            ],
+            "white": 0.006959822840873141,
+            "dominant": 0.9946219550775072,
+            "hash": "cca3a276ca65577a73deb3edc02f290f54f9c6e702bcdfa327a8cc5a8b51d340"
+          },
+          {
+            "bounds": [
+              80,
+              81,
+              205,
+              178
+            ],
+            "white": 0.007099064214262665,
+            "dominant": 0.994514359470797,
+            "hash": "54696cac4f0562330214f7b899f24c5c8058f4cb907fc5854d7df0381d924de0"
+          },
+          {
+            "bounds": [
+              80,
+              81,
+              205,
+              178
+            ],
+            "white": 0.00740990232401482,
+            "dominant": 0.9942741663859885,
+            "hash": "9faa76802e1516a9a21bc84048740e713a7d799136d76bff02ca5b97526f7e19"
+          }
+        ],
+        "residue": [
+          {
+            "bounds": [
+              66,
+              78,
+              190,
+              179
+            ],
+            "white": 0.014972646127267493,
+            "dominant": 0.9582493521451195,
+            "hash": "f64dae4cc871ea33aeed5c13a23b62ecfdf7b6b27ed2da47f59daac3b4b21177"
+          },
+          {
+            "bounds": [
+              66,
+              78,
+              190,
+              179
+            ],
+            "white": 0.020916162489196196,
+            "dominant": 0.952808988764045,
+            "hash": "a0f160859b670b9616880c1d9a66f061fa5934fef3d14b344ee9b584e0d91a85"
+          },
+          {
+            "bounds": [
+              66,
+              78,
+              190,
+              179
+            ],
+            "white": 0.020941502249913466,
+            "dominant": 0.9529248875043268,
+            "hash": "80a0d5dac58858b9632d7a7754d83a8da80dab3bc5c8dd80eda7d66ea82c35b4"
+          },
+          {
+            "bounds": [
+              66,
+              78,
+              189,
+              179
+            ],
+            "white": 0.021280337671473797,
+            "dominant": 0.9525149489975379,
+            "hash": "f25600336d25bee843a9c096f2c865f2e64fb1bcc8eaef53483a4cdfe57444b1"
+          },
+          {
+            "bounds": [
+              67,
+              93,
+              189,
+              164
+            ],
+            "white": 0.023794996949359364,
+            "dominant": 0.949359365466748,
+            "hash": "35e3d92412a51485dea21e8d21fb5e546b31e86e9b2b4e710431bd19d1d655f7"
+          },
+          {
+            "bounds": [
+              67,
+              94,
+              189,
+              164
+            ],
+            "white": 0.02759526938239159,
+            "dominant": 0.9290407358738502,
+            "hash": "310dbeda58c9b5aa909a6269d3e2c38fa3e1b1296ee1ee21bb2c8b211fd706f7"
+          }
+        ],
+        "residue_hp": [
+          {
+            "bounds": [
+              66,
+              78,
+              182,
+              176
+            ],
+            "white": 0.021621621621621623,
+            "dominant": 0.927027027027027,
+            "hash": "c29499dc8643303ee9452ecbbfa79f01e22b008f9126ea961d1b50804e637e40"
+          },
+          {
+            "bounds": [
+              66,
+              78,
+              175,
+              176
+            ],
+            "white": 0.029017246099096634,
+            "dominant": 0.9290993703805092,
+            "hash": "e5aa966ffda5ae32dbe30a2e91df15bf217832791a49c8e259d85cff5e144433"
+          },
+          {
+            "bounds": [
+              66,
+              78,
+              164,
+              176
+            ],
+            "white": 0.028337874659400544,
+            "dominant": 0.9294277929155313,
+            "hash": "5553b10d0b78223a77301380672d42b83c48b102f947599ddce1f8da57194b67"
+          },
+          {
+            "bounds": [
+              66,
+              78,
+              175,
+              175
+            ],
+            "white": 0.02875924404272802,
+            "dominant": 0.9296083264858943,
+            "hash": "9f194e238047502b94a2acb22f9cb1e8cab9cebcdc6fa038f776bda9235ac576"
+          },
+          {
+            "bounds": [
+              67,
+              93,
+              175,
+              164
+            ],
+            "white": 0.030353430353430355,
+            "dominant": 0.9326403326403326,
+            "hash": "03201996ea19060505b9bf3de6be12e0585b3b9a0d6e0e094f777d3193a8fb8d"
+          },
+          {
+            "bounds": [
+              67,
+              94,
+              175,
+              164
+            ],
+            "white": 0.033984706881903144,
+            "dominant": 0.9103653355989805,
+            "hash": "ae075f736ee54a137bfdd2c65b878ff47c30f375624d520b3fc1f68c1ff93582"
+          }
+        ],
+        "residue_mp": [
+          {
+            "bounds": [
+              121,
+              91,
+              190,
+              179
+            ],
+            "white": 0.0073937153419593345,
+            "dominant": 0.9938385705483672,
+            "hash": "bd9b1e664bc6873b0087201c7afab888a90e1c718a50f157101becc2fc56c760"
+          },
+          {
+            "bounds": [
+              136,
+              91,
+              190,
+              179
+            ],
+            "white": 0.007035647279549718,
+            "dominant": 0.9934333958724203,
+            "hash": "cd21777fe19b46205495784b880d45f2008e3412b65f59dfda4e3c73fbc15b5a"
+          },
+          {
+            "bounds": [
+              136,
+              91,
+              190,
+              179
+            ],
+            "white": 0.008064516129032258,
+            "dominant": 0.9938330170777988,
+            "hash": "38a68dd0466f4548d532fc8636c47e612c8106d25607e8b3e5ab55f0717580af"
+          },
+          {
+            "bounds": [
+              136,
+              91,
+              189,
+              179
+            ],
+            "white": 0.007862407862407862,
+            "dominant": 0.9936117936117936,
+            "hash": "87f89013ce20c772ff61194dd64cef32526e75ba83c28dc09458e89ad92bd2e2"
+          },
+          {
+            "bounds": [
+              136,
+              122,
+              189,
+              164
+            ],
+            "white": 0.0057273768613974796,
+            "dominant": 0.995418098510882,
+            "hash": "408de413f10e3af59721a46fd1c5dac8dee0355e5d936bb0bec0aeee7a1e3344"
+          },
+          {
+            "bounds": [
+              149,
+              123,
+              189,
+              164
+            ],
+            "white": 0.005797101449275362,
+            "dominant": 0.9927536231884058,
+            "hash": "396f93ec4459ad6eb39de5d57d8eaac8ece82de7db16214d5576127f3fb5a091"
+          }
+        ]
+      },
+      "outputHashes": {
+        "spring_reflux_telegraph.png": "050b6ac9909ba6c6395812b042c81d99ac3850b038721c65c5ba114211a1509d",
+        "spring_reflux_telegraph_hp.png": "102b6b1673481f078c4b3d822c07bf165d8c5513220c3525559352266fd067ab",
+        "spring_reflux_telegraph_mp.png": "aa35270614d5cce5427a0fecfd54f91d0706e2e5fb8444e3fb311136e7597069",
+        "spring_reflux_body.png": "2c8079bd27c0595c6a7bac59803f4a720d6cf0071fb9c590e5b11f3585b2a0bc",
+        "spring_reflux_body_hp.png": "1f41b8c8109c08944f82c460e5e35a18a0c2b33caa440d2adef4f71f688fc13e",
+        "spring_reflux_body_mp.png": "3dedba3fd479f74be487b7d76e76f8e825033a40646bc6efdb5b3740429e05e9",
+        "spring_reflux_impact.png": "d0eb36ed2bfd93265d3ffc5120751e86f3f313468364a64dae849e666d78b7cb",
+        "spring_reflux_impact_hp.png": "014598a8a4fffc68f58e35e489820f65a95c71932006d1d62062f76436c7b39e",
+        "spring_reflux_impact_mp.png": "3d25893f2bfaefec0dd02ae8c799735bf5c993f2450ea83f0a54525922e1a3da",
+        "spring_reflux_residue.png": "a0bd21ead9792cd47ac0d0416377fd76abedd0598d25f4249998fb2d758fbf30",
+        "spring_reflux_residue_hp.png": "4488bf1534a0cfaa0ba92ffcb1a8641ce3ca2ad28699432f734b2c13884cb880",
+        "spring_reflux_residue_mp.png": "406d73b7f881e17c546c5f0be2780da0e776140a3207200fb0e4508e3ab35c0a"
+      }
+    },
+    "fate_mend": {
+      "inputs": {
+        "master": "724773bf6c040037c4bb0a445107075a052442462dcf76a143663efa70fb739f",
+        "keyplates": "6a828439ee76cb55efa4683d0b521c78bcec9e4e5924316fd6fbcdea0e6b919a"
+      },
+      "checks": [
+        "PASS: master-original.png — 1 frame(s), 1 column(s), 1 row(s), 12% clean margin.",
+        "PASS: keyplates-original.png — 6 frame(s), 3 column(s), 2 row(s), 12% clean margin."
+      ],
+      "frames": {
+        "master": {
+          "bounds": [
+            287,
+            405,
+            996,
+            889
+          ],
+          "white": 0.0009834248216424983,
+          "dominant": 0.9685125252561375,
+          "hash": "fd5149b62806d0f0849f6c15e7f722f8bc08e6ce88c36fce5097beee9f5cc397"
+        },
+        "sourcePlates": [
+          {
+            "bounds": [
+              144,
+              174,
+              399,
+              409
+            ],
+            "white": 0.013632835241606831,
+            "dominant": 0.9672035707354939,
+            "hash": "98a7f0fc83ba43fa78033e42677524b0ffac5c822745689f9b655962df88faf5"
+          },
+          {
+            "bounds": [
+              143,
+              172,
+              368,
+              407
+            ],
+            "white": 0.013275522975147506,
+            "dominant": 0.9659395673162883,
+            "hash": "896cd31132a193a4b34b426c0fd45a4ee72c92168a89c90576e7725ba5ec65dd"
+          },
+          {
+            "bounds": [
+              156,
+              193,
+              360,
+              400
+            ],
+            "white": 0.015953437735533038,
+            "dominant": 0.9674231638891215,
+            "hash": "eebb3dbb4c4f594baab62a5cc4eb634412d9c4d6fcad60fe31d788dba6cb9abf"
+          },
+          {
+            "bounds": [
+              175,
+              181,
+              348,
+              346
+            ],
+            "white": 0.007826524018094349,
+            "dominant": 0.9710634020248439,
+            "hash": "b78bd4377f1aead1c07783bbfbc20646dc4499b9eee234cd5c92b5f476dbfece"
+          },
+          {
+            "bounds": [
+              182,
+              177,
+              336,
+              331
+            ],
+            "white": 0.00625446747676912,
+            "dominant": 0.9656897784131523,
+            "hash": "4ca9ed32e5e00381792a54aa75662f7e035e91ba60f106fc3fd89dbe96560243"
+          },
+          {
+            "bounds": [
+              199,
+              202,
+              320,
+              326
+            ],
+            "white": 0.0015534842432312472,
+            "dominant": 0.9789169995561473,
+            "hash": "b1d625de5bf3a9d83368128175c2255d01ed78d0b6ca9bc2fcd528ad6d537773"
+          }
+        ],
+        "telegraph": [
+          {
+            "bounds": [
+              65,
+              70,
+              192,
+              187
+            ],
+            "white": 0.010084033613445379,
+            "dominant": 0.9766806722689075,
+            "hash": "63c76e7a82a6fc4b587a91c73ab12ffc62bf3ea79bc79e92b3a8747a9186c49e"
+          },
+          {
+            "bounds": [
+              65,
+              69,
+              192,
+              187
+            ],
+            "white": 0.009696969696969697,
+            "dominant": 0.9775757575757575,
+            "hash": "72d966eb798ba06acefda07c52e8b4d3cb28154ca3aad78a9f7d875dbe0b828a"
+          },
+          {
+            "bounds": [
+              64,
+              69,
+              192,
+              187
+            ],
+            "white": 0.009376831412385232,
+            "dominant": 0.9783160773588592,
+            "hash": "dd27b8ef12fb0bb333ee4bb66af8c17c8e05c7ee55d254619679c2acccb0e059"
+          },
+          {
+            "bounds": [
+              64,
+              69,
+              192,
+              187
+            ],
+            "white": 0.009181331293037491,
+            "dominant": 0.9787681713848508,
+            "hash": "1efda4f5db9846a510bd9fddd65e65889b4b915a8e6944592287c685d5937608"
+          }
+        ],
+        "telegraph_normal": [
+          {
+            "bounds": [
+              65,
+              70,
+              192,
+              187
+            ],
+            "white": 0.010966415352981495,
+            "dominant": 0.9746401644962303,
+            "hash": "d5f9bdafc8f4db1ffe90b3b3cb287399f67b2f6360b5e3043aea24f5c8e58041"
+          },
+          {
+            "bounds": [
+              65,
+              70,
+              192,
+              187
+            ],
+            "white": 0.010464355788096796,
+            "dominant": 0.9758011772400261,
+            "hash": "ea327ceae9ad97c7be4212e7cece04a47fd71688d20a8a47a9aaf53aa24378cf"
+          },
+          {
+            "bounds": [
+              65,
+              70,
+              192,
+              187
+            ],
+            "white": 0.010062893081761006,
+            "dominant": 0.9767295597484277,
+            "hash": "1dfdcabde04bdbd154a0e3a6d0836d6a83d69cfc0b8932da5b6ab5694d4642f9"
+          },
+          {
+            "bounds": [
+              65,
+              70,
+              192,
+              187
+            ],
+            "white": 0.009880609304240428,
+            "dominant": 0.977151090983944,
+            "hash": "12607f4b4b13d382815ed2de1311112a4286b5329ce2cfb402c4f524311a8346"
+          }
+        ],
+        "body": [
+          {
+            "bounds": [
+              55,
+              113,
+              202,
+              205
+            ],
+            "white": 0.01081822337345726,
+            "dominant": 0.9705927167453908,
+            "hash": "0923fc65bc3851d90518ece59754af2614a3ce601ee96d87a36257ea7e0e441c"
+          },
+          {
+            "bounds": [
+              55,
+              99,
+              202,
+              205
+            ],
+            "white": 0.011566072852964637,
+            "dominant": 0.9706195160861473,
+            "hash": "7bd5495446e2dca2e71a03fd9e3750f612d7dc049f39c0ec06b2018c57eb6478"
+          },
+          {
+            "bounds": [
+              55,
+              85,
+              202,
+              205
+            ],
+            "white": 0.010781025395304265,
+            "dominant": 0.9702922855773838,
+            "hash": "82923ea2e54c50c64b2c169d800ffa0ee1888e4bed75f33678072075173580ac"
+          },
+          {
+            "bounds": [
+              55,
+              70,
+              202,
+              205
+            ],
+            "white": 0.011586452762923352,
+            "dominant": 0.9691399286987522,
+            "hash": "8cd53b45051489bdd139e00fbdb6f1c980a16190fa0380e3868fd667fc071b53"
+          },
+          {
+            "bounds": [
+              55,
+              56,
+              202,
+              205
+            ],
+            "white": 0.01094045865768988,
+            "dominant": 0.9690721649484536,
+            "hash": "2d1de6901b3af3224010cde16a49b9ab8730eee909f0e31f922be15e8d07f2ea"
+          },
+          {
+            "bounds": [
+              55,
+              51,
+              202,
+              205
+            ],
+            "white": 0.010910616869492237,
+            "dominant": 0.9687368862778011,
+            "hash": "c5b961c9fe30b04d9837d48f6aa38e2433a22ba24a2c55ddb452ca3432de7d5b"
+          },
+          {
+            "bounds": [
+              55,
+              51,
+              202,
+              205
+            ],
+            "white": 0.010907184058730991,
+            "dominant": 0.9687467226009439,
+            "hash": "cf9b55162123b42dcaa82fa701e4584d40005f0c9248221668052882b17d8029"
+          },
+          {
+            "bounds": [
+              55,
+              51,
+              202,
+              205
+            ],
+            "white": 0.010907184058730991,
+            "dominant": 0.9687467226009439,
+            "hash": "687765ad32f754e68e6a385d92f83b7a24f14e477d5f765b55ba4fdb193abf22"
+          }
+        ],
+        "body_normal": [
+          {
+            "bounds": [
+              55,
+              113,
+              202,
+              205
+            ],
+            "white": 0.011658456486042693,
+            "dominant": 0.9683087027914614,
+            "hash": "7c55c951fa8756190caf8de66571bf5ad6f4520d9139c70e6198f7d97a56d1de"
+          },
+          {
+            "bounds": [
+              55,
+              99,
+              202,
+              205
+            ],
+            "white": 0.012379055207740467,
+            "dominant": 0.9685543540125213,
+            "hash": "c9cdd612e4534aaa75add44c85ffc456c9272cc697f1f41309c4f0ffbf7feb6d"
+          },
+          {
+            "bounds": [
+              55,
+              85,
+              202,
+              205
+            ],
+            "white": 0.011535503716995642,
+            "dominant": 0.9682132786465009,
+            "hash": "3a5a3d4377bd612e1721337d2ec80aeff148117f814ea47aa16d59f6db32f9b0"
+          },
+          {
+            "bounds": [
+              55,
+              70,
+              202,
+              205
+            ],
+            "white": 0.012400143078573983,
+            "dominant": 0.9669726958387982,
+            "hash": "30b3a4216d212d28e549473a69af6e4fde0769add5eab865bdf2f23428e31955"
+          },
+          {
+            "bounds": [
+              55,
+              56,
+              202,
+              205
+            ],
+            "white": 0.01168276791732195,
+            "dominant": 0.966973713772186,
+            "hash": "8736c284d847d57f84e5fda04be212ee89a20169e109db9b2d3923284a417e78"
+          },
+          {
+            "bounds": [
+              55,
+              51,
+              202,
+              205
+            ],
+            "white": 0.01159678858162355,
+            "dominant": 0.9667707404103479,
+            "hash": "85fcecad05c4f924c159b7e53b8cf63965c9a419c8452a053134450d663d606e"
+          },
+          {
+            "bounds": [
+              55,
+              51,
+              202,
+              205
+            ],
+            "white": 0.011592910489354588,
+            "dominant": 0.9667818526362725,
+            "hash": "61ee032fdfbaa2e3f78aa885686ee3bf70d4b0294814bed4b365919311aee026"
+          },
+          {
+            "bounds": [
+              55,
+              51,
+              202,
+              205
+            ],
+            "white": 0.011626607043040804,
+            "dominant": 0.9666852990497484,
+            "hash": "a70ecef69303e518a48d33a7cf415ccf88d39a4ba7d585ea712fab095a8741f7"
+          }
+        ],
+        "impact": [
+          {
+            "bounds": [
+              52,
+              55,
+              205,
+              201
+            ],
+            "white": 0.006997455470737914,
+            "dominant": 0.9658306070519811,
+            "hash": "a366ed3d87f9da95e37fa3f64403b2fb259bcf20cfe1df2290a17efc26d92cc4"
+          },
+          {
+            "bounds": [
+              52,
+              55,
+              205,
+              201
+            ],
+            "white": 0.007001909611712286,
+            "dominant": 0.9658088569609894,
+            "hash": "9c517cdeb8ee866be1a202ed10d326784f5c30e0394c3aae5d079a8fcd181a80"
+          },
+          {
+            "bounds": [
+              52,
+              55,
+              205,
+              201
+            ],
+            "white": 0.007027471023090262,
+            "dominant": 0.9656840376015333,
+            "hash": "850a3c7704734d17fec8bbf04fac438c89e5558154f8b1736b810c66dc623557"
+          },
+          {
+            "bounds": [
+              52,
+              55,
+              205,
+              201
+            ],
+            "white": 0.007056451612903226,
+            "dominant": 0.9655425219941349,
+            "hash": "40950250cf1f3dea01f3ac8dec26f87f1720195bbf37944192e40fbdb8da70cc"
+          },
+          {
+            "bounds": [
+              52,
+              55,
+              205,
+              201
+            ],
+            "white": 0.007103321033210332,
+            "dominant": 0.9653136531365314,
+            "hash": "9c0651d0efd5c2888fce3c910e7ef4b68cac58abb00e88c364df21fac373744c"
+          },
+          {
+            "bounds": [
+              52,
+              55,
+              204,
+              201
+            ],
+            "white": 0.007251153592617007,
+            "dominant": 0.9645917694698183,
+            "hash": "9cb8fb542f594baed5b1d6491d741a814c077a1d31f7ae2a56edd213ab9b91cd"
+          }
+        ],
+        "impact_normal": [
+          {
+            "bounds": [
+              52,
+              55,
+              205,
+              201
+            ],
+            "white": 0.006998091429610107,
+            "dominant": 0.9658275015904754,
+            "hash": "0c32acf5be828cd03fe1120cb6d33c4ef8ca46a2326eb3a4ae98e8353d929130"
+          },
+          {
+            "bounds": [
+              52,
+              55,
+              205,
+              201
+            ],
+            "white": 0.007003183265120509,
+            "dominant": 0.9658026375625284,
+            "hash": "315dd92c7932ec6fcdac81088c5531246d23afe6784665352352ab03db22f6c0"
+          },
+          {
+            "bounds": [
+              52,
+              55,
+              205,
+              201
+            ],
+            "white": 0.007028112449799197,
+            "dominant": 0.9656809054399416,
+            "hash": "dc40de50d7905799cd3387e569f2752f0d987b798d12d925d8686202dfb42293"
+          },
+          {
+            "bounds": [
+              52,
+              55,
+              205,
+              201
+            ],
+            "white": 0.007057098341123637,
+            "dominant": 0.965539363944643,
+            "hash": "17151ffdb491d409dd79ffcff5f61337b962853fb0978e187bb0cd8084972759"
+          },
+          {
+            "bounds": [
+              52,
+              55,
+              205,
+              201
+            ],
+            "white": 0.007103321033210332,
+            "dominant": 0.9653136531365314,
+            "hash": "d0f793c5402acb840b37feabb68d0433ccac2370bed58bf76e137fd2f9fede69"
+          },
+          {
+            "bounds": [
+              52,
+              55,
+              204,
+              201
+            ],
+            "white": 0.007252519544127343,
+            "dominant": 0.9645850993689367,
+            "hash": "0ce18eb0de3b1373b29f328446f5a578b9d6a88e7e5a5c8314b5ff5226efb241"
+          }
+        ],
+        "residue": [
+          {
+            "bounds": [
+              67,
+              66,
+              190,
+              190
+            ],
+            "white": 0.005851212036779047,
+            "dominant": 0.951797157982725,
+            "hash": "6943b869848a112f23229c4d5e7f13e33957b33bc6ede12004fdc4a604c3763c"
+          },
+          {
+            "bounds": [
+              67,
+              67,
+              190,
+              190
+            ],
+            "white": 0.0036590943741423997,
+            "dominant": 0.9660009147735935,
+            "hash": "41a309b156f93b4827c15744c5e762774a272c13648cb13b51359e2205e84f6e"
+          },
+          {
+            "bounds": [
+              67,
+              67,
+              190,
+              189
+            ],
+            "white": 0.003676470588235294,
+            "dominant": 0.9658394607843137,
+            "hash": "5e969c687aaf6d059f16d4794d15a99ff70a26a25b151d40e23fd75873d77523"
+          },
+          {
+            "bounds": [
+              67,
+              67,
+              190,
+              189
+            ],
+            "white": 0.0037429819089207735,
+            "dominant": 0.9650655021834061,
+            "hash": "d49fcb514e08b19a8e5951266216727c63b70f410bf72bc65ae45481196b673f"
+          },
+          {
+            "bounds": [
+              69,
+              68,
+              188,
+              189
+            ],
+            "white": 0.001080146899978397,
+            "dominant": 0.9736444156405271,
+            "hash": "28aadf62192d501644b75a5947cf9027d9382a8bc1240272200174c145f331cb"
+          },
+          {
+            "bounds": [
+              69,
+              68,
+              188,
+              189
+            ],
+            "white": 0.0007363770250368188,
+            "dominant": 0.9580265095729014,
+            "hash": "f5ece857e88d0af54b3616a55d8b96889b5f674c350282ba2e7b9c1a7c158221"
+          }
+        ],
+        "residue_normal": [
+          {
+            "bounds": [
+              67,
+              66,
+              190,
+              190
+            ],
+            "white": 0.006003430531732418,
+            "dominant": 0.9505431675242996,
+            "hash": "9133f55400b941f50b334b669b6c3ec1d7c3f8a7b1f953fbfcfdfaf635358038"
+          },
+          {
+            "bounds": [
+              67,
+              67,
+              190,
+              190
+            ],
+            "white": 0.0036957191253464737,
+            "dominant": 0.9656606097936556,
+            "hash": "d62fbcc2c3d08469aa77f3312a906ba3fea6fbd1a2cb61b77f1118c4ae0b877d"
+          },
+          {
+            "bounds": [
+              67,
+              67,
+              190,
+              189
+            ],
+            "white": 0.0037088548910523874,
+            "dominant": 0.9655385566373049,
+            "hash": "eaf64277b2b36a089f9fcde63c95fe0659bd96514030fdec61cf3baab9f567db"
+          },
+          {
+            "bounds": [
+              67,
+              67,
+              190,
+              189
+            ],
+            "white": 0.003780122853992755,
+            "dominant": 0.9647188533627343,
+            "hash": "75a9e6917f3d50dc337c85aa935bfc52dd9cc0b5111011bdf740b68512a67b7f"
+          },
+          {
+            "bounds": [
+              69,
+              68,
+              188,
+              189
+            ],
+            "white": 0.0010931351114997813,
+            "dominant": 0.9733275032794053,
+            "hash": "8968064feb880901e938a132f1fef0b316270f84d857c6194d24b24e5f864ee2"
+          },
+          {
+            "bounds": [
+              69,
+              68,
+              188,
+              189
+            ],
+            "white": 0.0007365578197888534,
+            "dominant": 0.9580162042720354,
+            "hash": "3e1f7e78131d1230a62b335a5868091d161afa065ff91a1f0d67e8e9dfb8ec44"
+          }
+        ]
+      },
+      "outputHashes": {
+        "fate_mend_telegraph.png": "a563e0dd14ccf952e63a97358b46ec128987b42796fb4c6984d7a0fb58d574dc",
+        "fate_mend_telegraph_normal.png": "5c62d3b06951b3bbfc3238589d75a8e581010c0541d1e66b4e1e5dfd379ee453",
+        "fate_mend_body.png": "9b8116999f2e9220efd6b01aba8d7b35a143a393aaffa1f821cdc2c0f455171c",
+        "fate_mend_body_normal.png": "63a0117d7b9e7f627561be7c2b647d9fb027b32520707df0f22c36cf2bf4c6d5",
+        "fate_mend_impact.png": "d080afad6f58357ccdbfadced2c554f4f0eecca96e953ec921d6eb806a89c26d",
+        "fate_mend_impact_normal.png": "133527af5c7a285f86fa220261b1664bdad68a340d5b3ccb8849d8bb1effb4a9",
+        "fate_mend_residue.png": "b0de1bb23fabfae37d9d49137ed3f9217be7edf505709a7aed457988a0b343b8",
+        "fate_mend_residue_normal.png": "ac97114522292d25c6a7d4e95d81336411c12e77bcd2cde47df418c051ab2245"
+      }
+    },
+    "vitality_plume": {
+      "inputs": {
+        "master": "6a5207d9ae6df3fa55cf923b3954d5de116040ecb6fa2578a122d4c6ea78f605",
+        "keyplates": "692a89741f1d2fc42f809bd31941cddef7aef217f4e66c50a4c9a4b090d68b81"
+      },
+      "checks": [
+        "PASS: master-original.png — 1 frame(s), 1 column(s), 1 row(s), 12% clean margin.",
+        "PASS: keyplates-original.png — 6 frame(s), 3 column(s), 2 row(s), 12% clean margin."
+      ],
+      "frames": {
+        "master": {
+          "bounds": [
+            234,
+            459,
+            1024,
+            824
+          ],
+          "white": 0.02599390468901614,
+          "dominant": 0.9881237102130626,
+          "hash": "3b276675eed42fcf7652aa9b4719ec1e51a1383b4e07f7bddbb7cb213dd2c07e"
+        },
+        "sourcePlates": [
+          {
+            "bounds": [
+              203,
+              222,
+              326,
+              383
+            ],
+            "white": 0.014931801866475233,
+            "dominant": 0.9768844221105528,
+            "hash": "3a4cd933d9327e9bf7f61db7af025dab21a607573910f7d3042aec952c695185"
+          },
+          {
+            "bounds": [
+              131,
+              226,
+              382,
+              379
+            ],
+            "white": 0.0069881201956673656,
+            "dominant": 0.9843036069451164,
+            "hash": "3abad1360f1d60e709d53dff669cef4336f92dee745fcf826b4b12e351c21194"
+          },
+          {
+            "bounds": [
+              156,
+              244,
+              358,
+              379
+            ],
+            "white": 0.0053227327853389034,
+            "dominant": 0.9890176526074653,
+            "hash": "fa282bd13f12b148dddec446883d1ba03c7ea13ce8b154de8e1d3898a7d72946"
+          },
+          {
+            "bounds": [
+              206,
+              194,
+              340,
+              333
+            ],
+            "white": 0.011985161228954627,
+            "dominant": 0.9787881670312946,
+            "hash": "e79c0c9a911bc0b8f21440d2c4f5e6a12c9e6e275cec2ee37feb3da06e94227d"
+          },
+          {
+            "bounds": [
+              194,
+              170,
+              326,
+              347
+            ],
+            "white": 0.010647482014388488,
+            "dominant": 0.9794244604316547,
+            "hash": "1e4c1bf688e0152908bb3d4183e27533c576159896cbdb0d2db2499111412707"
+          },
+          {
+            "bounds": [
+              194,
+              186,
+              318,
+              331
+            ],
+            "white": 0.008403361344537815,
+            "dominant": 0.9855275443510738,
+            "hash": "ad6abf84d4c2c4527c74a1acc6c650d17090bfba137689c32463cc69a123b6ab"
+          }
+        ],
+        "telegraph": [
+          {
+            "bounds": [
+              80,
+              64,
+              177,
+              193
+            ],
+            "white": 0.013504074505238649,
+            "dominant": 0.9769499417927823,
+            "hash": "d6bc8811cb28f75ce155dc17119b0d812b712dad2f7df108fbc31f1ce561fb94"
+          },
+          {
+            "bounds": [
+              80,
+              64,
+              178,
+              193
+            ],
+            "white": 0.013287514318442153,
+            "dominant": 0.977319587628866,
+            "hash": "9fe09033b37b2b2ed05c8aa95c0125503bc1fbd784bcb1e54e348c9c161a8404"
+          },
+          {
+            "bounds": [
+              79,
+              64,
+              178,
+              193
+            ],
+            "white": 0.013166855845629965,
+            "dominant": 0.9775255391600454,
+            "hash": "144161c8d7ed8661a07b725970d9dc042951bca7f034c3c62e856a7243b8cb35"
+          },
+          {
+            "bounds": [
+              79,
+              64,
+              178,
+              193
+            ],
+            "white": 0.013101423085611023,
+            "dominant": 0.9776372261124915,
+            "hash": "6d51ee8ea6a6cfd97d4de09efe77d5d08f61822a8df4194587ca85bae5a5c954"
+          }
+        ],
+        "body": [
+          {
+            "bounds": [
+              51,
+              112,
+              204,
+              175
+            ],
+            "white": 0.0024805102763997165,
+            "dominant": 0.992735648476258,
+            "hash": "1ae36cd049ff5662178d546ce9dadff2f6bc9bf9b08e81040a7d33a1c3157818"
+          },
+          {
+            "bounds": [
+              51,
+              104,
+              205,
+              175
+            ],
+            "white": 0.0022672064777327933,
+            "dominant": 0.9933603238866396,
+            "hash": "746729027b4401677ab328c913a4b63e9677b59f342f32e28af57d75396c4223"
+          },
+          {
+            "bounds": [
+              51,
+              95,
+              205,
+              175
+            ],
+            "white": 0.002127982976136191,
+            "dominant": 0.9934640522875817,
+            "hash": "c02960cf7932e62dae93756e4aafb25cad2db054ae86e557e5c6982de68cf9e8"
+          },
+          {
+            "bounds": [
+              51,
+              86,
+              205,
+              175
+            ],
+            "white": 0.0043642711667151585,
+            "dominant": 0.9898167006109979,
+            "hash": "cb1d9a3b3cb5379cf674d2ad26443f22f9153530083bd67947efd95ed8a0845d"
+          },
+          {
+            "bounds": [
+              51,
+              82,
+              205,
+              175
+            ],
+            "white": 0.004580589750930432,
+            "dominant": 0.9894073862009733,
+            "hash": "9819f75a9191249e7abcea905f564e370454c940820f2318a02d5e56dd40c495"
+          },
+          {
+            "bounds": [
+              51,
+              82,
+              205,
+              175
+            ],
+            "white": 0.004577968526466381,
+            "dominant": 0.9895565092989985,
+            "hash": "53c3dfc56eace7279569cd3370f02ec076598d80ec9e7950299379ae23225d96"
+          },
+          {
+            "bounds": [
+              51,
+              82,
+              205,
+              175
+            ],
+            "white": 0.004576004576004576,
+            "dominant": 0.9895609895609896,
+            "hash": "b4dad9488dd470d51861030f4ce7f663bc0dc0bb4c58a369d9a1007616cf79b2"
+          },
+          {
+            "bounds": [
+              51,
+              82,
+              205,
+              175
+            ],
+            "white": 0.004576004576004576,
+            "dominant": 0.9895609895609896,
+            "hash": "48b6b994734b73a8214927dba2a6f0355a248d12dad29550cbd4312fa7d892cd"
+          }
+        ],
+        "impact": [
+          {
+            "bounds": [
+              54,
+              52,
+              202,
+              205
+            ],
+            "white": 0.009913258983890954,
+            "dominant": 0.9805607187112764,
+            "hash": "b31c814d096f0fd8f78c029b7e3d9cae3fc53a7e30293a106eccec7de992ded5"
+          },
+          {
+            "bounds": [
+              54,
+              52,
+              202,
+              205
+            ],
+            "white": 0.009943292161889225,
+            "dominant": 0.9805018255262954,
+            "hash": "4c96e80c87c2f074c0826d5a4c1cb7c9a81b192645e840bcc766a8da9ab8dc35"
+          },
+          {
+            "bounds": [
+              54,
+              52,
+              202,
+              205
+            ],
+            "white": 0.01003606711619884,
+            "dominant": 0.9803198996393289,
+            "hash": "ce1054bf2e1bcc64b03e6b8bd39ae8fd517d37622021833baf5a7d3ce2321fb8"
+          },
+          {
+            "bounds": [
+              55,
+              52,
+              202,
+              205
+            ],
+            "white": 0.010183785504017821,
+            "dominant": 0.980030233113215,
+            "hash": "a250802a2719c788c619778bafd50297a9990600f0f7eb0bddd264ebd129b59d"
+          },
+          {
+            "bounds": [
+              55,
+              52,
+              202,
+              205
+            ],
+            "white": 0.010456662037415243,
+            "dominant": 0.9794951392860061,
+            "hash": "79d4f3d578ee443834c554273a6e2ee6392d126af6ee2287cae17b242078ed6d"
+          },
+          {
+            "bounds": [
+              55,
+              53,
+              201,
+              204
+            ],
+            "white": 0.01114594218042494,
+            "dominant": 0.9781435040055729,
+            "hash": "ce8d339fd2c22ec3f88ab34bb04d40b09d32b2c7ccc9e54e96a59bd647692fd2"
+          }
+        ],
+        "residue": [
+          {
+            "bounds": [
+              83,
+              66,
+              174,
+              190
+            ],
+            "white": 0.007726597325408618,
+            "dominant": 0.9839524517087667,
+            "hash": "3ba4c17afc92b9cbebc188fb52a7b06c60419e7ae981ca56c30bdf69b5af3236"
+          },
+          {
+            "bounds": [
+              76,
+              67,
+              180,
+              190
+            ],
+            "white": 0.007383241758241758,
+            "dominant": 0.9850618131868132,
+            "hash": "ced42401f3e25cac0eafce43e4a52109e8b9be38a7e4006aa028d63456b23944"
+          },
+          {
+            "bounds": [
+              76,
+              67,
+              180,
+              189
+            ],
+            "white": 0.007543288187896451,
+            "dominant": 0.9849134236242071,
+            "hash": "d18cce16e7b712f907ad97d55a4927f1044573fc2e1c535a43cd9e7e2a959049"
+          },
+          {
+            "bounds": [
+              76,
+              67,
+              180,
+              189
+            ],
+            "white": 0.007704430047277185,
+            "dominant": 0.9851164419541236,
+            "hash": "473f86857a088a5c0f70f7cf5e5b7a8785ae4cce3e13dc0d882daca2b40c8699"
+          },
+          {
+            "bounds": [
+              76,
+              67,
+              180,
+              189
+            ],
+            "white": 0.006747638326585695,
+            "dominant": 0.9875168690958165,
+            "hash": "f711e2d3772e33e756691cfcaac0dcdb71349447bab0d7e6a688d6e0aa3b15b3"
+          },
+          {
+            "bounds": [
+              76,
+              68,
+              179,
+              189
+            ],
+            "white": 0.007246376811594203,
+            "dominant": 0.9869565217391304,
+            "hash": "fdb5cd59cdc3363ba85c942230c3d30a06ff6f341f44b6c10f534bb4fba4b811"
+          }
+        ]
+      },
+      "outputHashes": {
+        "vitality_plume_telegraph.png": "cae466e9b013b77c681a08ca06006b5d693cd7fcf93c08917e85ff479e98ec6a",
+        "vitality_plume_body.png": "726c478123f8c2d11ce8cf2911555f93add1006963e091bfff0a9f62b02581a0",
+        "vitality_plume_impact.png": "dd1cfbbca56d71e91842acd5b7200c420884906b9022e4add33462f88b83d580",
+        "vitality_plume_residue.png": "d0e6188fd5096168bb58c7e68bdabfce3935ec6e4268979c0fa67a184c7a0776"
+      }
+    }
+  }
+}
