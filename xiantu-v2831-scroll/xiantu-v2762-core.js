@@ -12792,11 +12792,30 @@
       if(currentRegion!=='north')return;ctx.save();ctx.lineCap='round';
       // Transformed callers retain their existing schematic paths; ground detail is for the world cache.
       if(!transform)drawLingxiaoCourtsV286880(ctx);
-      for(const [a,b] of BUILDING_PATHS){const start=getBuildingData(a),end=getBuildingData(b);if(!start||!end)continue;
-        const from=transform?transform(start.x,start.y+12):{x:start.x,y:start.y+12},to=transform?transform(end.x,end.y+12):{x:end.x,y:end.y+12};
-        ctx.setLineDash([]);ctx.strokeStyle='rgba(32,52,56,.25)';ctx.lineWidth=14;ctx.beginPath();ctx.moveTo(from.x,from.y);ctx.lineTo(to.x,to.y);ctx.stroke();
-        ctx.strokeStyle='rgba(224,240,242,.55)';ctx.lineWidth=7;ctx.setLineDash([8,5]);ctx.stroke();
-      }if(!transform)drawLingxiaoCloudStepsV286880(ctx);ctx.restore();
+      if(transform){
+        // Overview callers keep their small schematic lines, without full-size paving.
+        for(const [a,b] of BUILDING_PATHS){const start=getBuildingData(a),end=getBuildingData(b);if(!start||!end)continue;
+          const from=transform(start.x,start.y+12),to=transform(end.x,end.y+12);
+          ctx.setLineDash([]);ctx.strokeStyle='rgba(32,52,56,.25)';ctx.lineWidth=14;ctx.beginPath();ctx.moveTo(from.x,from.y);ctx.lineTo(to.x,to.y);ctx.stroke();
+          ctx.strokeStyle='rgba(224,240,242,.55)';ctx.lineWidth=7;ctx.setLineDash([8,5]);ctx.stroke();
+        }
+      }else{
+        // A main stair axis and short court branches replace the old all-to-hall spokes.
+        // These chains are visual only; BUILDING_PATHS and gameplay navigation stay unchanged.
+        const chains=[['gate','stone_steps','main_hall','library','insight_platform'],
+          ['dormitory','gate','arena','outer_elder_hall'],['herb_garden','stone_steps','task_hall','guest_hall'],
+          ['qingxuan_academy','main_hall','elder_hall','alchemy_hall','inner_arena'],
+          ['beast_hall','library','forge_hall','night_corridor','ancestor_cave'],
+          ['night_platform','insight_platform','array_core','forbidden_library'],
+          ['gate','defense_wall','border_towers'],['herb_garden','cliff_bridge','spirit_spring','back_forest','mini_secret_realm','hidden_caves'],
+          ['alchemy_hall','night_yaolu','secret_realm_gate']];
+        const roads=chains.flatMap((chain,ci)=>chain.slice(1).flatMap((id,i)=>{
+          const a=getBuildingData(chain[i]),b=getBuildingData(id);if(!a||!b)return [];
+          const main=ci===0,rustic=ci>=6;
+          return [{points:stoneRoadPointsV286895({x:a.x,y:a.y+12},{x:b.x,y:b.y+12},main?0:(i%2?-1:1)),width:(main?29:rustic?16:21)*WORLD_SCALE_V2900,rustic}];
+        }));
+        drawStoneRoadsV286895(ctx,roads);drawLingxiaoCloudStepsV286880(ctx);
+      }ctx.restore();
     }
 
     const WORLD_SCALE_V2900=1.45;
@@ -14567,12 +14586,66 @@
         if(currentRegion==='demon_domain'&&i%3===0){ctx.strokeStyle='#b17a73';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x-25,y-15);ctx.lineTo(x,y);ctx.lineTo(x-8,y+14);ctx.lineTo(x+22,y+25);ctx.stroke();}
       }ctx.globalAlpha=1;
     }
+    // A gentle quadratic bow follows the destination bearing, rather than an orthogonal grid.
+    function stoneRoadPointsV286895(a,b,bend=1){
+      const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy);if(len<1)return [a,b];
+      const offset=Math.min(32,len*.075)*bend,c={x:(a.x+b.x)*.5-dy/len*offset,y:(a.y+b.y)*.5+dx/len*offset};
+      return Array.from({length:17},(_,i)=>{const t=i/16,u=1-t;return {x:u*u*a.x+2*u*t*c.x+t*t*b.x,y:u*u*a.y+2*u*t*c.y+t*t*b.y};});
+    }
+    // Draw once into the existing terrain cache. Fixed geometry-based grain never consumes game RNG.
+    function drawStoneRoadsV286895(ctx,roads){
+      const north=currentRegion==='north',demon=currentRegion==='demon_domain',low=PERF_CONFIG.lowEnd;
+      const valid=roads.filter(r=>Number.isFinite(r.width)&&r.width>0&&r.points.length>1&&r.points.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y)));
+      const trace=r=>{ctx.beginPath();r.points.forEach((p,i)=>ctx[i?'lineTo':'moveTo'](p.x,p.y));};
+      const grain=(x,y)=>{const n=Math.sin(x*12.9898+y*78.233)*43758.5453;return n-Math.floor(n);};
+      ctx.save();ctx.setLineDash([]);ctx.lineJoin='round';ctx.lineCap='round';
+      // Soft earth shoulder and pale bedding; no opaque double outline around the whole network.
+      for(const [extra,color] of [[9,'rgba(102,95,75,.09)'],[4,'rgba(80,88,77,.18)'],[0,north?'rgba(166,179,169,.66)':'rgba(167,171,145,.62)']]){
+        ctx.strokeStyle=color;for(const r of valid){ctx.lineWidth=r.width+extra;trace(r);ctx.stroke();}
+      }
+      for(const r of valid){
+        const distances=[0];for(let i=1;i<r.points.length;i++)distances.push(distances[i-1]+Math.hypot(r.points[i].x-r.points[i-1].x,r.points[i].y-r.points[i-1].y));
+        const length=distances[distances.length-1];if(length<1)continue;
+        const sample=d=>{d=Math.max(0,Math.min(length,d));let i=1;while(i<distances.length-1&&distances[i]<d)i++;const a=r.points[i-1],b=r.points[i],span=distances[i]-distances[i-1],t=span?(d-distances[i-1])/span:0;return {x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t,nx:span?-(b.y-a.y)/span:0,ny:span?(b.x-a.x)/span:1};};
+        const edge=(d,side)=>{const p=sample(d),w=r.width*.5*(1+.025*Math.sin(d*.037));return {x:p.x+p.nx*w*side,y:p.y+p.ny*w*side};};
+        const insideOther=(p)=>valid.some(other=>other!==r&&other.points.some((b,i)=>i&&worldDistanceSegmentV2827(p.x,p.y,other.points[i-1],b)<other.width*.46));
+        let d=0,index=0;
+        while(d<length){
+          const p=sample(d),n=grain(p.x,p.y),step=(low?23:17+n*7)*WORLD_SCALE_V2900,end=Math.min(length,d+step),mid=sample((d+end)*.5);
+          if(!insideOther(mid)){
+            const columns=r.rustic?1:2,split=.10*Math.sin(index*2.7);
+            for(let col=0;col<columns;col++){
+              const lo=col===0?-.93:split+.025,hi=col===columns-1?.93:split-.025;
+              const near=d+.8,far=Math.max(near,end-1.1),points=[edge(near,lo),edge(near,hi),edge(far,hi),edge(far,lo)];
+              const shade=Math.floor(grain(p.x+col*19,p.y+index)*21),base=demon?[121,113,118]:north?[155,169,164]:[155,162,143];
+              ctx.fillStyle=`rgba(${base[0]+shade},${base[1]+shade},${base[2]+shade},.75)`;
+              ctx.strokeStyle='rgba(58,72,67,.26)';ctx.lineWidth=.65;ctx.beginPath();points.forEach((p,i)=>ctx[i?'lineTo':'moveTo'](p.x,p.y));ctx.closePath();ctx.fill();ctx.stroke();
+              if(!low){
+                ctx.strokeStyle='rgba(231,230,207,.38)';ctx.beginPath();ctx.moveTo(points[0].x+.5,points[0].y+.5);ctx.lineTo(points[1].x-.5,points[1].y+.5);ctx.stroke();
+                if(index%5===2){const c=sample(d+step*.45),side=col===0?-.3:.3;ctx.strokeStyle='rgba(55,72,60,.20)';ctx.beginPath();ctx.moveTo(c.x+c.nx*r.width*side,c.y+c.ny*r.width*side);ctx.lineTo(c.x+c.nx*2+3,c.y+c.ny*2+4);ctx.stroke();}
+              }
+            }
+            // Small moss marks soften the shoulder without introducing new colliders or sprites.
+            if(!low&&index%4===1){const e=edge((d+end)*.5,index%8===1?1.07:-1.07);ctx.fillStyle='rgba(83,108,70,.23)';ctx.beginPath();ctx.ellipse(e.x,e.y,2.8,1.3,0,0,Math.PI*2);ctx.fill();}
+          }
+          d=end;index++;
+        }
+      }
+      ctx.restore();
+    }
     function drawRoutesV2827(ctx){
-      ctx.save();ctx.lineCap='round';
-      for(const r of worldRoutesV2827()){
-        ctx.setLineDash([]);ctx.strokeStyle='rgba(42,45,36,.18)';ctx.lineWidth=18;ctx.beginPath();ctx.moveTo(r.a.x,r.a.y);ctx.quadraticCurveTo(r.c.x,r.c.y,r.b.x,r.b.y);ctx.stroke();
-        ctx.strokeStyle=currentRegion==='north'?'rgba(224,236,232,.48)':'rgba(218,203,165,.44)';ctx.lineWidth=10;ctx.setLineDash([14,6]);ctx.stroke();
-      }ctx.restore();
+      const routes=worldRoutesV2827();let links;
+      if(currentRegion==='north'){
+        links=routes.map(r=>{const near=LINGXIAO_BUILDINGS.reduce((best,b)=>Math.hypot(b.x-r.b.x,b.y-r.b.y)<Math.hypot(best.x-r.b.x,best.y-r.b.y)?b:best,LINGXIAO_BUILDINGS[0]);return {a:{x:near.x,y:near.y+12},b:r.b};});
+      }else{
+        // Join nearby destinations into a village path network instead of eight spokes at one hub.
+        const nodes=[getWorldMapConfig().hub,...routes.map(r=>r.b)],joined=new Set([0]);links=[];
+        while(joined.size<nodes.length){
+          let best=null;for(const i of joined)for(let j=1;j<nodes.length;j++){if(joined.has(j))continue;const distance=Math.hypot(nodes[i].x-nodes[j].x,nodes[i].y-nodes[j].y);if(!best||distance<best.distance)best={i,j,distance};}
+          if(!best)break;joined.add(best.j);links.push({a:nodes[best.i],b:nodes[best.j]});
+        }
+      }
+      drawStoneRoadsV286895(ctx,links.map((r,i)=>({width:19*WORLD_SCALE_V2900,points:stoneRoadPointsV286895(r.a,r.b,i%2?-1:1)})));
     }
 
     function drawBiomeTreeV2827(ctx,o){
@@ -15384,7 +15457,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.94";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.95";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
