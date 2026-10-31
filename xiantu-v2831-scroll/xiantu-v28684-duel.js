@@ -248,7 +248,7 @@ function create(host,read,enemyKey='wolf'){
      const hero={x:px+8,y:205};
      Object.assign(from,a.side==='player'?hero:torso);Object.assign(to,a.side==='player'?torso:hero);
     }
-    fxJobs.push({action:a,job:{id:a.side==='player'?1:2,profile:a.fxProfile,from,to,...a.anchors,width:W,clipBottom:355,scale:1.05,light:fxSettings.light,reduced,duration:ink.authoredDuration?.(a.name)||900,arriveAt:contactTime(a),hitAt:a.impactAt??(a.fxProfile.self?contactTime(a):null),guardActive:a.name==='炎阳护盾'?ink.fireFinale?.guardActive(data):a.name==='冰甲护身'?data.guardElement==='ice'&&data.guardPool>0&&data.guardTurns>0:undefined,detonationAt:a.detonationAt??null,actualHeal:a.actualHeal||0,alive:data.playerHp>0&&data.enemyHp>0,sameActor:!a.healOwner||a.healOwner===data.ownerToken,sameTarget:!a.healTarget||a.healTarget===data.targetToken,groundDrawn:!!ink.drawGround}});
+    fxJobs.push({action:a,job:{id:a.side==='player'?1:2,profile:a.fxProfile,from,to,...a.anchors,width:W,clipBottom:355,scale:1.05,light:fxSettings.light,reduced,duration:ink.authoredDuration?.(a.name)||900,arriveAt:contactTime(a),hitAt:a.impactAt??(a.fxProfile.self?contactTime(a):null),guardActive:a.name==='炎阳护盾'?ink.fireFinale?.guardActive(data):a.name==='冰甲护身'?data.guardElement==='ice'&&data.guardPool>0&&data.guardTurns>0:undefined,detonationAt:a.detonationAt??null,actualHeal:a.actualHeal||0,actualMpRestore:a.actualMpRestore||0,emergency:a.emergency===true,alive:data.playerHp>0&&data.enemyHp>0,sameActor:!a.healOwner||a.healOwner===data.ownerToken,sameTarget:!a.healTarget||a.healTarget===data.targetToken,groundDrawn:!!ink.drawGround}});
    }
   }
   const thunderJobs=thunder?.collect((name,a)=>{
@@ -389,7 +389,7 @@ function create(host,read,enemyKey='wolf'){
   if(enhance&&!visualResult&&latest?.side===side&&(queue.length||performance.now()-latest.realAt<350)){
    latest.element=element;latest.name=name;latest.fxProfile=null;latest.anchors=null;if(name==='炎阳护盾'&&side==='player')guardIntro=latest;return;
   }
-  const next={side,element,name,at:elapsed,realAt:performance.now(),pendingHits:[],actualHeal:Number.isFinite(visualResult?.actualHeal)?Math.max(0,visualResult.actualHeal):0,healOwner:visualResult?.owner,healTarget:visualResult?.target};
+  const next={side,element,name,at:elapsed,realAt:performance.now(),pendingHits:[],actualHeal:Number.isFinite(visualResult?.actualHeal)?Math.max(0,visualResult.actualHeal):0,actualMpRestore:Number.isFinite(visualResult?.actualMpRestore)?Math.max(0,visualResult.actualMpRestore):0,emergency:visualResult?.emergency===true,healOwner:visualResult?.owner,healTarget:visualResult?.target};
   if(name==='炎阳护盾'&&side==='player')guardIntro=next;
   if(!attack||elapsed-attack.at>=620)attack=next;
   else {if(queue.length>=4)flushHits(queue.shift());next.waiting=true;queue.push(next);}
@@ -3244,7 +3244,7 @@ function drawInteriorV286886(){
  drawActor25DV2770(ctx,s.player);ctx.restore();return true;
 }
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.93';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.94';
 
 
 if(typeof installBagViewV2905==='function')installBagViewV2905();

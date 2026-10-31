@@ -1,6 +1,10 @@
-# 仙途 V28.68.93
+# 仙途 V28.68.94
 
-部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.93）；[上传步骤](downloads/README.md)。
+部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.94）；[上传步骤](downloads/README.md)。
+
+## V28.68.94 治疗系独立特效第二批
+
+灵泉归元、逆命回元、起死回生接入独立水流、玉印、羽光动画。回血与回蓝按本次实际结果分别显示，逆命使用施法前血量选择金缮强度；保留原恢复量、耗蓝、回合和存档。试剑坪支持普通、危急与满血试演。无需更新Jev；尚未部署腾讯云。见 [接入与验证](docs/vfx/heal-skills-batch2-integration.txt)。
 
 ## V28.68.93 十七处专属室内
 
@@ -276,7 +280,7 @@ npm test
 npm run test:browser
 ```
 
-`npm test` 运行选定的 131 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
+`npm test` 运行选定的 133 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
 
 浏览器测试覆盖恶意存档拒绝且原主档/备份不变、正常导入与刷新恢复、360/390/430/1366px 导航入口可达性、预加载去重与版本错误提示。外部请求被拦截，不调用付费服务。已有 Chromium 的云环境可使用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`。
 
