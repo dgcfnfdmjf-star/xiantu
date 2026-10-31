@@ -1,0 +1,29 @@
+Xiantu continuous sect courtyard environment
+Created 2026-10-31 with image_gen, transparent_background=false.
+
+Reference: the user-provided image of a large ink-painted Chinese sect palace, its
+stairs, connected paths, pine trees, rock slopes, pavilion and gateway. User explicitly
+requested that buildings and background form one integrated environment.
+
+The generated source is one opaque 1374 x 1145 RGB painting, not a sprite atlas.
+Six halls occupy two rows within one connected monastery: beast hall, scripture library,
+forge, academy, main palace and elder hall. All ground, stairs, gardens, retaining walls,
+pools, mountain rocks and pines are part of the same authored image. No player or UI is
+baked into it. Buildings were requested around 20/50/80 percent horizontal positions,
+with two rows of entrances; runtime door and roof geometry was inspected against the
+actual generated result rather than assuming the requested coordinates were exact.
+
+Original generator output (preserved):
+/workspace/generated_images/exec-2f5c52cb-5dcf-4e83-9c68-d638cbd950dd.png
+Source: source/sect-courts.png
+SHA-256 2d62b25686a6b36dfaa400bf51f59455a3252ba855f9ab826b44e80d034559b0
+Runtime: ../../xiantu-v2831-scroll/sect-panorama-v286896.webp
+1374 x 1145 RGB, 627022 bytes
+SHA-256 d05730f5cce0ec001223566fda3603250cb6ebec683937d6a4b3d4eaa4f38cf6
+Conversion: sharp(source).webp({quality:90,effort:6}); no crop or recoloring.
+
+Rendering: the whole image is baked into the existing northern static map cache.
+Occluding roofs use small clipped source rectangles from the SAME painting, without
+separate building art. The live character, labels, cloud shadows and exploration fog
+remain dynamic. Pixel-space door, roof and collision metadata is in SECT_SCENE_V286896.
+PNG provenance stays outside the game archive; only the WebP ships.

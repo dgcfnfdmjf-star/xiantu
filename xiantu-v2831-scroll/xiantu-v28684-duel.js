@@ -511,6 +511,7 @@ function s25SpritesV2888(){
 
 // ------------------------------------------------------------------ world: one-time relief on the ground cache ----
 function s25BakeReliefV2888(cache){
+ if(typeof joinedSceneReadyV286896==='function'&&joinedSceneReadyV286896())return;
  if(!cache||S25_V2888.baked.has(cache))return;S25_V2888.baked.add(cache);
  const ctx=cache.getContext?.('2d');if(!ctx)return;
  const C=SCENE25D_V2888.relief,w=cache.width,h=cache.height,region=s25RegionV2888();
@@ -535,6 +536,23 @@ function s25BakeReliefV2888(cache){
  ctx.restore();
 }
 
+// One small world-space lighting map is shared by the completed northern scene.
+// Its maximum backing is 256x256; camera movement and standing frames reuse it.
+function s25JoinedWorldLightV286896(ctx){
+ const w=FLAT_WORLD.width,h=FLAT_WORLD.height,key=`${w}:${h}`;
+ if(!S25_V2888.joinedLight||S25_V2888.joinedLightKey!==key){
+  const old=S25_V2888.joinedLight,k=s25CanvasV2888(256,256);if(!k)return;
+  const x=k.x,C=SCENE25D_V2888.relief,d=x.createLinearGradient(0,0,256,256);
+  d.addColorStop(0,`rgba(255,238,196,${C.global})`);d.addColorStop(.5,'rgba(255,238,196,0)');d.addColorStop(.5,'rgba(20,28,44,0)');d.addColorStop(1,`rgba(20,28,44,${C.global*1.2})`);x.fillStyle=d;x.fillRect(0,0,256,256);
+  const ex=70/w*256,ey=70/h*256;
+  for(const [x0,y0,x1,y1,rx,ry,rw,rh] of [[0,0,0,ey,0,0,256,ey],[0,256,0,256-ey,0,256-ey,256,ey],[0,0,ex,0,0,0,ex,256],[256,0,256-ex,0,256-ex,0,ex,256]]){
+   const g=x.createLinearGradient(x0,y0,x1,y1);g.addColorStop(0,`rgba(10,14,12,${C.edge})`);g.addColorStop(1,'rgba(10,14,12,0)');x.fillStyle=g;x.fillRect(rx,ry,rw,rh);
+  }
+  S25_V2888.joinedLight=k.c;S25_V2888.joinedLightKey=key;if(old){old.width=1;old.height=1;}
+ }
+ ctx.drawImage(S25_V2888.joinedLight,0,0,w,h);
+}
+
 // ------------------------------------------------------------------ world: per-frame helpers ----
 function s25DepthScaleV2888(y){
  const D=SCENE25D_V2888.depth,cam=FLAT_WORLD.camera,vh=S25_V2888.frameVh||700;
@@ -542,6 +560,8 @@ function s25DepthScaleV2888(y){
 }
 function s25CastKindV2888(o){
  if(o?.t==='tree')return 'tree';
+ // Integrated architecture already includes a contact shadow in its painted earth.
+ if(typeof sectScenePoiV286896==='function'&&sectScenePoiV286896(o)||typeof joinedArchitectureReadyV286896==='function'&&joinedArchitectureReadyV286896(o))return null;
  if(!o||o.enemy||o._warUnitV2840||o.action==='war_map_v2840'||o.action==='explore_v2828'||o.buildingId==='spirit_spring')return null;
  const k=typeof getPoiVisualKind==='function'?getPoiVisualKind(o):'default';
  return k==='npc'||k==='default'||k==='rest'||k==='forest'||k==='battlefield'||k==='pets'?null:'building';
@@ -558,8 +578,11 @@ function s25WrapSpriteV2888(name,cast){
  const wrapped=function(ctx,o){
   if(!scene25dOnV2888()||!s25IsWorldCtxV2888(ctx)||!o)return base.apply(this,arguments);
   const kind=cast?s25CastKindV2888(o):null;if(kind)s25CastShadowV2888(ctx,o,kind);
-  const s=s25DepthScaleV2888(o.y);
-  ctx.save();ctx.translate(o.x,o.y);ctx.scale(s,s);ctx.translate(-o.x,-o.y);
+  const grounded=name==='drawWorldPoi'&&(typeof sectScenePoiV286896==='function'&&sectScenePoiV286896(o)||typeof joinedArchitectureReadyV286896==='function'&&joinedArchitectureReadyV286896(o));
+  // Architecture and its ground footprint use the same fixed world scale: camera movement
+  // must not stretch the courtyard across static roads or the surrounding soil.
+  const s=grounded?1:s25DepthScaleV2888(o.y),pivotY=grounded?o.y+30:o.y;
+  ctx.save();ctx.translate(o.x,pivotY);ctx.scale(s,s);ctx.translate(-o.x,-pivotY);
   try{return base.apply(this,arguments);}finally{ctx.restore();}
  };
  wrapped._s25V2888=true;wrapped._baseV2888=base;window[name]=wrapped;
@@ -605,7 +628,7 @@ function installWorld25dV2888(){
  const baseCache=window.ensureStaticWorldCache;
  if(typeof baseCache==='function'){const w=function(){const c=baseCache.apply(this,arguments);try{if(scene25dOnV2888())s25BakeReliefV2888(c);}catch(e){console.warn('2.5D 地形光照失败',e);}return c;};w._s25V2888=true;window.ensureStaticWorldCache=w;}
  const baseAmbient=window.drawWorldAmbient;
- if(typeof baseAmbient==='function'){const w=function(ctx,t,minX,maxX,minY,maxY){const r=baseAmbient.apply(this,arguments);try{if(scene25dOnV2888()&&s25IsWorldCtxV2888(ctx))s25CloudShadowsV2888(ctx,t,minX,maxX,minY,maxY);}catch(e){console.warn('2.5D 云影失败',e);}return r;};w._s25V2888=true;window.drawWorldAmbient=w;}
+ if(typeof baseAmbient==='function'){const w=function(ctx,t,minX,maxX,minY,maxY){const r=baseAmbient.apply(this,arguments);try{if(scene25dOnV2888()&&s25IsWorldCtxV2888(ctx)&&!(typeof joinedSceneReadyV286896==='function'&&joinedSceneReadyV286896()))s25CloudShadowsV2888(ctx,t,minX,maxX,minY,maxY);}catch(e){console.warn('2.5D 云影失败',e);}return r;};w._s25V2888=true;window.drawWorldAmbient=w;}
  s25WrapSpriteV2888('drawWorldPoi',true);
  s25WrapSpriteV2888('drawDepthTreeV2770',true);
  s25WrapSpriteV2888('drawWorldMonster',false);
@@ -1665,11 +1688,13 @@ function landmarkPoiApplyV2893(ctx,o){
  if(!ctx||ctx.canvas?.id!=='worldCanvas')return 1;const s=landmarkScaleV2893(o);if(s===1)return 1;
  const by=MAP_ALIVE_V2893.landmarks.baseY;ctx.translate(0,by);ctx.scale(s,s);ctx.translate(0,-by);return s;
 }
-// Where a local building point ends up: landmark scale about the base (inside drawWorldPoi), then V2888's depth scale about the centre (outside).
+// Match rendering: integrated architecture has a fixed world scale; legacy sprites retain depth scaling.
 function landmarkPointV2893(o,lx,ly){
- const d=(typeof scene25dOnV2888==='function'&&scene25dOnV2888()&&typeof s25DepthScaleV2888==='function')?s25DepthScaleV2888(o.y):1;
+ const grounded=typeof joinedArchitectureReadyV286896==='function'&&joinedArchitectureReadyV286896(o);
+ const d=!grounded&&typeof scene25dOnV2888==='function'&&scene25dOnV2888()&&typeof s25DepthScaleV2888==='function'?s25DepthScaleV2888(o.y):1;
  const L=landmarkScaleV2893(o),B=MAP_ALIVE_V2893.landmarks.baseY;
- return {x:o.x+d*lx*L,y:o.y+d*(B+(ly-B)*L),s:d*L};
+ const pivot=grounded?30:0;
+ return {x:o.x+d*lx*L,y:o.y+pivot+d*(B+(ly-B)*L-pivot),s:d*L};
 }
 
 // ------------------------------------------------------------ environment ----
@@ -2396,6 +2421,8 @@ function resolvePlayerMotionV2896(fromX,fromY,toX,toY,actorRadius=17){
  const overlaps=(px,py)=>colliders.some(c=>valid(c)&&Math.hypot(px-c.x,py-c.y)<c.radius+actorRadius-1e-5);
  // Recover an old/teleported overlap without carrying momentum across a map transition.
  if(overlaps(x,y)){
+  const sceneSafe=typeof sectSceneSafePointV286896==='function'&&sectSceneSafePointV286896(x,y,actorRadius);
+  if(sceneSafe)return sceneSafe;
   const fixed=resolveWorldCollisionForActor(x,y,x,y,actorRadius);x=fixed.x;y=fixed.y;
   if(overlaps(x,y))return {x,y};
  }
@@ -3244,7 +3271,7 @@ function drawInteriorV286886(){
  drawActor25DV2770(ctx,s.player);ctx.restore();return true;
 }
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.95';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.96';
 
 
 if(typeof installBagViewV2905==='function')installBagViewV2905();
