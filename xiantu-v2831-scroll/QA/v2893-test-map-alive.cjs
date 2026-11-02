@@ -173,3 +173,13 @@ f.run("localStorage.setItem('xiantu_scene25d_v2888','off')");frames(f,20,{move:t
 Math.random=realRandom;
 a.deepEqual(f.errors,[],'no errors or warnings');
 console.log('v2893-test-map-alive: all checks passed');
+
+// Explicit mobile high quality, conservative auto mode and sustained FPS fallback.
+f.run("PERF_CONFIG.mobile=true;PERF_CONFIG.graphicsQuality='high';ALIVE_V2893.dprDowngraded=false;ALIVE_V2893.dprStrikes=0");f.c.navigator.deviceMemory=8;
+a.equal(f.run('worldDprCapV2893()'),2);f.c.navigator.deviceMemory=2;a.equal(f.run('worldDprCapV2893()'),1);delete f.c.navigator.deviceMemory;a.equal(f.run('worldDprCapV2893()'),2);
+for(const mode of ['low','auto']){f.run(`PERF_CONFIG.graphicsQuality='${mode}'`);a.equal(f.run('worldDprCapV2893()'),1);}
+f.run("PERF_CONFIG.graphicsQuality='high';document.getElementById('worldCanvas')._dpr=2;ALIVE_V2893.lastFpsAt=0");
+for(let i=1;i<=4;i++)f.run(`PERF_CONFIG.measuredFps=30;PERF_CONFIG.fpsStartedAt=${i*1000};watchDprV2893()`);a.equal(f.run('ALIVE_V2893.dprStrikes'),0,'30 FPS phone cap is healthy');
+f.run('PERF_CONFIG.measuredFps=20;PERF_CONFIG.fpsStartedAt=5000;watchDprV2893();watchDprV2893()');a.equal(f.run('ALIVE_V2893.dprStrikes'),1,'same sample only counts once');
+f.run('PERF_CONFIG.measuredFps=25;PERF_CONFIG.fpsStartedAt=6000;watchDprV2893()');a.equal(f.run('ALIVE_V2893.dprStrikes'),0);
+for(let i=7;i<=9;i++)f.run(`PERF_CONFIG.measuredFps=20;PERF_CONFIG.fpsStartedAt=${i*1000};watchDprV2893()`);a.equal(f.run('worldDprCapV2893()'),1);a.equal(f.run('ALIVE_V2893.dprDowngraded'),true);

@@ -1563,7 +1563,7 @@ const MAP_ALIVE_V2893=(()=>{const deep=o=>{for(const v of Object.values(o))if(v&
   snapViewport:.6      // 目标跳变超过视口 60% 时直接切换（换图、传送）
  },
  pixelSnap:true,
- dpr:{desktopCap:1.5,memoryFloorGB:4,fpsFloor:40,fpsStrikes:3},  // 桌面清晰度：内存<4GB或帧率持续<40时退回1
+ dpr:{desktopCap:1.5,mobileCap:2,memoryFloorGB:4,fpsFloor:40,fpsFloorMobile:24,fpsStrikes:3},  // 连续低帧回退；手机的正常30帧不触发桌面40帧阈值
  landmarks:{baseY:30,scale:{sect:1.22,faction_gate:1.2,palace:1.18,travel_gate:1.15,market:1.12,artifacts:1.12,alchemy:1.1,village:1.08}},
  quality:{
   key:'xiantu_map_alive_v2893',
@@ -1661,19 +1661,23 @@ function resetMapAliveV2893(full=false){
 }
 
 // ------------------------------------------------------------ 2. world canvas DPR ----
-// Manual low quality also limits backing resolution; automatic desktop fallback remains active.
+// Auto mobile stays economical; explicit high can use 2x with a mobile-specific FPS fallback.
 function worldDprCapV2893(){
  const D=MAP_ALIVE_V2893.dpr;
  if(PERF_CONFIG.graphicsQuality==='low')return 1;
- if(typeof PERF_CONFIG!=='undefined'&&PERF_CONFIG.mobile)return 1;
+ if(PERF_CONFIG.mobile){
+  const mem=Number(navigator?.deviceMemory);
+  if(PERF_CONFIG.graphicsQuality!=='high'||ALIVE_V2893.dprDowngraded||(Number.isFinite(mem)&&mem>0&&mem<D.memoryFloorGB))return 1;
+  return D.mobileCap;
+ }
  const mem=Number(navigator?.deviceMemory);if(PERF_CONFIG.graphicsQuality!=='high'&&Number.isFinite(mem)&&mem>0&&mem<D.memoryFloorGB)return 1;
  return ALIVE_V2893.dprDowngraded?1:D.desktopCap;
 }
 function watchDprV2893(){
- const D=MAP_ALIVE_V2893.dpr;if(ALIVE_V2893.dprDowngraded||typeof PERF_CONFIG==='undefined'||PERF_CONFIG.mobile)return;
+ const D=MAP_ALIVE_V2893.dpr;if(ALIVE_V2893.dprDowngraded||typeof PERF_CONFIG==='undefined')return;
  const c=document.getElementById('worldCanvas');if(!c||(c._dpr||1)<=1)return;
  if(PERF_CONFIG.fpsStartedAt===ALIVE_V2893.lastFpsAt||!PERF_CONFIG.measuredFps)return;ALIVE_V2893.lastFpsAt=PERF_CONFIG.fpsStartedAt;
- ALIVE_V2893.dprStrikes=PERF_CONFIG.measuredFps<D.fpsFloor?ALIVE_V2893.dprStrikes+1:0;
+ ALIVE_V2893.dprStrikes=PERF_CONFIG.measuredFps<(PERF_CONFIG.mobile?D.fpsFloorMobile:D.fpsFloor)?ALIVE_V2893.dprStrikes+1:0;
  if(ALIVE_V2893.dprStrikes>=D.fpsStrikes){ALIVE_V2893.dprDowngraded=true;try{resizeWorldCanvas?.();}catch(_){}}
 }
 
@@ -2827,7 +2831,7 @@ function setGraphicsQualityV2903(mode){
 function showGraphicsV2903(message=''){
  if(!forgeAllowedV2825())return;
  const labels={auto:'自动',low:'省电',high:'精细'},mode=PERF_CONFIG.graphicsQuality;
- const html='<section class="main-overview-v2822"><h3>画质设置</h3>'+Object.entries(labels).map(([k,v])=>`<button type="button" class="choice-btn" aria-pressed="${mode===k}" onclick="setGraphicsQualityV2903('${k}')">${v}${mode===k?' · 已选':''}</button>`).join('')+`<p>自动按设备选择，手机优先省电。省电简化光环与氛围；精细显示完整道纹与光影。</p><p>电脑精细画布最高1.5倍，持续掉帧会自动降低。手机保留帧率与分辨率上限。</p><p role="status">${message||'仅保存本机画质选择，不改变角色数据。'}</p></section>`;
+ const html='<section class="main-overview-v2822"><h3>画质设置</h3>'+Object.entries(labels).map(([k,v])=>`<button type="button" class="choice-btn" aria-pressed="${mode===k}" onclick="setGraphicsQualityV2903('${k}')">${v}${mode===k?' · 已选':''}</button>`).join('')+`<p>自动按设备选择，手机优先省电。省电简化光环与氛围；精细显示完整道纹与光影。</p><p>电脑精细画布最高1.5倍，持续掉帧会自动降低。手机精细画布最高2倍，持续低于24帧会回退；低内存设备保持1倍，地图仍最高30帧。</p><p role="status">${message||'仅保存本机画质选择，不改变角色数据。'}</p></section>`;
  toggleCharacterPanel(false);showStory(html,[{text:'返回地图',action:'return_to_map'}]);
 }
 
@@ -3183,9 +3187,9 @@ function interiorInteractV286886(){
 }
 function updateInteriorV286886(dt){
  const s=interiorStateV286886();if(!s)return false;if(isWorldOverlayOpen()||!canMapNpcActV2864()){if(s.hallDestination){s.hallDestination=null;s.path=[];}return true;}
- const k=FLAT_WORLD.keys,p=s.player;let dx=Number(!!(k.d||k.arrowright))-Number(!!(k.a||k.arrowleft)),dy=Number(!!(k.s||k.arrowdown))-Number(!!(k.w||k.arrowup));
+ const input=mapInputVectorV2868100(),p=s.player;let dx=input.x,dy=input.y;
  if(dx||dy){s.path=[];s.hallDestination=null;}else if(s.path.length){const a=s.path[0],d=Math.hypot(a.x-p.x,a.y-p.y);if(d<2){p.x=a.x;p.y=a.y;s.path.shift();}else{dx=(a.x-p.x)/d;dy=(a.y-p.y)/d;}}
- const d=Math.hypot(dx,dy)||1,step=Math.min(.05,Math.max(0,dt||0))*150,remaining=s.path.length?Math.hypot(s.path[0].x-p.x,s.path[0].y-p.y):step,travel=Math.min(step,remaining);
+ const d=Math.max(1,Math.hypot(dx,dy)),step=Math.min(.05,Math.max(0,dt||0))*150,remaining=s.path.length?Math.hypot(s.path[0].x-p.x,s.path[0].y-p.y):step,travel=Math.min(step,remaining);
  // Substeps preserve walls and furniture on a delayed frame.
  for(let i=0,n=Math.max(1,Math.ceil(travel/3));i<n;i++){const x=p.x+dx/d*travel/n,y=p.y+dy/d*travel/n;if(interiorWalkV286886(x,p.y))p.x=x;if(interiorWalkV286886(p.x,y))p.y=y;}
   if(Math.abs(p.x-288)<24&&p.y>390){leaveInteriorV286886();return true;}
@@ -3276,7 +3280,7 @@ function drawInteriorV286886(){
  drawActor25DV2770(ctx,s.player);ctx.restore();return true;
 }
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.99';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.100';
 
 
 if(typeof installBagViewV2905==='function')installBagViewV2905();

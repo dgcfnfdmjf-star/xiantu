@@ -9,6 +9,11 @@ fresh();a(run('!!interiorV286886'));run('globalThis.roomFloor=interiorFloorV2868
 let gathers=0,monsters=0;f.c.checkResourceCollection=()=>gathers++;f.c.updateWorldMonsters=()=>monsters++;
 run('FLAT_WORLD.keys.w=true');for(let i=0;i<100;i++)run('updateFlatWorld(.033)');run('resetWorldMovementV28686()');
 a(run('interiorV286886.player.y<352'));a.deepEqual(json('FLAT_WORLD.player'),outdoor);a.equal(gathers,0);a.equal(monsters,0);a.equal(run('player.gold'),gold);a.equal(run('player.hp'),hp);
+// Analog force applies indoors without normalizing gentle movement to full speed.
+fresh();run('interiorV286886.player={x:288,y:300};FLAT_WORLD.keys={joystick:{x:.3,y:.4}}');
+for(let i=0;i<30;i++)run('updateInteriorV286886(1/30)');
+a(Math.abs(run('interiorV286886.player.x')-333)<1e-7);a(Math.abs(run('interiorV286886.player.y')-360)<1e-7);
+run('resetWorldMovementV28686()');const stopped=json('interiorV286886.player');run('updateInteriorV286886(.033)');a.deepEqual(json('interiorV286886.player'),stopped);
 // Route around a solid bookshelf; every intermediate actor footprint remains walkable.
 run('interiorV286886.player={x:80,y:208};interiorRouteV286886(interiorV286886,80,80)');
 for(let i=0;i<240;i++){run('updateInteriorV286886(.033)');a(run('interiorWalkV286886(interiorV286886.player.x,interiorV286886.player.y)'));}

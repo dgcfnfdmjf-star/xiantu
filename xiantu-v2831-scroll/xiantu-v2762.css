@@ -3942,7 +3942,7 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 /* V28.12 洞府管理 */
 .home-board-v2812{padding:16px;border:1px solid #9eb781;border-radius:16px;background:linear-gradient(135deg,#14251e,#18202b);color:#e9eee3;line-height:1.65}.home-board-v2812 h3{color:#ead592;margin:0 0 12px}.home-grid-v2812{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-grid-v2812 article{padding:14px;border:1px solid #526454;border-radius:12px;background:#ffffff08}.home-grid-v2812 h4{margin:0;color:#e8d594}.home-grid-v2812 p{color:#d0dbd1}.home-grid-v2812 strong{color:#83ddb6}.home-notice-v2812{padding:12px;background:#31534066;border-radius:10px}@media(max-width:600px){.home-grid-v2812{grid-template-columns:1fr}.home-board-v2812{padding:12px;font-size:14px}}
 
-:root{--xiantu-build:286899;}
+:root{--xiantu-build:2868100;}
 #xiantuBuildBadgeV2814{font-size:11px;min-height:32px;padding:5px 9px;white-space:nowrap;color:#b4d4bd;background:#18251f;border:1px solid #718475;border-radius:8px;}
 
 /* V28.68 战斗数值可视层 */
@@ -4646,3 +4646,25 @@ html #gameScreen:has(#storyPanel.village-v286897:not(.hidden)) .world-close-pane
 /* Keep one actionable row in the village peek, without changing the snap positions. */
 html body #gameScreen #storyPanel#storyPanel.village-v286897[data-village-snap="peek"] .vstrip-v286897{display:none}
 html body #gameScreen .world-close-panel[hidden]{display:none!important}
+
+/* Landscape map keeps a full map pane beside independently scrollable controls. */
+.scroll-side-v2868100{display:contents;}
+.scroll-search-v2837{order:1;}
+.scroll-filters-v2837{order:2;}
+.scroll-toolbar-v2837{order:3;}
+.scroll-map-v2837 .scroll-window-v2831{order:4;}
+.scroll-result-v2837{order:5;}
+.scroll-directory-v2837{order:6;}
+.scroll-selection-v2831{order:7;}
+@media (orientation:landscape) and (min-width:640px) and (max-height:600px){
+ .scroll-map-v2837 .scroll-sheet-v2831{display:grid;grid-template-columns:minmax(0,1fr) 260px;grid-template-rows:auto auto minmax(0,1fr);height:94vh;height:94dvh;overflow:hidden;}
+ .scroll-map-v2837 .scroll-sheet-v2831>header{grid-column:1;grid-row:1;min-width:0;}
+ .scroll-map-v2837 .scroll-toolbar-v2837{grid-column:1;grid-row:2;}
+ .scroll-map-v2837 .scroll-window-v2831{grid-column:1;grid-row:3;height:100%;min-height:0;max-height:none;}
+ .scroll-map-v2837 .scroll-side-v2868100{display:flex;flex-direction:column;grid-column:2;grid-row:1/4;min-height:0;overflow:auto;border-left:1px solid #b69960;overscroll-behavior:contain;}
+ .scroll-map-v2837 .scroll-selection-v2831{position:static;max-height:none;overflow:visible;}
+ .scroll-map-v2837 .scroll-directory-v2837{flex-shrink:0;}
+ .scroll-map-v2837 .scroll-search-v2837{flex-wrap:wrap;}
+ .scroll-map-v2837 .scroll-search-v2837 input{width:100%;flex-basis:100%;}
+ .scroll-map-v2837 .scroll-filters-v2837{display:grid;grid-template-columns:1fr 1fr;overflow:visible;}
+}

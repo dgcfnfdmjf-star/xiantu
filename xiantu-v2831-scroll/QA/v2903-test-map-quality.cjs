@@ -3,7 +3,7 @@ const fs=require('fs'),path=require('path'),a=require('assert/strict');
 const root=process.env.XIANTU_TEST_ROOT||path.resolve(__dirname,'..'),fixture=require('./v2858-dom-fixture.cjs');
 const files=JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]);
 function game(ua='Desktop',mem=8,mode=null,coarse=false){const f=fixture(root);f.c.console.log=()=>{};f.c.navigator.userAgent=ua;f.c.navigator.deviceMemory=mem;f.c.matchMedia=q=>({matches:coarse&&q==='(pointer: coarse)',addEventListener(){}});if(mode)f.storage.set('xiantu_gfx_quality_v2876',mode);for(const file of files)f.load(file);return f;}
-for(const [ua,mem,mode,coarse,low,cap] of [['Desktop',8,null,false,false,1.5],['Desktop',undefined,null,false,false,1.5],['Desktop',2,null,false,true,1],['iPhone',8,null,false,true,1],['Macintosh',8,null,true,true,1],['Desktop',8,'low',false,true,1],['iPhone',8,'high',false,false,1],['Desktop',2,'high',false,false,1.5],['Desktop',8,'invalid',false,false,1.5]]){
+for(const [ua,mem,mode,coarse,low,cap] of [['Desktop',8,null,false,false,1.5],['Desktop',undefined,null,false,false,1.5],['Desktop',2,null,false,true,1],['iPhone',8,null,false,true,1],['Macintosh',8,null,true,true,1],['Desktop',8,'low',false,true,1],['iPhone',8,'high',false,false,2],['iPhone',2,'high',false,false,1],['Desktop',2,'high',false,false,1.5],['Desktop',8,'invalid',false,false,1.5]]){
  const f=game(ua,mem,mode,coarse);a.equal(f.run('PERF_CONFIG.lowEnd'),low);a.equal(f.run('PERF_CONFIG.ultraSmooth'),low);a.equal(f.run('worldDprCapV2893()'),cap);
 }
 const f=game();const run=s=>f.run(s);run('startGame();closeWorldOverlay();');f.timers.clear();

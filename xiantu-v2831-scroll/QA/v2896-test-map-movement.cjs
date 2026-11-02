@@ -24,9 +24,17 @@ let seed=42;const rng=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return 
 for(let i=0;i<500;i++){const colliders=Array.from({length:8},()=>({x:150+rng()*300,y:150+rng()*300,radius:5+rng()*28}));const from={x:50+rng()*450,y:50+rng()*450};if(colliders.some(c=>Math.hypot(from.x-c.x,from.y-c.y)<c.radius+17))continue;f.c.__colliders=colliders;run('FLAT_WORLD.colliders=__colliders');const dx=(rng()-.5)*120,dy=(rng()-.5)*120,result=J(`resolvePlayerMotionV2896(${from.x},${from.y},${from.x+dx},${from.y+dy},17)`);a(Number.isFinite(result.x)&&Number.isFinite(result.y));for(const c of colliders)a(Math.hypot(result.x-c.x,result.y-c.y)>=c.radius+17-1e-5);}
 // Rebuilding/changing maps never compounds the chosen speed and never scales interaction radii.
 fresh();run("applyWorldMapLayout('south',true)");const pois=run('JSON.stringify(FLAT_WORLD.pois)'),col=run('JSON.stringify(FLAT_WORLD.colliders)');run('toggleSwordFlightV2870();toggleSwordFlightV2870()');a.equal(run('JSON.stringify(FLAT_WORLD.pois)'),pois);a.equal(run('JSON.stringify(FLAT_WORLD.colliders)'),col);
+
+for(const n of [30,60,120]){fresh();run(`FLAT_WORLD.keys={joystick:{x:.3,y:.4}};for(let i=0;i<${n};i++)updateFlatWorld(1/${n})`);a(Math.abs(run('travel')-125)<1e-7);a(Math.abs(run('FLAT_WORLD.player.x')-575)<1e-7);a(Math.abs(run('FLAT_WORLD.player.y')-600)<1e-7);}
+fresh();run('FLAT_WORLD.keys={joystick:{x:3,y:4}};updateFlatWorld(.04)');a(Math.abs(run('travel')-10)<1e-7,'clamp malformed vector speed');
+run('resetWorldMovementV28686()');a.equal(run('FLAT_WORLD.keys.joystick'),undefined);
+
 // Equipment overlay pauses the actual world loop, clearing keyboard, joystick and navigation intent.
 fresh();run("closeWorldOverlay();FLAT_WORLD.keys={d:true};FLAT_WORLD.target={x:900,y:500};showEquipmentPanel()");a.deepEqual(J('FLAT_WORLD.keys'),{});a.equal(run('FLAT_WORLD.target'),null);a.equal(run('isWorldOverlayOpen()'),true);
 let draws=0,updates=0;f.c.drawFlatWorld=()=>{draws++};f.c.updateFlatWorld=()=>{updates++};run("document.body.classList.add('flat-world-active');PERF_CONFIG.mobile=false;flatWorldLoop(1000)");a.equal(draws,0);a.equal(updates,0);
 run("document.getElementById('equipmentPanel').remove();flatWorldLoop(1100)");a.equal(draws,1);a.equal(updates,1);
 const source=fs.readFileSync(root+'/xiantu-v28684-duel.js','utf8').split('// BEGIN MAP_MOVEMENT_V2896')[1].split('// END MAP_MOVEMENT_V2896')[0];a(!/requestAnimationFrame|setInterval|Math\.random|saveGame\s*=/.test(source),'no additional frame loop, RNG or save wrapper');
 a.equal(f.errors.length,0,JSON.stringify(f.errors));console.log('PASS map movement: optional 1.6x speed, frame-rate parity, tap/waypoint arrival, swept circle sliding, no tunnelling/corner penetration, unchanged actor base speed and map footprints');
+
+run('FLAT_WORLD.initialized=true;FLAT_WORLD.raf=null;PERF_CONFIG.fpsStartedAt=-100000;PERF_CONFIG.fpsFrames=45;PERF_CONFIG.measuredFps=10;resumeVisualsV2767()');
+a.equal(run('PERF_CONFIG.fpsFrames'),0);a.equal(run('PERF_CONFIG.measuredFps'),0);a.equal(run('PERF_CONFIG.fpsStartedAt'),run('FLAT_WORLD.lastTime'),'background time excluded from resumed FPS samples');

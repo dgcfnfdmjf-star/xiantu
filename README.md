@@ -1,6 +1,10 @@
-# 仙途 V28.68.99
+# 仙途 V28.68.100
 
-部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.99）；[上传步骤](downloads/README.md)。
+部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.100）；[上传步骤](downloads/README.md)。
+
+## V28.68.100 手机地图与摇杆优化
+
+精细画质支持手机最高2倍画布和低帧率回退；摇杆支持连续方向、轻推慢走，室内外一致。横屏山河图改为地图与操作侧栏。详见 [范围与实测](docs/map-controls-followup.txt)。完整下载包已同步；尚未部署腾讯云，无需更新Jev。
 
 ## V28.68.99 启动、村庄简览与打包保护
 
