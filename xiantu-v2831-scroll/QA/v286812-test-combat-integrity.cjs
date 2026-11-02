@@ -42,6 +42,7 @@ f.run('player.activeArtifact=null;var originalDamage=calculateFinalDamage;var ob
 a.equal(f.run('observedSkill.armorPierce'),.3);
 console.log('PASS multiplicative zones and rounding retained; ordinary attacks pass gear penetration');
 // Render observations at 30 FPS and delayed 4 FPS; no engine/player state is mutated.
+f.warmDuel(); // Warm the action atlas for this existing presentation test.
 const art=images.find(i=>(i.src||'').includes('duel-ink-poses'));art.naturalWidth=1536;art.naturalHeight=1024;art.onload();
 let frame;f.c.performance.now=()=>1000;f.c.requestAnimationFrame=cb=>(frame=cb,1);f.c.cancelAnimationFrame=()=>{};
 f.run('var probe=XiantuDuel25D.create(document.body,()=>({playerHp:100,playerMax:100,enemyHp:70,enemyMax:100}));probe.act("player","fire");probe.hit("enemy",30)');

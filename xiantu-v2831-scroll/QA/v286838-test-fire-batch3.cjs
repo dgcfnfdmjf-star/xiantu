@@ -35,6 +35,7 @@ function actual(name,suppress,turns,randomValue){
 for(const name of ['燎原火域','赤焰龙息','天火焚世'])for(const turns of [0,1,3])for(const random of [.1,.9])assert.deepEqual(actual(name,false,turns,random),actual(name,true,turns,random));
 console.log('PASS real equipped casts: 72/58/75 MP, 4.4/3.9/4.5 damage, burn refresh, unchanged state/RNG');
 // A domain is a scene-local provenance record, never inferred from arbitrary burn.
+f.warmDuel(); // Warm the action atlas for this existing presentation test.
 const ink=images.find(i=>(i.src||'').includes('duel-ink-poses'));ink.naturalWidth=1536;ink.naturalHeight=1024;ink.onload();let serial=0,clock=1000;const frames=new Map();f.c.requestAnimationFrame=cb=>{frames.set(++serial,cb);return serial};f.c.cancelAnimationFrame=id=>frames.delete(id);f.c.performance.now=()=>clock;
 f.run('var data3={active:true,targetToken:1,playerHp:100,playerMax:100,enemyHp:100,enemyMax:100,burnTurns:3,burnDamage:10,burnHealBlock:false};var host3=document.createElement("div");document.body.appendChild(host3);var scene3=XiantuDuel25D.create(host3,()=>data3);');
 let marks=[],lotus=0;b.drawStatus=(...args)=>{marks.push(args);return true};fx.fireBatch2.drawStatus=()=>{lotus++;return true};

@@ -17,6 +17,8 @@
     const wrap=document.querySelector('.world-close-panel');
     const panel=getVisibleWorldOverlay();
     if(!wrap||!panel)return;
+    // Safari before :has() support must also hide the duplicate map button.
+    wrap.hidden=panel.classList.contains('village-v286897')&&!panel.classList.contains('hidden');
     const btn=wrap.querySelector('button');
     if(btn){const indoor=document.documentElement.classList.contains('interior-v286886');btn.textContent=indoor?'← 室内':'← 地图';btn.title=indoor?'返回室内':'返回地图';btn.setAttribute('aria-label',btn.title);}
     const rect=panel.getBoundingClientRect();
@@ -56,4 +58,4 @@
   if(document.body.classList.contains('flat-world-active'))requestAnimationFrame(install);
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-07-v12-stable-map-ui-script.js"]="28.68.98";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-07-v12-stable-map-ui-script.js"]="28.68.99";

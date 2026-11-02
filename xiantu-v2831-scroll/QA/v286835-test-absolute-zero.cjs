@@ -29,6 +29,7 @@ function actual(suppress,randomValue){
 for(const r of [.1,.9])assert.deepEqual(actual(false,r),actual(true,r));
 assert.match(f.c.XiantuBattleProseV286832.cast('你','绝对零度','ice'),/层层霜纹/);assert.doesNotMatch(f.c.XiantuBattleProseV286832.cast('你','绝对零度','ice'),/已冻结|无法行动/);
 console.log('PASS actual skill preserves 70 MP, 4x multiplier, guaranteed freeze, chill, combat state and RNG');
+f.warmDuel(); // Warm the action atlas for this existing presentation test.
 const ink=images.find(i=>(i.src||'').includes('duel-ink-poses'));ink.naturalWidth=1536;ink.naturalHeight=1024;ink.onload();let serial=0;const frames=new Map();f.c.requestAnimationFrame=cb=>{frames.set(++serial,cb);return serial};f.c.cancelAnimationFrame=id=>frames.delete(id);f.c.performance.now=()=>1000;
 f.run('var zeroHost=document.createElement("div");document.body.appendChild(zeroHost);var zeroScene=XiantuDuel25D.create(zeroHost,()=>({active:true,playerHp:100,playerMax:100,enemyHp:100,enemyMax:100}));zeroScene.act("player","ice","绝对零度");zeroScene.hit("enemy",10)');
 const seen=[];fx.draw=(c,j,t)=>seen.push(j.profile.name);function tick(t){const batch=[...frames.values()];frames.clear();for(const fn of batch)fn(t)}tick(1050);assert(seen.includes('绝对零度'));seen.length=0;

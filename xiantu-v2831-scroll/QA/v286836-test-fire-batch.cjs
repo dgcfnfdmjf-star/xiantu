@@ -33,6 +33,7 @@ function actual(name,suppress,burnTurns,randomValue){
 }
 for(const name of ['烈焰斩','炎爆术','焚天烈焰'])for(const turns of [0,1,3])for(const random of [.1,.9])assert.deepEqual(actual(name,false,turns,random),actual(name,true,turns,random));
 console.log('PASS real equipped casts: 18/22/45 MP, burn duration and detonation consumption, identical state/RNG with visuals disabled');
+f.warmDuel(); // Warm the action atlas for this existing presentation test.
 const ink=images.find(i=>(i.src||'').includes('duel-ink-poses'));ink.naturalWidth=1536;ink.naturalHeight=1024;ink.onload();let serial=0;const frames=new Map();f.c.requestAnimationFrame=cb=>{frames.set(++serial,cb);return serial};f.c.cancelAnimationFrame=id=>frames.delete(id);f.c.performance.now=()=>1000;
 f.run('var fireHost=document.createElement("div");document.body.appendChild(fireHost);var fireScene=XiantuDuel25D.create(fireHost,()=>({active:true,playerHp:100,playerMax:100,enemyHp:100,enemyMax:100}));fireScene.act("player","fire","炎爆术");fireScene.hit("enemy",10);fireScene.hit("enemy",20,false,false,false,"灼烧引爆")');
 const seen=[];fx.draw=(c,j,t)=>seen.push({j,t});function tick(t){const batch=[...frames.values()];frames.clear();for(const fn of batch)fn(t)}

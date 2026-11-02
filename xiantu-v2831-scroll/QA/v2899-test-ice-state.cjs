@@ -41,6 +41,7 @@ const names=Array.from(f.run('SKILLS.filter(s=>s.element==="ice").map(s=>s.name)
 for(const name of names)for(const random of [.1,.99])assert.deepEqual(actual(name,false,random),actual(name,true,random),name+' gameplay/RNG parity');
 console.log('PASS 13 real ice casts, both RNG outcomes, exact MP, frost ticks and 20% shield; visual observer cannot change combat');
 // Actual scene loop, not just controller calls. Failed textures must still be safe.
+f.warmDuel(); // Warm the action atlas for this existing presentation test.
 const atlas=images.find(i=>i.src?.includes('duel-ink-poses'));atlas.naturalWidth=1536;atlas.naturalHeight=1024;atlas.onload();
 let serial=0,clock=1000;const frames=new Map();f.c.requestAnimationFrame=cb=>{frames.set(++serial,cb);return serial};f.c.cancelAnimationFrame=id=>frames.delete(id);f.c.performance.now=()=>clock;
 f.run('var iceData={active:true,ownerToken:1,targetToken:2,playerHp:100,playerMax:100,enemyHp:100,enemyMax:100,frozen:true,frostTurns:3,frostDamage:10,sealTurns:1,guardElement:"ice",guardPool:30,guardTurns:3};var iceHost=document.createElement("div");document.body.appendChild(iceHost);var iceScene=XiantuDuel25D.create(iceHost,()=>iceData);');

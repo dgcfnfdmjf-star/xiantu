@@ -41,6 +41,7 @@ function actual(name,suppress,randomValue){
 for(const name of ['流火飞索','炎阳护盾'])for(const random of [.1,.9])assert.deepEqual(actual(name,false,random),actual(name,true,random));
 console.log('PASS real 35/30 MP casts, 2.4 damage/burn/slow, 20% shield, absorption/refresh/expiry/ice replacement and unchanged state/RNG');
 // Exercise persistent drawing through the actual scene owner, with one RAF.
+f.warmDuel(); // Warm the action atlas for this existing presentation test.
 const ink=images.find(i=>i.src?.includes('duel-ink-poses'));ink.naturalWidth=1536;ink.naturalHeight=1024;ink.onload();let serial=0,clock=1000;const frames=new Map();f.c.requestAnimationFrame=cb=>{frames.set(++serial,cb);return serial};f.c.cancelAnimationFrame=id=>frames.delete(id);f.c.performance.now=()=>clock;
 f.run('var finaleData={active:true,targetToken:1,playerHp:100,playerMax:100,enemyHp:100,enemyMax:100,chillTurns:1,guardPool:0,guardTurns:0,guardElement:null};var finaleHost=document.createElement("div");document.body.appendChild(finaleHost);var finaleScene=XiantuDuel25D.create(finaleHost,()=>finaleData)');
 let marks=[];const drawStatus=b.drawStatus;b.drawStatus=function(c,kind,x,y,age,reduced,scale,opacity,pulse){if(opacity>0)marks.push({kind,opacity,pulse,age});return drawStatus.apply(this,arguments)};

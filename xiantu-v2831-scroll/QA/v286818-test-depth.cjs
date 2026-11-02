@@ -51,6 +51,7 @@ a.equal(f.run('resolveRoamingV286818("aid")'),true);a.equal(f.run('player.invent
 a.equal(f.run('JSON.stringify(normalizePlayer(createDefaultPlayer()).roamingV286818)'),'{"maps":{}}');
 console.log('PASS one-time encounters, reload, insufficient payment, stale UI/region/player, failed-write rollback and legacy saves');
 fresh();a.equal(f.run('XiantuDuel25D.petKey({type:"灵狐",name:"灵纹野兔"})'),'rabbit');a.equal(f.run('XiantuDuel25D.petKey({type:"雷鹰",name:"魔渊蝙蝠"})'),'bat');a.equal(f.run('XiantuDuel25D.petKey({type:"灵狐",name:"小白",speciesV286818:"灵纹野兔"})'),'rabbit');a.equal(f.run('XiantuDuel25D.petKey({type:"仙鹤",name:"云归"})'),'crane');
+f.warmDuel(); // Warm the action atlas for this existing presentation test.
 const art=images.find(i=>(i.src||'').includes('duel-ink-poses'));art.naturalWidth=1536;art.naturalHeight=1024;art.onload();
 let frame;f.c.requestAnimationFrame=cb=>(frame=cb,1);f.c.cancelAnimationFrame=()=>{};f.c.performance.now=()=>1000;
 f.run('var petView={playerHp:100,playerMax:100,enemyHp:100,enemyMax:100,pet:{name:"碧水灵龟",type:"玄龟"}};var petScene=XiantuDuel25D.create(document.body,()=>petView)');

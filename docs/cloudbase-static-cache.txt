@@ -1,0 +1,30 @@
+腾讯云静态托管发布核对
+
+此文件记录推荐配置与核对步骤，不代表已修改或验证线上配置。当前仓库不注册Service Worker，也不提供离线缓存。
+
+上传前
+1. 使用仓库的 npm run package:game；不要使用外部V2909材料中的 npm run build 或替换源目录。
+2. 运行 python3 scripts/checksums.py，确认ZIP保留xiantu-v2831-scroll目录；完整上传图片、视频、脚本和样式。
+3. 保留原环境域名和目录，先导出游戏存档作为备份，不清除浏览器网站数据。
+
+缓存与压缩
+- game-v2762.html、index.html、health-v2762.html、manifest-v2762.webmanifest：浏览器使用no-cache或max-age=0，并把CDN节点缓存设为0或每次重新验证。HTTP缓存与CDN节点缓存必须分别检查。
+- JS/CSS：当前加载器通过?v=发布标记区分版本。必须确认CDN缓存键包含查询参数，未启用忽略参数；若无法确认，应使用短缓存并在每次完整上传后刷新节点缓存。
+- 内容不再修改的版本化图片/视频可长期缓存；重复使用文件名或会重编码的素材不能无条件永久缓存，更新时应改文件名/参数并刷新CDN。
+- 对HTML、JS、CSS、JSON、webmanifest、SVG启用服务端gzip或Brotli；WebP、MP4保持原压缩格式。
+- 平台支持时设置X-Content-Type-Options: nosniff及适用的frame-ancestors响应头。不要直接套用不支持的cloudbaserc字段。
+
+发布顺序
+先上传新素材，再覆盖完整脚本和样式，入口HTML与manifest最后上传；旧标签页继续使用已加载的代码。上传过程中仍可能遇到混合版本，加载器的版本检查必须保留。
+核对控制台/CLI是否自动刷新CDN，未确认时手动刷新本次变更资源。发布前后分别保存响应头和页面截图。
+如果站点曾部署过外部Service Worker，需单独检查其注册、scope及缓存版本并制定迁移；本仓库不会自动清除其他应用的缓存或注册。
+
+验证（将HOST替换为实际托管域名）
+curl -sS -D - -o /dev/null -H 'Accept-Encoding: gzip, br' 'https://HOST/xiantu-v2831-scroll/xiantu-v2762-core.js?v=实际发布标记'
+curl -sS -D - -o /dev/null 'https://HOST/xiantu-v2831-scroll/game-v2762.html'
+curl -sS -D - -o /dev/null 'https://HOST/xiantu-v2831-scroll/manifest-v2762.webmanifest'
+核对Content-Encoding、Cache-Control、Vary及平台返回的Age/缓存命中头；HTTP头不能单独证明CDN查询参数策略，还需核对控制台设置和更新前后内容。
+用首次访问和已有存档的浏览器分别打开原网址，检查版本、导入/保存、地图、首次战斗以及横竖屏。不要把本地Chromium模拟结果当作实体iPhone或线上缓存验证。
+
+Jev
+本轮只改网页和开发打包工具，无需更新云函数。仓库已有服务端会话限流、IP签发限制、小时/日预算、并发限制和共享Redis支持；实际线上环境是否启用共享限流与正确预算仍需部署时验证。

@@ -3,6 +3,7 @@ const fs=require('node:fs'),path=require('node:path'),a=require('node:assert/str
 const root=process.env.XIANTU_TEST_ROOT||path.resolve(__dirname,'..'),f=require('./v2858-dom-fixture.cjs')(root),images=[];
 f.c.console.log=()=>{};const Base=f.c.Image;f.c.Image=class extends Base{constructor(){super();images.push(this);}};
 for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);
+f.warmDuel(); // Warm the action atlas for this existing presentation test.
 const art=images.find(i=>(i.src||'').includes('duel-ink-poses'));art.naturalWidth=1536;art.naturalHeight=1024;art.onload();
 let now=1000,seq=0;const raf=new Map();f.c.performance.now=()=>now;f.c.requestAnimationFrame=cb=>{raf.set(++seq,cb);return seq};f.c.cancelAnimationFrame=id=>raf.delete(id);
 const run=s=>f.run(s);function tick(dt){now+=dt;const jobs=[...raf.values()];raf.clear();for(const cb of jobs)cb(now);}
