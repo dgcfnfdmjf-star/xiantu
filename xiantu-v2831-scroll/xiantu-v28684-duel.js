@@ -560,6 +560,7 @@ function s25JoinedWorldLightV286896(ctx){
 
 // ------------------------------------------------------------------ world: per-frame helpers ----
 function s25DepthScaleV2888(y){
+ if(typeof wildSceneReadyV286898==='function'&&wildSceneReadyV286898()&&wildSceneV286898()?.actorScale)return wildSceneV286898().actorScale;
  const D=SCENE25D_V2888.depth,cam=FLAT_WORLD.camera,vh=S25_V2888.frameVh||700;
  const k=Math.max(0,Math.min(1,(y-cam.y)/vh));return D.far+(D.near-D.far)*k;
 }
@@ -3280,7 +3281,7 @@ function drawInteriorV286886(){
  drawActor25DV2770(ctx,s.player);ctx.restore();return true;
 }
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.100';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.101';
 
 
 if(typeof installBagViewV2905==='function')installBagViewV2905();

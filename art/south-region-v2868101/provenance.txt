@@ -1,0 +1,14 @@
+南域青云村整景素材来源
+
+用户选择：制作并接入南域专属整景；已有宗门和东、西域整景保留。
+参考：用户提供的统一山水场景方向、仙途9.md；现有 sect-panorama-v286896.webp 与 east-panorama-v286898.webp。
+制作：image_gen 按现有南域地点与入口位置制作一幅整景，再用 image_gen 调整凉亭位置和名士活动空地。没有引入其他游戏素材。
+初稿：/workspace/generated_images/exec-9029217e-a8ea-458b-a83f-f1fce1d9ad28.png
+最终输出：/workspace/generated_images/exec-cb69fec4-8e5f-4b8f-bb6f-2d04eb28c714.png
+保留源图：source.png，原生 1484×1060，无放大。
+运行资源：xiantu-v2831-scroll/south-panorama-v2868101.webp，583084 字节。
+编码：Pillow WebP quality=88、method=6，保持尺寸及画面内容，没有额外绘画处理。
+layout.json：制作前从现有南域配置导出的地点、出生点和旧道路布局。
+layout.svg：上述配置的坐标示意图，仅用于制作校对，不在游戏运行时加载。
+运行时新入口、道路、遮挡及主要建筑碰撞数据位于 core.js 的 WILD_SCENES_V286898.south。
+源图没有文字、人物或游戏UI；铭牌、NPC、角色、探索点、迷雾及交互仍由游戏绘制。
