@@ -560,6 +560,7 @@ function s25JoinedWorldLightV286896(ctx){
 
 // ------------------------------------------------------------------ world: per-frame helpers ----
 function s25DepthScaleV2888(y){
+ if(typeof wildSceneReadyV286898==='function'&&wildSceneReadyV286898()&&wildSceneV286898()?.actorScale)return wildSceneV286898().actorScale;
  const D=SCENE25D_V2888.depth,cam=FLAT_WORLD.camera,vh=S25_V2888.frameVh||700;
  const k=Math.max(0,Math.min(1,(y-cam.y)/vh));return D.far+(D.near-D.far)*k;
 }

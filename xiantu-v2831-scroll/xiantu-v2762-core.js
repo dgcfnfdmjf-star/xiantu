@@ -14126,7 +14126,9 @@ function villageEnhanceV286897(){
       ctx.save();
       ctx.beginPath();ctx.arc(w/2,h/2,Math.min(w,h)/2-3,0,Math.PI*2);ctx.clip();
       ctx.fillStyle=cfg.bg;ctx.fillRect(0,0,w,h);
-      drawRegionScrollV2834(ctx,mx(0),my(0),FLAT_WORLD.width*sx,FLAT_WORLD.height*sy);
+      const painted=wildSceneReadyV286898()&&wildSceneV286898()?.minimap;
+      if(painted)ctx.drawImage(SCROLL_ART_V2831.wildScenes[currentRegion],mx(0),my(0),FLAT_WORLD.width*sx,FLAT_WORLD.height*sy);
+      else drawRegionScrollV2834(ctx,mx(0),my(0),FLAT_WORLD.width*sx,FLAT_WORLD.height*sy);
       const route=worldRouteDisplayV2881();
       drawWorldRouteV2881(ctx,route,{x:mx,y:my});
 
@@ -14462,6 +14464,18 @@ function villageEnhanceV286897(){
     // geometry below refers to the unchanged 1374x1145 source painting.
     // Whole regional paintings share their coordinate system with static ground, picking and masks.
     const WILD_SCENES_V286898={
+      south:{file:'south-panorama-v2868101.webp',width:1484,height:1060,minimap:true,actorScale:1,rooms:{
+        village:{plaque:[855,110],door:[705,390],bounds:[495,85,990,400],mask:[[516,193],[580,145],[605,175],[625,200],[608,218],[533,228]]},
+        shop:{plaque:[487,330],door:[335,505],bounds:[185,305,500,550],mask:[[195,372],[254,350],[282,307],[394,309],[416,351],[490,350],[496,394],[440,410],[424,439],[232,439],[207,407]]},
+        market:{plaque:[1310,350],door:[1040,535],bounds:[915,345,1300,550],mask:[[1034,346],[1120,345],[1137,386],[1125,405],[1034,405]]},
+        home:{plaque:[1290,705],door:[1150,840],bounds:[1010,680,1330,900],mask:[[1040,758],[1060,710],[1137,695],[1210,718],[1260,760],[1240,800],[1185,790],[1150,775],[1095,790]]},
+        romance:{plaque:[1160,105],door:[1070,220],bounds:[1000,75,1130,235],mask:[[1010,118],[1040,108],[1060,80],[1080,110],[1110,120],[1100,145],[1020,146]]},
+        rest:{plaque:[435,770],door:[402,866],bounds:[145,745,430,905]},
+        travel_gate:{plaque:[798,800],door:[695,905],bounds:[590,760,800,920],mask:[[599,779],[630,775],[645,752],[753,752],[770,776],[790,781],[775,814],[618,814]]}
+      },bodies:[[530,215,605,265],[635,190,695,235],[680,245,755,275],[775,175,825,220],[830,205,890,250],[635,130,705,164],[580,335,650,365],[215,405,440,480],[1050,395,1125,440],[930,455,977,490],[1200,455,1260,495]],
+      rocks:[[570,515,49],[825,555,44],[1055,755,35],[1245,785,32],[300,835,62],[656,850,13],[750,850,13],[1370,850,45],[130,680,40]],
+      roads:[[705,390],[724,450],[710,525],[680,580],[335,505],[395,535],[500,580],[605,605],[1040,535],[985,555],[900,595],[820,610],[1070,220],[1070,270],[1180,320],[1160,385],[1150,445],[1100,500],[403,212],[363,270],[420,310],[500,355],[585,400],[402,866],[480,830],[535,780],[520,740],[555,700],[610,650],[1150,840],[1050,890],[985,880],[940,810],[875,755],[795,710],[710,665],[695,905],[700,825],[695,760],[700,680]],
+      links:[[0,1],[1,2],[2,3],[4,5],[5,6],[6,7],[7,3],[8,9],[9,10],[10,11],[11,3],[12,13],[13,14],[14,15],[15,16],[16,17],[17,8],[18,19],[19,20],[20,21],[21,22],[22,0],[23,24],[24,25],[25,26],[26,27],[27,28],[28,7],[29,30],[30,31],[31,32],[32,33],[33,34],[34,35],[35,3],[36,37],[37,38],[38,39],[39,3]]},
       east:{file:'east-panorama-v286898.webp',rooms:{
         pets:{plaque:[500,250],door:[370,430],bounds:[130,135,490,435],mask:[[140,175],[295,140],[350,260],[280,290],[140,290]]},
         forest:{plaque:[1215,200],door:[965,390],bounds:[790,100,1250,400],mask:[[820,155],[1030,75],[1190,130],[1200,240],[1090,300],[900,285]]},
@@ -14480,7 +14494,7 @@ function villageEnhanceV286897(){
     function wildSceneV286898(){return WILD_SCENES_V286898[currentRegion]||null;}
     function wildSceneReadyV286898(){return !!SCROLL_ART_V2831.wildScenes?.[currentRegion];}
     function wildSceneRoomV286898(p){return wildSceneReadyV286898()?wildSceneV286898()?.rooms[p?.id]||null:null;}
-    function wildSceneWorldV286898(x,y){return {x:x*FLAT_WORLD.width/1484,y:y*FLAT_WORLD.height/1060};}
+    function wildSceneWorldV286898(x,y){const scene=wildSceneV286898();return {x:x*FLAT_WORLD.width/(scene?.width||1484),y:y*FLAT_WORLD.height/(scene?.height||1060)};}
     function wildSceneDoorV286898(p){const r=wildSceneRoomV286898(p);if(!r)return null;const q=wildSceneWorldV286898(...r.door);return Math.hypot(q.x-p.x,q.y-p.y)<p.r+60?q:null;}
     function wildSceneBoundsV286898(p){const r=wildSceneRoomV286898(p);if(!r)return null;const a=wildSceneWorldV286898(r.bounds[0],r.bounds[1]),b=wildSceneWorldV286898(r.bounds[2],r.bounds[3]);return {left:a.x,top:a.y,right:b.x,bottom:b.y};}
     function drawWildPlaqueV286898(ctx,p){
@@ -14489,22 +14503,41 @@ function villageEnhanceV286897(){
       if(typeof labelBoxesV2836!=='undefined'&&labelBoxesV2836){if(labelBoxesV2836.some(b=>labelOverlapV2836(box,b)))return true;labelBoxesV2836.push(box);}
       ctx.save();ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x+w/2,q.y+9);ctx.lineTo(q.x+w/2,q.y+h-6);ctx.lineTo(q.x+w/2-5,q.y+h);ctx.lineTo(q.x-w/2+5,q.y+h);ctx.lineTo(q.x-w/2,q.y+h-6);ctx.lineTo(q.x-w/2,q.y+9);ctx.closePath();ctx.fillStyle='rgba(25,30,25,.96)';ctx.fill();ctx.strokeStyle=FLAT_WORLD.nearby?.id===p.id?'#ffe1a0':'#b7a374';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#eed7a1';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='600 18px Microsoft YaHei';letters.forEach((c,i)=>ctx.fillText(c,q.x,q.y+21+i*21));ctx.restore();return true;
     }
-    function wildSceneCollidersV286898(){return wildSceneReadyV286898()?wildSceneV286898().rocks.map(([x,y,r],i)=>({...wildSceneWorldV286898(x,y),radius:r*FLAT_WORLD.width/1484,type:'wild-scene',id:'wild_'+i})):[];}
+    function wildSceneCollidersV286898(){
+      if(!wildSceneReadyV286898())return [];
+      const s=wildSceneV286898(),scale=FLAT_WORLD.width/(s.width||1484);
+      const out=s.rocks.map(([x,y,r],i)=>({...wildSceneWorldV286898(x,y),radius:r*scale,type:'wild-scene',id:'wild_'+i}));
+      // Solid building bodies, authored separately from roof masks and open courtyards.
+      for(const [i,b] of (s.bodies||[]).entries())for(let y=b[1]+16;y<=b[3]-10;y+=24)for(let x=b[0]+16;x<=b[2]-10;x+=24)
+        out.push({...wildSceneWorldV286898(x,y),radius:18*scale,type:'wild-scene',id:'wild_body_'+i});
+      return out;
+    }
     function wildSceneSafePointV286898(x,y,radius=17){
       if(!wildSceneReadyV286898()||!FLAT_WORLD.colliders.some(c=>c.type==='wild-scene'&&Math.hypot(x-c.x,y-c.y)<c.radius+radius))return null;
       const clear=q=>q.x>=30&&q.y>=30&&q.x<FLAT_WORLD.width-30&&q.y<FLAT_WORLD.height-30&&!FLAT_WORLD.colliders.some(c=>Math.hypot(q.x-c.x,q.y-c.y)<c.radius+radius+5);
       for(let r=24;r<=384;r+=24)for(let i=0;i<32;i++){const q={x:x+Math.cos(i*Math.PI/16)*r,y:y+Math.sin(i*Math.PI/16)*r};if(clear(q))return q;}
       return null;
     }
+    function trimWildScenesV2868101(){
+      const art=SCROLL_ART_V2831,images=art.wildScenes||{};
+      while(Object.keys(images).length>2){
+        const oldest=Object.keys(images).find(r=>r!==currentRegion);if(!oldest)break;
+        delete images[oldest];delete art.wildSceneRequested[oldest];
+      }
+    }
     function loadWildSceneV286898(){
       const region=currentRegion,s=wildSceneV286898();if(!s)return;
-      const art=SCROLL_ART_V2831;art.wildSceneRequested=art.wildSceneRequested||{};if(art.wildSceneRequested[region])return;
+      const art=SCROLL_ART_V2831;art.wildSceneRequested=art.wildSceneRequested||{};
+      if(art.wildScenes?.[region]){const image=art.wildScenes[region];delete art.wildScenes[region];art.wildScenes[region]=image;return;}
+      if(art.wildSceneRequested[region])return;
       art.wildSceneRequested[region]=true;const im=new Image();im.decoding='async';
-      im.onload=()=>{im.onload=im.onerror=null;if(im.naturalWidth!==1484||im.naturalHeight!==1060)return;
-        art.wildScenes=art.wildScenes||{};art.wildScenes[region]=im;
+      im.onload=()=>{im.onload=im.onerror=null;if(im.naturalWidth!==(s.width||1484)||im.naturalHeight!==(s.height||1060))return;
+        art.wildScenes=art.wildScenes||{};art.wildScenes[region]=im;trimWildScenesV2868101();
         if(currentRegion===region){releaseStaticWorldCacheV2767();rebuildWorldColliders();const p=FLAT_WORLD.player,q=wildSceneSafePointV286898(p.x,p.y,p.r||17);
           // Geometry changed: an old planned route must never cross a newly painted wall.
-          resetWorldMovementV28686();if(q){p.x=q.x;p.y=q.y;}}};
+          resetWorldMovementV28686();if(q){p.x=q.x;p.y=q.y;}
+          for(const m of FLAT_WORLD.monsters||[]){if(!m.alive||m.inCombat)continue;const safe=wildSceneSafePointV286898(m.x,m.y,m.r||22);if(safe){m.x=safe.x;m.y=safe.y;}}
+        }};
       im.onerror=()=>{im.onload=im.onerror=null;};im.src='./'+s.file;
     }
     function drawWildSceneV286898(ctx){if(!wildSceneReadyV286898())return false;ctx.drawImage(SCROLL_ART_V2831.wildScenes[currentRegion],0,0,FLAT_WORLD.width,FLAT_WORLD.height);return true;}
@@ -15166,6 +15199,7 @@ function villageEnhanceV286897(){
 
     function drawWorldPoi(ctx,o){
       drawWildMaskV286898(ctx,o);drawSectSceneRoofV286896(ctx,o);
+      if(currentRegion==='south'&&FLAT_WORLD.nearby?.id===o.id){const door=wildSceneDoorV286898(o);if(door){ctx.save();ctx.fillStyle='rgba(248,211,121,.16)';ctx.strokeStyle='rgba(237,196,100,.65)';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(door.x,door.y,35,11,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();}}
       ctx.save();ctx.translate(o.x,o.y);
       const near=FLAT_WORLD.nearby?.id===o.id;
       const kind=getPoiVisualKind(o);
