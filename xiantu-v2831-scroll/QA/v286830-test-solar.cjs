@@ -70,6 +70,7 @@ function actual(suppress){
 assert.deepEqual(actual(false),actual(true));
 console.log('PASS actual solar cast: 88 MP, 5.3 base multiplier, four burn turns, identical gameplay and RNG with/without visuals');
 // Backgrounding drops the solar visual owner, including its queued and tail jobs.
+f.warmDuel(); // Warm the action atlas for this existing presentation test.
 const ink=images.find(i=>(i.src||'').includes('duel-ink-poses'));
 ink.naturalWidth=1536;ink.naturalHeight=1024;ink.onload();
 let seq=0;const frames=new Map();

@@ -27,6 +27,7 @@ console.log('PASS truthful burn preview including pre-action tick, weaken readou
 const images=[],g=fixture(root),Base=g.c.Image;g.c.Image=class extends Base{constructor(){super();images.push(this)}};
 for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))g.load(file);
 let serial=0;const frames=new Map();g.c.requestAnimationFrame=fn=>{frames.set(++serial,fn);return serial};g.c.cancelAnimationFrame=id=>frames.delete(id);g.c.performance.now=()=>1000;
+g.warmDuel(); // Warm the action atlas for this existing presentation test.
 const ink=images.find(i=>(i.src||'').includes('duel-ink-poses'));ink.naturalWidth=1536;ink.naturalHeight=1024;ink.onload();
 const calls=[];g.c.InkSkillFxV2854.heart.prepare();
 const residue=images.find(i=>(i.src||'').endsWith('heart_fire_residue.png'));

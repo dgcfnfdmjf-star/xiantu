@@ -1,6 +1,7 @@
 const fs=require('fs'),path=require('path'),a=require('assert/strict');const root=process.env.XIANTU_TEST_ROOT||path.resolve(__dirname,'..');const f=require('./v2858-dom-fixture.cjs')(root);
 const images=[];const BaseImage=f.c.Image;f.c.Image=class extends BaseImage{constructor(){super();images.push(this)}};
 for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);
+f.warmDuel(); // Warm the action atlas for this existing presentation test.
 const ink=images.find(i=>(i.src||'').includes('duel-ink-poses'));a.ok(ink);ink.naturalWidth=1536;ink.naturalHeight=1024;ink.onload();
 let seq=0;const pending=new Map();f.c.requestAnimationFrame=cb=>{pending.set(++seq,cb);return seq};f.c.cancelAnimationFrame=id=>pending.delete(id);
 f.run("var probeHost=document.createElement('div');document.body.appendChild(probeHost);var probeState={active:true,playerHp:100,playerMax:100,enemyHp:200,enemyMax:200};var probeScene=XiantuDuel25D.create(probeHost,()=>probeState)");

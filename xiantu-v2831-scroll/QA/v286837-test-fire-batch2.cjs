@@ -37,6 +37,7 @@ for(const name of ['红莲业火','火墙术','三昧真火'])for(const turns of
 assert.equal(f.run('SKILLS.find(s=>s.name==="三昧真火").armorPierce'),.4);
 console.log('PASS real equipped casts: 32/28/42 MP, 2.6/2.3/3.2 damage, burn/heal block and 40% pierce, unchanged state/RNG');
 // Exercise the real scene owner with a changing read-only burn snapshot.
+f.warmDuel(); // Warm the action atlas for this existing presentation test.
 const ink=images.find(i=>(i.src||'').includes('duel-ink-poses'));ink.naturalWidth=1536;ink.naturalHeight=1024;ink.onload();let serial=0;const frames=new Map();f.c.requestAnimationFrame=cb=>{frames.set(++serial,cb);return serial};f.c.cancelAnimationFrame=id=>frames.delete(id);f.c.performance.now=()=>1000;
 f.run('var fire2Data={active:true,playerHp:100,playerMax:100,enemyHp:100,enemyMax:100,burnTurns:3,burnDamage:10,burnHealBlock:true};var fire2Host=document.createElement("div");document.body.appendChild(fire2Host);var fire2Scene=XiantuDuel25D.create(fire2Host,()=>fire2Data);fire2Scene.act("player","fire","红莲业火");fire2Scene.hit("enemy",10)');
 let mark=0;b.drawStatus=()=>{mark++;return true};

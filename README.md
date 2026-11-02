@@ -1,6 +1,10 @@
-# 仙途 V28.68.98
+# 仙途 V28.68.99
 
-部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.98）；[上传步骤](downloads/README.md)。
+部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.99）；[上传步骤](downloads/README.md)。
+
+## V28.68.99 启动、村庄简览与打包保护
+
+参考外部V2909审查并核对当前main：战斗动作图与背景改为首次打开战场时请求；村庄简览优先显示地点卡片，补齐旧CSS能力回退；安装入口使用稳定名称与游戏地址。打包检查明确的本地资源引用，校验完成后原子替换ZIP。见 [核实与验证](docs/readiness-review-v286899.txt)、[腾讯云缓存核对](docs/cloudbase-static-cache.txt)。完整下载包已同步；无需更新Jev，尚未部署腾讯云。
 
 ## V28.68.98 东、西域山水整景
 
@@ -296,7 +300,7 @@ npm test
 npm run test:browser
 ```
 
-`npm test` 运行选定的 137 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
+`npm test` 运行选定的 138 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
 
 浏览器测试覆盖恶意存档拒绝且原主档/备份不变、正常导入与刷新恢复、360/390/430/1366px 导航入口可达性、预加载去重与版本错误提示。外部请求被拦截，不调用付费服务。已有 Chromium 的云环境可使用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`。
 

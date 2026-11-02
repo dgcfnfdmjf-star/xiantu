@@ -34,6 +34,7 @@ function actual(name,suppress,randomValue){
 }
 for(const name of ['雷法','惊雷闪','裂地奔雷'])for(const random of [.1,.9])assert.deepEqual(actual(name,false,random),actual(name,true,random));
 console.log('PASS equipped thunder casts: 20/25/38 MP and identical combat state/RNG with visuals disabled');
+f.warmDuel(); // Warm the action atlas for this existing presentation test.
 const ink=images.find(i=>(i.src||'').includes('duel-ink-poses'));ink.naturalWidth=1536;ink.naturalHeight=1024;ink.onload();let serial=0,clock=1000;const frames=new Map();f.c.requestAnimationFrame=cb=>{frames.set(++serial,cb);return serial};f.c.cancelAnimationFrame=id=>frames.delete(id);f.c.performance.now=()=>clock;
 const seen=[];fx.draw=(c,j,t)=>seen.push({j,t});function tick(t){clock=t;const batch=[...frames.values()];frames.clear();for(const fn of batch)fn(t)}
 for(const name of ['雷法','惊雷闪','裂地奔雷']){

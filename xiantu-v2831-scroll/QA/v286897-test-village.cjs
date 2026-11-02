@@ -66,8 +66,8 @@ f.storage.set('xiantu_village_sheet_v286897','half');f.run('showVillage()');a.eq
 // ---------------------------------------------------------------- CSS contract
 const V=J('VILLAGE_V286897');
 a.match(css,/scroll-snap-type:y proximity/,'scroll-snap sheet (no JS drag)');a.match(css,/pointer-events:none;z-index:40/,'empty area passes taps to the map');a.match(css,/\.vsheet-v286897\{pointer-events:auto/);
-a(css.includes('.vspacer-v286897{height:76dvh'),'peek keeps map visible');
-a(css.includes('.vsnap-v286897[data-snap="half"]{top:31dvh}'),'half snap');a.match(css,/data-snap="full"\]\{top:calc\(/,'full snap');
+a(css.includes('.vspacer-v286897{height:76vh;height:76dvh'),'peek keeps map visible');
+a(css.includes('.vsnap-v286897[data-snap="half"]{top:31vh;top:31dvh}'),'half snap');a.match(css,/data-snap="full"\]\{top:calc\(/,'full snap');
 for(const side of ['right','left','bottom'])a(css.includes(`env(safe-area-inset-${side}, 0px)`),'notch: '+side);
 a.match(css,new RegExp(`@media \\(orientation:landscape\\) and \\(max-height:${V.landscape.maxHeight}px\\)\\{[\\s\\S]*left:50%!important`),'landscape: centred sheet');
 a(![...css.matchAll(/font-size:(\d+)px/g)].some(m=>+m[1]<12),'no text below 12px');

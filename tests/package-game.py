@@ -31,4 +31,24 @@ class Packaging(unittest.TestCase):
     def test_failed_repository_check_stops_before_archive(self):
         (self.root/'scripts/checksums.py').write_text('raise SystemExit(1)')
         self.assertNotEqual(self.invoke().returncode,0);self.assertFalse(self.target.exists())
+    def test_missing_art_with_refreshed_manifest_preserves_previous_archive(self):
+        self.target.parent.mkdir();self.target.write_bytes(b'previous release')
+        page=self.site/'game.html';page.write_text('<img src="./lost.webp?v=next">')
+        self.manifest.write_text(hashlib.sha256(page.read_bytes()).hexdigest()+'  game.html\n')
+        r=self.invoke();self.assertNotEqual(r.returncode,0);self.assertIn('lost.webp',r.stderr)
+        self.assertEqual(self.target.read_bytes(),b'previous release')
+    def test_nested_art_and_query_are_shipped(self):
+        (self.site/'art').mkdir();art=self.site/'art/picture.webp';art.write_bytes(b'fixture art')
+        page=self.site/'game.html';page.write_text('<img src="./art/picture.webp?v=next">')
+        self.manifest.write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+str(p.relative_to(self.site))+'\n' for p in [page,art]))
+        self.assertEqual(self.invoke().returncode,0)
+        with zipfile.ZipFile(self.target) as z:self.assertEqual(z.read('xiantu-v2831-scroll/art/picture.webp'),b'fixture art')
+        self.assertFalse(list(self.target.parent.glob('*.tmp')))
+    def test_write_failure_keeps_previous_archive_and_removes_scratch(self):
+        self.target.parent.mkdir();self.target.write_bytes(b'previous release')
+        script=self.root/'scripts/package-game.py'
+        script.write_text(script.read_text().replace("for p in files:z.write(p,site.name+'/'+p.relative_to(site).as_posix())","raise OSError('simulated write failure')"))
+        r=self.invoke();self.assertNotEqual(r.returncode,0);self.assertIn('simulated write failure',r.stderr)
+        self.assertEqual(self.target.read_bytes(),b'previous release')
+        self.assertFalse(list(self.target.parent.glob('*.tmp')))
 if __name__=='__main__':unittest.main()

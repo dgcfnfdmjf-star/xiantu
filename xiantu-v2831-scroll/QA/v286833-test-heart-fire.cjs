@@ -38,6 +38,7 @@ function actual(suppress,randomValue){
 }
 for(const value of [.1,.9])assert.deepEqual(actual(false,value),actual(true,value));
 console.log('PASS equipped heart-fire skill preserves 65 MP, 4.2 multiplier, burn, weaken and RNG with visuals disabled');
+f.warmDuel(); // Warm the action atlas for this existing presentation test.
 const ink=images.find(i=>(i.src||'').includes('duel-ink-poses'));ink.naturalWidth=1536;ink.naturalHeight=1024;ink.onload();let serial=0;const frames=new Map();f.c.requestAnimationFrame=cb=>{frames.set(++serial,cb);return serial};f.c.cancelAnimationFrame=id=>frames.delete(id);f.c.performance.now=()=>1000;
 f.run('var heartFireHost=document.createElement("div");document.body.appendChild(heartFireHost);var heartFireScene=XiantuDuel25D.create(heartFireHost,()=>({active:true,playerHp:100,playerMax:100,enemyHp:100,enemyMax:100}));heartFireScene.act("player","fire","焚心炎");heartFireScene.hit("enemy",10)');
 const seen=[];fx.draw=(c,j,t)=>seen.push(j.profile.name);function tick(t){const batch=[...frames.values()];frames.clear();for(const fn of batch)fn(t)}tick(1050);assert(seen.includes('焚心炎'));seen.length=0;

@@ -53,6 +53,7 @@ function actualHeal(full,enemyHp){
 actualHeal(true,50000);actualHeal(false,50000);actualHeal(false,3);
 console.log('PASS actual healing amount/full HP/overkill caps; guard provenance, weaker refresh, stronger replacement, consumption/death/target/background cleanup');
 // Exercise the actual scene, one existing RAF, source-over and attached status rendering.
+f.warmDuel(); // Warm the action atlas for this existing presentation test.
 const atlas=images.find(i=>i.src?.includes('duel-ink-poses'));atlas.naturalWidth=1536;atlas.naturalHeight=1024;atlas.onload();
 let serial=0,time=1000;const frames=new Map();f.c.requestAnimationFrame=cb=>{frames.set(++serial,cb);return serial};f.c.cancelAnimationFrame=id=>frames.delete(id);f.c.performance.now=()=>time;
 f.run('var swordData={active:true,ownerToken:1,targetToken:2,playerHp:100,playerMax:100,enemyHp:100,enemyMax:100,swordGuardRatio:.35};var swordHost=document.createElement("div");document.body.appendChild(swordHost);var swordScene=XiantuDuel25D.create(swordHost,()=>swordData);');

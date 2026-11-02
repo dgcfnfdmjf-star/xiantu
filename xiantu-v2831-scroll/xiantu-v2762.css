@@ -3942,7 +3942,7 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 /* V28.12 洞府管理 */
 .home-board-v2812{padding:16px;border:1px solid #9eb781;border-radius:16px;background:linear-gradient(135deg,#14251e,#18202b);color:#e9eee3;line-height:1.65}.home-board-v2812 h3{color:#ead592;margin:0 0 12px}.home-grid-v2812{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-grid-v2812 article{padding:14px;border:1px solid #526454;border-radius:12px;background:#ffffff08}.home-grid-v2812 h4{margin:0;color:#e8d594}.home-grid-v2812 p{color:#d0dbd1}.home-grid-v2812 strong{color:#83ddb6}.home-notice-v2812{padding:12px;background:#31534066;border-radius:10px}@media(max-width:600px){.home-grid-v2812{grid-template-columns:1fr}.home-board-v2812{padding:12px;font-size:14px}}
 
-:root{--xiantu-build:286898;}
+:root{--xiantu-build:286899;}
 #xiantuBuildBadgeV2814{font-size:11px;min-height:32px;padding:5px 9px;white-space:nowrap;color:#b4d4bd;background:#18251f;border:1px solid #718475;border-radius:8px;}
 
 /* V28.68 战斗数值可视层 */
@@ -4590,10 +4590,10 @@ html body #gameScreen #storyPanel#storyPanel.village-v286897{position:fixed!impo
 html body #gameScreen #storyPanel#storyPanel.village-v286897::-webkit-scrollbar{display:none}
 html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsnap-v286897{position:absolute;left:0;width:1px;height:1px;scroll-snap-align:start;pointer-events:none}
 html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsnap-v286897[data-snap="peek"]{top:0}
-html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsnap-v286897[data-snap="half"]{top:31dvh}
-html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsnap-v286897[data-snap="full"]{top:calc(76dvh - 72px - env(safe-area-inset-top, 0px))}
-html body #gameScreen #storyPanel#storyPanel.village-v286897 .vspacer-v286897{height:76dvh;pointer-events:none}
-html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsheet-v286897{pointer-events:auto;position:relative;min-height:calc(100dvh - 72px - env(safe-area-inset-top, 0px));box-sizing:border-box;
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsnap-v286897[data-snap="half"]{top:31vh;top:31dvh}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsnap-v286897[data-snap="full"]{top:calc(76vh - 72px - env(safe-area-inset-top, 0px));top:calc(76dvh - 72px - env(safe-area-inset-top, 0px))}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vspacer-v286897{height:76vh;height:76dvh;pointer-events:none}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsheet-v286897{pointer-events:auto;position:relative;min-height:calc(100vh - 72px - env(safe-area-inset-top, 0px));min-height:calc(100dvh - 72px - env(safe-area-inset-top, 0px));box-sizing:border-box;
  padding:0 max(12px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
  border-radius:20px 20px 0 0;border:1px solid rgba(177,193,159,.38);border-bottom:0;
  background:linear-gradient(180deg,rgba(18,43,34,.94),rgba(10,26,22,.97) 40%),radial-gradient(120% 60% at 50% 0,rgba(158,192,143,.18),transparent 70%);
@@ -4626,10 +4626,10 @@ html body #gameScreen #storyPanel#storyPanel.village-v286897 .vstatus-v286897{fo
 html body #gameScreen #storyPanel#storyPanel.village-v286897 .vcard-v286897.ready .vstatus-v286897{color:#f3dc9c}
 @media (orientation:landscape) and (max-height:500px){
 html body #gameScreen #storyPanel#storyPanel.village-v286897{left:50%!important;right:auto!important;width:min(420px, 48vw)!important;margin-left:calc(min(420px, 48vw) / -2)!important}   /* centred: clear of the joystick (left) and the minimap column (right) */
-html body #gameScreen #storyPanel#storyPanel.village-v286897 .vspacer-v286897{height:54dvh}
-html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsnap-v286897[data-snap="half"]{top:29dvh}
-html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsnap-v286897[data-snap="full"]{top:calc(54dvh - 12px - env(safe-area-inset-top, 0px))}
-html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsheet-v286897{min-height:calc(100dvh - 12px - env(safe-area-inset-top, 0px));border-radius:18px 18px 0 0}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vspacer-v286897{height:54vh;height:54dvh}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsnap-v286897[data-snap="half"]{top:29vh;top:29dvh}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsnap-v286897[data-snap="full"]{top:calc(54vh - 12px - env(safe-area-inset-top, 0px));top:calc(54dvh - 12px - env(safe-area-inset-top, 0px))}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsheet-v286897{min-height:calc(100vh - 12px - env(safe-area-inset-top, 0px));min-height:calc(100dvh - 12px - env(safe-area-inset-top, 0px));border-radius:18px 18px 0 0}
 html body #gameScreen #storyPanel#storyPanel.village-v286897 .vgrid-v286897{grid-template-columns:1fr 1fr}
 }
 @media (prefers-reduced-motion:reduce){html body #gameScreen #storyPanel#storyPanel.village-v286897 .vcard-v286897{transition:none}}
@@ -4642,3 +4642,7 @@ html #gameScreen:has(#storyPanel.village-v286897:not(.hidden)) .world-close-pane
 @media(min-width:800px) and (min-height:501px){
  html body #gameScreen #storyPanel#storyPanel.village-v286897{left:50%!important;right:auto!important;width:720px!important;margin-left:-360px!important}
 }
+
+/* Keep one actionable row in the village peek, without changing the snap positions. */
+html body #gameScreen #storyPanel#storyPanel.village-v286897[data-village-snap="peek"] .vstrip-v286897{display:none}
+html body #gameScreen .world-close-panel[hidden]{display:none!important}

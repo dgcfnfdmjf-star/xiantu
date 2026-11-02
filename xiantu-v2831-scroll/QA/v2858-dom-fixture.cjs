@@ -25,5 +25,8 @@ module.exports=function(root){
  c.window=c;c.globalThis=c;vm.createContext(c);
  function run(code){return vm.runInContext(code,c)}
  function load(name){return vm.runInContext(fs.readFileSync(root+'/'+name,'utf8'),c,{filename:name});}
- return {c,ids,El,storage,timers,events,errors,run,load,flush(delay){for(const [id,t] of [...timers])if(t.delay===delay){timers.delete(id);t.f();}}};
+ return {c,ids,El,storage,timers,events,errors,run,load,warmDuel(){
+  // Existing VFX tests require already-loaded action art. Trigger it through the real lazy path.
+  run("(()=>{const host=document.createElement('div');document.body.appendChild(host);const scene=XiantuDuel25D.create(host,()=>({active:true,playerHp:100,playerMax:100,enemyHp:100,enemyMax:100}));scene.destroy();host.remove();})()");
+ },flush(delay){for(const [id,t] of [...timers])if(t.delay===delay){timers.delete(id);t.f();}}};
 };

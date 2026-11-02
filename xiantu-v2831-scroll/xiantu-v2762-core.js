@@ -9782,6 +9782,7 @@ function villageChoiceV286897(index,generation){
 function villageSnapTopV286897(panel,name){return panel.querySelector(`.vsnap-v286897[data-snap="${name}"]`)?.offsetTop||0;}
 function villageRememberV286897(name){
  VILLAGE_RT_V286897.snap=name;
+ const panel=document.getElementById('storyPanel');if(panel)panel.dataset.villageSnap=name;
  try{localStorage.setItem(VILLAGE_V286897.storeKey,name);}catch(_){}
  const handle=document.querySelector('.vhandle-v286897');
  handle?.setAttribute('aria-label',`村中地点：${{peek:'简览',half:'半屏',full:'展开'}[name]}，点击切换高度`);
@@ -9804,7 +9805,7 @@ function villageResetV286897(){
  if(s.story)panel.appendChild(s.story);
  if(s.choiceEl){panel.appendChild(s.choiceEl);s.choiceEl.innerHTML=s.originalChoices;s.choiceEl.classList.remove('vcards-v286897');}
  for(const node of s.nodes||[])node.remove();
- panel.classList.remove('village-v286897');panel.scrollTop=0;
+ panel.classList.remove('village-v286897');delete panel.dataset.villageSnap;panel.scrollTop=0;
  s.story=s.choiceEl=s.choices=s.nodes=s.onScroll=s.onResize=null;s.originalChoices='';
 }
 function villageEnhanceV286897(){
@@ -9819,7 +9820,7 @@ function villageEnhanceV286897(){
  const markers=villageSnapsV286897().map(name=>{const m=document.createElement('i');m.className='vsnap-v286897';m.dataset.snap=name;return m;});
  Object.assign(s,{active:true,story,choiceEl:choices,choices:currentChoices,originalChoices:choices.innerHTML,nodes:[...markers,spacer,sheet]});
  try{
-  s.nodes.forEach(node=>panel.appendChild(node));sheet.appendChild(story);sheet.appendChild(choices);
+  s.nodes.forEach(node=>panel.appendChild(node));sheet.appendChild(choices);sheet.appendChild(story);
   choices.innerHTML=html;choices.classList.add('vcards-v286897');panel.classList.add('village-v286897');
   sheet.querySelector('.vhandle-v286897').onclick=villageCycleV286897;
   sheet.querySelector('.vclose-v286897').onclick=()=>{if(villageIsOpenV286897())closeWorldOverlay();};
@@ -15839,7 +15840,7 @@ function villageEnhanceV286897(){
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.98";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.99";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
