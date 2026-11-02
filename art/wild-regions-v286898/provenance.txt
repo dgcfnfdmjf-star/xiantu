@@ -1,0 +1,11 @@
+东、西域整景素材来源
+
+参考：本轮用户提供的山水游戏场景图（万宗秘境、灵兽谷、古战场）。
+制作：使用 image_gen 按现有地图地点分布生成两幅专属整景，西域另作一次布局调整；没有下载外部游戏素材。
+东域原始输出：/workspace/generated_images/exec-21166fa7-74a5-462e-90a5-7b4ef2676fb0.png
+西域最终输出：/workspace/generated_images/exec-7db68c2f-eeed-47d3-9763-58a76b883c3d.png
+保留源图：source/east.png、source/west.png，均为1484×1060。
+运行素材：xiantu-v2831-scroll/east-panorama-v286898.webp、west-panorama-v286898.webp。
+编码：Pillow WebP quality=88、method=6，保持原尺寸及画面内容，无额外绘画处理。
+大小：东域570208字节，西域595280字节，合计1165488字节（约1.11 MiB）。
+源图无文字、角色或游戏UI；地点铭牌、人物、迷雾和交互由游戏动态绘制。

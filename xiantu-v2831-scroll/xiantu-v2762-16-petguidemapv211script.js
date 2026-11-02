@@ -56,6 +56,7 @@ function drawPoiNamePlateV211(ctx,o){
   if(!ensureMapLabelStateV211()||!isMajorPoiV211(o))return;
   const near=FLAT_WORLD.nearby?.id===o.id,important=['rest','travel_gate','lx_spirit_spring'].includes(o.id);
   if(PERF_CONFIG.mobile&&!near&&!important&&Math.hypot(o.x-FLAT_WORLD.player.x,o.y-FLAT_WORLD.player.y)>260)return;
+  if(typeof drawWildPlaqueV286898==='function'&&drawWildPlaqueV286898(ctx,o))return;
   const access=o.action==='lingxiao_building'?canAccessBuilding(o.buildingId):{allowed:true};
   const anchor=poiNameAnchorV286880(o),fs=anchor.grand?14:PERF_CONFIG.mobile?12:13;
   const name=String(o.name||'地点'),sub=(near?'● ':'')+getPoiTypeLabelV211(o)+(access.allowed?'':' · 未解锁');
@@ -81,4 +82,4 @@ function installMapLabelControlsV211(){const actions=document.getElementById('wo
 const v211EnableWorldBase=window.enableWorldMode;window.enableWorldMode=function(){const r=v211EnableWorldBase?.apply(this,arguments);setTimeout(installMapLabelControlsV211,0);return r};
 setTimeout(()=>{installPetGuideButtonV211();installMapLabelControlsV211()},100);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-16-petguidemapv211script.js"]="28.68.97";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-16-petguidemapv211script.js"]="28.68.98";
