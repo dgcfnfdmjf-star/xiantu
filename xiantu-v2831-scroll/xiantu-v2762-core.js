@@ -13579,17 +13579,17 @@ function villageEnhanceV286897(){
       if(!FLAT_WORLD) return [];
       const colliders=[];
       for(const poi of (FLAT_WORLD.pois||[])) {
-        const radius=sectScenePoiV286896(poi)?0:getPoiCollisionRadius(poi);
+        const radius=sectScenePoiV286896(poi)||wildSceneRoomV286898(poi)?0:getPoiCollisionRadius(poi);
         if(radius>0) colliders.push({type:'poi', id:poi.id, x:poi.x, y:poi.y, radius});
       }
       for(const d of (FLAT_WORLD.decor||[])) {
-        if(sectScenePointV286896(d.x,d.y))continue;
+        if(wildSceneReadyV286898()||sectScenePointV286896(d.x,d.y))continue;
         let radius=0;
         if(d.t==='tree') radius=14*(d.s||1)+8;
         else if(d.t==='stone') radius=11*(d.s||1)+5;
         if(radius>0) colliders.push({type:d.t, x:d.x, y:d.y, radius});
       }
-      colliders.push(...sectSceneCollidersV286896());
+      colliders.push(...sectSceneCollidersV286896(),...wildSceneCollidersV286898());
       FLAT_WORLD.colliders=colliders;
       return colliders;
     }
@@ -13965,6 +13965,7 @@ function villageEnhanceV286897(){
       const cache=document.createElement('canvas');
       cache.width=FLAT_WORLD.width; cache.height=FLAT_WORLD.height;
       const sctx=cache.getContext('2d',{alpha:false});
+      if(!drawWildSceneV286898(sctx)){
       drawWorldGround(sctx);
       drawRoutesV2827(sctx);
       drawRegionBoundaries(sctx);
@@ -13972,6 +13973,7 @@ function villageEnhanceV286897(){
       for(const d of FLAT_WORLD.decor) if(d.t!=='tree')drawWorldDecor(sctx,d);
       drawLingxiaoBuildingPaths(sctx);
       drawSectSceneV286896(sctx);
+      }
       PERF_CONFIG.staticWorldCanvas=cache;
       PERF_CONFIG.staticWorldReady=true;
       return cache;
@@ -14022,7 +14024,7 @@ function villageEnhanceV286897(){
       const visiblePoi=o=>visible(o)||mapPoiInViewV286889(o,camDraw,vw,vh)||architectureInViewV286881(o,camDraw,vw,vh)||warSpriteInViewV286888(o,{minX:camDraw.x,maxX:camDraw.x+vw,minY:camDraw.y,maxY:camDraw.y+vh});
       for(const poi of FLAT_WORLD.pois)if(visiblePoi(poi)&&(poi.action!=='explore_v2828'||exploredPointV2828(poi.x,poi.y)))items.push(poi);
       for(const mon of FLAT_WORLD.monsters)if(mon.alive&&!mon.inCombat&&visible(mon)&&exploredPointV2828(mon.x,mon.y))items.push(mon);
-      for(const tree of FLAT_WORLD.decor)if(tree.t==='tree'&&!sectScenePointV286896(tree.x,tree.y)&&visible(tree)&&exploredPointV2828(tree.x,tree.y))items.push(tree);
+      for(const tree of FLAT_WORLD.decor)if(tree.t==='tree'&&!wildSceneReadyV286898()&&!sectScenePointV286896(tree.x,tree.y)&&visible(tree)&&exploredPointV2828(tree.x,tree.y))items.push(tree);
       const warViewV2840={minX,maxX,minY,maxY};
       if(typeof appendWarUnitsV2840==='function')appendWarUnitsV2840(items,dt,warViewV2840);
       items.sort((a,b)=>worldDepthV2770(a)-worldDepthV2770(b));
@@ -14037,7 +14039,7 @@ function villageEnhanceV286897(){
         if(!visiblePoi(it))continue;
         if(it._warUnitV2840)drawWarUnitV2840(ctx,it);else if(it.action==='war_map_v2840')drawWarPostV2840(ctx,it);else if(it.t==='tree')drawDepthTreeV2770(ctx,it);else if(it.enemy)drawWorldMonster(ctx,it);else{
           const fade=worldDepthV2770(it)>p.y+17&&Math.abs(it.x-p.x)<82&&it.y-p.y<165;
-          ctx.save();if(fade&&!sectScenePoiV286896(it))ctx.globalAlpha=.38;drawWorldPoi(ctx,it);if(typeof mapAliveBuildingV2893==='function'&&!sectScenePoiV286896(it))mapAliveBuildingV2893(ctx,it);ctx.restore();
+          ctx.save();if(fade&&!sectScenePoiV286896(it)&&!wildSceneRoomV286898(it))ctx.globalAlpha=.38;drawWorldPoi(ctx,it);if(typeof mapAliveBuildingV2893==='function'&&!sectScenePoiV286896(it)&&!wildSceneRoomV286898(it))mapAliveBuildingV2893(ctx,it);ctx.restore();
         }
       }
       if(!playerDrawn)drawWorldPlayer(ctx,p);
@@ -14249,7 +14251,7 @@ function villageEnhanceV286897(){
     }
     function planNavigationV2830(goal){
       if(!goal||![goal.x,goal.y].every(Number.isFinite))return null;
-      const sceneDoor=sectSceneDoorV286896(goal);if(sceneDoor&&!goal.exact)goal={...goal,...sceneDoor,exact:true};
+      const sceneDoor=wildSceneDoorV286898(goal)||sectSceneDoorV286896(goal);if(sceneDoor&&!goal.exact)goal={...goal,...sceneDoor,exact:true};
       const p=FLAT_WORLD.player,radius=(p.r||17)+4;
       const blockers=(FLAT_WORLD.colliders||[]).map(c=>({x:c.x,y:c.y,limit:c.radius+radius,physical:c.radius+(p.r||17)}));
       const clear=(a,b,departure=false)=>{
@@ -14265,6 +14267,7 @@ function villageEnhanceV286897(){
         return true;
       };
       if(goal.exact&&!clear(goal,goal))return null;
+      const paintedRoute=wildSceneRouteV286898(goal,clear);if(paintedRoute)return paintedRoute;
       const search=step=>{
         const cols=Math.ceil(FLAT_WORLD.width/step),rows=Math.ceil(FLAT_WORLD.height/step);
         if(cols*rows>100000)return null; // bounded fallback, never a per-frame search
@@ -14334,7 +14337,7 @@ function villageEnhanceV286897(){
     // Visible architecture uses the same atlas choice, dimensions and world transforms as drawing.
     function poiTapBoxV2904(o){
       if(!o||o.action==='explore_v2828'||o.action==='war_map_v2840')return null;
-      const sceneBox=sectSceneBoundsV286896(o);if(sceneBox)return sceneBox;
+      const sceneBox=wildSceneBoundsV286898(o)||sectSceneBoundsV286896(o);if(sceneBox)return sceneBox;
       if(sectScenePoiV286896(o))return {left:o.x-45,right:o.x+45,top:o.y-18,bottom:o.y+25};
       const presence=mapPoiBoundsV286889(o);if(presence)return presence;
       const vector=vectorLandmarkBoundsV286882(o);if(vector)return vector;
@@ -14445,6 +14448,73 @@ function villageEnhanceV286897(){
     const SCROLL_ART_V2831={started:false,landscape:null,palace:null};
     // One authored environment, not a collection of building cutouts. Pixel-space
     // geometry below refers to the unchanged 1374x1145 source painting.
+    // Whole regional paintings share their coordinate system with static ground, picking and masks.
+    const WILD_SCENES_V286898={
+      east:{file:'east-panorama-v286898.webp',rooms:{
+        pets:{plaque:[500,250],door:[370,430],bounds:[130,135,490,435],mask:[[140,175],[295,140],[350,260],[280,290],[140,290]]},
+        forest:{plaque:[1215,200],door:[965,390],bounds:[790,100,1250,400],mask:[[820,155],[1030,75],[1190,130],[1200,240],[1090,300],[900,285]]},
+        secret:{plaque:[1400,480],door:[1178,774],bounds:[1090,415,1410,785],mask:[[1140,450],[1245,415],[1340,475],[1355,605],[1280,655],[1150,620]]},
+        travel_gate:{door:[240,900],bounds:[175,750,290,900]}
+      },rocks:[[235,225,48],[940,240,55],[1210,535,50],[670,420,55],[585,805,48],[1235,920,55]],
+      roads:[[370,430],[465,490],[560,570],[690,610],[850,510],[920,445],[965,390],[860,710],[1030,780],[1178,774],[485,705],[425,795],[240,900]],links:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[3,7],[7,8],[8,9],[3,10],[10,11],[11,12]]},
+      west:{file:'west-panorama-v286898.webp',rooms:{
+        alchemy:{plaque:[610,350],door:[480,510],bounds:[300,245,590,515],mask:[[300,325],[395,280],[480,245],[535,345],[575,400],[540,455],[335,450]]},
+        battlefield:{plaque:[1370,165],door:[1100,350],bounds:[925,10,1365,360],mask:[[930,220],[1015,80],[1060,105],[1130,10],[1220,75],[1320,135],[1360,278],[1250,306],[1000,300]]},
+        artifacts:{plaque:[970,780],door:[810,760],bounds:[710,735,985,965],mask:[[730,780],[805,755],[900,730],[940,800],[920,880],[760,880]]},
+        travel_gate:{door:[240,925],bounds:[170,775,280,925]}
+      },rocks:[[445,395,47],[1200,190,70],[1030,245,30],[832,855,43],[825,310,60],[1100,580,55],[565,825,48]],
+      roads:[[480,510],[575,565],[695,610],[825,515],[970,435],[1100,350],[765,690],[810,760],[500,720],[420,830],[240,925],[365,640],[265,625]],links:[[0,1],[1,2],[2,3],[3,4],[4,5],[2,6],[6,7],[2,8],[8,9],[9,10],[2,11],[11,12]]}
+    };
+    function wildSceneV286898(){return WILD_SCENES_V286898[currentRegion]||null;}
+    function wildSceneReadyV286898(){return !!SCROLL_ART_V2831.wildScenes?.[currentRegion];}
+    function wildSceneRoomV286898(p){return wildSceneReadyV286898()?wildSceneV286898()?.rooms[p?.id]||null:null;}
+    function wildSceneWorldV286898(x,y){return {x:x*FLAT_WORLD.width/1484,y:y*FLAT_WORLD.height/1060};}
+    function wildSceneDoorV286898(p){const r=wildSceneRoomV286898(p);if(!r)return null;const q=wildSceneWorldV286898(...r.door);return Math.hypot(q.x-p.x,q.y-p.y)<p.r+60?q:null;}
+    function wildSceneBoundsV286898(p){const r=wildSceneRoomV286898(p);if(!r)return null;const a=wildSceneWorldV286898(r.bounds[0],r.bounds[1]),b=wildSceneWorldV286898(r.bounds[2],r.bounds[3]);return {left:a.x,top:a.y,right:b.x,bottom:b.y};}
+    function drawWildPlaqueV286898(ctx,p){
+      const r=wildSceneRoomV286898(p);if(!r?.plaque)return false;
+      const q=wildSceneWorldV286898(...r.plaque),letters=Array.from(String(p.name||'')),w=36,h=letters.length*21+22,box={x:q.x-w/2,y:q.y,w,h};
+      if(typeof labelBoxesV2836!=='undefined'&&labelBoxesV2836){if(labelBoxesV2836.some(b=>labelOverlapV2836(box,b)))return true;labelBoxesV2836.push(box);}
+      ctx.save();ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x+w/2,q.y+9);ctx.lineTo(q.x+w/2,q.y+h-6);ctx.lineTo(q.x+w/2-5,q.y+h);ctx.lineTo(q.x-w/2+5,q.y+h);ctx.lineTo(q.x-w/2,q.y+h-6);ctx.lineTo(q.x-w/2,q.y+9);ctx.closePath();ctx.fillStyle='rgba(25,30,25,.96)';ctx.fill();ctx.strokeStyle=FLAT_WORLD.nearby?.id===p.id?'#ffe1a0':'#b7a374';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#eed7a1';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='600 18px Microsoft YaHei';letters.forEach((c,i)=>ctx.fillText(c,q.x,q.y+21+i*21));ctx.restore();return true;
+    }
+    function wildSceneCollidersV286898(){return wildSceneReadyV286898()?wildSceneV286898().rocks.map(([x,y,r],i)=>({...wildSceneWorldV286898(x,y),radius:r*FLAT_WORLD.width/1484,type:'wild-scene',id:'wild_'+i})):[];}
+    function wildSceneSafePointV286898(x,y,radius=17){
+      if(!wildSceneReadyV286898()||!FLAT_WORLD.colliders.some(c=>c.type==='wild-scene'&&Math.hypot(x-c.x,y-c.y)<c.radius+radius))return null;
+      const clear=q=>q.x>=30&&q.y>=30&&q.x<FLAT_WORLD.width-30&&q.y<FLAT_WORLD.height-30&&!FLAT_WORLD.colliders.some(c=>Math.hypot(q.x-c.x,q.y-c.y)<c.radius+radius+5);
+      for(let r=24;r<=384;r+=24)for(let i=0;i<32;i++){const q={x:x+Math.cos(i*Math.PI/16)*r,y:y+Math.sin(i*Math.PI/16)*r};if(clear(q))return q;}
+      return null;
+    }
+    function loadWildSceneV286898(){
+      const region=currentRegion,s=wildSceneV286898();if(!s)return;
+      const art=SCROLL_ART_V2831;art.wildSceneRequested=art.wildSceneRequested||{};if(art.wildSceneRequested[region])return;
+      art.wildSceneRequested[region]=true;const im=new Image();im.decoding='async';
+      im.onload=()=>{im.onload=im.onerror=null;if(im.naturalWidth!==1484||im.naturalHeight!==1060)return;
+        art.wildScenes=art.wildScenes||{};art.wildScenes[region]=im;
+        if(currentRegion===region){releaseStaticWorldCacheV2767();rebuildWorldColliders();const p=FLAT_WORLD.player,q=wildSceneSafePointV286898(p.x,p.y,p.r||17);
+          // Geometry changed: an old planned route must never cross a newly painted wall.
+          resetWorldMovementV28686();if(q){p.x=q.x;p.y=q.y;}}};
+      im.onerror=()=>{im.onload=im.onerror=null;};im.src='./'+s.file;
+    }
+    function drawWildSceneV286898(ctx){if(!wildSceneReadyV286898())return false;ctx.drawImage(SCROLL_ART_V2831.wildScenes[currentRegion],0,0,FLAT_WORLD.width,FLAT_WORLD.height);return true;}
+    function drawWildMaskV286898(ctx,p){
+      const r=wildSceneRoomV286898(p);if(!r?.mask)return;
+      ctx.save();ctx.beginPath();r.mask.forEach(([x,y],i)=>{const q=wildSceneWorldV286898(x,y);if(i)ctx.lineTo(q.x,q.y);else ctx.moveTo(q.x,q.y)});ctx.closePath();ctx.clip();
+      const b=wildSceneBoundsV286898(p),actor=FLAT_WORLD.player;if(actor.x>b.left&&actor.x<b.right&&actor.y>b.top&&actor.y<b.bottom)ctx.globalAlpha*=.72;
+      const xs=r.mask.map(v=>v[0]),ys=r.mask.map(v=>v[1]),x=Math.min(...xs),y=Math.min(...ys),w=Math.max(...xs)-x,h=Math.max(...ys)-y,q=wildSceneWorldV286898(x,y),end=wildSceneWorldV286898(x+w,y+h);
+      ctx.drawImage(SCROLL_ART_V2831.wildScenes[currentRegion],x,y,w,h,q.x,q.y,end.x-q.x,end.y-q.y);ctx.restore();
+    }
+    // Prefer authored road junctions for named landmarks. Manual ground clicks retain the existing planner.
+    function wildSceneRouteV286898(goal,clear){
+      const scene=wildSceneV286898();if(!wildSceneRoomV286898(goal))return null;
+      const nodes=scene.roads.map(q=>wildSceneWorldV286898(...q)),start=FLAT_WORLD.player;
+      const end=nodes.findIndex(q=>Math.hypot(q.x-goal.x,q.y-goal.y)<1);if(end<0)return null;
+      const candidates=nodes.map((q,i)=>({i,d:Math.hypot(q.x-start.x,q.y-start.y)})).filter(v=>clear(start,nodes[v.i],true)).sort((a,b)=>a.d-b.d);
+      if(!candidates.length)return null;const begin=candidates[0].i,dist=nodes.map(()=>Infinity),prev=nodes.map(()=>-1),visited=new Set();dist[begin]=0;
+      while(visited.size<nodes.length){let at=-1;for(let i=0;i<nodes.length;i++)if(!visited.has(i)&&(at<0||dist[i]<dist[at]))at=i;if(at<0||!Number.isFinite(dist[at]))break;if(at===end){const result=[];for(let i=end;i>=0;i=prev[i])result.push(nodes[i]);return result.reverse();}visited.add(at);
+        for(const [a,b] of scene.links){const next=a===at?b:b===at?a:-1;if(next<0||visited.has(next)||!clear(nodes[at],nodes[next]))continue;const cost=dist[at]+Math.hypot(nodes[at].x-nodes[next].x,nodes[at].y-nodes[next].y);if(cost<dist[next]){dist[next]=cost;prev[next]=at;}}
+      }return null;
+    }
+
     const SECT_SCENE_V286896={x:827,y:328,scale:.696,width:1374,height:1145,rooms:{
       beast_hall:{door:[280,370],body:[155,235,398,306],roof:[[130,230],[205,192],[225,175],[358,180],[382,218],[418,226],[404,285],[139,283]]},
       library:{door:[685,397],body:[570,265,795,335],roof:[[530,192],[582,158],[610,137],[680,120],[756,146],[797,174],[826,253],[792,278],[550,278]]},
@@ -14534,7 +14604,7 @@ function villageEnhanceV286897(){
       }
       return p.id==='sect'?0:p.id==='travel_gate'||p.id==='factions'?2:-1;
     }
-    function joinedSceneReadyV286896(){return sectSceneReadyV286896()||currentRegion==='north'&&!!SCROLL_ART_V2831.joinedBuildings&&!!SCROLL_ART_V2831.northernTerrain;}
+    function joinedSceneReadyV286896(){return wildSceneReadyV286898()||sectSceneReadyV286896()||currentRegion==='north'&&!!SCROLL_ART_V2831.joinedBuildings&&!!SCROLL_ART_V2831.northernTerrain;}
     function joinedArchitectureReadyV286896(p){return joinedArchitectureCellV286896(p)>=0&&!!SCROLL_ART_V2831.joinedBuildings;}
     function joinedArchitectureLayoutV286896(p){
       const cell=JOINED_ARCHITECTURE_V286896[joinedArchitectureCellV286896(p)];if(!cell)return null;
@@ -14606,7 +14676,7 @@ function villageEnhanceV286897(){
       img.src='./region-buildings-v2835.webp';
     }
     function loadScrollArtV2831(){
-      loadRegionalBuildingsV286879();loadJoinedArchitectureV286896();loadNorthernTerrainV286896();loadSectSceneV286896();
+      loadWildSceneV286898();loadRegionalBuildingsV286879();loadJoinedArchitectureV286896();loadNorthernTerrainV286896();loadSectSceneV286896();
       if(SCROLL_ART_V2831.started)return;SCROLL_ART_V2831.started=true;
       const request=(key,file,ground=false)=>{
         const img=new Image();img.decoding='async';
@@ -15080,14 +15150,14 @@ function villageEnhanceV286897(){
     }
 
     function drawWorldPoi(ctx,o){
-      drawSectSceneRoofV286896(ctx,o);
+      drawWildMaskV286898(ctx,o);drawSectSceneRoofV286896(ctx,o);
       ctx.save();ctx.translate(o.x,o.y);
       const near=FLAT_WORLD.nearby?.id===o.id;
       const kind=getPoiVisualKind(o);
-      if(near&&!joinedArchitectureReadyV286896(o)&&!sectScenePoiV286896(o)){ctx.fillStyle='rgba(239,201,108,.12)';ctx.beginPath();ctx.arc(0,2,o.r+16,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(239,201,108,.78)';ctx.setLineDash([8,8]);ctx.lineWidth=3;ctx.stroke();ctx.setLineDash([])}
+      if(near&&!joinedArchitectureReadyV286896(o)&&!sectScenePoiV286896(o)&&!wildSceneRoomV286898(o)){ctx.fillStyle='rgba(239,201,108,.12)';ctx.beginPath();ctx.arc(0,2,o.r+16,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(239,201,108,.78)';ctx.setLineDash([8,8]);ctx.lineWidth=3;ctx.stroke();ctx.setLineDash([])}
       ctx.save();
       if(typeof landmarkPoiApplyV2893==='function')landmarkPoiApplyV2893(ctx,o);
-      if(sectScenePoiV286896(o)){
+      if(sectScenePoiV286896(o)||wildSceneRoomV286898(o)){
         // Architecture, stairs and gardens are already painted together in the ground cache.
       }else if(kind==='npc'){
         drawMapNpcPresenceV286889(ctx,o,true);
@@ -15769,7 +15839,7 @@ function villageEnhanceV286897(){
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.97";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.98";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

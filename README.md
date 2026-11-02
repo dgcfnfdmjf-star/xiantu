@@ -1,6 +1,10 @@
-# 仙途 V28.68.97
+# 仙途 V28.68.98
 
-部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.97）；[上传步骤](downloads/README.md)。
+部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.98）；[上传步骤](downloads/README.md)。
+
+## V28.68.98 东、西域山水整景
+
+灵兽谷、森林、万宗秘境及古战场、炼丹建筑与法宝台分别融入两域手绘整景，石桥、山道、瀑布与地形统一绘制。按当前地域加载约1.11 MiB的两张WebP，匹配入口拾取、门前寻路与局部遮挡；保留地点归属、探索、资格和奖励规则。详见 [范围与验证](docs/wild-region-scenes.txt)。完整下载包已同步；无需更新Jev，尚未部署腾讯云。
 
 ## V28.68.97 青云村地点面板
 
@@ -292,7 +296,7 @@ npm test
 npm run test:browser
 ```
 
-`npm test` 运行选定的 135 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
+`npm test` 运行选定的 137 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
 
 浏览器测试覆盖恶意存档拒绝且原主档/备份不变、正常导入与刷新恢复、360/390/430/1366px 导航入口可达性、预加载去重与版本错误提示。外部请求被拦截，不调用付费服务。已有 Chromium 的云环境可使用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`。
 

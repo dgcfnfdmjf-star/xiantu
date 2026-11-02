@@ -561,7 +561,7 @@ function s25DepthScaleV2888(y){
 function s25CastKindV2888(o){
  if(o?.t==='tree')return 'tree';
  // Integrated architecture already includes a contact shadow in its painted earth.
- if(typeof sectScenePoiV286896==='function'&&sectScenePoiV286896(o)||typeof joinedArchitectureReadyV286896==='function'&&joinedArchitectureReadyV286896(o))return null;
+ if(typeof wildSceneRoomV286898==='function'&&wildSceneRoomV286898(o)||typeof sectScenePoiV286896==='function'&&sectScenePoiV286896(o)||typeof joinedArchitectureReadyV286896==='function'&&joinedArchitectureReadyV286896(o))return null;
  if(!o||o.enemy||o._warUnitV2840||o.action==='war_map_v2840'||o.action==='explore_v2828'||o.buildingId==='spirit_spring')return null;
  const k=typeof getPoiVisualKind==='function'?getPoiVisualKind(o):'default';
  return k==='npc'||k==='default'||k==='rest'||k==='forest'||k==='battlefield'||k==='pets'?null:'building';
@@ -578,7 +578,7 @@ function s25WrapSpriteV2888(name,cast){
  const wrapped=function(ctx,o){
   if(!scene25dOnV2888()||!s25IsWorldCtxV2888(ctx)||!o)return base.apply(this,arguments);
   const kind=cast?s25CastKindV2888(o):null;if(kind)s25CastShadowV2888(ctx,o,kind);
-  const grounded=name==='drawWorldPoi'&&(typeof sectScenePoiV286896==='function'&&sectScenePoiV286896(o)||typeof joinedArchitectureReadyV286896==='function'&&joinedArchitectureReadyV286896(o));
+  const grounded=name==='drawWorldPoi'&&(typeof wildSceneRoomV286898==='function'&&wildSceneRoomV286898(o)||typeof sectScenePoiV286896==='function'&&sectScenePoiV286896(o)||typeof joinedArchitectureReadyV286896==='function'&&joinedArchitectureReadyV286896(o));
   // Architecture and its ground footprint use the same fixed world scale: camera movement
   // must not stretch the courtyard across static roads or the surrounding soil.
   const s=grounded?1:s25DepthScaleV2888(o.y),pivotY=grounded?o.y+30:o.y;
@@ -2421,7 +2421,7 @@ function resolvePlayerMotionV2896(fromX,fromY,toX,toY,actorRadius=17){
  const overlaps=(px,py)=>colliders.some(c=>valid(c)&&Math.hypot(px-c.x,py-c.y)<c.radius+actorRadius-1e-5);
  // Recover an old/teleported overlap without carrying momentum across a map transition.
  if(overlaps(x,y)){
-  const sceneSafe=typeof sectSceneSafePointV286896==='function'&&sectSceneSafePointV286896(x,y,actorRadius);
+  const sceneSafe=(typeof wildSceneSafePointV286898==='function'&&wildSceneSafePointV286898(x,y,actorRadius))||(typeof sectSceneSafePointV286896==='function'&&sectSceneSafePointV286896(x,y,actorRadius));
   if(sceneSafe)return sceneSafe;
   const fixed=resolveWorldCollisionForActor(x,y,x,y,actorRadius);x=fixed.x;y=fixed.y;
   if(overlaps(x,y))return {x,y};
@@ -3271,7 +3271,7 @@ function drawInteriorV286886(){
  drawActor25DV2770(ctx,s.player);ctx.restore();return true;
 }
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.97';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.98';
 
 
 if(typeof installBagViewV2905==='function')installBagViewV2905();
