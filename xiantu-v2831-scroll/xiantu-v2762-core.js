@@ -13822,9 +13822,10 @@ function villageEnhanceV286897(){
     let mapIdleTimerV2865=null;
     function flatWorldLoop(t) {
       FLAT_WORLD.raf=null;
-      if(document.hidden)return;
+      if(document.hidden){PERF_CONFIG.fpsFrames=0;PERF_CONFIG.fpsStartedAt=t;PERF_CONFIG.measuredFps=0;return;}
       if(isWorldOverlayOpen() || !document.body.classList.contains('flat-world-active')) {
         if(typeof interiorV286886!=='undefined'&&interiorV286886?.hallDestination)resetWorldMovementV28686();
+        PERF_CONFIG.fpsFrames=0;PERF_CONFIG.fpsStartedAt=t;PERF_CONFIG.measuredFps=0;
         clearTimeout(mapIdleTimerV2865);
         mapIdleTimerV2865=setTimeout(()=>{mapIdleTimerV2865=null;resumeVisualsV2767();},200);
         return;
@@ -13895,6 +13896,17 @@ function villageEnhanceV286897(){
       ctx.restore();
     }
 
+    // Joystick state lives with keys so every existing movement reset clears both.
+    function mapInputVectorV2868100(){
+      const k=FLAT_WORLD.keys,j=k.joystick;
+      if(j&&Number.isFinite(j.x)&&Number.isFinite(j.y)){
+        const length=Math.max(1,Math.hypot(j.x,j.y));return {x:j.x/length,y:j.y/length};
+      }
+      let x=Number(!!(k.d||k.arrowright))-Number(!!(k.a||k.arrowleft));
+      let y=Number(!!(k.s||k.arrowdown))-Number(!!(k.w||k.arrowup));
+      const length=Math.hypot(x,y)||1;return {x:x/length,y:y/length};
+    }
+
     function updateFlatWorld(dt) {
       if(typeof updateInteriorV286886==='function'&&updateInteriorV286886(dt))return;
       if(typeof syncWarMapV2840==='function')syncWarMapV2840();
@@ -13904,9 +13916,8 @@ function villageEnhanceV286897(){
       const oldPX=FLAT_WORLD.player.x, oldPY=FLAT_WORLD.player.y;
       const moveSpeed=typeof mapMoveSpeedV2896==='function'?mapMoveSpeedV2896():FLAT_WORLD.player.speed;
       const moveStep=moveSpeed*Math.max(0,Number.isFinite(dt)?dt:0);
-      let dx=0,dy=0,k=FLAT_WORLD.keys;
-      if(k.w||k.arrowup)dy--; if(k.s||k.arrowdown)dy++; if(k.a||k.arrowleft)dx--; if(k.d||k.arrowright)dx++;
-      if(dx||dy){ const l=Math.hypot(dx,dy)||1; dx/=l;dy/=l; FLAT_WORLD.target=null; }
+      const input=mapInputVectorV2868100();let dx=input.x,dy=input.y;
+      if(dx||dy){ FLAT_WORLD.target=null; }
       else if(FLAT_WORLD.target){ const tx=FLAT_WORLD.target.x-FLAT_WORLD.player.x, ty=FLAT_WORLD.target.y-FLAT_WORLD.player.y, l=Math.hypot(tx,ty); if(l<(autoNavigationV2830?1:8)){FLAT_WORLD.target=null;FLAT_WORLD.tapTargetFx=null;} else {const scale=Math.min(1,l/Math.max(.001,moveStep));dx=tx/l*scale;dy=ty/l*scale;} }
       FLAT_WORLD.moving=!!(dx||dy); FLAT_WORLD.moveDirX=dx; FLAT_WORLD.moveDirY=dy;
       const desiredX=Math.max(30,Math.min(FLAT_WORLD.width-30,FLAT_WORLD.player.x+dx*moveStep));
@@ -14909,6 +14920,9 @@ function villageEnhanceV286897(){
       wrap.setAttribute('role','dialog');wrap.setAttribute('aria-modal','true');wrap.setAttribute('aria-labelledby','scrollTitleV2837');
       wrap._scrollStateV2837={region:currentRegion,owner:player,opener,filter:'all',query:'',zoom:1,selected:null};
       wrap.innerHTML=`<section class="scroll-sheet-v2831"><header><div><small>仙途 · 山河绘卷</small><h2 id="scrollTitleV2837">${esc(getRegionInfo(currentRegion||'south').name)}</h2></div><button type="button" data-scroll-action="close" aria-label="关闭山河图">✕</button></header><div class="scroll-search-v2837"><input type="search" id="scrollSearchV2837" maxlength="40" placeholder="搜索已知地点名称" aria-label="搜索已知地点名称"><button type="button" data-scroll-action="rest">最近补给</button></div><nav class="scroll-filters-v2837" aria-label="地点分类">${[['all','全部'],['service','生活补给'],['sect','宗门'],['explore','探索']].map(([id,name])=>`<button type="button" data-scroll-filter="${id}" aria-pressed="${id==='all'}">${name}</button>`).join('')}</nav><div class="scroll-toolbar-v2837"><button type="button" data-scroll-action="minus" aria-label="缩小地图" disabled>−</button><output id="scrollZoomV2837">1.0×</output><button type="button" data-scroll-action="plus" aria-label="放大地图">＋</button><button type="button" data-scroll-action="fit">全图</button><button type="button" data-scroll-action="player">回到主角</button></div><div class="scroll-window-v2831" id="scrollWindowV2831"><div class="scroll-field-v2831" id="scrollFieldV2831" data-overview="true" style="aspect-ratio:${cfg.width}/${cfg.height};${scrollRegionStyleV2834()}"></div></div><div class="scroll-result-v2837" id="scrollResultV2837" aria-live="polite"></div><details class="scroll-directory-v2837" id="scrollDetailsV2837"><summary>地点目录 · <span id="scrollCountV2837">0</span><span>按距离排列</span></summary><div id="scrollDirectoryV2837"></div></details><div id="scrollSelectionV2831" class="scroll-selection-v2831" aria-live="polite"></div></section>`;
+      const side=document.createElement('div');side.className='scroll-side-v2868100';
+      for(const selector of ['.scroll-search-v2837','.scroll-filters-v2837','.scroll-result-v2837','.scroll-directory-v2837','.scroll-selection-v2831'])side.appendChild(wrap.querySelector(selector));
+      wrap.querySelector('.scroll-sheet-v2831').appendChild(side);
       wrap.onclick=e=>{
         const b=e.target.closest('button');if(!b||!wrap.contains(b)||b.disabled)return;
         const session=scrollSessionV2837();if(!session||session.wrap!==wrap)return;
@@ -15829,6 +15843,7 @@ function villageEnhanceV286897(){
       clearTimeout(mapIdleTimerV2865);mapIdleTimerV2865=null;
       if(FLAT_WORLD.initialized && FLAT_WORLD.raf==null){
         FLAT_WORLD.lastTime=performance.now();
+        PERF_CONFIG.fpsFrames=0;PERF_CONFIG.fpsStartedAt=FLAT_WORLD.lastTime;PERF_CONFIG.measuredFps=0;
         FLAT_WORLD._lastMobileFrame=0;
         FLAT_WORLD.raf=requestAnimationFrame(flatWorldLoop);
       }
@@ -15840,7 +15855,7 @@ function villageEnhanceV286897(){
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.99";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.100";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

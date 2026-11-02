@@ -8,6 +8,7 @@
     function clear(){
       if(typeof FLAT_WORLD!=='undefined'&&FLAT_WORLD?.keys){
         for(const key of ['w','a','s','d'])FLAT_WORLD.keys[key]=false;
+        delete FLAT_WORLD.keys.joystick;
       }
     }
     function reset(){
@@ -21,6 +22,8 @@
       if(typeof stopNavigationV2830==='function')stopNavigationV2830();FLAT_WORLD.target=null;FLAT_WORLD.tapTargetFx=null;
       const mag=Math.hypot(x,y);if(mag<DEAD){clear();return;}
       const nx=x/mag,ny=y/mag,t=.28;
+      const force=Math.min(1,(mag-DEAD)/(1-DEAD)),speed=force*force*(3-2*force);
+      FLAT_WORLD.keys.joystick={x:nx*speed,y:ny*speed};
       FLAT_WORLD.keys.a=nx<-t;FLAT_WORLD.keys.d=nx>t;
       FLAT_WORLD.keys.w=ny<-t;FLAT_WORLD.keys.s=ny>t;
     }
@@ -68,4 +71,4 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2762-03-virtual-joystick-script.js']='28.68.99';
+window.__xiantuBuildFilesV2814['xiantu-v2762-03-virtual-joystick-script.js']='28.68.100';
