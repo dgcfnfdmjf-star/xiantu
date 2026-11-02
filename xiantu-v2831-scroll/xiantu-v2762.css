@@ -3942,7 +3942,7 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 /* V28.12 洞府管理 */
 .home-board-v2812{padding:16px;border:1px solid #9eb781;border-radius:16px;background:linear-gradient(135deg,#14251e,#18202b);color:#e9eee3;line-height:1.65}.home-board-v2812 h3{color:#ead592;margin:0 0 12px}.home-grid-v2812{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-grid-v2812 article{padding:14px;border:1px solid #526454;border-radius:12px;background:#ffffff08}.home-grid-v2812 h4{margin:0;color:#e8d594}.home-grid-v2812 p{color:#d0dbd1}.home-grid-v2812 strong{color:#83ddb6}.home-notice-v2812{padding:12px;background:#31534066;border-radius:10px}@media(max-width:600px){.home-grid-v2812{grid-template-columns:1fr}.home-board-v2812{padding:12px;font-size:14px}}
 
-:root{--xiantu-build:286896;}
+:root{--xiantu-build:286897;}
 #xiantuBuildBadgeV2814{font-size:11px;min-height:32px;padding:5px 9px;white-space:nowrap;color:#b4d4bd;background:#18251f;border:1px solid #718475;border-radius:8px;}
 
 /* V28.68 战斗数值可视层 */
@@ -4582,3 +4582,63 @@ html.interior-v286886 #firstPathV2901{display:none!important}
 #interiorHudV286886 .interior-travel-v286888 select{flex:1;min-height:36px}
 #interiorHudV286886 .interior-travel-v286888 button{min-height:36px;padding:6px 12px}
 @media(orientation:landscape){#interiorHudV286886{grid-template-columns:minmax(150px,1fr) repeat(3,70px);gap:3px 8px}#interiorHudV286886 strong{grid-column:1;grid-row:1}#interiorHudV286886 span{grid-column:1;grid-row:2;font-size:10px}#interiorHudV286886>button{grid-column:2;grid-row:1/3}#interiorHudV286886>.interior-menu-v286886{grid-column:3;grid-row:1/3}#interiorHudV286886>.interior-bag-v286886{grid-column:4;grid-row:1/3}#interiorHudV286886 .interior-travel-v286888{grid-column:1;grid-row:3}#interiorHudV286886 .interior-travel-v286888 select,#interiorHudV286886 .interior-travel-v286888 button{min-height:30px}}
+
+/* Village sheet: native scroll; map remains paused until closed. */
+html body #gameScreen #storyPanel#storyPanel.village-v286897{position:fixed!important;inset:0!important;top:0!important;bottom:0!important;left:0!important;right:0!important;width:auto!important;max-width:none!important;height:100vh!important;height:100dvh!important;max-height:none!important;min-height:0!important;margin:0!important;padding:0!important;
+ transform:none!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow-x:hidden!important;overflow-y:auto!important;
+ scroll-snap-type:y proximity;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;pointer-events:none;z-index:40}
+html body #gameScreen #storyPanel#storyPanel.village-v286897::-webkit-scrollbar{display:none}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsnap-v286897{position:absolute;left:0;width:1px;height:1px;scroll-snap-align:start;pointer-events:none}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsnap-v286897[data-snap="peek"]{top:0}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsnap-v286897[data-snap="half"]{top:31dvh}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsnap-v286897[data-snap="full"]{top:calc(76dvh - 72px - env(safe-area-inset-top, 0px))}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vspacer-v286897{height:76dvh;pointer-events:none}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsheet-v286897{pointer-events:auto;position:relative;min-height:calc(100dvh - 72px - env(safe-area-inset-top, 0px));box-sizing:border-box;
+ padding:0 max(12px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
+ border-radius:20px 20px 0 0;border:1px solid rgba(177,193,159,.38);border-bottom:0;
+ background:linear-gradient(180deg,rgba(18,43,34,.94),rgba(10,26,22,.97) 40%),radial-gradient(120% 60% at 50% 0,rgba(158,192,143,.18),transparent 70%);
+ box-shadow:0 -14px 40px rgba(0,8,24,.55),inset 0 1px rgba(226,232,205,.14);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vhandle-v286897{display:block;flex:1;min-width:0;min-height:44px;margin:0;padding:10px 0 6px;border:0;background:transparent;cursor:grab}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vhandle-v286897 i{display:block;width:44px;height:5px;margin:0 auto;border-radius:3px;background:rgba(226,232,205,.55)}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .story-protagonist-card,html body #gameScreen #storyPanel#storyPanel.village-v286897 .area-scene-card,html body #gameScreen #storyPanel#storyPanel.village-v286897 .area-layout-card,html body #gameScreen #storyPanel#storyPanel.village-v286897 .interior-strip{display:none!important}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .story-with-protagonist,html body #gameScreen #storyPanel#storyPanel.village-v286897 .story{display:block!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;max-height:none!important;overflow:visible!important}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .story-text{margin:0;padding:0;max-height:none!important;overflow:visible!important}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vstrip-v286897{display:flex;gap:10px;align-items:center;padding:6px 4px 10px}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vavatar-v286897{flex:0 0 44px;width:44px;height:44px;border-radius:50%;overflow:hidden;display:grid;place-items:center;font-size:24px;background:radial-gradient(circle,#264533,#0a1a16);border:1px solid rgba(217,180,106,.7);box-shadow:0 0 12px rgba(158,192,143,.35)}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vavatar-v286897 img{width:100%;height:100%;object-fit:cover;object-position:50% 18%}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vstrip-text-v286897{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;min-width:0;font-size:13px;line-height:1.45;color:#e2e8cd}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vstrip-text-v286897 b{color:#d9b46a;font-size:15px}html body #gameScreen #storyPanel#storyPanel.village-v286897 .vstrip-text-v286897 i{font-style:normal;color:#b1c19f;font-size:12px}html body #gameScreen #storyPanel#storyPanel.village-v286897 .vstrip-text-v286897 span{flex-basis:100%;color:#d5dfc8}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 #choices.vcards-v286897{display:block!important;margin:0!important;padding:0!important;max-height:none!important;overflow:visible!important}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vgroup-v286897{margin:6px 0 10px}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vgroup-v286897 h4{margin:0 2px 6px;color:#b1c19f;font-size:12px;font-weight:700;letter-spacing:2px}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vgroup-v286897 h4::before{content:"";display:inline-block;width:14px;height:1px;margin:0 6px 3px 0;background:#d9b46a;vertical-align:middle}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vgrid-v286897{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(150px,100%),1fr));gap:8px}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vcard-v286897{display:grid;grid-template-columns:40px 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:center;width:100%!important;min-height:58px!important;margin:0!important;padding:8px 10px!important;text-align:left;
+ border-radius:14px!important;border:1px solid rgba(177,193,159,.28)!important;color:#edf1df!important;font-weight:600;box-shadow:inset 0 1px rgba(226,232,205,.1)!important;
+ background:linear-gradient(150deg,rgba(63,100,76,.30),rgba(18,43,34,.62))!important;transition:transform .12s ease,border-color .2s ease}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vcard-v286897:active{transform:scale(.97)}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vcard-v286897[disabled]{opacity:.5}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vcard-v286897.ready{border-color:rgba(217,180,106,.85)!important;box-shadow:0 0 14px rgba(217,180,106,.25),inset 0 1px rgba(255,236,190,.2)!important}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vcard-v286897.danger{background:linear-gradient(150deg,rgba(150,40,60,.4),rgba(40,10,24,.7))!important;border-color:rgba(255,138,122,.6)!important}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vicon-v286897{grid-row:1/3;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:20px;background:radial-gradient(circle at 35% 30%,rgba(226,232,205,.28),rgba(38,69,51,.6));border:1px solid rgba(177,193,159,.45)}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vname-v286897{font-size:15px;line-height:1.25;color:#edf1df}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vstatus-v286897{font-size:12px;line-height:1.3;color:#b6c8aa;font-weight:500;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vcard-v286897.ready .vstatus-v286897{color:#f3dc9c}
+@media (orientation:landscape) and (max-height:500px){
+html body #gameScreen #storyPanel#storyPanel.village-v286897{left:50%!important;right:auto!important;width:min(420px, 48vw)!important;margin-left:calc(min(420px, 48vw) / -2)!important}   /* centred: clear of the joystick (left) and the minimap column (right) */
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vspacer-v286897{height:54dvh}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsnap-v286897[data-snap="half"]{top:29dvh}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsnap-v286897[data-snap="full"]{top:calc(54dvh - 12px - env(safe-area-inset-top, 0px))}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vsheet-v286897{min-height:calc(100dvh - 12px - env(safe-area-inset-top, 0px));border-radius:18px 18px 0 0}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vgrid-v286897{grid-template-columns:1fr 1fr}
+}
+@media (prefers-reduced-motion:reduce){html body #gameScreen #storyPanel#storyPanel.village-v286897 .vcard-v286897{transition:none}}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vtoolbar-v286897{display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:1;background:#142c25;border-radius:18px 18px 0 0}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vhandle-v286897 span{display:block;font-size:12px;color:#d8cead;margin-top:5px}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 .vclose-v286897{min-height:44px;padding:8px 12px;font-size:13px;color:#eddca4;border:1px solid #8c8055;border-radius:10px;background:#203e32}
+html body #gameScreen #storyPanel#storyPanel.village-v286897 button:focus-visible{outline:3px solid #ffd98a;outline-offset:2px}
+/* The sheet provides its own always-reachable close control. */
+html #gameScreen:has(#storyPanel.village-v286897:not(.hidden)) .world-close-panel{display:none!important}
+@media(min-width:800px) and (min-height:501px){
+ html body #gameScreen #storyPanel#storyPanel.village-v286897{left:50%!important;right:auto!important;width:720px!important;margin-left:-360px!important}
+}

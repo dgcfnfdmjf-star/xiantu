@@ -6466,6 +6466,7 @@
     let playerPressureStun = false;
 
     function resetRuntimeState() {
+      villageResetV286897();
       if(typeof clearInteriorV286886==='function')clearInteriorV286886();
       clearBreakthroughRuntimeV2905();
       if(typeof resetOnboardingV2901==='function')resetOnboardingV2901();
@@ -6740,6 +6741,7 @@
     }
     
     function showStory(text, choices) {
+      villageResetV286897();
       if(typeof interiorV286886!=='undefined'&&interiorV286886?.hallDestination)resetWorldMovementV28686();
       document.getElementById('saveRemindV2895')?.remove();
       window.jevStoryChangedV2846?.();
@@ -6816,6 +6818,7 @@
     // ================== 战斗系统 ==================
     
     function startCombat(enemy, isBoss = false, isTrib = false, monsterRef = null) {
+      villageResetV286897();
       document.getElementById('saveRemindV2895')?.remove();
       if(!enemy || gameState==='combat' || gameState==='combat-ending' || COMBAT_FINISH_V2764.settling || player.breakthrough?.isAnimating)return false;
       battleCheckpointV286812={owner:player,raw:JSON.stringify(createSaveDataV2768())};
@@ -9702,6 +9705,134 @@
       return bonus;
     }
     
+    // V28.68.97 village presentation; no save, reward or travel changes.
+const VILLAGE_V286897=Object.freeze({
+ peek:24, half:55, topGap:72,                     // dvh of sheet showing at peek / half; px kept free above the full sheet
+ landscape:Object.freeze({maxHeight:500, width:420, peek:46}),   // landscape: a centred sheet, taller peek on short screens
+ storeKey:'xiantu_village_sheet_v286897',
+ groups:Object.freeze([
+  ['quest','机缘',['story_event','boss_fight','tribulation','youmingu']],
+  ['train','修行',['explore','early_economy_v2773','rest']],
+  ['trade','交易',['shop','market']],
+  ['home','居所 · 情缘',['home','romance']],
+  ['world','天下',['ancient_war_v2859','world_travel_menu']]
+ ])
+});
+const VILLAGE_RT_V286897={active:false,snap:'peek',generation:0,timer:null,raf:null};
+
+function villageEscV286897(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function villageSplitV286897(text){
+ const t=String(text||'').trim(),m=t.match(/^(\p{Extended_Pictographic}️?)\s*(.*)$/u);
+ const icon=m?m[1]:'✦',rest=m?m[2]:t,p=rest.match(/^(.*?)[（(]([^）)]*)[）)]\s*$/);
+ return {icon,name:(p?p[1]:rest).replace(/\s*·\s*.*$/,'').trim()||rest,sub:p?p[2]:(rest.includes('·')?rest.split('·').slice(1).join('·').trim():'')};
+}
+// one live status line per location, from state the game already keeps; {text, ready} where ready = something to do now
+function villageStatusV286897(c){
+ const pct=(a,b)=>Math.round(100*Math.max(0,Number(a)||0)/Math.max(1,Number(b)||1));
+ try{
+  switch(c.action){
+   case 'rest':{const h=pct(player.hp,getMaxHp()),m=pct(player.mp,getMaxMp());return h>=100&&m>=100?{text:'气血灵力俱满'}:{text:`气血 ${h}% · 灵力 ${m}%`,ready:h<50};}
+   case 'explore':{const h=pct(player.hp,getMaxHp());return h<50?{text:`气血 ${h}%，先去灵泉调息`}:{text:'妖兽出没 · 灵石与装备'};}
+   case 'shop':{const n=(player.inventory||[]).filter(x=>x==='小还丹').length;return {text:`灵石 ${player.gold} · 小还丹 ×${n}`,ready:n===0&&player.gold>=30};}
+   case 'market':return {text:`灵石 ${player.gold} · 套装、法宝、家具`};
+   case 'home':{if(c.condition&&!c.condition())return {text:'练气后开放'};const need=getCurrentExpNeed(),p=pct(player.exp,need);if(player.level>=CULTIVATION_REALMS.length-1&&player.phase>=3)return {text:'已达修行巅峰 · 洞府事务'};
+    return p>=100?{text:'修为圆满 · 可闭关突破',ready:true}:{text:`修为 ${Math.min(99,p)}% · 闭关与家具`};}
+   case 'world_travel_menu':{if(typeof REGION_UNLOCK_LEVEL==='object'){const e=Object.keys(REGION_UNLOCK_LEVEL),open=e.filter(isRegionUnlocked).length;return {text:`已开 ${open}/${e.length} 处地域`};}break;}
+   case 'story_event':return {text:'主线进行中',ready:true};
+   case 'boss_fight':return {text:'首领挡道',ready:true};
+   case 'tribulation':return {text:'飞升天劫已至',ready:true};
+  }
+ }catch(_){}
+ const sub=villageSplitV286897(c.text).sub;return {text:sub||''};
+}
+function villageGroupsV286897(choices){
+ const used=new Set(),out=[];
+ for(const [id,title,actions] of VILLAGE_V286897.groups){
+  const items=choices.map((c,i)=>({c,i})).filter(({c,i})=>actions.includes(c.action)&&!used.has(i));items.forEach(x=>used.add(x.i));
+  if(items.length)out.push({id,title,items});
+ }
+ const rest=choices.map((c,i)=>({c,i})).filter(x=>!used.has(x.i));if(rest.length)out.push({id:'other',title:'其他',items:rest});
+ return out;
+}
+function villageCardsHtmlV286897(choices,generation){
+ return villageGroupsV286897(choices).map(g=>`<section class="vgroup-v286897" data-group="${g.id}"><h4>${g.title}</h4><div class="vgrid-v286897">${g.items.map(({c,i})=>{
+  const s=villageSplitV286897(c.text),st=villageStatusV286897(c),off=c.condition&&!c.condition();
+  return `<button type="button" aria-label="${villageEscV286897(c.text)}" class="vcard-v286897${st.ready?' ready':''}${c.boss||c.tribulation?' danger':''}" onclick="villageChoiceV286897(${i},${generation})"${off?' disabled':''}>`
+   +`<span class="vicon-v286897" aria-hidden="true">${villageEscV286897(s.icon)}</span><span class="vname-v286897">${villageEscV286897(s.name)}</span>`
+   +`<span class="vstatus-v286897">${villageEscV286897(st.text)}</span></button>`;}).join('')}</div></section>`).join('');
+}
+function villageStripHtmlV286897(){
+ const T=document.getElementById('storyText'),q=sel=>T?.querySelector?.(sel)?.textContent?.trim()||'';
+ const img=document.getElementById('storyProtagonistPortrait'),src=img&&img.complete&&img.naturalWidth>0?img.getAttribute('src'):'';   // a missing portrait falls back to the village emblem
+ const tip=(q('.area-info-box')||'推荐：先补给 → 再历练 → 之后再去仙市与洞府。');
+ return `<div class="vstrip-v286897" role="note"><span class="vavatar-v286897">${src?`<img src="${villageEscV286897(src)}" alt="">`:'🏘️'}</span>`
+  +`<span class="vstrip-text-v286897"><b>${villageEscV286897(q('.area-scene-title')||'南域 · 青云村')}</b><i>${villageEscV286897(q('.area-scene-sub'))}</i><span>${villageEscV286897(tip)}</span></span></div>`;
+}
+
+
+function villageSnapsV286897(){return ['peek','half','full'];}
+function villageIsOpenV286897(){
+ return VILLAGE_RT_V286897.active&&gameState==='exploring'&&!document.getElementById('storyPanel')?.classList.contains('hidden');
+}
+function villageChoiceV286897(index,generation){
+ const s=VILLAGE_RT_V286897;
+ if(!villageIsOpenV286897()||generation!==s.generation||currentChoices!==s.choices||!Number.isInteger(index))return;
+ handleChoice(index); // Reuses live condition checks and all existing purchase/combat guards.
+}
+function villageSnapTopV286897(panel,name){return panel.querySelector(`.vsnap-v286897[data-snap="${name}"]`)?.offsetTop||0;}
+function villageRememberV286897(name){
+ VILLAGE_RT_V286897.snap=name;
+ try{localStorage.setItem(VILLAGE_V286897.storeKey,name);}catch(_){}
+ const handle=document.querySelector('.vhandle-v286897');
+ handle?.setAttribute('aria-label',`村中地点：${{peek:'简览',half:'半屏',full:'展开'}[name]}，点击切换高度`);
+ handle?.setAttribute('aria-expanded',String(name!=='peek'));
+}
+function villageGoV286897(name,smooth=false){
+ if(!villageIsOpenV286897()||!villageSnapsV286897().includes(name))return;
+ villageRememberV286897(name);
+ const panel=document.getElementById('storyPanel');
+ panel.scrollTo({top:villageSnapTopV286897(panel,name),behavior:smooth&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'smooth':'auto'});
+}
+function villageCycleV286897(){const names=villageSnapsV286897();villageGoV286897(names[(names.indexOf(VILLAGE_RT_V286897.snap)+1)%names.length],true);}
+function villageNearestV286897(panel){return villageSnapsV286897().reduce((best,n)=>Math.abs(villageSnapTopV286897(panel,n)-panel.scrollTop)<Math.abs(villageSnapTopV286897(panel,best)-panel.scrollTop)?n:best,'peek');}
+function villageResetV286897(){
+ const s=VILLAGE_RT_V286897;s.generation++;clearTimeout(s.timer);cancelAnimationFrame(s.raf);s.timer=s.raf=null;
+ const panel=document.getElementById('storyPanel');
+ if(!s.active||!panel)return;
+ s.active=false;
+ panel.removeEventListener('scroll',s.onScroll);window.removeEventListener('resize',s.onResize);
+ if(s.story)panel.appendChild(s.story);
+ if(s.choiceEl){panel.appendChild(s.choiceEl);s.choiceEl.innerHTML=s.originalChoices;s.choiceEl.classList.remove('vcards-v286897');}
+ for(const node of s.nodes||[])node.remove();
+ panel.classList.remove('village-v286897');panel.scrollTop=0;
+ s.story=s.choiceEl=s.choices=s.nodes=s.onScroll=s.onResize=null;s.originalChoices='';
+}
+function villageEnhanceV286897(){
+ villageResetV286897();
+ const panel=document.getElementById('storyPanel'),story=panel?.querySelector('.story-with-protagonist'),choices=document.getElementById('choices'),s=VILLAGE_RT_V286897;
+ if(!panel||!story||!choices||!Array.isArray(currentChoices))return false;
+ // Build everything before moving the original panel; rollback restores its exact choice markup.
+ const generation=s.generation,html=villageCardsHtmlV286897(currentChoices,generation);
+ const sheet=document.createElement('div');sheet.className='vsheet-v286897';
+ sheet.innerHTML=`<div class="vtoolbar-v286897"><button type="button" class="vhandle-v286897" aria-label="展开村中地点" aria-controls="choices"><i></i><span>村中地点 · 上滑查看更多</span></button><button type="button" class="vclose-v286897">返回地图</button></div>${villageStripHtmlV286897()}`;
+ const spacer=document.createElement('div');spacer.className='vspacer-v286897';
+ const markers=villageSnapsV286897().map(name=>{const m=document.createElement('i');m.className='vsnap-v286897';m.dataset.snap=name;return m;});
+ Object.assign(s,{active:true,story,choiceEl:choices,choices:currentChoices,originalChoices:choices.innerHTML,nodes:[...markers,spacer,sheet]});
+ try{
+  s.nodes.forEach(node=>panel.appendChild(node));sheet.appendChild(story);sheet.appendChild(choices);
+  choices.innerHTML=html;choices.classList.add('vcards-v286897');panel.classList.add('village-v286897');
+  sheet.querySelector('.vhandle-v286897').onclick=villageCycleV286897;
+  sheet.querySelector('.vclose-v286897').onclick=()=>{if(villageIsOpenV286897())closeWorldOverlay();};
+  s.onScroll=()=>{if(!villageIsOpenV286897())return;clearTimeout(s.timer);s.timer=setTimeout(()=>{s.timer=null;if(villageIsOpenV286897()&&s.generation===generation)villageRememberV286897(villageNearestV286897(panel));},160);};
+  s.onResize=()=>{clearTimeout(s.timer);cancelAnimationFrame(s.raf);s.raf=requestAnimationFrame(()=>{s.raf=null;if(s.generation===generation)villageGoV286897(s.snap);});};
+  panel.addEventListener('scroll',s.onScroll,{passive:true});window.addEventListener('resize',s.onResize);
+  let saved='peek';try{saved=localStorage.getItem(VILLAGE_V286897.storeKey)||saved;}catch(_){}
+  if(!villageSnapsV286897().includes(saved))saved='peek';
+  villageRememberV286897(saved);s.raf=requestAnimationFrame(()=>{s.raf=null;if(s.generation===generation)villageGoV286897(saved);});
+  return true;
+ }catch(error){villageResetV286897();throw error;}
+}
+
     function showVillage() {
       let choices=[{text:'📜 三万年仙魔战 · 战事总览',action:'ancient_war_v2859',story:true},{text:'💰 赚取灵石（补助 / 跑腿 / 回收）',action:'early_economy_v2773'},{text:'🗺️ 前往其他地域',action:'world_travel_menu',story:true},{text:'🏪 杂货铺',action:'shop'},{text:'⚔️ 南域历练',action:'explore'},{text:'🏪 仙市',action:'market'},{text:'🏠 我的洞府',action:'home',condition:()=>hasReachedRealm(1)},{text:'💗 姻缘亭（感情线）',action:'romance',story:true},{text:'💤 灵泉休息',action:'rest'}];
       if(player.storyProgress>=3||hasReachedRealm(2))choices.push({text:'🌑 幽冥谷（特殊秘境）',action:'youmingu',story:true});
@@ -9712,6 +9843,7 @@
         buildAreaLayout('村落布局',[{name:'村口驿道',desc:'跨地域远行入口。'},{name:'百宝阁西街',desc:'靠近入口，优先补给。'},{name:'中央村舍',desc:'聚落核心与任务中转。'},{name:'东南仙市',desc:'承担中期消费与稀有商品。'}])+
         buildInteriorStrip('村中分区',[{icon:'🧺',name:'百宝阁柜台',desc:'丹药、兵器与灵材。'},{icon:'🏮',name:'仙市主街',desc:'套装、法宝与家具。'},{icon:'🏠',name:'洞府坡道',desc:'远离主街，更适合闭关。'},{icon:'💧',name:'灵泉歇脚点',desc:'战后快速恢复。'}]);
       showStory(text+rainVillageV286822(),choices);
+      try{villageEnhanceV286897();}catch(error){console.warn("青云村界面已回退",error);}
     }
 
     const GENERAL_SHOP_V2801=[{"name":"小还丹","cost":30,"level":0,"category":"pill","store":"auto"},{"name":"大还丹","cost":80,"level":0,"category":"pill","store":"auto"},{"name":"聚灵丹","cost":40,"level":0,"category":"pill","store":"auto"},{"name":"铁剑","cost":100,"level":0,"category":"gear","store":"auto"},{"name":"铁甲","cost":120,"level":0,"category":"gear","store":"auto"},{"name":"精钢剑","cost":300,"level":2,"category":"gear","store":"auto"},{"name":"灵剑","cost":800,"level":2,"category":"gear","store":"auto"},{"name":"灵甲","cost":600,"level":2,"category":"gear","store":"auto"},{"name":"灵草","cost":20,"level":0,"category":"material","store":"materials"},{"name":"仙果","cost":40,"level":0,"category":"material","store":"materials"},{"name":"妖丹","cost":100,"level":0,"category":"material","store":"materials"},{"name":"灵兽丹","cost":50,"level":0,"category":"pet","store":"petMaterials"},{"name":"灵兽绳","cost":50,"level":0,"category":"pet","store":"auto"},{"name":"缚灵玉","cost":200,"level":0,"category":"pet","store":"auto"},{"name":"御灵葫芦","cost":500,"level":0,"category":"pet","store":"auto"},{"name":"魔缚索","cost":300,"level":2,"category":"pet","store":"auto"},{"name":"神兽结缘印","cost":2000,"level":3,"category":"pet","store":"auto"},{"name":"平等契约符","cost":800,"level":2,"category":"pet","store":"auto"},{"name":"本命契约石","cost":1500,"level":3,"category":"pet","store":"auto"}];
@@ -13674,6 +13806,7 @@
     }
 
     function closeWorldOverlay() {
+      villageResetV286897();
       if(typeof closeExpansionV286827==='function')closeExpansionV286827();
       document.getElementById('postCaseV286826')?.remove();document.getElementById('storyBossPrepV286826')?.remove();
       if(typeof rainCloseV286822==='function')rainCloseV286822();
@@ -15636,7 +15769,7 @@
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.96";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.97";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
