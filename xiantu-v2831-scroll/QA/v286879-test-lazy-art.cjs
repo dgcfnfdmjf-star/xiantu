@@ -5,7 +5,8 @@ f.c.console.log=()=>{};const OriginalImage=f.c.Image;f.c.Image=class extends Ori
 for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);
 const regional=()=>images.filter(i=>i.src?.includes('region-buildings-v2835.webp'));
 for(const region of ['south','east','west','human_peaks','human_valleys']){f.run(`currentRegion='${region}';loadScrollArtV2831()`);a.equal(regional().length,0,'unneeded regions never request the atlas');}
-f.run("currentRegion='north';loadScrollArtV2831()");a.equal(regional().length,1);
+f.run("currentRegion='north';loadScrollArtV2831()");a.equal(regional().length,0,'whole north scene avoids old building atlas');
+f.run("SCROLL_ART_V2831.wildSceneFailed={north:true};loadScrollArtV2831()");a.equal(regional().length,1,'north failure retains regional fallback');
 a.equal(f.run('!!SCROLL_ART_V2831.regionalBuildings'),false,'normal building fallback remains while loading');
 for(const region of ['south','north','demon_domain','immortal_domain']){f.run(`currentRegion='${region}';loadScrollArtV2831()`);a.equal(regional().length,1,'one atlas request across regions');}
 const im=regional()[0];im.width=900;im.height=1200;im.onload();a.equal(f.run('SCROLL_ART_V2831.regionalBuildings'),im);

@@ -14239,7 +14239,8 @@ function villageEnhanceV286897(){
 
       for(const poi of FLAT_WORLD.pois){
         if(!visible(poi.x,poi.y,10)||(poi.action==='explore_v2828'&&!exploredPointV2828(poi.x,poi.y))) continue;
-        const x=mx(poi.x),y=my(poi.y);
+        const point=painted&&wildSceneV286898()?.overview?wildSceneDoorV286898(poi)||poi:poi;
+        const x=mx(point.x),y=my(point.y);
         if(markedExplorationV2829()?.id===poi.id){ctx.strokeStyle='#ffe27e';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,7,0,Math.PI*2);ctx.stroke();}
         if(FLAT_WORLD.nearby?.id===poi.id){ctx.fillStyle='rgba(241,209,134,.16)';ctx.beginPath();ctx.arc(x,y,8,0,Math.PI*2);ctx.fill()}
         ctx.fillStyle='#2a241b';ctx.beginPath();ctx.arc(x,y,3.8,0,Math.PI*2);ctx.fill();
@@ -14569,6 +14570,7 @@ function villageEnhanceV286897(){
     // geometry below refers to the unchanged 1374x1145 source painting.
     // Whole regional paintings share their coordinate system with static ground, picking and masks.
     const WILD_SCENES_V286898={
+      north:{"file":"north-panorama-v2868108.webp","width":1448,"height":1086,"minimap":true,"overview":true,"actorScale":1,"rooms":{"mountain":{"door":[163,173],"bounds":[99,17,220,190],"mask":[[99,51],[127,37],[147,17],[178,23],[196,42],[220,53],[213,74],[106,74]]},"lx_night_platform":{"door":[627,161],"bounds":[563,37,690,146],"mask":[[563,81],[592,63],[614,37],[646,45],[665,70],[690,84],[683,111],[570,111]]},"lx_insight_platform":{"door":[795,159],"bounds":[733,49,864,149],"mask":[[735,98],[756,74],[793,48],[827,73],[861,96],[846,113],[749,111]]},"lx_array_core":{"door":[969,155],"bounds":[904,61,1030,147]},"lx_forbidden_library":{"door":[1134,165],"bounds":[1058,54,1224,150],"mask":[[1058,92],[1096,77],[1124,54],[1166,61],[1191,83],[1224,95],[1217,119],[1065,119]]},"factions":{"door":[1302,160],"bounds":[1257,61,1348,151]},"lx_hidden_caves":{"door":[409,268],"bounds":[337,154,491,248],"mask":[[337,192],[372,177],[399,154],[437,161],[460,182],[491,194],[484,218],[344,218]]},"lx_beast_hall":{"door":[649,311],"bounds":[572,187,723,295],"mask":[[572,230],[607,213],[632,187],[670,195],[693,219],[723,233],[716,260],[579,260]]},"lx_library":{"door":[799,312],"bounds":[715,183,901,297],"mask":[[715,229],[758,210],[789,183],[836,191],[864,217],[901,232],[894,261],[722,261]]},"lx_forge_hall":{"door":[978,308],"bounds":[903,184,1044,292],"mask":[[903,227],[935,210],[959,184],[995,192],[1016,216],[1044,230],[1037,257],[910,257]]},"lx_night_corridor":{"door":[1140,311],"bounds":[1047,201,1235,295],"mask":[[1047,239],[1090,224],[1122,201],[1169,208],[1197,229],[1235,241],[1228,265],[1054,265]]},"lx_ancestor_cave":{"door":[1313,305],"bounds":[1256,203,1377,294],"mask":[[1257,244],[1284,217],[1345,210],[1374,244],[1367,258],[1265,257]]},"lx_back_forest":{"door":[218,437],"bounds":[161,330,278,425],"mask":[[163,358],[182,346],[189,332],[248,334],[258,349],[278,361],[266,378],[173,376]]},"lx_mini_secret_realm":{"door":[399,436],"bounds":[343,334,458,425],"mask":[[344,367],[362,349],[384,333],[418,339],[435,355],[459,370],[447,383],[353,382]]},"lx_qingxuan_academy":{"door":[628,477],"bounds":[542,365,701,458],"mask":[[542,402],[579,387],[606,365],[645,372],[669,393],[701,405],[694,428],[549,428]]},"lx_main_hall":{"door":[799,506],"bounds":[684,329,927,491],"mask":[[684,394],[740,368],[781,329],[842,340],[878,378],[927,399],[920,439],[691,439]]},"lx_elder_hall":{"door":[984,480],"bounds":[922,363,1050,460],"mask":[[922,402],[951,386],[973,363],[1005,370],[1024,392],[1050,405],[1043,429],[929,429]]},"lx_alchemy_hall":{"door":[1137,481],"bounds":[1065,349,1206,465],"mask":[[1065,395],[1097,377],[1121,349],[1157,357],[1178,384],[1206,399],[1199,428],[1072,428]]},"lx_inner_arena":{"door":[1302,484],"bounds":[1224,362,1381,466]},"lx_spirit_spring":{"door":[239,638],"bounds":[161,518,309,627]},"lx_cliff_bridge":{"door":[450,640],"bounds":[318,553,510,626]},"sect":{"door":[800,677],"bounds":[720,532,882,669]},"lx_night_yaolu":{"door":[1120,617],"bounds":[1030,505,1202,604],"mask":[[1030,545],[1070,529],[1099,505],[1142,512],[1168,535],[1202,548],[1195,572],[1037,572]]},"lx_secret_realm_gate":{"door":[1294,618],"bounds":[1237,500,1356,610]},"lx_border_towers":{"door":[103,769],"bounds":[71,647,139,751],"mask":[[71,689],[87,672],[98,647],[115,654],[125,678],[139,692],[132,718],[78,718]]},"lx_herb_garden":{"door":[607,783],"bounds":[493,676,689,765]},"lx_stone_steps":{"door":[800,854],"bounds":[752,696,855,888]},"lx_task_hall":{"door":[1009,780],"bounds":[941,686,1083,765],"mask":[[941,718],[974,705],[998,686],[1033,692],[1055,710],[1083,720],[1076,740],[948,740]]},"lx_guest_hall":{"door":[1205,779],"bounds":[1143,663,1343,762],"mask":[[1143,703],[1189,687],[1223,663],[1273,670],[1303,693],[1343,706],[1336,730],[1150,730]]},"travel_gate":{"door":[224,935],"bounds":[168,817,283,924],"mask":[[170,849],[193,833],[244,830],[279,852],[271,866],[182,865]]},"lx_defense_wall":{"door":[415,938],"bounds":[353,817,477,924],"mask":[[354,850],[382,830],[444,831],[477,851],[463,869],[363,869]]},"lx_dormitory":{"door":[599,933],"bounds":[520,795,680,916],"mask":[[520,843],[557,824],[584,795],[624,803],[648,831],[680,847],[673,877],[527,877]]},"lx_gate":{"door":[802,999],"bounds":[680,890,933,1016],"mask":[[682,943],[718,932],[742,916],[773,910],[785,888],[816,894],[844,912],[874,921],[895,937],[933,948],[915,965],[697,960]]},"lx_arena":{"door":[1010,929],"bounds":[928,809,1084,913]},"lx_outer_elder_hall":{"door":[1225,930],"bounds":[1155,796,1346,918],"mask":[[1155,845],[1199,825],[1231,796],[1279,805],[1308,833],[1346,848],[1339,879],[1162,879]]}},"bodies":[[125,62,199,94],[580,107,674,133],[1082,107,1201,137],[1271,100,1335,128],[357,209,470,238],[594,252,699,282],[746,252,872,282],[923,252,1020,278],[1076,252,1211,280],[566,414,676,445],[717,434,891,473],[940,415,1027,446],[1087,413,1184,447],[1062,562,1176,588],[85,707,126,742],[960,728,1056,752],[1170,720,1311,750],[547,862,653,902],[1183,861,1317,903]],"rocks":[[194,604,23],[266,603,19],[356,600,18],[390,614,19],[329,739,45],[387,747,27],[510,564,27],[626,595,32],[681,608,25],[284,531,24],[294,359,24],[476,382,20],[503,272,20],[853,55,22],[1395,477,24],[1382,573,26],[1104,966,25],[85,933,28],[180,891,9],[265,891,9],[369,891,9],[456,891,9],[705,989,10],[893,989,10],[1259,568,11],[1330,568,11]],"roads":[[520,178],[705,178],[885,178],[1050,178],[1210,178],[1370,178],[520,328],[705,328],[885,328],[1050,328],[1210,328],[1370,328],[520,497],[705,497],[885,497],[1050,497],[1210,497],[1370,497],[520,667],[705,667],[885,667],[1050,667],[1210,667],[1370,667],[520,790],[705,790],[885,790],[1050,790],[1210,790],[1370,790],[520,957],[705,957],[885,957],[1050,957],[1210,957],[1370,957],[800,497],[800,532],[800,610],[800,677],[800,710],[800,790],[800,854],[800,888],[800,957],[802,999],[800,667],[163,173],[172,230],[180,295],[200,320],[218,437],[240,466],[319,470],[399,466],[465,466],[409,268],[409,290],[459,235],[510,185],[399,436],[226,503],[240,531],[306,545],[334,565],[417,559],[473,601],[450,640],[431,667],[239,638],[245,657],[305,667],[190,710],[147,775],[109,814],[153,909],[224,935],[264,957],[340,957],[415,957],[470,957],[103,769],[439,713],[464,763],[434,796],[627,161],[795,159],[969,155],[1134,165],[1302,160],[649,311],[799,312],[978,308],[1140,311],[1313,305],[628,477],[799,506],[984,480],[1137,481],[1302,484],[1120,617],[1294,618],[607,783],[1009,780],[1205,779],[415,938],[599,933],[1010,929],[1225,930]],"links":[[0,1],[1,2],[2,3],[3,4],[4,5],[6,7],[7,8],[8,9],[9,10],[10,11],[12,13],[13,14],[14,15],[15,16],[16,17],[18,19],[19,20],[20,21],[21,22],[22,23],[24,25],[25,26],[26,27],[27,28],[28,29],[30,31],[31,32],[32,33],[33,34],[34,35],[0,6],[6,12],[12,18],[18,24],[24,30],[3,9],[9,15],[15,21],[21,27],[27,33],[5,11],[11,17],[17,23],[23,29],[29,35],[36,37],[37,38],[38,39],[39,40],[40,41],[41,42],[42,43],[43,44],[44,45],[12,13],[13,36],[36,14],[18,19],[19,46],[46,20],[24,25],[25,41],[41,26],[30,31],[31,44],[44,32],[47,48],[48,49],[49,50],[50,51],[51,52],[52,53],[53,54],[54,55],[55,12],[56,57],[57,58],[58,59],[59,0],[60,54],[52,61],[61,62],[62,63],[63,64],[64,65],[65,66],[66,67],[67,68],[68,18],[69,70],[70,71],[71,68],[70,72],[72,73],[73,74],[74,75],[75,76],[76,77],[77,78],[78,79],[79,80],[80,30],[81,73],[68,82],[82,83],[83,84],[84,24],[85,1],[86,1],[87,3],[88,4],[89,5],[90,7],[91,8],[92,9],[93,10],[94,11],[95,13],[96,36],[97,15],[98,16],[99,17],[100,21],[101,23],[102,24],[103,27],[104,28],[105,79],[106,30],[107,33],[108,34]]},
       south:{file:'south-panorama-v2868101.webp',width:1484,height:1060,minimap:true,actorScale:1,rooms:{
         village:{plaque:[855,110],door:[705,390],bounds:[495,85,990,400],mask:[[516,193],[580,145],[605,175],[625,200],[608,218],[533,228]]},
         shop:{plaque:[487,330],door:[335,505],bounds:[185,305,500,550],mask:[[195,372],[254,350],[282,307],[394,309],[416,351],[490,350],[496,394],[440,410],[424,439],[232,439],[207,407]]},
@@ -14636,14 +14638,18 @@ function villageEnhanceV286897(){
       if(art.wildScenes?.[region]){const image=art.wildScenes[region];delete art.wildScenes[region];art.wildScenes[region]=image;return;}
       if(art.wildSceneRequested[region])return;
       art.wildSceneRequested[region]=true;const im=new Image();im.decoding='async';
-      im.onload=()=>{im.onload=im.onerror=null;if(im.naturalWidth!==(s.width||1484)||im.naturalHeight!==(s.height||1060))return;
+      const failed=()=>{im.onload=im.onerror=null;(art.wildSceneFailed||(art.wildSceneFailed={}))[region]=true;
+        if(currentRegion===region){releaseStaticWorldCacheV2767();loadRegionalBuildingsV286879();loadJoinedArchitectureV286896();loadNorthernTerrainV286896();loadSectSceneV286896();}};
+      im.onload=()=>{im.onload=im.onerror=null;if(im.naturalWidth!==(s.width||1484)||im.naturalHeight!==(s.height||1060)){failed();return;}
+        if(art.wildSceneFailed)delete art.wildSceneFailed[region];
         art.wildScenes=art.wildScenes||{};art.wildScenes[region]=im;trimWildScenesV2868101();
         if(currentRegion===region){releaseStaticWorldCacheV2767();rebuildWorldColliders();const p=FLAT_WORLD.player,q=wildSceneSafePointV286898(p.x,p.y,p.r||17);
           // Geometry changed: an old planned route must never cross a newly painted wall.
           resetWorldMovementV28686();if(q){p.x=q.x;p.y=q.y;}
           for(const m of FLAT_WORLD.monsters||[]){if(!m.alive||m.inCombat)continue;const safe=wildSceneSafePointV286898(m.x,m.y,m.r||22);if(safe){m.x=safe.x;m.y=safe.y;}}
+          if(s.overview&&document.getElementById('scrollMapV2831'))renderScrollTargetsV2837();
         }};
-      im.onerror=()=>{im.onload=im.onerror=null;};im.src='./'+s.file;
+      im.onerror=failed;im.src='./'+s.file;
     }
     function drawWildSceneV286898(ctx){if(!wildSceneReadyV286898())return false;ctx.drawImage(SCROLL_ART_V2831.wildScenes[currentRegion],0,0,FLAT_WORLD.width,FLAT_WORLD.height);return true;}
     function drawWildMaskV286898(ctx,p){
@@ -14673,7 +14679,7 @@ function villageEnhanceV286897(){
       main_hall:{door:[685,772],body:[555,633,821,706],roof:[[520,581],[565,550],[574,497],[758,491],[792,535],[814,589],[860,632],[826,660],[530,660],[500,639]]},
       elder_hall:{door:[1100,755],body:[982,615,1210,685],roof:[[970,607],[993,565],[1165,557],[1205,587],[1241,627],[1218,650],[976,650]]}
     }};
-    function sectSceneReadyV286896(){return currentRegion==='north'&&!!SCROLL_ART_V2831.sectScene;}
+    function sectSceneReadyV286896(){return currentRegion==='north'&&!wildSceneReadyV286898()&&!!SCROLL_ART_V2831.sectScene;}
     function sectScenePointV286896(x,y){const s=SECT_SCENE_V286896;return sectSceneReadyV286896()&&x>=s.x&&x<=s.x+s.width*s.scale&&y>=s.y&&y<=s.y+s.height*s.scale;}
     function sectSceneRoomV286896(p){return sectSceneReadyV286896()&&p?.action==='lingxiao_building'?SECT_SCENE_V286896.rooms[p.buildingId]||null:null;}
     function sectScenePoiV286896(p){return !!sectSceneRoomV286896(p)||sectSceneReadyV286896()&&p?.id==='sect';}
@@ -14702,8 +14708,10 @@ function villageEnhanceV286897(){
       const clear=q=>!FLAT_WORLD.colliders.some(c=>Math.hypot(q.x-c.x,q.y-c.y)<c.radius+radius+1);
       return Object.values(SECT_SCENE_V286896.rooms).map(r=>sectSceneWorldV286896(...r.door)).filter(clear).sort((a,b)=>Math.hypot(a.x-x,a.y-y)-Math.hypot(b.x-x,b.y-y))[0]||null;
     }
+    // The old paintings are lazy fallback only: never download three duplicate north layers on success.
+    function northLegacyArtV2868108(){return currentRegion==='north'&&(!WILD_SCENES_V286898.north||SCROLL_ART_V2831.wildSceneFailed?.north===true);}
     function loadSectSceneV286896(){
-      if(currentRegion!=='north'||SCROLL_ART_V2831.sectSceneRequested)return;
+      if(!northLegacyArtV2868108()||SCROLL_ART_V2831.sectSceneRequested)return;
       SCROLL_ART_V2831.sectSceneRequested=true;const im=new Image();im.decoding='async';
       im.onload=()=>{SCROLL_ART_V2831.sectScene=im.naturalWidth===1374&&im.naturalHeight===1145?im:null;im.onload=im.onerror=null;
         if(currentRegion==='north'){releaseStaticWorldCacheV2767();rebuildWorldColliders();
@@ -14755,14 +14763,14 @@ function villageEnhanceV286897(){
       return p.id==='sect'?0:p.id==='travel_gate'||p.id==='factions'?2:-1;
     }
     function joinedSceneReadyV286896(){return wildSceneReadyV286898()||sectSceneReadyV286896()||currentRegion==='north'&&!!SCROLL_ART_V2831.joinedBuildings&&!!SCROLL_ART_V2831.northernTerrain;}
-    function joinedArchitectureReadyV286896(p){return joinedArchitectureCellV286896(p)>=0&&!!SCROLL_ART_V2831.joinedBuildings;}
+    function joinedArchitectureReadyV286896(p){return !wildSceneReadyV286898()&&joinedArchitectureCellV286896(p)>=0&&!!SCROLL_ART_V2831.joinedBuildings;}
     function joinedArchitectureLayoutV286896(p){
       const cell=JOINED_ARCHITECTURE_V286896[joinedArchitectureCellV286896(p)];if(!cell)return null;
       const width=architectureWidthV2900(p,p.action==='lingxiao_building'?136:p.id==='sect'?218:142),scale=width/cell.w;
       return {cell,width,height:cell.h*scale,left:-cell.exitX*scale,top:30-cell.exitY*scale,bottom:30+(cell.h-cell.exitY)*scale};
     }
     function loadJoinedArchitectureV286896(){
-      if(currentRegion!=='north'||SCROLL_ART_V2831.joinedRequested)return;
+      if(!northLegacyArtV2868108()||SCROLL_ART_V2831.joinedRequested)return;
       SCROLL_ART_V2831.joinedRequested=true;const im=new Image();im.decoding='async';
       im.onload=()=>{SCROLL_ART_V2831.joinedBuildings=im.naturalWidth===1536&&im.naturalHeight===1024?im:null;im.onload=im.onerror=null;if(currentRegion==='north')releaseStaticWorldCacheV2767();};
       im.onerror=()=>{SCROLL_ART_V2831.joinedBuildings=null;im.onload=im.onerror=null;};im.src='./architecture-courtyards-v286896.webp';
@@ -14780,7 +14788,7 @@ function villageEnhanceV286897(){
       return poi&&joinedArchitectureReadyV286896(poi)?{x:poi.x,y:poi.y+30}:{x:p.x,y:p.y+(p.action?0:12)};
     }
     function loadNorthernTerrainV286896(){
-      if(currentRegion!=='north'||SCROLL_ART_V2831.northernTerrainRequested)return;
+      if(!northLegacyArtV2868108()||SCROLL_ART_V2831.northernTerrainRequested)return;
       SCROLL_ART_V2831.northernTerrainRequested=true;const im=new Image();im.decoding='async';
       im.onload=()=>{SCROLL_ART_V2831.northernTerrain=im.naturalWidth>0&&im.naturalHeight>0?im:null;im.onload=im.onerror=null;if(currentRegion==='north')releaseStaticWorldCacheV2767();};
       im.onerror=()=>{SCROLL_ART_V2831.northernTerrain=null;im.onload=im.onerror=null;};im.src='./north-terrain-v286896.webp';
@@ -14818,7 +14826,7 @@ function villageEnhanceV286897(){
       ctx.restore();return true;
     }
     function loadRegionalBuildingsV286879(){
-      if(!['north','demon_domain','immortal_domain'].includes(currentRegion)||SCROLL_ART_V2831.regionalBuildingsRequested)return;
+      if(!['north','demon_domain','immortal_domain'].includes(currentRegion)||(currentRegion==='north'&&!northLegacyArtV2868108())||SCROLL_ART_V2831.regionalBuildingsRequested)return;
       SCROLL_ART_V2831.regionalBuildingsRequested=true;
       const img=new Image();img.decoding='async';
       img.onload=()=>{SCROLL_ART_V2831.regionalBuildings=img;img.onload=img.onerror=null;};
@@ -14846,6 +14854,7 @@ function villageEnhanceV286897(){
       ctx.drawImage(im,n%2*cw,Math.floor(n/2)*ch,cw,ch,x,y,w,h);return true;
     }
     function scrollRegionStyleV2834(){
+      const scene=wildSceneV286898();if(scene?.overview&&wildSceneReadyV286898())return `background-image:url('./${scene.file}');background-size:100% 100%;background-position:0 0;background-repeat:no-repeat;`;
       const n=scrollRegionCellV2834();return `background-image:url('./scroll-regions-v2834.webp');background-size:200% 400%;background-position:${n%2*100}% ${Math.floor(n/2)/3*100}%;`;
     }
     function drawScrollGroundV2831(ctx){
@@ -14930,6 +14939,7 @@ function villageEnhanceV286897(){
       if(locked){ctx.font='14px sans-serif';ctx.textAlign='center';ctx.fillText('🔒',w/3,-20);}ctx.restore();return true;
     }
     function scrollPoiArtV2832(p){
+      if(wildSceneV286898()?.overview&&wildSceneRoomV286898(p))return '<i class="scroll-pin-v2868108" aria-hidden="true"></i>';
       if(p.action==='war_map_v2840')return '<i class="war-scroll-flag-v2840">令</i>';
       const cell=regionBuildingCellV2835(p);
       if(cell)return `<i class="region-building-v2835" style="background-position:${cell.col*50}% ${cell.row/3*100}%"></i>`;
@@ -14979,7 +14989,13 @@ function villageEnhanceV286897(){
       const field=document.getElementById('scrollFieldV2831');if(!field)return;
       const directory=document.getElementById('scrollDirectoryV2837'),focused=document.activeElement,fromDirectory=directory?.contains(focused);
       const focusedPoi=field.contains(focused)||fromDirectory?focused?.dataset?.poi:null;
-      field.innerHTML=pois.map(o=>`<button type="button" data-scroll-action="select" data-poi="${esc(o.id)}" class="scroll-poi-v2831 ${state.selected===o.id?'is-selected':''} ${scrollPoiDoneV2837(o)?'is-claimed':''}" style="left:${o.x/cfg.width*100}%;top:${o.y/cfg.height*100}%" aria-label="${esc(o.name)}" aria-pressed="${state.selected===o.id}">${scrollPoiArtV2832(o)}<span>${esc(o.name)}</span></button>`).join('')+`<div class="scroll-player-v2831" style="left:${p.x/cfg.width*100}%;top:${p.y/cfg.height*100}%">●<span>你在此</span></div>`;
+      const background=scrollRegionStyleV2834();
+      if(field._sceneBackgroundV2868108!==background){
+        const zoomWidth=field.style.width;field.style.cssText=`aspect-ratio:${cfg.width}/${cfg.height};${background}`;if(zoomWidth)field.style.width=zoomWidth;
+        // A late panorama replaces the base remembered by the optional relief layer too.
+        field._sceneBackgroundV2868108=background;delete field._s25Background;delete field.dataset.s25Bg;
+      }
+      field.innerHTML=pois.map(o=>{const point=wildSceneV286898()?.overview?wildSceneDoorV286898(o)||o:o;return `<button type="button" data-scroll-action="select" data-poi="${esc(o.id)}" class="scroll-poi-v2831 ${state.selected===o.id?'is-selected':''} ${scrollPoiDoneV2837(o)?'is-claimed':''}" style="left:${point.x/cfg.width*100}%;top:${point.y/cfg.height*100}%" aria-label="${esc(o.name)}" aria-pressed="${state.selected===o.id}">${scrollPoiArtV2832(o)}<span>${esc(o.name)}</span></button>`;}).join('')+`<div class="scroll-player-v2831" style="left:${p.x/cfg.width*100}%;top:${p.y/cfg.height*100}%">●<span>你在此</span></div>`;
       // Use the actual rendered hit boxes, including labels and the 44px minimum.
       // Dense landmarks keep their real position as dots; the existing directory remains the selector.
       const buttons=Array.from(field.querySelectorAll('.scroll-poi-v2831')),boxes=buttons.map(b=>b.getBoundingClientRect()),dense=new Set();
@@ -15032,7 +15048,7 @@ function villageEnhanceV286897(){
       const session=scrollSessionV2837();if(!session)return;
       const poi=scrollFilteredPoisV2837(session.state).find(p=>p.id===id);if(!poi)return;
       session.state.selected=id;renderScrollTargetsV2837();
-      if(locate)zoomScrollV2837(Math.max(2,session.state.zoom),poi);
+      if(locate)zoomScrollV2837(Math.max(2,session.state.zoom),wildSceneV286898()?.overview?wildSceneDoorV286898(poi)||poi:poi);
     }
     function nearestScrollRestV2837(){
       const session=scrollSessionV2837();if(!session||!forgeAllowedV2825())return;
@@ -15304,7 +15320,7 @@ function villageEnhanceV286897(){
 
     function drawWorldPoi(ctx,o){
       drawWildMaskV286898(ctx,o);drawSectSceneRoofV286896(ctx,o);
-      if(currentRegion==='south'&&FLAT_WORLD.nearby?.id===o.id){const door=wildSceneDoorV286898(o);if(door){ctx.save();ctx.fillStyle='rgba(248,211,121,.16)';ctx.strokeStyle='rgba(237,196,100,.65)';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(door.x,door.y,35,11,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();}}
+      if(wildSceneReadyV286898()&&FLAT_WORLD.nearby?.id===o.id){const door=wildSceneDoorV286898(o);if(door){ctx.save();ctx.fillStyle='rgba(248,211,121,.16)';ctx.strokeStyle='rgba(237,196,100,.65)';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(door.x,door.y,35,11,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();}}
       ctx.save();ctx.translate(o.x,o.y);
       const near=FLAT_WORLD.nearby?.id===o.id;
       const kind=getPoiVisualKind(o);
@@ -16000,7 +16016,7 @@ function villageEnhanceV286897(){
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.107";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.108";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

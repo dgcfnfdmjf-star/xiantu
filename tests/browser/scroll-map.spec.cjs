@@ -1,7 +1,8 @@
 const {test,expect}=require('@playwright/test');
-async function openNorth(page,width){
+async function openNorth(page,width,holdImage=null){
  await page.setViewportSize({width,height:844});
  await page.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());
+ if(holdImage)await page.route('**/north-panorama-v2868108.webp',holdImage);
  await page.goto('/game-v2762.html');await page.locator('#introSkipChoiceV2898').check();await page.locator('#xiantuSafeBootButton').click();
  await expect(page.locator('html')).toHaveClass(/xiantu-v2762-ready/);await expect(page.locator('#guideHudBtn')).toBeAttached();
  await page.getByRole('button',{name:'开始修仙',exact:true}).click();
@@ -11,7 +12,7 @@ async function mapLayout(page){return page.evaluate(()=>{
  const field=document.getElementById('scrollFieldV2831'),buttons=[...field.querySelectorAll('button')],rects=buttons.map(b=>b.getBoundingClientRect()),dots=[...field.querySelectorAll('.scroll-anchor-v286882')],cfg=getWorldMapConfig();let overlaps=0;
  for(let i=0;i<rects.length;i++)for(let j=i+1;j<rects.length;j++){const a=rects[i],b=rects[j];if(a.left<b.right-1&&a.right>b.left+1&&a.top<b.bottom-1&&a.bottom>b.top+1)overlaps++;}
  return {overlaps,hitSizes:rects.map(r=>[r.width,r.height]),buttons:buttons.length,dots:dots.length,rows:document.querySelectorAll('#scrollDirectoryV2837 button').length,
-  trueCoordinates:[...buttons,...dots].every(el=>{const p=FLAT_WORLD.pois.find(p=>p.id===el.dataset.poi);return p&&Math.abs(parseFloat(el.style.left)-p.x/cfg.width*100)<.0001&&Math.abs(parseFloat(el.style.top)-p.y/cfg.height*100)<.0001;}),
+  trueCoordinates:[...buttons,...dots].every(el=>{const poi=FLAT_WORLD.pois.find(p=>p.id===el.dataset.poi),p=wildSceneV286898()?.overview?wildSceneDoorV286898(poi)||poi:poi;return p&&Math.abs(parseFloat(el.style.left)-p.x/cfg.width*100)<.0001&&Math.abs(parseFloat(el.style.top)-p.y/cfg.height*100)<.0001;}),
   markerSemantics:dots.every(d=>d.tagName==='SPAN'&&d.getAttribute('aria-hidden')==='true'&&!d.hasAttribute('tabindex'))};
  });}
 for(const width of [360,390,1280])test(`dense northern map remains selectable at ${width}px without false coordinates`,async({page})=>{
@@ -19,6 +20,7 @@ for(const width of [360,390,1280])test(`dense northern map remains selectable at
  expect(layout.overlaps).toBe(0);expect(layout.buttons+layout.dots).toBe(layout.rows);expect(layout.trueCoordinates).toBe(true);expect(layout.markerSemantics).toBe(true);
  expect(layout.hitSizes.every(([w,h])=>w>=44&&h>=44)).toBe(true);
  if(width<600){expect(layout.dots).toBeGreaterThan(0);await expect(page.locator('#scrollDetailsV2837')).toHaveAttribute('open','');await expect(page.locator('#scrollResultV2837')).toContainText('请从目录选择');}
+ // Coordinates use the painted entrance when its panorama is ready; fallback keeps original anchors.
  // Search restores the actual map button when a single location no longer overlaps.
  await page.locator('#scrollSearchV2837').fill('凌霄大殿');await expect(page.locator('#scrollDirectoryV2837 button')).toHaveCount(1);
  const filtered=await mapLayout(page);expect(filtered.buttons).toBe(1);expect(filtered.dots).toBe(0);expect(filtered.trueCoordinates).toBe(true);
@@ -65,4 +67,20 @@ test('scroll resize/filter updates keep user-collapsed directory and search focu
  });expect(stale).toEqual({same:true,query:'',filter:'all'});
  const owner=await page.evaluate(()=>{const old=document.getElementById('scrollMapV2831'),input=old.querySelector('#scrollSearchV2837');player=createDefaultPlayer();input.value='旧角色';old.oninput({target:input});return {closed:!document.getElementById('scrollMapV2831'),name:player.name,navigation:!!autoNavigationV2830};});
  expect(owner.closed).toBe(true);expect(owner.navigation).toBe(false);
+});
+
+test('late north panorama preserves zoom and remains the base when relief is toggled',async({page})=>{
+ let release;const held=new Promise(resolve=>{release=resolve});
+ await openNorth(page,390,async route=>{await held;await route.continue();});
+ const field=page.locator('#scrollFieldV2831');
+ await expect(field).toHaveCSS('background-image',/scroll-regions-v2834/);
+ await page.evaluate(()=>zoomScrollV2837(3));
+ const width=await field.evaluate(el=>el.style.width);
+ release();await expect(field).toHaveCSS('background-image',/north-panorama-v2868108/);
+ expect(await field.evaluate(el=>el.style.width)).toBe(width);
+ for(const enabled of [false,true,false]){
+  await page.evaluate(v=>setScene25dV2888(v),enabled);
+  await expect(field).toHaveCSS('background-image',/north-panorama-v2868108/);
+  expect((await mapLayout(page)).trueCoordinates).toBe(true);
+ }
 });

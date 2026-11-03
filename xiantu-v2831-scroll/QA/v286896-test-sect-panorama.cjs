@@ -4,6 +4,8 @@ const root=process.env.XIANTU_TEST_ROOT||path.resolve(__dirname,'..'),f=require(
 f.c.console.log=()=>{};const Image=f.c.Image;f.c.Image=class extends Image{constructor(){super();images.push(this)}};
 for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);
 const run=s=>f.run(s),json=s=>JSON.parse(run(`JSON.stringify(${s})`)),requests=()=>images.filter(i=>i.src?.includes('sect-panorama-v286896'));
+// Legacy art remains supported when the complete north painting is unavailable.
+run("SCROLL_ART_V2831.wildSceneFailed={north:true}");
 run("player=createDefaultPlayer();player.level=10;gameState='exploring';applyWorldMapLayout('south',true);loadScrollArtV2831()");a.equal(requests().length,0);
 run("applyWorldMapLayout('north',true);loadScrollArtV2831();ensureStaticWorldCache()");a.equal(requests().length,1);
 const oldCache=run('PERF_CONFIG.staticWorldCanvas'),save=run('JSON.stringify(player)'),pois=run('JSON.stringify(FLAT_WORLD.pois)'),im=requests()[0];

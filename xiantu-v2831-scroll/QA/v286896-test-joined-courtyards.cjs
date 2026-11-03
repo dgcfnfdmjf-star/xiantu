@@ -5,6 +5,8 @@ f.c.console.log=()=>{};const Image=f.c.Image;f.c.Image=class extends Image{const
 for(const file of JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);
 const run=s=>f.run(s),json=s=>JSON.parse(run(`JSON.stringify(${s})`)),atlases=()=>images.filter(i=>i.src?.includes('architecture-courtyards-v286896'));
 run("currentRegion='south';loadScrollArtV2831()");a.equal(atlases().length,0);
+// Legacy art remains supported when the complete north painting is unavailable.
+run("SCROLL_ART_V2831.wildSceneFailed={north:true}");
 run("player=createDefaultPlayer();player.level=10;gameState='exploring';applyWorldMapLayout('north',true);loadScrollArtV2831();ensureStaticWorldCache()");
 a.equal(atlases().length,1);const oldCache=run('PERF_CONFIG.staticWorldCanvas'),im=atlases()[0];
 a.equal(run('!!SCROLL_ART_V2831.joinedBuildings'),false);
