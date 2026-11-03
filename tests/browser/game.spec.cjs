@@ -65,3 +65,43 @@ test('rabbit turtle and bat use the new artwork in map and battle',async({page})
  await page.route('**/monster-small-beasts-v28682.webp',r=>r.abort());await page.reload();await page.locator('#introSkipChoiceV2898').check();await page.locator('#xiantuSafeBootButton').click();await expect(page.locator('html')).toHaveClass(/xiantu-v2762-ready/);await page.evaluate(()=>{loadAndStart();closeWorldOverlay();});
  expect(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=180;c.height=225;return ['rabbit','turtle','bat'].every(key=>drawScrollMonsterPortraitV2853(c,key));})).toBe(true);
 });
+
+// UI draft integration must not bypass task guards, reuse a stale player, or steal overlay input.
+test('jade quest shortcut hides with overlays and rejects stale owner, step and duplicate actions',async({page})=>{
+ await page.setViewportSize({width:390,height:844});await boot(page);await start(page);
+ await page.evaluate(()=>{tutorialState.active=false;closeWorldOverlay();player.level=2;player.phase=3;player.tasks.active={};player.tasks.completed=MAIN_TASKS.slice(0,6).map(t=>t.id);player.tasks.legacyMainV286823=[];checkTaskTriggers();updateWorldHUD();});
+ const bar=page.locator('#xtQuestBar'),go=bar.locator('.xt-questbar__go');await expect(bar).toBeVisible();await expect(bar).toContainText('内门考核');
+ const stale=await page.evaluate(()=>{
+   XT_UI.render();const before=JSON.stringify(player.tasks);player={...player};document.querySelector('#xtQuestBar .xt-questbar__go').click();const owner=JSON.stringify(player.tasks)===before&&!document.getElementById('sceneV2838');
+   XT_UI.render();player.tasks.active.main_07.currentStep=1;const stepBefore=JSON.stringify(player.tasks);document.querySelector('#xtQuestBar .xt-questbar__go').click();return {owner,step:JSON.stringify(player.tasks)===stepBefore&&gameState==='exploring'};
+ });expect(stale).toEqual({owner:true,step:true});
+ await page.evaluate(()=>{player.tasks.active.main_07.currentStep=0;XT_UI.render();});
+ const guards=await page.evaluate(()=>{
+   const button=document.querySelector('#xtQuestBar .xt-questbar__go'),before=JSON.stringify(player.tasks),out=[];
+   showStory('遮挡测试',[]);button.click();XT_UI.render();out.push(document.getElementById('xtQuestBar').hidden&&button.disabled&&JSON.stringify(player.tasks)===before);closeWorldOverlay();
+   interiorV286886={};XT_UI.render();button.click();out.push(document.getElementById('xtQuestBar').hidden&&JSON.stringify(player.tasks)===before);interiorV286886=null;
+   gameState='combat-ending';XT_UI.render();button.click();out.push(document.getElementById('xtQuestBar').hidden&&JSON.stringify(player.tasks)===before);gameState='exploring';XT_UI.render();return out;
+ });expect(guards).toEqual([true,true,true]);
+ await page.locator('#taskBtn').click();await expect(bar).toBeHidden();await expect(page.locator('#taskListContainer > :first-child')).toHaveClass(/task-card main active/);await page.locator('#taskPanel').getByRole('button',{name:'关闭',exact:true}).click();await expect(bar).toBeVisible();
+ const duplicate=await page.evaluate(()=>{const old=performTaskAction;let n=0;performTaskAction=()=>n++;const button=document.querySelector('#xtQuestBar .xt-questbar__go');button.click();XT_UI.render();button.click();performTaskAction=old;return n;});expect(duplicate).toBe(1);
+ // Keep the pre-existing low-health confirmation and actual battle entry.
+ await page.waitForTimeout(460);await page.evaluate(()=>{player.tasks.active.main_07.currentStep=1;player.hp=1;XT_UI.render();});await go.click();await expect(page.locator('#taskBattlePromptV2868103')).toBeVisible();await expect(bar).toBeHidden();expect(await page.evaluate(()=>gameState)).toBe('exploring');
+ await page.evaluate(()=>{closeWorldOverlay();player.tasks.active={};player.tasks.completed=MAIN_TASKS.slice(0,16).map(t=>t.id);player.level=5;checkTaskTriggers();XT_UI.render();});await expect(bar).toContainText('查看准备');
+ const before=await page.evaluate(()=>JSON.stringify(player.tasks));await bar.locator('.xt-questbar__body').click();await expect(page.locator('#taskPanel')).toBeVisible();expect(await page.evaluate(()=>JSON.stringify(player.tasks))).toBe(before);
+});
+
+test('jade UI fits phone and landscape, honours motion preference and restores original UI',async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.setViewportSize({width:390,height:844});await boot(page);await start(page);
+ await page.evaluate(()=>{tutorialState.active=false;closeWorldOverlay();player.level=2;player.tasks.active={};player.tasks.completed=MAIN_TASKS.slice(0,6).map(t=>t.id);checkTaskTriggers();updateWorldHUD();document.querySelector('.world-hud').classList.add('mobile-hud-collapsed');});
+ const bar=page.locator('#xtQuestBar');await expect(bar).toBeVisible();
+ for(const size of [{width:320,height:568},{width:390,height:844},{width:844,height:390},{width:1366,height:900}]){
+   await page.setViewportSize(size);await page.waitForTimeout(220);
+   const bounds=await page.evaluate(()=>{const q=document.getElementById('xtQuestBar').getBoundingClientRect();return {inside:q.left>=0&&q.right<=innerWidth+1&&q.top>=0&&q.bottom<=innerHeight+1,controls:['virtualJoystick','touchAction'].map(id=>{const r=document.getElementById(id).getBoundingClientRect();return r.width===0||r.right<=q.left||r.left>=q.right||r.bottom<=q.top||r.top>=q.bottom;})};});expect(bounds).toEqual({inside:true,controls:[true,true]});
+   await bar.locator('.xt-questbar__body').click({trial:true});await bar.locator('.xt-questbar__go').click({trial:true});
+ }
+ await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:'reduce'});expect(await bar.evaluate(el=>getComputedStyle(el).transitionDuration)).toBe('0s');
+ const state=await page.evaluate(()=>JSON.stringify(player));await page.evaluate(()=>{XT_UI.setTheme(false);XT_UI.setReduceMotion(true);});await expect(bar).toBeHidden();await expect(page.locator('html')).not.toHaveClass(/xt-theme/);expect(await page.evaluate(()=>JSON.stringify(player))).toBe(state);
+ expect(await page.locator('#taskBtn .xt-nav-original').isVisible()).toBe(true);await page.locator('#taskBtn').click();await expect(page.locator('#taskPanel')).toBeVisible();
+ await page.reload();await page.locator('#xiantuSafeBootButton').click();await expect(page.locator('html')).toHaveClass(/xiantu-v2762-ready/);await expect(page.locator('html')).not.toHaveClass(/xt-theme/);await expect(page.locator('html')).toHaveClass(/xt-reduce-motion/);
+ await page.evaluate(()=>{XT_UI.setTheme(true);XT_UI.setReduceMotion(false);loadAndStart();closeWorldOverlay();tutorialState.active=false;});await expect(page.locator('html')).toHaveClass(/xt-theme/);await expect(page.locator('#taskBtn .xt-nav')).toHaveCount(1);await expect(bar).toBeVisible();expect(errors).toEqual([]);
+});

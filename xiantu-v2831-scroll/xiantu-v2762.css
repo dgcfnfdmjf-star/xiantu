@@ -3942,7 +3942,7 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 /* V28.12 洞府管理 */
 .home-board-v2812{padding:16px;border:1px solid #9eb781;border-radius:16px;background:linear-gradient(135deg,#14251e,#18202b);color:#e9eee3;line-height:1.65}.home-board-v2812 h3{color:#ead592;margin:0 0 12px}.home-grid-v2812{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-grid-v2812 article{padding:14px;border:1px solid #526454;border-radius:12px;background:#ffffff08}.home-grid-v2812 h4{margin:0;color:#e8d594}.home-grid-v2812 p{color:#d0dbd1}.home-grid-v2812 strong{color:#83ddb6}.home-notice-v2812{padding:12px;background:#31534066;border-radius:10px}@media(max-width:600px){.home-grid-v2812{grid-template-columns:1fr}.home-board-v2812{padding:12px;font-size:14px}}
 
-:root{--xiantu-build:2868108;}
+:root{--xiantu-build:2868109;}
 #xiantuBuildBadgeV2814{font-size:11px;min-height:32px;padding:5px 9px;white-space:nowrap;color:#b4d4bd;background:#18251f;border:1px solid #718475;border-radius:8px;}
 
 /* V28.68 战斗数值可视层 */
@@ -4690,3 +4690,456 @@ html.xiantu-mobile-dedicated #world3dCanvas.map-fx-hidden-v2868104,
 
 /* Whole-region panorama already contains its architecture. */
 .scroll-pin-v2868108{display:block!important;width:12px!important;height:12px!important;border-radius:50%;background:#f1d186;border:2px solid #2a241b;box-shadow:0 0 0 2px rgba(241,209,134,.35)}
+
+/* V28.68.109 青绿鎏金：adapted from user-supplied UI draft; local system fonts and original SVG ornaments. */
+/* ---------- 0. Design tokens ---------------------------------------------------------- */
+:root {
+  /* 墨 ink (surfaces) */
+  --xt-ink-950: #070c0a;
+  --xt-ink-900: #0c1411;
+  --xt-ink-850: #111b17;
+  --xt-ink-800: #16221d;
+  --xt-ink-700: #1e2d26;
+  --xt-ink-600: #2a3d34;
+  /* 青 jade (secondary / nature / MP-adjacent) */
+  --xt-jade-700: #2f5a4b;
+  --xt-jade-500: #4f8f7a;
+  --xt-jade-300: #8cc7b0;
+  --xt-jade-100: #d7efe4;
+  /* 金 gold (primary, rank, reward) */
+  --xt-gold-800: #5e4420;
+  --xt-gold-700: #8a6a32;
+  --xt-gold-500: #d4b06a;
+  --xt-gold-300: #f0dca0;
+  --xt-gold-100: #fbf1d3;
+  /* 朱 cinnabar (danger, boss, HP) */
+  --xt-cinnabar-700: #7a2418;
+  --xt-cinnabar-500: #c0472f;
+  --xt-cinnabar-300: #ec8a6e;
+  /* 黛 indigo (MP) · 紫 (rare) */
+  --xt-azure-500: #4a8fc9;
+  --xt-azure-300: #9cc8ef;
+  --xt-violet-500: #8a6cc4;
+  /* 纸 paper (light surfaces: 山河图, 卷轴) */
+  --xt-paper-100: #f5ecd7;
+  --xt-paper-300: #e4d3ae;
+  --xt-paper-ink: #3a2c1a;
+
+  /* Text */
+  --xt-text-1: #f1e9d6;          /* body on ink, 13.6:1 on --xt-ink-900 */
+  --xt-text-2: #bcc6b9;          /* secondary,  9.6:1 */
+  --xt-text-3: #8a978e;          /* hint/meta,  5.4:1 (AA for >=12px UI text) */
+  --xt-text-gold: var(--xt-gold-300);
+  --xt-text-on-gold: #2a1c08;
+
+  /* Rarity (凡 灵 宝 仙 神) — one ramp, used for item names, borders, glows */
+  --xt-q-common: #b9c0b4;
+  --xt-q-spirit: #7fc49a;
+  --xt-q-treasure: #6fa8e0;
+  --xt-q-immortal: #b48ce6;
+  --xt-q-divine: #f0b85a;
+
+  /* Fonts: system only (0 KB). Serif = display (titles, buttons), Sans = reading. */
+  --xt-font-display: "Songti SC", "STSong", "Noto Serif SC", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", "Songti TC", serif;
+  --xt-font-body: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+  --xt-font-num: "SF Pro Rounded", -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+
+  /* Type scale (replaces 42 ad-hoc sizes): 11 / 12 / 13 / 15 / 17 / 20 / 24 / 30 */
+  --xt-fs-2xs: 11px;
+  --xt-fs-xs: 12px;
+  --xt-fs-sm: 13px;
+  --xt-fs-md: 15px;
+  --xt-fs-lg: 17px;
+  --xt-fs-xl: 20px;
+  --xt-fs-2xl: 24px;
+  --xt-fs-3xl: 30px;
+  --xt-lh-tight: 1.25;
+  --xt-lh-body: 1.6;
+
+  /* Spacing (4-pt) */
+  --xt-s1: 4px; --xt-s2: 8px; --xt-s3: 12px; --xt-s4: 16px; --xt-s5: 20px; --xt-s6: 24px;
+
+  /* Radii (replaces 60 values) */
+  --xt-r-sm: 6px;
+  --xt-r-md: 10px;
+  --xt-r-lg: 14px;
+  --xt-r-pill: 999px;
+
+  /* Lines & shadows */
+  --xt-line-gold: rgba(212, 176, 106, .55);
+  --xt-line-gold-soft: rgba(212, 176, 106, .24);
+  --xt-line-jade: rgba(140, 199, 176, .38);
+  --xt-shadow-1: 0 2px 6px rgba(0, 0, 0, .35);
+  --xt-shadow-2: 0 10px 28px rgba(0, 0, 0, .45);
+  --xt-shadow-3: 0 22px 60px rgba(0, 0, 0, .6);
+  --xt-glow-gold: 0 0 0 1px rgba(240, 220, 160, .55), 0 0 18px rgba(212, 176, 106, .45);
+
+  /* Surfaces */
+  --xt-fill-panel: radial-gradient(120% 55% at 50% 0%, rgba(212, 176, 106, .10), rgba(212, 176, 106, 0) 62%),
+                   linear-gradient(180deg, rgba(27, 40, 34, .97) 0%, rgba(13, 20, 17, .985) 100%);
+  --xt-fill-card: linear-gradient(180deg, rgba(38, 54, 46, .62), rgba(20, 30, 25, .72));
+  --xt-fill-hud: linear-gradient(180deg, rgba(14, 22, 18, .86), rgba(8, 13, 11, .80));
+  --xt-fill-gold: linear-gradient(180deg, #f6e3a6 0%, #dcb970 45%, #b08a45 100%);
+  --xt-fill-jade: linear-gradient(180deg, rgba(79, 143, 122, .55) 0%, rgba(30, 56, 46, .85) 100%);
+  --xt-fill-cinnabar: linear-gradient(180deg, #d9654a 0%, #a53a25 100%);
+  --xt-scrim: rgba(4, 8, 6, .72);
+
+  /* Ornament: 云纹 corner bracket, original SVG, ~600 B each, url-encoded for iOS */
+  --xt-corner-tl: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Cg fill='none' stroke='%23d4b06a'%3E%3Cpath d='M2 26V10a8 8 0 0 1 8-8h16' stroke-width='1.5'/%3E%3Cpath d='M6 26V12.5A6.5 6.5 0 0 1 12.5 6H26' stroke-opacity='.4'/%3E%3Cpath d='M9 14a3.2 3.2 0 1 1 3.4 3.2' stroke='%23f0dca0' stroke-width='1.3' stroke-linecap='round'/%3E%3C/g%3E%3Ccircle cx='2' cy='26' r='1.5' fill='%23d4b06a'/%3E%3Ccircle cx='26' cy='2' r='1.5' fill='%23d4b06a'/%3E%3C/svg%3E");
+  --xt-corner-tr: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Cg transform='rotate(90 14 14)'%3E%3Cg fill='none' stroke='%23d4b06a'%3E%3Cpath d='M2 26V10a8 8 0 0 1 8-8h16' stroke-width='1.5'/%3E%3Cpath d='M6 26V12.5A6.5 6.5 0 0 1 12.5 6H26' stroke-opacity='.4'/%3E%3Cpath d='M9 14a3.2 3.2 0 1 1 3.4 3.2' stroke='%23f0dca0' stroke-width='1.3' stroke-linecap='round'/%3E%3C/g%3E%3Ccircle cx='2' cy='26' r='1.5' fill='%23d4b06a'/%3E%3Ccircle cx='26' cy='2' r='1.5' fill='%23d4b06a'/%3E%3C/g%3E%3C/svg%3E");
+  --xt-corner-br: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Cg transform='rotate(180 14 14)'%3E%3Cg fill='none' stroke='%23d4b06a'%3E%3Cpath d='M2 26V10a8 8 0 0 1 8-8h16' stroke-width='1.5'/%3E%3Cpath d='M6 26V12.5A6.5 6.5 0 0 1 12.5 6H26' stroke-opacity='.4'/%3E%3Cpath d='M9 14a3.2 3.2 0 1 1 3.4 3.2' stroke='%23f0dca0' stroke-width='1.3' stroke-linecap='round'/%3E%3C/g%3E%3Ccircle cx='2' cy='26' r='1.5' fill='%23d4b06a'/%3E%3Ccircle cx='26' cy='2' r='1.5' fill='%23d4b06a'/%3E%3C/g%3E%3C/svg%3E");
+  --xt-corner-bl: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Cg transform='rotate(270 14 14)'%3E%3Cg fill='none' stroke='%23d4b06a'%3E%3Cpath d='M2 26V10a8 8 0 0 1 8-8h16' stroke-width='1.5'/%3E%3Cpath d='M6 26V12.5A6.5 6.5 0 0 1 12.5 6H26' stroke-opacity='.4'/%3E%3Cpath d='M9 14a3.2 3.2 0 1 1 3.4 3.2' stroke='%23f0dca0' stroke-width='1.3' stroke-linecap='round'/%3E%3C/g%3E%3Ccircle cx='2' cy='26' r='1.5' fill='%23d4b06a'/%3E%3Ccircle cx='26' cy='2' r='1.5' fill='%23d4b06a'/%3E%3C/g%3E%3C/svg%3E");
+  --xt-corners: var(--xt-corner-tl) left 5px top 5px / 26px 26px no-repeat,
+                var(--xt-corner-tr) right 5px top 5px / 26px 26px no-repeat,
+                var(--xt-corner-br) right 5px bottom 5px / 26px 26px no-repeat,
+                var(--xt-corner-bl) left 5px bottom 5px / 26px 26px no-repeat;
+
+  /* Motion */
+  --xt-ease-out: cubic-bezier(.2, .8, .2, 1);
+  --xt-ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --xt-dur-1: 120ms;
+  --xt-dur-2: 220ms;
+  --xt-dur-3: 420ms;
+
+  /* Safe areas (px floors so non-notch devices still get breathing room) */
+  --xt-safe-t: max(8px, env(safe-area-inset-top));
+  --xt-safe-b: max(8px, env(safe-area-inset-bottom));
+  --xt-safe-l: max(10px, env(safe-area-inset-left));
+  --xt-safe-r: max(10px, env(safe-area-inset-right));
+
+  /* Quest bar height, reused to lift joystick / interact button */
+  --xt-qb-h: 68px;
+}
+
+/* ---------- 1. Base typography --------------------------------------------------------- */
+html.xt-theme body {
+  font-family: var(--xt-font-body);
+  color: var(--xt-text-1);
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  font-variant-numeric: tabular-nums;
+}
+html.xt-theme h1, html.xt-theme h2, html.xt-theme h3,
+html.xt-theme .task-panel-title, html.xt-theme .task-card-title,
+html.xt-theme .cultivation-realm-v2799, html.xt-theme .player-name,
+html.xt-theme .pet-panel-title, html.xt-theme .load-dialog-content h3,
+html.xt-theme .world-name, html.xt-theme #worldAreaName {
+  font-family: var(--xt-font-display) !important;
+  letter-spacing: .06em;
+  font-weight: 700;
+}
+html.xt-theme .task-panel-title,
+html.xt-theme .load-dialog-content h3,
+html.xt-theme .cultivation-realm-v2799 {
+  color: var(--xt-gold-300) !important;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .6), 0 0 14px rgba(212, 176, 106, .25);
+}
+
+/* ---------- 2. Ornate panel frame ------------------------------------------------------ */
+/* Corners live in background layers (not ::before/::after) so we never collide with the
+   legacy pseudo-elements and never need to change `position` on legacy containers.      */
+.xt-frame,
+html.xt-theme .task-panel-box,
+html.xt-theme .load-dialog-content,
+html.xt-theme .mobile-inventory-card,
+html.xt-theme .character-panel-content,
+html.xt-theme .equipment-panel-content,
+html.xt-theme #xiantuSafeBoot .boot-card {
+  background: var(--xt-corners), var(--xt-fill-panel) !important;
+  background-color: var(--xt-ink-900) !important;
+  border: 1px solid var(--xt-line-gold) !important;
+  border-radius: var(--xt-r-lg) !important;
+  box-shadow: inset 0 0 0 3px rgba(9, 14, 12, .9), inset 0 0 0 4px var(--xt-line-gold-soft), var(--xt-shadow-3) !important;
+  color: var(--xt-text-1);
+}
+/* Cards inside panels: quieter — single hairline, no corners */
+.xt-card,
+html.xt-theme .task-card,
+html.xt-theme .main-overview-v2822,
+html.xt-theme .cultivation-card-v2799,
+html.xt-theme .char-details-v2799 {
+  background: var(--xt-fill-card) !important;
+  border: 1px solid rgba(212, 176, 106, .16) !important;
+  border-radius: var(--xt-r-md) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04) !important;
+}
+/* The ONE card that matters gets the gold treatment */
+html.xt-theme .task-card.main.active {
+  border-color: var(--xt-line-gold) !important;
+  box-shadow: inset 0 0 0 1px rgba(240, 220, 160, .12), 0 0 22px rgba(212, 176, 106, .14) !important;
+}
+/* Section title with cloud ornaments:  ⌇—◦ 标题 ◦—⌇  (new markup only) */
+.xt-section-title {
+  display: block;
+  margin: var(--xt-s4) 0 var(--xt-s2);
+  text-align: center;
+  font: 700 var(--xt-fs-sm)/1 var(--xt-font-display);
+  letter-spacing: .3em;
+  color: var(--xt-gold-300);
+}
+.xt-section-title svg { width: 36px; height: 12px; vertical-align: middle; color: var(--xt-gold-500); margin: 0 6px; }
+
+/* Scrims behind modals */
+html.xt-theme .task-panel-overlay,
+html.xt-theme .load-dialog,
+html.xt-theme .mobile-inventory-overlay,
+html.xt-theme .equipment-panel-overlay {
+  background: var(--xt-scrim) !important;
+}
+/* ---------- 3. Buttons ---------------------------------------------------------------- */
+.xt-btn {
+  display: inline-block;
+  min-height: 44px;
+  padding: 0 var(--xt-s4);
+  border-radius: var(--xt-r-md);
+  font: 700 var(--xt-fs-md)/44px var(--xt-font-display);
+  letter-spacing: .12em;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: transform var(--xt-dur-1) var(--xt-ease-out), box-shadow var(--xt-dur-1) var(--xt-ease-out), filter var(--xt-dur-2);
+}
+/* PRIMARY · 鎏金 — exactly one per screen */
+.xt-btn--gold,
+html.xt-theme .start-btn,
+html.xt-theme #xiantuSafeBoot #xiantuSafeBootButton,
+html.xt-theme .load-dialog-btn.primary,
+html.xt-theme .task-action.gold,
+html.xt-theme #breakthroughActionsV2798 button:first-child,
+html.xt-theme .tutorial-primary {
+  background: var(--xt-fill-gold) !important;
+  color: var(--xt-text-on-gold) !important;
+  border: 1px solid #f7e6b0 !important;
+  border-radius: var(--xt-r-md) !important;
+  text-shadow: 0 1px 0 rgba(255, 245, 210, .6) !important;
+  font-family: var(--xt-font-display) !important;
+  font-weight: 800 !important;
+  letter-spacing: .1em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), inset 0 -2px 0 rgba(94, 68, 32, .35),
+              0 3px 0 var(--xt-gold-800), 0 6px 16px rgba(0, 0, 0, .4) !important;
+}
+/* SECONDARY · 青玉 */
+.xt-btn--jade,
+html.xt-theme #gameScreen .choice-btn,
+html.xt-theme .task-action,
+html.xt-theme .load-dialog-btn.secondary,
+html.xt-theme .save-btn,
+html.xt-theme .panel-action-btn {
+  background: var(--xt-fill-jade) !important;
+  color: var(--xt-jade-100) !important;
+  border: 1px solid var(--xt-line-jade) !important;
+  border-radius: var(--xt-r-md) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 2px 0 rgba(0, 0, 0, .35) !important;
+  text-shadow: none !important;
+}
+/* .task-action.gold must stay gold even though it also matches .task-action above */
+html.xt-theme .task-actions .task-action.gold { background: var(--xt-fill-gold) !important; color: var(--xt-text-on-gold) !important; border-color: #f7e6b0 !important; }
+/* Story choices (legacy purple .story-btn) stay jade but carry a gold scroll-edge so they read as 剧情 */
+html.xt-theme #gameScreen .choice-btn.story-btn { border-left: 3px solid var(--xt-gold-500) !important; }
+/* DANGER · 朱砂 */
+.xt-btn--danger,
+html.xt-theme .task-action.danger {
+  background: var(--xt-fill-cinnabar) !important;
+  color: #fff1ea !important;
+  border: 1px solid rgba(236, 138, 110, .7) !important;
+}
+/* GHOST · 描金 */
+.xt-btn--ghost,
+html.xt-theme #introReplayV286891 {
+  background: transparent !important;
+  color: var(--xt-gold-300) !important;
+  border: 1px solid var(--xt-line-gold-soft) !important;
+  box-shadow: none !important;
+}
+
+/* States — pressed / disabled / focus */
+.xt-btn:active, html.xt-theme .start-btn:active, html.xt-theme .task-action:active,
+html.xt-theme #gameScreen .choice-btn:active, html.xt-theme .load-dialog-btn:active,
+html.xt-theme .world-hud-actions button:active, html.xt-theme #xiantuSafeBootButton:active {
+  transform: translateY(2px) scale(.985);
+  filter: brightness(.94);
+}
+html.xt-theme .task-action.gold:active, html.xt-theme .start-btn:active, .xt-btn--gold:active {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 1px 0 var(--xt-gold-800), 0 2px 6px rgba(0, 0, 0, .4) !important;
+}
+.xt-btn:disabled, .xt-btn[aria-disabled="true"],
+html.xt-theme #gameScreen .choice-btn:disabled, html.xt-theme .task-action:disabled {
+  filter: grayscale(.85) brightness(.75);
+  opacity: .6;
+  box-shadow: none !important;
+  cursor: not-allowed;
+}
+html.xt-theme button:focus-visible, html.xt-theme summary:focus-visible, .xt-btn:focus-visible {
+  outline: 2px solid var(--xt-gold-300) !important;
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .xt-btn:hover, html.xt-theme .task-action:hover, html.xt-theme #gameScreen .choice-btn:hover { filter: brightness(1.08); }
+  html.xt-theme .start-btn:hover { transform: none; }      /* legacy scale(1.05) caused layout jitter */
+}
+
+/* Inputs */
+html.xt-theme .name-input, html.xt-theme .panel-dao-input {
+  background: rgba(7, 12, 10, .85) !important;
+  border: 1px solid var(--xt-line-gold-soft) !important;
+  border-bottom-color: var(--xt-gold-500) !important;
+  border-radius: var(--xt-r-md) !important;
+  color: var(--xt-gold-100) !important;
+  font-family: var(--xt-font-display) !important;
+  text-align: center;
+  font-size: 16px !important;     /* >=16px stops iOS zoom-on-focus */
+}
+html.xt-theme .name-input:focus, html.xt-theme .panel-dao-input:focus { outline: none; border-color: var(--xt-gold-500) !important; box-shadow: var(--xt-glow-gold) !important; }
+
+/* ---------- 4. Tabs (task panel, bag) ------------------------------------------------- */
+html.xt-theme .task-tabs { background: var(--xt-ink-850) !important; border-bottom: 1px solid var(--xt-line-gold-soft); }
+html.xt-theme .task-tab {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: var(--xt-text-2) !important;
+  font-family: var(--xt-font-display) !important;
+  border-radius: var(--xt-r-sm) !important;
+  position: relative;
+}
+html.xt-theme .task-tab.active {
+  color: var(--xt-gold-300) !important;
+  background: linear-gradient(180deg, rgba(212, 176, 106, 0), rgba(212, 176, 106, .14)) !important;
+  border-color: transparent transparent var(--xt-gold-500) !important;
+  border-radius: var(--xt-r-sm) var(--xt-r-sm) 0 0 !important;
+}
+
+/* ---------- 5. World HUD ------------------------------------------------------------- */
+html.xt-theme .world-hud {
+  background: var(--xt-fill-hud) !important;
+  border: 1px solid var(--xt-line-gold-soft) !important;
+  border-radius: var(--xt-r-lg) !important;
+  box-shadow: var(--xt-shadow-2), inset 0 1px 0 rgba(255, 255, 255, .05) !important;
+}
+html.xt-theme .world-name { color: var(--xt-gold-300) !important; font-size: var(--xt-fs-md) !important; }
+html.xt-theme .world-realm { color: var(--xt-jade-300) !important; font-size: var(--xt-fs-xs) !important; }
+/* HUD nav buttons: one family, icon above label, gold only on the quest button */
+html.xt-theme .world-hud-actions button {
+  background: linear-gradient(180deg, rgba(40, 58, 49, .9), rgba(18, 28, 23, .92)) !important;
+  border: 1px solid rgba(212, 176, 106, .22) !important;
+  color: var(--xt-text-1) !important;
+  border-radius: var(--xt-r-md) !important;
+  font-family: var(--xt-font-display) !important;
+  font-weight: 700 !important;
+}
+html.xt-theme .world-hud-actions button .xt-ico { display: block; width: 18px; height: 18px; margin: 0 auto 1px; color: var(--xt-gold-500); }
+html.xt-theme .world-hud-actions #taskBtn { border-color: var(--xt-line-gold) !important; }
+
+html.xt-theme .world-bar {
+  height: 5px !important;
+  border-radius: 3px !important;
+  background: rgba(0, 0, 0, .55) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06);
+  overflow: hidden;
+}
+html.xt-theme #worldHpBar { background: linear-gradient(90deg, var(--xt-cinnabar-700), var(--xt-cinnabar-500), var(--xt-cinnabar-300)) !important; }
+html.xt-theme #worldMpBar { background: linear-gradient(90deg, #24527a, var(--xt-azure-500), var(--xt-azure-300)) !important; }
+html.xt-theme #worldExpBar { background: linear-gradient(90deg, var(--xt-jade-500), var(--xt-gold-500), var(--xt-gold-300)) !important; }
+html.xt-theme .world-bar i { transition: width var(--xt-dur-3) var(--xt-ease-out); }
+
+html.xt-theme .world-location-card {
+  background: var(--xt-fill-hud) !important;
+  border: 1px solid var(--xt-line-gold-soft) !important;
+  border-radius: var(--xt-r-pill) !important;
+  color: var(--xt-gold-100) !important;
+}
+html.xt-theme .minimap-circle-shell { box-shadow: 0 0 0 2px var(--xt-gold-700), 0 0 0 4px rgba(9, 14, 12, .9), 0 0 0 5px var(--xt-line-gold-soft), var(--xt-shadow-2) !important; border-radius: 50%; }
+html.xt-theme #touchAction {
+  background: radial-gradient(circle at 50% 35%, rgba(240, 220, 160, .25), rgba(0, 0, 0, 0) 60%), linear-gradient(180deg, #2c4239, #121c17) !important;
+  border: 2px solid var(--xt-gold-500) !important;
+  color: var(--xt-gold-100) !important;
+  font-family: var(--xt-font-display) !important;
+  box-shadow: 0 0 0 4px rgba(9, 14, 12, .65), var(--xt-shadow-2) !important;
+}
+
+/* Current chapter is first in DOM as well as visually; no CSS-only focus reordering. */
+html.xt-theme .task-card.main.active > .task-actions { margin: 8px 0 14px; }
+html.xiantu-mobile-dedicated.xt-theme .task-card.main.active > .task-actions > .task-action.gold { min-height: 48px !important; }
+
+/* 6b. On the map: fixed quest bar (markup injected by xiantu-ui.js) */
+.xt-questbar {
+  position: fixed;
+  z-index: 150;                  /* above HUD(120)/minimap(110), below joystick(160)/interact(165)/overlays(>=2700) */
+  left: var(--xt-safe-l);
+  right: var(--xt-safe-r);
+  bottom: var(--xt-safe-b);
+  height: var(--xt-qb-h);
+  display: -webkit-box; display: -webkit-flex; display: flex;
+  -webkit-align-items: center; align-items: center;
+  padding: 0 6px 0 12px;
+  background: var(--xt-corner-tl) left 3px top 3px / 18px 18px no-repeat,
+              var(--xt-corner-bl) left 3px bottom 3px / 18px 18px no-repeat,
+              linear-gradient(180deg, rgba(22, 34, 29, .94), rgba(9, 14, 12, .96));
+  border: 1px solid var(--xt-line-gold);
+  border-radius: var(--xt-r-lg);
+  box-shadow: inset 0 0 0 3px rgba(9, 14, 12, .85), inset 0 0 0 4px var(--xt-line-gold-soft), var(--xt-shadow-2);
+  color: var(--xt-text-1);
+  -webkit-transform: translateY(0); transform: translateY(0);
+  transition: transform var(--xt-dur-2) var(--xt-ease-out), opacity var(--xt-dur-2);
+}
+.xt-questbar[hidden] { display: none !important; }
+.xt-questbar__body { -webkit-flex: 1 1 auto; flex: 1 1 auto; min-width: 0; padding: 0 8px 6px 10px; background: none; border: 0; color: inherit; text-align: left; }
+.xt-questbar__kicker { display: block; font: 700 var(--xt-fs-2xs)/1.2 var(--xt-font-display); letter-spacing: .18em; color: var(--xt-gold-500); }
+.xt-questbar__title { display: block; margin-top: 2px; font: 700 var(--xt-fs-md)/1.25 var(--xt-font-display); color: var(--xt-gold-100); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.xt-questbar__step { display: block; margin-top: 1px; font-size: var(--xt-fs-xs); color: var(--xt-text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.xt-questbar__go { -webkit-flex: 0 0 auto; flex: 0 0 auto; min-width: 96px; height: 48px; line-height: 48px; padding: 0 12px; font-size: var(--xt-fs-md); }
+.xt-questbar__go svg { width: 16px; height: 16px; vertical-align: -2px; margin-left: 4px; }
+.xt-questbar__progress { position: absolute; left: 22px; right: 120px; bottom: 4px; height: 2px; border-radius: 2px; background: rgba(255, 255, 255, .06); overflow: hidden; }
+.xt-questbar__progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--xt-jade-500), var(--xt-gold-300)); }
+
+/* Lift the joystick and interact button above the bar */
+html.xt-theme.xt-has-questbar #virtualJoystick,
+html.xt-theme.xt-has-questbar #touchAction { -webkit-transform: translateY(calc(-1 * (var(--xt-qb-h) + 10px))) !important; transform: translateY(calc(-1 * (var(--xt-qb-h) + 10px))) !important; }
+html.xt-theme.xt-has-questbar .world-location-card { -webkit-transform: translateY(calc(-1 * (var(--xt-qb-h) + 10px))); transform: translateY(calc(-1 * (var(--xt-qb-h) + 10px))); }
+/* ---------- 7. Icons ------------------------------------------------------------------ */
+.xt-ico { display: inline-block; width: 1.15em; height: 1.15em; vertical-align: -.2em; fill: none; stroke: none; color: inherit; -webkit-flex: 0 0 auto; flex: 0 0 auto; }
+
+/* ---------- 8. Rarity colours (item names / borders) -------------------------------- */
+.xt-q-common { color: var(--xt-q-common); }   .xt-q-spirit { color: var(--xt-q-spirit); }
+.xt-q-treasure { color: var(--xt-q-treasure); } .xt-q-immortal { color: var(--xt-q-immortal); }
+.xt-q-divine { color: var(--xt-q-divine); text-shadow: 0 0 10px rgba(240, 184, 90, .45); }
+
+
+/* Keyboard focus also works on browsers without :focus-visible. */
+html.xt-theme button:focus, html.xt-theme summary:focus { outline: 2px solid var(--xt-gold-300); outline-offset: 2px; }
+.xt-nav { display: none; }
+html.xt-theme .xt-nav { display: inline; }
+html.xt-theme .xt-nav-original { display: none; }
+html:not(.xt-theme) #xtQuestBar { display: none; }
+html.xt-theme .world-bar { height: 6px !important; }
+html.xt-theme .xt-questbar button { cursor: pointer; }
+html.xt-theme .xt-questbar__body { min-height: 52px; }
+html.xt-theme .xt-questbar__step { font-size: 12px; }
+html.xt-theme .xt-questbar__go { min-width: 92px; line-height: 1.3; max-width: 38%; letter-spacing: .04em; }
+html.xt-theme .xt-questbar__progress { pointer-events: none; }
+html.xt-theme.xt-reduce-motion .xt-questbar,
+html.xt-theme.xt-reduce-motion .xt-btn,
+html.xt-theme.xt-reduce-motion .world-bar i { transition: none !important; animation: none !important; }
+html.xt-theme.xt-reduce-motion button:active { transform: none !important; }
+@media (prefers-reduced-motion: reduce) {
+ html.xt-theme .xt-questbar, html.xt-theme .xt-btn, html.xt-theme .world-bar i { transition: none !important; animation: none !important; }
+ html.xt-theme button:active { transform: none !important; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+ :root { --xt-qb-h: 56px; }
+ .xt-questbar { left: 26%; right: 26%; height: 56px; }
+ .xt-questbar__kicker { display: none; }
+ .xt-questbar__title { font-size: 13px; }
+ .xt-questbar__go { min-width: 76px !important; font-size: 13px; height: 42px; padding: 0 8px; }
+ html.xt-theme.xt-has-questbar #virtualJoystick, html.xt-theme.xt-has-questbar #touchAction { transform: none !important; -webkit-transform: none !important; }
+}
+@media (min-width: 900px) and (min-height: 501px) {
+ .xt-questbar { left: 50%; right: auto; width: 460px; transform: translateX(-50%); }
+}
+/* Readable compact vitals: labels and values remain available without expanding the HUD. */
+html.xiantu-mobile-dedicated.xt-theme .world-hud.mobile-hud-collapsed .world-bars { display: grid !important; grid-template-columns: 1fr !important; row-gap: 4px; }
+html.xiantu-mobile-dedicated.xt-theme .world-hud.mobile-hud-collapsed .world-bar-row { display: grid !important; grid-template-columns: 24px minmax(24px,1fr) auto !important; align-items: center; column-gap: 4px; }
+html.xiantu-mobile-dedicated.xt-theme .world-hud.mobile-hud-collapsed .world-bar-row > span { display: block !important; font-size: 10px !important; margin: 0 !important; white-space: nowrap; }
+html.xiantu-mobile-dedicated.xt-theme .world-hud.mobile-hud-collapsed .world-bar { width: 100% !important; min-width: 0; }

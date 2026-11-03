@@ -2832,7 +2832,7 @@ function setGraphicsQualityV2903(mode){
 function showGraphicsV2903(message=''){
  if(!forgeAllowedV2825())return;
  const labels={auto:'自动',low:'省电',high:'精细'},mode=PERF_CONFIG.graphicsQuality;
- const html='<section class="main-overview-v2822"><h3>画质设置</h3>'+Object.entries(labels).map(([k,v])=>`<button type="button" class="choice-btn" aria-pressed="${mode===k}" onclick="setGraphicsQualityV2903('${k}')">${v}${mode===k?' · 已选':''}</button>`).join('')+`<p>自动按设备选择，手机优先省电。省电简化光环与氛围；精细显示完整道纹与光影。</p><p>电脑精细画布最高1.5倍，持续掉帧会自动降低。手机精细画布最高2倍，持续低于24帧会回退；低内存设备保持1倍，地图仍最高30帧。</p><p role="status">${message||'仅保存本机画质选择，不改变角色数据。'}</p>${mapFxSettingsV2868104()}</section>`;
+ const html='<section class="main-overview-v2822"><h3>画质设置</h3>'+Object.entries(labels).map(([k,v])=>`<button type="button" class="choice-btn" aria-pressed="${mode===k}" onclick="setGraphicsQualityV2903('${k}')">${v}${mode===k?' · 已选':''}</button>`).join('')+`<p>自动按设备选择，手机优先省电。省电简化光环与氛围；精细显示完整道纹与光影。</p><p>电脑精细画布最高1.5倍，持续掉帧会自动降低。手机精细画布最高2倍，持续低于24帧会回退；低内存设备保持1倍，地图仍最高30帧。</p><p role="status">${message||'仅保存本机画质选择，不改变角色数据。'}</p>${mapFxSettingsV2868104()}${typeof uiSettingsV2868109==='function'?uiSettingsV2868109():''}</section>`;
  toggleCharacterPanel(false);showStory(html,[{text:'返回地图',action:'return_to_map'}]);
 }
 
@@ -3281,7 +3281,7 @@ function drawInteriorV286886(){
  drawActor25DV2770(ctx,s.player);ctx.restore();return true;
 }
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.108';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.109';
 
 
 if(typeof installBagViewV2905==='function')installBagViewV2905();
@@ -3292,7 +3292,7 @@ function mapFxPreferenceV2868104(){try{const p=localStorage.getItem('xiantu_map_
 function mapFxReducedV2868104(){return typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;}
 function mapFxLoadV2868104(){
  const h=MAP_FX_HOST_V2868104;if(h.api)return Promise.resolve(h.api);if(h.failed)return Promise.resolve(null);if(h.loading)return h.loading;
- h.loading=new Promise(resolve=>{const s=document.createElement('script');let done=false;const finish=()=>{if(done)return;done=true;clearTimeout(timer);h.api=window.XiantuMapFxV2868104||null;h.failed=!h.api;resolve(h.api);};const timer=setTimeout(finish,10000);s.src='./xiantu-v2868104-map-fx.js?v='+encodeURIComponent(window.__xiantuBuildFilesV2814?.['xiantu-v28684-duel.js']||'28.68.108');s.onload=finish;s.onerror=finish;document.head.appendChild(s);});return h.loading;
+ h.loading=new Promise(resolve=>{const s=document.createElement('script');let done=false;const finish=()=>{if(done)return;done=true;clearTimeout(timer);h.api=window.XiantuMapFxV2868104||null;h.failed=!h.api;resolve(h.api);};const timer=setTimeout(finish,10000);s.src='./xiantu-v2868104-map-fx.js?v='+encodeURIComponent(window.__xiantuBuildFilesV2814?.['xiantu-v28684-duel.js']||'28.68.109');s.onload=finish;s.onerror=finish;document.head.appendChild(s);});return h.loading;
 }
 function mapFxCancelV2868104(){const h=MAP_FX_HOST_V2868104;h.revision++;try{h.api?.pause(true);}catch(_){h.failed=true;}}
 function mapFxFrameV2868104(t){

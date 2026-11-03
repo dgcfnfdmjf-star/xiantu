@@ -6514,7 +6514,7 @@
       };
       if(filter!=='main'){c.innerHTML=(filter==='journey'?journeyIntroductionV2838():'')+list.map(card).join('');return;}
       const done=list.filter(t=>getTaskStatus(t.id)===TASK_STATUS.COMPLETED),todo=list.filter(t=>getTaskStatus(t.id)!==TASK_STATUS.COMPLETED),current=preferredMainV286823(todo),last=getTaskData(player.tasks.lastMainResultV2822?.id);
-      c.innerHTML=`<section class="main-overview-v2822"><h3>📜 主线旅程 · ${done.length}/${list.length} 章</h3><p>${current?`当前篇章：${esc(current.title)}`:'当前已开放主线全部完成，可继续宗门大比、三界历练与宿敌纪事。'}</p><progress max="${list.length}" value="${done.length}" aria-label="主线章节进度"></progress><p>剧情对话由下方按钮推进；实战需获胜，修炼与突破会先显示预览。</p>${last?`<details><summary>最近完成：${esc(last.title)} · 奖励已到账</summary><p>${esc(formatTaskRewards(last.rewards))}</p></details>`:''}</section>${current?card(current):''}${expansionCardV286827()+rainCardV286822()+storyMailCardV286826()+postCaseCardV286826()+taskLovePanelV2824()}${todo.length>1?`<details class="main-archive-v2822"><summary>后续章节 · ${todo.length-1}</summary>${todo.filter(t=>t!==current).map(card).join('')}</details>`:''}${done.length?`<details class="main-archive-v2822"><summary>已完成章节 · ${done.length}</summary>${done.map(card).join('')}</details>`:''}`;
+      c.innerHTML=`${current?card(current):''}<section class="main-overview-v2822"><h3>📜 主线旅程 · ${done.length}/${list.length} 章</h3><p>${current?`当前篇章：${esc(current.title)}`:'当前已开放主线全部完成，可继续宗门大比、三界历练与宿敌纪事。'}</p><progress max="${list.length}" value="${done.length}" aria-label="主线章节进度"></progress><p>点击当前章节的按钮推进剧情；实战需获胜，修炼与突破会先显示预览。</p>${last?`<details><summary>最近完成：${esc(last.title)} · 奖励已到账</summary><p>${esc(formatTaskRewards(last.rewards))}</p></details>`:''}</section>${expansionCardV286827()+rainCardV286822()+storyMailCardV286826()+postCaseCardV286826()+taskLovePanelV2824()}${todo.length>1?`<details class="main-archive-v2822"><summary>后续章节 · ${todo.length-1}</summary>${todo.filter(t=>t!==current).map(card).join('')}</details>`:''}${done.length?`<details class="main-archive-v2822"><summary>已完成章节 · ${done.length}</summary>${done.map(card).join('')}</details>`:''}`;
     }
     function showTaskPanel(filter='main'){
       taskBattlePromptV2868103=null;
@@ -6526,6 +6526,7 @@
     function getTrackedTasks(){const active=getActiveTasks();const main=active.find(t=>t.type==='main')||preferredMainV286823(MAIN_TASKS.filter(t=>![TASK_STATUS.COMPLETED,TASK_STATUS.FAILED].includes(getTaskStatus(t.id))));const other=active.find(t=>t.type!=='main');return [main,other].filter(Boolean);}
     function getActiveTasks(){const a=[];for(const [id,inst] of Object.entries(ensureTaskState().active)){if(inst.completed||inst.failed)continue;const t=getTaskData(id);if(t)a.push({...t,instance:inst});}return a;}
     function updateTaskTracker(){
+      window.XT_UI?.refresh();
       if(!player)return;ensureTaskState();let tr=document.getElementById('taskTrackerCompact');const hud=document.querySelector('.world-hud');if(!hud)return;
       if(!tr){tr=document.createElement('div');tr.id='taskTrackerCompact';hud.appendChild(tr);}
       const tasks=getTrackedTasks(),esc=discipleEscV2815;
@@ -15464,6 +15465,7 @@ function villageEnhanceV286897(){
     }
 
     function updateWorldHUD(){
+      window.XT_UI?.refresh();
       if(typeof ensureGraphicsButtonV2903==='function')ensureGraphicsButtonV2903();
       if(typeof ensureMapAliveButtonV2893==='function')ensureMapAliveButtonV2893();
       if(typeof ensureSwordFlightV2896==='function')ensureSwordFlightV2896();
@@ -16016,7 +16018,7 @@ function villageEnhanceV286897(){
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.108";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.109";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
