@@ -14989,7 +14989,12 @@ function villageEnhanceV286897(){
       const field=document.getElementById('scrollFieldV2831');if(!field)return;
       const directory=document.getElementById('scrollDirectoryV2837'),focused=document.activeElement,fromDirectory=directory?.contains(focused);
       const focusedPoi=field.contains(focused)||fromDirectory?focused?.dataset?.poi:null;
-      const zoomWidth=field.style.width;field.style.cssText=`aspect-ratio:${cfg.width}/${cfg.height};${scrollRegionStyleV2834()}`;if(zoomWidth)field.style.width=zoomWidth;
+      const background=scrollRegionStyleV2834();
+      if(field._sceneBackgroundV2868108!==background){
+        const zoomWidth=field.style.width;field.style.cssText=`aspect-ratio:${cfg.width}/${cfg.height};${background}`;if(zoomWidth)field.style.width=zoomWidth;
+        // A late panorama replaces the base remembered by the optional relief layer too.
+        field._sceneBackgroundV2868108=background;delete field._s25Background;delete field.dataset.s25Bg;
+      }
       field.innerHTML=pois.map(o=>{const point=wildSceneV286898()?.overview?wildSceneDoorV286898(o)||o:o;return `<button type="button" data-scroll-action="select" data-poi="${esc(o.id)}" class="scroll-poi-v2831 ${state.selected===o.id?'is-selected':''} ${scrollPoiDoneV2837(o)?'is-claimed':''}" style="left:${point.x/cfg.width*100}%;top:${point.y/cfg.height*100}%" aria-label="${esc(o.name)}" aria-pressed="${state.selected===o.id}">${scrollPoiArtV2832(o)}<span>${esc(o.name)}</span></button>`;}).join('')+`<div class="scroll-player-v2831" style="left:${p.x/cfg.width*100}%;top:${p.y/cfg.height*100}%">●<span>你在此</span></div>`;
       // Use the actual rendered hit boxes, including labels and the 44px minimum.
       // Dense landmarks keep their real position as dots; the existing directory remains the selector.

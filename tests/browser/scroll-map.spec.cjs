@@ -1,7 +1,8 @@
 const {test,expect}=require('@playwright/test');
-async function openNorth(page,width){
+async function openNorth(page,width,holdImage=null){
  await page.setViewportSize({width,height:844});
  await page.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());
+ if(holdImage)await page.route('**/north-panorama-v2868108.webp',holdImage);
  await page.goto('/game-v2762.html');await page.locator('#introSkipChoiceV2898').check();await page.locator('#xiantuSafeBootButton').click();
  await expect(page.locator('html')).toHaveClass(/xiantu-v2762-ready/);await expect(page.locator('#guideHudBtn')).toBeAttached();
  await page.getByRole('button',{name:'开始修仙',exact:true}).click();
@@ -66,4 +67,20 @@ test('scroll resize/filter updates keep user-collapsed directory and search focu
  });expect(stale).toEqual({same:true,query:'',filter:'all'});
  const owner=await page.evaluate(()=>{const old=document.getElementById('scrollMapV2831'),input=old.querySelector('#scrollSearchV2837');player=createDefaultPlayer();input.value='旧角色';old.oninput({target:input});return {closed:!document.getElementById('scrollMapV2831'),name:player.name,navigation:!!autoNavigationV2830};});
  expect(owner.closed).toBe(true);expect(owner.navigation).toBe(false);
+});
+
+test('late north panorama preserves zoom and remains the base when relief is toggled',async({page})=>{
+ let release;const held=new Promise(resolve=>{release=resolve});
+ await openNorth(page,390,async route=>{await held;await route.continue();});
+ const field=page.locator('#scrollFieldV2831');
+ await expect(field).toHaveCSS('background-image',/scroll-regions-v2834/);
+ await page.evaluate(()=>zoomScrollV2837(3));
+ const width=await field.evaluate(el=>el.style.width);
+ release();await expect(field).toHaveCSS('background-image',/north-panorama-v2868108/);
+ expect(await field.evaluate(el=>el.style.width)).toBe(width);
+ for(const enabled of [false,true,false]){
+  await page.evaluate(v=>setScene25dV2888(v),enabled);
+  await expect(field).toHaveCSS('background-image',/north-panorama-v2868108/);
+  expect((await mapLayout(page)).trueCoordinates).toBe(true);
+ }
 });
