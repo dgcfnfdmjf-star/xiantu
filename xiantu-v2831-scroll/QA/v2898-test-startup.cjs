@@ -6,12 +6,12 @@ const build=html.match(/var expectedBuild='([^']+)'/)[1],cssBuild=build.replaceA
 const preload=html.match(/<link rel="preload" as="style"[^>]+>/)[0],href=preload.match(/href="([^"]+)"/)[1];
 a(preload.includes('fetchpriority="high"'));a(html.indexOf(preload)<html.indexOf('<body'));a(loader.includes("link.href='"+href+"'"));a.equal(files.length,40);
 function harness(styleBuild=cssBuild){
- const nodes=new Map(),added=[],evaluated=[],timers=new Map();let tid=0,stopped=0;
+ const nodes=new Map(),added=[],evaluated=[],timers=new Map();let tid=0,stopped=0,now=0;
  const cls=()=>({add(){},remove(){},contains(){return false;}});
  function el(id){return {id,style:{},textContent:'',classList:cls(),addEventListener(k,f){this[k]=f;},appendChild(n){added.push(n);},remove(){}};}
- for(const id of ['xiantuSafeBootButton','xiantuSafeBootProgress','xiantuSafeBootError','xiantuSafeBoot','characterUtilityActions','bootMeterV286891','bootTipV286891'])nodes.set(id,el(id));
- const context={document:{getElementById:id=>nodes.get(id),createElement:tag=>({...el(''),tag}),querySelectorAll:()=>[],documentElement:{classList:cls()},body:{classList:cls(),appendChild(n){added.push(n);if(n.src)queueMicrotask(()=>{const name=n.src.split('/').pop().split('?')[0];evaluated.push(name);context.window.__xiantuBuildFilesV2814??={};context.window.__xiantuBuildFilesV2814[name]=build;n.onload();});}},head:{appendChild:n=>added.push(n)}},window:{XiantuIntroV2860:{start:()=>Promise.resolve(),wait:()=>Promise.resolve(),ready(){},dispose:()=>stopped++},addEventListener(){}},getComputedStyle:()=>({getPropertyValue:()=>styleBuild}),setTimeout:(f,ms)=>{const id=++tid;if(ms===0)queueMicrotask(f);else timers.set(id,{f,ms});return id;},clearTimeout:id=>timers.delete(id),requestAnimationFrame:queueMicrotask,Event:class{},location:{reload(){}},bootJevFriendsV2850(){}};
- vm.runInNewContext(loader,context);return {nodes,added,evaluated,timers,context,get stopped(){return stopped;}};
+ for(const id of ['xiantuSafeBootButton','xiantuSafeBootProgress','xiantuSafeBootError','xiantuSafeBoot','characterUtilityActions','bootMeterV286891','bootTipV286891','bootReloadV2868105'])nodes.set(id,el(id));
+ const context={document:{getElementById:id=>nodes.get(id),createElement:tag=>({...el(''),tag}),querySelectorAll:()=>[],documentElement:{classList:cls()},body:{classList:cls(),appendChild(n){added.push(n);if(n.src)queueMicrotask(()=>{const name=n.src.split('/').pop().split('?')[0];evaluated.push(name);context.window.__xiantuBuildFilesV2814??={};context.window.__xiantuBuildFilesV2814[name]=build;n.onload();});}},head:{appendChild:n=>added.push(n)}},window:{XiantuIntroV2860:{start:()=>Promise.resolve(),wait:()=>Promise.resolve(),ready(){},dispose:()=>stopped++},addEventListener(){},removeEventListener(){}},Date:{now:()=>now},setInterval:(f,ms)=>{timers.set(++tid,{f,ms});return tid;},clearInterval:id=>timers.delete(id),getComputedStyle:()=>({getPropertyValue:()=>styleBuild}),setTimeout:(f,ms)=>{const id=++tid;if(ms===0)queueMicrotask(f);else timers.set(id,{f,ms});return id;},clearTimeout:id=>timers.delete(id),requestAnimationFrame:queueMicrotask,Event:class{},location:{reload(){}},bootJevFriendsV2850(){}};
+ vm.runInNewContext(loader,context);return {nodes,added,evaluated,timers,context,advance(ms){now+=ms;},get stopped(){return stopped;}};
 }
 (async()=>{
  const h=harness();const done=h.nodes.get('xiantuSafeBootButton').click();
@@ -23,7 +23,7 @@ function harness(styleBuild=cssBuild){
  for(const mode of ['slow','automatic-retry','manual-retry','wrong-version']){
  const x=harness(mode==='wrong-version'?'old':cssBuild),p=x.nodes.get('xiantuSafeBootButton').click(),button=x.nodes.get('xiantuSafeBootButton');
  if(mode==='slow'){
-   [...x.timers.values()].find(t=>t.ms===6000).f();a.equal(x.stopped,0);a.match(x.nodes.get('xiantuSafeBootProgress').textContent,/仍在加载/);a.equal(button.disabled,true);a.equal(x.added.length,1);
+   x.advance(6000);[...x.timers.values()].find(t=>t.ms===1000).f();a.equal(x.stopped,0);a.match(x.nodes.get('xiantuSafeBootProgress').textContent,/仍在加载/);a.equal(button.disabled,true);a.equal(x.added.length,1);a(x.nodes.get('bootReloadV2868105').hidden);x.advance(9000);[...x.timers.values()].find(t=>t.ms===1000).f();a(!x.nodes.get('bootReloadV2868105').hidden);a.match(x.nodes.get('xiantuSafeBootProgress').textContent,/加载界面样式.*15 秒/);
  }else if(mode.includes('retry')){
    const fail=x.added[0].onerror;fail();fail();a(!x.nodes.get('bootMeterV286891').value,'failed download adds no progress');a.equal(x.stopped,0);a.equal(x.added.length,1);
    [...x.timers.values()].find(t=>t.ms===750).f();a.equal(x.added.length,2);a.equal(x.added[1].href,href+'&retry=1');
@@ -36,7 +36,7 @@ function harness(styleBuild=cssBuild){
  if(mode==='wrong-version'){
    a(!x.nodes.get('bootMeterV286891').value,'invalid CSS adds no progress');
    a.equal(x.evaluated.length,0);a.equal(x.added.filter(n=>n.as==='script').length,0);a.equal(x.stopped,1);a.match(x.nodes.get('xiantuSafeBootError').textContent,/样式版本不一致/);
- }else{a.deepEqual(x.evaluated,files);a.equal(x.stopped,1);a.equal(x.nodes.get('bootMeterV286891').value,100);a.equal(x.nodes.get('xiantuSafeBootError').style.display,'none');}
+ }else{a.deepEqual(x.evaluated,files);a(x.nodes.get('bootReloadV2868105').hidden);a(![...x.timers.values()].some(t=>t.ms===1000));a.equal(x.stopped,1);a.equal(x.nodes.get('bootMeterV286891').value,100);a.equal(x.nodes.get('xiantuSafeBootError').style.display,'none');}
  }
  a(![...h.timers.values()].some(t=>t.ms===5000),'tip timer cleared after ready');
  // Intro behavior moved to v286891-test-intro.cjs.

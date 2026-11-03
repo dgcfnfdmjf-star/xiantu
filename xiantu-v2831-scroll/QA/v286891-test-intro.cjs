@@ -4,33 +4,37 @@ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),a=re
 const root=process.env.XIANTU_TEST_ROOT||path.resolve(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'game-v2762.html'),'utf8'),src=html.match(/<script id="xiantu-intro-v2860">([\s\S]*?)<\/script>/)[1];
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
-function world({seen=false,skip=false,saveData=false,reduced=false,width=390,network='4g',blocked=false,denied=false}={}){
- let now=0,next=0;const timers=new Map(),events={},requests=[],store=new Map(),els={};
+function world({seen=false,skip=false,saveData=false,reduced=false,width=390,network='4g',blocked=false,denied=false,mutedOnly=false,audio=true,deferred=false}={}){
+ let now=0,next=0;const timers=new Map(),events={},requests=[],rejects=[],store=new Map(),els={};
+ if(!audio)store.set('xiantu_intro_audio_v2868105','0');
  if(seen)store.set('xiantu_intro_seen_v286891','1');if(skip)store.set('xiantu_skip_intro_v2898','1');
- function el(id){const listeners={},classes=new Set();return {id,hidden:true,checked:false,muted:true,textContent:'',attrs:{},listeners,classList:{add:(...v)=>v.forEach(x=>classes.add(x)),remove:(...v)=>v.forEach(x=>classes.delete(x)),contains:v=>classes.has(v)},addEventListener:(k,f)=>(listeners[k]??=new Set()).add(f),removeEventListener:(k,f)=>listeners[k]?.delete(f),fire(k){for(const f of [...(listeners[k]||[])])f({});},setAttribute(k,v){this.attrs[k]=v;},removeAttribute(k){delete this[k];},plays:0,pauses:0,play(){this.plays++;requests.push(this.src);return denied?Promise.reject(Object.assign(Error('blocked'),{name:'NotAllowedError'})):Promise.resolve();},pause(){this.pauses++;},load(){},click(){this.onclick?.();}};}
- for(const id of ['introVideoV2860','introPanelV2860','xiantuSafeBoot','introSkipV2860','introSoundV2860','introSkipChoiceV2898','introEnterV286891','introReplayV286891'])els[id]=el(id);
+ function el(id){const listeners={},classes=new Set();return {id,hidden:true,checked:false,muted:true,textContent:'',attrs:{},listeners,classList:{add:(...v)=>v.forEach(x=>classes.add(x)),remove:(...v)=>v.forEach(x=>classes.delete(x)),contains:v=>classes.has(v)},addEventListener:(k,f)=>(listeners[k]??=new Set()).add(f),removeEventListener:(k,f)=>listeners[k]?.delete(f),fire(k){for(const f of [...(listeners[k]||[])])f({});},setAttribute(k,v){this.attrs[k]=v;},removeAttribute(k){delete this[k];},plays:0,pauses:0,play(){this.plays++;requests.push(this.src);if(deferred)return new Promise((resolve,reject)=>rejects.push(reject));return (denied||(mutedOnly&&!this.muted))?Promise.reject(Object.assign(Error('blocked'),{name:'NotAllowedError'})):Promise.resolve();},pause(){this.pauses++;},load(){},click(){this.onclick?.();}};}
+ for(const id of ['introVideoV2860','introPanelV2860','xiantuSafeBoot','introSkipV2860','introSoundV2860','introSkipChoiceV2898','introEnterV286891','introReplayV286891','introAudioChoiceV2868105'])els[id]=el(id);
  const context={document:{getElementById:id=>els[id]},localStorage:{getItem(k){if(blocked)throw Error('storage blocked');return store.get(k)||null;},setItem(k,v){if(blocked)throw Error('storage blocked');store.set(k,v);}},navigator:{connection:{saveData,effectiveType:network}},innerWidth:width,matchMedia:()=>({matches:reduced}),addEventListener:(k,f)=>events[k]=f,setTimeout:(f,ms)=>{timers.set(++next,{f,at:now+ms});return next;},clearTimeout:id=>timers.delete(id),Promise};context.window=context;
  vm.runInNewContext(src,context);
  function tick(ms){const end=now+ms;for(;;){const row=[...timers].filter(([,v])=>v.at<=end).sort((a,b)=>a[1].at-b[1].at)[0];if(!row)break;now=row[1].at;timers.delete(row[0]);row[1].f();}now=end;}
- return {I:context.XiantuIntroV2860,E:els,video:els.introVideoV2860,store,requests,events,timers,tick};
+ return {I:context.XiantuIntroV2860,E:els,video:els.introVideoV2860,store,requests,rejects,events,timers,tick};
 }
 (async()=>{
  for(const reason of ['skip','enter','ended']){
-  const w=world(),p=w.I.start();a.equal(w.I.start(),p);a.equal(w.requests.length,1);a.equal(w.requests[0],'./intro-v286891-360.mp4');a(!w.E.introPanelV2860.hidden);
+  const w=world(),p=w.I.start();a.equal(w.I.start(),p);a.equal(w.requests.length,1);a.equal(w.requests[0],'./intro-v286891-360.mp4?v=audio105');a(!w.E.introPanelV2860.hidden);
   w.video.fire('playing');a(w.E.introEnterV286891.hidden);w.I.ready();a(!w.E.introEnterV286891.hidden);a(w.E.introReplayV286891.hidden);
-  w.E.introSoundV2860.click();a.equal(w.video.muted,false);a.equal(w.E.introSoundV2860.attrs['aria-pressed'],'true');
+  a.equal(w.video.muted,false);w.E.introSoundV2860.click();a.equal(w.video.muted,true);a.equal(w.E.introSoundV2860.attrs['aria-pressed'],'false');a.equal(w.store.get('xiantu_intro_audio_v2868105'),'0');
   if(reason==='ended')w.video.fire('ended');else w.E[reason==='skip'?'introSkipV2860':'introEnterV286891'].click();
   a(w.E.xiantuSafeBoot.classList.contains('intro-fading'));w.tick(250);await p;
   a(w.E.introPanelV2860.hidden);a.equal(w.store.get('xiantu_intro_seen_v286891'),'1');a.equal(w.video.src,undefined);a.equal(w.timers.size,0);a.equal(w.video.pauses,1);
  }
+ {const w=world({mutedOnly:true});w.I.start();await flush();a.equal(w.video.muted,true);a.equal(w.video.plays,2);a(!w.E.introPanelV2860.hidden);a.equal(w.E.introSoundV2860.textContent,'开启声音');w.I.dispose();}
+ {const w=world({deferred:true});w.I.start();w.E.introSoundV2860.click();w.rejects[0](Object.assign(Error('old request'),{name:'NotAllowedError'}));await flush();a(!w.E.introPanelV2860.hidden);a(w.video.muted);a.equal(w.video.plays,2);w.I.dispose();}
+ {const w=world({audio:false});w.I.start();a(w.video.muted);w.E.introSoundV2860.click();a(!w.video.muted);a.equal(w.store.get('xiantu_intro_audio_v2868105'),'1');w.I.dispose();}
  for(const options of [{seen:true},{skip:true},{saveData:true},{reduced:true}]){
   const w=world(options);await w.I.start();a.equal(w.requests.length,0);a(w.E.introPanelV2860.hidden);a(!w.E.introReplayV286891.hidden);
   w.E.introReplayV286891.click();a.equal(w.requests.length,1);let resolved=false;w.I.wait().then(()=>resolved=true);await flush();a(!resolved);
   w.I.ready();w.E.introEnterV286891.click();w.tick(250);await flush();a(resolved);a(w.E.introReplayV286891.hidden);
   w.E.introReplayV286891.click();a.equal(w.requests.length,1,'cannot replay after ready');
  }
- {const w=world({width:844});w.I.start();a.equal(w.requests[0],'./intro-v2860.mp4');const stale=[...w.video.listeners.error][0];w.video.fire('error');a.equal(w.requests[1],'./intro-v286891-360.mp4');stale();a.equal(w.requests.length,2);w.video.fire('error');await w.I.wait();a(!w.store.has('xiantu_intro_seen_v286891'));a.equal(w.timers.size,0);}
- {const w=world({width:844,network:'3g'});w.I.start();a.equal(w.requests[0],'./intro-v286891-360.mp4');w.I.dispose();await w.I.wait();}
+ {const w=world({width:844});w.I.start();a.equal(w.requests[0],'./intro-v2860.mp4?v=audio105');const stale=[...w.video.listeners.error][0];w.video.fire('error');a.equal(w.requests[1],'./intro-v286891-360.mp4?v=audio105');stale();a.equal(w.requests.length,2);w.video.fire('error');await w.I.wait();a(!w.store.has('xiantu_intro_seen_v286891'));a.equal(w.timers.size,0);}
+ {const w=world({width:844,network:'3g'});w.I.start();a.equal(w.requests[0],'./intro-v286891-360.mp4?v=audio105');w.I.dispose();await w.I.wait();}
  for(const reason of ['startup','stall','deadline','pagehide','denied','dispose-fading','blocked']){
   const w=world({denied:reason==='denied',blocked:reason==='blocked'});let resolved=false;w.I.start().then(()=>resolved=true);
   if(reason==='startup'){w.tick(3400);await flush();a(!resolved);w.tick(100);}

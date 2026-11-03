@@ -11377,6 +11377,7 @@ function villageEnhanceV286897(){
             <p>"修仙之路漫漫，切记心正道直。"</p>
             <p>说完，老者化作一道金光消失不见。</p>
             <p style="color: #69f0ae;">修为 +50，获得 小还丹、灵草x3</p>
+            <p>玉简末页刻着凌霄宗的山门。待你踏入练气期，便可凭自己的本事参加入门考核。</p>
           `, [{ text: '踏上仙途', action: 'tutorial_begin_world', story: true }]);
           break;
           
