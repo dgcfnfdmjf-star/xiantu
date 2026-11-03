@@ -1,0 +1,1486 @@
+[
+  {
+    "key": "jade_heart_guard",
+    "t": 55,
+    "parts": [
+      {
+        "id": "telegraph",
+        "layer": "telegraph",
+        "file": "jade_heart_guard_telegraph.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 180,
+        "height": 180,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 2,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 165,
+    "parts": [
+      {
+        "id": "body",
+        "layer": "body",
+        "file": "jade_heart_guard_body.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 270,
+        "height": 270,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 4,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 285,
+    "parts": [
+      {
+        "id": "impact",
+        "layer": "impact",
+        "file": "jade_heart_guard_impact.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 237,
+        "width": 160,
+        "height": 160,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 2,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 1000,
+    "parts": [
+      {
+        "id": "guard",
+        "layer": "guard",
+        "file": "jade_heart_guard_guard.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 277,
+        "width": 220,
+        "height": 220,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 1680,
+    "parts": [
+      {
+        "id": "consume",
+        "layer": "consume",
+        "file": "jade_heart_guard_consume.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 277,
+        "width": 220,
+        "height": 220,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 2,
+        "opacity": 0.6363636363636364,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 1900,
+    "parts": []
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 80.1,
+    "parts": [
+      {
+        "id": "telegraph",
+        "layer": "telegraph",
+        "file": "jade_heart_guard_telegraph.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 180,
+        "height": 180,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 2,
+        "opacity": 0.9966666666666668,
+        "rotation": 0
+      },
+      {
+        "id": "body",
+        "layer": "body",
+        "file": "jade_heart_guard_body.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 270,
+        "height": 270,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.0033333333333331436,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 95,
+    "parts": [
+      {
+        "id": "telegraph",
+        "layer": "telegraph",
+        "file": "jade_heart_guard_telegraph.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 180,
+        "height": 180,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 0.5,
+        "rotation": 0
+      },
+      {
+        "id": "body",
+        "layer": "body",
+        "file": "jade_heart_guard_body.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 270,
+        "height": 270,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.5,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 109.9,
+    "parts": [
+      {
+        "id": "telegraph",
+        "layer": "telegraph",
+        "file": "jade_heart_guard_telegraph.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 180,
+        "height": 180,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 0.0033333333333331514,
+        "rotation": 0
+      },
+      {
+        "id": "body",
+        "layer": "body",
+        "file": "jade_heart_guard_body.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 270,
+        "height": 270,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 1,
+        "opacity": 0.9966666666666669,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 210.1,
+    "parts": [
+      {
+        "id": "body",
+        "layer": "body",
+        "file": "jade_heart_guard_body.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 270,
+        "height": 270,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 6,
+        "opacity": 0.9966666666666667,
+        "rotation": 0
+      },
+      {
+        "id": "impact",
+        "layer": "impact",
+        "file": "jade_heart_guard_impact.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 237,
+        "width": 160,
+        "height": 160,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.003333333333333144,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 225,
+    "parts": [
+      {
+        "id": "body",
+        "layer": "body",
+        "file": "jade_heart_guard_body.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 270,
+        "height": 270,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 7,
+        "opacity": 0.5,
+        "rotation": 0
+      },
+      {
+        "id": "impact",
+        "layer": "impact",
+        "file": "jade_heart_guard_impact.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 237,
+        "width": 160,
+        "height": 160,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.5,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 239.9,
+    "parts": [
+      {
+        "id": "body",
+        "layer": "body",
+        "file": "jade_heart_guard_body.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 270,
+        "height": 270,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 7,
+        "opacity": 0.0033333333333332624,
+        "rotation": 0
+      },
+      {
+        "id": "impact",
+        "layer": "impact",
+        "file": "jade_heart_guard_impact.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 237,
+        "width": 160,
+        "height": 160,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 1,
+        "opacity": 0.9966666666666668,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 335.1,
+    "parts": [
+      {
+        "id": "impact",
+        "layer": "impact",
+        "file": "jade_heart_guard_impact.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 237,
+        "width": 160,
+        "height": 160,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 4,
+        "opacity": 0.9966666666666659,
+        "rotation": 0
+      },
+      {
+        "id": "residue",
+        "layer": "residue",
+        "file": "jade_heart_guard_residue.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 262,
+        "width": 170,
+        "height": 170,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.0033333333333340916,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 350,
+    "parts": [
+      {
+        "id": "impact",
+        "layer": "impact",
+        "file": "jade_heart_guard_impact.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 237,
+        "width": 160,
+        "height": 160,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 5,
+        "opacity": 0.5000000000000001,
+        "rotation": 0
+      },
+      {
+        "id": "residue",
+        "layer": "residue",
+        "file": "jade_heart_guard_residue.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 262,
+        "width": 170,
+        "height": 170,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.5,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 364.9,
+    "parts": [
+      {
+        "id": "impact",
+        "layer": "impact",
+        "file": "jade_heart_guard_impact.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 237,
+        "width": 160,
+        "height": 160,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 5,
+        "opacity": 0.003333333333334317,
+        "rotation": 0
+      },
+      {
+        "id": "residue",
+        "layer": "residue",
+        "file": "jade_heart_guard_residue.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 262,
+        "width": 170,
+        "height": 170,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.9966666666666659,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 450,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true
+    },
+    "parts": [
+      {
+        "id": "residue",
+        "layer": "residue",
+        "file": "jade_heart_guard_residue.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 262,
+        "width": 170,
+        "height": 170,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 2,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 500,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true
+    },
+    "parts": [
+      {
+        "id": "residue",
+        "layer": "residue",
+        "file": "jade_heart_guard_residue.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 262,
+        "width": 170,
+        "height": 170,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 4,
+        "opacity": 1,
+        "rotation": 0
+      },
+      {
+        "id": "guard",
+        "layer": "guard",
+        "file": "jade_heart_guard_guard.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 277,
+        "width": 220,
+        "height": 220,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.5,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 550,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true
+    },
+    "parts": [
+      {
+        "id": "residue",
+        "layer": "residue",
+        "file": "jade_heart_guard_residue.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 262,
+        "width": 170,
+        "height": 170,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 5,
+        "opacity": 0.3750000000000001,
+        "rotation": 0
+      },
+      {
+        "id": "guard",
+        "layer": "guard",
+        "file": "jade_heart_guard_guard.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 277,
+        "width": 220,
+        "height": 220,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 1599,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true,
+      "guardConsumedAt": 1600
+    },
+    "parts": [
+      {
+        "id": "guard",
+        "layer": "guard",
+        "file": "jade_heart_guard_guard.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 277,
+        "width": 220,
+        "height": 220,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 7,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 1600,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true,
+      "guardConsumedAt": 1600
+    },
+    "parts": [
+      {
+        "id": "consume",
+        "layer": "consume",
+        "file": "jade_heart_guard_consume.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 277,
+        "width": 220,
+        "height": 220,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 1601,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true,
+      "guardConsumedAt": 1600
+    },
+    "parts": [
+      {
+        "id": "consume",
+        "layer": "consume",
+        "file": "jade_heart_guard_consume.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 277,
+        "width": 220,
+        "height": 220,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.9954545454545455,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 1800,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true,
+      "guardConsumedAt": 1600
+    },
+    "parts": [
+      {
+        "id": "consume",
+        "layer": "consume",
+        "file": "jade_heart_guard_consume.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 277,
+        "width": 220,
+        "height": 220,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 5,
+        "opacity": 0.09090909090909094,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 1810,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true,
+      "guardConsumedAt": 1600
+    },
+    "parts": [
+      {
+        "id": "consume",
+        "layer": "consume",
+        "file": "jade_heart_guard_consume.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 277,
+        "width": 220,
+        "height": 220,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 5,
+        "opacity": 0.045454545454545414,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 1820,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true,
+      "guardConsumedAt": 1600
+    },
+    "parts": []
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 180,
+    "j": {
+      "actualHeal": 0,
+      "guardOwned": true
+    },
+    "parts": []
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 1000,
+    "j": {
+      "actualHeal": 0,
+      "guardOwned": true
+    },
+    "parts": [
+      {
+        "id": "guard",
+        "layer": "guard",
+        "file": "jade_heart_guard_guard.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 277,
+        "width": 220,
+        "height": 220,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 900,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true,
+      "guardConsumedAt": 300
+    },
+    "parts": []
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 1000,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": false
+    },
+    "parts": []
+  },
+  {
+    "key": "jade_heart_guard",
+    "t": 1200,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true,
+      "guardReplacedAt": 1000
+    },
+    "parts": []
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 55,
+    "parts": [
+      {
+        "id": "telegraph",
+        "layer": "telegraph",
+        "file": "aureate_lotus_guard_telegraph.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 220,
+        "height": 220,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 1,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 205,
+    "parts": [
+      {
+        "id": "body",
+        "layer": "body",
+        "file": "aureate_lotus_guard_body.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 335,
+        "height": 335,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 4,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 350,
+    "parts": [
+      {
+        "id": "impact",
+        "layer": "impact",
+        "file": "aureate_lotus_guard_impact.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 237,
+        "width": 190,
+        "height": 190,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 1000,
+    "parts": [
+      {
+        "id": "guard",
+        "layer": "guard",
+        "file": "aureate_lotus_guard_guard.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 277,
+        "width": 275,
+        "height": 275,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 2,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 1680,
+    "parts": [
+      {
+        "id": "consume",
+        "layer": "consume",
+        "file": "aureate_lotus_guard_consume.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 277,
+        "width": 275,
+        "height": 275,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 2,
+        "opacity": 0.6363636363636364,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 1900,
+    "parts": []
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 105.1,
+    "parts": [
+      {
+        "id": "telegraph",
+        "layer": "telegraph",
+        "file": "aureate_lotus_guard_telegraph.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 220,
+        "height": 220,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 0.9966666666666668,
+        "rotation": 0
+      },
+      {
+        "id": "body",
+        "layer": "body",
+        "file": "aureate_lotus_guard_body.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 335,
+        "height": 335,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.003333333333333144,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 120,
+    "parts": [
+      {
+        "id": "telegraph",
+        "layer": "telegraph",
+        "file": "aureate_lotus_guard_telegraph.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 220,
+        "height": 220,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 0.5000000000000002,
+        "rotation": 0
+      },
+      {
+        "id": "body",
+        "layer": "body",
+        "file": "aureate_lotus_guard_body.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 335,
+        "height": 335,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.5,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 134.9,
+    "parts": [
+      {
+        "id": "telegraph",
+        "layer": "telegraph",
+        "file": "aureate_lotus_guard_telegraph.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 220,
+        "height": 220,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 0.0033333333333331883,
+        "rotation": 0
+      },
+      {
+        "id": "body",
+        "layer": "body",
+        "file": "aureate_lotus_guard_body.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 335,
+        "height": 335,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 1,
+        "opacity": 0.9966666666666669,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 260.1,
+    "parts": [
+      {
+        "id": "body",
+        "layer": "body",
+        "file": "aureate_lotus_guard_body.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 335,
+        "height": 335,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 6,
+        "opacity": 0.996666666666666,
+        "rotation": 0
+      },
+      {
+        "id": "impact",
+        "layer": "impact",
+        "file": "aureate_lotus_guard_impact.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 237,
+        "width": 190,
+        "height": 190,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.003333333333334091,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 275,
+    "parts": [
+      {
+        "id": "body",
+        "layer": "body",
+        "file": "aureate_lotus_guard_body.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 335,
+        "height": 335,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 7,
+        "opacity": 0.49999999999999967,
+        "rotation": 0
+      },
+      {
+        "id": "impact",
+        "layer": "impact",
+        "file": "aureate_lotus_guard_impact.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 237,
+        "width": 190,
+        "height": 190,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.5,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 289.9,
+    "parts": [
+      {
+        "id": "body",
+        "layer": "body",
+        "file": "aureate_lotus_guard_body.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 284,
+        "width": 335,
+        "height": 335,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 7,
+        "opacity": 0.0033333333333339836,
+        "rotation": 0
+      },
+      {
+        "id": "impact",
+        "layer": "impact",
+        "file": "aureate_lotus_guard_impact.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 237,
+        "width": 190,
+        "height": 190,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.9966666666666659,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 410.1,
+    "parts": [
+      {
+        "id": "impact",
+        "layer": "impact",
+        "file": "aureate_lotus_guard_impact.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 237,
+        "width": 190,
+        "height": 190,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 5,
+        "opacity": 0.9966666666666659,
+        "rotation": 0
+      },
+      {
+        "id": "residue",
+        "layer": "residue",
+        "file": "aureate_lotus_guard_residue.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 262,
+        "width": 205,
+        "height": 205,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.003333333333334091,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 425,
+    "parts": [
+      {
+        "id": "impact",
+        "layer": "impact",
+        "file": "aureate_lotus_guard_impact.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 237,
+        "width": 190,
+        "height": 190,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 5,
+        "opacity": 0.5000000000000002,
+        "rotation": 0
+      },
+      {
+        "id": "residue",
+        "layer": "residue",
+        "file": "aureate_lotus_guard_residue.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 262,
+        "width": 205,
+        "height": 205,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.5,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 439.9,
+    "parts": [
+      {
+        "id": "impact",
+        "layer": "impact",
+        "file": "aureate_lotus_guard_impact.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 237,
+        "width": 190,
+        "height": 190,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 5,
+        "opacity": 0.0033333333333338544,
+        "rotation": 0
+      },
+      {
+        "id": "residue",
+        "layer": "residue",
+        "file": "aureate_lotus_guard_residue.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 262,
+        "width": 205,
+        "height": 205,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.9966666666666659,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 570,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true
+    },
+    "parts": [
+      {
+        "id": "residue",
+        "layer": "residue",
+        "file": "aureate_lotus_guard_residue.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 262,
+        "width": 205,
+        "height": 205,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 3,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 620,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true
+    },
+    "parts": [
+      {
+        "id": "residue",
+        "layer": "residue",
+        "file": "aureate_lotus_guard_residue.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 262,
+        "width": 205,
+        "height": 205,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 4,
+        "opacity": 1,
+        "rotation": 0
+      },
+      {
+        "id": "guard",
+        "layer": "guard",
+        "file": "aureate_lotus_guard_guard.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 277,
+        "width": 275,
+        "height": 275,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.5,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 670,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true
+    },
+    "parts": [
+      {
+        "id": "residue",
+        "layer": "residue",
+        "file": "aureate_lotus_guard_residue.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 262,
+        "width": 205,
+        "height": 205,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 5,
+        "opacity": 0.37499999999999994,
+        "rotation": 0
+      },
+      {
+        "id": "guard",
+        "layer": "guard",
+        "file": "aureate_lotus_guard_guard.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 277,
+        "width": 275,
+        "height": 275,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 1599,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true,
+      "guardConsumedAt": 1600
+    },
+    "parts": [
+      {
+        "id": "guard",
+        "layer": "guard",
+        "file": "aureate_lotus_guard_guard.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 277,
+        "width": 275,
+        "height": 275,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 5,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 1600,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true,
+      "guardConsumedAt": 1600
+    },
+    "parts": [
+      {
+        "id": "consume",
+        "layer": "consume",
+        "file": "aureate_lotus_guard_consume.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 277,
+        "width": 275,
+        "height": 275,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 1601,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true,
+      "guardConsumedAt": 1600
+    },
+    "parts": [
+      {
+        "id": "consume",
+        "layer": "consume",
+        "file": "aureate_lotus_guard_consume.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 277,
+        "width": 275,
+        "height": 275,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 0,
+        "opacity": 0.9954545454545455,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 1800,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true,
+      "guardConsumedAt": 1600
+    },
+    "parts": [
+      {
+        "id": "consume",
+        "layer": "consume",
+        "file": "aureate_lotus_guard_consume.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 277,
+        "width": 275,
+        "height": 275,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 5,
+        "opacity": 0.09090909090909094,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 1810,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true,
+      "guardConsumedAt": 1600
+    },
+    "parts": [
+      {
+        "id": "consume",
+        "layer": "consume",
+        "file": "aureate_lotus_guard_consume.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 277,
+        "width": 275,
+        "height": 275,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 5,
+        "opacity": 0.045454545454545414,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 1820,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true,
+      "guardConsumedAt": 1600
+    },
+    "parts": []
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 180,
+    "j": {
+      "actualHeal": 0,
+      "guardOwned": true
+    },
+    "parts": []
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 1000,
+    "j": {
+      "actualHeal": 0,
+      "guardOwned": true
+    },
+    "parts": [
+      {
+        "id": "guard",
+        "layer": "guard",
+        "file": "aureate_lotus_guard_guard.png",
+        "anchor": "origin",
+        "x": 245,
+        "y": 277,
+        "width": 275,
+        "height": 275,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "frame": 2,
+        "opacity": 1,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 900,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true,
+      "guardConsumedAt": 300
+    },
+    "parts": []
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 1000,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": false
+    },
+    "parts": []
+  },
+  {
+    "key": "aureate_lotus_guard",
+    "t": 1200,
+    "j": {
+      "actualHeal": 100,
+      "guardOwned": true,
+      "guardReplacedAt": 1000
+    },
+    "parts": []
+  }
+]

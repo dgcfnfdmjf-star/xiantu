@@ -1,0 +1,31 @@
+{
+  "command": "XDG_CACHE_HOME=/tmp/xiantu-fontcache node scripts/render-heal-skills-batch3-evidence.cjs --video",
+  "scope": "Real PNG sprite sequence over static original battlefield, simulated results; not live gameplay",
+  "fps": 30,
+  "frames": 270,
+  "width": 720,
+  "height": 900,
+  "durationSeconds": 9,
+  "sequence": [
+    "normal 0-3s",
+    "half speed 3-9s"
+  ],
+  "inputs": {
+    "art/heal-skills-batch3/preview/stage-reference.webp": "d88933abbf05d2c3506b73545dde8fcb030583304d55781bcdc491d8514361b3",
+    "art/heal-skills-batch3/preview/jade_heart_guard_telegraph.png": "9e716db20c1711de20e809cffcfa8b34652c2c684b4816480589c6a3593a4f47",
+    "art/heal-skills-batch3/preview/aureate_lotus_guard_telegraph.png": "b36f22d8e84d1474fb5d86e5e16d817fc4b33492a74b7e08b0fa3d05420a56e2",
+    "art/heal-skills-batch3/preview/jade_heart_guard_body.png": "8bd6faf31328b0a70444631873dd23a6a95fb543fcdfea65511d0bce30681061",
+    "art/heal-skills-batch3/preview/aureate_lotus_guard_body.png": "ca5cb415590c7a15a950bc71f0331c52cfef544535e0a88ae03187aeec239b42",
+    "art/heal-skills-batch3/preview/jade_heart_guard_impact.png": "8d71bb757c55e795b328b6ce463f179bb62bfc39ce4d80050186538e6d8d7890",
+    "art/heal-skills-batch3/preview/aureate_lotus_guard_impact.png": "2fa09868af527349794356081e42479a8e90ec22e8eb2a25489f486c9995b250",
+    "art/heal-skills-batch3/preview/jade_heart_guard_residue.png": "8088469df54aaaa7518b4f5c428bc450c0be490de8e6952a42697c1091f64087",
+    "art/heal-skills-batch3/preview/aureate_lotus_guard_residue.png": "9fef90d09954d84afe5e3b09063ad15a33c0f8242ec912b5fbe6c5b962b2b2c3",
+    "art/heal-skills-batch3/preview/jade_heart_guard_guard.png": "ced32b2aa04f03399bffe2ab5d0fd34d3364226afdf62b0c5dda2ef2db8570d2",
+    "art/heal-skills-batch3/preview/aureate_lotus_guard_guard.png": "d0b62afa0e15e85743cc6dfb0ff87fca3c85b17c17915cf70805853f9f801ca5",
+    "art/heal-skills-batch3/preview/jade_heart_guard_consume.png": "e3951ead8c538f6059bd4b9995e84ec06a03a5c91abd894a3ddff1fd115afd69",
+    "art/heal-skills-batch3/preview/aureate_lotus_guard_consume.png": "6abc56431cf081668d3549f11f29acab371dbc4249969a931d444bff72d731f3",
+    "art/heal-skills-batch3/sampler.js": "c097090f36f126e37ed70e1fd67b6b94aebe77b71eca1cb39d811ff1fe876809",
+    "art/heal-skills-batch3/preview/effect-manifest.json": "0dc307e2050a45e8316034bf357f9e1b795f7dbb661d296741fd224ad8fdf7c4"
+  },
+  "outputSha256": "42301f2e9ba6dffe62d6dcf0d0cd2bebd03cf6652c00ee8e1cfaf29b3217421c"
+}

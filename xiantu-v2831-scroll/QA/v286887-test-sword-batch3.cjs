@@ -35,7 +35,7 @@ const guard=finale.createState(()=>state,()=>clock);
 assert.equal(guard.collect().length,0,'ratio alone must not invent provenance');
 guard.notify('guard',{name:'玄罡护体剑'});clock=500;assert.equal(guard.collect().length,1);
 guard.notify('guard',{name:'青莲护心',retain:true});assert.equal(guard.collect().length,1,'lower guard preserves source');
-guard.notify('guard',{name:'莲华济世',retain:false});assert.equal(guard.collect().length,0,'higher other guard replaces source');
+guard.notify('guard',{name:'莲华济世',retain:false});assert.equal(guard.collect()[0].name,'莲华济世','higher healing guard replaces sword source');
 guard.notify('guard',{name:'玄罡护体剑'});state.swordGuardRatio=0;guard.notify('consume');clock+=219;assert.equal(guard.collect().length,1);clock++;assert.equal(guard.collect().length,0);
 state.swordGuardRatio=.35;guard.notify('guard',{name:'玄罡护体剑'});guard.pause();state.swordGuardRatio=0;clock+=1000;assert.equal(guard.collect().length,0,'hidden consumption never replays');
 state.swordGuardRatio=.35;guard.notify('guard',{name:'玄罡护体剑'});state.targetToken=3;assert.equal(guard.collect().length,0);

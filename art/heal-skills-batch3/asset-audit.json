@@ -1,0 +1,1296 @@
+{
+  "command": "node scripts/build-heal-skills-batch3-vfx.cjs",
+  "sourcePolicy": "Original accepted sources validated at 12% before slicing; failed plates regenerated, never cropped to hide clipping",
+  "effects": {
+    "jade_heart_guard": {
+      "inputs": {
+        "master": "02e8fdb682dfa3414da9ebb23466410bb5e7c9997049aeb273a772e1baf89e79",
+        "keyplates": "0b0aef6d64e6bfe1de770a4b7b263dbc9f5243ee043b35fc6d0602e103ad3b64"
+      },
+      "checks": [
+        "PASS: master-original.png — 1 frame(s), 1 column(s), 1 row(s), 12% clean margin.",
+        "PASS: keyplates-original.png — 8 frame(s), 4 column(s), 2 row(s), 12% clean margin."
+      ],
+      "frames": {
+        "master": {
+          "bounds": [
+            244,
+            527,
+            1010,
+            872
+          ],
+          "white": 0.006333292908059452,
+          "dominant": 0.9937812453679373,
+          "opaque": 0.9741210871703656,
+          "visiblePixels": 148422,
+          "hash": "b5e36088799ac34b1fc3774dd9ca606229cce287c1e6623c4ad4b664318245ce"
+        },
+        "sourcePlates": [
+          {
+            "bounds": [
+              135,
+              235,
+              270,
+              327
+            ],
+            "white": 0,
+            "dominant": 0.99975,
+            "opaque": 0.65025,
+            "visiblePixels": 4000,
+            "hash": "5635f5dce2f2c560d2cbf83889b1c1d2ab6fda4950f52f99a2fc3f0aa9cf98c9"
+          },
+          {
+            "bounds": [
+              92,
+              218,
+              292,
+              335
+            ],
+            "white": 0.0011993103965219998,
+            "dominant": 0.9955775429128251,
+            "opaque": 0.8963346076006297,
+            "visiblePixels": 13341,
+            "hash": "5e3eb13a4f6dd839f9cfaeb331f35eb4a6245ef3d0c7df163b188f28b7b40156"
+          },
+          {
+            "bounds": [
+              94,
+              222,
+              289,
+              335
+            ],
+            "white": 0.0009371339320577899,
+            "dominant": 0.9964857477547833,
+            "opaque": 0.8933229207340883,
+            "visiblePixels": 12805,
+            "hash": "6fdcb4933ce7f38c164cbeddd14a7eaae75247f699f0e15bf82872a210d1a651"
+          },
+          {
+            "bounds": [
+              119,
+              211,
+              266,
+              329
+            ],
+            "white": 0,
+            "dominant": 0.9984857662023017,
+            "opaque": 0.34615384615384615,
+            "visiblePixels": 3302,
+            "hash": "d69e8e2110b8ad5883a73a8a31279e22169245303116c51a1a031f82aff07d37"
+          },
+          {
+            "bounds": [
+              138,
+              175,
+              274,
+              275
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.4354229607250755,
+            "visiblePixels": 2648,
+            "hash": "3bccc8dceb0972800d1646014ff4f7aebbc3204c3fead1ae112e3ecc009015e7"
+          },
+          {
+            "bounds": [
+              102,
+              193,
+              283,
+              279
+            ],
+            "white": 0.00046189376443418013,
+            "dominant": 0.9979984603541185,
+            "opaque": 0.8779060816012317,
+            "visiblePixels": 6495,
+            "hash": "7340149c6b2837b16de0a63bec39b53f85d6b20de368f88e715aad7c7fdbc17d"
+          },
+          {
+            "bounds": [
+              101,
+              193,
+              283,
+              279
+            ],
+            "white": 0.0012302014454866985,
+            "dominant": 0.9964631708442258,
+            "opaque": 0.8805166846071044,
+            "visiblePixels": 6503,
+            "hash": "ecdaaec42881ab87f4d6aca83f032963cf9b1ebc3b6663c9d207de446ddfefaa"
+          },
+          {
+            "bounds": [
+              110,
+              206,
+              272,
+              280
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.6706875753920386,
+            "visiblePixels": 2487,
+            "hash": "817dd513459e56162e7c7ac16be7ad6edc694b6dac9586a6feae3c0878769b3f"
+          }
+        ],
+        "telegraph": [
+          {
+            "bounds": [
+              58,
+              81,
+              197,
+              176
+            ],
+            "white": 0,
+            "dominant": 0.9997418022205009,
+            "opaque": 0,
+            "visiblePixels": 3873,
+            "hash": "66cd332a5e9a9f6e81dd7c6ada8ecef5629853d1904e4bad88808b01471c6c15"
+          },
+          {
+            "bounds": [
+              58,
+              81,
+              197,
+              176
+            ],
+            "white": 0,
+            "dominant": 0.999756275895686,
+            "opaque": 0,
+            "visiblePixels": 4103,
+            "hash": "c12068738843e1087062a9c73be9e3b6084f986466fb0f2b32019d13b0aaef05"
+          },
+          {
+            "bounds": [
+              58,
+              81,
+              198,
+              176
+            ],
+            "white": 0,
+            "dominant": 0.9997637609260571,
+            "opaque": 0.613276635955587,
+            "visiblePixels": 4233,
+            "hash": "320493d7e7be27f4c05b638e5b522c20648727e448700e9af49109f8cec6eaf0"
+          },
+          {
+            "bounds": [
+              58,
+              80,
+              198,
+              177
+            ],
+            "white": 0,
+            "dominant": 0.9997695852534563,
+            "opaque": 0.6490783410138249,
+            "visiblePixels": 4340,
+            "hash": "2c2cbc43762aa63ec15bbebb4f11c0e34faa231c16eefa3455aec2de5b96bc5a"
+          }
+        ],
+        "body": [
+          {
+            "bounds": [
+              48,
+              124,
+              209,
+              176
+            ],
+            "white": 0.0010602579961123874,
+            "dominant": 0.9950521293514756,
+            "opaque": 0.7223891146845732,
+            "visiblePixels": 5659,
+            "hash": "cdb82fb9f2fda19853d4a53c61a14c0c13da147accfa3a1bdd7dc53ea6f908f0"
+          },
+          {
+            "bounds": [
+              48,
+              114,
+              209,
+              176
+            ],
+            "white": 0.0001456876456876457,
+            "dominant": 0.9972319347319347,
+            "opaque": 0.787004662004662,
+            "visiblePixels": 6864,
+            "hash": "d6c5603c2df8d514f89e843773bcc745f8cca7090af8d5da12791dc6c8f23f68"
+          },
+          {
+            "bounds": [
+              48,
+              104,
+              209,
+              176
+            ],
+            "white": 0.00012554927809165097,
+            "dominant": 0.9982423101067169,
+            "opaque": 0.8064030131826742,
+            "visiblePixels": 7965,
+            "hash": "b6e4a192103e6e101376759cf053843802f2d3d197ff600c908aee651d1d8f69"
+          },
+          {
+            "bounds": [
+              47,
+              94,
+              209,
+              175
+            ],
+            "white": 0.00023076035537094726,
+            "dominant": 0.9985000576900889,
+            "opaque": 0.8435444790584977,
+            "visiblePixels": 8667,
+            "hash": "17bb38c99478b715e6e1debbe23e6eace3dd467490cf3e508cfe1b7398b0c374"
+          },
+          {
+            "bounds": [
+              47,
+              85,
+              209,
+              175
+            ],
+            "white": 0,
+            "dominant": 0.9987614007431596,
+            "opaque": 0.8601508839094697,
+            "visiblePixels": 8881,
+            "hash": "81ee1ebe99f8d0b9061157a89944551b9221505e96b9f0b5c4ce8a170c481c40"
+          },
+          {
+            "bounds": [
+              47,
+              82,
+              209,
+              175
+            ],
+            "white": 0,
+            "dominant": 0.9991056456120738,
+            "opaque": 0.8582448295136949,
+            "visiblePixels": 8945,
+            "hash": "3a1ae70f2facbd5160be051893646029c7337977a7c76ff5cacbe18e5591dd65"
+          },
+          {
+            "bounds": [
+              47,
+              81,
+              209,
+              175
+            ],
+            "white": 0,
+            "dominant": 0.9993303571428571,
+            "opaque": 0.8563616071428571,
+            "visiblePixels": 8960,
+            "hash": "deef27d5b2db37aeb839172d0141069990438c398b964d5134c2dd5ac2d3b3d0"
+          },
+          {
+            "bounds": [
+              47,
+              81,
+              209,
+              175
+            ],
+            "white": 0,
+            "dominant": 0.9995536710555679,
+            "opaque": 0.8585137246150413,
+            "visiblePixels": 8962,
+            "hash": "d0c103a527576e7d9ccedb57dab1bcbc13a7341cc712b367012301ffcdb51189"
+          }
+        ],
+        "impact": [
+          {
+            "bounds": [
+              48,
+              64,
+              209,
+              193
+            ],
+            "white": 0,
+            "dominant": 0.9987446648255084,
+            "opaque": 0.34345970374089885,
+            "visiblePixels": 3983,
+            "hash": "45dd20d84b7b65790b821a57be43300e9eaab38fa6fb22f79d75c76bf295cfe2"
+          },
+          {
+            "bounds": [
+              49,
+              64,
+              209,
+              193
+            ],
+            "white": 0,
+            "dominant": 0.9987238386932108,
+            "opaque": 0.31980602348136805,
+            "visiblePixels": 3918,
+            "hash": "6199b825a641743a5aa94d9dd5c272bed78ec1126aa3a8275725599834b453b4"
+          },
+          {
+            "bounds": [
+              49,
+              64,
+              209,
+              192
+            ],
+            "white": 0,
+            "dominant": 0.9986698590050546,
+            "opaque": 0.24873636605480182,
+            "visiblePixels": 3759,
+            "hash": "9af4eed07abee8090b497907061c842651a96ce3edc45ac0f7664115452208d1"
+          },
+          {
+            "bounds": [
+              50,
+              64,
+              209,
+              192
+            ],
+            "white": 0,
+            "dominant": 0.9986068542769574,
+            "opaque": 0,
+            "visiblePixels": 3589,
+            "hash": "9a2c7d80d2ce7585a24a5d5e7095b5bfaef8229ed187fb39d07de4728d58f329"
+          },
+          {
+            "bounds": [
+              50,
+              64,
+              208,
+              191
+            ],
+            "white": 0,
+            "dominant": 0.9983865763149403,
+            "opaque": 0,
+            "visiblePixels": 3099,
+            "hash": "0ef9c792c1143d2136b09a1c42869257c0af17892c205d1aa62dea1c760f7836"
+          },
+          {
+            "bounds": [
+              52,
+              65,
+              207,
+              190
+            ],
+            "white": 0,
+            "dominant": 0.9978568366909558,
+            "opaque": 0,
+            "visiblePixels": 2333,
+            "hash": "0515fc218f6644933a02c7ad6939c2a8ced3cd06fafa4704dd8e4648127a8a6e"
+          }
+        ],
+        "residue": [
+          {
+            "bounds": [
+              51,
+              72,
+              205,
+              185
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.4334319526627219,
+            "visiblePixels": 3380,
+            "hash": "f97498fd760faaf0710ac162947218d9464d10e0b7efcc4b2f4268c10fdab492"
+          },
+          {
+            "bounds": [
+              52,
+              72,
+              205,
+              185
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.3779697624190065,
+            "visiblePixels": 3241,
+            "hash": "5e70a13402613258683b2f5b9db115004c4fa0aad518708826f7f7ad21d35521"
+          },
+          {
+            "bounds": [
+              52,
+              72,
+              205,
+              185
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.2032051282051282,
+            "visiblePixels": 3120,
+            "hash": "33713f2805dd096fbbba9fa8a3f667279ec219524805e36d6fd7044de0cd3649"
+          },
+          {
+            "bounds": [
+              52,
+              72,
+              205,
+              184
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0,
+            "visiblePixels": 2894,
+            "hash": "9eff5e1a41ff4a39cca8c7582c1a75dcbf41693116799c833988ba1eac08f020"
+          },
+          {
+            "bounds": [
+              52,
+              72,
+              204,
+              184
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0,
+            "visiblePixels": 2539,
+            "hash": "1a0d211e5c701d08dc5c5166b996092e3d81a90559ac617c1b34597732e32fb3"
+          },
+          {
+            "bounds": [
+              53,
+              73,
+              204,
+              183
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0,
+            "visiblePixels": 1728,
+            "hash": "37009030c2a4711469fa03bb44b2b0bc787ac5d9a1aa54f20b41950542633c17"
+          }
+        ],
+        "guard": [
+          {
+            "bounds": [
+              51,
+              92,
+              206,
+              165
+            ],
+            "white": 0,
+            "dominant": 0.9987176747168198,
+            "opaque": 0.8743321222483437,
+            "visiblePixels": 4679,
+            "hash": "74e3ab2c5918a61712f40bbb02a66b1fa446c72b04655697a8ab9be868f00e04"
+          },
+          {
+            "bounds": [
+              53,
+              90,
+              207,
+              166
+            ],
+            "white": 0,
+            "dominant": 0.9995796553173603,
+            "opaque": 0.8522488440521228,
+            "visiblePixels": 4758,
+            "hash": "ad373938503a04a0120aa09bb29200cb4211ada70f908b592caad0b0dd284cbd"
+          },
+          {
+            "bounds": [
+              53,
+              88,
+              207,
+              165
+            ],
+            "white": 0,
+            "dominant": 0.9993684210526316,
+            "opaque": 0.8490526315789474,
+            "visiblePixels": 4750,
+            "hash": "69a29bdeda3473fb3b263daf1c57ab3de08e9936c813aa6c77eb5fd71061dd18"
+          },
+          {
+            "bounds": [
+              53,
+              90,
+              207,
+              166
+            ],
+            "white": 0,
+            "dominant": 0.9995781480700274,
+            "opaque": 0.8437038599451593,
+            "visiblePixels": 4741,
+            "hash": "a78fd77a4b946e41400b5141869bbd5c68e4732e53c299c38978bbbb0d0fe810"
+          },
+          {
+            "bounds": [
+              51,
+              92,
+              206,
+              165
+            ],
+            "white": 0,
+            "dominant": 0.9987118935165307,
+            "opaque": 0.8647488192357234,
+            "visiblePixels": 4658,
+            "hash": "e5f012b45cc39de0ddb9a0477bc4f1d0780cec780a4dd1de8e74c0bac49537dd"
+          },
+          {
+            "bounds": [
+              51,
+              89,
+              205,
+              165
+            ],
+            "white": 0,
+            "dominant": 0.9991557619248628,
+            "opaque": 0.8436048965808358,
+            "visiblePixels": 4738,
+            "hash": "d042d53b4e70981d93281f028cebe9162807a099a7f67b0652e01e495e7e635f"
+          },
+          {
+            "bounds": [
+              50,
+              88,
+              204,
+              165
+            ],
+            "white": 0,
+            "dominant": 0.9993688196928255,
+            "opaque": 0.8485167262781401,
+            "visiblePixels": 4753,
+            "hash": "039b6ad52ff2031c95a6cdf08fc528d1527f69f3baab5dc80d7a3ce4007dce6d"
+          },
+          {
+            "bounds": [
+              50,
+              89,
+              205,
+              165
+            ],
+            "white": 0,
+            "dominant": 0.999160016799664,
+            "opaque": 0.8519529609407812,
+            "visiblePixels": 4762,
+            "hash": "3fdba9f9b3d439743b25ec77cc7e2846166960830dc71bdc918db9f41fb2301a"
+          }
+        ],
+        "consume": [
+          {
+            "bounds": [
+              51,
+              92,
+              205,
+              164
+            ],
+            "white": 0.0004329004329004329,
+            "dominant": 0.9967532467532467,
+            "opaque": 0.8811688311688312,
+            "visiblePixels": 4620,
+            "hash": "ce52cda70e176de15061da270a3ffe29036832dfc984c4c2b753da6aeb6f157e"
+          },
+          {
+            "bounds": [
+              52,
+              92,
+              205,
+              164
+            ],
+            "white": 0.0004105933073290905,
+            "dominant": 0.9979470334633546,
+            "opaque": 0.3102032436871279,
+            "visiblePixels": 4871,
+            "hash": "1a7ffa6213f6753ca648a2e45e56a519c2aab11f915e01665e3a9cd206173f3a"
+          },
+          {
+            "bounds": [
+              52,
+              92,
+              205,
+              164
+            ],
+            "white": 0.0004127115146512588,
+            "dominant": 0.9979364424267437,
+            "opaque": 0,
+            "visiblePixels": 4846,
+            "hash": "ba75b3ae53a09075d786933ca8765f624231ffa77812257d4c6a138aa9671fab"
+          },
+          {
+            "bounds": [
+              52,
+              93,
+              204,
+              164
+            ],
+            "white": 0.00042517006802721087,
+            "dominant": 0.9982993197278912,
+            "opaque": 0,
+            "visiblePixels": 4704,
+            "hash": "ce212da54ee57635d4d28328e35a16cf77be3de4716adc8928a51391f49891c2"
+          },
+          {
+            "bounds": [
+              52,
+              94,
+              204,
+              162
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0,
+            "visiblePixels": 2237,
+            "hash": "ea854d99d9aa2aaaa73021f6138165941b12564a4ceb1b7de2180a83f104876a"
+          },
+          {
+            "bounds": [
+              52,
+              95,
+              204,
+              162
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0,
+            "visiblePixels": 1581,
+            "hash": "c371249950a7f46307d80050aa89500c6748c5bb3fc4bbe5c052a77af495a14b"
+          }
+        ]
+      },
+      "outputHashes": {
+        "jade_heart_guard_telegraph.png": "9e716db20c1711de20e809cffcfa8b34652c2c684b4816480589c6a3593a4f47",
+        "jade_heart_guard_body.png": "8bd6faf31328b0a70444631873dd23a6a95fb543fcdfea65511d0bce30681061",
+        "jade_heart_guard_impact.png": "8d71bb757c55e795b328b6ce463f179bb62bfc39ce4d80050186538e6d8d7890",
+        "jade_heart_guard_residue.png": "8088469df54aaaa7518b4f5c428bc450c0be490de8e6952a42697c1091f64087",
+        "jade_heart_guard_guard.png": "ced32b2aa04f03399bffe2ab5d0fd34d3364226afdf62b0c5dda2ef2db8570d2",
+        "jade_heart_guard_consume.png": "e3951ead8c538f6059bd4b9995e84ec06a03a5c91abd894a3ddff1fd115afd69"
+      }
+    },
+    "aureate_lotus_guard": {
+      "inputs": {
+        "master": "d85154ddc0b2dac80c46d26f43151a4719e5f80af2123e092e761b1115615dbb",
+        "keyplates": "906f6d18b170b5de60fcff42ac13f98f7e9d18034545d8c6ea14e3e57e6f560e"
+      },
+      "checks": [
+        "PASS: master-original.png — 1 frame(s), 1 column(s), 1 row(s), 12% clean margin.",
+        "PASS: keyplates-original.png — 8 frame(s), 4 column(s), 2 row(s), 12% clean margin."
+      ],
+      "frames": {
+        "master": {
+          "bounds": [
+            282,
+            507,
+            974,
+            795
+          ],
+          "white": 0.011317046725171958,
+          "dominant": 0.9828719547318131,
+          "opaque": 0.9488869311828686,
+          "visiblePixels": 118052,
+          "hash": "ccbae66476b459f785afdf4ea408a11774a0bf1eb6c0b274700e77a3dc43cc6f"
+        },
+        "sourcePlates": [
+          {
+            "bounds": [
+              136,
+              267,
+              266,
+              336
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.4953161592505855,
+            "visiblePixels": 2562,
+            "hash": "022467e526f4849827fa75da30aade98223339f95074748df070f8144f17b45c"
+          },
+          {
+            "bounds": [
+              101,
+              241,
+              282,
+              341
+            ],
+            "white": 0.001190273762965482,
+            "dominant": 0.9962591396021084,
+            "opaque": 0.8364223771467437,
+            "visiblePixels": 11762,
+            "hash": "7e26044dff23f2e60a2eff73e1ed7b85bb119f4902f833bd698d006b4e2ec015"
+          },
+          {
+            "bounds": [
+              102,
+              243,
+              277,
+              338
+            ],
+            "white": 0,
+            "dominant": 0.9993228209345071,
+            "opaque": 0.8388313824126923,
+            "visiblePixels": 10337,
+            "hash": "98bb3cadd13e04b54c7c616e3a5387a3c0f0a1743df391044a9489aa8965abd5"
+          },
+          {
+            "bounds": [
+              123,
+              255,
+              243,
+              341
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.5210166177908113,
+            "visiblePixels": 2046,
+            "hash": "4a420249e76971d6e0d00fd34adfcddde92a49675a429ab40aa3ee095142b467"
+          },
+          {
+            "bounds": [
+              144,
+              227,
+              263,
+              288
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.3916876574307305,
+            "visiblePixels": 794,
+            "hash": "9706004bca98e5eb812b95d1fb12163f65b11896ef55414ee09647a5c853a55f"
+          },
+          {
+            "bounds": [
+              109,
+              213,
+              274,
+              295
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.7969316596931659,
+            "visiblePixels": 3585,
+            "hash": "923826b574a8c78451e95eb95d5f825de9ebb53e1df6bb1c0fd00c0fb0f204ef"
+          },
+          {
+            "bounds": [
+              109,
+              214,
+              272,
+              295
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.7977099236641222,
+            "visiblePixels": 3406,
+            "hash": "9752d57f68e38c1ef50ab701732ddca230bc9e3e8978017d9e30740ece7b76a2"
+          },
+          {
+            "bounds": [
+              120,
+              234,
+              242,
+              300
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.5686988171064604,
+            "visiblePixels": 1099,
+            "hash": "c1a606dd7209add0befc0b975d811d6c6529f6a45d874a001dfb21d570e74157"
+          }
+        ],
+        "telegraph": [
+          {
+            "bounds": [
+              59,
+              91,
+              198,
+              165
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0,
+            "visiblePixels": 2621,
+            "hash": "819d0a849068012e01a15ed300c1be3d86fd4fb1acf5cc192725d1c4c23e5c63"
+          },
+          {
+            "bounds": [
+              58,
+              91,
+              199,
+              165
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0,
+            "visiblePixels": 2796,
+            "hash": "c3af82d3b0fd79dfbfa64dcde045a4d3e3062dda0cca4247a16daf75ef6e4e19"
+          },
+          {
+            "bounds": [
+              58,
+              91,
+              199,
+              165
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.39049865229110514,
+            "visiblePixels": 2968,
+            "hash": "df2344f04e63e118d41fe05df7af89458946871025d9bfc0c747a0108c27558f"
+          },
+          {
+            "bounds": [
+              57,
+              91,
+              199,
+              165
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.4789612097304405,
+            "visiblePixels": 3042,
+            "hash": "71ca32a8aef4e228040b78f4ef5e168bf1cf162c11e5b3be79f9842c3f5e1017"
+          }
+        ],
+        "body": [
+          {
+            "bounds": [
+              48,
+              123,
+              209,
+              173
+            ],
+            "white": 0.0013194788058716806,
+            "dominant": 0.9955467590301831,
+            "opaque": 0.7202704931552036,
+            "visiblePixels": 6063,
+            "hash": "8b3251ac06a923389d685327fdd665160057f75e3638227b06c4f6f0a21f57c5"
+          },
+          {
+            "bounds": [
+              48,
+              114,
+              209,
+              173
+            ],
+            "white": 0.0004108463434675431,
+            "dominant": 0.997261024376883,
+            "opaque": 0.7439057792385648,
+            "visiblePixels": 7302,
+            "hash": "fe8d6577ee225122f10b982d4e7a075eeb03e202401ab0adff9ce87ba0079500"
+          },
+          {
+            "bounds": [
+              48,
+              105,
+              209,
+              173
+            ],
+            "white": 0,
+            "dominant": 0.998531211750306,
+            "opaque": 0.791187270501836,
+            "visiblePixels": 8170,
+            "hash": "1cf66a4c4f3a200388c86a5d07af930b03154d20eeb3e14e5ee7a635f6445379"
+          },
+          {
+            "bounds": [
+              48,
+              95,
+              209,
+              173
+            ],
+            "white": 0,
+            "dominant": 0.999219098616689,
+            "opaque": 0.7823516287371709,
+            "visiblePixels": 8964,
+            "hash": "cfb4e6947a1c4a91499cee1d666cb0d464e16cad90aeed95952c101f972e9492"
+          },
+          {
+            "bounds": [
+              48,
+              87,
+              209,
+              172
+            ],
+            "white": 0,
+            "dominant": 0.9996810207336523,
+            "opaque": 0.7509835194045721,
+            "visiblePixels": 9405,
+            "hash": "8b9d9a4c038288917c03756e8d1895479819e724e851aaedf492673e94a54094"
+          },
+          {
+            "bounds": [
+              48,
+              85,
+              209,
+              172
+            ],
+            "white": 0,
+            "dominant": 0.9997891407485503,
+            "opaque": 0.7619399051133369,
+            "visiblePixels": 9485,
+            "hash": "c22ee8733dfbc21f05f5fe7093528558486763bf854f2514060a9c4e869be8f9"
+          },
+          {
+            "bounds": [
+              48,
+              84,
+              209,
+              172
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.7607983947618545,
+            "visiblePixels": 9469,
+            "hash": "a95e557e7bd4cb2971e65278be703843716b88a38588488fa234cbac6ede43a2"
+          },
+          {
+            "bounds": [
+              48,
+              84,
+              209,
+              172
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.763757819955466,
+            "visiblePixels": 9431,
+            "hash": "b3ab1c3ce43cba3f5a0a9877e4df0b56c15ad94555816fd854655b87d4660f08"
+          }
+        ],
+        "impact": [
+          {
+            "bounds": [
+              47,
+              70,
+              209,
+              186
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.50252458145097,
+            "visiblePixels": 3763,
+            "hash": "6f9846c7a412f3b75e925ee68c48fc57a6fe68d1fd0ce71e373a09906efb859a"
+          },
+          {
+            "bounds": [
+              47,
+              70,
+              209,
+              186
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.486646884272997,
+            "visiblePixels": 3707,
+            "hash": "338e29b0c3e9142cdaa309fc28f9786afacf74bc11e02720b6bf969d2d78c9ba"
+          },
+          {
+            "bounds": [
+              48,
+              71,
+              208,
+              186
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.4286114221724524,
+            "visiblePixels": 3572,
+            "hash": "cdc541c4173e047d4af6b09476ad17c5c71a54be7766242ffcafcd51f0d96447"
+          },
+          {
+            "bounds": [
+              48,
+              71,
+              208,
+              186
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0,
+            "visiblePixels": 3410,
+            "hash": "45c229b8d2cb6e96436650dcfa69a660804837ef2c054222bba3c905ecc50217"
+          },
+          {
+            "bounds": [
+              48,
+              71,
+              208,
+              186
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0,
+            "visiblePixels": 3106,
+            "hash": "bccac0112415a0a3ad9bc6d4b5864d91e0f8aeab2b1af655ccc05e6ec8ac830b"
+          },
+          {
+            "bounds": [
+              49,
+              71,
+              207,
+              185
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0,
+            "visiblePixels": 2630,
+            "hash": "1525d5edeb043c7bc0817c332b98fee8a3554890a6fcdb4a3e5d3ac69ee8e479"
+          }
+        ],
+        "residue": [
+          {
+            "bounds": [
+              52,
+              88,
+              205,
+              168
+            ],
+            "white": 0,
+            "dominant": 0.9992378048780488,
+            "opaque": 0.3902439024390244,
+            "visiblePixels": 1312,
+            "hash": "d16e9cdaac02a8534f33827eaa6d496c8e7e3367af9b691883de69930c7d4632"
+          },
+          {
+            "bounds": [
+              52,
+              89,
+              205,
+              168
+            ],
+            "white": 0,
+            "dominant": 0.9991922455573505,
+            "opaque": 0.36348949919224555,
+            "visiblePixels": 1238,
+            "hash": "acbff7e6da034d2babe5f911729f7743acb3a185f4e49e08272070be55a38d38"
+          },
+          {
+            "bounds": [
+              52,
+              89,
+              204,
+              167
+            ],
+            "white": 0,
+            "dominant": 0.9991334488734835,
+            "opaque": 0.19150779896013864,
+            "visiblePixels": 1154,
+            "hash": "63c3ac99a6c4eb7938005188eeb06fba96f45e1c8ef077fbea7f58f40be480fa"
+          },
+          {
+            "bounds": [
+              52,
+              89,
+              203,
+              167
+            ],
+            "white": 0,
+            "dominant": 0.9990476190476191,
+            "opaque": 0,
+            "visiblePixels": 1050,
+            "hash": "e6585713a63866875b0612c8ab4c296be0a90a89c56ba960a3a990ea4136aa36"
+          },
+          {
+            "bounds": [
+              53,
+              90,
+              203,
+              166
+            ],
+            "white": 0,
+            "dominant": 0.9988465974625144,
+            "opaque": 0,
+            "visiblePixels": 867,
+            "hash": "863b1698189a81116f786a3c5dbe6f95429525f455d3ddd972b177091859d993"
+          },
+          {
+            "bounds": [
+              54,
+              93,
+              195,
+              163
+            ],
+            "white": 0,
+            "dominant": 0.9982788296041308,
+            "opaque": 0,
+            "visiblePixels": 581,
+            "hash": "04605873d31676478b15bd0b83f628d630162bcdd22c72ed05895d10fb916898"
+          }
+        ],
+        "guard": [
+          {
+            "bounds": [
+              51,
+              90,
+              205,
+              166
+            ],
+            "white": 0,
+            "dominant": 0.9996801023672425,
+            "opaque": 0.7850287907869482,
+            "visiblePixels": 3126,
+            "hash": "a627bcac0e588a0ed8aa1e1bb0c9143c63b620a7da64f9814bd5a8b7105b1135"
+          },
+          {
+            "bounds": [
+              51,
+              89,
+              206,
+              167
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.7418361059765866,
+            "visiblePixels": 3246,
+            "hash": "1f3c290524b022e3f91b199cb00a52d74f0fba89d4def83d1238e35aed1890ad"
+          },
+          {
+            "bounds": [
+              52,
+              88,
+              206,
+              167
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.7314585908529048,
+            "visiblePixels": 3236,
+            "hash": "a60cc749cb487ddf5ebbebf718169d088dee9eb7b6495d7d2c81236df8057430"
+          },
+          {
+            "bounds": [
+              51,
+              89,
+              206,
+              167
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.7316084788029925,
+            "visiblePixels": 3208,
+            "hash": "d5b284b85247d5a0e5ab759ba2de792e6407236905d9d52142527972f5eda7ca"
+          },
+          {
+            "bounds": [
+              51,
+              90,
+              205,
+              166
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.768214055448098,
+            "visiblePixels": 3102,
+            "hash": "8b5951c03ab6dc8d6c63020529ec9ff0ad67c94ad446997a4258691ff4094499"
+          },
+          {
+            "bounds": [
+              51,
+              88,
+              206,
+              168
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.7205199628597957,
+            "visiblePixels": 3231,
+            "hash": "2642f4427e6225eac7a77814b52ce035c89f897b543f03a492913dc2888c63a1"
+          },
+          {
+            "bounds": [
+              51,
+              87,
+              205,
+              168
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.7305795314426634,
+            "visiblePixels": 3244,
+            "hash": "d0fa4f5754b93a6a4a964e884ca6418eacddaf2fd91d0275d3ba0dd7d5787d99"
+          },
+          {
+            "bounds": [
+              51,
+              88,
+              206,
+              168
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.7357449417535254,
+            "visiblePixels": 3262,
+            "hash": "e07e8c31724813bbe19564c0ba2d52c2ef024e0620b5cea97326ebaebbb7ae58"
+          }
+        ],
+        "consume": [
+          {
+            "bounds": [
+              51,
+              90,
+              205,
+              166
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.7901315789473684,
+            "visiblePixels": 3040,
+            "hash": "cd07045bdd6c2e7d6ff69ffa965ef0d27143d0e6373e69b1a86b7efb7db0387b"
+          },
+          {
+            "bounds": [
+              51,
+              88,
+              205,
+              168
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0.11823056300268096,
+            "visiblePixels": 3730,
+            "hash": "7fef9debcf025ce9dfad75b74e1b7b488dd9e469ea35eb363407d1bd18f01f4b"
+          },
+          {
+            "bounds": [
+              51,
+              88,
+              204,
+              169
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0,
+            "visiblePixels": 3738,
+            "hash": "49d7badb76abd5274a79b4e2a26b85fa663522ab789ff96e62e6a052d100548d"
+          },
+          {
+            "bounds": [
+              52,
+              88,
+              204,
+              169
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0,
+            "visiblePixels": 3610,
+            "hash": "3984a2bc6522556da61be928b226ad947a04871f2e3bd93a5d83622ba0248d64"
+          },
+          {
+            "bounds": [
+              53,
+              88,
+              204,
+              169
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0,
+            "visiblePixels": 1596,
+            "hash": "2e62cf26413c9ae87f6d527d79d28f116aad83d265c1b4830c5d7f47abc5b1bf"
+          },
+          {
+            "bounds": [
+              53,
+              89,
+              204,
+              168
+            ],
+            "white": 0,
+            "dominant": 1,
+            "opaque": 0,
+            "visiblePixels": 1111,
+            "hash": "73c8ee6c3175324b65062f9da16a575fab7d86ac8528b4c87855c6acf6c1ae55"
+          }
+        ]
+      },
+      "outputHashes": {
+        "aureate_lotus_guard_telegraph.png": "b36f22d8e84d1474fb5d86e5e16d817fc4b33492a74b7e08b0fa3d05420a56e2",
+        "aureate_lotus_guard_body.png": "ca5cb415590c7a15a950bc71f0331c52cfef544535e0a88ae03187aeec239b42",
+        "aureate_lotus_guard_impact.png": "2fa09868af527349794356081e42479a8e90ec22e8eb2a25489f486c9995b250",
+        "aureate_lotus_guard_residue.png": "9fef90d09954d84afe5e3b09063ad15a33c0f8242ec912b5fbe6c5b962b2b2c3",
+        "aureate_lotus_guard_guard.png": "d0b62afa0e15e85743cc6dfb0ff87fca3c85b17c17915cf70805853f9f801ca5",
+        "aureate_lotus_guard_consume.png": "6abc56431cf081668d3549f11f29acab371dbc4249969a931d444bff72d731f3"
+      }
+    }
+  }
+}
