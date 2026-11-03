@@ -16,6 +16,7 @@ preview_only={'skill-fx-v2854.html','solar-fire-preview.html','V27.70-角色方�
 # QA fixtures, version notes (.txt) and recorded preview media are development-only.
 def shipped(p):
     rel=p.relative_to(site)
+    if rel.as_posix()=='vendor/THREE-LICENSE.txt':return True
     if rel.as_posix() in preview_only or len(rel.parts)==2 and rel.parts[0] in preview_kits and rel.name in preview_parts:return False
     return 'QA' not in rel.parts and p.suffix.lower() in extensions and not (p.stem.endswith('-preview') and p.suffix.lower() in {'.mp4','.png','.jpg','.webp'})
 files=sorted(p for p in site.rglob('*') if p.is_file() and shipped(p))

@@ -6554,6 +6554,7 @@
     let playerPressureStun = false;
 
     function resetRuntimeState() {
+      if(typeof mapFxCancelV2868104==='function')mapFxCancelV2868104();
       villageResetV286897();
       if(typeof clearInteriorV286886==='function')clearInteriorV286886();
       clearBreakthroughRuntimeV2905();
@@ -6829,6 +6830,7 @@
     }
     
     function showStory(text, choices) {
+      if(typeof mapFxCancelV2868104==='function')mapFxCancelV2868104();
       villageResetV286897();
       if(typeof interiorV286886!=='undefined'&&interiorV286886?.hallDestination)resetWorldMovementV28686();
       document.getElementById('saveRemindV2895')?.remove();
@@ -8289,7 +8291,7 @@
       breakthroughRunV2781=run;
       run.timer=setTimeout(()=>settleBreakthroughV2781(isSuccess,result),8000);
       if(skipAnimation){settleBreakthroughV2781(isSuccess,result);return;}
-      try{renderBreakthroughAnimationV2781(isSuccess,result)}
+      try{renderBreakthroughAnimationV2781(isSuccess,result);if(typeof mapFxEventV2868104==='function')mapFxEventV2868104('breakthrough',isSuccess)}
       catch(error){console.warn('突破动画启动失败，转为结果结算',error);settleBreakthroughV2781(isSuccess,result);}
     }
     function recoverBreakthroughV2781(){
@@ -9044,7 +9046,7 @@
       }
       showFloatingText?.(`🔥 投入 ${attempted} 炉 · ${plan.recipe.result} ×${success} · 失败 ${attempted-success} 炉${player.alchemyLevel>initialLevel?' · 炼丹升至 Lv.'+player.alchemyLevel:''}`,success?'#69f0ae':'#ff8a80');
       if(success)playSound(player.alchemyLevel>initialLevel?'levelup':'item');
-      updateAlchemyPanel();updateStats();autoSave();return {attempted,success};
+      updateAlchemyPanel();updateStats();autoSave();if(success&&typeof mapFxEventV2868104==='function')mapFxEventV2868104('pill',true);return {attempted,success};
     }
 
     // ================== 宠物系统 ==================
@@ -13905,6 +13907,7 @@ function villageEnhanceV286897(){
     }
 
     function closeWorldOverlay() {
+      if(typeof mapFxCancelV2868104==='function')mapFxCancelV2868104();
       taskBattlePromptV2868103=null;
       villageResetV286897();
       if(typeof closeExpansionV286827==='function')closeExpansionV286827();
@@ -13923,6 +13926,7 @@ function villageEnhanceV286897(){
       FLAT_WORLD.raf=null;
       if(document.hidden){PERF_CONFIG.fpsFrames=0;PERF_CONFIG.fpsStartedAt=t;PERF_CONFIG.measuredFps=0;return;}
       if(isWorldOverlayOpen() || !document.body.classList.contains('flat-world-active')) {
+        if(typeof mapFxFrameV2868104==='function')mapFxFrameV2868104(t);
         if(typeof interiorV286886!=='undefined'&&interiorV286886?.hallDestination)resetWorldMovementV28686();
         PERF_CONFIG.fpsFrames=0;PERF_CONFIG.fpsStartedAt=t;PERF_CONFIG.measuredFps=0;
         clearTimeout(mapIdleTimerV2865);
@@ -13950,6 +13954,7 @@ function villageEnhanceV286897(){
         if(!overlayOpen){
           updateFlatWorld(dt);
           drawFlatWorld(t,dt);
+          if(typeof mapFxFrameV2868104==='function')mapFxFrameV2868104(t);
           if(AVATAR3D.ready && t-PERF_CONFIG.last3DDraw>=PERF_CONFIG.avatar3DInterval){
             PERF_CONFIG.last3DDraw=t;
             render3DAvatar(t);
@@ -15967,6 +15972,7 @@ function villageEnhanceV286897(){
     // V27.67：后台停止地图/人物绘制，前台按需恢复，防止生成重复动画循环。
     let characterAnimationPausedV2767=false;
     function pauseVisualsV2767() {
+      if(typeof mapFxCancelV2868104==='function')mapFxCancelV2868104();
       if(typeof resetMapAliveV2893==='function')resetMapAliveV2893();
       clearTimeout(mapIdleTimerV2865);mapIdleTimerV2865=null;
       clearCombatValuesV2818();

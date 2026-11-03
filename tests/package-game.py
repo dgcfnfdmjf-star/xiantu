@@ -20,6 +20,15 @@ class Packaging(unittest.TestCase):
         with zipfile.ZipFile(self.target) as z:
             self.assertEqual(z.namelist(),['xiantu-v2831-scroll/game.html'])
             self.assertEqual(z.read(z.namelist()[0]),(self.site/'game.html').read_bytes())
+    def test_local_vendor_license_is_shipped(self):
+        vendor=self.site/'vendor';vendor.mkdir()
+        (vendor/'three-r128.min.js').write_text('/* synthetic library */')
+        (vendor/'THREE-LICENSE.txt').write_text('MIT license fixture')
+        self.manifest.write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+str(p.relative_to(self.site))+'\n' for p in self.site.rglob('*') if p.is_file() and p!=self.manifest))
+        r=self.invoke();self.assertEqual(r.returncode,0,r.stderr)
+        with zipfile.ZipFile(self.target) as z:
+            self.assertIn('xiantu-v2831-scroll/vendor/THREE-LICENSE.txt',z.namelist())
+            self.assertIn('xiantu-v2831-scroll/vendor/three-r128.min.js',z.namelist())
     def test_art_preview_exclusions_preserve_runtime_layers_and_diagnostics(self):
         kit=self.site/'fire-skills-batch1';kit.mkdir()
         for name in ['index.html','preview.js','stage-reference.webp','effect-manifest.preview.json','impact.png','definition.js','effect-manifest.json']:
