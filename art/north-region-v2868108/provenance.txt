@@ -1,0 +1,15 @@
+北域极寒仙疆整景 · V28.68.108
+
+来源：用户提供的仙途3.md，按正文“north全域一体化”和末尾雪景方向制作。
+美术：image_gen，以 layout-guide.png 为坐标约束、既有 sect-panorama-v286896.webp 为风格参考。
+初稿：/workspace/generated_images/exec-d08ec000-41a9-49b3-89e6-85fd459d548a.png（source-v1.png）。
+修订：/workspace/generated_images/exec-66a6d741-587f-4368-9d62-6151cc4bb5e6.png（source.png）。
+修订清理五处探索点附近山石、补隐秘洞府崖洞；建筑未平移，不改地点坐标。
+最终源图原生1448×1086，未生成虚假的高分辨率母版或放大导出。
+运行资源：north-panorama-v2868108.webp，sharp WebP quality88/effort6，1448×1086、512680字节。
+艺术加工均通过image_gen完成；编码只改变文件格式，不额外绘制或拼贴。
+layout.json：main V28.68.107导出的41处北域实际POI、半径、出生点与地图尺寸。
+layout-guide.png：根据这些坐标绘制的制作导引，仅含矩形、路网和标签，不随游戏发布。
+scene.json：按最终画稿手工标定的35个可点击地点、门前位置、屋顶遮挡、主要墙体/山石与道路图，坐标为原图像素。
+运行时用2320/1448=1740/1086将图像坐标映射到现有世界。原地点坐标、交互半径、地图和存档版本不变。
+保留旧三幅北域资源作为加载失败回退；成功路径不请求它们。源稿和制作数据位于游戏目录外，不打进网站ZIP。
