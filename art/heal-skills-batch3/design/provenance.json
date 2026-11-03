@@ -1,0 +1,19 @@
+{
+  "stage": "visual-design",
+  "status": "user-approved",
+  "baseline": "3f84c4ae843c385f0868512dbb4575125826cace",
+  "image": "storyboard-draft.png",
+  "image_sha256": "7e69cdb755b286098bd36105f92d587ef56d33bbb452f42fa69e70a17371179b",
+  "generator": "image_gen",
+  "source": "/workspace/generated_images/exec-401df502-5e1f-4591-8fa4-cc7645c465a0.png",
+  "references": [
+    "art/sword-skills-batch2/preview/stage-reference.webp",
+    "art/heal-skills-batch2/design/storyboard-draft.png"
+  ],
+  "scope": [
+    "青莲护心",
+    "莲华济世"
+  ],
+  "runtime_modified": false,
+  "approval": "2026-11-03 用户回复“确认”"
+}

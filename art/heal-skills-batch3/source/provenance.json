@@ -1,0 +1,22 @@
+{
+  "generator": "image_gen",
+  "policy": "Independent masters per skill; accepted originals validated at 12% margin before slicing. Rejected sources retained for audit; no cropped repair.",
+  "sources": {
+    "jade_heart_guard/master-original.png": {
+      "generatorOutput": "/workspace/generated_images/exec-0f9d0da3-8e38-4a62-86d8-42a1b3639d89.png",
+      "sha256": "02e8fdb682dfa3414da9ebb23466410bb5e7c9997049aeb273a772e1baf89e79"
+    },
+    "aureate_lotus_guard/master-original.png": {
+      "generatorOutput": "/workspace/generated_images/exec-e40a98f2-514d-4ef2-a8d6-dfe2cff5d5ef.png",
+      "sha256": "d85154ddc0b2dac80c46d26f43151a4719e5f80af2123e092e761b1115615dbb"
+    },
+    "jade_heart_guard/keyplates-original.png": {
+      "generatorOutput": "/workspace/generated_images/exec-eec6967c-db78-4e73-a74f-1160dda00c0b.png",
+      "sha256": "0b0aef6d64e6bfe1de770a4b7b263dbc9f5243ee043b35fc6d0602e103ad3b64"
+    },
+    "aureate_lotus_guard/keyplates-original.png": {
+      "generatorOutput": "/workspace/generated_images/exec-0a725a2d-e047-455c-9019-061955e9cd3d.png",
+      "sha256": "906f6d18b170b5de60fcff42ac13f98f7e9d18034545d8c6ea14e3e57e6f560e"
+    }
+  }
+}

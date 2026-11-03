@@ -1,0 +1,25 @@
+{
+  "drawMs": {
+    "青莲护心": {
+      "count": 1000,
+      "median": 0,
+      "p95": 0.10000000149011612
+    },
+    "莲华济世": {
+      "count": 1000,
+      "median": 0,
+      "p95": 0.10000000149011612
+    }
+  },
+  "frameIntervalsMs": {
+    "count": 75,
+    "median": 66.5,
+    "p95": 66.90000000223517
+  },
+  "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+  "viewport": [
+    390,
+    844
+  ],
+  "dpr": 2
+}
