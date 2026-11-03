@@ -3281,7 +3281,7 @@ function drawInteriorV286886(){
  drawActor25DV2770(ctx,s.player);ctx.restore();return true;
 }
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.105';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.106';
 
 
 if(typeof installBagViewV2905==='function')installBagViewV2905();
@@ -3292,7 +3292,7 @@ function mapFxPreferenceV2868104(){try{const p=localStorage.getItem('xiantu_map_
 function mapFxReducedV2868104(){return typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;}
 function mapFxLoadV2868104(){
  const h=MAP_FX_HOST_V2868104;if(h.api)return Promise.resolve(h.api);if(h.failed)return Promise.resolve(null);if(h.loading)return h.loading;
- h.loading=new Promise(resolve=>{const s=document.createElement('script');let done=false;const finish=()=>{if(done)return;done=true;clearTimeout(timer);h.api=window.XiantuMapFxV2868104||null;h.failed=!h.api;resolve(h.api);};const timer=setTimeout(finish,10000);s.src='./xiantu-v2868104-map-fx.js?v='+encodeURIComponent(window.__xiantuBuildFilesV2814?.['xiantu-v28684-duel.js']||'28.68.105');s.onload=finish;s.onerror=finish;document.head.appendChild(s);});return h.loading;
+ h.loading=new Promise(resolve=>{const s=document.createElement('script');let done=false;const finish=()=>{if(done)return;done=true;clearTimeout(timer);h.api=window.XiantuMapFxV2868104||null;h.failed=!h.api;resolve(h.api);};const timer=setTimeout(finish,10000);s.src='./xiantu-v2868104-map-fx.js?v='+encodeURIComponent(window.__xiantuBuildFilesV2814?.['xiantu-v28684-duel.js']||'28.68.106');s.onload=finish;s.onerror=finish;document.head.appendChild(s);});return h.loading;
 }
 function mapFxCancelV2868104(){const h=MAP_FX_HOST_V2868104;h.revision++;try{h.api?.pause(true);}catch(_){h.failed=true;}}
 function mapFxFrameV2868104(t){
