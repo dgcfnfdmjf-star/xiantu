@@ -1,6 +1,12 @@
-# 仙途 V28.68.102
+# 仙途 V28.68.105
 
-部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.102）；[上传步骤](downloads/README.md)。
+部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.105）；[上传步骤](downloads/README.md)。
+
+## V28.68.105 开场、地图特效与任务指引
+
+开场支持记住声音选择，原配乐统一响度；加载显示阶段与等待时间，15 秒后可重新加载页面。序章提示入宗目标，任务战低血量先确认，后续主线保留准备入口；补齐 Jev 断网退避。
+
+角色 → 画质设置新增可关闭的地图／事件特效，手机自动优先低档，掉帧降级、无 WebGL 时轻量回退，保留手绘室内。包含 V103—105 三批优化，数值规则不变。详见 [上线体验](docs/launch-experience-review.txt)、[特效范围与实测](docs/map-effects-phase1.txt)、[任务指引](docs/playtest-ch7-followup.txt)。完整下载包已同步；尚未部署腾讯云，无需更新 Jev。
 
 ## V28.68.102 试玩安全与操作修复
 
@@ -312,7 +318,7 @@ npm test
 npm run test:browser
 ```
 
-`npm test` 运行选定的 138 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
+`npm test` 运行选定的 144 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
 
 浏览器测试覆盖恶意存档拒绝且原主档/备份不变、正常导入与刷新恢复、360/390/430/1366px 导航入口可达性、预加载去重与版本错误提示。外部请求被拦截，不调用付费服务。已有 Chromium 的云环境可使用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`。
 

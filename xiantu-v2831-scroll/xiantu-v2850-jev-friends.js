@@ -40,6 +40,7 @@ function retryJevFriendsV2850(){
   const s=JEV_FRIENDS_V2850,wasPaused=s.paused;
   if(s.pending)return s.pending.promise.then(()=>true,()=>false);
   if(Date.now()<(s.manualRetryAtV2868102||0)){jevFriendsStatusV2850('正在稍候重连，请勿连续点击；当前仍可使用本地策略。');return Promise.resolve(false);}
+  jevTransportV2868103=null;
   s.manualRetryAtV2868102=Date.now()+5000;s.paused=false;s.retryAt=0;s.failuresV286838=0;
   saveJevFriendPreferenceV2850('xiantu_jev_paused_v2850',false);
   FORGE_ADVICE_V2842.access=JEV_PUBLIC_MARKER_V2850;
@@ -74,19 +75,45 @@ function ensureJevFriendSessionV2850(){
     }finally{clearTimeout(timer);if(s.pending===pending)s.pending=null;}
   })();return pending.promise;
 }
+// Decision failures need their own cooldown: a valid session can outlive a network outage.
+// Keep the scope in memory and tied to the gateway/access mode, never in a save.
+let jevTransportV2868103=null;
+function jevTransportStateV2868103(endpoint,access){
+  const revision=access===JEV_PUBLIC_MARKER_V2850?JEV_FRIENDS_V2850.revision:0;
+  const old=jevTransportV2868103;
+  if(old&&old.endpoint===endpoint&&old.access===access&&old.revision===revision)return old;
+  return jevTransportV2868103={endpoint,access,revision,failures:0,retryAt:0};
+}
+async function jevDecisionFetchV2868103(endpoint,options,state){
+  const failed=()=>{if(jevTransportV2868103===state){state.failures++;state.retryAt=Date.now()+Math.min(600000,15000*2**Math.min(6,state.failures-1));}};
+  if(options.signal?.aborted)throw Error('cancelled');
+  if(Date.now()<state.retryAt)throw Error('jev_wait');
+  try{
+    const response=await fetch(endpoint,options);
+    if(response.status===429||response.status>=500)failed();
+    else if(response.ok&&jevTransportV2868103===state){state.failures=0;state.retryAt=0;}
+    return response;
+  }catch(error){failed();throw error;}
+}
 async function jevFetchV2850(endpoint,options){
-  if(options.headers?.['X-Xiantu-Access']!==JEV_PUBLIC_MARKER_V2850)return fetch(endpoint,options);
-  // Tickets go only to the fixed game gateway, never to a caller-supplied host.
-  if(endpoint!==forgeJevEndpointV2842())throw Error('public_endpoint');
+  const access=options.headers?.['X-Xiantu-Access'];
+  // Apply transport backoff only to the configured gateway. Public tickets never leave it.
+  if(endpoint!==forgeJevEndpointV2842()){
+    if(access===JEV_PUBLIC_MARKER_V2850)throw Error('public_endpoint');
+    return fetch(endpoint,options);
+  }
+  const transport=jevTransportStateV2868103(endpoint,access);
+  if(Date.now()<transport.retryAt)throw Error('jev_wait');
+  if(access!==JEV_PUBLIC_MARKER_V2850)return jevDecisionFetchV2868103(endpoint,options,transport);
   const s=JEV_FRIENDS_V2850,rev=s.revision;
   for(let attempt=0;attempt<2;attempt++){
     const token=await ensureJevFriendSessionV2850();
     if(s.paused||s.revision!==rev||options.signal?.aborted)throw Error('public_stopped');
     const headers={...options.headers};delete headers['X-Xiantu-Access'];headers['X-Xiantu-Session']=token;
-    const response=await fetch(endpoint,{...options,headers});
+    const response=await jevDecisionFetchV2868103(endpoint,{...options,headers},transport);
     if(response.status!==401||attempt===1)return response;
     if(s.token===token){s.token='';s.expiresAt=0;}
   }
 }
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2850-jev-friends.js']='28.68.102';
+window.__xiantuBuildFilesV2814['xiantu-v2850-jev-friends.js']='28.68.105';

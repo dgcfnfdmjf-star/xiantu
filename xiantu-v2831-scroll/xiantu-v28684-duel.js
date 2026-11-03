@@ -2832,7 +2832,7 @@ function setGraphicsQualityV2903(mode){
 function showGraphicsV2903(message=''){
  if(!forgeAllowedV2825())return;
  const labels={auto:'自动',low:'省电',high:'精细'},mode=PERF_CONFIG.graphicsQuality;
- const html='<section class="main-overview-v2822"><h3>画质设置</h3>'+Object.entries(labels).map(([k,v])=>`<button type="button" class="choice-btn" aria-pressed="${mode===k}" onclick="setGraphicsQualityV2903('${k}')">${v}${mode===k?' · 已选':''}</button>`).join('')+`<p>自动按设备选择，手机优先省电。省电简化光环与氛围；精细显示完整道纹与光影。</p><p>电脑精细画布最高1.5倍，持续掉帧会自动降低。手机精细画布最高2倍，持续低于24帧会回退；低内存设备保持1倍，地图仍最高30帧。</p><p role="status">${message||'仅保存本机画质选择，不改变角色数据。'}</p></section>`;
+ const html='<section class="main-overview-v2822"><h3>画质设置</h3>'+Object.entries(labels).map(([k,v])=>`<button type="button" class="choice-btn" aria-pressed="${mode===k}" onclick="setGraphicsQualityV2903('${k}')">${v}${mode===k?' · 已选':''}</button>`).join('')+`<p>自动按设备选择，手机优先省电。省电简化光环与氛围；精细显示完整道纹与光影。</p><p>电脑精细画布最高1.5倍，持续掉帧会自动降低。手机精细画布最高2倍，持续低于24帧会回退；低内存设备保持1倍，地图仍最高30帧。</p><p role="status">${message||'仅保存本机画质选择，不改变角色数据。'}</p>${mapFxSettingsV2868104()}</section>`;
  toggleCharacterPanel(false);showStory(html,[{text:'返回地图',action:'return_to_map'}]);
 }
 
@@ -3281,7 +3281,39 @@ function drawInteriorV286886(){
  drawActor25DV2770(ctx,s.player);ctx.restore();return true;
 }
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.102';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.105';
 
 
 if(typeof installBagViewV2905==='function')installBagViewV2905();
+
+// Optional atmosphere is outside the required 40-module boot sequence.
+const MAP_FX_HOST_V2868104={loading:null,failed:false,api:null,revision:0};
+function mapFxPreferenceV2868104(){try{const p=localStorage.getItem('xiantu_map_fx_v2868104');return ['off','low','high'].includes(p)?p:'auto';}catch(_){return 'auto';}}
+function mapFxReducedV2868104(){return typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;}
+function mapFxLoadV2868104(){
+ const h=MAP_FX_HOST_V2868104;if(h.api)return Promise.resolve(h.api);if(h.failed)return Promise.resolve(null);if(h.loading)return h.loading;
+ h.loading=new Promise(resolve=>{const s=document.createElement('script');let done=false;const finish=()=>{if(done)return;done=true;clearTimeout(timer);h.api=window.XiantuMapFxV2868104||null;h.failed=!h.api;resolve(h.api);};const timer=setTimeout(finish,10000);s.src='./xiantu-v2868104-map-fx.js?v='+encodeURIComponent(window.__xiantuBuildFilesV2814?.['xiantu-v28684-duel.js']||'28.68.105');s.onload=finish;s.onerror=finish;document.head.appendChild(s);});return h.loading;
+}
+function mapFxCancelV2868104(){const h=MAP_FX_HOST_V2868104;h.revision++;try{h.api?.pause(true);}catch(_){h.failed=true;}}
+function mapFxFrameV2868104(t){
+ const h=MAP_FX_HOST_V2868104;if(h.failed)return;
+ if(mapFxPreferenceV2868104()==='off'||mapFxReducedV2868104()){try{h.api?.pause(true);}catch(_){}return;}
+ if(document.hidden||isWorldOverlayOpen()||gameState!=='exploring'||interiorV286886||!document.body.classList.contains('flat-world-active')){try{h.api?.pause(false);}catch(_){}return;}
+ if(!h.api){mapFxLoadV2868104();return;}
+ try{h.api.frame(t);}catch(_){h.api.pause(true);h.failed=true;}
+}
+function mapFxEventV2868104(kind,success){
+ if(mapFxPreferenceV2868104()==='off'||mapFxReducedV2868104()||document.hidden||!['pill','breakthrough'].includes(kind))return;
+ const owner=player,revision=MAP_FX_HOST_V2868104.revision,started=performance.now();
+ mapFxLoadV2868104().then(api=>{if(api&&owner===player&&revision===MAP_FX_HOST_V2868104.revision&&!document.hidden&&performance.now()-started<1500)api.event(kind,!!success,owner,started);}).catch(()=>{});
+}
+function setMapFxV2868104(mode){
+ if(!forgeAllowedV2825()||!['off','auto','low','high'].includes(mode))return;
+ mapFxCancelV2868104();let saved=true;try{localStorage.setItem('xiantu_map_fx_v2868104',mode);}catch(_){saved=false;}
+ if(!saved){showGraphicsV2903('浏览器未允许保存特效设置，已停止本次特效。');MAP_FX_HOST_V2868104.failed=true;return;}
+ MAP_FX_HOST_V2868104.api?.resetQuality();showGraphicsV2903('地图与事件特效已调整；仅影响本机显示。');
+}
+function mapFxSettingsV2868104(){
+ const mode=mapFxPreferenceV2868104(),labels={off:'关',low:'低',high:'高',auto:'自动'};
+ return '<h3>地图 / 事件特效</h3>'+Object.entries(labels).map(([key,label])=>`<button type="button" class="choice-btn" aria-pressed="${mode===key}" onclick="setMapFxV2868104('${key}')">特效：${label}${mode===key?' · 已选':''}</button>`).join('')+'<p>自动档手机优先低档；持续掉帧会逐级降低本次特效。炼丹房烟火、阵纹与突破光效按需显示，室内和战斗沿用原画面。</p>'+(mapFxReducedV2868104()?'<p>系统已开启减少动态效果，本次额外特效关闭。</p>':'');
+}
