@@ -49,3 +49,5 @@ ffmpeg -i INPUT -vn -af loudnorm=I=-20:TP=-2:LRA=11:print_format=json -f null /d
 真实 Chromium 手机模拟 390×844：默认有声、主动静音、刷新记忆、NotAllowedError 静音回退、音轨实际解码；延迟 CSS 15 秒后无脚本执行，提示／刷新入口可见，释放 CSS 后正常启动；创角领取机缘正常，pageerror 为零。844×390 开场选择和竖屏慢网截图已检查。
 原始证据：忽略目录 output/playwright/launch105-*。Chromium 模拟不替代实体 iPhone 听感或移动网络验证。
 尚未合并 main 或部署腾讯云，正式下载仍为 V28.68.102；无需更新 Jev。
+
+发布同步：本批与另两批优化统一为 V28.68.105，40 个脚本、CSS、入口缓存版本和正式下载包已同步，合并目标 main（PR #52）。以上待发布阶段的包版本记录为历史验证背景；尚未部署腾讯云，无需更新 Jev。

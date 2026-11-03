@@ -1,2 +1,2 @@
 c5c95c26f71aa9e82104698b8423c20caefc51e00d3f3e13df8b32f3f3ad7a6a  xiantu-jev-cloud-function.zip
-b0cadef9be7b9389c852041e3e68395170c3c1e7af17dc098e70b4a78647ab1f  xiantu-v2831-scroll.zip
+e34a3d4f5727f230763ea97de2f78bbae4103e37413bfeac52d4f265b04f0274  xiantu-v2831-scroll.zip
