@@ -37,7 +37,10 @@ function bootJevFriendsV2850(){
   return Promise.resolve(true);
 }
 function retryJevFriendsV2850(){
-  const s=JEV_FRIENDS_V2850,wasPaused=s.paused;s.paused=false;s.retryAt=0;s.failuresV286838=0;
+  const s=JEV_FRIENDS_V2850,wasPaused=s.paused;
+  if(s.pending)return s.pending.promise.then(()=>true,()=>false);
+  if(Date.now()<(s.manualRetryAtV2868102||0)){jevFriendsStatusV2850('正在稍候重连，请勿连续点击；当前仍可使用本地策略。');return Promise.resolve(false);}
+  s.manualRetryAtV2868102=Date.now()+5000;s.paused=false;s.retryAt=0;s.failuresV286838=0;
   saveJevFriendPreferenceV2850('xiantu_jev_paused_v2850',false);
   FORGE_ADVICE_V2842.access=JEV_PUBLIC_MARKER_V2850;
   if(wasPaused)jevFriendsDefaultsV2850(true);
@@ -64,7 +67,7 @@ function ensureJevFriendSessionV2850(){
       if(data?.mode!=='public'||typeof data.token!=='string'||data.token.length>1024||!/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{43}$/.test(data.token)||!Number.isSafeInteger(data.expiresAt)||data.expiresAt<=Date.now()||data.expiresAt>Date.now()+20*60*1000)throw Error('public_format');
       s.token=data.token;s.expiresAt=data.expiresAt;s.retryAt=0;s.failuresV286838=0;jevFriendsStatusV2850('Jev 试玩已连接 · 无需口令');return s.token;
     }catch(error){
-      if(s.revision===rev&&!s.paused){s.token='';s.expiresAt=0;s.failuresV286838=(s.failuresV286838||0)+1;
+      if(s.revision===rev&&!s.paused){s.manualRetryAtV2868102=Date.now()+5000;s.token='';s.expiresAt=0;s.failuresV286838=(s.failuresV286838||0)+1;
         // An origin the gateway refuses stays refused; only a manual reconnect clears retryAt.
         s.retryAt=error.message==='public_403'?Infinity:Date.now()+Math.min(600000,15000*2**(s.failuresV286838-1));jevFriendsStatusV2850(error.message==='public_403'?'云端未开放试玩或域名未放行，请联系发布者；当前使用本地策略。':'试玩 Jev 暂未连接，当前使用本地策略，可稍后重连。');}
       throw error;

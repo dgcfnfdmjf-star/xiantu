@@ -9,9 +9,14 @@ version=json.loads((root/'package.json').read_text())['version'].replace('28.','
 out=root/'dist';out.mkdir(exist_ok=True)
 target=out/f'xiantu-v{version}-game-folder.zip'
 extensions={'.html','.js','.json','.css','.webmanifest','.webp','.png','.svg','.mp4','.jpg','.jpeg','.gif','.ico','.woff','.woff2','.ttf','.mp3','.ogg','.wav'}
+# Art review kits remain in source control; no live entry/diagnostic link targets them.
+preview_kits={'absolute-zero-v286835','fire-skills-batch1','fire-skills-batch2','fire-skills-batch3','heart-fire-v286833','ice-butterfly-v286831','sword-skills-batch1','sword-skills-batch2','thunder-skills-batch1','thunder-skills-batch2','thunder-skills-batch3'}
+preview_parts={'index.html','preview.js','stage-reference.webp','effect-manifest.preview.json'}
+preview_only={'skill-fx-v2854.html','solar-fire-preview.html','V27.70-角色方向预览.png','V27.72-主角同款方向预览.png','solar-fire-v286830/effect-manifest.preview.json'}
 # QA fixtures, version notes (.txt) and recorded preview media are development-only.
 def shipped(p):
     rel=p.relative_to(site)
+    if rel.as_posix() in preview_only or len(rel.parts)==2 and rel.parts[0] in preview_kits and rel.name in preview_parts:return False
     return 'QA' not in rel.parts and p.suffix.lower() in extensions and not (p.stem.endswith('-preview') and p.suffix.lower() in {'.mp4','.png','.jpg','.webp'})
 files=sorted(p for p in site.rglob('*') if p.is_file() and shipped(p))
 # Reject literal local resource references that cannot be shipped. Runtime-built

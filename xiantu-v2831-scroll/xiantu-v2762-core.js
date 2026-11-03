@@ -117,6 +117,33 @@
     
     const SAVE_BACKUP_KEY='xiantu_save_backup';
     let lastSaveFailureNoticeV2768=0;
+    // Exact persisted baseline, separate from in-memory gameplay and rollback snapshots.
+    const SAVE_SESSION_V2868102={active:false,raw:null,stale:false};
+    function bindSaveSessionV2868102(raw){
+      if(SAVE_SESSION_V2868102.stale)throw Error('此窗口的存档已过期，请刷新后继续');
+      if(arguments.length===0){try{raw=localStorage.getItem(SAVE_KEY);}catch(_){raw=null;}}
+      SAVE_SESSION_V2868102.active=true;SAVE_SESSION_V2868102.raw=raw;
+    }
+    function markSaveStaleV2868102(){
+      const s=SAVE_SESSION_V2868102;s.stale=true;
+      if(autoSaveTimer){clearInterval(autoSaveTimer);autoSaveTimer=null;}
+      if(document.getElementById('saveConflictV2868102'))return;
+      const el=document.createElement('div');el.id='saveConflictV2868102';el.className='mobile-inventory-overlay';el.style.zIndex='2147483646';
+      el.innerHTML='<div class="mobile-inventory-card" role="alertdialog" aria-modal="true" aria-labelledby="saveConflictTitleV2868102" style="padding:24px"><h3 id="saveConflictTitleV2868102">另一窗口已更新修行记录</h3><p>本窗口已停止保存，避免覆盖新的进度。请关闭其他游戏窗口，再刷新读取最新记录。</p><p>本窗口尚未保存的进度可以单独导出留存。</p><button class="choice-btn" data-save-conflict="export">导出本窗口未保存记录</button><button class="choice-btn" data-save-conflict="reload">刷新读取最新记录</button></div>';
+      el.onclick=e=>{const op=e.target.closest('[data-save-conflict]')?.dataset.saveConflict;if(op==='reload')location.reload();if(op==='export')exportRawSaveV2870(JSON.stringify(createSaveDataV2768()),'xiantu-unsaved-window-'+Date.now()+'.json').catch(()=>alert('导出未完成，请重试'));};
+      el.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Tab'){e.preventDefault();const buttons=[...el.querySelectorAll('button')],i=buttons.indexOf(document.activeElement);buttons[(i+(e.shiftKey?-1:1)+buttons.length)%buttons.length]?.focus();}});document.body.appendChild(el);el.querySelector('[data-save-conflict="reload"]')?.focus?.();
+      try{resetWorldMovementV28686();pauseVisualsV2767();}catch(_){}
+    }
+    function assertSaveSessionV2868102(){
+      const s=SAVE_SESSION_V2868102;
+      if(s.stale||(s.active&&localStorage.getItem(SAVE_KEY)!==s.raw)){
+        markSaveStaleV2868102();throw Error('另一窗口已更新存档，本窗口未覆盖；请导出或刷新');
+      }
+    }
+    window.addEventListener('storage',e=>{
+      if(!SAVE_SESSION_V2868102.active||e.key!==SAVE_KEY&&e.key!==null)return;
+      try{assertSaveSessionV2868102();}catch(_){}
+    });
     function escapeGameText(value) {
       return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
@@ -163,12 +190,14 @@
     }
     function writeSaveV2768(raw) {
       parseSaveV2768(raw);
+      assertSaveSessionV2868102();
       const old=localStorage.getItem(SAVE_KEY);
       let validOld=false;
       try{if(old){parseSaveV2768(old);validOld=true;}}catch(_){}
       // 备份写入失败时不覆盖主档，保留已有记录。
       if(validOld && old!==raw)localStorage.setItem(SAVE_BACKUP_KEY,old);
       localStorage.setItem(SAVE_KEY,raw);
+      if(SAVE_SESSION_V2868102.active)SAVE_SESSION_V2868102.raw=raw;
       try{window.saveMirrorV2895?.(raw);}catch(_){}
     }
     let miniSaveDeferredV286840=false;
@@ -196,9 +225,11 @@
 
     function deleteSave() {
       try {
+        assertSaveSessionV2868102();
         // 先删备用档：若失败保留主档，避免只删主档后又从备用档恢复。
         localStorage.removeItem(SAVE_BACKUP_KEY);
         localStorage.removeItem(SAVE_KEY);
+        if(SAVE_SESSION_V2868102.active)SAVE_SESSION_V2868102.raw=null;
         try{window.saveMirrorClearedV2895?.();}catch(_){}
         return true;
       } catch(e) { console.warn('无法删除本地存档：', e); return false; }
@@ -227,6 +258,7 @@
     }
     
     function startAutoSave() {
+      if(SAVE_SESSION_V2868102.stale)return;
       if (autoSaveTimer) clearInterval(autoSaveTimer);
       autoSaveTimer = setInterval(autoSave, 30000); // 30秒自动保存
     }
@@ -6436,7 +6468,7 @@
       };
       if(filter!=='main'){c.innerHTML=(filter==='journey'?journeyIntroductionV2838():'')+list.map(card).join('');return;}
       const done=list.filter(t=>getTaskStatus(t.id)===TASK_STATUS.COMPLETED),todo=list.filter(t=>getTaskStatus(t.id)!==TASK_STATUS.COMPLETED),current=preferredMainV286823(todo),last=getTaskData(player.tasks.lastMainResultV2822?.id);
-      c.innerHTML=expansionCardV286827()+rainCardV286822()+storyMailCardV286826()+postCaseCardV286826()+taskLovePanelV2824()+`<section class="main-overview-v2822"><h3>📜 主线旅程 · ${done.length}/${list.length} 章</h3><p>${current?`当前篇章：${esc(current.title)}`:'当前已开放主线全部完成，可继续宗门大比、三界历练与宿敌纪事。'}</p><progress max="${list.length}" value="${done.length}" aria-label="主线章节进度"></progress><p>剧情对话由下方按钮推进；实战需获胜，修炼与突破会先显示预览。</p>${last?`<details><summary>最近完成：${esc(last.title)} · 奖励已到账</summary><p>${esc(formatTaskRewards(last.rewards))}</p></details>`:''}</section>${current?card(current):''}${todo.length>1?`<details class="main-archive-v2822"><summary>后续章节 · ${todo.length-1}</summary>${todo.filter(t=>t!==current).map(card).join('')}</details>`:''}${done.length?`<details class="main-archive-v2822"><summary>已完成章节 · ${done.length}</summary>${done.map(card).join('')}</details>`:''}`;
+      c.innerHTML=`<section class="main-overview-v2822"><h3>📜 主线旅程 · ${done.length}/${list.length} 章</h3><p>${current?`当前篇章：${esc(current.title)}`:'当前已开放主线全部完成，可继续宗门大比、三界历练与宿敌纪事。'}</p><progress max="${list.length}" value="${done.length}" aria-label="主线章节进度"></progress><p>剧情对话由下方按钮推进；实战需获胜，修炼与突破会先显示预览。</p>${last?`<details><summary>最近完成：${esc(last.title)} · 奖励已到账</summary><p>${esc(formatTaskRewards(last.rewards))}</p></details>`:''}</section>${current?card(current):''}${expansionCardV286827()+rainCardV286822()+storyMailCardV286826()+postCaseCardV286826()+taskLovePanelV2824()}${todo.length>1?`<details class="main-archive-v2822"><summary>后续章节 · ${todo.length-1}</summary>${todo.filter(t=>t!==current).map(card).join('')}</details>`:''}${done.length?`<details class="main-archive-v2822"><summary>已完成章节 · ${done.length}</summary>${done.map(card).join('')}</details>`:''}`;
     }
     function showTaskPanel(filter='main'){
       if(gameState!=='combat'&&gameState!=='combat-ending'&&!player.breakthrough?.isAnimating)checkTaskTriggers();
@@ -8211,6 +8243,7 @@
       if(run&&run.owner===player&&!run.done){settleBreakthroughV2781(run.success,run.result);return;}
       if(player.breakthrough)player.breakthrough.isAnimating=false;
       document.getElementById('breakthroughOverlay')?.remove();document.body.classList.remove('breakthrough-playing');
+      if(player.exp<getCurrentExpNeed()){showBreakthroughNotice('修为不足，请先修炼再突破。');refreshRetreatViewV2868102();return false;}
       triggerBreakthrough(true);
     }
     function startBreakthroughVisualV2783(){
@@ -8232,6 +8265,12 @@
       button.hidden=false;button.disabled=!anim&&(!full||max);
       button.onclick=anim?recoverBreakthroughV2781:()=>showRetreatBreakthroughV2798();
     }
+    function refreshRetreatViewV2868102(){
+      if(gameState!=='exploring'||player.breakthrough?.isAnimating||player.breakthrough?.pendingV28683||document.getElementById('storyPanel')?.classList.contains('hidden'))return;
+      const view=document.getElementById('storyText')?.querySelector('[data-retreat-view-v2868102]');if(!view)return;
+      if(view.dataset.retreatViewV2868102==='breakthrough'&&player.exp>=getCurrentExpNeed())showRetreatBreakthroughV2798();
+      else showRetreatV2782(view.dataset.home==='true',Number(view.dataset.years)||1);
+    }
     function showRetreatBreakthroughV2798(){
       if(gameState==='combat'||gameState==='combat-ending'||player.breakthrough?.isAnimating)return;
       const need=getCurrentExpNeed();
@@ -8250,7 +8289,7 @@
         text+=`<p>选用丹药（只为下一次尝试）：<button class="choice-btn" onclick="selectBreakthroughPillV28683('')">不使用</button>${Object.entries(BREAKTHROUGH_PILLS_V28683).map(([n,d])=>`<button class="choice-btn" onclick="selectBreakthroughPillV28683('${n}')" ${player.level<d.level||!player.inventory.includes(n)?'disabled':''}>${n} · 库存${player.inventory.filter(x=>x===n).length}</button>`).join('')}</p><p>丹药可在仙市稀有丹药铺购买；本次尝试不额外扣除整年闭关时间。</p>`;
         choices.push({text:'开始突破 · 播放动画',action:'retreat_animated_v2783'},{text:'开始突破 · 跳过动画',action:'retreat_breakthrough_v2782'});
       }
-      choices.push({text:'暂不突破，返回洞府',action:'home'});showStory(text,choices);
+      choices.push({text:'暂不突破，返回洞府',action:'home'});showStory('<section data-retreat-view-v2868102="breakthrough" data-home="true" data-years="1">'+text+'</section>',choices);
     }
     function restBreakthroughV2798(expectedDays){
       if(breakthroughBusyV2905()||breakthroughRunV2781||player.breakthrough?.isAnimating||player.breakthrough?.pendingV28683)return false;
@@ -8477,7 +8516,7 @@
 
     function closeBreakthroughSuccess(autoClose=false) {
       const el=document.getElementById('breakthroughSuccess');if(el?._ownerV2905&&el._ownerV2905!==player)return;if(el){el.classList.remove('show');setTimeout(()=>el.remove(),420);}
-      updateStats();updateWorldHUD?.();
+      updateStats();updateWorldHUD?.();refreshRetreatViewV2868102();
       // 手动继续时允许逐次突破；自动收起只登记待突破，避免无人操作时连续弹出。
       if(player.exp>=getCurrentExpNeed() && !isFinalTribulationGate() && !(player.level===CULTIVATION_REALMS.length-1&&(player.phase||0)>=3)){
         player.breakthrough.pendingBreakthrough=true;
@@ -8507,7 +8546,7 @@
       document.getElementById('breakthroughFail')?.remove();const wrap=document.createElement('div');wrap.innerHTML=html;const panel=wrap.firstElementChild,owner=player;panel._ownerV2905=owner;document.body.appendChild(panel);setTimeout(()=>{if(player===owner&&panel.isConnected)closeBreakthroughFail()},5200);
     }
 
-    function closeBreakthroughFail(){const el=document.getElementById('breakthroughFail');if(el){el.classList.remove('show');setTimeout(()=>el.remove(),360);}updateStats();updateWorldHUD?.();}
+    function closeBreakthroughFail(){const el=document.getElementById('breakthroughFail');if(el){el.classList.remove('show');setTimeout(()=>el.remove(),360);}updateStats();updateWorldHUD?.();refreshRetreatViewV2868102();}
 
     function checkLevelUp(options = {}) {
       // 战斗尚未真正退场时只登记“待突破”，绝不在战斗面板上叠加突破动画。
@@ -11799,12 +11838,12 @@ function villageEnhanceV286897(){
       const p=computeRetreatV2782(home,maxYears);p.id=++retreatSeqV2782;retreatPlanV2782=p;
       const years=(p.days/GAME_DAYS_PER_YEAR).toFixed(2);
       const choices=[];
-      if(player.breakthrough?.isAnimating||p.exp>=p.need)choices.push({text:'✨ 继续突破（不消耗闭关时间）',action:'retreat_breakthrough_v2782'});
+      if(!player.breakthrough?.isAnimating&&p.exp>=p.need)choices.push({text:'✨ 继续突破（不消耗闭关时间）',action:'retreat_breakthrough_v2782'});
       else if(p.days>0&&p.gain>0)choices.push({text:`🧘 入关 · ${p.days}天 / 修为+${p.gain}`,action:'retreat_execute_v2782',planId:p.id});
       if(p.remaining<=1)choices.push({text:'查看延寿办法',action:'retreat_longevity_v2782'});
       if(getPendingTournamentCentury())choices.push({text:'📯 已有大比可参加',action:'sect_tournament'});
       choices.push({text:'返回',action:home?'home':'sect'});
-      showStory(`<h3>🧘 ${home?'洞府':'宗门'}闭关 · 最多${p.maxYears===1?'一年':'十年'}</h3><p>修为：${p.exp} / ${p.need}</p><p>预计耗时：${p.days}天（约${years}年）<br>预计修为：+${p.gain}<br>当前剩余寿元：${Math.max(0,p.remaining)}年</p><p style="color:#ffd98a">${p.reason}</p><p>修为满即出关；不连续跨境界，超额修为不清零。保留至少一年寿元，遇下届百年大比开启即停。修为收益受当前修炼加成${home?'和洞府家具':''}影响。</p><p>出关恢复气血和灵力；突破另行点击，成功率与失败冷却照常生效。</p>`,choices);
+      showStory(`<section data-retreat-view-v2868102="plan" data-home="${home}" data-years="${maxYears}"><h3>🧘 ${home?'洞府':'宗门'}闭关 · 最多${p.maxYears===1?'一年':'十年'}</h3><p>修为：${p.exp} / ${p.need}</p><p>预计耗时：${p.days}天（约${years}年）<br>预计修为：+${p.gain}<br>当前剩余寿元：${Math.max(0,p.remaining)}年</p><p style="color:#ffd98a">${p.reason}</p><p>修为满即出关；不连续跨境界，超额修为不清零。保留至少一年寿元，遇下届百年大比开启即停。修为收益受当前修炼加成${home?'和洞府家具':''}影响。</p><p>出关恢复气血和灵力；突破另行点击，成功率与失败冷却照常生效。</p></section>`,choices);
     }
     function executeRetreatV2782(id){
       if(gameState==='combat'||gameState==='combat-ending'||player.breakthrough?.isAnimating)return;
@@ -11824,7 +11863,7 @@ function villageEnhanceV286897(){
       if(player.breakthrough.pendingBreakthrough)choices.push({text:'✨ 出关 · 尝试突破（无需动画）',action:'retreat_breakthrough_v2782'});
       if(getPendingTournamentCentury())choices.push({text:'📯 查看百年大比',action:'sect_tournament'});
       choices.push({text:'返回',action:p.home?'home':'sect'});
-      showStory(`<h3>🌤️ 闭关结束</h3><p>实际耗时：${p.days}天（约${(p.days/GAME_DAYS_PER_YEAR).toFixed(2)}年）<br>修为 +${p.gain}<br>气血与灵力已恢复。</p><p>${p.reason}</p><p>现年${player.age}岁，剩余寿元${Math.max(0,getTotalMaxLifespan()-player.age)}年。</p><p>${getGameDateLabel()}</p>`,choices);
+      showStory(`<section data-retreat-view-v2868102="plan" data-home="${p.home}" data-years="${p.maxYears}"><h3>🌤️ 闭关结束</h3><p>实际耗时：${p.days}天（约${(p.days/GAME_DAYS_PER_YEAR).toFixed(2)}年）<br>修为 +${p.gain}<br>气血与灵力已恢复。</p><p>${p.reason}</p><p>现年${player.age}岁，剩余寿元${Math.max(0,getTotalMaxLifespan()-player.age)}年。</p><p>${getGameDateLabel()}</p></section>`,choices);
     }
 
     function handleHomeCultivateDecade(){showRetreatV2782(true);}
@@ -13794,6 +13833,7 @@ function villageEnhanceV286897(){
     }
 
     function isWorldOverlayOpen() {
+      if(document.getElementById('saveConflictV2868102'))return true;
       if(document.getElementById('firstPathPanelV2901')||document.getElementById('pacingStatsV2901'))return true;
       if(['rainChapterV286822','expansionV286827','postCaseV286826','storyBossPrepV286826'].some(id=>document.getElementById(id)))return true;
       if(document.getElementById('jevWorldPanelV2846'))return true;
@@ -15498,6 +15538,7 @@ function villageEnhanceV286897(){
       return loc.protocol==='file:'||host==='localhost'||host==='127.0.0.1'||host==='[::1]'||host.endsWith('.localhost');
     }
     function startGame() {
+      try{assertSaveSessionV2868102();}catch(_){return false;}
       const rawName = document.getElementById('playerName').value.trim();
       const name = rawName || '无名';
       try{validateSaveTextV2869({name});}catch(e){alert('道号请使用文字、数字或空格，不要包含代码符号');return;}
@@ -15515,6 +15556,7 @@ function villageEnhanceV286897(){
         player.materials = { '灵草': 2 };
       }
       
+      bindSaveSessionV2868102();
       // 初始化成就系统
       initAchievements();
       
@@ -15562,6 +15604,8 @@ function villageEnhanceV286897(){
     }
     
     function loadAndStart(prepared) {
+      try{assertSaveSessionV2868102();}catch(_){return false;}
+      let sourceRaw;try{sourceRaw=localStorage.getItem(SAVE_KEY);}catch(_){sourceRaw=null;}
       let saveData=prepared;
       if(!saveData){
         for(const key of [SAVE_KEY,SAVE_BACKUP_KEY]){
@@ -15582,6 +15626,7 @@ function villageEnhanceV286897(){
       // 恢复玩家数据
       resetRuntimeState();
       player = saveData.player;
+      bindSaveSessionV2868102(sourceRaw);
       
       // 恢复成就数据
       if (saveData.achievements) {
@@ -15649,7 +15694,7 @@ function villageEnhanceV286897(){
     function checkSaveOnStart() {
       if (hasCheckedSave) return;
       hasCheckedSave = true;
-      // 安全启动阶段只检测存档是否存在；点击“继续修行”后才解析并迁移完整存档。
+      // 安全启动阶段只检测存档是否存在；点击“续行仙途”后才解析并迁移完整存档。
       // 这样旧版大存档与 999 满级档不会在 Safari 首屏造成瞬时内存峰值。
       let hasSave = false;
       try {
@@ -15659,7 +15704,7 @@ function villageEnhanceV286897(){
       } catch (_) {}
       if (hasSave) {
         const info = document.getElementById('saveInfo');
-        if (info) info.innerHTML = '检测到旧日修行记录。<br>点击“继续修行”后读取，道具、境界与剧情均会保留。';
+        if (info) info.innerHTML = '检测到旧日修行记录。<br>点击“续行仙途”后读取，道具、境界与剧情均会保留。';
         const dialog = document.getElementById('loadDialog');
         if (dialog) dialog.style.display = 'flex';
       } else {

@@ -137,6 +137,7 @@ function validSceneV2838(s){
  const i=getTaskInstance(s.id);return i===s.instance&&!i.completed&&!i.failed&&i.currentStep===s.step&&getCurrentTaskStep(s.id)?.action===s.action;
 }
 function openTaskSceneV2838(id,action=null,replay=false){
+ if(typeof tutorialState!=='undefined'&&tutorialState.active){showFloatingText('请先完成或略过新手引路，再推进剧情。','#ffd76a');return false;}
  if(!taskInteractionAllowedV2822())return;
  const i=getTaskInstance(id),step=getCurrentTaskStep(id),task=getTaskData(id);if(!task)return;
  if(!replay){if(!i||i.completed||i.failed||!step||!isNarrativeActionV2838(id,step.action))return;action=step.action;}
@@ -231,9 +232,9 @@ function recordBattleSummaryV2838(enemy,before){
  lastBattleV2838={owner:player,name:enemy.name,gold:Math.max(0,player.gold-before.gold),exp:Math.max(0,player.exp-before.exp),taskType:getTaskData(enemy._taskId)?.type||'main'};
 }
 function showAfterBattleV2838(owner){
- const r=lastBattleV2838;lastBattleV2838=null;if(!r||r.owner!==owner||player!==owner||gameState!=='exploring')return;
+ const r=lastBattleV2838;lastBattleV2838=null;if(!r||r.owner!==owner||player!==owner||gameState!=='exploring'||typeof tutorialState!=='undefined'&&tutorialState.active)return;
  document.getElementById('afterBattleV2838')?.remove();const el=document.createElement('aside');el.id='afterBattleV2838';el.className='after-battle-v2838';el.setAttribute('aria-label','战后简报');const esc=discipleEscV2815;
- el.innerHTML=`<div><strong>战胜 · ${esc(r.name)}</strong><button type="button" data-after="close" aria-label="收起战后简报">×</button></div><p>灵石 +${r.gold}　修为 +${r.exp}<small>含本战触发的任务奖励</small></p><p data-after-status>气血 ${Math.floor(player.hp)}/${getMaxHp()} · 灵力 ${Math.floor(player.mp)}/${getMaxMp()}</p><div><button type="button" data-after="review">回看本场战斗</button><button type="button" data-after="recover">服丹调息 · 查看消耗</button><button type="button" data-after="tasks">继续任务</button><button type="button" data-after="rest">寻找补给</button></div>`;
+ el.innerHTML=`<div><strong>战胜 · ${esc(r.name)}</strong><button type="button" data-after="close" aria-label="收起战后简报">×</button></div>${r.gold||r.exp?`<p>灵石 +${r.gold}　修为 +${r.exp}<small>含本战结算时已到账的任务奖励</small></p>`:''}<p data-after-status>气血 ${Math.floor(player.hp)}/${getMaxHp()} · 灵力 ${Math.floor(player.mp)}/${getMaxMp()}</p><div><button type="button" data-after="review">回看本场战斗</button><button type="button" data-after="recover">服丹调息 · 查看消耗</button><button type="button" data-after="tasks">继续任务</button><button type="button" data-after="rest">寻找补给</button></div>`;
  el.onclick=e=>{const act=e.target.closest('[data-after]')?.dataset.after;if(!act)return;if(act==='recover'){recoverAfterBattleV2875(owner,el);return;}el.remove();if(player!==owner||gameState!=='exploring'||player.breakthrough?.isAnimating)return;if(act==='review')showBattleReviewV2878();if(act==='tasks')showTaskPanel(r.taskType);if(act==='rest'){showScrollMapV2831();nearestScrollRestV2837();}};document.body.appendChild(el);
 }
 // A bounded, plain-text receipt. Never re-enters combat or reward handlers.
@@ -269,6 +270,7 @@ function showBattleReviewV2878(){
 const PREVIOUS_SAVE_V2838='xiantu_save_previous_character';
 function saveChangeAllowedV2838(){return gameState!=='combat'&&gameState!=='combat-ending'&&!player?.breakthrough?.isAnimating;}
 function prepareNewGameV2838(){
+ try{assertSaveSessionV2868102();}catch(_){return false;}
  if(!saveChangeAllowedV2838()){alert('请先结束战斗或突破，再重新入世。');return false;}
  try{
   const live=!document.getElementById('gameScreen')?.classList.contains('hidden')&&gameState!=='start';
