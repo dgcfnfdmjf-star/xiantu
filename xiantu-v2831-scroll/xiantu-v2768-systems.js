@@ -142,6 +142,7 @@ async function copySaveTextV2870(){
 }
 // Fail closed when the old record cannot be archived. No quota override can silently lose it.
 function replaceSaveV2870(raw,prepared,archiveKey=BEFORE_REPLACE_SAVE_V2870){
+ assertSaveSessionV2868102();
  const current=currentSaveRawV2870();
  const keys=[archiveKey,SAVE_BACKUP_KEY,SAVE_KEY],old=new Map(keys.map(k=>[k,localStorage.getItem(k)])),written=[];
  try{
@@ -155,6 +156,7 @@ function replaceSaveV2870(raw,prepared,archiveKey=BEFORE_REPLACE_SAVE_V2870){
   for(const k of written.reverse()){try{old.get(k)==null?localStorage.removeItem(k):localStorage.setItem(k,old.get(k));}catch(_){rollbackFailed=true;}}
   throw Error((e.name==='QuotaExceededError'?'存储空间不足，请先导出记录后再重试。':e.message)+(rollbackFailed?'部分备份未能回滚，请先导出检查。':'当前角色未切换。'));
  }
+ if(SAVE_SESSION_V2868102.active)SAVE_SESSION_V2868102.raw=raw;
  try{window.saveMirrorV2895?.(raw);}catch(_){}
  document.getElementById('saveManagerV2768')?.remove();loadAndStart(prepared);
 }
@@ -802,4 +804,4 @@ function reinforceSealV2887(token){
  if(ok){bossViewV2887=null;showSectAdminV2873();showFloatingText('九锁重鸣，旧账与加固已保存。','#ffd76a');}return ok;
 }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2768-systems.js"]="28.68.101";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2768-systems.js"]="28.68.102";

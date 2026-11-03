@@ -11,7 +11,10 @@ assert.equal(f.run('JSON.stringify(recovered.mapNpc.quests)'),'{}');assert.equal
 // Input is not rewritten during collection sanitation.
 assert.equal(f.run('damaged.mapNpc.rewards'),null);
 f.run('player.gold=987;saveGame();player.gold=123;saveGame()');f.storage.set('xiantu_save','broken');assert.equal(f.run('loadGame().player.gold'),987);assert.equal(f.run('loadGame()._recoveredFromBackup'),true);
-f.run('player.gold=321');for(const cb of f.events.pagehide)cb();assert.equal(f.run('loadGame().player.gold'),321);
+// An external change, including corruption, must not be overwritten on close.
+f.run('player.gold=321');for(const cb of f.events.pagehide)cb();assert.equal(f.storage.get('xiantu_save'),'broken');assert.equal(f.run('loadGame().player.gold'),987);
+// Simulate a fresh page explicitly loading its valid backup, then save normally.
+f.run('Object.assign(SAVE_SESSION_V2868102,{active:false,raw:null,stale:false});document.getElementById("saveConflictV2868102")?.remove();loadAndStart();player.gold=321');for(const cb of f.events.pagehide)cb();assert.equal(f.run('loadGame().player.gold'),321);
 const setter=f.c.localStorage.setItem;f.c.localStorage.setItem=()=>{throw Error('quota')};assert.equal(f.run('saveGame()'),false);f.c.localStorage.setItem=setter;assert.equal(f.run('loadGame().player.gold'),321);f.errors.length=0;
 f.run('closeWorldOverlay();showStory("测试",[])');f.timers.clear();f.run('flatWorldLoop(1200)');assert.equal(f.run('FLAT_WORLD.raf'),null);assert.equal([...f.timers.values()].filter(t=>t.delay===200).length,1);
 f.run('flatWorldLoop(1250)');assert.equal([...f.timers.values()].filter(t=>t.delay===200).length,1);

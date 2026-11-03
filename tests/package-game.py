@@ -20,6 +20,21 @@ class Packaging(unittest.TestCase):
         with zipfile.ZipFile(self.target) as z:
             self.assertEqual(z.namelist(),['xiantu-v2831-scroll/game.html'])
             self.assertEqual(z.read(z.namelist()[0]),(self.site/'game.html').read_bytes())
+    def test_art_preview_exclusions_preserve_runtime_layers_and_diagnostics(self):
+        kit=self.site/'fire-skills-batch1';kit.mkdir()
+        for name in ['index.html','preview.js','stage-reference.webp','effect-manifest.preview.json','impact.png','definition.js','effect-manifest.json']:
+            (kit/name).write_text('fixture')
+        for name in ['jev-check.html','health-v2762.html','skill-fx-v2855.html','skill-fx-v2854.html']:
+            (self.site/name).write_text('fixture')
+        self.manifest.write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+str(p.relative_to(self.site))+'\n' for p in self.site.rglob('*') if p.is_file() and p!=self.manifest))
+        r=self.invoke();self.assertEqual(r.returncode,0,r.stderr)
+        with zipfile.ZipFile(self.target) as z:
+            names=z.namelist()
+            for name in ['impact.png','definition.js','effect-manifest.json']:self.assertIn('xiantu-v2831-scroll/fire-skills-batch1/'+name,names)
+            for name in ['index.html','preview.js','stage-reference.webp','effect-manifest.preview.json']:self.assertNotIn('xiantu-v2831-scroll/fire-skills-batch1/'+name,names)
+            for name in ['jev-check.html','health-v2762.html','skill-fx-v2855.html']:self.assertIn('xiantu-v2831-scroll/'+name,names)
+            self.assertNotIn('xiantu-v2831-scroll/skill-fx-v2854.html',names)
+        self.assertTrue((kit/'preview.js').exists(),'source artwork is retained')
     def test_changed_runtime_does_not_replace_existing_archive(self):
         self.target.parent.mkdir();self.target.write_bytes(b'previous release')
         (self.site/'game.html').write_text('changed')

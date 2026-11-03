@@ -32,9 +32,10 @@ function fresh({live=false}={}){
   for(const k of ['share','canShare','clipboard'])delete f.c.navigator[k];
   for(const id of ['saveManagerV2768','rawSaveTextV2870'])f.ids.get(id)?.remove();
   f.ids.get('gameScreen')?.classList.add('hidden');
-  f.run("gameState='start';saveImportBusyV2768=false;player=createDefaultPlayer()");
+  // Each scenario represents a fresh page, including its save-conflict baseline.
+  f.run("Object.assign(SAVE_SESSION_V2868102,{active:false,raw:null,stale:false});document.getElementById('saveConflictV2868102')?.remove();gameState='start';saveImportBusyV2768=false;player=createDefaultPlayer()");
   if(live)f.run('startGame();closeWorldOverlay()');
-  f.storage.clear();
+  f.storage.clear();f.run("Object.assign(SAVE_SESSION_V2868102,{active:false,raw:null,stale:false})");
   for(const k of ['alerts','confirms','answers','downloads','blobs'])f[k].length=0;f.resets=0;
 }
 const mkSave=(name,gold=100)=>f.run(`(()=>{const p=createDefaultPlayer();p.name=${JSON.stringify(name)};p.gold=${gold};return JSON.stringify({player:p,achievements:{progress:{},completed:[]},timestamp:1,version:SAVE_VERSION})})()`);

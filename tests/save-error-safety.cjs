@@ -7,6 +7,7 @@ function harness(ready=true){
  const document={body:element(),createElement:element,getElementById:id=>nodes.get(id),documentElement:{classList:{contains:()=>ready}}};
  const context=vm.createContext({window:{addEventListener:(type,fn)=>events[type]=fn},document,console:{error(){},warn:(...x)=>warnings.push(x)},localStorage:{getItem:k=>store.get(k)||null,removeItem:k=>{removed.push(k);store.delete(k);}},CULTIVATION_REALMS:Array(16),SAVE_KEY:'xiantu_save',SAVE_BACKUP_KEY:'xiantu_save_backup',SAVE_VERSION:12});
  vm.runInContext(source.slice(0,source.indexOf('// ================== 手机版储物袋')),context);
+ vm.runInContext(source.slice(source.indexOf('    const SAVE_SESSION_V2868102'),source.indexOf('    function escapeGameText')),context);
  vm.runInContext(source.slice(source.indexOf('    function validateSaveTextV2869'),source.indexOf('    // Incomplete battles')),context);
  vm.runInContext(source.slice(source.indexOf('    function loadGame()'),source.indexOf('    function showSaveIndicator()')),context);
  return {context,events,store,removed,nodes,warnings};
