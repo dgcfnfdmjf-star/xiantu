@@ -4676,3 +4676,6 @@ html body #gameScreen .world-close-panel[hidden]{display:none!important}
  .task-card.main.active>.task-step-box{order:-2;}
  .task-card.main.active>.task-actions{order:-1;}
 }
+
+/* Locked chapters can still offer an enabled preparation action. */
+.task-card.locked.task-preparation-v2868103{opacity:1;}

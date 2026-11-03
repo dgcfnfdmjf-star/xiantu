@@ -3423,6 +3423,15 @@
       const stages=[...(a.past||[]),...(a.matches?.length?[{stage:a.stage,matches:a.matches}]:[])];
       return stages.map(s=>`<details ${s.stage===a.stage?'open':''}><summary>${KO_STAGES_V2780[s.stage]}</summary>${s.matches.map(m=>`<p>${m.kind==='bronze'?'🥉 季军争夺：':''}${koNameV2780(a,m.left)} 对 ${koNameV2780(a,m.right)}<br><small>${m.done?`${m.bye?'轮空晋级':'胜者'}：${koNameV2780(a,m.winner)}`:'待比武'}</small></p>`).join('')}</details>`).join('');
     }
+    function tournamentWaitGuideV2868103(){
+      const days=Math.max(0,(getNextTournamentYear()-1)*GAME_DAYS_PER_YEAR-(player.worldTime?.totalDays||0));
+      return `<section class="main-overview-v2822"><h3>等待大比 · 先安排修行</h3><p>距下届约 ${(days/GAME_DAYS_PER_YEAR).toFixed(1)} 年，当前剩余寿元 ${Math.max(0,getTotalMaxLifespan()-player.age)} 年。</p><p>可分次闭关备战，每次最多十年；修为满或大比开启会提前出关，突破需另行确认。预览会显示本次耗时，并保留至少一年寿元。</p></section>`;
+    }
+    function previewTournamentRetreatV2868103(){
+      if(!taskInteractionAllowedV2822()||gameState!=='exploring')return;
+      if(getPendingTournamentCentury())return showSectTournament();
+      showRetreatV2782(false,10);
+    }
     function showSectTournament(){
       if(gameState==='combat')return;
       const t=player.sectTournament;
@@ -3439,14 +3448,15 @@
         const century=t.pending?.[0];
         html+=century?`<p>第${century}年大比开放报名，至少筑基境可亲自出战。</p>`:`<p>下一届：仙历${getNextTournamentYear()}年。</p>`;
         if(century){choices.push({text:'报名淘汰赛',action:'tournament_start',condition:()=>hasReachedRealm(2)});choices.push({text:'委托宗门代表参赛',action:'tournament_auto'});}
+        if(!century){html+=tournamentWaitGuideV2868103();choices.push({text:'🧘 查看闭关备战预览',action:'tournament_retreat_preview_v2868103'});}
         a=makeKnockoutV2780(century||getNextTournamentYear(),false);
         if(!century)html+='<p style="color:#aaa">以下为下届预计代表名册，正式报名时锁定；亲自报名将替换本宗代表。</p>';
         const last=getLatestTournamentResult();
         if(last?.knockoutV2780)html+=`<details><summary>上届结果：${koEscapeV2780(last.placeLabel)} · 查看对阵</summary>${koBracketV2780(last.bracket)}</details>`;
       }
-      if(a){html+='<details open><summary>📜 本届宗门天才名册</summary>'+a.roster.map(p=>`<div style="border-bottom:1px solid #665638;padding:8px 0"><b>${koEscapeV2780(p.name)}</b> · ${p.gender==='主角'?'主角':p.gender==='男'?'少年男修':'少女女修'} · ${p.age}岁<br>${koEscapeV2780(p.sect)} · ${koEscapeV2780(p.art)}<br><small>${koEscapeV2780(p.style)}${p.isPlayer?' · 由你代表本宗':''}</small></div>`).join('')+'</details>';}
+      if(a){html+=`<details ${t.active||t.pending?.length?'open':''}><summary>📜 本届宗门天才名册</summary>`+a.roster.map(p=>`<div style="border-bottom:1px solid #665638;padding:8px 0"><b>${koEscapeV2780(p.name)}</b> · ${p.gender==='主角'?'主角':p.gender==='男'?'少年男修':'少女女修'} · ${p.age}岁<br>${koEscapeV2780(p.sect)} · ${koEscapeV2780(p.art)}<br><small>${koEscapeV2780(p.style)}${p.isPlayer?' · 由你代表本宗':''}</small></div>`).join('')+'</details>';}
       if(hasSectSecretQualification())choices.push({text:'🌀 前往万宗秘境',action:'secret'});
-      choices.push({text:'返回宗门',action:'sect'});showStory(html,choices);
+      choices.push({text:'返回宗门',action:'sect'});showStory(html,choices);document.getElementById('storyText').scrollTop=0;
     }
     function startSectTournament(){
       if(gameState==='combat'||!hasReachedRealm(2))return;
@@ -6382,11 +6392,42 @@
       if(step.action==='journey_battle_v2838')return launchJourneyBattleV2838(id);
       openTaskSceneV2838(id);
     }
-    function launchNextKillTaskBattle(id){
+    let taskBattlePromptV2868103=null,taskBattleSeqV2868103=0;
+    function taskBattleReadyV2868103(id,action){
+      const inst=getTaskInstance(id),step=getCurrentTaskStep(id);
+      return !!inst&&!inst.completed&&!inst.failed&&getTaskStatus(id)===TASK_STATUS.ACTIVE&&gameState==='exploring'&&!COMBAT_FINISH_V2764.settling&&!player.breakthrough?.isAnimating&&
+        (step?.action===action||(action==='gather_guard_v2823'&&step?.action==='collect_task_materials'&&inst.progress.gatherV2823?.pending===true));
+    }
+    function warnTaskBattleV2868103(id,action,launch){
+      if(player.hp>=getMaxHp()*.5)return false;
+      const seq=++taskBattleSeqV2868103;
+      taskBattlePromptV2868103={seq,owner:player,inst:getTaskInstance(id),step:getCurrentTaskStep(id),id,action,launch};
+      closeTaskPanel();
+      showStory(`<section id="taskBattlePromptV2868103" data-prompt="${seq}"><h3>⚠️ 气血不足，先整备再挑战</h3><p>当前气血 ${Math.floor(player.hp)} / ${getMaxHp()}，不足一半。任务战败仍会损失身上灵石的20%，且仅保留1点气血；重新挑战不会自动恢复。</p><button class="choice-btn" onclick="showTaskSuppliesV2868103()">💧 先去补给</button><button class="choice-btn" onclick="confirmTaskBattleV2868103(${seq})">仍要出战</button></section>`,[{text:'返回任务',action:'task_panel_open'}]);
+      document.getElementById('storyText').scrollTop=0;
+      document.querySelector('#taskBattlePromptV2868103 button')?.focus();
+      return true;
+    }
+    function confirmTaskBattleV2868103(seq){
+      const p=taskBattlePromptV2868103;
+      if(!p||p.seq!==seq||p.owner!==player||document.getElementById('storyPanel')?.classList.contains('hidden')||document.getElementById('taskPanel')||getTaskInstance(p.id)!==p.inst||getCurrentTaskStep(p.id)!==p.step||document.getElementById('taskBattlePromptV2868103')?.dataset.prompt!==String(seq)||!taskBattleReadyV2868103(p.id,p.action))return false;
+      taskBattlePromptV2868103=null;p.launch();return true;
+    }
+    function showTaskSuppliesV2868103(){
+      if(!taskInteractionAllowedV2822()||gameState!=='exploring')return;
+      taskBattlePromptV2868103=null;closeTaskPanel();
+      const poi=FLAT_WORLD.pois.find(p=>(p.action==='rest'||p.buildingId==='spirit_spring')&&scrollPoiAccessV2837(p).allowed);
+      showStory(`<h3>💧 战前补给</h3><p>当前气血 ${Math.floor(player.hp)} / ${getMaxHp()}。到灵泉后交互即可按原规则调息，也可打开行囊使用已有丹药。</p>${poi?`<button class="choice-btn" onclick="startNavigationV2830('${poi.id}')">步行前往${discipleEscV2815(poi.name)}</button><p>到附近停下后点击交互；途中仍可能遇敌，可手动接管。</p>`:'<p>本地域暂无可用灵泉，可经驿道返回南域青云村或北域宗门补给。</p>'}`,[{text:'查看地域入口',action:'world_travel_menu'},{text:'返回任务',action:'task_panel_open'},{text:'返回地图',action:'return_to_map'}]);
+    }
+    function launchNextKillTaskBattle(id,confirmed=false){
+      if(!taskBattleReadyV2868103(id,'kill_enemies'))return;
       const step=getCurrentTaskStep(id),inst=getTaskInstance(id);if(!step?.enemyCounts||!inst)return;let target=null;for(const [name,count] of Object.entries(step.enemyCounts)){if((inst.progress[name]||0)<count){target=name;break;}}if(!target)return;
+      if(!confirmed&&warnTaskBattleV2868103(id,'kill_enemies',()=>launchNextKillTaskBattle(id,true)))return;
       closeTaskPanel();const lv=Math.max(0,player.level||0),scale=1+lv*.18;const enemy={name:target,hp:Math.round((55+lv*18)*scale),maxHp:Math.round((55+lv*18)*scale),atk:Math.round(10+lv*4),def:Math.round(3+lv*2),gold:12+lv*5,exp:20+lv*8,_realmLevel:Math.max(0,lv-1),_realmPhase:0,_taskId:id,_taskAction:'kill_enemies',_isTaskBattle:true};startCombat(enemy,false,false,null);
     }
-    function launchSpecialTaskBattle(id,action){
+    function launchSpecialTaskBattle(id,action,confirmed=false){
+      if(!taskBattleReadyV2868103(id,action))return;
+      if(!confirmed&&warnTaskBattleV2868103(id,action,()=>launchSpecialTaskBattle(id,action,true)))return;
       const defs={gather_guard_v2823:['守巢灵兽',180,20,7],border_general_v2823:['荒原魔将',320,35,13],war_defender_v2823:['破阵魔修',400,42,17],combat_puppet:['内门考核傀儡',150,19,7],kill_secret_boss:['秘境妖王',230,25,9],clear_nest:['巢穴妖兽首领',190,22,8],defend_attack:['偷袭魔修',280,31,12]};const d=defs[action];if(!d)return;closeTaskPanel();const scale=1+Math.max(0,(player.level||0)-2)*.16;const enemy={name:d[0],hp:Math.round(d[1]*scale),maxHp:Math.round(d[1]*scale),atk:Math.round(d[2]*scale),def:Math.round(d[3]*scale),gold:45+player.level*10,exp:70+player.level*15,_realmLevel:player.level||0,_realmPhase:Math.max(0,(player.phase||0)-1),_taskId:id,_taskAction:action,_isTaskBattle:true};startCombat(enemy,false,false,null);
     }
 
@@ -6453,6 +6494,10 @@
       if((player.level||0)<(task.unlockRealm||0))parts.push(`达到${CULTIVATION_REALMS[task.unlockRealm]?.name||'指定境界'}初期`);
       return parts.join('；');
     }
+    function previewMainCultivationV2868103(id){
+      const task=getTaskData(id);if(!task||task.type!=='main'||!taskInteractionAllowedV2822()||gameState!=='exploring'||getTaskStatus(id)!==TASK_STATUS.LOCKED||!mainPredecessorMetV286823(task)||(player.level||0)>=(task.unlockRealm||0))return;
+      closeTaskPanel();showRetreatV2782(false,10);
+    }
     function renderTaskList(filter='main'){
       currentTaskTab=filter;const c=document.getElementById('taskListContainer');if(!c)return;
       document.querySelectorAll('.task-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===filter));
@@ -6463,22 +6508,33 @@
         const st=getTaskStatus(task.id),inst=getTaskInstance(task.id),step=inst&&!inst.completed?getCurrentTaskStep(task.id):null;let buttons='';
         if(st===TASK_STATUS.AVAILABLE)buttons=`<button class="task-action gold" onclick="acceptTask('${task.id}');renderTaskList('${filter}')">接取任务</button>`;
         else if(st===TASK_STATUS.ACTIVE)buttons=step?.action==='choice'?renderTaskChoices(task.id,step):`<button class="task-action gold" onclick="performTaskAction('${task.id}')">${getTaskActionLabel(task.id)}</button>${task.type!=='main'?`<button class="task-action danger" onclick="abandonTask('${task.id}')">放弃</button>`:''}`;
+        if(st===TASK_STATUS.LOCKED&&task.type==='main'&&mainPredecessorMetV286823(task)&&(player.level||0)<(task.unlockRealm||0))buttons=`<button class="task-action gold" onclick="previewMainCultivationV2868103('${task.id}')">🧘 查看修炼 / 突破预览</button>`;
         const checklist=task.type==='main'&&step?`<details class="main-steps-v2822"><summary>本章步骤 · ${inst.currentStep}/${task.steps.length}</summary><ol>${task.steps.map((x,i)=>`<li class="${i===inst.currentStep?'current':''}">${i<inst.currentStep?'✓ ':i===inst.currentStep?'➤ ':''}${esc(x.text)}</li>`).join('')}</ol></details>`:'';
-        return `<article class="task-card ${task.type==='main'?'main':''} ${st}"><div class="task-card-top"><div class="task-card-title">${esc(task.title)}</div><div class="task-status">${taskStatusText(st)}</div></div>${task.type==='main'&&st!==TASK_STATUS.LOCKED?mainIllustrationV286829(task.id):''}<p class="task-card-desc">${esc(task.desc)}</p>${task.type==='main'?`<p class="main-guide-v2822">📍 剧情地点：${esc(mainTaskGuideV2822(task))}${task.npc?` · ${esc(task.npc)}`:''}</p>`:''}${st===TASK_STATUS.LOCKED&&task.type==='main'?`<p class="main-lock-v2822">${esc(mainTaskLockV2822(task))}</p>`:''}${step?`<div class="task-step-box"><div class="task-step-label">当前目标 · 第 ${inst.currentStep+1}/${task.steps.length} 步</div><div class="task-step-text">${esc(getTaskStepDisplay(task.id,step))}</div></div>`:''}${checklist}<div class="task-reward">${st===TASK_STATUS.COMPLETED?'已发放':'完成后自动发放'}：${esc(formatTaskRewards(task.rewards))}</div><div class="task-actions">${buttons}</div></article>`;
+        return `<article class="task-card ${task.type==='main'?'main':''} ${st}${st===TASK_STATUS.LOCKED&&buttons?' task-preparation-v2868103':''}"><div class="task-card-top"><div class="task-card-title">${esc(task.title)}</div><div class="task-status">${taskStatusText(st)}</div></div>${task.type==='main'&&st!==TASK_STATUS.LOCKED?mainIllustrationV286829(task.id):''}<p class="task-card-desc">${esc(task.desc)}</p>${task.type==='main'?`<p class="main-guide-v2822">📍 剧情地点：${esc(mainTaskGuideV2822(task))}${task.npc?` · ${esc(task.npc)}`:''}</p>`:''}${st===TASK_STATUS.LOCKED&&task.type==='main'?`<p class="main-lock-v2822">${esc(mainTaskLockV2822(task))}</p>`:''}${step?`<div class="task-step-box"><div class="task-step-label">当前目标 · 第 ${inst.currentStep+1}/${task.steps.length} 步</div><div class="task-step-text">${esc(getTaskStepDisplay(task.id,step))}</div></div>`:''}${checklist}<div class="task-reward">${st===TASK_STATUS.COMPLETED?'已发放':'完成后自动发放'}：${esc(formatTaskRewards(task.rewards))}</div><div class="task-actions">${buttons}</div></article>`;
       };
       if(filter!=='main'){c.innerHTML=(filter==='journey'?journeyIntroductionV2838():'')+list.map(card).join('');return;}
       const done=list.filter(t=>getTaskStatus(t.id)===TASK_STATUS.COMPLETED),todo=list.filter(t=>getTaskStatus(t.id)!==TASK_STATUS.COMPLETED),current=preferredMainV286823(todo),last=getTaskData(player.tasks.lastMainResultV2822?.id);
       c.innerHTML=`<section class="main-overview-v2822"><h3>📜 主线旅程 · ${done.length}/${list.length} 章</h3><p>${current?`当前篇章：${esc(current.title)}`:'当前已开放主线全部完成，可继续宗门大比、三界历练与宿敌纪事。'}</p><progress max="${list.length}" value="${done.length}" aria-label="主线章节进度"></progress><p>剧情对话由下方按钮推进；实战需获胜，修炼与突破会先显示预览。</p>${last?`<details><summary>最近完成：${esc(last.title)} · 奖励已到账</summary><p>${esc(formatTaskRewards(last.rewards))}</p></details>`:''}</section>${current?card(current):''}${expansionCardV286827()+rainCardV286822()+storyMailCardV286826()+postCaseCardV286826()+taskLovePanelV2824()}${todo.length>1?`<details class="main-archive-v2822"><summary>后续章节 · ${todo.length-1}</summary>${todo.filter(t=>t!==current).map(card).join('')}</details>`:''}${done.length?`<details class="main-archive-v2822"><summary>已完成章节 · ${done.length}</summary>${done.map(card).join('')}</details>`:''}`;
     }
     function showTaskPanel(filter='main'){
+      taskBattlePromptV2868103=null;
       if(gameState!=='combat'&&gameState!=='combat-ending'&&!player.breakthrough?.isAnimating)checkTaskTriggers();
       closeTaskPanel();const ov=document.createElement('div');ov.id='taskPanel';ov.className='task-panel-overlay';ov.innerHTML=`<div class="task-panel-box"><div class="task-panel-head"><div><div class="task-panel-title">📜 仙途任务志</div><div class="task-panel-sub">主线 · 三界游历 · 修行纪事</div></div><button aria-label="关闭" class="task-close" onclick="closeTaskPanel()">✕</button></div><div class="task-tabs">${[['main','主线'],['journey','游历'],['journal','纪事'],['side','支线'],['daily','日常'],['weekly','周常'],['hidden','隐藏']].map(([id,n])=>`<button class="task-tab" data-tab="${id}" onclick="renderTaskList('${id}')">${n}</button>`).join('')}</div><div id="taskListContainer"></div></div>`;document.body.appendChild(ov);ov.addEventListener('pointerdown',e=>{if(e.target===ov)closeTaskPanel();});renderTaskList(filter);
     }
     function closeTaskPanel(){document.getElementById('taskPanel')?.remove();}
     function addTaskButton(){const actions=document.querySelector('.world-hud-top > div:last-child');if(!actions||document.getElementById('taskBtn'))return;const b=document.createElement('button');b.id='taskBtn';b.textContent='📜 任务';b.onclick=()=>showTaskPanel('main');actions.insertBefore(b,actions.firstChild);}
-    function getTrackedTasks(){const active=getActiveTasks();const main=active.find(t=>t.type==='main');const other=active.find(t=>t.type!=='main');return [main,other].filter(Boolean);}
+    function getTrackedTasks(){const active=getActiveTasks();const main=active.find(t=>t.type==='main')||preferredMainV286823(MAIN_TASKS.filter(t=>![TASK_STATUS.COMPLETED,TASK_STATUS.FAILED].includes(getTaskStatus(t.id))));const other=active.find(t=>t.type!=='main');return [main,other].filter(Boolean);}
     function getActiveTasks(){const a=[];for(const [id,inst] of Object.entries(ensureTaskState().active)){if(inst.completed||inst.failed)continue;const t=getTaskData(id);if(t)a.push({...t,instance:inst});}return a;}
-    function updateTaskTracker(){if(!player)return;ensureTaskState();let tr=document.getElementById('taskTrackerCompact');const hud=document.querySelector('.world-hud');if(!hud)return;if(!tr){tr=document.createElement('div');tr.id='taskTrackerCompact';hud.appendChild(tr);}const tasks=getTrackedTasks();if(!tasks.length){tr.innerHTML='<div style="color:#727d8a;padding:3px 2px">📜 暂无追踪任务</div>';return;}tr.innerHTML=tasks.map(t=>`<div class="task-track-row" onclick="showTaskPanel('${t.type}')"><div class="task-track-title"><span>${t.type==='main'?'主线':'任务'} · ${t.title}</span><span>${getTaskProgress(t.id)}%</span></div><div class="task-track-step">${getCurrentStepDesc(t.id)}</div><div class="task-track-progress"><i style="width:${getTaskProgress(t.id)}%"></i></div></div>`).join('');}
+    function updateTaskTracker(){
+      if(!player)return;ensureTaskState();let tr=document.getElementById('taskTrackerCompact');const hud=document.querySelector('.world-hud');if(!hud)return;
+      if(!tr){tr=document.createElement('div');tr.id='taskTrackerCompact';hud.appendChild(tr);}
+      const tasks=getTrackedTasks(),esc=discipleEscV2815;
+      if(!tasks.length){tr.innerHTML='<div style="color:#727d8a;padding:3px 2px">📜 暂无追踪任务</div>';return;}
+      tr.innerHTML=tasks.map(t=>{
+        const locked=getTaskStatus(t.id)===TASK_STATUS.LOCKED,progress=getTaskProgress(t.id);
+        return `<div class="task-track-row" role="button" tabindex="0" onclick="showTaskPanel('${t.type}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showTaskPanel('${t.type}')}"><div class="task-track-title"><span>${t.type==='main'?'主线':'任务'} · ${esc(t.title)}</span><span>${locked?'🔒 未解锁':progress+'%'}</span></div><div class="task-track-step">${esc(locked?mainTaskLockV2822(t)+' · 点此查看准备方向':getCurrentStepDesc(t.id))}</div>${locked?'':`<div class="task-track-progress"><i style="width:${progress}%"></i></div>`}</div>`;
+      }).join('');
+    }
     function ensureTaskUI(){addTaskButton();checkTaskTriggers();updateTaskTracker();resetDailyTasks();resetWeeklyTasks();}
 
     let activeRegionDebuff = null;
@@ -7999,7 +8055,7 @@
             if (isBossFight) addCombatLog('首领战失败，需要重新挑战...');
             readyCombatFinishV2764({
               kind:'defeat', delay:650, skipReturn:true,
-              afterReturn:() => showStory(`你被击败了，身受重伤回到村庄休养。${abyssDefeatV2882?'归墟讨伐不扣灵石。':trialDefeatV2874?'问锋试炼不扣灵石。':`损失身上灵石的20%（${defeatGoldLossV2777}灵石，不足1灵石部分舍去）。`}`, [{ text: '继续', action: 'village' }])
+              afterReturn:() => showStory(`你被击败了，重伤脱离战斗，气血仅保留1点，尚未恢复。请到灵泉交互调息或使用丹药后再挑战。${abyssDefeatV2882?'归墟讨伐不扣灵石。':trialDefeatV2874?'问锋试炼不扣灵石。':`损失身上灵石的20%（${defeatGoldLossV2777}灵石，不足1灵石部分舍去）。`}`, [{ text: '查看补给路线', action: 'task_supplies_v2868103' },{ text: '返回村庄', action: 'village' }])
             });
           }
           return;
@@ -11102,6 +11158,8 @@ function villageEnhanceV286897(){
         case 'lingxiao_factions':
           showLingxiaoFactionBalance();
           break;
+        case 'tournament_retreat_preview_v2868103': previewTournamentRetreatV2868103(); break;
+        case 'task_supplies_v2868103': showTaskSuppliesV2868103(); break;
         case 'sect_tournament':
           showSectTournament();
           break;
@@ -13847,6 +13905,7 @@ function villageEnhanceV286897(){
     }
 
     function closeWorldOverlay() {
+      taskBattlePromptV2868103=null;
       villageResetV286897();
       if(typeof closeExpansionV286827==='function')closeExpansionV286827();
       document.getElementById('postCaseV286826')?.remove();document.getElementById('storyBossPrepV286826')?.remove();
