@@ -4,3 +4,5 @@ playwright-report/
 dist/
 output/
 .playwright-cli/
+.xiantu-deploy-v2868110/
+__pycache__/

@@ -1,0 +1,51 @@
+name: Deploy Xiantu V28.68.110 (manual)
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'preview = only inspect; deploy = overwrite the 471 Xiantu files'
+        type: choice
+        options: [preview, deploy]
+        default: preview
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: xiantu-cloudbase-static-deployment
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: xiantu-static
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+      - name: Download pinned release and preview all target keys
+        run: python3 scripts/deploy-xiantu-v2868110.py --preview
+      - name: Authenticate to the specified CloudBase environment
+        if: inputs.operation == 'deploy'
+        env:
+          CLOUDBASE_API_KEY: ${{ secrets.CLOUDBASE_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$CLOUDBASE_API_KEY" ]; then
+            echo 'Missing CLOUDBASE_API_KEY in the xiantu-static GitHub environment.' >&2
+            exit 1
+          fi
+          npx --yes --package @cloudbase/cli@3.9.0 tcb login \
+            --cloudbase-api-key "$CLOUDBASE_API_KEY" \
+            -e xiantu-game-d9gy5heze4b039bf1
+      - name: Upload resources, verify, then upload entry files
+        if: inputs.operation == 'deploy'
+        run: python3 scripts/deploy-xiantu-v2868110.py --deploy
+      - name: Retain the exact upload plan
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: xiantu-v2868110-upload-plan
+          path: .xiantu-deploy-v2868110/upload-plan.json
+          include-hidden-files: true
+          if-no-files-found: ignore

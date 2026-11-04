@@ -1,0 +1,103 @@
+仙途 V28.68.110 批量上传（2026-11-05）
+
+推荐在腾讯云 Cloud Shell 运行 scripts/deploy-xiantu-v2868110.py。
+这是已生成网页资源的批量上传，不需要构建游戏，也不更新 Jev/云函数。
+交付脚本与手动 CI；本工作环境没有腾讯云部署凭据，未替用户执行线上上传。
+
+固定范围
+- 环境：xiantu-game-d9gy5heze4b039bf1
+- 目标前缀：xiantu-v2831-scroll/
+- 原始发行 ZIP：7070a39fc80a1dada98b403d2d63ea02637b0126 提交中的 downloads/xiantu-v2831-scroll.zip
+- 原包 472 文件 / 64,133,352 字节 / SHA256 0c59457c8793e89d2e45923f9b53a6c2831690e92c31b62e0029a12a471fe221
+- 自动排除 xiantu-v2831-scroll/index.html，上传恰好 471 文件：463 个资源，8 个 HTML/webmanifest。
+- 不写 /index.html 和 /xiantu-v2831-scroll/index.html；不写 /healing-game/ 和 /xiantu-v2831-scroll/healing-game/。
+- 只覆盖清单内同名对象；不删除远端多余对象，不改 ACL/存储桶配置，不清空目录。
+
+准备
+需要 Linux Cloud Shell、Python 3.9+、Node.js 22+（含 npm/npx）。
+  python3 --version
+  node --version
+如果 Cloud Shell 的 Node 太旧，用其已有 Node 版本管理器切到 22 或 24 后再执行。
+在 Cloud Shell 上传这一个 Python 脚本即可，也可从该脚本在 GitHub 的 Raw 地址下载。
+使用浏览器下载完成的原始完整 ZIP 时，不必重传 471 文件，上传 ZIP 这一个文件，然后使用 --zip。
+
+操作
+  # 登录一次：复制终端给出的授权链接和用户码，在浏览器完成授权。
+  # Cloud Shell 控制台已登录不代表这个 CLI 已登录。
+  npx --yes --package @cloudbase/cli@3.9.0 tcb login
+
+  # 只下载发行 ZIP、校验 SHA256、生成上传清单；不调用腾讯云写接口。
+  python3 deploy-xiantu-v2868110.py --preview
+
+  # 检查 .xiantu-deploy-v2868110/upload-plan.json 后实际上传。
+  python3 deploy-xiantu-v2868110.py --deploy
+
+如果原始 ZIP 已在 Cloud Shell：
+  python3 deploy-xiantu-v2868110.py --preview --zip /实际路径/xiantu-v2831-scroll.zip
+  python3 deploy-xiantu-v2868110.py --deploy --zip /实际路径/xiantu-v2831-scroll.zip
+
+必须是原始未修改 ZIP。手动剔除 index.html 后重新打包的 ZIP 会因 SHA256 不符被拒绝。
+脚本自己排除 index.html，所以无需提前修改原包。
+若 Cloud Shell 无法连接 GitHub，可通过浏览器下载后，仅上传脚本和原始 ZIP 两个文件，再用 --zip。
+
+默认并发 5，失败重试 3 次。弱网用 --concurrency 2，稳定网络可用 --concurrency 10。
+发生上传失败或断线后可以重跑同一 --deploy 命令；它会重新覆盖这一版文件，不会叠加目录或删掉其他游戏。
+这不是保证只传差异的增量同步：当前脚本会重传清单内文件，优先保证固定范围与结果可核对。
+本地暂存目录每次独立创建并自动清理；下载缓存和 upload-plan.json 保留在工作目录。
+预览打印的暂存目录是一次性的，不要手抄临时目录命令，实际上传请运行 --deploy。
+
+具体上传行为
+脚本使用官方 @cloudbase/cli@3.9.0：
+  tcb hosting deploy <资源暂存目录> xiantu-v2831-scroll \
+    -e xiantu-game-d9gy5heze4b039bf1 --concurrency 5 --retry-count 3 --retry-interval 2000 --verify
+  tcb hosting deploy <入口暂存目录> xiantu-v2831-scroll \
+    -e xiantu-game-d9gy5heze4b039bf1 --concurrency 5 --retry-count 3 --retry-interval 2000 --verify \
+    --entry game-v2762.html,game.html
+
+两阶段都通过目录上传保持相对路径，云端没有 resources/ 或 entries/ 额外层级。
+第一阶段资源上传或源站校验失败，第二阶段不会运行。两阶段之间再校验一次本地文件完整性。
+不传 --prune：该选项会删除当前云端前缀中、本地没有的文件，可能删掉花园或保留入口。
+不传 --safe：该选项会在远端生成额外备份，并可能在失败回滚中删除新增对象；本方案遵守只写指定文件的边界。
+不要把目标路径改成 /，也不要改用整个解压父目录，否则会改变上传目标。
+
+独立 CLI 快速方式（仅适合你已准备好并确认过的 471 文件目录）
+假设本地 ./xiantu-v2831-scroll 里面直接是 game-v2762.html、脚本、美术目录：
+  npx --yes --package @cloudbase/cli@3.9.0 tcb hosting deploy \
+    ./xiantu-v2831-scroll xiantu-v2831-scroll \
+    -e xiantu-game-d9gy5heze4b039bf1 \
+    --ignore 'index.html,healing-game/**' \
+    --concurrency 5 --retry-count 3 --retry-interval 2000 \
+    --verify --entry game-v2762.html,game.html
+此方式是同名覆盖而不删除远端额外文件，但没有上面固定 ZIP 的哈希、471 数量及路径约束。
+只使用 hosting deploy，不运行 hosting delete，不加 --prune。
+
+验收和恢复
+- CLI --verify 对比源站对象 ETag/MD5；若为非普通 MD5 的分块 ETag，则按大小核对。这不是浏览器端 CDN 校验。
+- 打开 https://xiantu-game-d9gy5heze4b039bf1-1255918878.tcloudbaseapp.com/xiantu-v2831-scroll/game-v2762.html?v=2868110
+- 启动画面应为 V28.68.110，进入炼丹可见铜炉及动效开关；仍有老页面或版本不一致时，刷新本次仙途文件的 CDN 缓存。
+- 同时打开原小小花园地址和 healing-game 地址，确认内容与部署前一致。不要清除浏览器网站数据，以保留原存档。
+- 同名覆盖不是原子切换；上传期间可能短暂混合版本。入口最后上传可减少窗口，但不保证零中断。
+- 中止或失败后可能已有部分仙途文件更新；脚本不会自动回滚或删除远端内容，解决网络/权限问题后重跑。
+- 如需旧版本回退，使用已知旧版文件按相同前缀覆盖；本脚本固定 V28.68.110，不接受别的发行包。
+
+可选 GitHub Actions
+仓库附带 .github/workflows/deploy-xiantu-v2868110.yml，仅 workflow_dispatch 手动触发，不绑定 push/merge。
+1. 先合并部署工具 PR，使工作流出现在默认分支。
+2. GitHub Settings → Environments 创建 xiantu-static，添加 Secret CLOUDBASE_API_KEY，值为目标 CloudBase 环境的 API Key。
+   该值仅保存于 GitHub Secrets，不放代码、不发聊天。也可在该 Environment 自行设置审批与允许部署的分支。
+3. Actions → Deploy Xiantu V28.68.110 (manual) → Run workflow。
+4. operation 默认 preview，只下载和生成上传清单；选 deploy 才登录云开发并执行上传。
+5. 同一组部署不并行，新任务排队，不自动取消正在上传的任务；结果附带 upload-plan.json。
+CI 也固定上传 V28.68.110，不会因为 main 的未来游戏包变化而默默改成另一个版本。
+
+验证记录
+- 官方 npm 发行 @cloudbase/cli@3.9.0 的 hosting deploy --help 与 login --help 已实际运行核对。
+- 阅读发行包实现，确认 verify-only 不执行备份、prune 或回滚；资源失败会中止后续入口上传。
+- 真实 ZIP 预览：SHA256 相符、471 个安全目标、463+8 两阶段、无 index.html/healing-game 对象。
+- python3 tests/deploy-xiantu-v2868110.py：9 项本地边界/模拟上传测试，不使用腾讯云凭据。
+- 没有进行真实腾讯云上传或线上可用性验收。
+
+官方参考
+https://docs.cloudbase.net/cli-v1/hosting
+https://docs.cloudbase.net/cli-v1/login
+https://www.npmjs.com/package/@cloudbase/cli/v/3.9.0
