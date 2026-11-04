@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN" class="xiantu-safe-boot-v2762">
 <head>
+
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://xiantu-game-d9gy5heze4b039bf1-1255918878.ap-shanghai.app.tcloudbase.com; frame-src 'none'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=overlays-content">
@@ -10,10 +11,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="仙途">
   <meta name="mobile-web-app-capable" content="yes">
-  <link rel="preload" as="style" href="./xiantu-v2762.css?v=2868108-north-20261103" fetchpriority="high">
-  <link rel="preload" as="script" href="./xiantu-v2762-core.js?v=2868108-north-20261103" fetchpriority="high">
+  <link rel="preload" as="style" href="./xiantu-v2762.css?v=2868110-alchemy-20261104" fetchpriority="high">
+  <link rel="preload" as="script" href="./xiantu-v2762-core.js?v=2868110-alchemy-20261104" fetchpriority="high">
   
-  <title>仙途 V28.68.108 · 开场动画版</title>
+  <title>仙途 V28.68.110 · 开场动画版</title>
 
 
 
@@ -59,7 +60,7 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
 #xiantuSafeBoot .intro-controls-v2860 button{min-height:44px;font-size:14px;border-radius:9px}
 @media(orientation:landscape) and (max-height:500px){#xiantuSafeBoot .boot-card{width:min(760px,96vw);padding:12px;max-height:96dvh}#introPanelV2860:not([hidden]){float:left;width:55%;margin-right:16px}#xiantuSafeBoot .boot-mark{display:none}}
 
-/* V28.68.108: lightweight still background; video sits above the scrollable card. */
+/* V28.68.110: lightweight still background; video sits above the scrollable card. */
 #xiantuSafeBoot{box-sizing:border-box;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));align-items:flex-end;background:linear-gradient(180deg,rgba(4,8,6,.08),rgba(4,8,6,.88) 65%),url('./boot-bg-v286891.jpg') center 25%/cover no-repeat,#07100b}
 #xiantuSafeBoot .boot-card{background:linear-gradient(155deg,rgba(24,36,28,.93),rgba(8,16,12,.97));padding:22px;max-height:calc(100dvh - 32px)}
 #xiantuSafeBoot [hidden]{display:none!important}
@@ -78,6 +79,28 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
 </style>
 </head>
 <body class="xiantu-v2762-booting">
+<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden" focusable="false">
+<!-- 仙途 UI icon sprite v1 · 24x24 line icons, stroke=currentColor · original drawings for this project (no third-party license) -->
+<defs>
+<symbol id="xt-i-quest" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h11a2 2 0 0 1 2 2v12"/><path d="M6 4a2 2 0 0 0-2 2v1h4V6a2 2 0 0 0-2-2z"/><path d="M8 6v12a2 2 0 0 0 2 2h9a2 2 0 0 0 0-4h-9"/><path d="M11 9h5M11 12h4"/></g></symbol>
+<symbol id="xt-i-char" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7.5" r="3.5"/><path d="M12 4V2.5M9.5 5 8.5 3.5M14.5 5l1-1.5"/><path d="M5 21c.6-4 3.3-6.5 7-6.5s6.4 2.5 7 6.5"/><path d="M12 14.5 10.5 21M12 14.5l1.5 6.5"/></g></symbol>
+<symbol id="xt-i-bag" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5.5c0-1.5 1.3-2.5 3-2.5s3 1 3 2.5"/><path d="M8 7h8l1 2c2 1.5 3 4 3 6.5 0 3-3.5 5.5-8 5.5s-8-2.5-8-5.5C4 13 5 10.5 7 9z"/><path d="M8 7c1.2 1 2.5 1.4 4 1.4S14.8 8 16 7"/><circle cx="12" cy="14" r="1.6"/></g></symbol>
+<symbol id="xt-i-sect" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 9.5C6 9 9 7 12 3.5c3 3.5 6 5.5 9.5 6"/><path d="M5 9.5v10M19 9.5v10M3 19.5h18"/><path d="M9 19.5v-5h6v5"/><path d="M7.5 12.5h9"/></g></symbol>
+<symbol id="xt-i-menu" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></g></symbol>
+<symbol id="xt-i-map" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5 8.5 4l7 2.5L21 4v13.5L15.5 20l-7-2.5L3 20z"/><path d="M8.5 4v13.5M15.5 6.5V20"/></g></symbol>
+<symbol id="xt-i-compass" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></g></symbol>
+<symbol id="xt-i-sword" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4 9.5 14.5M20 4v4l-9 9M20 4h-4l-9 9"/><path d="m6 15 3 3M4.5 19.5l3-3"/></g></symbol>
+<symbol id="xt-i-shield" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3 5 5.5v6c0 4.5 3 7.8 7 9.5 4-1.7 7-5 7-9.5v-6z"/><path d="M12 7v10M8.5 10.5h7"/></g></symbol>
+<symbol id="xt-i-stone" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M7 4h10l4 5-9 11L3 9z"/><path d="M3 9h18M9.5 4 8 9l4 11 4-11-1.5-5"/></g></symbol>
+<symbol id="xt-i-calendar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M8 3.5v4M16 3.5v4M4 10h16"/></g></symbol>
+<symbol id="xt-i-lotus" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 5c2 2.2 3 4.5 3 7s-1 4.2-3 5.5c-2-1.3-3-3-3-5.5S10 7.2 12 5z"/><path d="M9.3 10.5C7 9.8 4.8 10 3 11c.6 3.6 3.5 6.3 9 6.5"/><path d="M14.7 10.5c2.3-.7 4.5-.5 6.3.5-.6 3.6-3.5 6.3-9 6.5"/><path d="M5 20h14"/></g></symbol>
+<symbol id="xt-i-close" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></g></symbol>
+<symbol id="xt-i-go" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></g></symbol>
+<symbol id="xt-i-hand" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11"/><path d="M11 10V4.5a1.5 1.5 0 0 1 3 0V11"/><path d="M14 10.5V6a1.5 1.5 0 0 1 3 0v7c0 4-2.5 7-6 7-2.5 0-4-1.2-5.5-3.5L4 14a1.5 1.5 0 0 1 2.6-1.5L8 14.5"/></g></symbol>
+<symbol id="xt-i-cloud" viewBox="0 0 48 16"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M1 8h12"/><path d="M13 8a4 4 0 1 1 4 4 2.5 2.5 0 1 1 2.5-2.5"/><path d="M47 8H35"/><path d="M35 8a4 4 0 1 0-4 4 2.5 2.5 0 1 0-2.5-2.5"/><circle cx="24" cy="8" r="1.6" fill="currentColor"/></g></symbol>
+</defs>
+</svg>
+
 
 <div id="xiantuSafeBoot" role="dialog" aria-labelledby="xiantuSafeBootTitle">
   <div class="boot-card">
@@ -87,7 +110,7 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
     </div>
     <div class="boot-mark">☯</div>
     <h1 id="xiantuSafeBootTitle">仙途</h1>
-    <div class="boot-version">V28.68.108</div>
+    <div class="boot-version">V28.68.110</div>
     <button id="xiantuSafeBootButton" type="button">进入仙途</button>
     <label class="boot-skip-choice"><input id="introSkipChoiceV2898" type="checkbox">跳过开场动画（记住选择）</label>
     <label class="boot-skip-choice"><input id="introAudioChoiceV2868105" type="checkbox" checked>开场声音（记住选择）</label>
@@ -355,6 +378,20 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
         <div class="alchemy-level" id="alchemyLevel">
           🔥 炼丹等级: <b>1</b> | 成功率加成: <b>+0%</b> | 炼制次数: <b>0</b>
         </div>
+        <section class="alchemy-preview-v110" aria-label="丹炉">
+          <div class="alchemy-stage-head-v110"><b>铜炉蕴灵</b><button type="button" id="alchemyFxToggleV2868110" onclick="toggleAlchemyFxV2868110()" aria-pressed="true">丹炉动效：开</button><button type="button" onclick="closeWorldOverlay()">返回地图</button></div>
+          <div id="alchemyStageV2868110" class="alchemy-stage-v110">
+            <svg class="alchemy-still-v110" viewBox="0 0 400 300" aria-hidden="true">
+              <defs><linearGradient id="alchemyBronze110"><stop stop-color="#60451b"/><stop offset=".36" stop-color="#e2c879"/><stop offset=".64" stop-color="#b99a47"/><stop offset="1" stop-color="#594c2a"/></linearGradient><radialGradient id="alchemyAura110"><stop stop-color="#35c4a3" stop-opacity=".45"/><stop offset="1" stop-color="#12362f" stop-opacity="0"/></radialGradient></defs>
+              <ellipse cx="200" cy="174" rx="180" ry="118" fill="url(#alchemyAura110)"/>
+              <g fill="none" stroke="#c1b86a"><ellipse cx="200" cy="252" rx="142" ry="31"/><ellipse cx="200" cy="252" rx="131" ry="24"/><path d="M70 250h25m210 0h25M200 224v13m0 30v12M108 234l16 8m152 20 16 8m-184 0 16-8m152-20 16-8"/></g>
+              <g fill="url(#alchemyBronze110)" stroke="#e4ce87" stroke-width="2"><path d="m143 214-12 39h20l16-34m66 0 16 34h20l-12-39"/><path d="M128 112C99 158 113 222 200 229c87-7 101-71 72-117Z"/><path d="M125 116h150C257 91 241 73 212 68v-9h-24v9c-29 5-45 23-63 48Z"/><path d="M127 122c-32-29-37 24-16 27m162-27c32-29 37 24 16 27" fill="none" stroke-width="7"/><ellipse cx="200" cy="118" rx="78" ry="8"/><path d="M125 149h150"/></g>
+              <circle cx="200" cy="52" r="9" fill="#a3f6d9"/><circle cx="200" cy="183" r="24" fill="#285b49" stroke="#dfc875" stroke-width="5"/><text x="200" y="193" fill="#e5d493" text-anchor="middle" font-size="30" font-family="serif">丹</text>
+            </svg>
+          </div>
+          <div id="alchemyPhaseV2868110" class="alchemy-phase-v110">静候开炉</div>
+          <p id="alchemyResultV2868110" class="alchemy-result-v110" role="status" aria-live="polite">选择下方丹方，投入材料开炉。</p>
+        </section>
         <div class="stat-name" style="margin-bottom: 8px;">🌿 材料库存</div>
         <div id="materialInventory" style="margin-bottom: 15px;">暂无材料</div>
         <div class="stat-name" style="margin-bottom: 8px;">📜 丹方列表</div>
@@ -404,6 +441,7 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
   </div>
 
 
+<script>try{if(localStorage.getItem('xt_theme_off')!=='1')document.documentElement.classList.add('xt-theme');if(localStorage.getItem('xt_reduce_motion')==='1')document.documentElement.classList.add('xt-reduce-motion');}catch(_){document.documentElement.classList.add('xt-theme');}</script>
 <script id="xiantu-intro-v2860">
 (function(){
  'use strict';
@@ -485,7 +523,7 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
     var o=Object(this),size=Number(o.length),len=Number.isNaN(size)||size<=0?0:Math.min(Math.floor(size),9007199254740991),n=+index;
     n=Number.isNaN(n)?0:Math.trunc(n);if(n<0)n+=len;return n<0||n>=len?undefined:o[n];
   }});
-  var expectedBuild='28.68.108';
+  var expectedBuild='28.68.110';
   var files=["xiantu-v2762-core.js", "xiantu-v2762-03-virtual-joystick-script.js", "xiantu-v2762-04-tutorial-guide-script.js", "xiantu-v2762-05-mobile-dedicated-script.js", "xiantu-v2762-06-local-test-bootstrap.js", "xiantu-v2762-07-v12-stable-map-ui-script.js", "xiantu-v2762-08-feature-08.js", "xiantu-v2762-09-control-mode-switch-script.js", "xiantu-v2762-10-upgrade-material-hint-script.js", "xiantu-v2762-11-feature-11.js", "xiantu-v2762-12-v277equipmentmanager.js", "xiantu-v2762-13-feature-13.js", "xiantu-v2762-14-v279-pet-capture-system.js", "xiantu-v2762-15-petgrowthsystemv210.js", "xiantu-v2762-16-petguidemapv211script.js", "xiantu-v2762-17-combatskillloadoutv212.js", "xiantu-v2762-18-skillswapmenuv213.js", "xiantu-v2762-19-v27-15-enemy-portrait-script.js", "xiantu-v2762-20-v27-16-enemy-batch1-script.js", "xiantu-v2762-21-v27-17-enemy-batch2-script.js", "xiantu-v2762-22-v2756-cinematic-combat-script.js", "xiantu-v2768-systems.js", "xiantu-v2770-avatar.js", "xiantu-v2773-economy.js", "xiantu-v2838-journey.js", "xiantu-v2839-war.js", "xiantu-v2840-war-map.js", "xiantu-v2841-dharma-war.js", "xiantu-v2842-jev-forge.js", "xiantu-v2850-jev-friends.js", "xiantu-v2844-monster-jev.js", "xiantu-v2846-world-jev.js", "xiantu-v2849-npc-jev.js", "xiantu-v2852-relationship-stories.js", "xiantu-v2852-relationships.js", "xiantu-v2853-monster-art.js", "xiantu-v2855-skill-fx.js", "xiantu-v2856-battle-clarity.js", "xiantu-v2868-sect-life.js", "xiantu-v28684-duel.js"];
   var button=document.getElementById('xiantuSafeBootButton');
   var progress=document.getElementById('xiantuSafeBootProgress');
@@ -493,7 +531,7 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
   var reload=document.getElementById('bootReloadV2868105');
   reload.onclick=function(){reload.disabled=true;window.XiantuIntroV2860.dispose();location.reload();};
   var started=false;
-  var sizesV286891={"xiantu-v2762-core.js":1159043,"xiantu-v2762-03-virtual-joystick-script.js":3953,"xiantu-v2762-04-tutorial-guide-script.js":36929,"xiantu-v2762-05-mobile-dedicated-script.js":3807,"xiantu-v2762-06-local-test-bootstrap.js":242,"xiantu-v2762-07-v12-stable-map-ui-script.js":3379,"xiantu-v2762-08-feature-08.js":18277,"xiantu-v2762-09-control-mode-switch-script.js":6543,"xiantu-v2762-10-upgrade-material-hint-script.js":8718,"xiantu-v2762-11-feature-11.js":2634,"xiantu-v2762-12-v277equipmentmanager.js":63061,"xiantu-v2762-13-feature-13.js":12274,"xiantu-v2762-14-v279-pet-capture-system.js":37353,"xiantu-v2762-15-petgrowthsystemv210.js":58160,"xiantu-v2762-16-petguidemapv211script.js":24855,"xiantu-v2762-17-combatskillloadoutv212.js":21330,"xiantu-v2762-18-skillswapmenuv213.js":1044,"xiantu-v2762-19-v27-15-enemy-portrait-script.js":2740,"xiantu-v2762-20-v27-16-enemy-batch1-script.js":3377,"xiantu-v2762-21-v27-17-enemy-batch2-script.js":3496,"xiantu-v2762-22-v2756-cinematic-combat-script.js":34918,"xiantu-v2768-systems.js":68367,"xiantu-v2770-avatar.js":10379,"xiantu-v2773-economy.js":9688,"xiantu-v2838-journey.js":125381,"xiantu-v2839-war.js":77034,"xiantu-v2840-war-map.js":15993,"xiantu-v2841-dharma-war.js":13703,"xiantu-v2842-jev-forge.js":16441,"xiantu-v2850-jev-friends.js":8774,"xiantu-v2844-monster-jev.js":15120,"xiantu-v2846-world-jev.js":19335,"xiantu-v2849-npc-jev.js":24892,"xiantu-v2852-relationship-stories.js":65732,"xiantu-v2852-relationships.js":23926,"xiantu-v2853-monster-art.js":8674,"xiantu-v2855-skill-fx.js":220453,"xiantu-v2856-battle-clarity.js":13945,"xiantu-v2868-sect-life.js":66332,"xiantu-v28684-duel.js":331857},cssSizeV286891=362029; // Generated by scripts/update-boot-weights.cjs
+  var sizesV286891={"xiantu-v2762-core.js":1163936,"xiantu-v2762-03-virtual-joystick-script.js":3953,"xiantu-v2762-04-tutorial-guide-script.js":36929,"xiantu-v2762-05-mobile-dedicated-script.js":12801,"xiantu-v2762-06-local-test-bootstrap.js":242,"xiantu-v2762-07-v12-stable-map-ui-script.js":3379,"xiantu-v2762-08-feature-08.js":18277,"xiantu-v2762-09-control-mode-switch-script.js":6543,"xiantu-v2762-10-upgrade-material-hint-script.js":8718,"xiantu-v2762-11-feature-11.js":2634,"xiantu-v2762-12-v277equipmentmanager.js":63061,"xiantu-v2762-13-feature-13.js":12274,"xiantu-v2762-14-v279-pet-capture-system.js":37353,"xiantu-v2762-15-petgrowthsystemv210.js":58160,"xiantu-v2762-16-petguidemapv211script.js":24855,"xiantu-v2762-17-combatskillloadoutv212.js":21330,"xiantu-v2762-18-skillswapmenuv213.js":1044,"xiantu-v2762-19-v27-15-enemy-portrait-script.js":2740,"xiantu-v2762-20-v27-16-enemy-batch1-script.js":3377,"xiantu-v2762-21-v27-17-enemy-batch2-script.js":3496,"xiantu-v2762-22-v2756-cinematic-combat-script.js":34918,"xiantu-v2768-systems.js":68367,"xiantu-v2770-avatar.js":10379,"xiantu-v2773-economy.js":9688,"xiantu-v2838-journey.js":125381,"xiantu-v2839-war.js":77034,"xiantu-v2840-war-map.js":15993,"xiantu-v2841-dharma-war.js":13703,"xiantu-v2842-jev-forge.js":16441,"xiantu-v2850-jev-friends.js":8774,"xiantu-v2844-monster-jev.js":15120,"xiantu-v2846-world-jev.js":19335,"xiantu-v2849-npc-jev.js":24892,"xiantu-v2852-relationship-stories.js":65732,"xiantu-v2852-relationships.js":23926,"xiantu-v2853-monster-art.js":8674,"xiantu-v2855-skill-fx.js":220453,"xiantu-v2856-battle-clarity.js":13945,"xiantu-v2868-sect-life.js":66332,"xiantu-v28684-duel.js":331922},cssSizeV286891=388606; // Generated by scripts/update-boot-weights.cjs
   var meter=document.getElementById('bootMeterV286891'),tip=document.getElementById('bootTipV286891');
   var completedBytes=0,totalBytes=cssSizeV286891+files.reduce(function(sum,name){return sum+(sizesV286891[name]||1);},0),lastPercent=0,tipTimer=null,tipIndex=0;
   var tipsV286891=['点选建筑，可自动走到门前并进入。','地图右侧的探索菜单收纳山河图与探索手册。','重要装备可以锁定，避免误分解。','战斗结束后，可在角色菜单回看上一场战斗。','修炼遇到瓶颈时，可查看修行指引。','捕捉灵兽前，先准备合适的灵契道具。','角色菜单可查看功法、装备与同行灵宠。','记得导出存档备份，保管你的修行记录。','宗门殿宇内可走动，与人物和设施交互。','探索点领取后不会重复发放奖励。'];
@@ -538,14 +576,14 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
       attempt();
     });
   }
-  function loadStyle(){return loadResource(function(attempt){var link=document.createElement('link');link.rel='stylesheet';link.fetchPriority='high';link.href='./xiantu-v2762.css?v=2868108-north-20261103';if(attempt)link.href+='&retry='+attempt;return link;},document.head);}
+  function loadStyle(){return loadResource(function(attempt){var link=document.createElement('link');link.rel='stylesheet';link.fetchPriority='high';link.href='./xiantu-v2762.css?v=2868110-alchemy-20261104';if(attempt)link.href+='&retry='+attempt;return link;},document.head);}
   function preloadScripts(){
-    files.slice(1).forEach(function(name){var link=document.createElement('link');link.rel='preload';link.as='script';link.fetchPriority='high';link.href='./'+name+'?v=2868108-north-20261103';document.head.appendChild(link);});
+    files.slice(1).forEach(function(name){var link=document.createElement('link');link.rel='preload';link.as='script';link.fetchPriority='high';link.href='./'+name+'?v=2868110-alchemy-20261104';document.head.appendChild(link);});
   }
-  function loadScript(name){return loadResource(function(attempt){var s=document.createElement('script');s.src='./'+name+'?v=2868108-north-20261103';if(attempt)s.src+='&retry='+attempt;s.async=false;return s;},document.body,function(){if(!window.__xiantuBuildFilesV2814||window.__xiantuBuildFilesV2814[name]!==expectedBuild)return new Error('文件版本不一致：'+name+'。请上传完整 V28.68.108 文件夹覆盖后刷新，勿清除网站数据。');});}
+  function loadScript(name){return loadResource(function(attempt){var s=document.createElement('script');s.src='./'+name+'?v=2868110-alchemy-20261104';if(attempt)s.src+='&retry='+attempt;s.async=false;return s;},document.body,function(){if(!window.__xiantuBuildFilesV2814||window.__xiantuBuildFilesV2814[name]!==expectedBuild)return new Error('文件版本不一致：'+name+'。请上传完整 V28.68.110 文件夹覆盖后刷新，勿清除网站数据。');});}
   function addInstallLinks(){
-    var manifest=document.createElement('link');manifest.rel='manifest';manifest.href='./manifest-v2762.webmanifest?v=2868108-north-20261103';document.head.appendChild(manifest);
-    var icon=document.createElement('link');icon.rel='apple-touch-icon';icon.href='./v2762-apple-touch-icon.png?v=2868108-north-20261103';document.head.appendChild(icon);
+    var manifest=document.createElement('link');manifest.rel='manifest';manifest.href='./manifest-v2762.webmanifest?v=2868110-alchemy-20261104';document.head.appendChild(manifest);
+    var icon=document.createElement('link');icon.rel='apple-touch-icon';icon.href='./v2762-apple-touch-icon.png?v=2868110-alchemy-20261104';document.head.appendChild(icon);
   }
   function restoreCanvasSizes(){
     var list=document.querySelectorAll('canvas[data-v2762-width]');
@@ -570,7 +608,7 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
     window.XiantuIntroV2860.start();meter.hidden=false;tip.hidden=false;rotateTip();
     try{
       restoreCanvasSizes();
-      currentStep='1/4 · 加载界面样式';setProgress(currentStep);await loadStyle();if(getComputedStyle(document.documentElement).getPropertyValue('--xiantu-build').trim()!=='2868108')throw new Error('样式版本不一致，请完整覆盖 V28.68.108 文件夹。');advance(cssSizeV286891);await nextPaint();
+      currentStep='1/4 · 加载界面样式';setProgress(currentStep);await loadStyle();if(getComputedStyle(document.documentElement).getPropertyValue('--xiantu-build').trim()!=='2868110')throw new Error('样式版本不一致，请完整覆盖 V28.68.110 文件夹。');advance(cssSizeV286891);await nextPaint();
       // Keep the critical stylesheet ahead of bulk script traffic on mobile connections.
       preloadScripts();
       currentStep='2/4 · 加载修仙世界';setProgress(currentStep);await loadScript(files[0]);if(fatalError)throw fatalError;advance(sizesV286891[files[0]]);await nextPaint();
@@ -586,7 +624,7 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
       addInstallLinks();
       bootJevFriendsV2850();
       var buildBadge=document.createElement('button');buildBadge.id='xiantuBuildBadgeV2814';buildBadge.textContent='版本信息';buildBadge.title='查看当前版本';
-      buildBadge.onclick=function(){alert('仙途 · V28.68.108\n遇到问题时，可提供此版本号与画面截图。');};
+      buildBadge.onclick=function(){alert('仙途 · V28.68.110\n遇到问题时，可提供此版本号与画面截图。');};
       document.getElementById('characterUtilityActions').appendChild(buildBadge);
       window.XiantuIntroV2860.dispose();document.body.classList.remove('xiantu-v2762-booting');
       document.getElementById('xiantuSafeBoot').remove();
