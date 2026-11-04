@@ -8969,6 +8969,70 @@
       
       gameState = 'alchemy';
       updateAlchemyPanel();
+      document.getElementById('alchemyPanel').scrollTop=0;
+      alchemyStageOpenV2868110(true);
+    }
+
+    // Optional visual presentation; economic results are committed by itemActionV2905 first.
+    const ALCHEMY_STAGE_V2868110={revision:0,instance:null,loading:null,last:null,preference:null};
+    function alchemyStageAllowedV2868110(){
+      if(ALCHEMY_STAGE_V2868110.preference==='off')return false;
+      try{if((ALCHEMY_STAGE_V2868110.preference===null&&localStorage.getItem('xiantu_alchemy_fx_v2868110')==='off')||localStorage.getItem('xiantu_map_fx_v2868104')==='off')return false;}catch(_){}
+      return !(typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+    }
+    function alchemyStageStopV2868110(){
+      const s=ALCHEMY_STAGE_V2868110;s.revision++;s.last=null;
+      if(s.instance){s.instance.dispose();s.instance=null;}
+    }
+    function alchemyStageLoadV2868110(){
+      const s=ALCHEMY_STAGE_V2868110;
+      if(window.XiantuAlchemyStageV2868110)return Promise.resolve(window.XiantuAlchemyStageV2868110);
+      if(s.loading)return s.loading;
+      s.loading=new Promise((resolve,reject)=>{
+        const el=document.createElement('script');let done=false;
+        const finish=(error)=>{if(done)return;done=true;clearTimeout(timer);el.onload=el.onerror=null;if(error){el.remove();reject(error);}else resolve(window.XiantuAlchemyStageV2868110);};
+        const timer=setTimeout(()=>finish(new Error('alchemy visual timeout')),10000);
+        el.src='./xiantu-v2868110-alchemy-stage.js?v=28.68.110';el.async=true;
+        el.onload=()=>finish(window.XiantuAlchemyStageV2868110?null:new Error('alchemy visual unavailable'));
+        el.onerror=()=>finish(new Error('alchemy visual unavailable'));document.head.appendChild(el);
+      }).catch(error=>{s.loading=null;throw error;});return s.loading;
+    }
+    function alchemyStageOpenV2868110(reset){
+      alchemyStageStopV2868110();
+      const s=ALCHEMY_STAGE_V2868110,host=document.getElementById('alchemyStageV2868110'),panel=document.getElementById('alchemyPanel');
+      if(!host||!panel||panel.classList.contains('hidden')||gameState!=='alchemy'||document.hidden)return;
+      const caption=document.getElementById('alchemyPhaseV2868110'),toggle=document.getElementById('alchemyFxToggleV2868110');
+      const allowed=alchemyStageAllowedV2868110();
+      if(toggle){toggle.textContent=allowed?'丹炉动效：开':'丹炉动效：关';toggle.setAttribute('aria-pressed',String(allowed));}
+      if(reset){const result=document.getElementById('alchemyResultV2868110');result.textContent='选择下方丹方，投入材料开炉。';delete result.dataset.outcome;}
+      if(caption)caption.textContent=allowed?'丹炉准备中…':'静览丹炉 · 可照常炼制';
+      if(!allowed)return;
+      const owner=player,revision=s.revision;
+      const current=()=>owner===player&&revision===s.revision&&gameState==='alchemy'&&!document.hidden&&!panel.classList.contains('hidden')&&alchemyStageAllowedV2868110();
+      alchemyStageLoadV2868110().then(api=>current()?api.mount(host,{current,caption,low:PERF_CONFIG.mobile||PERF_CONFIG.lowEnd}):null).then(instance=>{
+        if(!instance)return;
+        if(!current()){instance.dispose();return;}
+        s.instance=instance;
+        if(s.last&&performance.now()-s.last.at<8000)instance.play(s.last);
+      }).catch(()=>{if(current()&&caption)caption.textContent='静览丹炉 · 可照常炼制';});
+    }
+    function toggleAlchemyFxV2868110(){
+      const enabled=alchemyStageAllowedV2868110();
+      ALCHEMY_STAGE_V2868110.preference=enabled?'off':'auto';
+      try{localStorage.setItem('xiantu_alchemy_fx_v2868110',enabled?'off':'auto');}catch(_){}
+      alchemyStageOpenV2868110(false);
+    }
+    function alchemyResultV2868110(owner,recipeName,attempted,success){
+      const panel=document.getElementById('alchemyPanel');
+      if(owner!==player||gameState!=='alchemy'||!panel||panel.classList.contains('hidden')||document.hidden)return;
+      const recipe=RECIPES[recipeName],result=document.getElementById('alchemyResultV2868110');
+      if(!recipe||!result)return;
+      result.textContent=`${recipe.result} · 投入 ${attempted} 炉 · 成丹 ${success} 枚 · 失败 ${attempted-success} 炉`;
+      result.dataset.outcome=success?'success':'failure';
+      const data={name:recipe.result,materials:Object.keys(recipe.materials),attempted,success,at:performance.now()};
+      ALCHEMY_STAGE_V2868110.last=data;
+      if(ALCHEMY_STAGE_V2868110.instance)ALCHEMY_STAGE_V2868110.instance.play(data);
+      document.getElementById('alchemyStageV2868110')?.scrollIntoView?.({block:'nearest',behavior:'auto'});
     }
     
     function updateAlchemyPanel() {
@@ -9047,7 +9111,7 @@
       }
       showFloatingText?.(`🔥 投入 ${attempted} 炉 · ${plan.recipe.result} ×${success} · 失败 ${attempted-success} 炉${player.alchemyLevel>initialLevel?' · 炼丹升至 Lv.'+player.alchemyLevel:''}`,success?'#69f0ae':'#ff8a80');
       if(success)playSound(player.alchemyLevel>initialLevel?'levelup':'item');
-      updateAlchemyPanel();updateStats();autoSave();if(success&&typeof mapFxEventV2868104==='function')mapFxEventV2868104('pill',true);return {attempted,success};
+      updateAlchemyPanel();updateStats();autoSave();alchemyResultV2868110(player,recipeName,attempted,success);return {attempted,success};
     }
 
     // ================== 宠物系统 ==================
@@ -13909,6 +13973,7 @@ function villageEnhanceV286897(){
     }
 
     function closeWorldOverlay() {
+      alchemyStageStopV2868110();
       if(typeof mapFxCancelV2868104==='function')mapFxCancelV2868104();
       taskBattlePromptV2868103=null;
       villageResetV286897();
@@ -15991,6 +16056,7 @@ function villageEnhanceV286897(){
     // V27.67：后台停止地图/人物绘制，前台按需恢复，防止生成重复动画循环。
     let characterAnimationPausedV2767=false;
     function pauseVisualsV2767() {
+      alchemyStageStopV2868110();
       if(typeof mapFxCancelV2868104==='function')mapFxCancelV2868104();
       if(typeof resetMapAliveV2893==='function')resetMapAliveV2893();
       clearTimeout(mapIdleTimerV2865);mapIdleTimerV2865=null;
@@ -16014,11 +16080,12 @@ function villageEnhanceV286897(){
     }
     document.addEventListener('visibilitychange',()=>{
       if(document.hidden)pauseVisualsV2767();else resumeVisualsV2767();
+      if(!document.hidden&&gameState==='alchemy')alchemyStageOpenV2868110(false);
     });
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.109";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.110";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
@@ -16323,7 +16390,7 @@ function itemActionV2905(label,fn,self,args){
 }
 function installItemSafetyV2905(){
  // UI side effects run only after the enclosing action commits, including achievement notifications.
- for(const name of ['showStory','showShop','showRarePillShop','showNewGearShopV2790','showOldGearShopV2792','showMarketGearV2800','showPetGrowthShopV210','showSectShop','showFloatingText','showAchievementPopup','showBreakthroughNotice','renderMobileInventory','updateAlchemyPanel','showLongevityPanel','showPetGrowthResultV210','flashPetCardV210','updatePetPanel','updateArtifactPanel','showMaterialWorkshop','playSound']){
+ for(const name of ['showStory','showShop','showRarePillShop','showNewGearShopV2790','showOldGearShopV2792','showMarketGearV2800','showPetGrowthShopV210','showSectShop','showFloatingText','showAchievementPopup','showBreakthroughNotice','renderMobileInventory','updateAlchemyPanel','alchemyResultV2868110','showLongevityPanel','showPetGrowthResultV210','flashPetCardV210','updatePetPanel','updateArtifactPanel','showMaterialWorkshop','playSound']){
   const base=window[name];if(typeof base!=='function')continue;
   window[name]=function(...args){if(ITEM_ACTION_V2905.depth){ITEM_ACTION_V2905.effects.push(()=>base.apply(this,args));return;}return base.apply(this,args);};
  }

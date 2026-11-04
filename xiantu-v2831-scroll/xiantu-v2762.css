@@ -3942,7 +3942,7 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 /* V28.12 洞府管理 */
 .home-board-v2812{padding:16px;border:1px solid #9eb781;border-radius:16px;background:linear-gradient(135deg,#14251e,#18202b);color:#e9eee3;line-height:1.65}.home-board-v2812 h3{color:#ead592;margin:0 0 12px}.home-grid-v2812{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-grid-v2812 article{padding:14px;border:1px solid #526454;border-radius:12px;background:#ffffff08}.home-grid-v2812 h4{margin:0;color:#e8d594}.home-grid-v2812 p{color:#d0dbd1}.home-grid-v2812 strong{color:#83ddb6}.home-notice-v2812{padding:12px;background:#31534066;border-radius:10px}@media(max-width:600px){.home-grid-v2812{grid-template-columns:1fr}.home-board-v2812{padding:12px;font-size:14px}}
 
-:root{--xiantu-build:2868109;}
+:root{--xiantu-build:2868110;}
 #xiantuBuildBadgeV2814{font-size:11px;min-height:32px;padding:5px 9px;white-space:nowrap;color:#b4d4bd;background:#18251f;border:1px solid #718475;border-radius:8px;}
 
 /* V28.68 战斗数值可视层 */
@@ -4691,7 +4691,7 @@ html.xiantu-mobile-dedicated #world3dCanvas.map-fx-hidden-v2868104,
 /* Whole-region panorama already contains its architecture. */
 .scroll-pin-v2868108{display:block!important;width:12px!important;height:12px!important;border-radius:50%;background:#f1d186;border:2px solid #2a241b;box-shadow:0 0 0 2px rgba(241,209,134,.35)}
 
-/* V28.68.109 青绿鎏金：adapted from user-supplied UI draft; local system fonts and original SVG ornaments. */
+/* V28.68.110 青绿鎏金：adapted from user-supplied UI draft; local system fonts and original SVG ornaments. */
 /* ---------- 0. Design tokens ---------------------------------------------------------- */
 :root {
   /* 墨 ink (surfaces) */
@@ -5143,3 +5143,19 @@ html.xiantu-mobile-dedicated.xt-theme .world-hud.mobile-hud-collapsed .world-bar
 html.xiantu-mobile-dedicated.xt-theme .world-hud.mobile-hud-collapsed .world-bar-row { display: grid !important; grid-template-columns: 24px minmax(24px,1fr) auto !important; align-items: center; column-gap: 4px; }
 html.xiantu-mobile-dedicated.xt-theme .world-hud.mobile-hud-collapsed .world-bar-row > span { display: block !important; font-size: 10px !important; margin: 0 !important; white-space: nowrap; }
 html.xiantu-mobile-dedicated.xt-theme .world-hud.mobile-hud-collapsed .world-bar { width: 100% !important; min-width: 0; }
+
+/* V28.68.110: optional furnace presentation, with an immediate static fallback. */
+.alchemy-preview-v110{margin:0 0 18px;border:1px solid #97844b;border-radius:14px;overflow:hidden;background:#09251f;color:#e3d5a4}
+.alchemy-stage-head-v110{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-bottom:1px solid #695e36}
+.alchemy-stage-head-v110 b{letter-spacing:.15em;font-size:17px}
+.alchemy-stage-head-v110 button{min-height:36px;padding:6px 10px;border:1px solid #a18c50;border-radius:8px;background:#183c31;color:#e4d79f;font-size:12px;cursor:pointer}
+.alchemy-stage-v110{position:relative;width:100%;height:300px;background:radial-gradient(ellipse at 50% 65%,#1c6658 0%,#0b332d 48%,#061d19 90%);overflow:hidden}
+.alchemy-stage-v110 canvas,.alchemy-still-v110{position:absolute;inset:0;width:100%;height:100%;display:block}
+.alchemy-webgl-v110 .alchemy-still-v110{visibility:hidden}
+.alchemy-phase-v110{text-align:center;font-size:13px;letter-spacing:.1em;color:#acd9c4;padding:5px 10px}
+.alchemy-result-v110{margin:0;padding:10px 12px;text-align:center;font-size:13px;line-height:1.6;border-top:1px solid #526342;background:#102e26;overflow-wrap:anywhere}
+.alchemy-result-v110[data-outcome="failure"]{color:#edbb9c}
+@media(max-width:600px){.alchemy-stage-v110{height:250px}.alchemy-stage-head-v110{padding:5px 10px}.alchemy-stage-head-v110 b{font-size:15px}}
+@media(max-height:500px) and (orientation:landscape){.alchemy-stage-v110{height:200px}}
+
+@media(max-width:600px) and (orientation:portrait){html.xiantu-mobile-dedicated #gameScreen.world-mode #alchemyPanel:not(.hidden){max-height:82vh!important}.alchemy-stage-head-v110{gap:4px}.alchemy-stage-head-v110 button{padding:6px;font-size:12px}.alchemy-stage-head-v110 b{margin-right:auto;letter-spacing:.05em}}

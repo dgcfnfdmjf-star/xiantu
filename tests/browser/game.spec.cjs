@@ -1,6 +1,7 @@
 const {test,expect}=require('@playwright/test');
-async function boot(page){
+async function boot(page,beforeNavigate){
  await page.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());
+ if(beforeNavigate)await beforeNavigate();
  await page.goto('/game-v2762.html');await page.locator('#introSkipChoiceV2898').check();await page.locator('#xiantuSafeBootButton').click();
  await expect(page.locator('html')).toHaveClass(/xiantu-v2762-ready/);
 }
@@ -41,11 +42,17 @@ for(const width of [360,390,430,1366])test(`navigation remains reachable at ${wi
  await page.locator('#scrollMapButtonV2831').click();await expect(page.locator('#scrollTitleV2837')).toBeVisible();await expect(page.locator('#worldExploreActions')).toBeHidden();
 });
 test('stylesheet precedes parallel scripts and version failure remains actionable',async({page})=>{
- await boot(page);const resources=await page.evaluate(()=>performance.getEntriesByType('resource').filter(r=>r.name.includes('.js?')).map(r=>({name:r.name,start:r.startTime,end:r.responseEnd})));
+ // Hold the core response until every other module is requested. This proves
+ // parallel preloading without tying the assertion to this host's disk/CPU speed.
+ const requested=new Set();let releaseCore;
+ const preloadBatch=new Promise(resolve=>{releaseCore=resolve;});
+ page.on('request',request=>{const url=request.url();if(/\.js\?/.test(url)&&!url.includes('core.js')){requested.add(url);if(requested.size===39)releaseCore();}});
+ await boot(page,()=>page.route('**/xiantu-v2762-core.js?*',async route=>{await preloadBatch;await route.continue();}));
+ await page.unroute('**/xiantu-v2762-core.js?*');const resources=await page.evaluate(()=>performance.getEntriesByType('resource').filter(r=>r.name.includes('.js?')).map(r=>({name:r.name,start:r.startTime,end:r.responseEnd})));
  const styles=await page.evaluate(()=>performance.getEntriesByType('resource').filter(r=>r.name.includes('xiantu-v2762.css')).map(r=>({end:r.responseEnd})));
  expect(styles).toHaveLength(1);expect(Math.min(...resources.filter(r=>!r.name.includes('core.js')).map(r=>r.start))).toBeGreaterThanOrEqual(styles[0].end);
  expect(resources).toHaveLength(40);expect(new Set(resources.map(r=>r.name)).size).toBe(40);
- const last=resources.at(-1),first=resources.find(r=>r.name.includes('core.js'));expect(last.start).toBeLessThan(first.end+500);
+ const last=resources.at(-1),first=resources.find(r=>r.name.includes('core.js'));expect(last.start).toBeLessThanOrEqual(first.end);
  await page.route('**/xiantu-v2762-core.js?*',async route=>{const response=await route.fetch();const original=await response.text(),body=original.replaceAll(JSON.stringify(require('../../package.json').version),'"bad-version"');expect(body).not.toBe(original);await route.fulfill({response,body});});await page.reload();
  await page.locator('#xiantuSafeBootButton').click();await expect(page.locator('#xiantuSafeBootError')).toContainText('文件版本不一致');
 });

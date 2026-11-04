@@ -82,7 +82,7 @@
 })();
 
 
-// V28.68.109: UI-only theme and main-quest shortcut. Uses existing task actions and loader.
+// V28.68.110: UI-only theme and main-quest shortcut. Uses existing task actions and loader.
 (function(){
   const root=document.documentElement;
   let pending=0,bar=null,shown=null,busyUntil=0,lastAction=null,watcher=null,started=false;
@@ -181,4 +181,4 @@ function setUiPreferenceV2868109(kind,value){
  showGraphicsV2903(saved?'界面设置已保存。':'已应用；当前浏览器不允许保存偏好。');
 }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-05-mobile-dedicated-script.js"]="28.68.109";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-05-mobile-dedicated-script.js"]="28.68.110";
