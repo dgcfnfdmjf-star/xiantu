@@ -33,3 +33,12 @@
 本包是完整网页资源，无需安装 Node.js，也无需先构建。**从 V28.68.70 更新到本包，无需重传 Jev。** 本轮只改静态游戏，云函数包仍是 V28.68.70 的接口安全版本；如果之前还没更新接口加固，可另用 [现有云函数包](xiantu-jev-cloud-function.zip)，保留 `index.main` 入口与原环境变量。详见 [本轮场景粒子](../docs/scene-particle-followup.txt)、[此前开场体验](../docs/launch-experience-review.txt)、[地图特效](../docs/map-effects-phase1.txt)、[任务指引](../docs/playtest-ch7-followup.txt)、[此前安全与操作修复](../docs/playtest-safety-followup.txt)、[南域整景](../docs/south-region-scene.txt)、[地图与操作优化](../docs/map-controls-followup.txt)、[启动与兼容优化](../docs/readiness-review-v286899.txt)、[东、西域整景](../docs/wild-region-scenes.txt)、[青云村优化](../docs/village-sheet.txt)、[宗门整景](../docs/sect-panorama.txt)、[可走动室内](../docs/walkable-interiors.txt)、[夜景说明](../docs/night-lights.txt)、[手机横屏说明](../docs/mobile-landscape.txt)、[突破与结算说明](../docs/breakthrough-depth.txt)、[突破平衡评估](../docs/breakthrough-balance-v286883.txt)、[山河图与采集说明](../docs/scroll-map-landmarks.txt)、[地图边缘与寻路说明](../docs/map-edges-routes.txt)、[宗门地图与行路说明](../docs/map-courts-labels.txt)、[稳定性与加载说明](../docs/reliability-polish.txt)、[物品与背包说明](../docs/inventory-safety-bag.txt)、[建筑点击说明](../docs/building-tap-entry.txt)、[指引与统计说明](../docs/onboarding-local-stats.txt)、[扩界与寻路说明](../docs/map-expansion-navigation.txt)、[冰系状态说明](../docs/ice-state-finale.txt)、[启动优化说明](../docs/startup-loading.txt) 和 [接口兼容说明](../docs/security-hardening.txt)。 包内不含云函数代码、QA、源码仓库、真实存档或凭据。本次提供部署文件，尚未替用户上传腾讯云。若使用全新环境，Jev 服务需另按仓库的云函数接入说明配置。
 
 打包使用 `npm run package:game`，逐文件比对 ZIP 内容与当前源码；校验值见本目录 `SHA256SUMS.txt`。解压后的文件夹名称固定保留 `xiantu-v2831-scroll`。
+
+
+## 暮色浮岛 V6.0 星灯夜航
+
+独立小游戏下载：[healing-game-v6-tencent.zip](healing-game-v6-tencent.zip)（约216 KiB）。
+
+解压后得到 `healing-game/index.html`。沿用当前腾讯云目录时，进入 `xiantu-v2831-scroll/healing-game/`，备份并覆盖其中的 `index.html`。不要覆盖仙途的入口，也不要上传ZIP作为网页。
+
+[更新内容与部署步骤](healing-game-v6-README.txt) · [SHA-256校验](healing-game-v6-SHA256SUMS.txt)。这是独立部署包，腾讯云线上版本需上传后才会更新。
