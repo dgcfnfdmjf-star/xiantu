@@ -4,3 +4,4 @@ playwright-report/
 dist/
 output/
 .playwright-cli/
+__pycache__/
