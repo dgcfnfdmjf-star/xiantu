@@ -118,7 +118,7 @@
       var gem = new T.Mesh(gemGeo, mat); g.add(gem);
       var wings = [];
       [-1, 1].forEach(function (side) {
-        var m = new T.Mesh(wingGeo, mat); m.scale.set(1.5, .22, 1); m.position.x = side * .2; g.add(m); wings.push(m);
+        var m = new T.Mesh(wingGeo, mat); m.scale.set(1.5, .22, 1); m.position.x = side * .26; g.add(m); wings.push(m);
       });
       var glow = new T.Sprite(new T.SpriteMaterial({ map: H.glowTex, color: sp.color, transparent: true, opacity: .8, depthWrite: false, blending: T.AdditiveBlending }));
       glow.scale.set(1.4, 1.4, 1); g.add(glow); world.add(g);
@@ -132,15 +132,15 @@
       var stem = new T.Mesh(stemGeo, stone); stem.position.y = .42; g.add(stem);
       var top = new T.Mesh(new T.TorusGeometry(.31, .04, 4, 16), gold); top.position.y = .91; g.add(top);
       var core = new T.Mesh(gemGeo, new T.MeshBasicMaterial({ color: 0x706b8b })); core.position.y = .91; g.add(core);
-      var halo = new T.Sprite(new T.SpriteMaterial({ map: H.glowTex, color: 0xffdca4, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending }));
+      var halo = new T.Sprite(new T.SpriteMaterial({ map: H.glowTex, color: 0xffdca4, transparent: true, opacity: 0, depthTest: false, depthWrite: false, blending: T.AdditiveBlending }));
       halo.position.y = .91; halo.scale.set(2, 2, 1); g.add(halo); world.add(g);
       lamps.push({ g: g, core: core, halo: halo });
     });
     // Rewards are allocated once, then toggled. Replaying never adds more meshes.
-    var wind = new T.Group(); wind.position.set(3.1, H.TOP_Y + 1.1, -1.8);
+    var wind = new T.Group(); wind.position.set(window.GardenClip.chime.x, H.TOP_Y + 1, window.GardenClip.chime.z); // 2-tall pole, foot on the grass and clear of the pond stones
     var pole = new T.Mesh(new T.CylinderGeometry(.035, .035, 2, 5), gold); wind.add(pole);
     var bar = new T.Mesh(new T.CylinderGeometry(.035, .035, 1, 5), gold); bar.rotation.z = Math.PI / 2; bar.position.y = .9; wind.add(bar);
-    for (var j = 0; j < 3; j++) { var bell = new T.Mesh(gemGeo, new T.MeshBasicMaterial({ color: TYPES[j].color })); bell.position.set((j - 1) * .32, .55 - j * .12, 0); wind.add(bell); }
+    for (var j = 0; j < 3; j++) { var bell = new T.Mesh(gemGeo, new T.MeshBasicMaterial({ color: TYPES[j].color })); bell.position.set((j - 1) * .32, .55 - j * .12, j === 1 ? .22 : 0); wind.add(bell); }
     ornaments.push(wind); decoration.add(wind);
     var path = new T.Group(), pebble = new T.SphereGeometry(.1, 5, 3);
     for (j = 0; j < 10; j++) { var a = j / 10 * Math.PI, dot = new T.Mesh(pebble, gold); dot.scale.y = .35; dot.position.set(Math.cos(a) * 3.1, H.TOP_Y + .04, Math.sin(a) * 3.1); path.add(dot); }
@@ -150,7 +150,11 @@
     for (j = 0; j < 5; j++) { var star = new T.Mesh(gemGeo, gold), angle = j * Math.PI * 2 / 5; star.position.set(Math.cos(angle) * 1.1, 0, Math.sin(angle) * 1.1); star.scale.set(.45, .45, .45); crown.add(star); }
     ornaments.push(crown); decoration.add(crown); updateRewards(); updateLamps();
   }
-  function updateRewards() { ornaments.forEach(function (g, i) { g.visible = rank() >= i + 1 && S.decor[i]; }); }
+  function updateRewards() {
+    ornaments.forEach(function (g, i) { g.visible = rank() >= i + 1 && S.decor[i]; });
+    if (ornaments[0]) window.GardenClip.chime.on = ornaments[0].visible; // sync() can run before makeWorld()
+    if (API.ready) window.GardenClip.syncFlowers(H.flowers, level());
+  }
   function updateLamps() {
     if (FX) return; // level3fx.js fades the lamps every frame
     lamps.forEach(function (l, i) { l.core.material.color.setHex(S.lamps[i] ? 0xffdf9a : 0x706b8b); l.halo.material.opacity = S.lamps[i] ? .8 : .1; });
@@ -196,6 +200,7 @@
   function nightLevel() { return L3 ? L3.night() : .82; }
   function onLevel(n) {
     active = n === 3; world.visible = active; $('starHud').hidden = !active;
+    window.GardenClip.syncFlowers(H.flowers, n);
     document.body.setAttribute('data-garden-level', n);
     if (L3) L3.onLevel(active, litCount() === 3);
     if (FX) FX.onLevel(active, n, H.isStarted());
