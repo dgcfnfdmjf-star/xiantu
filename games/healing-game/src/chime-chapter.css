@@ -1,0 +1,19 @@
+#chimeHud[hidden],#chimeDock[hidden],#chimeEnding[hidden],#chimeSkip[hidden],#chimeScore[hidden]{display:none!important}
+#chimeHud{width:180px;border-radius:18px;padding:12px;box-sizing:border-box;background:#30474bcc;pointer-events:auto}
+#chimeCount{font-size:14px;font-weight:500;line-height:1.5;display:block}
+#chimeHint{font-size:12px;line-height:1.6;margin:5px 0}.ch-note{font-size:10px;color:#d4e2d0}
+body[data-garden-level="4"] #modes{display:none}
+body[data-garden-level="4"] #toast{bottom:calc(env(safe-area-inset-bottom,0px) + 216px)}
+body[data-garden-level="4"] #starSaveWarning{bottom:calc(env(safe-area-inset-bottom,0px) + 268px)}
+#chimeDock{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 10px);width:calc(100% - 24px);max-width:510px;box-sizing:border-box;z-index:6;padding:10px 12px;border-radius:22px;background:#293e49df;touch-action:manipulation;color:#fff4dc}
+.ch-top{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:12px;min-height:22px}.ch-top #chimeEcho{color:#ffe4aa;white-space:nowrap;min-width:65px}
+.ch-actions{display:flex;gap:8px;margin:4px 0 8px}.ch-actions button{flex:1;min-height:44px;border:1px solid #e6dec244;border-radius:11px;background:#ffffff12;font-size:12px}
+#chimeKeys{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}#chimeKeys button{min-width:0;min-height:52px;border-radius:12px;background:#ffffff0b;border:1px solid #ffffff2b;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center}
+#chimeKeys b{display:block;color:var(--tone);font-size:18px}#chimeKeys span{font-size:10px;color:#fff3df}#chimeKeys .collected{border-color:var(--tone)}#chimeKeys .ringing{background:#ffffdf44;box-shadow:0 0 14px var(--tone)}
+#chimeKeys button:disabled,.ch-actions button:disabled{opacity:.7}#chimeKeys .ringing:disabled{opacity:1}
+#chimeScore{font-size:12px;line-height:1.7;color:#ffe8b5;margin:0 0 8px;text-align:center}
+#chimeEnding{position:fixed;inset:0;z-index:22;display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box;background:#182b35b8}
+#chimeEnding .jr-card{text-align:center;background:linear-gradient(145deg,#425d5e,#2b3e50)}#chimeEnding button{margin:6px 3px}
+#chimeSkip{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 216px);z-index:21;min-height:44px}
+@media(max-width:360px){#chimeHud{width:155px}#chimeKeys{gap:4px}#chimeDock{padding:8px}.ch-top{font-size:11px}}
+@media(max-height:480px){#chimeDock{max-width:420px;padding:6px 10px;bottom:5px}.ch-actions{margin:2px 0 4px}.ch-actions button{min-height:44px}#chimeKeys button{min-height:44px;flex-direction:row;gap:5px}.ch-top{font-size:11px;min-height:18px}#chimeHud{padding:9px;width:170px}body[data-garden-level="4"] #toast,#chimeSkip{bottom:142px}body[data-garden-level="4"] #starSaveWarning{bottom:188px}}

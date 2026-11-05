@@ -18,7 +18,7 @@ async root => {
  await page.reload();await page.locator('#start').click();await page.waitForTimeout(1300);
  const state=()=>page.evaluate(()=>__journey.state());
  const migrated=await state();assert(migrated.progress.stars===6,'V6 catches become six sky stars');assert(migrated.progress.charge===3&&migrated.progress.decor[0]===false,'V6 unfinished charge and decor retained');
- assert(await page.locator('meta[name="garden-version"]').getAttribute('content')==='7.0.0','version metadata');
+ assert(await page.locator('meta[name="garden-version"]').getAttribute('content')==='8.0.0','version metadata');
  assert(await page.evaluate(()=>GardenAudio.currentTrackName())==='星灯夜曲','level-specific music');
  results.push('V6 partial-save migration / version / nocturne');
  async function target(){

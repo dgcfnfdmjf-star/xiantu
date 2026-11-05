@@ -1,11 +1,11 @@
 
-/* 暮色浮岛 V7 — the night voyage and a permanent collection journal.
+/* 暮色浮岛 V8 — four chapters and a permanent collection journal.
  * Uses the existing scene, frame loop and audio bus. No external resources. */
 (function (window, document) {
   'use strict';
   var KEY = 'healingGarden.journey.v1', H, T, world, decoration, wisps = [], lamps = [], ornaments = [];
   var time = 0, poll = 0, active = false, tab = 'journey', lastFocus = null, retryWarning = false;
-  var temp, color, oldRank = 0, L3 = null, FX = null, VG = null, failing = {}, retrySave = null;
+  var temp, color, oldRank = 0, L3 = null, FX = null, VG = null, CH = null, failing = {}, retrySave = null;
   var TYPES = [
     { id: 'dew', name: '露珠萤', color: 0xa9efd8, note: '像清晨草叶上的露珠' },
     { id: 'peach', name: '桃霞萤', color: 0xffb3cd, note: '把最后一缕晚霞藏在翅间' },
@@ -19,7 +19,7 @@
     { xp: 60, name: '云间旅伴' }, { xp: 120, name: '星灯守望' }, { xp: 190, name: '浮岛园主' }
   ];
   var S = { version: 1, caught: {}, charge: 0, lamps: [false, false, false], completed: [],
-    seen: { flowers: [], butterflies: [], kittens: [] }, decor: [true, true, true], stars: 0, joys: 0, memories: [] };
+    seen: { flowers: [], butterflies: [], kittens: [] }, decor: [true, true, true], stars: 0, joys: 0, memories: [], chimes: window.ChimeRules.normalize(null) };
   function $(id) { return document.getElementById(id); }
   function finite(v, max) { return typeof v === 'number' && isFinite(v) ? Math.max(0, Math.min(max, Math.floor(v))) : 0; }
   function ids(list) { return list.map(function (item) { return item.id; }); }
@@ -34,6 +34,8 @@
     TYPES.forEach(function (sp) { S.caught[sp.id] = finite(d.caught && d.caught[sp.id], 99999); });
     S.charge = finite(d.charge, 4);
     S.completed = validList(d.completed, [1, 2, 3]);
+    S.chimes = window.ChimeRules.normalize(d.chimes);
+    if (S.chimes.round === 3) S.completed.push(4);
     if (Array.isArray(d.lamps)) S.lamps = [0, 1, 2].map(function (n) { return d.lamps[n] === true; });
     if (S.lamps.every(Boolean) && S.completed.indexOf(3) < 0) S.completed.push(3);
     S.stars = finite(d.stars, 60); S.joys = finite(d.joys, 99999); // voyage.js fills in anything an old save lacks
@@ -63,10 +65,11 @@
   function unlocked(n) {
     if (n === 1) return true;
     if (n === 2) return done(1) || window.__bf.state().ended || window.__kittens.state().unlocked;
+    if (n === 4) return done(3);
     return n === 3 && (done(2) || done(3) || window.__kittens.state().ended || window.__kittens.state().total >= 20);
   }
   function starsSeen() { return TYPES.filter(function (sp) { return S.caught[sp.id] > 0; }).length; }
-  function xp() { return (S.seen.flowers.length + S.seen.butterflies.length + S.seen.kittens.length + starsSeen()) * 5 + S.completed.length * 20; }
+  function xp() { return (S.seen.flowers.length + S.seen.butterflies.length + S.seen.kittens.length + starsSeen() + S.chimes.found.length) * 5 + S.completed.length * 20; }
   function rank() { var x = xp(), n = 0; while (n < RANKS.length - 1 && x >= RANKS[n + 1].xp) n++; return n; }
   function litCount() { return S.lamps.filter(Boolean).length; }
   function level() { return window.__kittens.state().level; }
@@ -90,6 +93,7 @@
   function blocked() {
     if (!API.ready) return false;
     if (L3 && L3.isRunning()) return true;
+    if (CH && CH.isModalOpen()) return true;
     if (!$('journeyPanel').hidden || !$('starEnding').hidden) return true;
     var overlays = ['start', 'ending', 'bfEnding', 'kitEnding', 'bfCodex', 'gpBook', 'kitLevels'];
     return overlays.some(function (id) { var el = $(id); return el && !el.classList.contains('hidden'); });
@@ -187,7 +191,7 @@
     if (open) { lastFocus = document.activeElement; $(id).querySelector('button').focus(); }
     else if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
   }
-  function open(next) { if (!API.ready || (L3 && L3.isRunning())) return; sync(true); tab = next || 'journey'; render(); setModal('journeyPanel', true); }
+  function open(next) { if (!API.ready || (L3 && L3.isRunning())) return; if (CH) CH.cancelPreview(); sync(true); tab = next || 'journey'; render(); setModal('journeyPanel', true); }
   function showEnding() { setModal('starEnding', true); }
   function nightLevel() { return L3 ? L3.night() : .82; }
   function onLevel(n) {
@@ -196,6 +200,7 @@
     if (L3) L3.onLevel(active, litCount() === 3);
     if (FX) FX.onLevel(active, n, H.isStarted());
     if (VG) VG.onLevel(active);
+    if (CH) CH.onLevel(n);
     if (active) H.setNightTarget(nightLevel()); else if (H.refresh) H.refresh();
     renderHud();
   }
@@ -204,6 +209,7 @@
     if (!unlocked(n)) return;
     setModal('journeyPanel', false); window.__kittens.setLevel(n);
     if (n === 3) H.toast(hint(), 3500);
+    if (n === 4 && CH) H.toast(CH.hint(), 3500);
   }
   function render() {
     if (!$('journeyContent')) return;
@@ -214,16 +220,18 @@
       var chapters = [
         ['蝴蝶来信', '轻点或划过花间的蝴蝶，收集 30 点，解锁猫咪伙伴。', Math.min(30, bf.total) + ' / 30'],
         ['猫咪午后', '先丢毛线球，再抱抱小猫。收集 20 点，解锁星灯湾。', Math.min(20, cats.total) + ' / 20'],
-        ['星灯夜航', '轻点星萤积攒星光，每 4 点亮一座灯。让三盏灯照亮云海。', litCount() + ' / 3 座灯']
+        ['星灯夜航', '轻点星萤积攒星光，每 4 点亮一座灯。让三盏灯照亮云海。', litCount() + ' / 3 座灯'],
+        ['晨风铃谷', '听风铃、看编号，依次奏回三段旋律。可查看乐谱，没有限时。', S.chimes.round + ' / 3 乐章']
       ];
       chapters.forEach(function (c, i) {
         var n = i + 1, current = level() === n, allowed = unlocked(n);
         body += '<section class="jr-row' + (current ? ' current' : '') + '"><h3>0' + n + ' · ' + c[0] + '</h3><p>' + c[1] + '</p><p>' + (done(n) ? '✧ 已完成 · ' : '') + c[2] + '</p><button data-jr-go="' + n + '"' + (allowed ? '' : ' disabled') + '>' + (current ? '继续这一程' : (allowed ? '前往' : '完成上一关解锁')) + '</button></section>';
       });
       if (VG && unlocked(3)) body += VG.journal();
-      body += '<p class="jr-note">切换关卡保留所有进度；收藏与成长永久累计。V7.0 · 星灯夜航</p>';
+      body += '<p class="jr-note">切换关卡保留所有进度；收藏与成长永久累计。V8.0 · 晨风铃谷</p>';
     } else if (tab === 'collection') {
       var books = [
+        ['风铃音符', window.ChimeRules.tones, S.chimes.found, '♪'],
         ['星萤图鉴', TYPES, TYPES.filter(function (sp) { return S.caught[sp.id] > 0; }).map(function (sp) { return sp.id; }), '✦'],
         ['花间手记', window.GardenPlay.flowerSpecies, S.seen.flowers, '✿'],
         ['蝴蝶来信', window.__bf.species, S.seen.butterflies, '🦋'],
@@ -231,7 +239,7 @@
       ];
       books.forEach(function (book) {
         body += '<h3>' + book[0] + ' <small>' + book[2].length + ' / ' + book[1].length + '</small></h3><div class="jr-grid">';
-        book[1].forEach(function (sp) { var got = book[2].indexOf(sp.id) >= 0; body += '<div class="jr-item' + (got ? '' : ' locked') + '" style="--ink:#' + ('000000' + (sp.color || sp.c1 || sp.fur || 0xffffff).toString(16)).slice(-6) + '"><span>' + (got ? book[3] : '·') + '</span>' + (got ? sp.name : '尚未遇见') + (book[0] === '星萤图鉴' ? '<br><small>' + (got ? sp.note : '星灯湾中等你发现') + '</small>' : '') + '</div>'; });
+        book[1].forEach(function (sp) { var got = book[2].indexOf(sp.id) >= 0; body += '<div class="jr-item' + (got ? '' : ' locked') + '" style="--ink:#' + ('000000' + (sp.color || sp.c1 || sp.fur || 0xffffff).toString(16)).slice(-6) + '"><span>' + (got ? book[3] : '·') + '</span>' + (got ? sp.name : '尚未遇见') + (sp.note ? '<br><small>' + (got ? sp.note : (book[0] === '风铃音符' ? '晨风铃谷中等你发现' : '星灯湾中等你发现')) + '</small>' : '') + '</div>'; });
         body += '</div>';
       });
     } else {
@@ -273,7 +281,7 @@
     var next = document.createElement('button'); next.className = 'btn'; next.id = 'starNext'; next.textContent = '第三关：星灯夜航';
     next.onclick = function () { $('kitStay').click(); go(3); };
     $('kitEnding').querySelector('.btns').insertBefore(next, $('kitStay'));
-    $('gpBookBtn').addEventListener('click', function (e) { if (active) { e.stopImmediatePropagation(); open('collection'); } }, true);
+    $('gpBookBtn').addEventListener('click', function (e) { if (active || level() === 4) { e.stopImmediatePropagation(); open('collection'); } }, true);
     document.addEventListener('keydown', function (e) {
       var modal = !$('journeyPanel').hidden ? panel : (!$('starEnding').hidden ? ending : null);
       if (!modal) return;
@@ -291,6 +299,7 @@
     if (ornaments[0].visible) ornaments[0].rotation.z = Math.sin(t * .7) * .025;
     if (ornaments[2].visible) ornaments[2].rotation.y = t * .08;
     if (L3) L3.update(dt, t);
+    if (CH) CH.update(dt, t);
     if (!active) return;
     H.setNightTarget(nightLevel());
     wisps.forEach(function (w) {
@@ -325,10 +334,13 @@
     if (window.__level3) L3 = window.__level3.init(hooks, lamps);
     if (window.__level3fx) FX = window.__level3fx.init(hooks, { wisps: wisps, lamps: lamps, lit: function (i) { return S.lamps[i]; }, charge: function () { return S.charge; }, allLit: function () { return litCount() === 3; }, canPlay: canPlay, collect: collect });
     if (window.__voyage) VG = window.__voyage.init(hooks, { progress: S, types: TYPES, wisps: wisps, lamps: lamps, save: save, canPlay: canPlay });
+    if (window.ChimeChapter) CH = window.ChimeChapter.init(hooks, { progress: S, blocked: blocked, complete: complete, open: open, go: go,
+      changed: function () { save(); updateRewards(); if (!$('journeyPanel').hidden) render(); } });
     API.ready = true; onLevel(level());
   };
   GP.update = function (dt, t, night) { baseUpdate.apply(GP, arguments); update(dt, t); };
   GP.onTap = function (ray, hit, mode) {
+    if (CH && level() === 4 && CH.tap(ray)) return true;
     if (tap(ray, mode)) return true;
     var used = baseTap.apply(GP, arguments);
     if (!used && FX && active && mode === 'net') FX.ripple(ray);

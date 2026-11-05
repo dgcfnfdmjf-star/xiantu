@@ -1,5 +1,7 @@
 async root => {
- const c=await root.context().browser().newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const p=await c.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
+ const browser=root.context().browser();for(const ctx of browser.contexts())if(ctx!==root.context())await ctx.close();
+ const c=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const p=await c.newPage(),errors=[],external=[];p.on('pageerror',e=>errors.push(e.message));
+ await p.route('**/*',r=>{if(new URL(r.request().url()).hostname==='127.0.0.1')return r.continue();external.push(r.request().url());return r.abort();});
  await p.addInitScript(()=>{localStorage.setItem('hg_level2_unlocked','1');localStorage.setItem('healingGarden.kittens.v1',JSON.stringify({total:20,ended:true,level:3}));localStorage.setItem('healingGarden.journey.v1',JSON.stringify({caught:{dew:2,peach:2,amber:2,moon:2,violet:2,tide:1},lamps:[true,true,false],charge:4,completed:[1,2]}));});
  await p.goto('http://127.0.0.1:8784/xiantu/games/healing-game/site/healing-game/');await p.locator('#start').click();await p.waitForTimeout(800);
  const audio=await p.evaluate(()=>{GardenAudio.setMusic(false);let count=0,osc=GardenAudio.kit.osc;GardenAudio.kit.osc=function(){count++;return osc.apply(this,arguments)};GardenAudio.setSfx(false);for(let i=0;i<6;i++)__level3.catchSound(i,2);const muted=count;GardenAudio.setSfx(true);for(let i=0;i<6;i++)__level3.catchSound(i,2);GardenAudio.kit.osc=osc;return{muted,unmuted:count,ctx:GardenAudio.context().state}});
@@ -7,6 +9,23 @@ async root => {
  await p.locator('#starLamp2').click();await p.waitForFunction(()=>!document.getElementById('starEnding').hidden,null,{timeout:45000});
  const final=await p.evaluate(()=>({level:__level3.state(),voyage:__voyage.state(),xp:__journey.state().xp}));
  if(final.level.running||!final.level.grow.every(n=>n===1)||final.voyage.looping)throw Error('Natural finale not completed');
- await p.screenshot({path:'output/playwright/healing-v7-natural-ending.png',scale:'css'});
- if(errors.length)throw Error(errors.join(';'));await c.close();return{audio,final,errors};
+ await p.screenshot({path:'output/playwright/healing-v8-third-natural-ending.png',scale:'css'});
+ await p.locator('#chimeNext').click();
+ if(await p.evaluate(()=>__journey.state().level)!==4||await p.locator('#starEnding').isVisible())throw Error('Third ending did not enter fourth chapter');
+ await p.evaluate(()=>{GardenAudio.setMusic(false);window.__bellVoices=0;const original=GardenAudio.kit.musicBox;GardenAudio.kit.musicBox=function(){window.__bellVoices++;return original.apply(this,arguments)};GardenAudio.setSfx(false);});
+ await p.locator('#chimeKey5').click();
+ if(await p.evaluate(()=>__bellVoices)!==0)throw Error('Muted bell still plays');
+ await p.evaluate(()=>GardenAudio.setSfx(true));
+ for(const note of [0,2,4,1,3,5,0,3,2,5])await p.locator('#chimeKey'+note).click();
+ const beforeAnimation=await p.evaluate(()=>__journey.state());
+ if(!beforeAnimation.progress.completed.includes(4)||beforeAnimation.progress.chimes.round!==3)throw Error('Fourth completion not saved before finale');
+ if(!await p.locator('#chimeKey0').isDisabled()||!await p.locator('#chimeListen').isDisabled())throw Error('Fourth finale must visibly disable melody input');
+ await p.waitForFunction(()=>!document.getElementById('chimeEnding').hidden,null,{timeout:30000});
+ const voices=await p.evaluate(()=>__bellVoices);if(voices!==10)throw Error('Expected ten played melody notes, got '+voices);
+ await p.screenshot({path:'output/playwright/healing-v8-fourth-natural-ending.png',scale:'css'});
+ await p.locator('#chimeStay').click();await p.evaluate(()=>GardenAudio.setSfx(false));
+ for(let n=0;n<6;n++)await p.locator('#chimeKey'+n).click();
+ if(await p.evaluate(()=>__bellVoices)!==voices)throw Error('Free play bypasses SFX setting');
+ const fourth=await p.evaluate(()=>__journey.state());if(fourth.xp!==beforeAnimation.xp)throw Error('Free play grants extra growth');
+ if(errors.length||external.length)throw Error(JSON.stringify({errors,external}));await c.close();return{audio,final,fourth,voices,errors,external};
 }
