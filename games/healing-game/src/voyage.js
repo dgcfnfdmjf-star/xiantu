@@ -10,7 +10,7 @@
 (function (window, document) {
   'use strict';
   var GA = window.GardenAudio, K = GA && GA.kit;
-  var RUN_CATCHES = 12, STAR_CAP = 60, FLY_TIME = 1.1, LAND_TIME = 0.8, DRIFT_SPEED = 0.5, LOOP_TIME = 6, HOVER_Y = 0.62;
+  var RUN_CATCHES = 12, STAR_CAP = 60, FLY_TIME = 1.1, LAND_TIME = 0.8, DRIFT_SPEED = 0.5, LOOP_TIME = 6, HOVER_Y = 0.62, FLOWER_CLEAR = 1.05;
   // Lamp index -> species index in TYPES: warm, clear, dreaming. Together they cover all six.
   var WISHES = [[1, 2], [0, 3], [4, 5]];
   var MEMORY = {
@@ -27,6 +27,7 @@
   };
   var H, T, J, S, TYPES, active = false, clock = 0;
   var boat, body, puffs = [], route = null, routeKey = '', u = 0, heading = 0, appear = 0, wake = 0, announce = 0, loop = null;
+  var lift = 0;
   var offset, p, tan, wp, tint, cream;
   var sky, skyGeo, skyUni, shown = 0, flights = [], flightGroup, landings = [], dots = [];
 
@@ -202,10 +203,11 @@
     geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
     geo.setAttribute('color', new T.Float32BufferAttribute(col, 3));
     boat = new T.Group(); boat.visible = false; H.island.add(boat);
+    window.GardenClip.boat = boat;
     body = new T.Mesh(geo, new T.MeshBasicMaterial({ vertexColors: true, side: T.DoubleSide, fog: false }));
     boat.add(body);
     function glow(x, y, size, color, opacity) {
-      var s = new T.Sprite(new T.SpriteMaterial({ map: H.glowTex, color: color, transparent: true, opacity: opacity, depthWrite: false, blending: T.AdditiveBlending, fog: false }));
+      var s = new T.Sprite(new T.SpriteMaterial({ map: H.glowTex, color: color, transparent: true, opacity: opacity, depthTest: false, depthWrite: false, blending: T.AdditiveBlending, fog: false }));
       s.position.set(x, y, 0); s.scale.set(size, size, 1); s.userData.opacity = opacity; boat.add(s);
       return s;
     }
@@ -266,7 +268,14 @@
     offset.multiplyScalar(Math.max(0, 1 - dt * 1.2));
     route.getPointAt(u, p); route.getTangentAt(u, tan);
     p.add(offset);
-    boat.position.copy(p); boat.position.y += Math.sin(t * 1.3) * 0.055 + Math.sin(t * 0.7) * 0.03;
+    // Rise over flower heads (tallest about TOP_Y + 1.08) so the keel, at -0.12 with up to -0.105 of bob and tilt, never cuts them
+    var wantLift = 0;
+    H.flowers.forEach(function (f) {
+      var fp = f.root.position, d = Math.hypot(fp.x - p.x, fp.z - p.z);
+      if (d < FLOWER_CLEAR) wantLift = Math.max(wantLift, Math.min(1, (FLOWER_CLEAR - d) / 0.25));
+    });
+    lift += (wantLift * (1.08 + 0.225 - HOVER_Y) - lift) * Math.min(1, dt * (loop ? 14 : 4));
+    boat.position.copy(p); boat.position.y += lift + Math.sin(t * 1.3) * 0.055 + Math.sin(t * 0.7) * 0.03;
     // Shortest way round, so it swings gently instead of spinning
     var want = Math.atan2(-tan.z, tan.x), turn = Math.atan2(Math.sin(want - heading), Math.cos(want - heading));
     heading += turn * Math.min(1, dt * 2.5);

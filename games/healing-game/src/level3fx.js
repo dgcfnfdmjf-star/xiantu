@@ -244,7 +244,8 @@
     // A full orbit whose radius breathes, plus a small loop on top so no two paths look alike
     var a = w.phase + dir * t * (0.2 + w.slot * 0.018) + Math.sin(t * 0.43 + w.phase) * 0.35;
     var r = 2.35 + Math.sin(t * 0.31 + w.phase * 2) * 0.85;
-    w.g.position.set(Math.cos(a) * r + Math.cos(t * 1.2 + w.phase) * 0.22, H.TOP_Y + 1.4 + Math.sin(t * 0.9 + w.phase) * 0.38, Math.sin(a) * r + Math.sin(t * 1.05 + w.phase) * 0.22);
+    w.g.position.set(Math.cos(a) * r + Math.cos(t * 1.2 + w.phase) * 0.22, H.TOP_Y + 1.55 + Math.sin(t * 0.9 + w.phase) * 0.38, Math.sin(a) * r + Math.sin(t * 1.05 + w.phase) * 0.22);
+    window.GardenClip.settleWisp(w, J.wisps);
     w.g.rotation.y = t * 0.7;
     w.wings[0].rotation.z = Math.sin(t * 8) * 0.4; w.wings[1].rotation.z = -w.wings[0].rotation.z;
     if (w.cooldown > 0) { w.fade = 0; return; }
