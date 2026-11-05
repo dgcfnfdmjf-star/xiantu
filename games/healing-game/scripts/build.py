@@ -108,7 +108,7 @@ replace('''  function frame() {
 # V7 audio, scene and interaction bridges.
 replace('    kit: { gain: gain, filt: filt, osc: osc, mtof: mtof, rnd: rnd, pad: pad, bass: bass, brush: brush, degree: degree, melNote: melNote },\n', '    kit: { gain: gain, filt: filt, osc: osc, mtof: mtof, rnd: rnd, pad: pad, bass: bass, brush: brush, degree: degree, melNote: melNote, musicBox: musicBox },\n')
 replace('    milestone: sfx.milestone, ending: sfx.ending, melody: sfx.melody,\n', '    milestone: sfx.milestone, ending: sfx.ending, melody: sfx.melody,\n    // For sound effects built outside this file (see level3plus.js). sfxOut is null when sfx are off.\n    pent: pent, sfxOut: function () { return ok() ? sfxBus : null; },\n')
-replace("  var LEVEL_THEME = { 1: 'dreamy', 2: 'cozy' }, FADE = 3.5;\n", "  var LEVEL_THEME = { 1: 'dreamy', 2: 'cozy', 3: 'nightvoyage', 4: 'morningchimes' }, FADE = 3.5;\n")
+replace("  var LEVEL_THEME = { 1: 'dreamy', 2: 'cozy' }, FADE = 3.5;\n", "  var LEVEL_THEME = { 1: 'dreamy', 2: 'cozy', 3: 'nightvoyage', 4: 'morningchimes' }, FADE = 7;\n")
 replace('    tracks: defs,\n', '    tracks: defs,\n    voices: { softPiano: softPiano, guitar: guitar, flute: flute, bus: bus },\n    // A track defined in another file. Register at load time, before the first onLevel.\n    register: function (def) { def.index = GA.addTrack(def); defs.push(def); return def.index; },\n')
 replace("    if (announce) H.toast(n === 3 ? '✦ 收集 4 点星光，再轻点一座引航灯' : (two ? '🐱 轻点小猫丢毛线球，再点一下抱抱它' : '🦋 回到第一关，蝴蝶们还在等你'), 3000);\n", "    if (announce) H.toast(n === 3 ? '✦ ' + window.GardenJourney.hint() : (two ? '🐱 轻点小猫丢毛线球，再点一下抱抱它' : '🦋 回到第一关，蝴蝶们还在等你'), 3000);\n")
 replace('    uMix: { value: 0 }, uSun: { value: new THREE.Vector3(-0.35, 0.06, -1).normalize() }\n', '    uMix: { value: 0 }, uDeep: { value: 0 }, uSun: { value: new THREE.Vector3(-0.35, 0.06, -1).normalize() }\n')
@@ -120,6 +120,34 @@ replace('  var nightTarget = 0, nightMix = 0, ending = null, ended = false;\n', 
 replace('    starUniforms.uMix.value = nightMix;\n', '    // deepNight (0..1) goes past full night for the level 3 finale; it is 0 everywhere else\n    skyUniforms.uDeep.value = deepNight;\n    starUniforms.uMix.value = nightMix + deepNight * 0.9;\n    starUniforms.uPR.value = DPR * (1 + deepNight * 0.45);\n')
 replace('    scene.fog.color.copy(fogDusk).lerp(fogNight, nightMix);\n    hemi.intensity = lerp(0.95, 0.6, nightMix);\n    sun.intensity = lerp(0.65, 0.2, nightMix);\n', '    scene.fog.color.copy(fogDusk).lerp(fogNight, nightMix).multiplyScalar(1 - deepNight * 0.5);\n    hemi.intensity = lerp(0.95, 0.6, nightMix) * (1 - deepNight * 0.4);\n    sun.intensity = lerp(0.65, 0.2, nightMix) * (1 - deepNight * 0.6);\n')
 replace('    setNightTarget: function (v) { if (!ending) nightTarget = v; }, isStarted: function () { return started; }\n', '    setNightTarget: function (v) { if (!ending) nightTarget = v; }, setDeepNight: function (v) { deepNight = v; }, isStarted: function () { return started; }\n')
+# Lush score (src/music-lush.js, see MUSIC-UPGRADE.md): one shared convolver with a longer, darker hall, a reverb send
+# that follows music volume, equal-power crossfades, and the level theme table.
+replace('    verb.buffer = impulse(3.4, 2.8);\n', "    verb.buffer = window.GardenAudio.hallImpulse ? window.GardenAudio.hallImpulse(ctx, 4.2) : impulse(3.4, 2.8);\n")
+replace('  var ctx = null, master, musicBus, sfxBus, verb,', '  var ctx = null, master, musicBus, hallBus, sfxBus, verb,')
+replace('    musicBus = gain(0, master);\n', '    musicBus = gain(0, master);\n    hallBus = gain(0, verb);\n')
+replace('  function setMusicGain(v, dur) { ramp(musicBus.gain, v, dur); ramp(mDly.gain, v, dur); }', '  function setMusicGain(v, dur) { ramp(musicBus.gain, v, dur); ramp(mDly.gain, v, dur); ramp(hallBus.gain, v, dur); }')
+replace('    context: function () { return ctx; }\n', '    context: function () { return ctx; },\n    hallBus: function () { return hallBus; }\n')
+replace('''    out.gain.setValueAtTime(0.0001, now);
+    out.gain.linearRampToValueAtTime(tr.level, now + fade);
+''', '''    out.gain.setValueAtTime(0.0001, now);
+    fadeCurve(out.gain, tr.level, now, fade, Math.sin);
+''')
+replace('''    ramp(p.out.gain, 0.0001, fade);
+    p.until = now + fade;
+''', '''    var from = p.out.gain.value;
+    p.out.gain.cancelScheduledValues(now);
+    p.out.gain.setValueAtTime(from, now);
+    fadeCurve(p.out.gain, from, now, fade, Math.cos);
+    p.until = now + fade;
+''')
+replace('''  function makePlayer(idx, fade) {
+''', '''  // Equal-power crossfade as short linear segments: cancellable mid-fade, unlike setValueCurveAtTime.
+  function fadeCurve(param, level, start, fade, shape) {
+    for (var i = 1; i <= 12; i++) param.linearRampToValueAtTime(Math.max(0.0001, level * shape(i / 12 * Math.PI / 2)), start + fade * i / 12);
+  }
+  function makePlayer(idx, fade) {
+''')
+replace('    tracks: defs,\n    voices:', '    tracks: defs,\n    theme: LEVEL_THEME,\n    level: function () { return curLevel; },\n    voices:')
 # Clipping fixes; helpers and footprints live in src/clipping.js (see CLIPPING-FIXES.md).
 # Near plane: nothing ever gets closer than 0.5 (see keepFromCamera), and it gives 5x the depth precision of 0.1.
 replace('new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 300)', 'new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.5, 300)')
@@ -173,7 +201,7 @@ replace("bk.textContent = n === 3 ?", "bk.textContent = n === 4 ? '📖 音符' 
 replace("H.toast(n === 3 ? '✦ ' + window.GardenJourney.hint()", "H.toast(n === 4 ? window.ChimeChapter.hint() : n === 3 ? '✦ ' + window.GardenJourney.hint()")
 replace("toast(lv === 3 ? '欢迎回到星灯湾", "toast(lv === 4 ? '欢迎来到晨风铃谷，先听一遍风里的旋律 ♪' : lv === 3 ? '欢迎回到星灯湾")
 replace("window.__kittens.state().level === 3 ? window.GardenJourney.hint()", "window.__kittens.state().level === 4 ? window.ChimeChapter.hint() : window.__kittens.state().level === 3 ? window.GardenJourney.hint()")
-replace("<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps", '<style>\n' + (ROOT / 'src/journey.css').read_text() + '\n' + (ROOT / 'src/chime-chapter.css').read_text() + '\n</style>\n<script>\n' + '\n</script>\n<script>\n'.join((ROOT / ('src/' + name + '.js')).read_text() for name in ['clipping', 'chime-rules', 'journey', 'level3plus', 'level3fx', 'voyage', 'chime-chapter']) + "\n</script>\n<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps")
+replace("<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps", '<style>\n' + (ROOT / 'src/journey.css').read_text() + '\n' + (ROOT / 'src/chime-chapter.css').read_text() + '\n</style>\n<script>\n' + '\n</script>\n<script>\n'.join((ROOT / ('src/' + name + '.js')).read_text() for name in ['clipping', 'chime-rules', 'journey', 'level3plus', 'level3fx', 'voyage', 'chime-chapter', 'music-lush']) + "\n</script>\n<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps")
 out = ROOT / 'site/healing-game/index.html'
 out.parent.mkdir(parents=True, exist_ok=True)
 out.write_text(html)
