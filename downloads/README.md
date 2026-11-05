@@ -34,6 +34,14 @@
 
 打包使用 `npm run package:game`，逐文件比对 ZIP 内容与当前源码；校验值见本目录 `SHA256SUMS.txt`。解压后的文件夹名称固定保留 `xiantu-v2831-scroll`。
 
+## 暮色浮岛 V8.0 晨风铃谷
+
+完整游戏下载：[healing-game-v8-tencent.zip](healing-game-v8-tencent.zip)。新增第四关：第三关通关后，听风铃并奏回三段旋律；六枚新音符加入手账，支持逐音存档和自由合奏，兼容 V5—V7 进度。
+
+解压得到 `healing-game/index.html`，只覆盖 `xiantu-v2831-scroll/healing-game/` 内的同名文件。无需修改仙途或 Jev；GitHub 合并不会自动部署腾讯云。
+
+[更新与上传步骤](healing-game-v8-README.txt) · [SHA-256](healing-game-v8-SHA256SUMS.txt) · [源码与检查](../games/healing-game/README.txt)
+
 ## 暮色浮岛 V7.0 星灯夜航
 
 独立游戏下载：[healing-game-v7-tencent.zip](healing-game-v7-tencent.zip)。在 V6 基础上接入星灯夜曲、划动拾光、光轨与灯座蓄光、三灯演出、纸船巡航和夜航记事，保留旧收藏与成长进度。

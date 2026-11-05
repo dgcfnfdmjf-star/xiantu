@@ -11,10 +11,10 @@ async root => {
  async function state(){return page.evaluate(()=>__journey.state());}
  async function journal(tab='journey'){await page.locator('#kitLevelBtn').click();if(tab!=='journey')await page.locator('[data-jr-tab="'+tab+'"]').click();}
  await page.goto(url);await start();
- assert(await page.title()==='暮色浮岛 · 星灯夜航 V7.0','version');
+ assert(await page.title()==='暮色浮岛 · 晨风铃谷 V8.0','version');
  await page.evaluate(()=>localStorage.setItem('xiantu_save','untouched'));
  await journal();assert(await page.locator('[data-jr-go="2"]').isDisabled(),'new save chapter2 locked');assert(await page.locator('[data-jr-go="3"]').isDisabled(),'new save chapter3 locked');
- await page.locator('[data-jr-tab="collection"]').click();assert(await page.locator('.jr-item').count()===35,'35 species in journal');await page.locator('#journeyClose').click();
+ await page.locator('[data-jr-tab="collection"]').click();assert(await page.locator('.jr-item').count()===41,'41 species in journal');await page.locator('#journeyClose').click();
  await page.evaluate(()=>{__garden.plantRandom();window.dispatchEvent(new PageTransitionEvent('pagehide'));});
  await page.reload();await start();assert(await page.evaluate(()=>__garden.count())===1,'immediate close flushes flower');
  // Migrate a real-shaped V5 save; no V6 progress exists in this fixture.
@@ -26,7 +26,7 @@ async root => {
  });
  await page.reload();await start();
  const migrated=await state();assert(migrated.progress.completed.includes(1)&&migrated.progress.completed.includes(2),'old chapters migrated');assert(migrated.progress.seen.butterflies.length===12&&migrated.progress.seen.kittens.length===6,'old album migrated');
- await journal('growth');await page.screenshot({path:'output/playwright/v7-growth-phone.png',scale:'css'});await page.locator('[data-jr-tab="journey"]').click();await page.locator('[data-jr-go="3"]').click();
+ await journal('growth');await page.screenshot({path:'output/playwright/v8-growth-phone.png',scale:'css'});await page.locator('[data-jr-tab="journey"]').click();await page.locator('[data-jr-go="3"]').click();
  await page.waitForTimeout(1200);assert((await state()).level===3,'enter third chapter');
  const childCount=(await state()).worldChildren;
  await page.locator('#starLamp0').click();assert(!(await state()).progress.lamps[0],'lamp rejects insufficient charge');
@@ -48,7 +48,7 @@ async root => {
  for(let lamp=0;lamp<3;lamp++){
   while((await state()).progress.charge<4)await pick();
   if(lamp===0){
-   await page.screenshot({path:'output/playwright/v7-star-phone.png',scale:'css'});
+   await page.screenshot({path:'output/playwright/v8-star-phone.png',scale:'css'});
    const beforeCap=await state();await pickAtFull();assert((await state()).progress.charge===4,'charge is capped');
    await page.reload();await start();assert((await state()).progress.charge===4,'partial progress persists');
   }
@@ -63,17 +63,17 @@ async root => {
  }
  await page.locator('#starFinaleSkip').click();
  assert(await page.locator('#starEnding').isVisible(),'chapter ending visible');
- await page.screenshot({path:'output/playwright/v7-ending.png',scale:'css'});
+ await page.screenshot({path:'output/playwright/v8-ending.png',scale:'css'});
  await page.locator('#starJournal').click();const completed=await state();assert(completed.progress.completed.includes(3),'chapter completion stored');
  assert(completed.xp===5*(completed.progress.seen.flowers.length+12+6+Object.values(completed.progress.caught).filter(n=>n>0).length)+60,'growth counted once');
  await page.locator('[data-jr-decor="0"]').uncheck();await page.locator('#journeyClose').click();
  await page.reload();await start();const restored=await state();assert(restored.xp===completed.xp&&restored.progress.lamps.every(Boolean),'completed progress reload');assert(restored.progress.decor[0]===false,'decoration preference persists');
  for(const n of [1,2,3,1,2,3]){await journal();await page.locator('[data-jr-go="'+n+'"]').click();assert((await state()).level===n,'switch chapter '+n);}
  assert((await state()).worldChildren===childCount,'no duplicate scene objects');assert((await state()).xp===completed.xp,'switching cannot farm growth');
- await page.setViewportSize({width:844,height:390});await page.waitForTimeout(600);await journal();await page.screenshot({path:'output/playwright/v7-journal-landscape.png',scale:'css'});await page.locator('#journeyClose').click();
+ await page.setViewportSize({width:844,height:390});await page.waitForTimeout(600);await journal();await page.screenshot({path:'output/playwright/v8-journal-landscape.png',scale:'css'});await page.locator('#journeyClose').click();
  assert(await page.evaluate(()=>localStorage.getItem('xiantu_save'))==='untouched','xiantu save untouched');
  await page.evaluate(()=>{Storage.prototype.setItem=function(){throw new DOMException('Storage full','QuotaExceededError');};});await pick();assert(await page.locator('#starSaveWarning').isVisible(),'save failure is visible');
  assert(errors.length===0,'page errors: '+errors.join(';'));assert(external.length===0,'external requests');
- const result={version:'7.0.0',migrated,completed,restored,childCount,errors,external,checks:'locks, migration, real touch collection, duplicate guard, modal input, charge cap, partial reload, 3 lamps, ending, growth idempotence, decor persistence, switching, landscape, isolated saves, quota warning'};
+ const result={version:'8.0.0',migrated,completed,restored,childCount,errors,external,checks:'locks, migration, real touch collection, duplicate guard, modal input, charge cap, partial reload, 3 lamps, ending, growth idempotence, decor persistence, switching, landscape, isolated saves, quota warning'};
  await root.evaluate(r=>window.__journeyResult=r,result);await context.close();return result;
 }

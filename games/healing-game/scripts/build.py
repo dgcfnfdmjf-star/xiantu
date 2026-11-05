@@ -1,4 +1,4 @@
-"""Build the single-file V7 game from the preserved V5 upload and small additions."""
+"""Build the single-file V8 game from the preserved V5 upload and small additions."""
 from pathlib import Path
 import hashlib
 import zipfile
@@ -11,7 +11,7 @@ def replace(old, new):
     assert html.count(old) == 1, (old[:100], html.count(old))
     html = html.replace(old, new)
 
-replace('<title>暮色浮岛 · 小小花园</title>', '<title>暮色浮岛 · 星灯夜航 V7.0</title>\n<meta name="garden-version" content="7.0.0">')
+replace('<title>暮色浮岛 · 小小花园</title>', '<title>暮色浮岛 · 晨风铃谷 V8.0</title>\n<meta name="garden-version" content="8.0.0">')
 # Flush existing debounced saves before the page can be frozen or discarded.
 for comment, source in [('private mode / quota: ignore', 'garden'), ('ignore', 'butterflies')]:
     old = '''  var saveTimer = null;
@@ -41,7 +41,7 @@ for comment, source in [('private mode / quota: ignore', 'garden'), ('ignore', '
 replace('    fireflyBonus: 0,', '    fireflyBonus: 0,\n    collection: function () { return Object.keys(S.disc); },\n    flowerSpecies: SPECIES,')
 replace("  function canCatch() { return H && H.isStarted() && !codexOpen && !endingUp; }", "  function canCatch() { return H && H.isStarted() && !codexOpen && !endingUp &&\n    (!window.__kittens || window.__kittens.state().level === 1) &&\n    (!window.GardenJourney || !window.GardenJourney.blocked()); }")
 replace("setTimeout(function () { H.toast('🦋 用手指划过蝴蝶，轻轻把它网住', 3200); }, 4300);", "setTimeout(function () { if (!window.__kittens || window.__kittens.state().level === 1) H.toast('🦋 用手指划过蝴蝶，轻轻把它网住', 3200); }, 4300);")
-replace('    S.level = d.level === 2 ? 2 : 1;', '    S.level = d.level === 3 ? 3 : (d.level === 2 ? 2 : 1);')
+replace('    S.level = d.level === 2 ? 2 : 1;', '    S.level = d.level === 4 ? 4 : (d.level === 3 ? 3 : (d.level === 2 ? 2 : 1));')
 replace('''  function store(k, v) {
     try {
       if (v === undefined) return window.localStorage ? window.localStorage.getItem(k) : null;
@@ -72,13 +72,13 @@ replace('''  function store(k, v) {
 replace('  function save() { store(SAVE_KEY, JSON.stringify(S)); }', "  function save() { store(SAVE_KEY, JSON.stringify(S)); }\n  function level3Unlocked() { return S.ended || S.total >= GOAL || (window.GardenJourney && window.GardenJourney.unlocked(3)); }")
 replace('  function setLevels(open) {\n    if (open && endingUp) return;', "  function setLevels(open) {\n    if (open && endingUp) return;\n    if (open && window.GardenJourney && window.GardenJourney.ready) { window.GardenJourney.open('journey'); return; }")
 replace("    var lb = $('kitLevelBtn'); if (lb) lb.style.display = on ? 'block' : 'none';", "    var lb = $('kitLevelBtn'); if (lb) { lb.style.display = 'block'; lb.textContent = '✧ 旅程手账'; }")
-replace('    if (endingUp) return;\n    if (n === 2 && !isUnlocked()) return;', '    if (endingUp || (n !== 1 && n !== 2 && n !== 3)) return;\n    if (n === 2 && !isUnlocked()) return;\n    if (n === 3 && !level3Unlocked()) return;')
+replace('    if (endingUp) return;\n    if (n === 2 && !isUnlocked()) return;', '    if (endingUp || (n !== 1 && n !== 2 && n !== 3 && n !== 4)) return;\n    if (n === 2 && !isUnlocked()) return;\n    if (n === 3 && !level3Unlocked()) return;\n    if (n === 4 && (!window.GardenJourney || !window.GardenJourney.unlocked(4))) return;')
 replace('    hideButterflies(two);', '    hideButterflies(n !== 1);')
 replace("    if (bh) bh.style.display = two ? 'none' : '';", "    if (bh) bh.style.display = n !== 1 ? 'none' : '';")
 replace("    if (nb) nb.innerHTML = two ? '🐱<span>抱猫</span>' : '🦋<span>捕蝶</span>';", "    if (nb) nb.innerHTML = n === 3 ? '✦<span>拾光</span>' : (two ? '🐱<span>抱猫</span>' : '🦋<span>捕蝶</span>');")
 replace("    var bk = $('gpBookBtn'); if (bk) bk.textContent = two ? '📖 猫谱' : '📖 蝶谱';", "    var bk = $('gpBookBtn'); if (bk) bk.textContent = n === 3 ? '📖 星萤' : (two ? '📖 猫谱' : '📖 蝶谱');")
 replace("    if (announce) H.toast(two ? '🐱 轻点小猫丢毛线球，再点一下抱抱它' : '🦋 回到第一关，蝴蝶们还在等你', 3000);", "    if (window.GardenJourney && window.GardenJourney.ready) window.GardenJourney.onLevel(n);\n    if (announce) H.toast(n === 3 ? '✦ 收集 4 点星光，再轻点一座引航灯' : (two ? '🐱 轻点小猫丢毛线球，再点一下抱抱它' : '🦋 回到第一关，蝴蝶们还在等你'), 3000);")
-replace('      setLevel(want === 2 && isUnlocked() ? 2 : 1, false);', '      setLevel(want === 3 && level3Unlocked() ? 3 : (want === 2 && isUnlocked() ? 2 : 1), false);')
+replace('      setLevel(want === 2 && isUnlocked() ? 2 : 1, false);', '      setLevel(want === 4 && window.GardenJourney && window.GardenJourney.unlocked(4) ? 4 : (want === 3 && level3Unlocked() ? 3 : (want === 2 && isUnlocked() ? 2 : 1)), false);')
 replace('if (level !== 2) bu.apply(B, arguments);', 'if (level === 1) bu.apply(B, arguments);')
 replace("      if (level !== 2 || endingUp || !H.isStarted()) return false;", "      if (level !== 2 || endingUp || !H.isStarted() || (window.GardenJourney && window.GardenJourney.blocked())) return false;")
 replace("    if (!started) return;\n    ndc.set", "    if (!started || (window.GardenJourney && window.GardenJourney.blocked())) return;\n    ndc.set")
@@ -108,7 +108,7 @@ replace('''  function frame() {
 # V7 audio, scene and interaction bridges.
 replace('    kit: { gain: gain, filt: filt, osc: osc, mtof: mtof, rnd: rnd, pad: pad, bass: bass, brush: brush, degree: degree, melNote: melNote },\n', '    kit: { gain: gain, filt: filt, osc: osc, mtof: mtof, rnd: rnd, pad: pad, bass: bass, brush: brush, degree: degree, melNote: melNote, musicBox: musicBox },\n')
 replace('    milestone: sfx.milestone, ending: sfx.ending, melody: sfx.melody,\n', '    milestone: sfx.milestone, ending: sfx.ending, melody: sfx.melody,\n    // For sound effects built outside this file (see level3plus.js). sfxOut is null when sfx are off.\n    pent: pent, sfxOut: function () { return ok() ? sfxBus : null; },\n')
-replace("  var LEVEL_THEME = { 1: 'dreamy', 2: 'cozy' }, FADE = 3.5;\n", "  var LEVEL_THEME = { 1: 'dreamy', 2: 'cozy', 3: 'nightvoyage' }, FADE = 3.5;\n")
+replace("  var LEVEL_THEME = { 1: 'dreamy', 2: 'cozy' }, FADE = 3.5;\n", "  var LEVEL_THEME = { 1: 'dreamy', 2: 'cozy', 3: 'nightvoyage', 4: 'morningchimes' }, FADE = 3.5;\n")
 replace('    tracks: defs,\n', '    tracks: defs,\n    voices: { softPiano: softPiano, guitar: guitar, flute: flute, bus: bus },\n    // A track defined in another file. Register at load time, before the first onLevel.\n    register: function (def) { def.index = GA.addTrack(def); defs.push(def); return def.index; },\n')
 replace("    if (announce) H.toast(n === 3 ? '✦ 收集 4 点星光，再轻点一座引航灯' : (two ? '🐱 轻点小猫丢毛线球，再点一下抱抱它' : '🦋 回到第一关，蝴蝶们还在等你'), 3000);\n", "    if (announce) H.toast(n === 3 ? '✦ ' + window.GardenJourney.hint() : (two ? '🐱 轻点小猫丢毛线球，再点一下抱抱它' : '🦋 回到第一关，蝴蝶们还在等你'), 3000);\n")
 replace('    uMix: { value: 0 }, uSun: { value: new THREE.Vector3(-0.35, 0.06, -1).normalize() }\n', '    uMix: { value: 0 }, uDeep: { value: 0 }, uSun: { value: new THREE.Vector3(-0.35, 0.06, -1).normalize() }\n')
@@ -120,16 +120,22 @@ replace('  var nightTarget = 0, nightMix = 0, ending = null, ended = false;\n', 
 replace('    starUniforms.uMix.value = nightMix;\n', '    // deepNight (0..1) goes past full night for the level 3 finale; it is 0 everywhere else\n    skyUniforms.uDeep.value = deepNight;\n    starUniforms.uMix.value = nightMix + deepNight * 0.9;\n    starUniforms.uPR.value = DPR * (1 + deepNight * 0.45);\n')
 replace('    scene.fog.color.copy(fogDusk).lerp(fogNight, nightMix);\n    hemi.intensity = lerp(0.95, 0.6, nightMix);\n    sun.intensity = lerp(0.65, 0.2, nightMix);\n', '    scene.fog.color.copy(fogDusk).lerp(fogNight, nightMix).multiplyScalar(1 - deepNight * 0.5);\n    hemi.intensity = lerp(0.95, 0.6, nightMix) * (1 - deepNight * 0.4);\n    sun.intensity = lerp(0.65, 0.2, nightMix) * (1 - deepNight * 0.6);\n')
 replace('    setNightTarget: function (v) { if (!ending) nightTarget = v; }, isStarted: function () { return started; }\n', '    setNightTarget: function (v) { if (!ending) nightTarget = v; }, setDeepNight: function (v) { deepNight = v; }, isStarted: function () { return started; }\n')
-replace("<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps", '<style>\n' + (ROOT / 'src/journey.css').read_text() + '\n</style>\n<script>\n' + '\n</script>\n<script>\n'.join((ROOT / ('src/' + name + '.js')).read_text() for name in ['journey', 'level3plus', 'level3fx', 'voyage']) + "\n</script>\n<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps")
+# Fourth chapter labels and start-page guidance.
+replace("nb.innerHTML = n === 3 ?", "nb.innerHTML = n === 4 ? '♪<span>奏铃</span>' : n === 3 ?")
+replace("bk.textContent = n === 3 ?", "bk.textContent = n === 4 ? '📖 音符' : n === 3 ?")
+replace("H.toast(n === 3 ? '✦ ' + window.GardenJourney.hint()", "H.toast(n === 4 ? window.ChimeChapter.hint() : n === 3 ? '✦ ' + window.GardenJourney.hint()")
+replace("toast(lv === 3 ? '欢迎回到星灯湾", "toast(lv === 4 ? '欢迎来到晨风铃谷，先听一遍风里的旋律 ♪' : lv === 3 ? '欢迎回到星灯湾")
+replace("window.__kittens.state().level === 3 ? window.GardenJourney.hint()", "window.__kittens.state().level === 4 ? window.ChimeChapter.hint() : window.__kittens.state().level === 3 ? window.GardenJourney.hint()")
+replace("<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps", '<style>\n' + (ROOT / 'src/journey.css').read_text() + '\n' + (ROOT / 'src/chime-chapter.css').read_text() + '\n</style>\n<script>\n' + '\n</script>\n<script>\n'.join((ROOT / ('src/' + name + '.js')).read_text() for name in ['chime-rules', 'journey', 'level3plus', 'level3fx', 'voyage', 'chime-chapter']) + "\n</script>\n<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps")
 out = ROOT / 'site/healing-game/index.html'
 out.parent.mkdir(parents=True, exist_ok=True)
 out.write_text(html)
-archive = ROOT.parents[1] / 'downloads/healing-game-v7-tencent.zip'
+archive = ROOT.parents[1] / 'downloads/healing-game-v8-tencent.zip'
 # Stable timestamps and bytes make the downloadable release reproducible.
 with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
     entry = zipfile.ZipInfo('healing-game/index.html', (2026, 11, 5, 0, 0, 0))
     entry.compress_type = zipfile.ZIP_DEFLATED
     entry.external_attr = 0o100644 << 16
     z.writestr(entry, html.encode())
-archive.with_name('healing-game-v7-SHA256SUMS.txt').write_text(hashlib.sha256(archive.read_bytes()).hexdigest() + '  ' + archive.name + '\n')
-print(f'Built V7: {len(out.read_bytes())} bytes; ZIP: {archive.stat().st_size} bytes')
+archive.with_name('healing-game-v8-SHA256SUMS.txt').write_text(hashlib.sha256(archive.read_bytes()).hexdigest() + '  ' + archive.name + '\n')
+print(f'Built V8: {len(out.read_bytes())} bytes; ZIP: {archive.stat().st_size} bytes')
