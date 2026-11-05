@@ -1,0 +1,43 @@
+#journeyPanel[hidden], #starEnding[hidden], #starHud[hidden] { display: none !important; }
+#journeyPanel, #starEnding { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: max(12px, env(safe-area-inset-top)) 14px max(12px, env(safe-area-inset-bottom)); box-sizing: border-box; background: rgba(24,24,54,.7); }
+.jr-card { width: 100%; max-width: 490px; max-height: 88vh; max-height: 88dvh; overflow: auto; overscroll-behavior: contain; touch-action: pan-y; box-sizing: border-box; border: 1px solid #a8a2c1; border-radius: 26px; padding: 22px; color: #fff5e2; background: linear-gradient(145deg,#49485f,#292c46); box-shadow: 0 18px 70px #17172988; }
+.jr-card h2 { font-size: 24px; font-weight: 500; letter-spacing: 3px; margin: 8px 0; }
+.jr-card p, .jr-card small { line-height: 1.7; }
+.jr-eyebrow { color: #dac7a6; font-size: 11px; letter-spacing: 3px; }
+.jr-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.jr-close { width: 44px; height: 44px; border: 1px solid #ffffff40; border-radius: 50%; font-size: 22px; }
+.jr-tabs { display: flex; gap: 6px; margin: 18px 0; }
+.jr-tabs button { flex: 1; min-height: 44px; border-radius: 13px; background: #ffffff0c; border: 1px solid transparent; }
+.jr-tabs button[aria-selected=true] { background: #fff0c924; border-color: #dfc892; color: #ffe2a4; }
+.jr-row { margin: 12px 0; padding: 15px; border-radius: 17px; border: 1px solid #ffffff26; background: #ffffff08; }
+.jr-row.current { border-color: #c5d4cc; background: #bbddda12; }
+.jr-row h3 { font-size: 16px; margin: 0 0 7px; font-weight: 500; }
+.jr-row p { font-size: 13px; color: #d1ccdd; margin: 7px 0 12px; }
+.jr-row button, .jr-action { min-height: 44px; border-radius: 13px; padding: 8px 16px; background: #ead5b6; color: #33354b; font-size: 14px; }
+.jr-row button:disabled { background: #ffffff15; color: #c5bdcf; cursor: default; }
+.jr-note { color: #c9c3d2; font-size: 12px; }
+.jr-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.jr-item { padding: 13px 3px; border: 1px solid #ffffff20; background: #ffffff06; border-radius: 15px; text-align: center; font-size: 12px; }
+.jr-item span { display: block; font-size: 25px; margin-bottom: 8px; color: var(--ink,#fff); }
+.jr-item small { font-size: 10px; color: #bdb8cc; }
+.jr-item.locked { opacity: .55; }
+.jr-meter { height: 7px; border-radius: 7px; background: #ffffff18; overflow: hidden; margin: 13px 0; }
+.jr-meter i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#b5e7d0,#e7c89e); }
+.jr-reward { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 0; border-bottom: 1px solid #ffffff12; }
+.jr-reward label { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: 13px; }
+.jr-reward input { width: 20px; height: 20px; accent-color: #bce2cc; }
+#starHud { pointer-events: auto; border-radius: 18px; padding: 10px 12px; background: #343952c9; width: 154px; box-sizing: border-box; }
+#starHud strong { font-size: 15px; font-weight: 500; letter-spacing: 1px; }
+#starHint { font-size: 11px; line-height: 1.7; color: #e0d9e8; margin: 5px 0; }
+#starLampButtons { display: flex; gap: 5px; }
+#starLampButtons button { border: 1px solid #c6b8d355; border-radius: 10px; flex: 1; min-height: 36px; font-size: 15px; background: #ffffff08; }
+#starLampButtons button.lit { color: #ffdf9b; background: #edc27822; border-color: #e6c89a; }
+#starEnding .jr-card { max-width: 390px; text-align: center; }
+#starEnding .jr-action { margin: 8px 3px; }
+#starSaveWarning { position: fixed; left: 12px; right: 12px; bottom: 105px; z-index: 30; background: #574439; padding: 10px 15px; border-radius: 12px; font-size: 12px; }
+#starSaveWarning[hidden] { display: none; }
+button:focus-visible, input:focus-visible { outline: 2px solid #ffe2a4; outline-offset: 3px; }
+@media (max-height: 480px) { #toggles { display: grid; grid-template-columns: repeat(2,auto); gap: 4px; } .tog { padding: 7px 9px; } #modes { bottom: 7px; } #modes button { padding: 5px 0; } .jr-card { padding: 15px; max-height: 94vh; max-height: 94dvh; } }
+@media (prefers-reduced-motion: reduce) { .startbtn { animation: none; } }
+#starFinaleSkip { position:fixed; bottom:calc(env(safe-area-inset-bottom,0px) + 174px); left:50%; transform:translateX(-50%); z-index:21; min-height:44px; }
+#starFinaleSkip[hidden] { display:none; }
