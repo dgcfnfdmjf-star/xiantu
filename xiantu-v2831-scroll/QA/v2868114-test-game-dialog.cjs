@@ -8,6 +8,7 @@ a.match(src('game-v2762.html'),/buildBadge\.onclick=function\(\)\{window\.gameAl
 a.doesNotMatch(src('xiantu-v2762-04-tutorial-guide-script.js'),/\bconfirm\(/);
 a.doesNotMatch(src('xiantu-v2849-npc-jev.js'),/window\.confirm\(/);
 a.doesNotMatch(src('xiantu-v2762-15-petgrowthsystemv210.js'),/\bprompt\(`/);
+a.doesNotMatch(src('xiantu-v2768-systems.js'),/(^|[^\w.])(alert|confirm|prompt)\(/m,'save manager and boss abandon use the in-game dialog');
 a.doesNotMatch(src('xiantu-v2762-core.js').split('V28.68.114 青绿鎏金 in-game dialog')[1],/innerHTML/);
 const f=fixture(root);for(const file of JSON.parse(src('game-v2762.html').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);
 f.run('startGame();closeWorldOverlay();');f.timers.clear();

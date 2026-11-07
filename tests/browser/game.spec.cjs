@@ -17,6 +17,7 @@ test('save import rejects executable text without replacing either save, valid s
    attempts.push({main:localStorage.getItem('xiantu_save')===original,backup:localStorage.getItem('xiantu_save_backup')===backup,gold:player.gold,mainGold:JSON.parse(localStorage.getItem('xiantu_save')).player.gold});
   }
   const data=JSON.parse(original);data.player.gold=998;await importSaveV2768(new File([JSON.stringify(data)],'valid.json',{type:'application/json'}));
+  document.querySelector('#xtDialogV2868114 [data-xt-dialog="ok"]').click(); // Import confirmation is the in-game dialog.
   return {attempts,gold:player.gold,saved:loadGame().player.gold,injected:!!window.auditInjected};
  });
  expect(result).toEqual({attempts:Array.from({length:5},()=>({main:true,backup:true,gold:732,mainGold:732})),gold:998,saved:998,injected:false});expect(errors).toEqual([]);
