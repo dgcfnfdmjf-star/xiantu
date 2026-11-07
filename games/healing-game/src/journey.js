@@ -241,7 +241,7 @@
         body += '<section class="jr-row' + (current ? ' current' : '') + '"><h3>0' + n + ' · ' + c[0] + '</h3><p>' + c[1] + '</p><p>' + (done(n) ? '✧ 已完成 · ' : '') + c[2] + '</p><button data-jr-go="' + n + '"' + (allowed ? '' : ' disabled') + '>' + (current ? '继续这一程' : (allowed ? '前往' : '完成上一关解锁')) + '</button></section>';
       });
       if (VG && unlocked(3)) body += VG.journal();
-      body += '<p class="jr-note">切换关卡保留所有进度；收藏与成长永久累计。V9.1 · 月汐莲湾</p>';
+      body += '<p class="jr-note">切换关卡保留所有进度；收藏与成长永久累计。V9.2 · 月汐莲湾</p>';
     } else if (tab === 'collection') {
       var books = [
         ['月莲手记', window.LotusRules.blooms, S.lotus.found, '☾'],
