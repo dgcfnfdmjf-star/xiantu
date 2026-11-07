@@ -76,7 +76,7 @@ test('a stalled scene releases the detail sheets once after the time limit',asyn
  await page.route(`**/${SCENE}*`,async r=>{await held;await r.continue().catch(()=>{});});
  await boot(page);await start(page);
  await expect.poll(()=>seen.has(SCENE)).toBe(true);
- await expect.poll(()=>seen.sheets().sort(),{timeout:8000}).toEqual([...SHEETS].sort());
+ await expect.poll(()=>seen.sheets().sort(),{timeout:12000}).toEqual([...SHEETS].sort());
  release();
  await page.waitForFunction(()=>SCROLL_ART_V2831.wildScenes?.south);
  await page.waitForTimeout(300);

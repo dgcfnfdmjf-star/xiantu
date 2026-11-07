@@ -14938,7 +14938,7 @@ function villageEnhanceV286897(){
         for(const [key,file] of [['smallBeastsV28682','monster-small-beasts-v28682.webp'],['palace','scroll-palace-v2831.webp'],['buildings','scroll-buildings-v2832.webp']])request(key,file);
       };
       // Slow connections: the painted scene the player stands on comes before detail sheets, which all draw fallbacks until loaded.
-      if(wildSceneV286898()&&!wildSceneReadyV286898()&&!art.wildSceneFailed?.[currentRegion]){art.sceneSettledV2868111=requestSheets;sheetTimer=setTimeout(requestSheets,4000);}
+      if(wildSceneV286898()&&!wildSceneReadyV286898()&&!art.wildSceneFailed?.[currentRegion]){art.sceneSettledV2868111=requestSheets;sheetTimer=setTimeout(requestSheets,8000);}
       else requestSheets();
     }
     function scrollRegionCellV2834(region=currentRegion){
