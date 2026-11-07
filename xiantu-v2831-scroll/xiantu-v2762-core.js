@@ -8993,7 +8993,7 @@
         const el=document.createElement('script');let done=false;
         const finish=(error)=>{if(done)return;done=true;clearTimeout(timer);el.onload=el.onerror=null;if(error){el.remove();reject(error);}else resolve(window.XiantuAlchemyStageV2868110);};
         const timer=setTimeout(()=>finish(new Error('alchemy visual timeout')),10000);
-        el.src='./xiantu-v2868110-alchemy-stage.js?v=28.68.110';el.async=true;
+        el.src='./xiantu-v2868110-alchemy-stage.js?v=28.68.111';el.async=true;
         el.onload=()=>finish(window.XiantuAlchemyStageV2868110?null:new Error('alchemy visual unavailable'));
         el.onerror=()=>finish(new Error('alchemy visual unavailable'));document.head.appendChild(el);
       }).catch(error=>{s.loading=null;throw error;});return s.loading;
@@ -16115,7 +16115,7 @@ function villageEnhanceV286897(){
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.110";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.111";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
