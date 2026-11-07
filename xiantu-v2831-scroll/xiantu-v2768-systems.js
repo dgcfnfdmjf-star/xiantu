@@ -138,14 +138,14 @@ function showRawSaveTextV2870(raw){
 }
 // Showing a manual-copy window is not proof that the player copied the text.
 async function copyRawSaveV2870(raw){
- try{if(!navigator.clipboard?.writeText)throw Error('clipboard unavailable');await navigator.clipboard.writeText(raw);alert('存档文本已复制，请粘贴保存为 .json 文件。');}
+ try{if(!navigator.clipboard?.writeText)throw Error('clipboard unavailable');await navigator.clipboard.writeText(raw);gameAlertV2868114('存档文本已复制，请粘贴保存为 .json 文件。');}
  catch(_){showRawSaveTextV2870(raw);return false;}
  return true;
 }
 async function exportRawSaveV2870(raw,name){
  if(!raw)throw Error('暂无可导出的记录');
  // Export is a recovery path, including records rejected by current import validation.
- try{parseSaveV2768(raw);raw=sealExportV2906(raw);}catch(_){alert('该记录未通过导入安全校验，仍将原样导出供备份或修复。');}
+ try{parseSaveV2768(raw);raw=sealExportV2906(raw);}catch(_){gameAlertV2868114('该记录未通过导入安全校验，仍将原样导出供备份或修复。');}
  if(isMobileV2870()&&typeof File==='function'&&navigator.share&&navigator.canShare){
   try{const file=new File([raw],name,{type:'application/json'});if(navigator.canShare({files:[file]})){await navigator.share({files:[file]});return true;}}
   catch(e){if(e?.name==='AbortError')return false;}
@@ -158,7 +158,7 @@ async function exportRawSaveV2870(raw,name){
  finally{a?.remove();if(url)setTimeout(()=>URL.revokeObjectURL(url),10000);}
 }
 async function copySaveTextV2870(){
- try{const raw=currentSaveRawV2870();if(!raw)throw Error('暂无可导出的记录');if(await copyRawSaveV2870(sealExportV2906(raw)))window.saveExportedV2895?.('text',raw);}catch(e){alert('导出失败：'+e.message);}
+ try{const raw=currentSaveRawV2870();if(!raw)throw Error('暂无可导出的记录');if(await copyRawSaveV2870(sealExportV2906(raw)))window.saveExportedV2895?.('text',raw);}catch(e){gameAlertV2868114('导出失败：'+e.message);}
 }
 // Fail closed when the old record cannot be archived. No quota override can silently lose it.
 function replaceSaveV2870(raw,prepared,archiveKey=BEFORE_REPLACE_SAVE_V2870){
@@ -180,43 +180,64 @@ function replaceSaveV2870(raw,prepared,archiveKey=BEFORE_REPLACE_SAVE_V2870){
  try{window.saveMirrorV2895?.(raw);}catch(_){}
  document.getElementById('saveManagerV2768')?.remove();loadAndStart(prepared);
 }
+// One save-replacing confirm at a time. The callback runs at most once and rechecks the actor, combat and the source record,
+// because the in-game dialog stays open while world ticks and autosaves continue.
+let saveConfirmBusyV2868114=false;
+function saveConfirmOpenV2868114(){
+ if(saveConfirmBusyV2868114&&!document.getElementById?.('xtDialogV2868114'))saveConfirmBusyV2868114=false;
+ return saveConfirmBusyV2868114;
+}
+function saveConfirmV2868114(message,changed,apply,failPrefix){
+ if(saveConfirmOpenV2868114())return false;
+ const owner=player;let settled=false;saveConfirmBusyV2868114=true;
+ const settle=()=>{if(settled)return false;settled=true;saveConfirmBusyV2868114=false;return true;};
+ try{
+  return gameConfirmV2868114(message,()=>{
+   if(!settle())return false;
+   try{
+    if(player!==owner||!saveChangeAllowedV2838())throw Error('确认期间角色或战斗状态已变化，未修改存档');
+    const why=changed?.();if(why)throw Error(why);
+    apply();return true;
+   }catch(e){gameAlertV2868114(failPrefix+e.message);return false;}
+  },()=>{settle();return false;});
+ }catch(e){settle();throw e;}
+}
 function restoreBeforeReplaceV2870(){
- if(!saveChangeAllowedV2838()){alert('请先结束战斗或突破。');return;}
+ if(!saveChangeAllowedV2838()){gameAlertV2868114('请先结束战斗或突破。');return;}
+ if(saveConfirmOpenV2868114())return;
  try{const raw=localStorage.getItem(BEFORE_REPLACE_SAVE_V2870);if(!raw)throw Error('暂无替换前记录');const data=dryRunLoadV2870(raw);
-  if(confirm('将当前记录与替换前的记录互换，是否继续？'))replaceSaveV2870(raw,data);
- }catch(e){alert('恢复失败：'+e.message);}
+  saveConfirmV2868114('将当前记录与替换前的记录互换，是否继续？',()=>localStorage.getItem(BEFORE_REPLACE_SAVE_V2870)!==raw&&'替换前记录已变化，未修改存档，请重新操作',()=>replaceSaveV2870(raw,data),'恢复失败：');
+ }catch(e){gameAlertV2868114('恢复失败：'+e.message);}
 }
 async function exportBeforeReplaceV2870(){
- try{await exportRawSaveV2870(localStorage.getItem(BEFORE_REPLACE_SAVE_V2870),'xiantu-before-replace-'+Date.now()+'.json');}catch(e){alert('导出失败：'+e.message);}
+ try{await exportRawSaveV2870(localStorage.getItem(BEFORE_REPLACE_SAVE_V2870),'xiantu-before-replace-'+Date.now()+'.json');}catch(e){gameAlertV2868114('导出失败：'+e.message);}
 }
 async function exportSaveV2768(backup=false){
  try{const raw=backup?localStorage.getItem(SAVE_BACKUP_KEY):currentSaveRawV2870();const ok=await exportRawSaveV2870(raw,`xiantu-${backup?'backup':'save'}-${Date.now()}.json`);if(ok&&!backup)window.saveExportedV2895?.('file',raw);}
- catch(e){alert('导出失败：'+e.message);}
+ catch(e){gameAlertV2868114('导出失败：'+e.message);}
 }
 let saveImportBusyV2768=false;
 async function importSaveV2768(file){
- if(!file||saveImportBusyV2768)return;
- if(!saveChangeAllowedV2838()){alert('请先结束战斗或突破再导入存档');return;}
- if(file.size>8*1024*1024){alert('文件超过8MB，未修改存档');return;}
- const ownerV2838=player;
+ if(!file||saveImportBusyV2768||saveConfirmOpenV2868114())return;
+ if(!saveChangeAllowedV2838()){gameAlertV2868114('请先结束战斗或突破再导入存档');return;}
+ if(file.size>8*1024*1024){gameAlertV2868114('文件超过8MB，未修改存档');return;}
+ const ownerV2838=player;let raw,data;
  saveImportBusyV2768=true;
  try{
-  const raw=unsealImportV2906(await file.text()),data=dryRunLoadV2870(raw);
+  raw=unsealImportV2906(await file.text());data=dryRunLoadV2870(raw);
   if(player!==ownerV2838||!saveChangeAllowedV2838())throw Error('读取期间角色或战斗状态已变化，请重新选择文件');
   if(data.player.testAccount999)throw Error('测试角色不能导入普通角色存档');
-  if(!confirm('导入将替换当前修行记录，替换前的记录会单独保留（仅一份）。是否继续？'))return;
-  replaceSaveV2870(raw,data);
- }catch(e){alert(`导入未完成：${e.message}`);}finally{saveImportBusyV2768=false;}
+ }catch(e){gameAlertV2868114(`导入未完成：${e.message}`);return;}finally{saveImportBusyV2768=false;}
+ saveConfirmV2868114('导入将替换当前修行记录，替换前的记录会单独保留（仅一份）。是否继续？',null,()=>replaceSaveV2870(raw,data),'导入未完成：');
 }
 function restoreBackupV2768(){
- if(!saveChangeAllowedV2838()){alert('请先结束战斗或突破再恢复备份');return;}
+ if(!saveChangeAllowedV2838()){gameAlertV2868114('请先结束战斗或突破再恢复备份');return;}
+ if(saveConfirmOpenV2868114())return;
  try{
   const raw=localStorage.getItem(SAVE_BACKUP_KEY);if(!raw)throw Error('暂无备用档');const data=dryRunLoadV2870(raw);
-  if(!confirm('将恢复到上一次有效保存，之后的进度会回退；替换前的记录会单独保留（仅一份）。是否继续？'))return;
-  replaceSaveV2870(raw,data);
- }catch(e){alert(`恢复失败：${e.message}`);}
+  saveConfirmV2868114('将恢复到上一次有效保存，之后的进度会回退；替换前的记录会单独保留（仅一份）。是否继续？',()=>localStorage.getItem(SAVE_BACKUP_KEY)!==raw&&'备用档已更新，未修改存档，请重新恢复',()=>replaceSaveV2870(raw,data),'恢复失败：');
+ }catch(e){gameAlertV2868114(`恢复失败：${e.message}`);}
 }
-
 // 镇岳台 · 玄冥蜕影. Adapted from supplied candidate v2; real runtime adapters and atomic UI transactions.
 // ---------------------------------------------------------------- data ----
 const BOSS_V2887={
@@ -810,9 +831,12 @@ function bossFinalizeV2887(token){
 }
 function abandonBossV2887(token){
  if(!bossRequestV2887(token,['altar','fight'])||!bossPeekV2887().fight)return bossRefuseV2887('altar');
- if(!confirm('放弃本场魂影？不发战果、不退献骨；已经结束的战斗请先确认结算。'))return false;
- if(!bossRequestV2887(token,['altar','fight'])||bossPeekV2887().fight?.over)return false;
- const ok=bossCommitV2887(()=>{ensureBossV2887().fight=null;});if(ok){bossViewV2887=null;showBossAltarV2887('已放弃魂影，本场无奖励。');}return ok;
+ const fight=bossPeekV2887().fight;let settled=false;
+ return gameConfirmV2868114('放弃本场魂影？不发战果、不退献骨；已经结束的战斗请先确认结算。',()=>{
+  if(settled)return false;settled=true;
+  if(!bossRequestV2887(token,['altar','fight'])||bossPeekV2887().fight!==fight||fight.over)return false;
+  const ok=bossCommitV2887(()=>{ensureBossV2887().fight=null;});if(ok){bossViewV2887=null;showBossAltarV2887('已放弃魂影，本场无奖励。');}return ok;
+ },()=>false)??false;
 }
 function reinforceSealV2887(token){
  if(!bossRequestV2887(token,['seal']))return bossRefuseV2887('seal');
