@@ -2184,7 +2184,7 @@ async function saveMirrorOfferV2895(){
    el.remove();
    const info=document.getElementById('saveInfo');if(info)info.innerHTML='已从浏览器备用库恢复修行记录。<br>点击“续行仙途”继续。';
    const dialog=document.getElementById('loadDialog');if(dialog)dialog.style.display='flex';
-  }catch(err){alert('恢复失败：'+(err?.message||err));}
+  }catch(err){gameAlertV2868114('恢复失败：'+(err?.message||err));}
  });
  document.body.appendChild(el);el.querySelector('[data-su="restore"]')?.focus?.();
  return true;
@@ -2317,17 +2317,17 @@ async function saveManagerExtraV2895(el){
  const m=suMetaV2895(best.rec.raw)||{};
  mt.textContent=`${m.name} · ${m.realm} · ${suAgoV2895(best.rec.savedAt)}${best.key==='daily'?'（较早的一份）':''}`;
  sec.querySelector('[data-su="mirrorBtns"]').hidden=false;
- sec.querySelector('[data-su="mexport"]').onclick=()=>exportRawSaveV2870(best.rec.raw,'xiantu-mirror-'+Date.now()+'.json').catch(e=>alert('导出失败：'+e.message));
+ sec.querySelector('[data-su="mexport"]').onclick=()=>exportRawSaveV2870(best.rec.raw,'xiantu-mirror-'+Date.now()+'.json').catch(e=>gameAlertV2868114('导出失败：'+e.message));
  const restore=chosen=>{
   const best=chosen,m=suMetaV2895(best.rec.raw)||{};
-  if(typeof saveChangeAllowedV2838==='function'&&!saveChangeAllowedV2838()){alert('请先结束战斗或突破。');return;}
+  if(typeof saveChangeAllowedV2838==='function'&&!saveChangeAllowedV2838()){gameAlertV2868114('请先结束战斗或突破。');return;}
+  if(saveConfirmOpenV2868114())return;
   try{const data=dryRunLoadV2870(best.rec.raw);
-   const before=JSON.stringify(player),main=suLsGetV2895(SAVE_KEY);
-   if(confirm(`将用备用库中的记录（${m.realm}，${suAgoV2895(best.rec.savedAt)}）替换当前修行记录，替换前的记录会单独保留（仅一份）。是否继续？`)){
-    if(!el.isConnected||player!==owner||!saveChangeAllowedV2838()||JSON.stringify(player)!==before||suLsGetV2895(SAVE_KEY)!==main||!suMirrorCurrentV2895(best.rec,best.epoch))throw Error('角色、存档或页面已变化，请重新打开。');
-    replaceSaveV2870(best.rec.raw,data);
-   }
-  }catch(e){alert('恢复失败：'+e.message);}
+   // The game keeps ticking while the in-game dialog is open; replaceSaveV2870 archives the state as of confirm time.
+   saveConfirmV2868114(`将用备用库中的记录（${m.realm}，${suAgoV2895(best.rec.savedAt)}）替换当前修行记录，替换前的记录会单独保留（仅一份）。是否继续？`,
+    ()=>(!el.isConnected||player!==owner||!suMirrorCurrentV2895(best.rec,best.epoch))&&'角色、存档或页面已变化，请重新打开。',
+    ()=>replaceSaveV2870(best.rec.raw,data),'恢复失败：');
+  }catch(e){gameAlertV2868114('恢复失败：'+e.message);}
  };
  sec.querySelector('[data-su="mrestore"]').onclick=()=>restore(best);
  const daily=await suMirrorBestV2895('daily');
@@ -2335,7 +2335,7 @@ async function saveManagerExtraV2895(el){
   const older=document.createElement('div');older.className='su-row-v2895';
   const label=document.createElement('p');const meta=suMetaV2895(daily.rec.raw);label.textContent=`较早备份：${meta.name} · ${meta.realm} · ${suAgoV2895(daily.rec.savedAt)}`;
   const button=document.createElement('button');button.className='choice-btn';button.textContent='恢复较早备份';button.onclick=()=>restore(daily);
-  const exp=document.createElement('button');exp.className='choice-btn';exp.textContent='导出较早备份';exp.onclick=()=>exportRawSaveV2870(daily.rec.raw,'xiantu-mirror-older-'+Date.now()+'.json').catch(e=>alert('导出失败：'+e.message));
+  const exp=document.createElement('button');exp.className='choice-btn';exp.textContent='导出较早备份';exp.onclick=()=>exportRawSaveV2870(daily.rec.raw,'xiantu-mirror-older-'+Date.now()+'.json').catch(e=>gameAlertV2868114('导出失败：'+e.message));
   sec.appendChild(label);older.append(button,exp);sec.appendChild(older);
  }
 }
@@ -2784,10 +2784,11 @@ function statsCsvV2901(){
  }return '\ufeff'+lines.join('\r\n')+'\r\n';
 }
 function statsDownloadV2901(){let url,a;try{url=URL.createObjectURL(new Blob([statsCsvV2901()],{type:'text/csv;charset=utf-8'}));a=document.createElement('a');a.href=url;a.download='xiantu-local-stats.csv';document.body.appendChild(a);a.click();return true;}catch(_){showFloatingText('导出失败，请稍后重试','#ffb38a');return false;}finally{a?.remove();if(url)setTimeout(()=>URL.revokeObjectURL(url),1000);}}
-function statsClearV2901(){
- if(!confirm('清空本机统计？游戏存档不受影响。'))return false;
- try{localStorage.removeItem(STATS_V2901.key);}catch(_){showFloatingText('无法清空本机统计，请稍后重试','#ffb38a');return false;}
- STAT_RT_V2901.data={v:1,realms:{}};STAT_RT_V2901.dirty=false;statsResetRuntimeV2901();return true;
+function statsClearV2901(after){
+ return gameConfirmOnceV2868114('stats-clear','清空本机统计？游戏存档不受影响。',()=>{
+  try{localStorage.removeItem(STATS_V2901.key);}catch(_){showFloatingText('无法清空本机统计，请稍后重试','#ffb38a');return false;}
+  STAT_RT_V2901.data={v:1,realms:{}};STAT_RT_V2901.dirty=false;statsResetRuntimeV2901();after?.();return true;
+ });
 }
 function showPacingStatsV2901(){
  if(!forgeAllowedV2825())return;statsSampleV2901();statsSaveV2901();stopNavigationV2830();resetWorldMovementV28686();
@@ -2798,7 +2799,7 @@ function showPacingStatsV2901(){
  ${statsRowsV2901().map(r=>`<section style="border-top:1px solid #665c43;padding:8px 0"><b>${esc(r.realm)}</b><p>活跃 ${(r.activeSec/60).toFixed(1)} 分钟 · 仙历 ${Math.round(r.gameDays)} 日 · 战斗 ${r.fights} 场（胜 ${r.wins} / 负 ${r.losses} / 其他结束 ${r.exits}）<br>演出平均 ${r.fightN.cinema?(r.fightSec.cinema/r.fightN.cinema).toFixed(1):'—'} 秒 · 战报平均 ${r.fightN.report?(r.fightSec.report/r.fightN.report).toFixed(1):'—'} 秒<br>破境/进阶 ${r.breakthroughs} · 失败 ${r.failures}</p><p>修为 ${Math.round(sum(r.exp))}：${esc(sources(r.exp))}<br>灵石收入 ${Math.round(sum(r.goldIn))}：${esc(sources(r.goldIn))}<br>灵石支出 ${Math.round(sum(r.goldOut))}：${esc(sources(r.goldOut))}</p></section>`).join('')||'<p>暂无统计记录。</p>'}
  <div style="display:flex;flex-wrap:wrap;gap:8px"><button class="choice-btn" data-st="csv">导出 CSV</button><button class="choice-btn" data-st="clear">清空统计</button><button class="choice-btn" data-st="close">关闭</button></div></div>`;
  el.addEventListener('click',e=>{if(player!==owner){el.remove();return;}const k=e.target.closest('[data-st]')?.dataset.st;
-  if(k==='close'||e.target===el)el.remove();else if(k==='toggle'){statsSetEnabledV2901(!STAT_RT_V2901.enabled);showPacingStatsV2901();}else if(k==='csv')statsDownloadV2901();else if(k==='clear'&&statsClearV2901())showPacingStatsV2901();});
+  if(k==='close'||e.target===el)el.remove();else if(k==='toggle'){statsSetEnabledV2901(!STAT_RT_V2901.enabled);showPacingStatsV2901();}else if(k==='csv')statsDownloadV2901();else if(k==='clear')statsClearV2901(()=>{if(document.getElementById('pacingStatsV2901'))showPacingStatsV2901();});});
  document.body.appendChild(el);el.querySelector('[data-st="close"]')?.focus();return el;
 }
 function saveManagerStatsV2901(el){

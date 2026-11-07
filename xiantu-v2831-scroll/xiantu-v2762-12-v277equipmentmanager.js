@@ -90,29 +90,45 @@ function getEquipmentUpgradeCount(){
   let changed=0;for(const slot of Object.keys(EQUIPMENT_SLOTS))if((current[slot]||null)!==(best.loadout?.[slot]||null))changed++;return changed;
 }
 
+// In-game confirm for equipment actions: one dialog per key, onOk runs at most once and must recheck state itself.
+// Headless sandboxes without any confirm keep the historical proceed-without-asking behaviour of these sites.
+function equipConfirmV2868114(key,message,onOk){
+  if(!xtDialogUsableV2868114()&&typeof globalThis.confirm!=='function')return onOk();
+  return gameConfirmOnceV2868114(key,message,onOk);
+}
+function unequipAllPlanV2868114(){
+  const equipped=Object.entries(player.equipment||{}).filter(([,n])=>n),movable=equipped.filter(([,n])=>!isEquipmentLocked(n));
+  return {movable,lockedCount:equipped.length-movable.length,sig:JSON.stringify([equipped,player.equipmentLocks||[]])};
+}
 // 一键卸下只卸未锁定装备，锁定件原位保留。
 function unequipAllGear(){
-  ensureEquipmentManagerState();const equipped=Object.entries(player.equipment||{}).filter(([,n])=>n),movable=equipped.filter(([,n])=>!isEquipmentLocked(n));
-  const lockedCount=equipped.length-movable.length;
+  ensureEquipmentManagerState();const owner=player,plan=unequipAllPlanV2868114(),{movable,lockedCount}=plan;
   if(!movable.length){showFloatingText?.(lockedCount?'🔒 当前穿戴装备均已锁定':'装备栏已经是空的',lockedCount?'#ffd76a':'#aaa');return false;}
-  if(typeof confirm==='function'&&!confirm(`确定卸下 ${movable.length} 件未锁定装备吗？${lockedCount?`\n另有 ${lockedCount} 件锁定装备会保留。`:''}`))return false;
+  return equipConfirmV2868114('unequip-all',`确定卸下 ${movable.length} 件未锁定装备吗？${lockedCount?`\n另有 ${lockedCount} 件锁定装备会保留。`:''}`,()=>{
+  if(player!==owner)return false;ensureEquipmentManagerState();
+  if(unequipAllPlanV2868114().sig!==plan.sig){showFloatingText?.('确认期间装备已变化，未卸下','#ffd76a');return false;}
   for(const [slot,name] of movable){player.equipmentInventory.push(name);player.equipment[slot]=null;}
   checkSetBonuses();player.hp=Math.min(player.hp,getMaxHp());player.mp=Math.min(player.mp,getMaxMp());updateStats();updateWorldHUD?.();autoSave?.();
   showFloatingText?.(`↩️ 已卸下 ${movable.length} 件${lockedCount?` · 保留锁定${lockedCount}件`:''}`,'#ffd700');queueEquipmentRefreshV2906('panel',80);return true;
+  });
 }
 
 // 手动操作锁定装备仍允许，但增加一次确认，避免误点。
 const v277DoEquipBase=window.doEquip;
 window.doEquip=function(itemName,slot){
   const old=player.equipment?.[slot];
-  if(old&&isEquipmentLocked(old)&&old!==itemName&&typeof confirm==='function'&&!confirm(`🔒【${old}】已锁定。仍要替换 ${EQUIPMENT_SLOTS[slot]?.label||slot} 吗？`))return false;
-  return v277DoEquipBase.apply(this,arguments);
+  if(!(old&&isEquipmentLocked(old)&&old!==itemName))return v277DoEquipBase.apply(this,arguments);
+  const owner=player,self=this,args=arguments;
+  return equipConfirmV2868114('equip:'+slot,`🔒【${old}】已锁定。仍要替换 ${EQUIPMENT_SLOTS[slot]?.label||slot} 吗？`,()=>
+    player===owner&&player.equipment?.[slot]===old?v277DoEquipBase.apply(self,args):false);
 };
 const v277UnequipItemBase=window.unequipItem;
 window.unequipItem=function(slot,reopen=false){
   const name=player.equipment?.[slot];
-  if(name&&isEquipmentLocked(name)&&typeof confirm==='function'&&!confirm(`🔒【${name}】已锁定。仍要卸下吗？`))return false;
-  return v277UnequipItemBase.apply(this,arguments);
+  if(!(name&&isEquipmentLocked(name)))return v277UnequipItemBase.apply(this,arguments);
+  const owner=player,self=this,args=arguments;
+  return equipConfirmV2868114('unequip:'+slot,`🔒【${name}】已锁定。仍要卸下吗？`,()=>
+    player===owner&&player.equipment?.[slot]===name?v277UnequipItemBase.apply(self,args):false);
 };
 
 function renderEquipSlots(slots){
@@ -192,21 +208,24 @@ function bulkDismantleEquipment(){
   const owner=player,preview=getBulkDismantlePreview();
   if(!preview.count){showFloatingText?.('没有符合安全分解条件的装备','#aaa');return false;}
   const q=getQualityInfo(equipmentDismantleQuality);
-  if(typeof confirm==='function'&&!confirm(`安全分解 ${preview.count} 件【${q.name}及以下】装备？\n预计返还 ${preview.gold} 灵石。\n\n已锁定、更优装备、必要套装件会自动保留。`))return false;
+  return equipConfirmV2868114('dismantle-bulk',`安全分解 ${preview.count} 件【${q.name}及以下】装备？\n预计返还 ${preview.gold} 灵石。\n\n已锁定、更优装备、必要套装件会自动保留。`,()=>{
   if(player!==owner||gameState==='start'||!forgeAllowedV2825()||JSON.stringify(getBulkDismantlePreview())!==JSON.stringify(preview))return false;
   const remove={};for(const r of preview.rows)remove[r.name]=r.count;const next=[];
   for(const name of (player.equipmentInventory||[])){if((remove[name]||0)>0)remove[name]--;else next.push(name);}
   player.equipmentInventory=next;player.gold=(Number(player.gold)||0)+preview.gold;updateStats();updateWorldHUD?.();autoSave?.();
   showFloatingText?.(`🧩 分解 ${preview.count} 件装备 · +${preview.gold} 灵石`,'#ffbd8e');queueEquipmentRefreshV2906('bag',60);return true;
+  });
 }
 function dismantleOneEquipmentEncoded(encoded){
   if(gameState==='start'||!forgeAllowedV2825())return false;const owner=player;
   const name=decodeURIComponent(encoded),safe=getSafeDismantleCountForName(name);if(!safe){showFloatingText?.('该装备受锁定/升级/套装保护','#ffd76a');return false;}
   const d=getEquipData(name),q=getQualityInfo(d?.quality),value=getDismantleValue(name),qi=Math.max(0,QUALITY_KEYS.indexOf(d?.quality));
-  if(qi>=4&&typeof confirm==='function'&&!confirm(`【${name}】为${q?.name||'高品质'}装备，确定分解 1 件吗？`))return false;
-  if(player!==owner||gameState==='start'||!forgeAllowedV2825()||!getSafeDismantleCountForName(name))return false;
+  const apply=()=>{
+  if(player!==owner||gameState==='start'||!forgeAllowedV2825()||!getSafeDismantleCountForName(name)||getDismantleValue(name)!==value)return false;
   const idx=player.equipmentInventory.indexOf(name);if(idx<0)return false;player.equipmentInventory.splice(idx,1);player.gold=(Number(player.gold)||0)+value;
   updateStats();updateWorldHUD?.();autoSave?.();showFloatingText?.(`🧩 分解【${name}】 · +${value} 灵石`,'#ffbd8e');queueEquipmentRefreshV2906('bag',50);return true;
+  };
+  return qi>=4?equipConfirmV2868114('dismantle-one',`【${name}】为${q?.name||'高品质'}装备，确定分解 1 件吗？`,apply):apply();
 }
 
 let equipmentBagExpandedV2803=true;
@@ -283,13 +302,22 @@ function gradeUpgradeCurrentV2869(source,nonce){
 function executeGradeUpgradeV2869(source,nonce){
   const session=gradeUpgradeSessionV2869;if(session?.busy)return false;
   const row=gradeUpgradeCurrentV2869(source,nonce);if(!row){showFloatingText?.('装备或状态已变化，请重新打开升品面板。','#ffd76a');return false;}
-  session.busy=true;
+  // session.busy stays set while the in-game dialog is open, so the panel cannot open a second upgrade confirm.
+  const {info}=row,locked=(player.equipmentLocks||[]).includes(row.name);
+  const cost=info.hasBagFodder?`消耗未锁定的【${info.nextBaseName}】×1，不扣灵石`:`消耗 ${info.actualGoldCost} 灵石，剩余 ${player.gold-info.actualGoldCost}`;
+  const inherit=info.isForged?`\n保留强化 +${info.forgeLevel}、当前洗练词条${info.record.pending?'及待选词条':''}。`:'';
+  session.busy=true;let settled=false;
+  const settle=()=>{if(settled)return false;settled=true;session.busy=false;return true;};
   try{
+    return gameConfirmV2868114(`将【${row.name}】升为【${info.nextBaseName}】？\n${cost}\n穿戴需${CULTIVATION_REALMS[info.realmRequired]?.name||'对应境界'}。${inherit}${locked?'\n原装备锁定将保留。':''}`,
+      ()=>{if(settled)return false;try{return applyGradeUpgradeV2869(source,nonce);}finally{settle();}},()=>{settle();return false;})??false;
+  }catch(e){settle();throw e;}
+}
+// Runs from the confirm callback: re-reads the row so the plan reflects state at confirm time, not open time.
+function applyGradeUpgradeV2869(source,nonce){
+  {
+    const row=gradeUpgradeCurrentV2869(source,nonce);if(!row){showFloatingText?.('确认期间装备或状态已变化，未扣除资源。','#ffd76a');return false;}
     const {info}=row,locked=(player.equipmentLocks||[]).includes(row.name);
-    const cost=info.hasBagFodder?`消耗未锁定的【${info.nextBaseName}】×1，不扣灵石`:`消耗 ${info.actualGoldCost} 灵石，剩余 ${player.gold-info.actualGoldCost}`;
-    const inherit=info.isForged?`\n保留强化 +${info.forgeLevel}、当前洗练词条${info.record.pending?'及待选词条':''}。`:'';
-    if(!window.confirm(`将【${row.name}】升为【${info.nextBaseName}】？\n${cost}\n穿戴需${CULTIVATION_REALMS[info.realmRequired]?.name||'对应境界'}。${inherit}${locked?'\n原装备锁定将保留。':''}`))return false;
-    if(!gradeUpgradeCurrentV2869(source,nonce)){showFloatingText?.('确认期间装备或状态已变化，未扣除资源。','#ffd76a');return false;}
     const owner=player,previous={equipment:owner.equipment,equipmentInventory:owner.equipmentInventory,equipmentLocks:owner.equipmentLocks,
       forgeV2825:owner.forgeV2825,gold:owner.gold,hp:owner.hp,mp:owner.mp,activeSetBonuses:owner.activeSetBonuses};
     const bag=[...owner.equipmentInventory],equipment={...owner.equipment};let nextName=info.nextBaseName,newForge=owner.forgeV2825,registered=false;
@@ -318,7 +346,7 @@ function executeGradeUpgradeV2869(source,nonce){
     gradeUpgradeSessionV2869=null;forgeSelectionV2825=null;
     updateStats();updateWorldHUD?.();showFloatingText?.(`升品成功：${info.nextBaseName}${info.isForged?' · 强化与词条已继承':''}`,'#ffd700');
     showGradeUpgradePanelV2869();return true;
-  }finally{session.busy=false;}
+  }
 }
 function showGradeUpgradePanelV2869(){
   if(!forgeAllowedV2825()||gameState!=='exploring')return showFloatingText?.('请先结束战斗或突破。','#ffd76a');
@@ -352,8 +380,11 @@ const LOADOUT_NAMES_V2870=['方案一·日常','方案二·爆发','方案三·�
 function saveLoadoutPresetV2870(index){
  if(!petBatchAllowedV286845()||!Number.isInteger(index)||index<0||index>2)return false;
  const owner=player,old=player.loadoutPresetsV2870;
- if(old?.[index]&&!confirm('覆盖这套已保存的装备与功法方案？'))return false;
- if(player!==owner||!petBatchAllowedV286845())return false;
+ if(!old?.[index])return writeLoadoutPresetV2870(index,owner,old);
+ return gameConfirmOnceV2868114('loadout-save:'+index,'覆盖这套已保存的装备与功法方案？',()=>writeLoadoutPresetV2870(index,owner,old));
+}
+function writeLoadoutPresetV2870(index,owner,old){
+ if(player!==owner||!petBatchAllowedV286845()||player.loadoutPresetsV2870!==old)return false;
  const next=Array.from({length:3},(_,i)=>old?.[i]||null);
  next[index]={equipment:{...player.equipment},skills:sanitizeSkillLoadoutV212(player.skillLoadoutV212,player,!player.skillLoadoutInitializedV212)};
  player.loadoutPresetsV2870=next;
