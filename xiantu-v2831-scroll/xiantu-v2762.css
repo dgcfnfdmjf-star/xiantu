@@ -5176,3 +5176,13 @@ html .mobile-inventory-item.xt-item-cell{min-height:56px;width:100%}
 html .mobile-inventory-tab,html .bag-batch-v2905 .choice-btn,html .bag-view-v2905 .bv-chip,html .general-buy-v2801 button,html .market-buy-v2800 button,html .market-filters-v2800 button{min-height:44px}
 html .mobile-inventory-item.usable:focus-visible,html .bag-view-v2905 .bv-main:focus-visible,html .bag-view-v2905 .bv-chip:focus-visible,html .mobile-inventory-tab:focus-visible,html .bag-batch-v2905 .choice-btn:focus-visible,html .general-buy-v2801 button:focus-visible,html .market-buy-v2800 button:focus-visible,html .market-filters-v2800 button:focus-visible{outline:2px solid var(--xt-gold-300);outline-offset:2px;box-shadow:var(--xt-glow-gold)}
 html .bag-view-v2905 .bv-main:focus-visible{outline-offset:-3px;border-radius:8px}
+/* V28.68.114 group H: the same item-cell frame, 44px targets and focus ring for equipment slots, pet-capture items, the combat bag and home/sect cards */
+html .equipment-slot-row.xt-item-cell{min-height:56px;border-left-color:var(--q)}
+html .home-grid-v2812 article.xt-item-cell,html .home-grid-v2812 article.xt-item-cell.disciple-ready-v2821{border-left:4px solid var(--q)}
+html .home-grid-v2812 article.xt-item-cell>.xt-cell-icon{float:left;margin:0 6px 0 0}
+html .pet-capture-chip-v29.xt-item-cell{display:inline-flex;align-items:center;gap:3px;min-height:30px}
+html #equipmentPanel .equip-lock-btn,html #equipmentPanel .equipment-panel-content>button[aria-label="关闭"],html #equipmentPanel .panel-action-btn,html #combatItemDrawer .combat-item-head .choice-btn,html .home-board-v2812 .choice-btn,html .home-board-v2812 summary{min-width:44px;min-height:44px}
+html.xiantu-mobile-dedicated #storyPanel:has(.home-board-v2812) .choice-btn{min-height:44px!important}
+html .home-board-v2812 summary{display:list-item;box-sizing:border-box;padding:12px 0;cursor:pointer}
+html .equipment-slot-row.xt-item-cell:focus-visible,html #equipmentPanel button:focus-visible,html #combatItemDrawer button:focus-visible,html .home-board-v2812 .choice-btn:focus-visible,html .home-board-v2812 summary:focus-visible{outline:2px solid var(--xt-gold-300);outline-offset:2px;box-shadow:var(--xt-glow-gold)}
+html .equipment-slot-row.xt-item-cell:focus-visible,html #combatItemDrawer .combat-item-btn:focus-visible{outline-offset:-3px}

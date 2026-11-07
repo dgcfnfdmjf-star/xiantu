@@ -10867,12 +10867,12 @@ function villageEnhanceV286897(){
       html+=`<div class="disciple-claim-v2821"><strong>待领取 ${ready.length} · 进行中 ${busy.length} · 随军 ${r.members.filter(d=>warDiscipleBusyV286841(d.id)).length} · 空闲 ${r.members.filter(d=>!d.job&&!warDiscipleBusyV286841(d.id)).length}</strong><p>${ready.length?esc(summary):busy.length?`最近一项还需 ${Math.min(...busy.map(d=>Math.max(0,d.job.end-day)))} 个游戏日`:'暂无待领取事务，可安排培养或派遣。'}</p><button class="choice-btn" onclick="claimAllDisciplesV2821()" ${!allowed||!ready.length?'disabled':''}>${ready.length?`一键领取全部 · ${ready.length} 项`:'暂无可领取成果'}</button></div>`;
 
       html+=`<details ${r.members.length?'':'open'}><summary>招募候选 · ${30-day%30} 个游戏日后换批</summary><div class="home-grid-v2812">`;
-      for(const d of discipleCandidatesV2815())html+=`<article><h4>${d.name}</h4><p>${d.age}岁 · ${special[d.specialty]}专长</p>${discipleTraitsHtmlV2867(d)}<p> · 同类派遣灵石 +20%</p><button class="choice-btn" onclick="recruitDiscipleV2815(${d.id},${d.batch})" ${!allowed||r.hired.includes(d.id)||r.members.length>=sectDiscipleCapV2880()||player.gold<d.cost?'disabled':''}>${r.hired.includes(d.id)?'已招募':`招募 · ${d.cost}灵石`}</button></article>`;
+      for(const d of discipleCandidatesV2815())html+=`<article class="xt-item-cell"><span class="xt-cell-icon" aria-hidden="true">👥</span><h4>${d.name}</h4><p>${d.age}岁 · ${special[d.specialty]}专长</p>${discipleTraitsHtmlV2867(d)}<p> · 同类派遣灵石 +20%</p><button class="choice-btn" onclick="recruitDiscipleV2815(${d.id},${d.batch})" ${!allowed||r.hired.includes(d.id)||r.members.length>=sectDiscipleCapV2880()||player.gold<d.cost?'disabled':''}>${r.hired.includes(d.id)?'已招募':`招募 · ${d.cost}灵石`}</button></article>`;
       html+='</div></details><h4>弟子名册</h4><div class="home-grid-v2812">';
       const order=d=>discipleReadyV2821(d)?0:d.job?1:2;
       const sorted=r.members.slice().sort((a,b)=>order(a)-order(b)||(a.job?.end||0)-(b.job?.end||0)||a.id-b.id);
       for(const d of sorted){
-        html+=`<article class="${discipleReadyV2821(d)?'disciple-ready-v2821':''}"><h4>${esc(d.name)} · Lv.${d.level}</h4><p>${special[d.specialty]}专长 · 战力 +${d.level*2}</p>${discipleTraitsHtmlV2867(d)}${discipleEventButtonV2867(d)}${lifeCardV2868(d)}`;
+        html+=`<article class="xt-item-cell ${discipleReadyV2821(d)?'disciple-ready-v2821':''}"><span class="xt-cell-icon" aria-hidden="true">👥</span><h4>${esc(d.name)} · Lv.${d.level}</h4><p>${special[d.specialty]}专长 · 战力 +${d.level*2}</p>${discipleTraitsHtmlV2867(d)}${discipleEventButtonV2867(d)}${lifeCardV2868(d)}`;
         if(warDiscipleBusyV286841(d.id)){html+='<p>随军统领 · 战役结束后解任，当前不能培养或派遣。</p>';}
         else if(d.job){const left=Math.max(0,d.job.end-day);html+=`<p>${d.job.type==='train'?'修行培养':esc(d.job.name)} · ${left?`还需 ${left} 个游戏日`:'✅ 已完成，待领取'}</p><p>${esc(discipleRewardTextV2821(d.job))}</p><button class="choice-btn" onclick="claimDiscipleV2815(${d.id})" ${left||!allowed?'disabled':''}>${left?'进行中':d.job.type==='train'?'完成培养':'领取奖励'}</button>`;}
         else{
@@ -11995,7 +11995,7 @@ function villageEnhanceV286897(){
       let text=`<section class="home-board-v2812"><h3>🪑 家具铺</h3><p>持有灵石 <b>${player.gold}</b> · 每种限购一件</p><p>购买前需确认；收纳不销毁，重新摆放免费。不同名称的家具可同时生效。</p>${notice?`<p class="home-notice-v2812">${notice}</p>`:''}<div class="home-grid-v2812">`;
       for(const d of furnitureCatalogV2812()){
         const owned=h.furniture.find(f=>f.name===d.name);
-        text+=`<article><h4>${d.name}</h4><p>${d.desc}</p><strong>${owned?(owned.active===false?'已拥有 · 已收纳':'已拥有 · 已摆放'):d.cost+' 灵石'}</strong></article>`;
+        text+=`<article class="xt-item-cell"><span class="xt-cell-icon" aria-hidden="true">🪑</span><h4>${d.name}</h4><p>${d.desc}</p><strong>${owned?(owned.active===false?'已拥有 · 已收纳':'已拥有 · 已摆放'):d.cost+' 灵石'}</strong></article>`;
         if(!owned)choices.push({text:`购买 ${d.name} · ${d.cost}灵石${player.gold<d.cost?'（灵石不足）':''}`,action:'buy_furniture',item:d.name,condition:()=>player.gold>=d.cost});
       }
       text+='</div></section>';choices.push({text:'📋 管理洞府家具',action:'home_manage'},{text:'返回仙市',action:'market'});showStory(text,choices);
@@ -12082,7 +12082,7 @@ function villageEnhanceV286897(){
       for(const f of h.furniture){
         const d=furnitureCatalogV2812().find(x=>x.name===f.name);if(!d)continue;
         const active=f.active!==false;
-        text+=`<article><h4>${d.name}</h4><p>${d.desc}</p><strong>${active?'🟢 已摆放 · 生效中':'📦 已收纳'}</strong></article>`;
+        text+=`<article class="xt-item-cell"><span class="xt-cell-icon" aria-hidden="true">🪑</span><h4>${d.name}</h4><p>${d.desc}</p><strong>${active?'🟢 已摆放 · 生效中':'📦 已收纳'}</strong></article>`;
         choices.push({text:(active?'收纳 ':'摆放 ')+f.name,action:'set_furniture_v2812',item:f.name,active:!active});
       }
       if(!h.furniture.length)text+='<p>洞府尚未添置家具，可先购买聚灵阵辅助修炼。</p>';
@@ -12704,16 +12704,16 @@ function villageEnhanceV286897(){
       let rows='';
       if(tab==='all'||tab==='heal'||tab==='mp'){
         const list=pills.filter(it=>tab==='all'||it.type===tab);
-        rows=list.length?list.map(it=>{const ready=combatMedicineAvailabilityV2856(it.name),esc=skillTextEscapeV212;return `<button type="button" class="combat-item-btn" ${ready.ok?'':'disabled'} onclick="useCombatBagItem(${esc(JSON.stringify(it.name))})"><span>${it.type==='heal'?'💊':'🔹'} ${esc(it.name)}<span class="count">×${it.count}</span></span><span class="meta">${ready.ok?`实际恢复 ${ready.gain} 点${it.type==='heal'?'气血':'灵力'}${ready.curesMeridians?' · 清除经脉暗伤':''}`:esc(ready.reason)}${ready.ok&&ready.waste>0?` · 超出上限 ${ready.waste} 点`:''}<br>${esc(it.desc||'')}<br>使用消耗一个回合</span></button>`}).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无丹药<span class="meta">去商铺或 NPC 处补给</span></button>`;
+        rows=list.length?list.map(it=>{const ready=combatMedicineAvailabilityV2856(it.name),esc=skillTextEscapeV212;return `<button type="button" class="combat-item-btn xt-item-cell" ${ready.ok?'':'disabled'} onclick="useCombatBagItem(${esc(JSON.stringify(it.name))})"><span><span class="xt-cell-icon" aria-hidden="true">${it.type==='heal'?'💊':'🔹'}</span> ${esc(it.name)}<span class="count">×${it.count}</span></span><span class="meta">${ready.ok?`实际恢复 ${ready.gain} 点${it.type==='heal'?'气血':'灵力'}${ready.curesMeridians?' · 清除经脉暗伤':''}`:esc(ready.reason)}${ready.ok&&ready.waste>0?` · 超出上限 ${ready.waste} 点`:''}<br>${esc(it.desc||'')}<br>使用消耗一个回合</span></button>`}).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无丹药<span class="meta">去商铺或 NPC 处补给</span></button>`;
       }else{
         const list=extras.filter(it=>tab==='equip'?['weapon','armor'].includes(it.type):!['weapon','armor'].includes(it.type));
-        rows=list.length?list.map(it=>`<button class="combat-item-btn combat-readonly" disabled><span>${['weapon','armor'].includes(it.type)?(it.type==='weapon'?'⚔️':'🛡️'):'🎐'} ${it.name}<span class="count">x${it.count}</span></span><span class="meta">${it.desc||'背包道具'}<br>${tab==='equip'?'战斗中可查看，脱战后再正式换装':'当前战斗仅查看，不会误用'}</span></button>`).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无物品<span class="meta">获得后会自动显示在这里</span></button>`;
+        rows=list.length?list.map(it=>`<button type="button" class="combat-item-btn xt-item-cell combat-readonly" disabled><span><span class="xt-cell-icon" aria-hidden="true">${['weapon','armor'].includes(it.type)?(it.type==='weapon'?'⚔️':'🛡️'):'🎐'}</span> ${it.name}<span class="count">x${it.count}</span></span><span class="meta">${it.desc||'背包道具'}<br>${tab==='equip'?'战斗中可查看，脱战后再正式换装':'当前战斗仅查看，不会误用'}</span></button>`).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无物品<span class="meta">获得后会自动显示在这里</span></button>`;
       }
       if(tab==='all'||tab==='item'){
         const count=player.inventory.filter(n=>n==='神行符').length;
-        if(count)rows+=`<button class="combat-item-btn" ${canFleeV286818()&&isPlayerTurn?'':'disabled'} onclick="combat('escapeScroll')"><span>神行符 ×${count}</span><span class="meta">${canFleeV286818()?'消耗一张，必定脱战':'此战禁止脱战'}</span></button>`;
+        if(count)rows+=`<button type="button" class="combat-item-btn xt-item-cell" ${canFleeV286818()&&isPlayerTurn?'':'disabled'} onclick="combat('escapeScroll')"><span>神行符 ×${count}</span><span class="meta">${canFleeV286818()?'消耗一张，必定脱战':'此战禁止脱战'}</span></button>`;
       }
-      drawer.innerHTML=`<div class="combat-item-head"><span>🎒 战斗背包</span><button class="choice-btn" style="min-height:32px;padding:4px 10px;font-size:11px" onclick="toggleCombatMedicineDrawer(false)">收起</button></div>
+      drawer.innerHTML=`<div class="combat-item-head"><span>🎒 战斗背包</span><button type="button" class="choice-btn" style="min-height:44px;min-width:44px;padding:4px 10px;font-size:11px" onclick="toggleCombatMedicineDrawer(false)">收起</button></div>
         <div class="combat-tab-row"><button class="combat-tab-btn ${tab==='all'?'active':''}" onclick="setCombatMedicineTab('all')">补给</button><button class="combat-tab-btn ${tab==='heal'?'active':''}" onclick="setCombatMedicineTab('heal')">回血</button><button class="combat-tab-btn ${tab==='mp'?'active':''}" onclick="setCombatMedicineTab('mp')">回灵</button><button class="combat-tab-btn ${tab==='item'?'active':''}" onclick="setCombatMedicineTab('item')">道具</button><button class="combat-tab-btn ${tab==='equip'?'active':''}" onclick="setCombatMedicineTab('equip')">装备</button></div><div class="combat-item-grid">${rows}</div><div class="quick-tip">回血、回灵物品在这里使用会消耗本回合；主战斗界面不会直接摆出丹药按钮。</div>`;
     }
 
