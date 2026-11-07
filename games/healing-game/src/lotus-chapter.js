@@ -1,87 +1,190 @@
-/* 月汐莲湾: one lazily built scene, driven by the island's existing frame loop. */
+/* Chapter 5 owns a bounded bay; no inherited garden actors share its space. */
 (function(window,document){
   'use strict';
   var R=window.LotusRules,GA=window.GardenAudio,M=window.__music2;
-  // Same definition and recording transport as chapter 3; same cached buffer and URL.
-  if(M){
-    var original=M.tracks.filter(function(t){return t.id==='nightvoyage';})[0],score={};
-    Object.keys(original).forEach(function(k){score[k]=original[k];});
-    score.id='moonlotus';score.name='星灯夜曲';M.register(score);
-  }
-  var H,T,J,group,pool,moon,flowers=[],ripples=[],temp,active=false,reduced=false,lastFocus=null;
-  var coords=[[-1.65,.8],[-1.5,-1.15],[0,-1.9],[1.5,-1.15],[1.65,.8],[0,1.7]];
+  if(M){var original=M.tracks.filter(function(t){return t.id==='nightvoyage';})[0],score={};Object.keys(original).forEach(function(k){score[k]=original[k];});score.id='moonlotus';score.name='星灯夜曲';M.register(score);}
+  var H,T,J,group,water,moon,flowers=[],ripples=[],stations=[],beacons=[],leafBoats=[],melodyBells=[],vessels=[],mirrorArm,mirrorTarget,mote,boat,blendCore,lanterns=[],links=[];
+  var temp,active=false,reduced=false,selected=0,practice=null,finale=0,elapsed=0,bloomPause=0,pulse=0,lastFocus=null,hiddenActors=[],drag=null,echo=null,notePulse=null,guideRay,guidePlane,guidePointer,layoutKey='',layoutPending=false,sceneZoom=null,noticeHomes=[];
+  var coords=[[-1.91,1.1],[-1.91,-1.1],[0,-2.2],[1.91,-1.1],[1.91,1.1],[0,2.2]],guide=[[-.8,-.45],[0,.35],[.8,-.45]];
+  var WATER=.08,FLOWER_Y=.25,FLOWER_R=.58,colors=[0xe9edff,0x91dfe7,0xffd79b];
   function $(id){return document.getElementById(id);}
-  function progress(){return J.progress.lotus;}
-  function finished(){return progress().found.length===6;}
-  function canPlay(){return active&&H.isStarted()&&!J.blocked()&&!document.hidden;}
-  function hint(){return '轻触莲花，送去三缕月光 · 不用等待，没有限时';}
+  function progress(){return practice||J.progress.lotus;}
+  function finished(){return R.current(progress())<0;}
+  function modal(){return !!$('lotusEnding')&&!$('lotusEnding').hidden;}
+  function canPlay(){return active&&H.isStarted()&&!J.blocked()&&!document.hidden&&!finale&&!bloomPause;}
+  function hint(){return '循着六朵月莲，找回一条月光归途 · 不计时，走错也不会失去进度';}
   function sound(i){if(GA&&GA.isSfxOn())GA.melody([[0,2],[2,4],[4,7],[5,9],[7,9],[9,12]][i],.16,true);}
-  function give(i){
+  function playNote(i){notePulse={index:i,time:.6};if(GA&&GA.isSfxOn())GA.melody([i*2],.14,true);}
+  function persist(){if(!practice)J.changed();}
+  function select(i){if(!canPlay())return;if(progress().light[i]<3&&i!==R.current(progress())){H.toast('先陪眼前这朵莲花走一小段，下一朵就会醒来。');return;}selected=i;pulse=1;sound(i);if(flowers[i]){flowers[i].pulse=1;ripples[i].time=1;}render();}
+  function act(kind,value){
     if(!canPlay())return;
-    var result=R.give(progress(),i);flowers[i].pulse=1;flowers[i].g.getWorldPosition(temp);
-    sound(i);var ring=ripples[i];ring.time=1;ring.mesh.position.x=coords[i][0];ring.mesh.position.z=coords[i][1];
-    if(!result.changed){H.toast('这朵莲花记得你的光。留下来，听听月色吧。',2000);return;}
-    if(result.finished)J.complete(5);
-    J.changed();render();
-    if(result.finished)showEnding();
-    else H.toast(result.bloomed?'「'+R.blooms[i].name+'」绽开了 · 已收入手账':R.blooms[i].name+'收到了第 '+progress().light[i]+' 缕月光',2200);
+    if(kind==='note'&&selected===5&&value>=0&&value<3){echo=null;playNote(value);}
+    var result=R.act(progress(),selected,kind,value);pulse=.7;
+    if(result.changed){persist();render();}
+    if(result.progress){if(kind!=='note')sound(selected);flowers[selected].pulse=1;ripples[selected].time=1;}
+    if(result.bloomed){drag=null;
+      H.toast('「'+R.blooms[selected].name+'」绽开了 · '+(practice?'这段光又找到了归途':'月莲已收入手账'),2400);
+      if(result.finished){if(!practice)J.complete(5);persist();startFinale();}
+      else {if(selected===3&&!reduced)bloomPause=.9;else selected=R.current(progress());render();}
+    }else if(result.hint)H.toast('不用重来。'+taskHint(),1800);
   }
-  function next(){var i=progress().light.indexOf(0);if(i<0)i=progress().light.findIndex(function(n){return n<3;});give(i<0?0:i);}
-  function showEnding(){lastFocus=document.activeElement;$('lotusEnding').hidden=false;$('lotusStay').focus();}
+  function taskHint(){var s=progress(),n=s.light[selected];if(selected===0)return '花心在等'+['月白','潮蓝','暖金'][R.dew[n]]+'色的月露。';if(selected===1)return s.mirror===R.mirror[n]?'已对准 '+(s.mirror+1)+' 号 · 可以送入花心':'月镜 '+(s.mirror+1)+' 号 → 目标 '+(R.mirror[n]+1)+' 号 · 轻转月镜';if(selected===2)return '下一站是 '+(n+1)+' 号路标。';if(selected===3)return ['先收一束暖光。','再收一束冷光。','现在让两束光相遇。'][n];if(selected===4)return '让三片叶舟的光纹都朝上 ↑。';return '下一枚音是 '+(R.song[n]+1)+' 号。';}
+  function startFinale(){drag=null;echo=null;elapsed=0;finale=reduced?0:7;render();if(reduced)showEnding();}
+  function showEnding(){finale=0;elapsed=7;render();lastFocus=document.activeElement;$('lotusEnding').hidden=false;$('lotusStay').focus();}
   function closeEnding(){$('lotusEnding').hidden=true;if(lastFocus&&document.contains(lastFocus)&&lastFocus.getClientRects().length)lastFocus.focus();}
+  function replay(){if(!canPlay()||!finished())return;practice=R.normalize(null);selected=0;elapsed=0;render();H.toast('再游一程 · 原收藏与成长保留，这次只为享受旅途。',2600);}
+  function listen(){if(!canPlay()||selected!==5)return;echo={index:0,wait:0};}
+  // Save/restore visibility only. Original transforms, assets and saves are never moved.
+  function isolate(){H.scene.children.forEach(function(o){if(o===group||o.isLight||(o.geometry&&o.geometry.parameters&&o.geometry.parameters.radius===120))return;if(!hiddenActors.some(function(a){return a.o===o;}))hiddenActors.push({o:o,visible:o.visible});o.visible=false;});}
+  function layout(){layoutPending=true;}
+  function placeNotices(inBay){
+    if(inBay&&!noticeHomes.length){['toast','starSaveWarning'].forEach(function(id){var el=$(id);if(!el)return;noticeHomes.push({el:el,parent:el.parentNode,next:el.nextSibling});$('lotusDock').insertBefore(el,$('lotusActions'));});}
+    if(!inBay){noticeHomes.forEach(function(n){n.parent.insertBefore(n.el,n.next&&n.next.parentNode===n.parent?n.next:null);});noticeHomes=[];}
+  }
+  function fitLayout(){
+    layoutPending=false;
+    if(!active||!group)return;var w=innerWidth,h=innerHeight,dock=$('lotusDock').getBoundingClientRect(),top=$('topbar').getBoundingClientRect().bottom+10;
+    var left=12,right=h<480?dock.left-12:w-12,bottom=h<480?h-12:dock.top-10,key=[w,h,dock.left,dock.top,top].join('/');if(key===layoutKey)return;layoutKey=key;
+    var camera=H.camera;if(sceneZoom===null)sceneZoom=camera.zoom;camera.clearViewOffset();camera.zoom=sceneZoom;camera.updateProjectionMatrix();camera.updateMatrixWorld();moon.quaternion.copy(camera.quaternion);
+    // Fit the whole bay, including the moon, into the space left by the actual UI.
+    // A projected box includes closed/open flowers and the full outer boat route.
+    var box=new T.Box3().setFromObject(group),lo={x:Infinity,y:Infinity},hi={x:-Infinity,y:-Infinity},v=new T.Vector3();
+    [box.min.x,box.max.x].forEach(function(x){[box.min.y,box.max.y].forEach(function(y){[box.min.z,box.max.z].forEach(function(z){v.set(x,y,z).project(camera);var px=(v.x+1)*w/2,py=(1-v.y)*h/2;lo.x=Math.min(lo.x,px);lo.y=Math.min(lo.y,py);hi.x=Math.max(hi.x,px);hi.y=Math.max(hi.y,py);});});});
+    var scale=Math.max(.15,Math.min(1,(right-left)/(hi.x-lo.x),(bottom-top)/(hi.y-lo.y))*.94);camera.zoom=sceneZoom*scale;
+    var cx=w/2+((lo.x+hi.x)/2-w/2)*scale,cy=h/2+((lo.y+hi.y)/2-h/2)*scale;
+    camera.setViewOffset(w,h,cx-(left+right)/2,cy-(top+bottom)/2,w,h);
+  }
+  function restore(){H.camera.clearViewOffset();if(sceneZoom!==null){H.camera.zoom=sceneZoom;H.camera.updateProjectionMatrix();sceneZoom=null;}layoutKey='';hiddenActors.forEach(function(a){a.o.visible=a.visible;});hiddenActors=[];}
+  function mesh(geometry,material,parent,x,y,z){var m=new T.Mesh(geometry,material);m.position.set(x||0,y||0,z||0);parent.add(m);return m;}
+  function glow(parent,color,size,x,y,z){var s=new T.Sprite(new T.SpriteMaterial({map:H.glowTex,color:color,transparent:true,opacity:.3,depthWrite:false,depthTest:false,blending:T.AdditiveBlending}));s.position.set(x||0,y||0,z||0);s.scale.set(size,size,1);parent.add(s);return s;}
   function buildWorld(){
     if(group)return;
-    group=new T.Group();group.position.y=H.TOP_Y+1.5;H.island.add(group);
-    var water=new T.MeshPhongMaterial({color:0x426b89,emissive:0x15283e,shininess:65,transparent:true,opacity:.94});
-    pool=new T.Mesh(new T.CylinderGeometry(2.65,2.45,.12,64),water);pool.position.y=-.08;group.add(pool);
-    var rim=new T.Mesh(new T.TorusGeometry(2.65,.055,6,64),new T.MeshLambertMaterial({color:0xb8c7dc}));rim.rotation.x=Math.PI/2;group.add(rim);
-    var under=new T.Mesh(new T.SphereGeometry(2.4,24,12),new T.MeshLambertMaterial({color:0x737ca8}));under.scale.set(1,.15,1);under.position.y=-.18;group.add(under);
-    var petalGeo=new T.SphereGeometry(1,10,6),leafGeo=new T.CylinderGeometry(.46,.46,.025,24),seedGeo=new T.SphereGeometry(.14,10,6),ringGeo=new T.TorusGeometry(.36,.018,4,28);
+    group=new T.Group();group.name='lotus-bay';H.scene.add(group);
+    var stone=new T.MeshLambertMaterial({color:0x798bad}),gold=new T.MeshBasicMaterial({color:0xffe7ad}),jade=new T.MeshLambertMaterial({color:0x64a7a1});
+    // Opaque surface and a sealed bowl: no actors beneath the lake show through it.
+    mesh(new T.CylinderGeometry(3.52,3.05,.58,64),stone,group,0,-.28,0);
+    water=mesh(new T.CircleGeometry(3.38,64),new T.MeshPhongMaterial({color:0x304e72,emissive:0x142a43,shininess:70,side:T.DoubleSide}),group,0,WATER,0);water.rotation.x=-Math.PI/2;
+    var rim=mesh(new T.TorusGeometry(3.48,.055,8,80),new T.MeshLambertMaterial({color:0xb5cce1}),group,0,.09,0);rim.rotation.x=Math.PI/2;
+    var petalGeo=new T.SphereGeometry(1,12,8),leafGeo=new T.CylinderGeometry(.5,.5,.035,32),seedGeo=new T.SphereGeometry(.1,12,8),ringGeo=new T.TorusGeometry(.58,.012,4,32);
     R.blooms.forEach(function(b,i){
-      var g=new T.Group();g.position.set(coords[i][0],.06,coords[i][1]);group.add(g);
-      var leaf=new T.Mesh(leafGeo,new T.MeshLambertMaterial({color:0x5b9b99}));leaf.position.y=-.025;g.add(leaf);
-      var petals=[],mat=new T.MeshLambertMaterial({color:b.color,emissive:b.color,emissiveIntensity:.22});
-      for(var j=0;j<10;j++){
-        var a=j/10*Math.PI*2,pivot=new T.Group();pivot.rotation.y=a;g.add(pivot);
-        var petal=new T.Mesh(petalGeo,mat);petal.scale.set(.16,.12,.4);petal.position.set(0,.15,.25);pivot.add(petal);petals.push(pivot);
-      }
-      var seed=new T.Mesh(seedGeo,new T.MeshBasicMaterial({color:0xffe7ad}));seed.position.y=.2;g.add(seed);
-      var glow=new T.Sprite(new T.SpriteMaterial({map:H.glowTex,color:b.color,transparent:true,opacity:.35,depthWrite:false,blending:T.AdditiveBlending}));glow.position.y=.18;glow.scale.set(1.4,1.4,1);g.add(glow);
-      flowers.push({g:g,petals:petals,seed:seed,glow:glow,pulse:0});
-      var ring=new T.Mesh(ringGeo,new T.MeshBasicMaterial({color:b.color,transparent:true,opacity:0,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.y=.02;group.add(ring);ripples.push({mesh:ring,time:0});
+      var g=new T.Group();g.position.set(coords[i][0],FLOWER_Y,coords[i][1]);group.add(g);
+      mesh(leafGeo,jade,g,0,-.14,0);
+      mesh(new T.CylinderGeometry(.045,.06,.46,8),jade,g,0,.08,0);
+      var petals=[],mat=new T.MeshLambertMaterial({color:b.color,emissive:b.color,emissiveIntensity:.15});
+      for(var j=0;j<8;j++){var pivot=new T.Group();pivot.rotation.y=j*Math.PI/4;g.add(pivot);var hinge=new T.Group();hinge.position.y=.16;pivot.add(hinge);var p=mesh(petalGeo,mat,hinge,0,0,.3);p.scale.set(.075,.065,.235);petals.push(hinge);}
+      var seed=mesh(seedGeo,new T.MeshBasicMaterial({color:0xffe7ad}),g,0,.31,0),halo=glow(g,b.color,.75,0,.62,0);flowers.push({g:g,petals:petals,seed:seed,glow:halo,pulse:0});
+      // Ripples begin outside the leaf pad and stay below .75 radius, inside the bay.
+      var ring=mesh(ringGeo,new T.MeshBasicMaterial({color:b.color,transparent:true,opacity:0,depthWrite:false}),group,coords[i][0],WATER+.025,coords[i][1]);ring.rotation.x=-Math.PI/2;ripples.push({mesh:ring,time:0});
+      var points=[];for(var k=0;k<=36;k++){var a=(i+k/36)*Math.PI/3+Math.PI/6;points.push(new T.Vector3(Math.sin(a)*3.05,.155,Math.cos(a)*3.05));}
+      var line=new T.Line(new T.BufferGeometry().setFromPoints(points),new T.LineBasicMaterial({color:b.color,transparent:true,opacity:.08}));group.add(line);links.push(line);
     });
-    moon=new T.Group();moon.position.set(0,1.8,-2.1);group.add(moon);
-    var moonRing=new T.Mesh(new T.TorusGeometry(.53,.055,8,48,Math.PI*1.65),new T.MeshBasicMaterial({color:0xffefc7}));moonRing.rotation.z=.3;moon.add(moonRing);
-    var moonGlow=new T.Sprite(new T.SpriteMaterial({map:H.glowTex,color:0xc8d8ff,transparent:true,opacity:.35,depthWrite:false,blending:T.AdditiveBlending}));moonGlow.scale.set(2.4,2.4,1);moon.add(moonGlow);
-    render();
+    moon=new T.Group();moon.position.set(0,3.05,-.55);group.add(moon);mesh(new T.TorusGeometry(.58,.045,8,56,Math.PI*1.7),gold,moon).rotation.z=.25;glow(moon,0xe0eaff,1.5);
+    for(var i=0;i<6;i++){var station=new T.Group();group.add(station);stations.push(station);}
+    // All goal props live in the central reserved disk (radius <=1.35), clear of flowers.
+    for(i=0;i<3;i++){var bead=mesh(new T.SphereGeometry(.12,12,8),new T.MeshBasicMaterial({color:colors[i]}),stations[0],(i-1)*.65,.64,0);glow(bead,colors[i],.5);}
+    var dial=mesh(new T.TorusGeometry(.85,.025,6,48),new T.MeshBasicMaterial({color:0x90c4d2}),stations[1],0,.36,0);dial.rotation.x=Math.PI/2;
+    mirrorArm=new T.Group();mirrorArm.position.y=.43;stations[1].add(mirrorArm);var ray=mesh(new T.CylinderGeometry(.028,.028,.74,5),gold,mirrorArm,0,0,.37);ray.rotation.x=Math.PI/2;
+    mirrorTarget=mesh(new T.SphereGeometry(.12,10,6),gold,stations[1]);
+    for(i=0;i<6;i++){var a=i*Math.PI/3,points=[new T.Vector3(Math.sin(a)*.91,.36,Math.cos(a)*.91),new T.Vector3(Math.sin(a)*1.02,.36,Math.cos(a)*1.02)];stations[1].add(new T.Line(new T.BufferGeometry().setFromPoints(points),new T.LineBasicMaterial({color:0xd2e7ef})));}
+    for(i=0;i<3;i++){var beacon=new T.Group();beacon.position.set(guide[i][0],1.15,guide[i][1]);stations[2].add(beacon);var marker=mesh(new T.TorusGeometry(.16,.025,6,32),new T.MeshBasicMaterial({color:0xf4b8d1}),beacon,0,-.47,0);marker.rotation.x=Math.PI/2;glow(beacon,0xf4b8d1,.3);beacons.push(beacon);}
+    mote=mesh(new T.SphereGeometry(.08,12,8),gold,stations[2],-.95,1.15,.25);glow(mote,0xffe9c4,.5);
+    for(i=0;i<2;i++){var vessel=mesh(new T.SphereGeometry(.14,12,8),new T.MeshBasicMaterial({color:i?0x91dfe7:0xffd79b}),stations[3],i?.55:-.55,.55,0);glow(vessel,i?0x91dfe7:0xffd79b,.65);vessels.push(vessel);}
+    blendCore=mesh(seedGeo,gold,stations[3],0,.55,0);
+    for(i=0;i<3;i++){var leaf=new T.Group();leaf.position.set((i-1)*.8,.25,0);stations[4].add(leaf);var board=mesh(new T.CylinderGeometry(.25,.25,.04,20),jade,leaf);var mark=mesh(new T.ConeGeometry(.085,.24,3),gold,leaf,0,.16,0);mark.rotation.x=-Math.PI/2;leafBoats.push(leaf);}
+    for(i=0;i<3;i++){var bell=mesh(new T.CylinderGeometry(.09,.15,.3,10),new T.MeshLambertMaterial({color:colors[i]}),stations[5],(i-1)*.65,.55,0);melodyBells.push(bell);}
+    // Finale follows the outer channel (r=3.05), beyond every flower's envelope.
+    boat=new T.Group();group.add(boat);var hull=mesh(new T.ConeGeometry(.13,.4,3),gold,boat);hull.rotation.x=Math.PI/2;glow(boat,0xffe2ab,.6);boat.visible=false;
+    for(i=0;i<6;i++){var lantern=mesh(new T.SphereGeometry(.055,8,6),gold,group,coords[i][0],1.4,coords[i][1]);glow(lantern,R.blooms[i].color,.2);lantern.visible=false;lanterns.push(lantern);}
+    render();pose(0,0);
   }
   function render(){
-    if(!J)return;
-    var s=progress(),sum=s.light.reduce(function(a,b){return a+b;},0);
-    $('lotusCount').textContent=finished()?'月汐莲湾 · 月下小憩':'月汐莲湾 · '+s.found.length+' / 6 朵莲花';
-    $('lotusHint').textContent=finished()?'六朵莲花都记得你送来的光。':'已送 '+sum+' / 18 缕月光 · 每朵三缕便会绽开';
-    $('lotusNext').textContent=finished()?'让涟漪再荡一圈':'☾ 送一缕月光';
-    R.blooms.forEach(function(b,i){var button=$('lotusKey'+i);button.textContent=b.name+' '+s.light[i]+'/3';button.classList.toggle('bloomed',s.light[i]===3);button.setAttribute('aria-label',b.name+'，已收到'+s.light[i]+'缕月光，共需3缕');});
+    if(!J)return;var focusId=document.activeElement&&document.activeElement.id,wasAction=$('lotusActions')&&$('lotusActions').contains(document.activeElement);var s=progress(),done=finished(),n=s.light[selected],b=R.blooms[selected],resting=n===3&&!done;
+    $('lotusCount').textContent=practice?'月汐莲湾 · 再游一程':done?'月汐莲湾 · 月光归航':'月汐莲湾 · '+s.found.length+' / 6 朵莲花';
+    $('lotusHint').textContent=done?'六段光路已经连成一条归途。':(selected+1)+' · '+b.goal+' · '+n+' / 3';
+    $('lotusTaskTitle').textContent=done?'把月光送回远方':b.name+' · '+(resting?'已绽放':b.goal);
+    $('lotusHelp').textContent=done?'可以重看归航，也可以再游一程，体验六种小小的相遇。':resting?b.note:b.help;
+    $('lotusPrompt').textContent=finale?'六朵莲花的光，正在陪一叶小舟归航……':bloomPause?'暖光与冷光，正在一起点亮这朵莲花。':done?'今晚的小岛，也在温柔地等你。':resting?'这朵莲花的光已经留下。下一朵还在等你。':taskHint();
+    $('lotusActions').innerHTML='';
+    function button(label,kind,value,id){var el=document.createElement('button');el.textContent=label;if(id)el.id=id;el.onclick=function(){act(kind,value);};$('lotusActions').appendChild(el);return el;}
+    if(resting&&!finale&&!bloomPause){var resume=document.createElement('button');resume.id='lotusContinue';resume.textContent='继续光路 →';resume.onclick=function(){select(R.current(progress()));};$('lotusActions').appendChild(resume);}
+    if(!done&&!finale&&!resting){
+      if(selected===0)['月白','潮蓝','暖金'].forEach(function(v,i){button(v,'color',i,'lotusColor'+i).style.color='#'+colors[i].toString(16);});
+      if(selected===1){button('↶ 左转','turn',-1,'lotusLeft');button('☾ 送入花心','shine',0,'lotusShine');button('右转 ↷','turn',1,'lotusRight');}
+      if(selected===2)for(var j=0;j<3;j++){var el=button('引到 '+(j+1)+' 号路标','guide',j,'lotusGuide'+j);el.disabled=j!==n;}
+      if(selected===3){button('收集暖光','blend','warm','lotusWarm').disabled=n!==0;button('收集冷光','blend','cool','lotusCool').disabled=n!==1;button('让光相遇','blend','join','lotusJoin').disabled=n!==2;}
+      if(selected===4)for(j=0;j<3;j++){el=button('叶舟 '+(j+1)+' '+['↑','→','↓','←'][s.leaves[j]],'leaf',j,'lotusLeaf'+j);el.disabled=s.leaves[j]===0;}
+      if(selected===5){for(j=0;j<3;j++)button('♪ '+(j+1),'note',j,'lotusNote'+j);var listenButton=document.createElement('button');listenButton.textContent='听一遍 · 1 → 3 → 2';listenButton.id='lotusListen';listenButton.onclick=listen;$('lotusActions').appendChild(listenButton);}
+    }
+    $('lotusReplay').hidden=!done||!!finale;$('lotusFinale').hidden=!done||!!finale;$('lotusSkip').hidden=!finale;
+    R.blooms.forEach(function(b,i){var el=$('lotusKey'+i);el.textContent=(i+1)+' '+b.name+(s.light[i]===3?' ✧':'');el.classList.toggle('bloomed',s.light[i]===3);el.classList.toggle('current',i===selected);el.setAttribute('aria-pressed',String(i===selected));el.setAttribute('aria-label',b.name+'，'+(s.light[i]===3?'已绽放':i===R.current(s)?'正在寻找光路':'等待前一朵莲花'));});
+    if(wasAction){var nextFocus=$(focusId);if(!nextFocus||nextFocus.disabled)nextFocus=$('lotusActions').querySelector('button:not(:disabled)');if(nextFocus)nextFocus.focus();}
+    if(stations.length)stations.forEach(function(g,i){g.visible=!done&&!finale&&(!resting||!!bloomPause)&&selected===i;});layout();
+  }
+  function pose(dt,t){
+    var s=progress();flowers.forEach(function(f,i){var v=s.light[i]/3;f.pulse=Math.max(0,f.pulse-dt);f.g.position.y=FLOWER_Y+(reduced?0:Math.sin(t*.6+i)*.006);f.glow.material.opacity=.12+v*.18+f.pulse*.22;f.open=dt===0?v:(f.open||0)+(v-(f.open||0))*Math.min(1,dt*3);f.petals.forEach(function(p){p.rotation.x=-.9*(1-f.open);});links[i].material.opacity=s.light[i]===3?.8:.08;});
+    if(flowers[0])flowers[0].seed.material.color.setHex(selected===0&&s.light[0]<3?colors[R.dew[s.light[0]]]:0xffe7ad);
+    if(stations[0])stations[0].children.forEach(function(bead,i){bead.scale.setScalar(selected===0&&s.light[0]<3&&i===R.dew[s.light[0]]?1.15:1);});
+    ripples.forEach(function(r){r.time=Math.max(0,r.time-dt*.6);var scale=reduced?1:1+(1-r.time)*.25;r.mesh.scale.set(scale,scale,1);r.mesh.material.opacity=r.time*.45;});
+    if(mirrorArm){mirrorArm.rotation.y=s.mirror*Math.PI/3;var a=R.mirror[Math.min(s.light[1],2)]*Math.PI/3;mirrorTarget.position.set(Math.sin(a)*.85,.43,Math.cos(a)*.85);}
+    leafBoats.forEach(function(g,i){g.rotation.y=-s.leaves[i]*Math.PI/2;});
+    beacons.forEach(function(b,i){var current=selected===2&&i===s.light[2];b.children[0].material.color.setHex(current?0xffe7ad:0xf4b8d1);b.children[1].material.opacity=current?.65:.16;});
+    if(mote&&!drag){var k=Math.min(s.light[2],2);mote.position.set(s.light[2]?guide[Math.max(0,k-1)][0]:-.95,1.15,s.light[2]?guide[Math.max(0,k-1)][1]:.25);}
+    if(blendCore)blendCore.visible=s.light[3]>=2;
+    lanterns.forEach(function(l,i){l.visible=!!finale;l.position.y=1.4+Math.min(1,elapsed/7)*(1.35+i*.05);});
+    var blend=bloomPause?1-bloomPause/.9:0;
+    vessels.forEach(function(v,i){v.material.color.setHex(s.light[3]>i?0xffedbc:i?0x91dfe7:0xffd79b);v.position.x=(i?1:-1)*(.55-blend*.37);v.scale.setScalar(bloomPause?1.2-blend*1.1:s.light[3]>i?1.2:1);});
+    if(blendCore)blendCore.scale.setScalar(1+Math.sin(blend*Math.PI)*.2);
+    if(notePulse){notePulse.time=Math.max(0,notePulse.time-dt);if(!notePulse.time)notePulse=null;}
+    melodyBells.forEach(function(b,i){b.scale.y=notePulse&&notePulse.index===i?1+.18*notePulse.time/.6:1;});
+    boat.visible=!!finale||finished();if(boat.visible){var u=finale?elapsed/7:1,a=Math.PI/6+Math.PI*2*u;boat.position.set(Math.sin(a)*3.05,.42,Math.cos(a)*3.05);boat.rotation.y=a+Math.PI/2;}
+    moon.quaternion.copy(H.camera.quaternion);moon.scale.setScalar(finale?1+Math.sin(Math.min(1,elapsed/7)*Math.PI)*.12:1);
+  }
+  function screen(v){temp.copy(v);group.localToWorld(temp);temp.project(H.camera);return {x:(temp.x+1)*innerWidth/2,y:(1-temp.y)*innerHeight/2,z:temp.z};}
+  function guideAt(x,y){
+    var n=progress().light[2];if(n>=3||selected!==2)return;
+    var points=guide.map(function(p){return screen(new T.Vector3(p[0],1.15,p[1]));}),target=points[n],separation=Infinity;
+    points.forEach(function(p,i){if(i!==n)separation=Math.min(separation,Math.hypot(p.x-target.x,p.y-target.y));});
+    // Keep adjacent hit regions separate, even on a narrow phone. Missing never resets a route.
+    if(Math.hypot(x-target.x,y-target.y)<Math.max(6,Math.min(18,separation*.35)))act('guide',n);
+  }
+  function bindTrail(){
+    var canvas=document.querySelector('canvas:not(#bfTrail)'),downs={},trailGesture=false;if(!canvas)return;
+    canvas.addEventListener('pointerdown',function(e){downs[e.pointerId]=true;if(trailGesture){drag=null;e.stopImmediatePropagation();return;}if(Object.keys(downs).length!==1){drag=null;return;}if(!canPlay()||selected!==2||finished())return;var p=screen(mote.position);if(Math.hypot(e.clientX-p.x,e.clientY-p.y)>48)return;drag=e.pointerId;trailGesture=true;e.stopImmediatePropagation();if(canvas.setPointerCapture)canvas.setPointerCapture(e.pointerId);},true);
+    canvas.addEventListener('pointermove',function(e){if(!trailGesture)return;e.stopImmediatePropagation();if(drag!==e.pointerId||!canPlay())return;var n=progress().light[2];if(n>=3){drag=null;return;}guidePointer.set(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2);guideRay.setFromCamera(guidePointer,H.camera);if(guideRay.ray.intersectPlane(guidePlane,temp)){var radius=Math.hypot(temp.x,temp.z),scale=radius>1.25?1.25/radius:1;mote.position.set(temp.x*scale,1.15,temp.z*scale);}
+      guideAt(e.clientX,e.clientY);e.stopImmediatePropagation();},true);
+    // The base camera never saw the captured first finger. Keep the whole canceled
+    // gesture here, or its second finger would become a fresh, reward-bearing tap.
+    function end(e){delete downs[e.pointerId];if(!trailGesture)return;if(drag===e.pointerId){drag=null;if(e.type==='pointerup'&&canPlay())guideAt(e.clientX,e.clientY);}if(!Object.keys(downs).length)trailGesture=false;e.stopImmediatePropagation();}
+    canvas.addEventListener('pointerup',end,true);canvas.addEventListener('pointercancel',end,true);canvas.addEventListener('lostpointercapture',function(e){if(drag===e.pointerId)drag=null;},true);
+    document.addEventListener('visibilitychange',function(){drag=null;downs={};trailGesture=false;echo=null;notePulse=null;});
   }
   function buildUI(){
-    var hud=document.createElement('div');hud.id='lotusHud';hud.hidden=true;hud.className='glass';hud.innerHTML='<strong id="lotusCount"></strong><p id="lotusHint"></p><small>没有限时 · 每一缕光都会留下</small>';$('topbar').insertBefore(hud,$('topbar').firstChild);
-    var dock=document.createElement('div');dock.id='lotusDock';dock.hidden=true;dock.className='glass';dock.innerHTML='<p>轻触水面的莲花，或在这里把月光送给它。</p><div id="lotusKeys"></div><button id="lotusNext" class="jr-action"></button>';document.body.appendChild(dock);
-    R.blooms.forEach(function(b,i){var button=document.createElement('button');button.id='lotusKey'+i;button.style.setProperty('--lotus','#'+b.color.toString(16));button.onclick=function(){give(i);};$('lotusKeys').appendChild(button);});$('lotusNext').onclick=next;
-    var end=document.createElement('div');end.id='lotusEnding';end.hidden=true;end.setAttribute('role','dialog');end.setAttribute('aria-modal','true');end.setAttribute('aria-labelledby','lotusEndTitle');
-    end.innerHTML='<div class="jr-card"><div class="jr-eyebrow">CHAPTER 05 · COMPLETE</div><h2 id="lotusEndTitle">月光也有停靠的地方</h2><p>你没有催促一朵花。<br>只是把光，一点一点送到它身边。<br>愿你也被这样温柔地等待。</p><p class="jr-note">六朵月莲已入手账 · 首次完成 +20 成长星光</p><button class="jr-action" id="lotusStay">留下来，听听月色</button><button class="jr-action" id="lotusJournal">翻开成长手账</button></div>';document.body.appendChild(end);
-    $('lotusStay').onclick=closeEnding;$('lotusJournal').onclick=function(){closeEnding();J.open('growth');};
+    var hud=document.createElement('div');hud.id='lotusHud';hud.hidden=true;hud.className='glass';hud.innerHTML='<strong id="lotusCount"></strong><p id="lotusHint"></p><small>没有限时 · 找到的光不会失去</small>';$('topbar').insertBefore(hud,$('topbar').firstChild);
+    var dock=document.createElement('div');dock.id='lotusDock';dock.hidden=true;dock.className='glass';dock.innerHTML='<div id="lotusKeys" aria-label="月莲光路"></div><strong id="lotusTaskTitle"></strong><p id="lotusHelp"></p><p id="lotusPrompt" role="status" aria-live="polite"></p><div id="lotusActions"></div><button id="lotusReplay">再游一程</button><button id="lotusFinale">重看月汐归航</button><button id="lotusSkip" hidden>跳过归航演出</button>';document.body.appendChild(dock);
+    R.blooms.forEach(function(b,i){var el=document.createElement('button');el.id='lotusKey'+i;el.style.setProperty('--lotus','#'+b.color.toString(16));el.onclick=function(){select(i);};$('lotusKeys').appendChild(el);});$('lotusReplay').onclick=replay;$('lotusFinale').onclick=function(){if(canPlay())startFinale();};$('lotusSkip').onclick=showEnding;
+    var noticeObserver=new MutationObserver(function(){dock.classList.toggle('has-notice',$('toast').classList.contains('show'));layout();});noticeObserver.observe($('toast'),{attributes:true,childList:true,subtree:true});if($('starSaveWarning'))noticeObserver.observe($('starSaveWarning'),{attributes:true,childList:true,subtree:true});
+    var end=document.createElement('div');end.id='lotusEnding';end.hidden=true;end.setAttribute('role','dialog');end.setAttribute('aria-modal','true');end.setAttribute('aria-labelledby','lotusEndTitle');end.innerHTML='<div class="jr-card"><div class="jr-eyebrow">CHAPTER 05 · COMPLETE</div><h2 id="lotusEndTitle">月光连成了归途</h2><p>月露、倒影、光路与晚安，<br>终于陪一叶小舟走过了整片莲湾。<br>你让每一束光，都找到了停靠的地方。</p><p class="jr-note">收藏与首次通关的成长只领取一次</p><button class="jr-action" id="lotusStay">留下来，听听月色</button><button class="jr-action" id="lotusJournal">翻开成长手账</button></div>';document.body.appendChild(end);$('lotusStay').onclick=closeEnding;$('lotusJournal').onclick=function(){closeEnding();J.open('growth');};
     var nextButton=document.createElement('button');nextButton.id='lotusFromChime';nextButton.className='jr-action';nextButton.textContent='第五关：月汐莲湾';nextButton.onclick=function(){$('chimeStay').click();J.go(5);};$('chimeEnding').querySelector('.jr-card').appendChild(nextButton);
-    document.addEventListener('keydown',function(e){if(end.hidden)return;if(e.key==='Escape'){e.preventDefault();closeEnding();}if(e.key==='Tab'){var first=$('lotusStay'),last=$('lotusJournal');if(e.shiftKey&&(document.activeElement===first||!end.contains(document.activeElement))){last.focus();e.preventDefault();}else if(!e.shiftKey&&(document.activeElement===last||!end.contains(document.activeElement))){first.focus();e.preventDefault();}}});
-    render();
+    document.addEventListener('keydown',function(e){if(end.hidden)return;if(e.key==='Escape'){e.preventDefault();closeEnding();}if(e.key==='Tab'){var first=$('lotusStay'),last=$('lotusJournal');if(e.shiftKey&&(document.activeElement===first||!end.contains(document.activeElement))){last.focus();e.preventDefault();}else if(!e.shiftKey&&(document.activeElement===last||!end.contains(document.activeElement))){first.focus();e.preventDefault();}}});render();bindTrail();
   }
   window.LotusChapter={
-    init:function(hooks,bridge){H=hooks;T=hooks.THREE;J=bridge;temp=new T.Vector3();reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;buildUI();return this;},
-    onLevel:function(n){active=n===5;$('lotusEnding').hidden=true;$('lotusHud').hidden=$('lotusDock').hidden=!active;if(active){buildWorld();H.setNightTarget(.9);H.setDeepNight(0);}if(group)group.visible=active;ripples.forEach(function(r){r.time=0;r.mesh.material.opacity=0;});render();},
-    update:function(dt,t){if(!active||document.hidden)return;H.setNightTarget(.9);H.setDeepNight(0);if(J.blocked())return;
-      flowers.forEach(function(f,i){var v=progress().light[i]/3;f.pulse=Math.max(0,f.pulse-dt);f.g.position.y=.06+(reduced?0:Math.sin(t*.6+i)*.025);f.glow.material.opacity=.15+v*.3+f.pulse*.25;f.petals.forEach(function(p){p.rotation.x=-.8*(1-v);p.scale.setScalar(.45+v*.55);});});
-      ripples.forEach(function(r){r.time=Math.max(0,r.time-dt*.65);var v=1-r.time;r.mesh.scale.setScalar(reduced?1:1+v*3);r.mesh.material.opacity=r.time*.5;});
-    },
-    tap:function(ray){if(!canPlay())return false;temp.copy(ray.ray.origin).addScaledVector(ray.ray.direction,10).project(H.camera);var x=(temp.x+1)*innerWidth/2,y=(1-temp.y)*innerHeight/2,best=-1,distance=40;flowers.forEach(function(f,i){f.seed.getWorldPosition(temp);temp.project(H.camera);var d=Math.hypot((temp.x+1)*innerWidth/2-x,(1-temp.y)*innerHeight/2-y);if(temp.z>=-1&&temp.z<=1&&d<distance){best=i;distance=d;}});if(best>=0){give(best);return true;}return false;},
-    isModalOpen:function(){return !!$('lotusEnding')&&!$('lotusEnding').hidden;},hint:hint
+    init:function(hooks,bridge){H=hooks;T=hooks.THREE;J=bridge;temp=new T.Vector3();guideRay=new T.Raycaster();guidePlane=new T.Plane(new T.Vector3(0,1,0),-1.15);guidePointer=new T.Vector2();reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;buildUI();window.addEventListener('resize',layout);return this;},
+    beforeLevel:function(n){if(active&&n!==5){restore();placeNotices(false);}},
+    onLevel:function(n){var leaving=active&&n!==5;active=n===5;drag=null;echo=null;notePulse=null;bloomPause=0;finale=0;elapsed=0;$('lotusEnding').hidden=true;$('lotusHud').hidden=$('lotusDock').hidden=!active;placeNotices(active);if(leaving){restore();practice=null;}if(active){buildWorld();isolate();layout();selected=Math.max(0,R.current(progress()));H.setNightTarget(.9);H.setDeepNight(0);pose(0,0);}if(group)group.visible=active;render();},
+    update:function(dt,t){if(!active)return;isolate();H.setNightTarget(.9);H.setDeepNight(0);if(layoutPending)fitLayout();if(document.hidden||J.blocked()){drag=null;return;}if(bloomPause){bloomPause=Math.max(0,bloomPause-dt);if(!bloomPause){selected=R.current(progress());render();}}if(echo){echo.wait-=dt;if(echo.wait<=0){if(echo.index<3){playNote(R.song[echo.index]);$('lotusPrompt').textContent='听见 '+(R.song[echo.index]+1)+' 号';echo.index++;echo.wait=.8;}else echo=null;}}if(finale){elapsed+=dt;finale=Math.max(0,7-elapsed);if(!finale)showEnding();}pose(dt,t);},
+    tap:function(ray){if(!canPlay())return false;temp.copy(ray.ray.origin).addScaledVector(ray.ray.direction,10).project(H.camera);var x=(temp.x+1)*innerWidth/2,y=(1-temp.y)*innerHeight/2,best=-1,dist=40;
+      function nearest(list){var index=-1,range=32;list.forEach(function(o,i){if(!o.visible)return;o.getWorldPosition(temp);temp.project(H.camera);var d=Math.hypot((temp.x+1)*innerWidth/2-x,(1-temp.y)*innerHeight/2-y);if(temp.z>=-1&&temp.z<=1&&d<range){index=i;range=d;}});return index;}
+      if(!finished()&&progress().light[selected]<3){
+        var j=-1;
+        if(selected===0){j=nearest(stations[0].children);if(j>=0){act('color',j);return true;}}
+        if(selected===1){j=nearest([mirrorArm,mirrorTarget]);if(j>=0){act(j?'shine':'turn',1);return true;}}
+        if(selected===2){j=nearest(beacons);if(j>=0){act('guide',j);return true;}}
+        if(selected===3){j=nearest(vessels.concat([blendCore]));if(j>=0){act('blend',['warm','cool','join'][j]);return true;}}
+        if(selected===4){j=nearest(leafBoats);if(j>=0){act('leaf',j);return true;}}
+        if(selected===5){j=nearest(melodyBells);if(j>=0){act('note',j);return true;}}
+      }
+      flowers.forEach(function(f,i){f.seed.getWorldPosition(temp);temp.project(H.camera);var d=Math.hypot((temp.x+1)*innerWidth/2-x,(1-temp.y)*innerHeight/2-y);if(temp.z>=-1&&temp.z<=1&&d<dist){best=i;dist=d;}});if(best>=0){select(best);return true;}return false;},
+    cameraBusy:function(){return active;},isModalOpen:modal,hint:hint
   };
 })(window,document);

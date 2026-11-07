@@ -4,14 +4,21 @@ async root => {
  const context = await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
  const page = await context.newPage(), errors=[], external=[];
  page.on('pageerror',e=>errors.push(e.message));
- await page.route('**/*',r=>{if(new URL(r.request().url()).hostname==='127.0.0.1')return r.continue();external.push(r.request().url());return r.abort();});
+ // Observe the identity of actual catches: a repeated screen position may hit a different moving wisp.
+ await page.route('**/*',async r=>{
+  if(new URL(r.request().url()).hostname!=='127.0.0.1'){external.push(r.request().url());return r.abort();}
+  if(r.request().resourceType()!=='document')return r.continue();
+  const response=await r.fetch();let body=await response.text();const anchor='    var sp = TYPES[w.type], fresh = !S.caught[sp.id];';
+  if(!body.includes(anchor))throw Error('Catch inspection anchor missing');
+  body=body.replace(anchor,'    (window.__caughtWispSlots||(window.__caughtWispSlots=[])).push(w.slot);\n'+anchor);await r.fulfill({response,body});
+ });
  const url='http://127.0.0.1:8784/xiantu/games/healing-game/site/healing-game/';
  const assert=(v,m)=>{if(!v)throw Error(m)};
  async function start(){await page.locator('#start').click();await page.waitForTimeout(1500);}
  async function state(){return page.evaluate(()=>__journey.state());}
  async function journal(tab='journey'){await page.locator('#kitLevelBtn').click();if(tab!=='journey')await page.locator('[data-jr-tab="'+tab+'"]').click();}
  await page.goto(url);await start();
- assert(await page.title()==='暮色浮岛 · 月汐莲湾 V9.0','version');
+ assert(await page.title()==='暮色浮岛 · 月汐莲湾 V9.1','version');
  await page.evaluate(()=>localStorage.setItem('xiantu_save','untouched'));
  await journal();assert(await page.locator('[data-jr-go="2"]').isDisabled(),'new save chapter2 locked');assert(await page.locator('[data-jr-go="3"]').isDisabled(),'new save chapter3 locked');
  await page.locator('[data-jr-tab="collection"]').click();assert(await page.locator('.jr-item').count()===47,'47 species in journal');await page.locator('#journeyClose').click();
@@ -43,7 +50,10 @@ async root => {
    await page.waitForTimeout(250);
   }throw Error('No touch target caught');
  }
- const first=await pick();const one=await state();await page.touchscreen.tap(first.x,first.y);assert((await state()).progress.charge===one.progress.charge,'duplicate tap cannot collect same wisp');
+ const first=await pick();const caughtBefore=await page.evaluate(()=>__caughtWispSlots.slice());const firstSlot=caughtBefore[caughtBefore.length-1];
+ await page.touchscreen.tap(first.x,first.y);const caughtAfter=await page.evaluate(()=>__caughtWispSlots.slice());
+ assert(caughtAfter.filter(slot=>slot===firstSlot).length===caughtBefore.filter(slot=>slot===firstSlot).length,'duplicate tap cannot collect same wisp');
+ const repeatTap={before:caughtBefore,after:caughtAfter};
  await journal('collection');const beforeOverlay=await state();await page.mouse.click(first.x,first.y);assert((await state()).progress.charge===beforeOverlay.progress.charge,'journal blocks world input');await page.locator('#journeyClose').click();
  for(let lamp=0;lamp<3;lamp++){
   while((await state()).progress.charge<4)await pick();
@@ -74,6 +84,6 @@ async root => {
  assert(await page.evaluate(()=>localStorage.getItem('xiantu_save'))==='untouched','xiantu save untouched');
  await page.evaluate(()=>{Storage.prototype.setItem=function(){throw new DOMException('Storage full','QuotaExceededError');};});await pick();assert(await page.locator('#starSaveWarning').isVisible(),'save failure is visible');
  assert(errors.length===0,'page errors: '+errors.join(';'));assert(external.length===0,'external requests');
- const result={version:'9.0.0',migrated,completed,restored,childCount,errors,external,checks:'locks, migration, real touch collection, duplicate guard, modal input, charge cap, partial reload, 3 lamps, ending, growth idempotence, decor persistence, switching, landscape, isolated saves, quota warning'};
+ const result={version:'9.1.0',migrated,completed,restored,childCount,repeatTap,errors,external,checks:'locks, migration, real touch collection, duplicate guard, modal input, charge cap, partial reload, 3 lamps, ending, growth idempotence, decor persistence, switching, landscape, isolated saves, quota warning'};
  await root.evaluate(r=>window.__journeyResult=r,result);await context.close();return result;
 }
