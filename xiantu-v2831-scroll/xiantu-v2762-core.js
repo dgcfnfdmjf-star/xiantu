@@ -15911,8 +15911,11 @@ function villageEnhanceV286897(){
       return true;
     }
     
+    // The reset runs only after the in-game confirm has archived the current character.
     function newGame() {
-      if(!prepareNewGameV2838())return;
+      prepareNewGameV2838(startNewGameAfterArchiveV2868114);
+    }
+    function startNewGameAfterArchiveV2868114() {
       resetRuntimeState();
       document.getElementById('loadDialog').style.display = 'none';
       player = createDefaultPlayer();
