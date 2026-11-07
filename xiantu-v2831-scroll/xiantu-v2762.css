@@ -5167,3 +5167,12 @@ html.xiantu-mobile-dedicated.xt-theme .world-hud.mobile-hud-collapsed .world-bar
 .xt-dialog-actions-v2868114 { display: flex; gap: var(--xt-s3); justify-content: flex-end; }
 .xt-dialog-actions-v2868114 .xt-btn { flex: 1 1 0; }
 .xt-dialog-v2868114 .xt-btn:focus-visible, .xt-dialog-input-v2868114:focus-visible { outline: 2px solid var(--xt-gold-300); outline-offset: 2px; }
+/* V28.68.114 青绿鎏金 item cells: one frame, rarity edge (--q), icon box, label size, 44px targets and focus ring for bag, equipment bag and shop grids */
+html .xt-item-cell{--q:var(--xt-gold-700);box-sizing:border-box;border:1px solid rgba(212,176,106,.22);border-left:4px solid var(--q);border-radius:10px;background:var(--xt-fill-card);color:var(--xt-gold-100)}
+html .xt-item-cell.upgrade,html .bag-view-v2905 .xt-item-cell.open{border-color:rgba(240,220,160,.5);border-left-color:var(--q)}
+html .xt-cell-icon{display:inline-flex;flex:none;align-items:center;justify-content:center;width:22px;height:22px;font-size:18px;line-height:1;vertical-align:middle;color:var(--q,var(--xt-gold-500))}
+html .mobile-inventory-item.xt-item-cell .name,html .general-title-v2801 b{font-family:var(--xt-font-display);font-size:var(--xt-fs-md);color:var(--xt-gold-300)}
+html .mobile-inventory-item.xt-item-cell{min-height:56px;width:100%}
+html .mobile-inventory-tab,html .bag-batch-v2905 .choice-btn,html .bag-view-v2905 .bv-chip,html .general-buy-v2801 button,html .market-buy-v2800 button,html .market-filters-v2800 button{min-height:44px}
+html .mobile-inventory-item.usable:focus-visible,html .bag-view-v2905 .bv-main:focus-visible,html .bag-view-v2905 .bv-chip:focus-visible,html .mobile-inventory-tab:focus-visible,html .bag-batch-v2905 .choice-btn:focus-visible,html .general-buy-v2801 button:focus-visible,html .market-buy-v2800 button:focus-visible,html .market-filters-v2800 button:focus-visible{outline:2px solid var(--xt-gold-300);outline-offset:2px;box-shadow:var(--xt-glow-gold)}
+html .bag-view-v2905 .bv-main:focus-visible{outline-offset:-3px;border-radius:8px}

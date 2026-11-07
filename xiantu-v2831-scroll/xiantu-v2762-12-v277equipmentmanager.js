@@ -523,8 +523,8 @@ function bagRowHtmlV2905(r){
    +`<button type="button" class="choice-btn" data-bv="lock" data-enc="${enc}">${r.locked?'🔓 解锁':'🔒 锁定'}</button>`
    +`<button type="button" class="choice-btn" data-bv="salvage" data-enc="${enc}" ${r.safe?'':'disabled'}>🧩 分解1件${r.safe?`（${r.safe}可分）`:''}</button></div></div>`;
  }
- return `<article class="bv-row${open?' open':''}${r.check.ok?'':' cannot'}" style="--q:${r.q.color}"><button type="button" class="bv-main" data-bv="toggle" data-enc="${enc}" aria-expanded="${open}">`
-  +`<span class="bv-icon">${bagEscV2905(r.q.icon||'◇')}</span><span class="bv-text"><span class="bv-name">${bagEscV2905(r.name)}${r.count>1?` <b>×${r.count}</b>`:''}</span>`
+ return `<article class="bv-row xt-item-cell${open?' open':''}${r.check.ok?'':' cannot'}" style="--q:${r.q.color}"><button type="button" class="bv-main" data-bv="toggle" data-enc="${enc}" aria-expanded="${open}">`
+  +`<span class="bv-icon xt-cell-icon" aria-hidden="true">${bagEscV2905(r.q.icon||'◇')}</span><span class="bv-text"><span class="bv-name">${bagEscV2905(r.name)}${r.count>1?` <b>×${r.count}</b>`:''}</span>`
   +`<span class="bv-sub">${bagEscV2905(r.slotLabel)} · ${bagEscV2905(r.q.name)} · 需${bagEscV2905(r.realm)} · ⚡${power}</span></span><span class="bv-badges">${badges}</span></button>${detail}</article>`;
 }
 function bagListHtmlV2905(){

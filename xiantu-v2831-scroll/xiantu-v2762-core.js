@@ -85,10 +85,11 @@
         const d=row.data||{};
         const icon=d.icon || (d.type==='heal'?'💊':d.type==='mp'?'🔹':mobileInventoryTab==='materials'?'🌿':mobileInventoryTab==='equipment'?'⚔️':'🎐');
         const desc=d.desc || (mobileInventoryTab==='materials'?'修仙材料':mobileInventoryTab==='equipment'?'装备物品':'储物袋物品');
+        const q=mobileInventoryTab==='equipment'&&d.quality&&typeof getQualityInfo==='function'?getQualityInfo(d.quality)?.color:'';
         if(mobileInventoryTab==='items'){
-          return `<button class="mobile-inventory-item usable" data-bag-index="${index}"><span class="name">${escapeGameText(icon)} ${escapeGameText(row.name)}</span><span class="count">×${row.count}</span><span class="desc">${escapeGameText(desc)}</span></button>${pillBatchButtonsV2905(row,index)}`;
+          return `<button type="button" class="mobile-inventory-item xt-item-cell usable" data-bag-index="${index}"><span class="name"><span class="xt-cell-icon" aria-hidden="true">${escapeGameText(icon)}</span> ${escapeGameText(row.name)}</span><span class="count">×${row.count}</span><span class="desc">${escapeGameText(desc)}</span></button>${pillBatchButtonsV2905(row,index)}`;
         }
-        return `<div class="mobile-inventory-item"><span class="name">${escapeGameText(icon)} ${escapeGameText(row.name)}</span><span class="count">×${row.count}</span><span class="desc">${escapeGameText(desc)}</span></div>`;
+        return `<div class="mobile-inventory-item xt-item-cell"${q?` style="--q:${q}"`:''}><span class="name"><span class="xt-cell-icon" aria-hidden="true">${escapeGameText(icon)}</span> ${escapeGameText(row.name)}</span><span class="count">×${row.count}</span><span class="desc">${escapeGameText(desc)}</span></div>`;
       }).join(''):`<div class="mobile-inventory-empty">这一栏目前是空的</div>`;
       card.innerHTML=`
         <div class="mobile-inventory-head"><div><div class="mobile-inventory-title">🎒 储物袋</div><div style="font-size:10px;color:#8f99a4;margin-top:2px">随身物资与修行资源</div></div><button aria-label="关闭" class="mobile-inventory-close" onclick="closeMobileInventory()">✕</button></div>
@@ -9551,7 +9552,7 @@
       for(const [name,d] of items){
         const q=getQualityInfo(d.quality),allowed=canEquipItem(name).ok,owned=(player.equipmentInventory||[]).filter(n=>n===name).length+Object.values(player.equipment||{}).filter(n=>n===name).length;
         const reason=!allowed?`需${CULTIVATION_REALMS[d.realmRequired]?.name||'更高境界'}`:player.gold<d.priceV2790?`还差 ${d.priceV2790-player.gold} 灵石`:'购买';
-        html+=`<article class="gear-grade-card-v2791 market-item-v2800" style="--gear-color:${q.color}"><b style="color:var(--gear-color)">${name}</b><p>${equipSlotLabelV2895(d.slot)} · 需${CULTIVATION_REALMS[d.realmRequired]?.name} · 已持有 ${owned}</p><p>${formatEquipItemStatsV286813(name)}</p><details><summary>查看装备说明</summary><p>${d.desc||''}</p></details><div class="market-buy-v2800"><strong>${d.priceV2790} 灵石</strong><button type="button" class="choice-btn" ${!allowed||player.gold<d.priceV2790?'disabled':''} onclick="buyMarketGearV2800('${category}',${grade},'${family}','${d.familyV2790}',${d.pieceV2790})">${reason}</button></div></article>`;
+        html+=`<article class="gear-grade-card-v2791 market-item-v2800 xt-item-cell" style="--gear-color:${q.color};--q:${q.color}"><b style="color:var(--gear-color)">${name}</b><p>${equipSlotLabelV2895(d.slot)} · 需${CULTIVATION_REALMS[d.realmRequired]?.name} · 已持有 ${owned}</p><p>${formatEquipItemStatsV286813(name)}</p><details><summary>查看装备说明</summary><p>${d.desc||''}</p></details><div class="market-buy-v2800"><strong>${d.priceV2790} 灵石</strong><button type="button" class="choice-btn" ${!allowed||player.gold<d.priceV2790?'disabled':''} onclick="buyMarketGearV2800('${category}',${grade},'${family}','${d.familyV2790}',${d.pieceV2790})">${reason}</button></div></article>`;
       }
       showStory(html,[{text:category==='weapon'?'🛡️ 前往护身坊':'⚔️ 前往神兵铺',action:'market_switch_v2800',category:category==='weapon'?'armor':'weapon',grade},{text:'← 返回仙市',action:'market'}]);
     }
@@ -10065,7 +10066,7 @@ function villageEnhanceV286897(){
       for(const [index,item] of GENERAL_SHOP_V2801.entries()){
         if(item.category!==category)continue;
         const d=EQUIPMENT_DB[item.name],allowed=hasReachedRealm(item.level),desc=item.name==='灵兽丹'?'宠物经验 +20':ITEMS[item.name]?.desc||d?.desc||({灵草:'炼丹、宗门捐献与赠礼材料',仙果:'宗门差事与赠礼材料',妖丹:'炼制、宗门差事与赠礼材料'}[item.name])||'灵宠捕捉与契约用品';
-        html+=`<article class="general-item-v2801"><div class="general-title-v2801"><b>${item.name}</b><span>持有 ${generalOwnedV2801(item)}</span></div><p>${desc}</p><div class="general-price-v2801">单价 <b>${item.cost}</b> 灵石${item.level>0?` · ${CULTIVATION_REALMS[item.level].name}可购买`:''}</div><div class="general-buy-v2801">`;
+        html+=`<article class="general-item-v2801 xt-item-cell"${d?.quality?` style="--q:${getQualityInfo(d.quality).color}"`:''}><div class="general-title-v2801"><b><span class="xt-cell-icon" aria-hidden="true">${d?(getQualityInfo(d.quality)?.icon||'⚔️'):ITEMS[item.name]?.icon||(item.category==='pill'?'💊':item.category==='material'?'🌿':'🐾')}</span> ${item.name}</b><span>持有 ${generalOwnedV2801(item)}</span></div><p>${desc}</p><div class="general-price-v2801">单价 <b>${item.cost}</b> 灵石${item.level>0?` · ${CULTIVATION_REALMS[item.level].name}可购买`:''}</div><div class="general-buy-v2801">`;
         for(const qty of category==='gear'?[1]:[1,5])html+=`<button type="button" ${!allowed||player.gold<item.cost*qty?'disabled':''} onclick="buyGeneralV2801(${index},${qty})">${!allowed?'境界未达标':`买 ${qty} 件 · ${item.cost*qty} 灵石`}</button>`;
         if(allowed&&player.gold<item.cost)html+=`<span>还差 ${item.cost-player.gold} 灵石</span>`;
         html+='</div></article>';
