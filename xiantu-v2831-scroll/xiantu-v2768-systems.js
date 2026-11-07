@@ -101,6 +101,26 @@ function dryRunLoadV2870(raw){
  return {...data,player:normalized};
 }
 const BEFORE_REPLACE_SAVE_V2870='xiantu_save_before_replace_v2870';
+// Exported files carry a checksum so truncated or hand-edited files are rejected; exports without one still import.
+// This detects accidental damage and casual edits only; it is not a signature.
+const EXPORT_DIGEST_KEY_V2906='exportDigestV2906';
+function saveDigestV2906(text){
+ let h1=0xdeadbeef,h2=0x41c6ce57;
+ for(let i=0;i<text.length;i++){const c=text.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677);}
+ h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+ return (h2>>>0).toString(16).padStart(8,'0')+(h1>>>0).toString(16).padStart(8,'0');
+}
+function sealExportV2906(raw){
+ try{const data=JSON.parse(raw);if(!data||typeof data!=='object'||Array.isArray(data))return raw;delete data[EXPORT_DIGEST_KEY_V2906];return JSON.stringify({...data,[EXPORT_DIGEST_KEY_V2906]:saveDigestV2906(JSON.stringify(data))});}
+ catch(_){return raw;}
+}
+function unsealImportV2906(raw){
+ let data;try{data=JSON.parse(raw);}catch(_){throw Error('文件不是有效的存档');}
+ if(!data||typeof data!=='object'||Array.isArray(data)||!Object.prototype.hasOwnProperty.call(data,EXPORT_DIGEST_KEY_V2906))return raw;
+ const digest=data[EXPORT_DIGEST_KEY_V2906];delete data[EXPORT_DIGEST_KEY_V2906];const body=JSON.stringify(data);
+ if(typeof digest!=='string'||digest!==saveDigestV2906(body))throw Error('存档校验码不符，文件可能已损坏或被改动');
+ return body;
+}
 function currentSaveRawV2870(){
  const live=gameState!=='start'&&!document.getElementById('gameScreen')?.classList.contains('hidden');
  return live&&!player.testAccount999?JSON.stringify(createSaveDataV2768()):(localStorage.getItem(SAVE_KEY)||localStorage.getItem(SAVE_BACKUP_KEY));
@@ -125,7 +145,7 @@ async function copyRawSaveV2870(raw){
 async function exportRawSaveV2870(raw,name){
  if(!raw)throw Error('暂无可导出的记录');
  // Export is a recovery path, including records rejected by current import validation.
- try{parseSaveV2768(raw);}catch(_){alert('该记录未通过导入安全校验，仍将原样导出供备份或修复。');}
+ try{parseSaveV2768(raw);raw=sealExportV2906(raw);}catch(_){alert('该记录未通过导入安全校验，仍将原样导出供备份或修复。');}
  if(isMobileV2870()&&typeof File==='function'&&navigator.share&&navigator.canShare){
   try{const file=new File([raw],name,{type:'application/json'});if(navigator.canShare({files:[file]})){await navigator.share({files:[file]});return true;}}
   catch(e){if(e?.name==='AbortError')return false;}
@@ -138,7 +158,7 @@ async function exportRawSaveV2870(raw,name){
  finally{a?.remove();if(url)setTimeout(()=>URL.revokeObjectURL(url),10000);}
 }
 async function copySaveTextV2870(){
- try{const raw=currentSaveRawV2870();if(!raw)throw Error('暂无可导出的记录');if(await copyRawSaveV2870(raw))window.saveExportedV2895?.('text',raw);}catch(e){alert('导出失败：'+e.message);}
+ try{const raw=currentSaveRawV2870();if(!raw)throw Error('暂无可导出的记录');if(await copyRawSaveV2870(sealExportV2906(raw)))window.saveExportedV2895?.('text',raw);}catch(e){alert('导出失败：'+e.message);}
 }
 // Fail closed when the old record cannot be archived. No quota override can silently lose it.
 function replaceSaveV2870(raw,prepared,archiveKey=BEFORE_REPLACE_SAVE_V2870){
@@ -181,7 +201,7 @@ async function importSaveV2768(file){
  const ownerV2838=player;
  saveImportBusyV2768=true;
  try{
-  const raw=await file.text(),data=dryRunLoadV2870(raw);
+  const raw=unsealImportV2906(await file.text()),data=dryRunLoadV2870(raw);
   if(player!==ownerV2838||!saveChangeAllowedV2838())throw Error('读取期间角色或战斗状态已变化，请重新选择文件');
   if(data.player.testAccount999)throw Error('测试角色不能导入普通角色存档');
   if(!confirm('导入将替换当前修行记录，替换前的记录会单独保留（仅一份）。是否继续？'))return;
