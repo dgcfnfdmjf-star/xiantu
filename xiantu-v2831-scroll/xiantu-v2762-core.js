@@ -14727,7 +14727,7 @@ function villageEnhanceV286897(){
       if(art.wildSceneRequested[region])return;
       art.wildSceneRequested[region]=true;const im=new Image();im.decoding='async';
       const failed=()=>{im.onload=im.onerror=null;(art.wildSceneFailed||(art.wildSceneFailed={}))[region]=true;
-        if(currentRegion===region){releaseStaticWorldCacheV2767();loadRegionalBuildingsV286879();loadJoinedArchitectureV286896();loadNorthernTerrainV286896();loadSectSceneV286896();}};
+        if(currentRegion===region){releaseStaticWorldCacheV2767();loadRegionalBuildingsV286879();loadJoinedArchitectureV286896();loadNorthernTerrainV286896();loadSectSceneV286896();}art.sceneSettledV2868111?.();};
       im.onload=()=>{im.onload=im.onerror=null;if(im.naturalWidth!==(s.width||1484)||im.naturalHeight!==(s.height||1060)){failed();return;}
         if(art.wildSceneFailed)delete art.wildSceneFailed[region];
         art.wildScenes=art.wildScenes||{};art.wildScenes[region]=im;trimWildScenesV2868101();
@@ -14736,7 +14736,7 @@ function villageEnhanceV286897(){
           resetWorldMovementV28686();if(q){p.x=q.x;p.y=q.y;}
           for(const m of FLAT_WORLD.monsters||[]){if(!m.alive||m.inCombat)continue;const safe=wildSceneSafePointV286898(m.x,m.y,m.r||22);if(safe){m.x=safe.x;m.y=safe.y;}}
           if(s.overview&&document.getElementById('scrollMapV2831'))renderScrollTargetsV2837();
-        }};
+        }art.sceneSettledV2868111?.();};
       im.onerror=failed;im.src='./'+s.file;
     }
     function drawWildSceneV286898(ctx){if(!wildSceneReadyV286898())return false;ctx.drawImage(SCROLL_ART_V2831.wildScenes[currentRegion],0,0,FLAT_WORLD.width,FLAT_WORLD.height);return true;}
@@ -14930,8 +14930,16 @@ function villageEnhanceV286897(){
         img.onerror=()=>{SCROLL_ART_V2831[key]=null;img.onload=img.onerror=null;if(key==='regions')request('landscape','scroll-landscape-v2831.webp',true);if(key==='monstersV2853'){request('enemies','ink-enemies-v2833.webp');request('beasts','ink-beasts-v2833.webp');}};
         img.src='./'+file;
       };
-      request('regions','scroll-regions-v2834.webp',true);
-      for(const [key,file] of [['smallBeastsV28682','monster-small-beasts-v28682.webp'],['palace','scroll-palace-v2831.webp'],['buildings','scroll-buildings-v2832.webp'],['monstersV2853','monster-map-v2853.webp?v=2868-mini-return-20261015']])request(key,file);
+      request('monstersV2853','monster-map-v2853.webp?v=2868-mini-return-20261015');
+      const art=SCROLL_ART_V2831;let sheetsRequested=false,sheetTimer=0;
+      const requestSheets=()=>{
+        if(sheetsRequested)return;sheetsRequested=true;clearTimeout(sheetTimer);art.sceneSettledV2868111=null;
+        request('regions','scroll-regions-v2834.webp',true);
+        for(const [key,file] of [['smallBeastsV28682','monster-small-beasts-v28682.webp'],['palace','scroll-palace-v2831.webp'],['buildings','scroll-buildings-v2832.webp']])request(key,file);
+      };
+      // Slow connections: the painted scene the player stands on comes before detail sheets, which all draw fallbacks until loaded.
+      if(wildSceneV286898()&&!wildSceneReadyV286898()&&!art.wildSceneFailed?.[currentRegion]){art.sceneSettledV2868111=requestSheets;sheetTimer=setTimeout(requestSheets,4000);}
+      else requestSheets();
     }
     function scrollRegionCellV2834(region=currentRegion){
       const n=['south','east','west','north','human_peaks','human_valleys','demon_domain','immortal_domain'].indexOf(region);return n<0?0:n;
