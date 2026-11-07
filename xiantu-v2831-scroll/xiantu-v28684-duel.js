@@ -1256,7 +1256,7 @@ function guideNextStepsV2890(f){
  guideTryV2890(()=>{if(!p.sect||p.sect==='散修')add('尚无宗门：主线【拜入宗门】会在练气后引你参加凌霄宗入门考核。');},0);
  guideTryV2890(()=>{if(!document.getElementById('tutorialUnlock')&&typeof bossEligibleV2887==='function'&&bossEligibleV2887()&&bossWindowV2887().open)add(`镇岳台封印松动中（余 ${bossWindowV2887().daysLeft} 天）：宗门大殿 → ⛰️ 镇岳台。`);},0);
  guideTryV2890(()=>{if(p.sect&&p.sect!=='散修'&&typeof sectMasterRequirementsV2872==='function'&&sectMasterRequirementsV2872().ready)add('宗主传承考核条件已齐：宗门大殿 → 👑 宗主传承考核，开始三试。');},0);
- if(!out.length)add('接宗门任务稳攒修为、贡献与灵石；也可出门游历、清剿妖兽。');
+ if(!out.length)add((p.level|0)<1?'出门游历、清剿妖兽或闭关攒修为，踏入练气后再接宗门任务。':'接宗门任务稳攒修为、贡献与灵石；也可出门游历、清剿妖兽。');
  return out;
 }
 
@@ -1272,7 +1272,7 @@ function guideSectionsV2890(){
    +'<h4>三步上手</h4>'+ul([
     '<b>行走</b>：拖动左下摇杆，或轻点地面自动前往。走进地点外圈后，按右下【交互】进入。',
     '<b>初战</b>：角色 → 修行与设置中的【初入仙途】会带你走完五步：山脚试手 → 穿戴木剑 → 配置御剑术 → 山道挑战 → 查看来信。可随时收起，之后从本指引继续。',
-    '<b>修行</b>：接宗门任务，换取修为、贡献与灵石；修为攒满瓶颈后尝试突破。'])
+    '<b>修行</b>：修为攒满瓶颈后尝试突破；踏入练气后接宗门任务，换取修为、贡献与灵石。'])
    +'<h4>常用入口</h4>'+ul([
     '<b>角色</b>：装备、功法、宗门待办；另有【修真造化之路】（四项一次性目标，旧角色达标也可补领）、【上一场战斗 · 回看】、【☯ 天机】参详推演。',
     '<b>探索</b>：小地图旁【探索】可展开【卷 山河图】与探索手册。',
@@ -1472,7 +1472,7 @@ function guideClickV2890(ev){
 function installGuideTextV2890(){
  try{
   if(typeof TUTORIAL_STEPS==='object'&&TUTORIAL_STEPS.cultivation){
-   TUTORIAL_STEPS.cultivation.desc='修为攒到当前小段的瓶颈后，即可尝试突破；<b>每次突破只进一段</b>，成功只扣本段所需修为。失败会损失部分修为并需调息，可在突破面板一次调息完毕。<br><br>闭关最多十年，但只会把修为补到瓶颈，<b>不会自行破境</b>；渡劫圆满须亲手渡过飞升天劫，方入地仙。<br><br>随时可从【📖 修行指引】查看各项玩法。';
+   TUTORIAL_STEPS.cultivation.desc='修为攒到当前小段的瓶颈后，即可尝试突破；<b>每次突破只进一段</b>，成功只扣本段所需修为。失败会损失部分修为并需调息，可在突破面板一次调息完毕。<br><br>闭关最多十年，但只会把修为补到瓶颈，<b>不会自行破境</b>；渡劫圆满须亲手渡过飞升天劫，方入地仙。<br><br>踏入练气后，沿主线走入凌霄宗，再接宗门差事，稳定获取修为、贡献与灵石。随时可从【📖 修行指引】查看各项玩法。';
   }
  }catch(_){}
  const base=window.checkTutorialRealm;
@@ -2538,20 +2538,20 @@ function pathGoTutorialV2901(){if(typeof checkAndStartTutorial==='function')chec
 function pathGoJourneyV2901(){if(typeof beginFirstJourneyV28687==='function')beginFirstJourneyV28687();}
 function pathGoBreakV2901(){
  if((Number(player.exp)||0)>=getCurrentExpNeed()&&!(player.breakthrough?.cooldownDays>0)&&typeof checkLevelUp==='function'){checkLevelUp();return;}
- if(typeof showTutorialToast==='function')showTutorialToast('修为未满：去山野历练、接宗门差事，或到洞府闭关。经验条满后即可突破。',4200);
+ if(typeof showTutorialToast==='function')showTutorialToast('修为未满：去山野历练，或到洞府闭关。经验条满后即可突破。',4200);
 }
 const PATH_STEPS_V2901=Object.freeze([
  {id:'walk', title:'行走与交互',hint:'拖动摇杆或轻点地面移动，靠近地点后按【交互】。',state:()=>pathTutDoneV2901('interaction')?'done':'todo',go:pathGoTutorialV2901},
  {id:'train',title:'演武入门', hint:'击败演武傀儡，取得布衣、灵石，并开放自由探索。',state:()=>player?.tutorial?.skipped||player?.tutorial?.readPopups?.includes('training_reward')?'done':'todo',go:()=>startTutorialTraining()},
  {id:'robe', title:'穿戴布衣', hint:'装备栏 → 背包装备 → 布衣（已有其他法袍也可）。',state:()=>player.tutorial?.skipped||player.equipment?.robe?'done':'todo',go:()=>showEquipmentPanel()},
- {id:'duty', title:'差事与修炼',hint:'了解宗门差事、修为瓶颈与突破。',state:()=>pathTutDoneV2901('cultivation')?'done':'todo',go:pathGoTutorialV2901},
+ {id:'duty', title:'修炼与突破',hint:'了解修为瓶颈与突破，以及练气后的去向。',state:()=>pathTutDoneV2901('cultivation')?'done':'todo',go:pathGoTutorialV2901},
  {id:'wolf', title:'山脚试手', hint:'击败受伤野狼，得到木剑。',state:()=>pathJourneyV2901(1),go:pathGoJourneyV2901},
  {id:'sword',title:'装备木剑', hint:'穿上木剑，攻击 +3、暴击 +1。',state:()=>pathJourneyV2901(2),go:pathGoJourneyV2901},
  {id:'skill',title:'配置御剑术',hint:'把御剑术放进兵刃系技能栏。',state:()=>pathJourneyV2901(3),go:pathGoJourneyV2901},
  {id:'pass', title:'守住山道', hint:'用御剑术击败山道壮狼，得 120 灵石。',state:()=>pathJourneyV2901(4),go:pathGoJourneyV2901},
  {id:'letter',title:'雨夜来信',hint:'收好那封发往凌霄宗的密信。',state:()=>pathJourneyV2901(5),go:pathGoJourneyV2901},
- {id:'task', title:'第一份宗门差事',hint:'练气后沿主线拜入宗门，再接取并交付一份宗门差事。',state:()=>player.sectTasks?.some(t=>t.completed)?'done':(!player.sect||player.sect==='散修')&&player.level<1?'paused':'todo',go:()=>{if(player.sect&&player.sect!=='散修')showSectTasks();else showTaskPanel();}},
- {id:'break',title:'首次突破', hint:'修为满后突破到练气；历练、差事、闭关都能攒修为。',state:()=>(player.level|0)>=1?'done':'todo',go:pathGoBreakV2901}
+ {id:'break',title:'首次突破', hint:'修为满后突破到练气；历练、闭关都能攒修为。',state:()=>(player.level|0)>=1?'done':'todo',go:pathGoBreakV2901},
+ {id:'task', title:'第一份宗门差事',hint:'沿主线走入凌霄宗，再接取并交付一份宗门差事。',state:()=>player.sectTasks?.some(t=>t.completed)?'done':(player.level|0)<1?'locked':'todo',go:()=>{if(player.sect&&player.sect!=='散修')showSectTasks();else showTaskPanel();}}
 ]);
 const PATH_RT_V2901={owner:null,sawOpen:false,lastText:'',timer:null};
 function pathStatesV2901(){return PATH_STEPS_V2901.map(s=>{let st='todo';try{st=s.state();}catch(_){}return {id:s.id,title:s.title,hint:s.hint,state:st};});}
@@ -2605,10 +2605,10 @@ function showFirstPathV2901(){
  document.getElementById('firstPathPanelV2901')?.remove();
  const flags=pathFlagsV2901(),hi=flags.indexOf(FIRSTPATH_V2901.hiddenKey);if(hi>=0){flags.splice(hi,1);try{autoSave?.();}catch(_){}}
  const list=pathStatesV2901(),next=pathNextV2901(list),p=pathProgressV2901(list);
- const rows=list.map((s,i)=>{const cur=next&&s.id===next.id;const mark=s.state==='done'?'✓':s.state==='paused'?'⏸':cur?'▶':'·';
-  return `<li class="fp-step-v2901 ${s.state}${cur?' cur':''}"><span class="fp-mark-v2901">${mark}</span><span><b>${i+1}. ${pathEscV2901(s.title)}</b>${s.state==='paused'?'<em>（已收起，可继续）</em>':''}<br><small>${pathEscV2901(s.hint)}</small></span>${cur?`<button type="button" class="choice-btn" data-fp="go" data-id="${s.id}">前往</button>`:''}</li>`;}).join('');
+ const rows=list.map((s,i)=>{const cur=next&&s.id===next.id;const mark=s.state==='done'?'✓':s.state==='paused'?'⏸':s.state==='locked'?'🔒':cur?'▶':'·';
+  return `<li class="fp-step-v2901 ${s.state}${cur?' cur':''}"><span class="fp-mark-v2901">${mark}</span><span><b>${i+1}. ${pathEscV2901(s.title)}</b>${s.state==='paused'?'<em>（已收起，可继续）</em>':''}${s.state==='locked'?'<em>（踏入练气后开放）</em>':''}<br><small>${pathEscV2901(s.hint)}</small></span>${cur?`<button type="button" class="choice-btn" data-fp="go" data-id="${s.id}">前往</button>`:''}</li>`;}).join('');
  const el=document.createElement('div');el.id='firstPathPanelV2901';el.className='mobile-inventory-overlay first-path-panel-v2901';el.style.zIndex='100003';el.setAttribute('role','dialog');el.setAttribute('aria-label','起步之路');
- el.innerHTML=`<div class="mobile-inventory-card"><h3>🧭 起步之路 · ${p.done}/${p.total}</h3><p class="fp-lead-v2901">新入仙途的起步指引：引路、初入仙途、宗门差事与首次突破，一条路走完。每一步的奖励与原来相同。</p><ol class="fp-list-v2901">${rows}</ol>
+ el.innerHTML=`<div class="mobile-inventory-card"><h3>🧭 起步之路 · ${p.done}/${p.total}</h3><p class="fp-lead-v2901">新入仙途的起步指引：引路、初入仙途、首次突破与宗门差事，一条路走完。每一步的奖励与原来相同。</p><ol class="fp-list-v2901">${rows}</ol>
   <div class="su-row-v2895" style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="choice-btn" data-fp="hide">收起起步之路</button><button type="button" class="choice-btn" data-fp="close">关闭</button></div></div>`;
  el.addEventListener('click',e=>{
   if(player!==owner||!forgeAllowedV2825()){el.remove();return;}
@@ -2687,7 +2687,7 @@ function installFirstPathStylesV2901(){
 .first-path-panel-v2901 .fp-step-v2901{display:flex;gap:8px;align-items:center;padding:7px 8px;border-radius:8px;margin:3px 0;background:rgba(255,255,255,.03);line-height:1.45}
 .first-path-panel-v2901 .fp-step-v2901>span:nth-child(2){flex:1;min-width:0}
 .first-path-panel-v2901 .fp-step-v2901 small{color:#bfb69e;font-size:13px}
-.first-path-panel-v2901 .fp-step-v2901.done{opacity:.6}
+.first-path-panel-v2901 .fp-step-v2901.done,.first-path-panel-v2901 .fp-step-v2901.locked{opacity:.6}
 .first-path-panel-v2901 .fp-step-v2901.cur{background:rgba(242,210,122,.12);border:1px solid rgba(242,210,122,.45)}
 .first-path-panel-v2901 .fp-step-v2901 .choice-btn{flex:none!important;width:auto!important;min-width:64px;max-width:96px;margin:0!important;padding:6px 12px!important}
 .first-path-panel-v2901 .fp-mark-v2901{flex:none;width:1.4em;text-align:center;color:#9ff5c8}

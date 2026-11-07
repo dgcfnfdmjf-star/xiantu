@@ -1,6 +1,6 @@
 // ===== 新手引路：只描述当前版本真实存在的玩法 =====
 const TUTORIAL_STEPS={
-  welcome:{title:'🌅 初识仙途',desc:'从今日起，你要自己走这条修行路。先熟悉最常用的几件事：<b>移动、交互、战斗、装备、宗门差事与修炼突破</b>。',placement:'center',actions:[{text:'开始引路',action:'next',nextStep:'movement'},{text:'略过引路',action:'skip'}]},
+  welcome:{title:'🌅 初识仙途',desc:'从今日起，你要自己走这条修行路。先熟悉最常用的几件事：<b>移动、交互、战斗、装备与修炼突破</b>。',placement:'center',actions:[{text:'开始引路',action:'next',nextStep:'movement'},{text:'略过引路',action:'skip'}]},
   movement:{title:'🕹️ 行走四方',desc:'你可以 <b>拖动左下角摇杆</b>，也可以<b>轻点地面</b>让人物自动走过去。松开摇杆会立即停下，点地后人物会向目标点移动。<br><br>现在试着移动一小段。',compact:'轻点地面或拖动摇杆，移动一小段',target:'#virtualJoystick',placement:'right',waitFor:'movement'},
   interaction:{title:'✋ 与地点交互',desc:'地图上的建筑与地点都有进入范围。走进地点外圈后，右下角<b>【交互】</b>即可进入。<br><br>现在靠近任意地点并按一次【交互】。',compact:'靠近任意地点，进入外圈后按【交互】',target:'#touchAction',placement:'left',waitFor:'interaction'},
   combat:{title:'⚔️ 演武入门',desc:'先用一具低阶演武傀儡熟悉战斗。战斗中可以使用<b>普通攻击</b>或已掌握的功法，灵力不足时要留意恢复。',placement:'center',actions:[{text:'开始演武',action:'training'}]},
@@ -50,6 +50,8 @@ function highlightTutorialTarget(sel){clearTutorialHighlight();const el=resolveT
 
 function triggerTutorial(id,force=false){
   const t=ensureTutorialState();if(!t||(!force&&(t.skipped||t.completedSteps.includes(id))))return false;
+  // 差事等踏入练气后再讲：凡人越过此步但仍记为完成，旧档的步骤计数与续接不变。
+  if(id==='tasks'&&(player.level|0)<1){completeTutorialStep('tasks');id='cultivation';}
   const step=TUTORIAL_STEPS[id];if(!step)return false;
 
   // 新手开场遵循“教程先行”：前四步不会同时保留地点/自由行动面板。
