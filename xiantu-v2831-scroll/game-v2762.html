@@ -11,8 +11,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="仙途">
   <meta name="mobile-web-app-capable" content="yes">
-  <link rel="preload" as="style" href="./xiantu-v2762.css?v=2868112-polish3-20261107" fetchpriority="high">
-  <link rel="preload" as="script" href="./xiantu-v2762-core.js?v=2868112-polish3-20261107" fetchpriority="high">
+  <link rel="preload" as="style" href="./xiantu-v2762.css?v=2868112-polish4-20261107" fetchpriority="high">
+  <link rel="preload" as="script" href="./xiantu-v2762-core.js?v=2868112-polish4-20261107" fetchpriority="high">
   
   <title>仙途 V28.68.112 · 开场动画版</title>
 
@@ -580,14 +580,14 @@ body.xiantu-v2762-booting>:not(#xiantuSafeBoot){display:none!important}
       attempt();
     });
   }
-  function loadStyle(){return loadResource(function(attempt){var link=document.createElement('link');link.rel='stylesheet';link.fetchPriority='high';link.href='./xiantu-v2762.css?v=2868112-polish3-20261107';if(attempt)link.href+='&retry='+attempt;return link;},document.head);}
+  function loadStyle(){return loadResource(function(attempt){var link=document.createElement('link');link.rel='stylesheet';link.fetchPriority='high';link.href='./xiantu-v2762.css?v=2868112-polish4-20261107';if(attempt)link.href+='&retry='+attempt;return link;},document.head);}
   function preloadScripts(){
-    files.slice(1).forEach(function(name){var link=document.createElement('link');link.rel='preload';link.as='script';link.fetchPriority='high';link.href='./'+name+'?v=2868112-polish3-20261107';document.head.appendChild(link);});
+    files.slice(1).forEach(function(name){var link=document.createElement('link');link.rel='preload';link.as='script';link.fetchPriority='high';link.href='./'+name+'?v=2868112-polish4-20261107';document.head.appendChild(link);});
   }
-  function loadScript(name){return loadResource(function(attempt){var s=document.createElement('script');s.src='./'+name+'?v=2868112-polish3-20261107';if(attempt)s.src+='&retry='+attempt;s.async=false;return s;},document.body,function(){if(!window.__xiantuBuildFilesV2814||window.__xiantuBuildFilesV2814[name]!==expectedBuild)return new Error('文件版本不一致：'+name+'。请上传完整 V28.68.112 文件夹覆盖后刷新，勿清除网站数据。');});}
+  function loadScript(name){return loadResource(function(attempt){var s=document.createElement('script');s.src='./'+name+'?v=2868112-polish4-20261107';if(attempt)s.src+='&retry='+attempt;s.async=false;return s;},document.body,function(){if(!window.__xiantuBuildFilesV2814||window.__xiantuBuildFilesV2814[name]!==expectedBuild)return new Error('文件版本不一致：'+name+'。请上传完整 V28.68.112 文件夹覆盖后刷新，勿清除网站数据。');});}
   function addInstallLinks(){
-    var manifest=document.createElement('link');manifest.rel='manifest';manifest.href='./manifest-v2762.webmanifest?v=2868112-polish3-20261107';document.head.appendChild(manifest);
-    var icon=document.createElement('link');icon.rel='apple-touch-icon';icon.href='./v2762-apple-touch-icon.png?v=2868112-polish3-20261107';document.head.appendChild(icon);
+    var manifest=document.createElement('link');manifest.rel='manifest';manifest.href='./manifest-v2762.webmanifest?v=2868112-polish4-20261107';document.head.appendChild(manifest);
+    var icon=document.createElement('link');icon.rel='apple-touch-icon';icon.href='./v2762-apple-touch-icon.png?v=2868112-polish4-20261107';document.head.appendChild(icon);
   }
   function restoreCanvasSizes(){
     var list=document.querySelectorAll('canvas[data-v2762-width]');
