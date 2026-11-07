@@ -332,14 +332,15 @@ function cleanseBeastKarmaV2870(){
  if(!pc.killedBabyBeast&&attach<=30)return false;
  const enough=()=>player.materials?.['仙果']>=2&&player.materials?.['灵草']>=5;
  if(!enough()){showFloatingText('需要仙果×2、灵草×5','#ff8a80');return false;}
- const owner=player;
- if(!confirm('消耗仙果×2、灵草×5，消除伤幼因果，并将高于20的心魔执念降至20？结缘仍需满足气血、道具及灵宠栏等条件。'))return false;
- if(player!==owner||!petBatchAllowedV286845()||!enough())return false;
+ const owner=player,karma0=pc.killedBabyBeast;
+ return gameConfirmOnceV2868114('pet-karma',"消耗仙果×2、灵草×5，消除伤幼因果，并将高于20的心魔执念降至20？结缘仍需满足气血、道具及灵宠栏等条件。",()=>{
+ if(player!==owner||!petBatchAllowedV286845()||!enough()||player.petCapture!==pc||pc.killedBabyBeast!==karma0||(Number(player.heartDemon?.attachment)||0)!==attach)return false;
  const old=player.materials,karma=pc.killedBabyBeast;
  player.materials={...old};for(const [n,c] of [['仙果',2],['灵草',5]]){player.materials[n]-=c;if(!player.materials[n])delete player.materials[n];}
  pc.killedBabyBeast=false;if(player.heartDemon&&attach>20)player.heartDemon.attachment=20;
  if(!saveGame()){player.materials=old;pc.killedBabyBeast=karma;if(player.heartDemon)player.heartDemon.attachment=attach;return false;}
  updatePetPanel();updateStats();showFloatingText('伤幼因果已化解','#8fe3c4');return true;
+ });
 }
 function toggleFieldAidV2870(key){
  if(!petBatchAllowedV286845()||!['mercy','heal'].includes(key))return false;

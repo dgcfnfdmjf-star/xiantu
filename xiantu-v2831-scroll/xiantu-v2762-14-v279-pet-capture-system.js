@@ -108,14 +108,21 @@ function consumeInventoryItem(name){const i=player.inventory.indexOf(name);if(i>
 function attemptCapture(enemy=currentEnemy){
   if(gameState!=='combat'||enemy!==currentEnemy||!isPlayerTurn||player?.breakthrough?.isAnimating)return false;
   const owner=player;let pc=ensurePetCaptureState();if(pc.isCapturing){showFloatingText?.('⏳ 正在收服中…','#ffd700');return}const c=canCaptureTarget(enemy);if(!c.ok){showFloatingText?.(`❌ ${c.reason}`,'#ff6b6b');return}
-  if(c.bestItem==='御灵葫芦'&&(PET_QUALITY_RANK[c.petData.quality]||1)<=2){
-    if(!confirm(`即将消耗【御灵葫芦】（价值500灵石）收服${getPetQualityInfo(c.petData.quality).label}【${enemy.name}】。是否继续？`))return false;
-    if(player!==owner||currentEnemy!==enemy||gameState!=='combat'||!isPlayerTurn)return false;
-    const check=canCaptureTarget(enemy);if(!check.ok||check.bestItem!==c.bestItem)return false;
-  }
+  const begin=()=>{
   pc=player.petCapture;
   pc.isCapturing=true;pc.captureTarget=enemy;pc.usedItem=c.bestItem;isPlayerTurn=false;updateCombatChoices?.();
   if(c.petData?.canBond){startBondingProcess(enemy,c.bestItem);return}const rate=getCaptureRate(enemy,c.bestItem);addCombatLog?.(`🌀 使用【${c.bestItem}】尝试收服 ${enemy.name}（成功率 ${Math.round(rate*100)}%）`,'pet');showCaptureProgress(rate,()=>{Math.random()<rate?captureSuccess(enemy,c.bestItem,!!c.petData?.isDemon):captureFail(enemy,c.bestItem,!!c.petData?.isDemon)})
+  };
+  if(c.bestItem==='御灵葫芦'&&(PET_QUALITY_RANK[c.petData.quality]||1)<=2){
+    const gourds=player.inventory.filter(n=>n==='御灵葫芦').length;
+    return gameConfirmOnceV2868114('pet-capture-gourd',`即将消耗【御灵葫芦】（价值500灵石）收服${getPetQualityInfo(c.petData.quality).label}【${enemy.name}】。是否继续？`,()=>{
+    if(player!==owner||currentEnemy!==enemy||gameState!=='combat'||!isPlayerTurn||player?.breakthrough?.isAnimating||player.petCapture?.isCapturing)return false;
+    if(player.inventory.filter(n=>n==='御灵葫芦').length!==gourds)return false;
+    const check=canCaptureTarget(enemy);if(!check.ok||check.bestItem!==c.bestItem)return false;
+    begin();return true;
+    });
+  }
+  return begin();
 }
 // One capture owns both its progress interval and its delayed completion.
 let captureRunV286846=null;
@@ -186,12 +193,13 @@ function changePetBondById(id,newType){
  if(!player.inventory.includes(item)){showFloatingText(`❌ 需要【${item}】`,'#ff6b6b');return false;}
  const owner=player,oldType=pet.bondType;
  const warning=newType==='soul'?'契约不可更改；强行放生会使气血降至最大值的30%。':'平等契不可退回滴血契。';
- if(!confirm(`消耗【${item}】×1，与「${pet.name}」缔结【${getPetBondLabel(newType)}】？\n${warning}`))return false;
+ return gameConfirmOnceV2868114('pet-bond',`消耗【${item}】×1，与「${pet.name}」缔结【${getPetBondLabel(newType)}】？\n${warning}`,()=>{
  if(player!==owner||!petBatchAllowedV286845()||getPetById(id)!==pet||pet.bondType!==oldType||!player.inventory.includes(item))return false;
  const inventory=player.inventory.slice(),hadSoul=Object.hasOwn(pet,'isSoulBonded'),soul=pet.isSoulBonded;
  consumeInventoryItem(item);pet.bondType=newType;if(newType==='soul')pet.isSoulBonded=true;
  if(!saveGame()){player.inventory.splice(0,player.inventory.length,...inventory);pet.bondType=oldType;if(hadSoul)pet.isSoulBonded=soul;else delete pet.isSoulBonded;return false;}
  showFloatingText(`✅ 契约变更为【${getPetBondLabel(newType)}】`,'#69f0ae');updatePetPanel();updateStats();return true;
+ });
 }
 function clearPetCaptureCooldownV2870(){
  if(player?.petCapture){player.petCapture.captureCooldown=0;player.petCapture.captureCooldownUntil=0;}
@@ -203,7 +211,7 @@ function releasePetById(id){
   const refund=getPetReleaseRefundV286846(pet),items=Object.entries(refund).map(([n,c])=>`${n}×${c}`).join('、'),soul=pet.bondType==='soul';
   const hint=items?`\n归元返还（实耗80%，逐项取整）：${items}`:'\n暂无可返还材料（每种实际消耗的80%，不足1件舍去）。';
   const msg=`确定放生「${pet.name}」吗？${soul?'\n解除神魂本命契会令气血降至30%。':''}${hint}\n仅计更新后记录的喂养与养成材料，不返还灵石。`;
-  if(typeof confirm==='function'&&!confirm(msg))return false;
+  const release=()=>{
   if(player!==owner||!petBatchAllowedV286845()||getPetById(id)!==pet||JSON.stringify(refund)!==JSON.stringify(getPetReleaseRefundV286846(pet)))return false;
   const before={pets:player.pets.slice(),active:player.activePet,hp:player.hp,mats:{...player.petMaterials}};
   if(Object.entries(refund).some(([n,c])=>!Number.isSafeInteger((Number(player.petMaterials[n])||0)+c)))return false;
@@ -215,6 +223,10 @@ function releasePetById(id){
   }catch(err){player.pets=before.pets;player.activePet=before.active;player.hp=before.hp;player.petMaterials=before.mats;showFloatingText?.('放生未保存，灵宠与材料已恢复，请稍后重试。','#ff6b6b');return false;}
   petFeedOpenId=null;petGrowthOpenIdV210=null;petContractOpenIdV29=null;
   showFloatingText?.(`已放生「${pet.name}」${items?' · 归元 '+items:''}${soul?' · 神魂受创':''}`,soul?'#ff6b6b':'#8fe3c4');updateStats?.();updatePetPanel?.();return true;
+  };
+  // Headless callers without confirm keep the historical proceed behaviour.
+  if(!xtDialogUsableV2868114()&&typeof globalThis.confirm!=='function')return release();
+  return gameConfirmOnceV2868114('pet-release',msg,release);
 }
 let petContractOpenIdV29=null;
 function togglePetContractMenuV29(id){petContractOpenIdV29=petContractOpenIdV29===id?null:id;updatePetPanel?.()}

@@ -169,8 +169,10 @@ function rivalViewValidV2874(token){return jevCanActV2846()&&rivalViewV2874?.tok
 function startRivalTrialV2874(token){
  if(!rivalViewValidV2874(token)||player.hp<=getMaxHp()*.25)return false;
  const owner=player,stamp=()=>JSON.stringify([player.level,player.phase,player.hp,player.mp,player.skillLoadoutV212,player.rivalHistoryV2849]),before=stamp(),enemy=createYeWujiV2810();
- if(!confirm(`问锋试炼：${getEnemyRealmNameV2811(enemy)}。撑过6个完整敌方回合或直接击退即达成；败北不扣灵石。每境首通只领一次，重复演练无奖励。继续？`)||owner!==player||!rivalViewValidV2874(token)||before!==stamp())return false;
+ return gameConfirmOnceV2868114('rival-trial',`问锋试炼：${getEnemyRealmNameV2811(enemy)}。撑过6个完整敌方回合或直接击退即达成；败北不扣灵石。每境首通只领一次，重复演练无奖励。继续？`,()=>{
+ if(owner!==player||!rivalViewValidV2874(token)||before!==stamp()||gameState==='combat'||player.hp<=getMaxHp()*.25)return false;
  enemy._rivalTrialV2874=true;closeJevWorldV2846();closeWorldOverlay();startCombat(enemy,true,false);addCombatLog('六合问锋：完成6个敌方回合并存活，或击退宿敌。奖励在纪事碑领取；首次交手不加反制。','boss');return true;
+ });
 }
 function claimRivalTrialV2874(realm,token){
  if(!rivalViewValidV2874(token))return false;

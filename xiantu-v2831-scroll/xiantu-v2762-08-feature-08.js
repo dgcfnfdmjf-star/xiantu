@@ -208,12 +208,14 @@
     if(!hasMaterials(r.materials)||(player.gold||0)<r.gold){showFloatingText?.('❌ 锻造材料或灵石不足','#ff6b6b');return showMaterialWorkshop('forge');}
     if(typeof EQUIPMENT_DB!=='undefined'&&!EQUIPMENT_DB[r.result]){showFloatingText?.('❌ 装备数据不存在','#ff6b6b');return;}
     const owner=player;
-    if(!confirm(`确定铸造【${r.name}】×1？\n已持有 ${getOwnedEquipTotalV2870(r.result)} 件（含穿戴及同底材铭器）\n材料：${Object.entries(r.materials).map(([n,c])=>n+'×'+c).join('、')}\n灵石：${r.gold}，铸造后剩余 ${player.gold-r.gold}`))return false;
-    if(player!==owner||!petBatchAllowedV286845()||player.level<r.realm||!hasMaterials(r.materials)||player.gold<r.gold)return false;
+    const stamp=()=>JSON.stringify([player.gold,player.materials,(player.equipmentInventory||[]).length]),shown=stamp();
+    return gameConfirmOnceV2868114('forge-material',`确定铸造【${r.name}】×1？\n已持有 ${getOwnedEquipTotalV2870(r.result)} 件（含穿戴及同底材铭器）\n材料：${Object.entries(r.materials).map(([n,c])=>n+'×'+c).join('、')}\n灵石：${r.gold}，铸造后剩余 ${player.gold-r.gold}`,()=>{
+    if(player!==owner||!petBatchAllowedV286845()||player.level<r.realm||!hasMaterials(r.materials)||player.gold<r.gold||stamp()!==shown)return false;
     const gold=player.gold,materials={...player.materials},equipment=player.equipmentInventory.slice();
     consumeMaterials(r.materials);player.gold-=r.gold;player.equipmentInventory=player.equipmentInventory||[];player.equipmentInventory.push(r.result);
     if(!saveGame()){player.gold=gold;player.materials=materials;player.equipmentInventory=equipment;return false;}
     showFloatingText?.(`⚒️ 锻造成功：${r.result}`,'#ffd76a');playSound?.('item');updateStats?.();updateWorldHUD?.();showMaterialWorkshop('forge');return true;
+    });
   };
 
   // 进入世界或打开相关面板时自动迁移旧档中的法宝材料。
