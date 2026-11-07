@@ -85,6 +85,19 @@ test('newcomer sees one map prompt and no errand panel before Qi Refining',async
  await path.click();const rows=page.locator('.fp-step-v2901');await expect(rows.nth(9)).toContainText('首次突破');await expect(rows.nth(10)).toContainText('踏入练气后开放');
  await expect(page.locator('[data-fp="go"]')).toHaveCount(1);await expect(page.locator('[data-fp="go"]')).toHaveAttribute('data-id','break');
 });
+test('alchemy fire choice works on a phone, defaults on reopen and adds nothing to the save',async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.setViewportSize({width:390,height:844});await boot(page);await start(page);
+ await page.evaluate(()=>{tutorialState.active=false;closeWorldOverlay();player.materials={'灵草':20};player.inventory=[];Math.random=()=>.1;showAlchemy();});
+ const list=page.locator('#recipeList'),craft=name=>list.locator('.recipe-item',{hasText:name}).getByRole('button',{name:'×1',exact:true});
+ await expect(list.getByRole('button',{name:'稳火'})).toHaveAttribute('aria-pressed','true');await expect(list.locator('.recipe-item',{hasText:'小还丹'})).toContainText('灵草x2');
+ await list.getByRole('button',{name:'文火'}).click();await expect(list.getByRole('button',{name:'文火'})).toHaveAttribute('aria-pressed','true');await expect(list.locator('.recipe-item',{hasText:'小还丹'})).toContainText('灵草x3');
+ await craft('小还丹').click();await expect(page.locator('#alchemyResultV2868110')).toContainText('成丹 1 枚');expect(await page.evaluate(()=>[player.materials['灵草'],player.alchemyExp])).toEqual([17,15]);
+ await list.getByRole('button',{name:'武火'}).click();await expect(craft('养元丹')).toBeDisabled();await craft('小还丹').click();await expect(page.locator('#alchemyResultV2868110')).toContainText('成丹 2 枚 · 失败 0 炉');
+ expect(await page.evaluate(()=>{const r=document.querySelector('#recipeList .alchemy-fire-v2868112').getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1;})).toBe(true);
+ expect(await page.evaluate(()=>{const save=localStorage.getItem('xiantu_save');return /alchemyFire|gentle|fierce/.test(save)||player.alchemyFire!==undefined;})).toBe(false);
+ await page.evaluate(()=>{closeWorldOverlay();showAlchemy();});await expect(list.getByRole('button',{name:'稳火'})).toHaveAttribute('aria-pressed','true');expect(errors).toEqual([]);
+});
+
 test('jade quest shortcut hides with overlays and rejects stale owner, step and duplicate actions',async({page})=>{
  await page.setViewportSize({width:390,height:844});await boot(page);await start(page);
  await page.evaluate(()=>{tutorialState.active=false;closeWorldOverlay();player.level=2;player.phase=3;player.tasks.active={};player.tasks.completed=MAIN_TASKS.slice(0,6).map(t=>t.id);player.tasks.legacyMainV286823=[];checkTaskTriggers();updateWorldHUD();});

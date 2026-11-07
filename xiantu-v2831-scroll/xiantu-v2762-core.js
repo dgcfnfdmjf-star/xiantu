@@ -8968,6 +8968,7 @@
       document.getElementById('artifactPanel').classList.add('hidden');
       
       gameState = 'alchemy';
+      alchemyFireV2868112='steady';
       updateAlchemyPanel();
       document.getElementById('alchemyPanel').scrollTop=0;
       alchemyStageOpenV2868110(true);
@@ -9022,12 +9023,12 @@
       try{localStorage.setItem('xiantu_alchemy_fx_v2868110',enabled?'off':'auto');}catch(_){}
       alchemyStageOpenV2868110(false);
     }
-    function alchemyResultV2868110(owner,recipeName,attempted,success){
+    function alchemyResultV2868110(owner,recipeName,attempted,success,pills=success){
       const panel=document.getElementById('alchemyPanel');
       if(owner!==player||gameState!=='alchemy'||!panel||panel.classList.contains('hidden')||document.hidden)return;
       const recipe=RECIPES[recipeName],result=document.getElementById('alchemyResultV2868110');
       if(!recipe||!result)return;
-      result.textContent=`${recipe.result} · 投入 ${attempted} 炉 · 成丹 ${success} 枚 · 失败 ${attempted-success} 炉`;
+      result.textContent=`${recipe.result} · 投入 ${attempted} 炉 · 成丹 ${pills} 枚 · 失败 ${attempted-success} 炉`;
       result.dataset.outcome=success?'success':'failure';
       const data={name:recipe.result,materials:Object.keys(recipe.materials),attempted,success,at:performance.now()};
       ALCHEMY_STAGE_V2868110.last=data;
@@ -9035,6 +9036,22 @@
       document.getElementById('alchemyStageV2868110')?.scrollIntoView?.({block:'nearest',behavior:'auto'});
     }
     
+    // 火候只影响当次开炉，不写入存档；每次打开丹炉都回到稳火，稳火与原规则完全一致。
+    const ALCHEMY_FIRE_V2868112={
+      steady:{label:'稳火',hint:'原丹方、原成功率。',bonus:0,exp:10},
+      gentle:{label:'文火',hint:'每种材料多耗四分之一（向上取整），成功率+12%，成丹炼丹经验+50%。',bonus:0,exp:15},
+      fierce:{label:'武火',hint:'成功率降为四分之三，成丹时有三分之一机会得2枚；延寿丹不可用。',bonus:1/3,exp:10}
+    };
+    let alchemyFireV2868112='steady';
+    function alchemyFireCostV2868112(need,fire){return fire==='gentle'?need+Math.ceil(need/4):need;}
+    function alchemyFireRateV2868112(recipe,fire,level){
+      const rate=Math.min(1,recipe.baseSuccess+Math.floor((level-1)*3)/100);
+      return fire==='gentle'?Math.min(1,rate+.12):fire==='fierce'?rate*.75:rate;
+    }
+    function setAlchemyFireV2868112(fire){
+      if(!Object.prototype.hasOwnProperty.call(ALCHEMY_FIRE_V2868112,fire))return false;
+      alchemyFireV2868112=fire;updateAlchemyPanel();return true;
+    }
     function updateAlchemyPanel() {
       // 更新炼丹等级显示
       const successBonus = Math.floor((player.alchemyLevel - 1) * 3);
@@ -9054,11 +9071,13 @@
       
       // 更新丹方列表
       const recipeList = document.getElementById('recipeList');
-      recipeList.innerHTML = Object.entries(RECIPES).map(([name, recipe]) => {
-        const successRate = Math.min(1, recipe.baseSuccess + successBonus / 100);
+      const fire=alchemyFireV2868112;
+      recipeList.innerHTML = `<div class="alchemy-fire-v2868112" role="group" aria-label="火候" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">${Object.entries(ALCHEMY_FIRE_V2868112).map(([id,f])=>`<button type="button" class="craft-btn" style="min-height:40px${id===fire?'':';opacity:.62'}" aria-pressed="${id===fire}" onclick="setAlchemyFireV2868112('${id}')">${f.label}</button>`).join('')}</div><p class="recipe-materials" style="margin:0 0 10px">火候 · ${ALCHEMY_FIRE_V2868112[fire].label}：${ALCHEMY_FIRE_V2868112[fire].hint}</p>`+Object.entries(RECIPES).map(([name, recipe]) => {
+        const successRate = alchemyFireRateV2868112(recipe,fire,player.alchemyLevel);
         
         const materialText = Object.entries(recipe.materials)
-          .map(([mat, count]) => {
+          .map(([mat, base]) => {
+            const count = alchemyFireCostV2868112(base,fire);
             const have = player.materials[mat] || 0;
             const color = have >= count ? '#69f0ae' : '#ff6b6b';
             return `<span style="color:${color}">${mat}x${count}(${have})</span>`;
@@ -9072,14 +9091,15 @@
               <div class="recipe-success">成功率: ${Math.floor(successRate * 100)}% | ${recipe.desc}</div>
             </div>
             <div class="alchemy-batch-actions" style="display:flex;gap:6px;flex-wrap:wrap">
-              ${[1,5,10].map(n=>{const plan=getAlchemyPlanV286850(name,n);return `<button class="craft-btn" style="min-height:40px" onclick="craftPill('${name}',${n})" ${plan.count?'':'disabled'} title="${plan.reason||'按实际材料逐炉炼制，达到延寿上限停炉'}">×${n}${plan.count&&plan.count<n?'（可炼'+plan.count+'）':''}</button>`}).join('')}
+              ${[1,5,10].map(n=>{const plan=getAlchemyPlanV286850(name,n,fire);return `<button class="craft-btn" style="min-height:40px" onclick="craftPill('${name}',${n},'${fire}')" ${plan.count?'':'disabled'} title="${plan.reason||'按实际材料逐炉炼制，达到延寿上限停炉'}">×${n}${plan.count&&plan.count<n?'（可炼'+plan.count+'）':''}</button>`}).join('')}
             </div>
           </div>
         `;
       }).join('');
     }
     
-    function getAlchemyPlanV286850(recipeName,times=1){
+    function getAlchemyPlanV286850(recipeName,times=1,fire='steady'){
+      if(!Object.prototype.hasOwnProperty.call(ALCHEMY_FIRE_V2868112,fire))return {count:0,reason:'无效火候'};
       const recipe=Object.prototype.hasOwnProperty.call(RECIPES,recipeName)?RECIPES[recipeName]:null;
       if(!recipe||![1,5,10].includes(times))return {count:0,reason:'无效丹方或炉数'};
       if(!player||gameState==='start'||!forgeAllowedV2825())return {count:0,reason:'当前状态无法炼丹'};
@@ -9087,31 +9107,33 @@
       if(player.alchemyLevel<recipe.alchemyLevelRequired)return {count:0,reason:`需要炼丹等级 ${recipe.alchemyLevelRequired}`};
       const result=recipe.result,limit=LONGEVITY_PILLS[result];
       if(limit&&normalizeLongevity(player.longevity).uses[result]+player.inventory.filter(n=>n===result).length>=limit.limit)return {count:0,reason:'库存与已服用数量已达终身上限'};
+      if(fire==='fierce'&&limit)return {count:0,reason:'延寿丹有终身上限，不可用武火'};
       const costs=Object.entries(recipe.materials);if(!costs.length)return {count:0,reason:'丹方缺少材料配置'};
       let count=times;
-      for(const [mat,need] of costs){if(!Number.isSafeInteger(need)||need<=0)return {count:0,reason:'丹方材料配置异常'};const have=Number(player.materials[mat]||0);if(!Number.isSafeInteger(have)||have<0)return {count:0,reason:'材料数量异常'};count=Math.min(count,Math.floor(have/need));}
+      for(const [mat,need] of costs){if(!Number.isSafeInteger(need)||need<=0)return {count:0,reason:'丹方材料配置异常'};const have=Number(player.materials[mat]||0);if(!Number.isSafeInteger(have)||have<0)return {count:0,reason:'材料数量异常'};count=Math.min(count,Math.floor(have/alchemyFireCostV2868112(need,fire)));}
       return {count,reason:count?'':'材料不足',recipe};
     }
-    function craftPill(recipeName,times=1) {
-      const plan=getAlchemyPlanV286850(recipeName,times);
+    function craftPill(recipeName,times=1,fire='steady') {
+      const plan=getAlchemyPlanV286850(recipeName,times,fire);
       if(!plan.count){showFloatingText?.(plan.reason,'#ff8a80');return false;}
-      let attempted=0,success=0;const initialLevel=player.alchemyLevel;
+      let attempted=0,success=0,pills=0;const initialLevel=player.alchemyLevel,flame=ALCHEMY_FIRE_V2868112[fire];
       for(let i=0;i<plan.count;i++){
         // Recheck after each outcome: success may fill a lifetime cap or raise alchemy level.
-        const step=getAlchemyPlanV286850(recipeName,1);if(!step.count)break;
+        const step=getAlchemyPlanV286850(recipeName,1,fire);if(!step.count)break;
         const recipe=step.recipe;
-        for(const [mat,count] of Object.entries(recipe.materials)){player.materials[mat]-=count;if(player.materials[mat]<=0)delete player.materials[mat];}
-        const successRate=Math.min(1,recipe.baseSuccess+Math.floor((player.alchemyLevel-1)*3)/100);
+        for(const [mat,count] of Object.entries(recipe.materials)){player.materials[mat]-=alchemyFireCostV2868112(count,fire);if(player.materials[mat]<=0)delete player.materials[mat];}
+        const successRate=alchemyFireRateV2868112(recipe,fire,player.alchemyLevel);
         player.alchemyCount++;attempted++;
         if(Math.random()<successRate){
-          player.inventory.push(recipe.result);success++;player.alchemyExp+=10;
+          player.inventory.push(recipe.result);success++;pills++;player.alchemyExp+=flame.exp;
+          if(flame.bonus&&player.inventory.length<100000&&Math.random()<flame.bonus){player.inventory.push(recipe.result);pills++;}
           if(player.alchemyExp>=player.alchemyLevel*50){player.alchemyExp=0;player.alchemyLevel++;}
           updateAchievementProgress('alchemy');
         }
       }
-      showFloatingText?.(`🔥 投入 ${attempted} 炉 · ${plan.recipe.result} ×${success} · 失败 ${attempted-success} 炉${player.alchemyLevel>initialLevel?' · 炼丹升至 Lv.'+player.alchemyLevel:''}`,success?'#69f0ae':'#ff8a80');
+      showFloatingText?.(`🔥 投入 ${attempted} 炉 · ${plan.recipe.result} ×${pills} · 失败 ${attempted-success} 炉${player.alchemyLevel>initialLevel?' · 炼丹升至 Lv.'+player.alchemyLevel:''}`,success?'#69f0ae':'#ff8a80');
       if(success)playSound(player.alchemyLevel>initialLevel?'levelup':'item');
-      updateAlchemyPanel();updateStats();autoSave();alchemyResultV2868110(player,recipeName,attempted,success);return {attempted,success};
+      updateAlchemyPanel();updateStats();autoSave();alchemyResultV2868110(player,recipeName,attempted,success,pills);return {attempted,success,pills};
     }
 
     // ================== 宠物系统 ==================
