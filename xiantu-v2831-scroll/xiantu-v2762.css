@@ -5160,7 +5160,7 @@ html.xiantu-mobile-dedicated.xt-theme .world-hud.mobile-hud-collapsed .world-bar
 
 @media(max-width:600px) and (orientation:portrait){html.xiantu-mobile-dedicated #gameScreen.world-mode #alchemyPanel:not(.hidden){max-height:82vh!important}.alchemy-stage-head-v110{gap:4px}.alchemy-stage-head-v110 button{padding:6px;font-size:12px}.alchemy-stage-head-v110 b{margin-right:auto;letter-spacing:.05em}}
 /* V28.68.114 青绿鎏金 in-game dialog (replaces native alert/confirm/prompt) */
-.xt-dialog-scrim-v2868114 { position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: var(--xt-s4); background: var(--xt-scrim, rgba(4, 8, 6, .72)); }
+.xt-dialog-scrim-v2868114 { position: fixed; inset: 0; z-index: 2147483647; display: flex; align-items: center; justify-content: center; padding: var(--xt-s4); background: var(--xt-scrim, rgba(4, 8, 6, .72)); }
 .xt-dialog-v2868114 { width: min(420px, 100%); max-height: 80vh; overflow: auto; padding: var(--xt-s5) var(--xt-s4) var(--xt-s4); font: var(--xt-fs-md)/var(--xt-lh-body) var(--xt-font-body); }
 .xt-dialog-msg-v2868114 { margin: 0 0 var(--xt-s4); white-space: pre-line; color: var(--xt-text-1); overflow-wrap: anywhere; }
 .xt-dialog-input-v2868114 { box-sizing: border-box; width: 100%; min-height: 44px; margin: 0 0 var(--xt-s4); padding: 0 var(--xt-s3); border-radius: var(--xt-r-md); border: 1px solid var(--xt-line-jade, var(--xt-jade-500)); background: var(--xt-ink-850); color: var(--xt-text-1); font: var(--xt-fs-md) var(--xt-font-body); }

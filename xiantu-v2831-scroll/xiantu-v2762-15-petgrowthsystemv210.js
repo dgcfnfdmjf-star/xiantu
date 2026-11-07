@@ -279,9 +279,10 @@ function buyPetGrowthBatchV286845(item,count=1){
   if(!petBatchAllowedV286845()||![1,5,10].includes(count))return false;
   const entry=PET_GROWTH_SHOP_V286845.find(x=>x.item===item);if(!entry||entry.realm&&!hasReachedRealm(entry.realm))return false;
   const total=entry.cost*count;if(!Number.isFinite(player.gold)||player.gold<total){showFloatingText?.(`❌ 灵石不足，需要 ${total} 灵石`,'#ff6b6b');return false;}
-  if(!confirmPurchaseV286867(item,total,count))return false;
-  if(!addStoredItemV2905('petMaterials',item,count))return false;player.gold-=total;showFloatingText?.(`✅ 获得【${item}】×${count}`,'#8fe3c4');
-  autoSave?.();updateStats?.();showPetGrowthShopV210();return true;
+  return confirmPurchaseV286867(item,total,count,'gold','',()=>{
+    if(!addStoredItemV2905('petMaterials',item,count))return false;player.gold-=total;showFloatingText?.(`✅ 获得【${item}】×${count}`,'#8fe3c4');
+    autoSave?.();updateStats?.();showPetGrowthShopV210();return true;
+  });
 }
 function showPetGrowthShopV210(){
   if(!petBatchAllowedV286845())return;

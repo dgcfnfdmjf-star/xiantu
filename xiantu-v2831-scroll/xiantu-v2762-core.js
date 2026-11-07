@@ -130,7 +130,7 @@
       if(document.getElementById('saveConflictV2868102'))return;
       const el=document.createElement('div');el.id='saveConflictV2868102';el.className='mobile-inventory-overlay';el.style.zIndex='2147483646';
       el.innerHTML='<div class="mobile-inventory-card" role="alertdialog" aria-modal="true" aria-labelledby="saveConflictTitleV2868102" style="padding:24px"><h3 id="saveConflictTitleV2868102">另一窗口已更新修行记录</h3><p>本窗口已停止保存，避免覆盖新的进度。请关闭其他游戏窗口，再刷新读取最新记录。</p><p>本窗口尚未保存的进度可以单独导出留存。</p><button class="choice-btn" data-save-conflict="export">导出本窗口未保存记录</button><button class="choice-btn" data-save-conflict="reload">刷新读取最新记录</button></div>';
-      el.onclick=e=>{const op=e.target.closest('[data-save-conflict]')?.dataset.saveConflict;if(op==='reload')location.reload();if(op==='export')exportRawSaveV2870(JSON.stringify(createSaveDataV2768()),'xiantu-unsaved-window-'+Date.now()+'.json').catch(()=>alert('导出未完成，请重试'));};
+      el.onclick=e=>{const op=e.target.closest('[data-save-conflict]')?.dataset.saveConflict;if(op==='reload')location.reload();if(op==='export')exportRawSaveV2870(JSON.stringify(createSaveDataV2768()),'xiantu-unsaved-window-'+Date.now()+'.json').catch(()=>gameAlertV2868114('导出未完成，请重试'));};
       el.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Tab'){e.preventDefault();const buttons=[...el.querySelectorAll('button')],i=buttons.indexOf(document.activeElement);buttons[(i+(e.shiftKey?-1:1)+buttons.length)%buttons.length]?.focus();}});document.body.appendChild(el);el.querySelector('[data-save-conflict="reload"]')?.focus?.();
       try{resetWorldMovementV28686();pauseVisualsV2767();}catch(_){}
     }
@@ -244,9 +244,9 @@
     
     function manualSave() {
       if (saveGame()) {
-        alert(gameState==='combat'?'💾 已保留开战前记录；未结算时退出，会恢复当场消耗并返回开战前。':'💾 修行记录已记入玉简');
+        gameAlertV2868114(gameState==='combat'?'💾 已保留开战前记录；未结算时退出，会恢复当场消耗并返回开战前。':'💾 修行记录已记入玉简');
       } else {
-        alert('修行记录未能写入，请稍后再试');
+        gameAlertV2868114('修行记录未能写入，请稍后再试');
       }
     }
     
@@ -2515,10 +2515,11 @@
       const owned=player.inventory.filter(n=>n===name).length;
       if(used+owned>=d.limit)return showFloatingText?.('已服用与库存已足够达到终身上限，无需再买','#ffd76a');
       if(player.gold<d.cost)return showFloatingText?.('灵石不足','#ffd76a');
-      if(!confirmPurchaseV286867(name,d.cost))return;
-      if(!addStoredItemV2905('inventory',name))return;player.gold-=d.cost;
-      updateStats(); autoSave(); showRarePillShop();
-      showFloatingText?.(`已购买${name}，请在储物袋中服用`,'#69f0ae');
+      confirmPurchaseV286867(name,d.cost,1,'gold','',()=>{
+        if(!addStoredItemV2905('inventory',name))return;player.gold-=d.cost;
+        updateStats(); autoSave(); showRarePillShop();
+        showFloatingText?.(`已购买${name}，请在储物袋中服用`,'#69f0ae');
+      });
     }
     function showLongevityPanel() {
       if(!player || gameState==='combat')return;
@@ -2605,8 +2606,7 @@
     function buyBreakthroughPillV28683(name){
       const d=BREAKTHROUGH_PILLS_V28683[name];
       if(!d||gameState==='combat'||gameState==='combat-ending'||player.breakthrough?.isAnimating||player.level<d.level||player.gold<d.cost)return;
-      if(!confirmPurchaseV286867(name,d.cost))return;
-      if(!addStoredItemV2905('inventory',name))return;player.gold-=d.cost;autoSave();updateStats();showRarePillShop();
+      confirmPurchaseV286867(name,d.cost,1,'gold','',()=>{if(!addStoredItemV2905('inventory',name))return;player.gold-=d.cost;autoSave();updateStats();showRarePillShop();});
     }
     function breakthroughDetailsV28683(){
       const d=calculateBreakthroughSuccess();
@@ -4460,27 +4460,37 @@
       showStory(html,[{text:'返回仙市',action:'market'}]);
     }
     let purchaseConfirmingV286867=false;
-    function confirmPurchaseV286867(name,cost,qty=1,currency='gold',detail=''){
+    // onOk runs only after the in-game confirm and a fresh-state recheck; it is the single place that spends.
+    // Node QA sandboxes fall back to the synchronous stubbed confirm and get onOk's return value.
+    function confirmPurchaseV286867(name,cost,qty=1,currency='gold',detail='',onOk){
       if(purchaseConfirmingV286867||!player||gameState!=='exploring'||player.breakthrough?.isAnimating||!['gold','sectContribution'].includes(currency)||typeof name!=='string'||!name||!Number.isFinite(cost)||cost<0||!Number.isInteger(qty)||qty<1||!Number.isFinite(player[currency])||player[currency]<cost||typeof window.confirm!=='function')return false;
       const owner=player,before=JSON.stringify(player),choices=currentChoices,quote=JSON.stringify(currentChoices),view=document.getElementById('storyText')?.innerHTML;
       const unit=currency==='gold'?'灵石':'宗门贡献';
+      let settled=false;
+      const finish=accepted=>{
+        if(settled)return false;settled=true;
+        try{
+          if(!accepted||player!==owner||gameState!=='exploring'||player.breakthrough?.isAnimating||JSON.stringify(player)!==before||currentChoices!==choices||JSON.stringify(currentChoices)!==quote||document.getElementById('storyText')?.innerHTML!==view)return false;
+          // In the browser the confirm returns before onOk; re-enter the item transaction so the spend saves or rolls back atomically.
+          return typeof onOk==='function'?(typeof itemActionV2905==='function'?itemActionV2905('购买',onOk):onOk()):true;
+        }finally{purchaseConfirmingV286867=false;}
+      };
       purchaseConfirmingV286867=true;
       try{
-        if(!window.confirm(`确认购买？\n\n${name} ×${qty}\n本次花费：${cost} ${unit}\n购买后剩余：${player[currency]-cost} ${unit}${detail?'\n'+detail:''}\n\n确定后才会扣款；取消不购买。`))return false;
-        return player===owner&&gameState==='exploring'&&!player.breakthrough?.isAnimating&&JSON.stringify(player)===before&&currentChoices===choices&&JSON.stringify(currentChoices)===quote&&document.getElementById('storyText')?.innerHTML===view;
-      }catch(_){return false;}finally{purchaseConfirmingV286867=false;}
+        const result=gameConfirmV2868114(`确认购买？\n\n${name} ×${qty}\n本次花费：${cost} ${unit}\n购买后剩余：${player[currency]-cost} ${unit}${detail?'\n'+detail:''}\n\n确定后才会扣款；取消不购买。`,()=>finish(true),()=>finish(false));
+        return settled?result:false;
+      }catch(e){if(settled)throw e;settled=true;purchaseConfirmingV286867=false;return false;}
     }
-    function confirmGearPurchaseV2804(name,cost,qty=1){
+    function confirmGearPurchaseV2804(name,cost,qty=1,onOk){
       if(!Number.isFinite(cost)||cost<=0||!Number.isInteger(qty)||qty<1||player.gold<cost||typeof window.confirm!=='function')return false;
       const owned=(player.equipmentInventory||[]).filter(n=>n===name).length+(player.inventory||[]).filter(n=>n===name).length+Object.values(player.equipment||{}).filter(n=>n===name).length;
-      return confirmPurchaseV286867(name,cost,qty,'gold',`已持有：${owned}件（含已穿戴）`);
+      return confirmPurchaseV286867(name,cost,qty,'gold',`已持有：${owned}件（含已穿戴）`,onOk);
     }
 
     function buyNewGearV2790(family,piece,grade){
       if(gameState==='combat'||!NEW_SETS_V2790[family]||!Number.isInteger(piece)||piece<0||piece>4||!Number.isInteger(grade)||grade<1||grade>GRADES_V2790.length)return;
       const name=newGearNameV2790(family,piece,grade),d=EQUIPMENT_DB[name];if(!canEquipItem(name).ok||player.gold<d.priceV2790)return;
-      if(!confirmGearPurchaseV2804(name,d.priceV2790))return;
-      if(!addStoredItemV2905('equipmentInventory',name))return;player.gold-=d.priceV2790;autoSave();updateStats();showNewGearShopV2790(family,grade);
+      confirmGearPurchaseV2804(name,d.priceV2790,1,()=>{if(!addStoredItemV2905('equipmentInventory',name))return;player.gold-=d.priceV2790;autoSave();updateStats();showNewGearShopV2790(family,grade);});
     }
 
     // Old set pieces gain three versions. Baseline embeds the former quality multiplier.
@@ -4529,8 +4539,7 @@
     function buyOldGearV2792(family,piece,grade){
       if(gameState==='combat'||!OLD_SET_VERSIONS_V2792[family]||!Number.isInteger(piece)||piece<0||piece>=OLD_SET_VERSIONS_V2792[family].length||!Number.isInteger(grade)||grade<1||grade>GRADES_V2790.length)return;
       const name=oldVersionNameV2792(family,piece,grade),d=EQUIPMENT_DB[name];if(player.gold<d.priceV2790||!canEquipItem(name).ok)return;
-      if(!confirmGearPurchaseV2804(name,d.priceV2790))return;
-      if(!addStoredItemV2905('equipmentInventory',name))return;player.gold-=d.priceV2790;autoSave();updateStats();showOldGearShopV2792(family,grade);
+      confirmGearPurchaseV2804(name,d.priceV2790,1,()=>{if(!addStoredItemV2905('equipmentInventory',name))return;player.gold-=d.priceV2790;autoSave();updateStats();showOldGearShopV2792(family,grade);});
     }
 
     const FORGE_KEYS_V2825=new Set();
@@ -9220,7 +9229,7 @@
       if (pet.exp >= expNeed) {
         pet.exp -= expNeed;
         pet.level++;
-        alert(`🎉 ${pet.name} 升级了！当前等级 ${pet.level}`);
+        gameAlertV2868114(`🎉 ${pet.name} 升级了！当前等级 ${pet.level}`);
         playSound('levelup');
       }
       
@@ -9340,7 +9349,7 @@
       const artType = ARTIFACT_TYPES[art.type];
       
       if (art.level >= artType.maxLevel) {
-        alert('已达最大等级！');
+        gameAlertV2868114('已达最大等级！');
         return;
       }
       
@@ -9355,7 +9364,7 @@
       }
       
       art.level++;
-      alert(`✨ ${art.name} 强化成功！当前等级 +${art.level}`);
+      gameAlertV2868114(`✨ ${art.name} 强化成功！当前等级 +${art.level}`);
       playSound('item');
       
       updateArtifactPanel();
@@ -9542,8 +9551,7 @@
       if(!entry)return;
       const [name,d]=entry;
       if(!canEquipItem(name).ok||!Number.isFinite(d.priceV2790)||d.priceV2790<=0||player.gold<d.priceV2790)return;
-      if(!confirmGearPurchaseV2804(name,d.priceV2790))return;
-      if(!addStoredItemV2905('equipmentInventory',name))return;player.gold-=d.priceV2790;autoSave();updateStats();showMarketGearV2800(category,grade,filter);
+      confirmGearPurchaseV2804(name,d.priceV2790,1,()=>{if(!addStoredItemV2905('equipmentInventory',name))return;player.gold-=d.priceV2790;autoSave();updateStats();showMarketGearV2800(category,grade,filter);});
     }
 
     function showHome() {
@@ -10058,10 +10066,12 @@ function villageEnhanceV286897(){
       if(gameState==='combat'||gameState==='combat-ending'||!Number.isInteger(index)||!Number.isInteger(qty))return;
       const item=GENERAL_SHOP_V2801[index];if(!item||![1,5].includes(qty)||(item.category==='gear'&&qty!==1))return;
       if(!hasReachedRealm(item.level)||player.gold<item.cost*qty)return;
-      if(!(item.category==='gear'?confirmGearPurchaseV2804(item.name,item.cost*qty,qty):confirmPurchaseV286867(item.name,item.cost*qty,qty)))return;
-      if(!addStoredItemV2905(item.store!=='auto'?item.store:EQUIPMENT_DB[item.name]?'equipmentInventory':'inventory',item.name,qty))return;
-      player.gold-=item.cost*qty;
-      autoSave();updateStats();showShop(item.category,`已购买 ${item.name} ×${qty}，花费 ${item.cost*qty} 灵石。`);
+      const settle=()=>{
+        if(!addStoredItemV2905(item.store!=='auto'?item.store:EQUIPMENT_DB[item.name]?'equipmentInventory':'inventory',item.name,qty))return;
+        player.gold-=item.cost*qty;
+        autoSave();updateStats();showShop(item.category,`已购买 ${item.name} ×${qty}，花费 ${item.cost*qty} 灵石。`);
+      };
+      if(item.category==='gear')confirmGearPurchaseV2804(item.name,item.cost*qty,qty,settle);else confirmPurchaseV286867(item.name,item.cost*qty,qty,'gold','',settle);
     }
 
     function showExplore() {
@@ -10677,11 +10687,13 @@ function villageEnhanceV286897(){
       if (player.sectContribution < cost) return showStory('贡献不足！', [{text:'返回', action:'sect_library'}]);
       const skillObj = SKILLS.find(s=>s.name===skillName);
       if (!skillObj) return showSectLibrary();
-      if(!confirmPurchaseV286867(skillName,cost,1,'sectContribution'))return;
+      confirmPurchaseV286867(skillName,cost,1,'sectContribution','',()=>{
+      if(player.skills.some(s=>s?.name===skillName)||player.sectContribution<cost)return;
       player.sectContribution -= cost;
       player.skills.push({...skillObj});
       autoSave();
       showStory(`✅ 成功兑换功法【${skillName}】！<br><span style="color:#aaa">剩余贡献：${player.sectContribution}</span>`, [{text:'继续', action:'sect_library'}]);
+      });
     }
 
     function showSectShop() {
@@ -10700,11 +10712,12 @@ function villageEnhanceV286897(){
       if (!itemDef) return showSectShop();
       cost=itemDef.cost;
       if (player.sectContribution < cost) return showStory('贡献不足！', [{text:'返回', action:'sect_shop'}]);
-      if(!confirmPurchaseV286867(itemName,cost,1,'sectContribution'))return;
-      if(!addStoredItemV2905(itemDef.type==='material'?'materials':'inventory',itemDef.type==='material'?itemDef.value:itemName))return;
+      confirmPurchaseV286867(itemName,cost,1,'sectContribution','',()=>{
+      if(player.sectContribution<cost||!addStoredItemV2905(itemDef.type==='material'?'materials':'inventory',itemDef.type==='material'?itemDef.value:itemName))return;
       player.sectContribution -= cost;
       autoSave();
       showStory(`✅ 购买成功！获得【${itemName}】<br><span style="color:#aaa">剩余贡献：${player.sectContribution}</span>`, [{text:'继续', action:'sect_shop'}]);
+      });
     }
 
     function showSectRank() {
@@ -11036,6 +11049,7 @@ function villageEnhanceV286897(){
     
     let currentChoices = [];
     
+    let purchaseApprovedChoiceV2868114=null;
     function handleChoice(index) {
       const choice = currentChoices[index];
       if(!choice)return;
@@ -11044,8 +11058,13 @@ function villageEnhanceV286897(){
       }
       
       if(['buy','buyMaterial','buyArtifactMaterial','buyPetMaterial','buy_set_item'].includes(choice.action)){
-        const ok=EQUIPMENT_DB[choice.item]?confirmGearPurchaseV2804(choice.item,choice.cost):confirmPurchaseV286867(choice.item,choice.cost);
-        if(!ok)return;
+        if(purchaseApprovedChoiceV2868114===choice)purchaseApprovedChoiceV2868114=null;
+        else{
+          // The confirm helper rechecks player/choices/view; resume this exact choice once.
+          const resume=()=>{if(currentChoices[index]!==choice)return false;purchaseApprovedChoiceV2868114=choice;try{return handleChoiceCoreV2868114(index);}finally{purchaseApprovedChoiceV2868114=null;}};
+          if(EQUIPMENT_DB[choice.item])confirmGearPurchaseV2804(choice.item,choice.cost,1,resume);else confirmPurchaseV286867(choice.item,choice.cost,1,'gold','',resume);
+          return;
+        }
       }
       switch(choice.action) {
         case 'tutorial_begin_world':
@@ -11681,6 +11700,7 @@ function villageEnhanceV286897(){
       }
       updateStats();
     }
+    const handleChoiceCoreV2868114=handleChoice;
     
     // 迷雾森林探索
     function handleForestExplore() {
@@ -11933,9 +11953,11 @@ function villageEnhanceV286897(){
       if(!d)return;
       if(h.furniture.some(f=>f.name===name)){showFurnitureShop('这件家具已经拥有，收纳后也无需再买。');return;}
       if(player.gold<d.cost){showFurnitureShop('灵石不足，还差 '+(d.cost-player.gold)+' 灵石。');return;}
-      if(!confirmPurchaseV286867(d.name,d.cost,1,'gold',d.desc+'\n每种限购一次，购买后自动摆放。'))return;
-      player.gold-=d.cost;h.furniture.push({name:d.name,type:d.type,value:d.value,active:true});
-      autoSave();updateStats();showFurnitureShop('购买成功，已摆放：'+d.name);
+      confirmPurchaseV286867(d.name,d.cost,1,'gold',d.desc+'\n每种限购一次，购买后自动摆放。',()=>{
+        if(h.furniture.some(f=>f.name===name)||player.gold<d.cost)return;
+        player.gold-=d.cost;h.furniture.push({name:d.name,type:d.type,value:d.value,active:true});
+        autoSave();updateStats();showFurnitureShop('购买成功，已摆放：'+d.name);
+      });
     }
     function setFurnitureV2812(name,active){
       const f=normalizeHomeV2812(player).furniture.find(x=>x.name===name);if(!f)return;
@@ -15719,7 +15741,7 @@ function villageEnhanceV286897(){
       try{assertSaveSessionV2868102();}catch(_){return false;}
       const rawName = document.getElementById('playerName').value.trim();
       const name = rawName || '无名';
-      try{validateSaveTextV2869({name});}catch(e){alert('道号请使用文字、数字或空格，不要包含代码符号');return;}
+      try{validateSaveTextV2869({name});}catch(e){gameAlertV2868114('道号请使用文字、数字或空格，不要包含代码符号');return;}
       const isTest999 = rawName === '999' && devToolsAllowedV286838();
       resetRuntimeState();
 
@@ -15792,12 +15814,12 @@ function villageEnhanceV286897(){
         }
       }
       if (!saveData) {
-        alert('存档无法读取，请在存档管理中导入或恢复备份。原记录未删除。');
+        gameAlertV2868114('存档无法读取，请在存档管理中导入或恢复备份。原记录未删除。');
         showSaveManagerV2768();
         return;
       }
       
-      if(saveData._recoveredFromBackup)alert('主存档无法读取，已使用最近一次有效备用档恢复。');
+      if(saveData._recoveredFromBackup)gameAlertV2868114('主存档无法读取，已使用最近一次有效备用档恢复。');
       // Loading may initialize tasks; do not overwrite either recovery candidate during setup.
       const wasSaveDeferred=miniSaveDeferredV286840;miniSaveDeferredV286840=true;
       try{
