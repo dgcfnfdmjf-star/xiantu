@@ -8,6 +8,7 @@ async root => {
   const context=await browser.newContext({viewport:vp||{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true});
   const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
   await page.route('**/*',async r=>{if(new URL(r.request().url()).hostname!=='127.0.0.1'){external.push(r.request().url());return r.abort()}
+   if(r.request().resourceType()!=='document')return r.continue();
    const res=await r.fetch();let body=await res.text();for(const [a,b] of inject){if(body.includes(a))body=body.replace(a,b)}
    body=body.replace(/var bfs = \[\]/,'var bfs = window.__bl = []');await r.fulfill({response:res,body})});
   await page.addInitScript(d=>{if(sessionStorage.getItem('fx'))return;sessionStorage.setItem('fx','1');for(const k in d)localStorage.setItem(k,JSON.stringify(d[k]));localStorage.setItem('hg_level2_unlocked','1')},save);
