@@ -146,17 +146,21 @@ function finishWarDuelV2839(won,reason=''){
 function restWarV2839(id){
  if(!warAllowedV2839())return;const c=warCampaignV2839(id);if(!warStageValidV2839(c)||c.step>=3||c.rests>=2)return;
  const cost=80+c.realm*30;if(player.gold<cost)return;
- if(!confirm(`消耗 ${cost} 灵石与 1 个游戏日，恢复气血、灵力并补充 2 点战备？每场限两次。`))return;
- if(!warAllowedV2839()||warCampaignV2839(id)!==c||player.gold<cost||c.rests>=2)return;
- if(!commitWarV286841(()=>{player.gold-=cost;c.rests++;c.supplies=Math.min(4,c.supplies+2);player.hp=getMaxHp();player.mp=getMaxMp();advanceGameTime(1,'军营整备');warLogV2839(c,`军营整备：支出 ${cost} 灵石，恢复状态并补充战备。`);}))return;updateStats();showWarCampaignV2775();
+ const owner=player,rests=c.rests;
+ gameConfirmOnceV2868114('war-rest',`消耗 ${cost} 灵石与 1 个游戏日，恢复气血、灵力并补充 2 点战备？每场限两次。`,()=>{
+ if(player!==owner||!warAllowedV2839()||warCampaignV2839(id)!==c||player.gold<cost||c.rests!==rests||c.rests>=2)return false;
+ if(!commitWarV286841(()=>{player.gold-=cost;c.rests++;c.supplies=Math.min(4,c.supplies+2);player.hp=getMaxHp();player.mp=getMaxMp();advanceGameTime(1,'军营整备');warLogV2839(c,`军营整备：支出 ${cost} 灵石，恢复状态并补充战备。`);}))return false;updateStats();showWarCampaignV2775();return true;
+ });
 }
 retreatWarV2775=function(){
  if(!warAllowedV2839())return;const c=warCampaignV2839();if(!c)return;
- if(!confirm('确认撤军？保留战史，不发战役奖励；盟友解散，已付费用不返还，主动出征至少休整7个游戏日，已有更长休整保留。'))return;
- if(warCampaignV2839(c.id)!==c||!warAllowedV2839())return;
+ const owner=player;
+ gameConfirmOnceV2868114('war-retreat','确认撤军？保留战史，不发战役奖励；盟友解散，已付费用不返还，主动出征至少休整7个游戏日，已有更长休整保留。',()=>{
+ if(player!==owner||warCampaignV2839(c.id)!==c||c.settled||!warAllowedV2839())return false;
  const w=warStateV2839();if(!commitWarV286841(()=>{c.settled=true;
  w.history.push({id:c.id,enemy:c.enemy,result:'撤军',ourPower:c.our,enemyPower:c.foe,type:c.mode==='defense'?'defense_v2839':'declared',date:getGameDateLabel(),rounds:c.step,kills:0,ratio:0,roster:c.roster,tactics:c.log.slice(),score:c.score,personalWins:c.personalWins,rewards:{gold:0,exp:0,contribution:0,merit:0},versionV2839:1});
- w.history=w.history.slice(-60);w.lastNotice={text:`对${c.enemy}的行动已撤军，未发放战役奖励。`,date:getGameDateLabel(),result:'撤军'};clearWarCampaignV2839(w,7,WAR_STATUS.PEACE);}))return;updateStats();showWarReceiptV2839(c.id);
+ w.history=w.history.slice(-60);w.lastNotice={text:`对${c.enemy}的行动已撤军，未发放战役奖励。`,date:getGameDateLabel(),result:'撤军'};clearWarCampaignV2839(w,7,WAR_STATUS.PEACE);}))return false;updateStats();showWarReceiptV2839(c.id);return true;
+ });
 };
 function clearWarCampaignV2839(w,cooldown,status){
  w.campaignV2775=null;w.status=status;w.enemy=null;w.phase=0;w.warCooldown=Math.max(w.warCooldown||0,cooldown);w.alliedSects=[];w.immortalSupport=false;w.immortalAlly=null;
@@ -189,12 +193,14 @@ settleWarV2775=function(enemy){
 };
 function exchangeWarMeritV2839(index){
  if(!warAllowedV2839()||!Number.isInteger(index))return;const goods=WAR_GOODS_V2839[index],w=warStateV2839();if(!goods||w.meritV2839<goods.cost)return;
- const owner=player;if(!confirm(`使用 ${goods.cost} 军功兑换${goods.name}：${goods.desc}？`))return;
- if(player!==owner||!warAllowedV2839()||player.warState!==w||w.meritV2839<goods.cost)return;
+ const owner=player,merit=w.meritV2839;
+ gameConfirmOnceV2868114('war-merit',`使用 ${goods.cost} 军功兑换${goods.name}：${goods.desc}？`,()=>{
+ if(player!==owner||!warAllowedV2839()||player.warState!==w||w.meritV2839!==merit||w.meritV2839<goods.cost)return false;
  if(!commitWarV286841(()=>{w.meritV2839-=goods.cost;if(goods.items)player.inventory.push(...goods.items);
  for(const [name,n] of Object.entries(goods.materials||{})){player.materials[name]=(player.materials[name]||0)+n;onCollectMaterial(name,n);}
  for(const [name,n] of Object.entries(goods.petMaterials||{})){player.petMaterials ||= {};player.petMaterials[name]=(player.petMaterials[name]||0)+n;}
- }))return;updateStats();showWarMeritV2839();
+ }))return false;updateStats();showWarMeritV2839();return true;
+ });
 }
 // Incoming assaults are dispatches awaiting the player's decision. Resting never silently bills a battle loss.
 checkDemonInvasion=function(){
@@ -244,9 +250,11 @@ function showWarPreparationV2839(enemy){
 function showWarAlliesV2839(enemy){
  if(!warAllowedV2839()||!warTargetEligibleV2891(enemy)||warCampaignV2839())return;const w=warStateV2839(),esc=discipleEscV2815;
  openWarPanelV2839('联军招募',()=>`<p>每宗30贡献，确认后结盟。本次战役结束或撤军后解散。</p><p>可用贡献：${player.sectContribution}</p>${allyBatchButtonV2892(enemy)}<div class="war-targets-v2839">${Object.keys(HUMAN_FACTION_POWER).filter(n=>n!==player.sect&&!isFactionDestroyed(n)).map(n=>warButtonV2839(`${n} · ${calculateSectPower(n).total} 战力${w.alliedSects.includes(n)?' · 已结盟':''}`,()=>{
-  const owner=player,originSect=player.sect;if(!confirm(`支付30贡献，邀请${n}加入本次联军？`))return;
-  if(player!==owner||player.sect!==originSect||player.warState!==w||!warTargetEligibleV2891(enemy)||n===player.sect||!warAllowedV2839()||warCampaignV2839()||w.alliedSects.includes(n)||player.sectContribution<30||isFactionDestroyed(n))return;
-  if(!commitWarV286841(()=>{player.sectContribution-=30;w.alliedSects.push(n);})){showWarAlliesV2839(enemy);return;}updateStats();showWarAlliesV2839(enemy);
+  const owner=player,originSect=player.sect;
+  gameConfirmOnceV2868114('war-ally',`支付30贡献，邀请${n}加入本次联军？`,()=>{
+  if(player!==owner||player.sect!==originSect||player.warState!==w||!warTargetEligibleV2891(enemy)||n===player.sect||!warAllowedV2839()||warCampaignV2839()||w.alliedSects.includes(n)||player.sectContribution<30||isFactionDestroyed(n))return false;
+  if(!commitWarV286841(()=>{player.sectContribution-=30;w.alliedSects.push(n);})){showWarAlliesV2839(enemy);return false;}updateStats();showWarAlliesV2839(enemy);return true;
+  });
  },w.alliedSects.includes(n)||player.sectContribution<30)).join('')}</div>`,()=>warButtonV2839('返回战前筹备',()=>declareWar(enemy)));
 }
 // Same eligibility and 30-contribution price as individual invitations; no new ally cap.
@@ -268,10 +276,11 @@ function allyAllV2892(enemy,expected){
  if(!warAllowedV2839()||!warTargetEligibleV2891(enemy)||warCampaignV2839())return false;
  const owner=player,sect=player.sect,w=player.warState,plan=allyPlanV2892(),signature=JSON.stringify(plan);
  if(!plan.picks.length||expected&&signature!==JSON.stringify(expected))return false;
- if(!confirm(`邀请 ${plan.picks.map(p=>p.name).join('、')}，共 ${plan.picks.length} 宗？每宗30贡献，总计 ${plan.cost}，剩余 ${player.sectContribution-plan.cost} 贡献。`))return false;
+ return gameConfirmOnceV2868114('war-ally-batch',`邀请 ${plan.picks.map(p=>p.name).join('、')}，共 ${plan.picks.length} 宗？每宗30贡献，总计 ${plan.cost}，剩余 ${player.sectContribution-plan.cost} 贡献。`,()=>{
  if(player!==owner||player.sect!==sect||player.warState!==w||!warAllowedV2839()||!warTargetEligibleV2891(enemy)||warCampaignV2839()||JSON.stringify(allyPlanV2892())!==signature)return false;
  const ok=commitWarV286841(()=>{player.sectContribution-=plan.cost;w.alliedSects.push(...plan.picks.map(p=>p.name));});
  if(ok)updateStats();showWarAlliesV2839(enemy);return ok;
+ });
 }
 function requestWarImmortalV2839(enemy){
  if(!warAllowedV2839()||!warTargetEligibleV2891(enemy)||warCampaignV2839())return;
@@ -280,13 +289,15 @@ function requestWarImmortalV2839(enemy){
  openWarPanelV2839('向仙门求援',()=>`<p>可用贡献 ${player.sectContribution}。选定仙门后仍需确认：成功消耗150贡献，未获回应消耗75贡献。</p>${eligible.length?eligible.map(f=>{
   const rate=Math.min(.85,.3+warProsperityV2891()/500+(player.factionReputation?.[f.name]||0)/250);
   return '<article class="war-history-v2839"><h3>'+discipleEscV2815(f.name)+'</h3><p>支援战力 '+Math.round(getFactionWorldBasePower(f.name)*.35)+' · 应援概率 '+Math.round(rate*100)+'%</p>'+warButtonV2839('请求'+f.name+'支援',()=>{
-   const owner=player,originSect=player.sect;if(!confirm('向'+f.name+'求援？成功扣150贡献，未获回应扣75贡献。'))return;
-   if(player!==owner||player.sect!==originSect||player.warState!==w||!warTargetEligibleV2891(enemy)||getWarLevel()<2||!warAllowedV2839()||warCampaignV2839()||w.immortalSupport||player.sectContribution<150||isFactionDestroyed(f.name)||!canRequestAid(f.name))return;
+   const owner=player,originSect=player.sect;
+   gameConfirmOnceV2868114('war-immortal','向'+f.name+'求援？成功扣150贡献，未获回应扣75贡献。',()=>{
+   if(player!==owner||player.sect!==originSect||player.warState!==w||!warTargetEligibleV2891(enemy)||getWarLevel()<2||!warAllowedV2839()||warCampaignV2839()||w.immortalSupport||player.sectContribution<150||isFactionDestroyed(f.name)||!canRequestAid(f.name))return false;
    const currentRate=Math.min(.85,.3+warProsperityV2891()/500+(player.factionReputation?.[f.name]||0)/250),ok=Math.random()<currentRate;
    if(!commitWarV286841(()=>{player.sectContribution-=ok?150:75;
    if(ok){w.immortalSupport=true;w.immortalAlly=f.name;addFactionReputation(f.name,5,'宗门战争求援');}
-   w.lastNotice={text:ok?f.name+'同意支援，已消耗150贡献。':f.name+'未回应，已消耗75贡献。',date:getGameDateLabel(),result:'求援'};})){requestWarImmortalV2839(enemy);return;}updateStats();
-   openWarPanelV2839('仙门回讯',()=>'<p>'+discipleEscV2815(w.lastNotice.text)+'</p>',()=>warButtonV2839('返回战前筹备',()=>declareWar(enemy)));
+   w.lastNotice={text:ok?f.name+'同意支援，已消耗150贡献。':f.name+'未回应，已消耗75贡献。',date:getGameDateLabel(),result:'求援'};})){requestWarImmortalV2839(enemy);return false;}updateStats();
+   openWarPanelV2839('仙门回讯',()=>'<p>'+discipleEscV2815(w.lastNotice.text)+'</p>',()=>warButtonV2839('返回战前筹备',()=>declareWar(enemy)));return true;
+   });
   })+'</article>';
  }).join(''):'<p>暂无达到声望与干预条件的仙门。可先通过三界势力玩法改善关系。</p>'}`,()=>warButtonV2839('返回战前筹备',()=>declareWar(enemy)));
 }
@@ -506,7 +517,8 @@ function launchAbyssBossV2882(){
  if(!abyssViewValidV2882()||player.level<5||player.hp<=1)return false;
  const view=abyssViewV2882,owner=player,state=normalizeAbyssV2882(player.abyssBossV2882);if(state.pending)return false;
  const stamp=JSON.stringify([player.level,player.phase,player.hp,player.mp,player.abyssBossV2882]),e=createAbyssBossV2882(view.plan);
- if(!confirm(`迎战${getEnemyRealmNameV2811(e)}的战神之魂？三阶段连续交锋，不能脱战；战败不扣灵石。胜利后回断桥领取悬赏。`)||owner!==player||!abyssViewValidV2882(view)||stamp!==JSON.stringify([player.level,player.phase,player.hp,player.mp,player.abyssBossV2882]))return false;
+ return gameConfirmOnceV2868114('abyss-launch',`迎战${getEnemyRealmNameV2811(e)}的战神之魂？三阶段连续交锋，不能脱战；战败不扣灵石。胜利后回断桥领取悬赏。`,()=>{
+ if(owner!==player||!abyssViewValidV2882(view)||stamp!==JSON.stringify([player.level,player.phase,player.hp,player.mp,player.abyssBossV2882]))return false;
  const realm=player.level;
  closeWarPanelV2839();closeWorldOverlay();startCombat(e,true,false,null);
  if(currentEnemy!==e||gameState!=='combat')return false;
@@ -514,6 +526,7 @@ function launchAbyssBossV2882(){
  abyssBattlesV2882.set(e,{owner,token:COMBAT_FINISH_V2764.token,realm,plan:view.plan,stage:1,turn:0,shield:Math.floor(e.maxHp*(view.plan==='chain'?.075:.15)),guard:view.plan==='chain'?Math.floor(getMaxHp()*.15):0,settled:false});
  addCombatLog(`归墟断桥 · ${ABYSS_PLANS_V2882[view.plan][0]}：${ABYSS_PLANS_V2882[view.plan][1]}`,'boss');
  updateCombatUI();return true;
+ });
 }
 function recordAbyssFinishV2882(){
  const e=currentEnemy,b=abyssBattleV2882(e),p=COMBAT_FINISH_V2764.pending;
@@ -665,10 +678,12 @@ function launchEliteV2883(id){
  const c=ELITES_V2883[id],s=normalizeEliteHuntV2883(player.eliteHuntV2883);
  if(player.level<c.level||!isRegionUnlocked(c.region)||player.hp<=1||s.pending)return false;
  const view=eliteViewV2883,owner=player,stamp=()=>JSON.stringify([player.level,player.phase,player.hp,player.mp,eliteDayV2883(),player.eliteHuntV2883]),before=stamp(),enemy=createEliteV2883(id);
- if(!confirm(`讨伐${c.name}（${getEnemyRealmNameV2811(enemy)}）？${c.desc} 此战不能脱战；战败沿用20%灵石损失。`)||owner!==player||!eliteViewValidV2883(view)||stamp()!==before)return false;
+ return gameConfirmOnceV2868114('elite-launch',`讨伐${c.name}（${getEnemyRealmNameV2811(enemy)}）？${c.desc} 此战不能脱战；战败沿用20%灵石损失。`,()=>{
+ if(owner!==player||!eliteViewValidV2883(view)||stamp()!==before)return false;
  closeWarPanelV2839();closeWorldOverlay();startCombat(enemy,false,false,null);
  if(currentEnemy!==enemy||gameState!=='combat')return false;
  addCombatLog(`${c.trait}：${c.desc}`,'boss');updateCombatUI();return true;
+ });
 }
 function claimEliteV2883(){
  if(!eliteViewValidV2883())return false;

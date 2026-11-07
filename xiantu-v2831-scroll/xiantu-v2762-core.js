@@ -16559,5 +16559,15 @@ function gameAlertV2868114(message,done){return xtDialogV2868114('alert',message
 function gameConfirmV2868114(message,onOk,onCancel){return xtDialogV2868114('confirm',message,ok=>ok?onOk?.():onCancel?.());}
 // Sites that historically proceeded when no confirm existed (headless sandboxes) keep that behaviour.
 function gameConfirmOrRunV2868114(message,onOk){if(!xtDialogUsableV2868114()&&typeof globalThis.confirm!=='function')return onOk();return gameConfirmV2868114(message,onOk,()=>false);}
+// One pending confirm per key: a second open while it is showing is ignored and onOk runs at most once.
+// onOk must recheck every precondition itself; the sandbox fallback returns its result synchronously.
+const xtConfirmPendingV2868114=new Set();
+function gameConfirmOnceV2868114(key,message,onOk){
+ if(xtConfirmPendingV2868114.has(key)&&xtDialogUsableV2868114()&&document.getElementById('xtDialogV2868114'))return false;
+ let settled=false;xtConfirmPendingV2868114.add(key);
+ const settle=()=>{if(settled)return false;settled=true;xtConfirmPendingV2868114.delete(key);return true;};
+ try{return gameConfirmV2868114(message,()=>settle()?onOk():false,()=>{settle();return false;})??false;}
+ catch(e){settle();throw e;}
+}
 function gamePromptV2868114(message,defaultValue,done){return xtDialogV2868114('prompt',message,done,defaultValue);}
-window.gameAlertV2868114=gameAlertV2868114;window.gameConfirmV2868114=gameConfirmV2868114;window.gamePromptV2868114=gamePromptV2868114;
+window.gameAlertV2868114=gameAlertV2868114;window.gameConfirmV2868114=gameConfirmV2868114;window.gamePromptV2868114=gamePromptV2868114;window.gameConfirmOnceV2868114=gameConfirmOnceV2868114;
