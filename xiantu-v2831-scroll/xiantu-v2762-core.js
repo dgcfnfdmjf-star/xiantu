@@ -16458,3 +16458,41 @@ function pillBatchButtonsV2905(row,index){
  const kind=row.data?.type;if(!['heal','mp','exp'].includes(kind)||row.count<2)return '';
  return `<div class="bag-batch-v2905">${[[5,'×5'],[10,'×10'],kind==='exp'?['all','全部（最多999）']:['full','用至满']].map(([mode,label])=>`<button type="button" class="choice-btn" data-bag-batch="${index}" data-mode="${mode}" ${pillBatchCountV2905(row.name,mode)?'':'disabled'}>${label}</button>`).join('')}</div>`;
 }
+
+// V28.68.114 青绿鎏金 in-game dialog: replaces native alert/confirm/prompt where the caller can continue via callback.
+// Without a real DOM (Node QA sandboxes) it falls back to the native/stubbed function synchronously.
+let xtDialogActiveV2868114=null;
+function xtDialogUsableV2868114(){try{return typeof document!=='undefined'&&typeof HTMLElement==='function'&&document.body instanceof HTMLElement;}catch(_){return false;}}
+function xtDialogV2868114(kind,message,done,defaultValue){
+ const text=String(message??'');
+ if(!xtDialogUsableV2868114()){
+  const native=kind==='prompt'?globalThis.prompt:kind==='confirm'?globalThis.confirm:globalThis.alert;
+  const value=typeof native==='function'?native(text,...(kind==='prompt'?[defaultValue??'']:[])):(kind==='confirm'?false:kind==='prompt'?null:undefined);
+  return typeof done==='function'?done(kind==='confirm'?!!value:value):value;
+ }
+ if(xtDialogActiveV2868114)xtDialogActiveV2868114.close(false);
+ const previous=document.activeElement,id='xtDialogV2868114';
+ const scrim=document.createElement('div');scrim.id=id;scrim.className='xt-dialog-scrim-v2868114';
+ const box=document.createElement('div');box.className='xt-frame xt-dialog-v2868114';box.setAttribute('role',kind==='alert'?'alertdialog':'dialog');box.setAttribute('aria-modal','true');box.setAttribute('aria-describedby',id+'Msg');box.setAttribute('aria-label',kind==='prompt'?'输入':kind==='confirm'?'确认':'提示');
+ const msg=document.createElement('p');msg.id=id+'Msg';msg.className='xt-dialog-msg-v2868114';msg.textContent=text;box.appendChild(msg);
+ let input=null;if(kind==='prompt'){input=document.createElement('input');input.type='text';input.className='xt-dialog-input-v2868114';input.value=String(defaultValue??'');input.setAttribute('aria-labelledby',id+'Msg');input.maxLength=64;box.appendChild(input);}
+ const actions=document.createElement('div');actions.className='xt-dialog-actions-v2868114';
+ const mk=(label,cls,act)=>{const b=document.createElement('button');b.type='button';b.className='xt-btn '+cls;b.textContent=label;b.dataset.xtDialog=act;actions.appendChild(b);return b;};
+ const cancel=kind==='alert'?null:mk('取消','xt-btn--jade','cancel');const ok=mk(kind==='alert'?'知道了':'确定','xt-btn--gold','ok');
+ box.appendChild(actions);scrim.appendChild(box);
+ let closed=false;
+ const close=accepted=>{if(closed)return;closed=true;document.removeEventListener('keydown',onKey,true);scrim.remove();if(xtDialogActiveV2868114?.scrim===scrim)xtDialogActiveV2868114=null;try{previous?.focus?.({preventScroll:true});}catch(_){}
+  const value=kind==='confirm'?!!accepted:kind==='prompt'?(accepted?input.value:null):undefined;if(typeof done==='function')done(value);};
+ const onKey=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close(false);return;}
+  if(e.key==='Enter'&&e.target===input){e.preventDefault();close(true);return;}
+  if(e.key==='Tab'){const f=[input,cancel,ok].filter(Boolean),i=f.indexOf(document.activeElement);e.preventDefault();f[(i+(e.shiftKey?f.length-1:1))%f.length].focus();}};
+ ok.onclick=()=>close(true);if(cancel)cancel.onclick=()=>close(false);
+ scrim.addEventListener('click',e=>{if(e.target===scrim)close(kind==='alert');});
+ document.addEventListener('keydown',onKey,true);document.body.appendChild(scrim);
+ xtDialogActiveV2868114={scrim,close};(input||cancel||ok).focus();if(input)input.select();
+ return undefined;
+}
+function gameAlertV2868114(message,done){return xtDialogV2868114('alert',message,done);}
+function gameConfirmV2868114(message,onOk,onCancel){return xtDialogV2868114('confirm',message,ok=>ok?onOk?.():onCancel?.());}
+function gamePromptV2868114(message,defaultValue,done){return xtDialogV2868114('prompt',message,done,defaultValue);}
+window.gameAlertV2868114=gameAlertV2868114;window.gameConfirmV2868114=gameConfirmV2868114;window.gamePromptV2868114=gamePromptV2868114;

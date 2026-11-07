@@ -183,7 +183,7 @@ function evolvePetByIdV210(id,essence){if(!petBatchAllowedV286845())return false
 function renamePetByIdV2870(id){
  if(!petBatchAllowedV286845()||typeof prompt!=='function')return false;
  ensureAllPetGrowthV210();const pet=getPetById(id);if(!pet)return false;const owner=player;
- const raw=prompt(`请为「${pet.name}」赐名（1～8个字）：`,pet.name||'');if(raw===null)return false;
+ return gamePromptV2868114(`请为「${pet.name}」赐名（1～8个字）：`,pet.name||'',raw=>{if(raw===null)return false;
  const name=String(raw).trim();
  if(!name||Array.from(name).length>8){showFloatingText('名号须为1～8个字','#ffd76a');return false;}
  try{validateSaveTextV2869({name});}catch(_){showFloatingText('名号含不支持的符号，请使用文字或数字','#ffd76a');return false;}
@@ -192,7 +192,7 @@ function renamePetByIdV2870(id){
  const old=pet.name,hadSpecies=Object.hasOwn(pet,'speciesV286818'),species=pet.speciesV286818;
  if(!pet.speciesV286818)pet.speciesV286818=old;pet.name=name;
  if(!saveGame()){pet.name=old;if(hadSpecies)pet.speciesV286818=species;else delete pet.speciesV286818;return false;}
- updatePetPanel();updateStats();updateWorldHUD();showFloatingText(`✨ 已赐名为「${name}」`,'#ffd76a');return true;
+ updatePetPanel();updateStats();updateWorldHUD();showFloatingText(`✨ 已赐名为「${name}」`,'#ffd76a');return true;});
 }
 function getAncestryNameV210(pet){if(pet.isDemon)return'深渊魔化';if(pet.type==='灵狐')return'九尾天狐血脉';if(pet.type==='冰龙'||/蛇/.test(pet.speciesV286818||pet.name||''))return'真龙祖脉';if(pet.type==='雷鹰')return'金翅大鹏残血';if(pet.type==='火凤')return'太古凤凰祖血';return'上古荒兽祖血'}
 function canAncestryPetV210(pet){ensurePetGrowthStateV210(pet);if(pet.ancestralAwakened||pet.abyssForm||pet.divineAncestryDone)return{ok:false,reason:'终极血脉已完成'};const lock=getPetCultivationLockV210(pet);if(lock)return{ok:false,reason:`培养封禁 ${lock}天`};if((player.level||0)<3)return{ok:false,reason:'主人需达到金丹境'};if(pet.intimacy<100)return{ok:false,reason:`亲密度需满100（当前${Math.floor(pet.intimacy)}）`};if(pet.isDemon){if(!pet.mutationPerfect||pet.evolutionStage<2)return{ok:false,reason:'魔宠需完美变异 + 完全进化'};if(petMatCountV210('深渊魔核')<1||petMatCountV210('魔魂晶')<3)return{ok:false,reason:'需要深渊魔核×1、魔魂晶×3'};return{ok:true,material:'深渊魔核',demon:true}}

@@ -11,7 +11,7 @@ function jevMapNpcV2849(id){
   const npc=MAP_NPCS[id];if(!npc||!jevCanActV2846())return;
   const status=getMapNpcQuestState(id).status,affinity=getMapNpcAffinity(id),ready=getMapNpcQuestProgress(id).ready;
   const options=[{a:0,label:'提供本地线索 · 查看地域情报',apply:()=>showMapNpcIntel(id)},
-    ...(status==='completed'?[]:[{a:1,label:status==='accepted'?'谈谈当前委托 · 查看要求':'请求你的帮助 · 确认是否接取委托',apply:()=>{if(status==='accepted')return showMapNpcHub(id);if(window.confirm(`接取【${npc.quest.title}】？\n${npc.quest.desc}\n接取时不扣材料，备齐后自行提交。`))acceptMapNpcQuest(id);}}]),
+    ...(status==='completed'?[]:[{a:1,label:status==='accepted'?'谈谈当前委托 · 查看要求':'请求你的帮助 · 确认是否接取委托',apply:()=>{if(status==='accepted')return showMapNpcHub(id);const owner=player;gameConfirmV2868114(`接取【${npc.quest.title}】？\n${npc.quest.desc}\n接取时不扣材料，备齐后自行提交。`,()=>{if(player===owner)acceptMapNpcQuest(id);});}}]),
     {a:2,label:'保持谨慎 · 交谈一次',apply:()=>npcReservedTalkV2849(id)},
     {a:3,label:'交流近况 · 交谈一次',apply:()=>talkToMapNpc(id)}];
   return npcOptionsV2849(npc.name+' · Jev 行为','mapnpc',[affinity,['available','accepted','completed'].indexOf(status),Number(ready),jevPercentV2846(player.hp,getMaxHp()),player.level],options,ready&&status!=='completed'?1:0);
@@ -23,7 +23,7 @@ function jevElderV2849(){
   const options=SECT_TASK_TEMPLATES.filter(t=>!t.goldCost||player.gold>=t.goldCost).map(t=>{
     const owned=t.materials?Math.min(...Object.entries(t.materials).map(([k,v])=>Math.min(v,player.materials[k]||0))):t.goldCost?Math.min(player.gold,t.goldCost):0;
     return {a:t.type==='combat'?1:t.type==='donate'?2:0,b:getSectTaskCount(t),c:owned,d:t.contributionReward,e:t.goldCost||0,
-      label:`${t.name} · ${formatSectTaskDesc(t)} · ${t.contributionReward}贡献`,apply:()=>{if(window.confirm(`接取【${t.name}】？\n${formatSectTaskDesc(t)}\n接取时不扣资源，完成后按原规则提交。`))acceptSectTask(t.id);}};
+      label:`${t.name} · ${formatSectTaskDesc(t)} · ${t.contributionReward}贡献`,apply:()=>{const owner=player;gameConfirmV2868114(`接取【${t.name}】？\n${formatSectTaskDesc(t)}\n接取时不扣资源，完成后按原规则提交。`,()=>{if(player===owner)acceptSectTask(t.id);});}};
   });
   const preferred=Math.max(0,options.findIndex(o=>o.a===0&&o.c>=o.b));
   return npcOptionsV2849('宗门执事 · 安排差事','elder',[player.level,player.sectContribution,player.gold,jevPercentV2846(player.hp,getMaxHp())],options,preferred);

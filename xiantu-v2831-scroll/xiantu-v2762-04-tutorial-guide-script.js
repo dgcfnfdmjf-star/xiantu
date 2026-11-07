@@ -135,11 +135,11 @@ function handleTutorialAction(action,stepId){
   if(action==='finish'){if(!firstJourneyV28687()&&player.level<2){player.firstJourneyV28687={step:0};const owner=player;setTimeout(()=>{if(player===owner&&!firstJourneyV28687()?.paused&&firstJourneyV28687()?.step===0&&forgeAllowedV2825())showFirstJourneyV28687()},600);}tutorialState.compactStepId=null;completeTutorialStep(stepId);closeTutorialBubble();hideTutorialSkipBtn();clearTutorialStepClasses();showTutorialToast('✅ 基础引路已完成。现在可以自由行走四域，更多内容可随时从【角色 → 修行指引】查看。',4300);return}
 }
 function skipAllTutorial(){
-  const t=ensureTutorialState();if(!t)return;if(!confirm('略过新手引路？基础说明仍可在【角色 → 修行指引】中随时查看。'))return;
+  const t=ensureTutorialState();if(!t)return;const owner=player;return gameConfirmV2868114('略过新手引路？基础说明仍可在【角色 → 修行指引】中随时查看。',()=>{if(player!==owner||ensureTutorialState()!==t||t.skipped)return;
   cancelTutorialTrainingV286845();t.skipped=true;for(const id of TUTORIAL_ORDER)if(!t.completedSteps.includes(id))t.completedSteps.push(id);
   // 只补发尚未取得的演武基础物资，避免重复领奖。
   if(!t.readPopups.includes('training_reward')){t.readPopups.push('training_reward');player.gold+=120;if(!playerOwnsEquipment('布衣'))player.equipmentInventory.push('布衣');}
-  tutorialState.compactStepId=null;closeTutorialBubble();hideTutorialSkipBtn();clearTutorialStepClasses();updateStats?.();autoSave?.();showTutorialToast('引路已略过。自由探索已开放，修行所需说明仍收录在【角色 → 修行指引】中。',4000)
+  tutorialState.compactStepId=null;closeTutorialBubble();hideTutorialSkipBtn();clearTutorialStepClasses();updateStats?.();autoSave?.();showTutorialToast('引路已略过。自由探索已开放，修行所需说明仍收录在【角色 → 修行指引】中。',4000)});
 }
 function checkAndStartTutorial(force=false){const t=ensureTutorialState();if(!t)return;if(t.skipped&&!force){clearTutorialStepClasses();return}if(force&&t.skipped)t.skipped=false;if(t.completedSteps.length>=TUTORIAL_ORDER.length){clearTutorialStepClasses();return}const resume=t.activeStep&&TUTORIAL_STEPS[t.activeStep]?t.activeStep:TUTORIAL_ORDER.find(id=>!t.completedSteps.includes(id));if(resume){syncTutorialStage(resume);setTimeout(()=>triggerTutorial(resume,true),260)}}
 function restartTutorial(){cancelTutorialTrainingV286845();const t=ensureTutorialState();t.skipped=false;t.completedSteps=[];t.activeStep=null;tutorialState.compactStepId=null;closeHelpManual();closeTutorialBubble();syncTutorialStage('welcome');showTutorialSkipBtn();setTimeout(()=>triggerTutorial('welcome',true),180);autoSave?.()}
