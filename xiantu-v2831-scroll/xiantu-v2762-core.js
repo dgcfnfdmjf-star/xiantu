@@ -4616,13 +4616,16 @@
       const old=player.forgeV2825.items[ref.name],level=old?.level||0;if(old?.pending||(op==='enhance'&&level>=10))return;
       const grade=forgeGradeV2825(getEquipData(ref.name)),cost=op==='enhance'?100*grade*(level+1):200*grade;
       if(player.gold<cost)return;
-      if(!window.confirm(`${op==='enhance'?`强化至 +${level+1}`:'洗练两条词条'}：${ref.name}\n消耗 ${cost} 灵石，剩余 ${player.gold-cost}。${op==='wash'?'结果可选替换或保留，费用不退。':'强化必定成功。'}`))return;
-      if(!forgeCurrentV2825(nonce)||player.gold<cost)return;
-      const record=forgeIndividualV2825(ref);player.gold-=cost;
-      if(op==='enhance')record.level++;
-      else{const pool=Object.keys(FORGE_STATS_V2825),rows=[];for(let i=0;i<2;i++){const stat=pool.splice(Math.floor(Math.random()*pool.length),1)[0],range=FORGE_PERCENT_V286825[stat];rows.push({stat,unit:'percent',value:grade*(range.min+Math.floor(Math.random()*(range.max-range.min+1)))});}record.pending=rows;}
-      player.equipmentLocks ||= [];if(!player.equipmentLocks.includes(ref.name))player.equipmentLocks.push(ref.name);
-      forgeRegisterV2825(ref.name,record);autoSave();updateStats();renderForgeV2825();
+      const owner=player;
+      gameConfirmV2868114(`${op==='enhance'?`强化至 +${level+1}`:'洗练两条词条'}：${ref.name}\n消耗 ${cost} 灵石，剩余 ${player.gold-cost}。${op==='wash'?'结果可选替换或保留，费用不退。':'强化必定成功。'}`,()=>{
+        // Recheck after the dialog: same owner, item, level and no pending wash, so a stale or repeated confirm cannot spend twice.
+        const now=player.forgeV2825?.items?.[ref.name];if(player!==owner||!forgeCurrentV2825(nonce)||player.gold<cost||(now?.level||0)!==level||now?.pending)return;
+        const record=forgeIndividualV2825(ref);player.gold-=cost;
+        if(op==='enhance')record.level++;
+        else{const pool=Object.keys(FORGE_STATS_V2825),rows=[];for(let i=0;i<2;i++){const stat=pool.splice(Math.floor(Math.random()*pool.length),1)[0],range=FORGE_PERCENT_V286825[stat];rows.push({stat,unit:'percent',value:grade*(range.min+Math.floor(Math.random()*(range.max-range.min+1)))});}record.pending=rows;}
+        player.equipmentLocks ||= [];if(!player.equipmentLocks.includes(ref.name))player.equipmentLocks.push(ref.name);
+        forgeRegisterV2825(ref.name,record);autoSave();updateStats();renderForgeV2825();
+      });
     }
     function chooseForgeAffixesV2825(nonce,replace){
       const ref=forgeCurrentV2825(nonce);if(!ref||typeof replace!=='boolean')return;const record=player.forgeV2825.items[ref.name];if(!record?.pending)return;
@@ -5137,8 +5140,11 @@
     function challengeYeWujiV2810(){
       if(gameState==='combat'||gameState==='combat-ending'||COMBAT_FINISH_V2764.settling)return;
       const e=createYeWujiV2810();
-      if(!window.confirm(`挑战夜无疆（${getEnemyRealmNameV2811(e)}）？\n气血 ${e.hp} · 攻击 ${e.atk} · 防御 ${e.def}\n无灵石与修为奖励；战败按原规则扣款。`))return;
-      startCombat(e,true,false);
+      const owner=player;
+      gameConfirmV2868114(`挑战夜无疆（${getEnemyRealmNameV2811(e)}）？\n气血 ${e.hp} · 攻击 ${e.atk} · 防御 ${e.def}\n无灵石与修为奖励；战败按原规则扣款。`,()=>{
+        if(player!==owner||gameState==='combat'||gameState==='combat-ending'||COMBAT_FINISH_V2764.settling)return;
+        startCombat(e,true,false);
+      });
     }
 
     function getCombatBossData(enemy = currentEnemy) {
@@ -8794,9 +8800,12 @@
 
     function unequipAllGear(){
       const count=Object.values(player.equipment||{}).filter(Boolean).length;if(!count){showFloatingText?.('装备栏已经是空的','#aaa');return false;}
-      if(typeof confirm==='function'&&!confirm(`确定卸下全部 ${count} 件装备吗？`))return false;
+      const owner=player,before=JSON.stringify(player.equipment);
+      return gameConfirmOrRunV2868114(`确定卸下全部 ${count} 件装备吗？`,()=>{
+      if(player!==owner||JSON.stringify(player.equipment)!==before)return false;
       for(const slot of Object.keys(EQUIPMENT_SLOTS)){const name=player.equipment?.[slot];if(name)player.equipmentInventory.push(name);player.equipment[slot]=null;}
       checkSetBonuses();player.hp=Math.min(player.hp,getMaxHp());player.mp=Math.min(player.mp,getMaxMp());updateStats();updateWorldHUD?.();autoSave?.();showFloatingText?.(`↩️ 已卸下全部 ${count} 件装备`,'#ffd700');queueEquipmentRefreshV2906('panel',80);return true;
+      });
     }
 
     function getEquipCompareTarget(itemName){
@@ -10190,6 +10199,7 @@ function villageEnhanceV286897(){
       showStory(html, choices);
     }
 
+    let sectTaskApprovedV2868114=null;
     function updateSectTaskProgress(index) {
       if(!sectCanManageV2866())return;
       const task = player.sectTasks[index];
@@ -10198,7 +10208,14 @@ function villageEnhanceV286897(){
       const guide=getSectTaskGuide(task), p=getSectTaskProgressInfo(task);
       if(template.type!=='combat'&&p.ready){
         const costs=template.goldCost?`${template.goldCost} 灵石`:Object.entries(template.materials||{}).map(([name,n])=>`${name} ×${n}`).join('、');
-        if(costs&&!window.confirm(`提交 ${template.name}？消耗 ${costs}。`))return;
+        if(costs&&sectTaskApprovedV2868114!==task){
+          const owner=player;
+          gameConfirmV2868114(`提交 ${template.name}？消耗 ${costs}。`,()=>{
+            if(player!==owner||player.sectTasks?.[index]!==task||task.completed||!sectCanManageV2866())return;
+            sectTaskApprovedV2868114=task;try{updateSectTaskProgress(index);}finally{sectTaskApprovedV2868114=null;}
+          });
+          return;
+        }
       }
       if (template.type === 'combat') {
         showStory(`<p>⚔️ <b>${template.name}</b></p>${getSectTaskGuideHtml(task)}
@@ -10760,10 +10777,11 @@ function villageEnhanceV286897(){
       if(!d||d.batch!==batch||r.hired.includes(index)||r.members.length>=sectDiscipleCapV2880())return showDisciplesV2815('候选或名额已变化，请重新查看。');
       if(player.gold<d.cost)return showDisciplesV2815('灵石不足。');
       const owner=player,sect=player.sect,before=JSON.stringify(player);
-      if(!window.confirm(`招募 ${d.name}？消耗 ${d.cost} 灵石，剩余 ${player.gold-d.cost}。`))return;
-      if(player!==owner||player.sect!==sect||before!==JSON.stringify(player)||!discipleAllowedV2815()||discipleDayV2815()/30>=batch+1||r.members.length>=sectDiscipleCapV2880())return;
-      const ok=commitMiniWeaveV286840(()=>{player.gold-=d.cost;r.hired.push(index);r.members.push({id:r.nextId++,name:d.name,level:1,specialty:d.specialty,traitsV2867:discipleTraitsV2867(d),job:null});});
-      if(ok){updateStats();showDisciplesV2815('招募成功。');}
+      gameConfirmV2868114(`招募 ${d.name}？消耗 ${d.cost} 灵石，剩余 ${player.gold-d.cost}。`,()=>{
+        if(player!==owner||player.sect!==sect||before!==JSON.stringify(player)||!discipleAllowedV2815()||discipleDayV2815()/30>=batch+1||r.hired.includes(index)||r.members.length>=sectDiscipleCapV2880())return;
+        const ok=commitMiniWeaveV286840(()=>{player.gold-=d.cost;r.hired.push(index);r.members.push({id:r.nextId++,name:d.name,level:1,specialty:d.specialty,traitsV2867:discipleTraitsV2867(d),job:null});});
+        if(ok){updateStats();showDisciplesV2815('招募成功。');}
+      });
 
     }
     const DISCIPLE_TIERS_V2824=[{name:'普通',level:1,time:1,reward:1,count:1},{name:'进阶',level:3,time:1.5,reward:1.8,count:2},{name:'精英',level:6,time:2,reward:2.8,count:3}];
@@ -10783,20 +10801,25 @@ function villageEnhanceV286897(){
     function assignDiscipleV2815(id,type,tier=0){
       if(!discipleAllowedV2815())return showDisciplesV2815('当前无法处理宗门事务。');
       const d=discipleRosterV2815().members.find(x=>x.id===id);if(!d||d.job||warDiscipleBusyV286841(id))return;
-      const owner=player;
+      const owner=player,level=d.level;
+      // d.job and the level are rechecked in the callback, so a second confirm cannot charge or assign twice.
+      const fresh=()=>player===owner&&discipleAllowedV2815()&&!d.job&&d.level===level&&!warDiscipleBusyV286841(id)&&discipleRosterV2815().members.includes(d);
       if(type==='train'){
         if(d.level>=10)return;const cost=d.level*100;if(player.gold<cost)return showDisciplesV2815('培养灵石不足。');
-        if(!window.confirm(`培养 ${d.name}：消耗 ${cost} 灵石，需${discipleTrainDaysV2867(d)}个游戏日，完成后 Lv.${d.level} → Lv.${d.level+1}。`))return;
-        if(player!==owner||!discipleAllowedV2815()||d.job||warDiscipleBusyV286841(id)||player.gold<cost)return;
-        player.gold-=cost;d.job={type:'train',end:discipleDayV2815()+discipleTrainDaysV2867(d)};
+        gameConfirmV2868114(`培养 ${d.name}：消耗 ${cost} 灵石，需${discipleTrainDaysV2867(d)}个游戏日，完成后 Lv.${d.level} → Lv.${d.level+1}。`,()=>{
+          if(!fresh()||player.gold<cost)return;
+          player.gold-=cost;d.job={type:'train',end:discipleDayV2815()+discipleTrainDaysV2867(d)};
+          autoSave();showDisciplesV2815('已安排，推进游戏日期后回来结算。');
+        });
       }else{
         const plan=disciplePlanV2824(d,type,tier);if(!plan)return;
         if(!plan.allowed)return showDisciplesV2815(`该难度需要弟子 Lv.${plan.requiredLevel}。`);
-        if(!window.confirm(`派遣 ${d.name} · ${plan.name}\n耗时 ${plan.days} 个游戏日；完成领取 ${plan.gold} 灵石、${plan.material}×${plan.count}。\n已计入等级与专长加成，无派遣费用。`))return;
-        if(player!==owner||!discipleAllowedV2815()||d.job||warDiscipleBusyV286841(id))return;
-        d.job=discipleNewJobV2867(d,plan);d.lastMissionV2824={type,tier};
+        gameConfirmV2868114(`派遣 ${d.name} · ${plan.name}\n耗时 ${plan.days} 个游戏日；完成领取 ${plan.gold} 灵石、${plan.material}×${plan.count}。\n已计入等级与专长加成，无派遣费用。`,()=>{
+          if(!fresh())return;
+          d.job=discipleNewJobV2867(d,plan);d.lastMissionV2824={type,tier};
+          autoSave();showDisciplesV2815('已安排，推进游戏日期后回来结算。');
+        });
       }
-      autoSave();showDisciplesV2815('已安排，推进游戏日期后回来结算。');
     }
     function discipleReadyV2821(d){
       return !!d.job && Number.isFinite(d.job.end) && d.job.end<=discipleDayV2815();
@@ -12071,8 +12094,12 @@ function villageEnhanceV286897(){
     function handleHomeUpgrade(){
       const h=normalizeHomeV2812(player),cost=h.level*200;
       if(h.level>=5||player.gold<cost){showHomeManage();return;}
-      if(typeof window.confirm!=='function'||!window.confirm(`升级洞府至 Lv.${h.level+1}？\n消耗 ${cost} 灵石，剩余 ${player.gold-cost} 灵石。\n洞府修炼加成：${(h.level-1)*5}% → ${h.level*5}%`))return;
-      player.gold-=cost;h.level++;autoSave();updateStats();showHomeManage();
+      if(typeof window.confirm!=='function')return;
+      const owner=player,level=h.level;
+      gameConfirmV2868114(`升级洞府至 Lv.${h.level+1}？\n消耗 ${cost} 灵石，剩余 ${player.gold-cost} 灵石。\n洞府修炼加成：${(h.level-1)*5}% → ${h.level*5}%`,()=>{
+        if(player!==owner||normalizeHomeV2812(player)!==h||h.level!==level||player.gold<cost)return;
+        player.gold-=cost;h.level++;autoSave();updateStats();showHomeManage();
+      });
     }
     
 
@@ -12535,16 +12562,24 @@ function villageEnhanceV286897(){
       if(!v||v.token!==token||v.owner!==player||document.getElementById('storyPanel')?.classList.contains('hidden')||document.getElementById('traderBatchV2876')?.dataset.token!==String(token))return false;
       return buyFromMapNpc(v.npcId,item,MAP_NPC_PRICES_V2876[item],5);
     }
+    let mapNpcConfirmingV2868114=false;
     function buyFromMapNpc(npcId,item,cost,count=1){
       if(!jevCanActV2846()||!MAP_NPCS[npcId]||!Object.hasOwn(MAP_NPC_PRICES_V2876,item)||cost!==MAP_NPC_PRICES_V2876[item]||![1,5].includes(count)||(count===5&&!['heal','mp'].includes(ITEMS[item]?.type)))return false;
       const total=cost*count;
       if(!Number.isFinite(player.gold)||player.gold<total)return false;
       const owner=player,before=JSON.stringify(player),owned=player.inventory.filter(x=>x===item).length;
-      if(!window.confirm(`购买 ${item} ×${count}？消耗 ${total} 灵石，剩余 ${player.gold-total}。\n当前持有 ${owned} 枚。`)||player!==owner||!jevCanActV2846()||JSON.stringify(player)!==before)return false;
-      if(!addStoredItemV2905('inventory',item,count))return false;player.gold-=total;
-      let saved=false;try{saved=saveGame();}catch(_){}
-      if(!saved){player.gold+=total;player.inventory.splice(-count,count);showFloatingText('购买未保存，灵石与物品已恢复，可重试','#ff8a80');return false;}
-      updateStats();showMapNpcShop(npcId);showFloatingText(`已购入 ${item} ×${count}`,'#69f0ae');return true;
+      if(mapNpcConfirmingV2868114)return false;mapNpcConfirmingV2868114=true;
+      const done=()=>{mapNpcConfirmingV2868114=false;return false;};
+      try{
+        return gameConfirmV2868114(`购买 ${item} ×${count}？消耗 ${total} 灵石，剩余 ${player.gold-total}。\n当前持有 ${owned} 枚。`,()=>{
+          mapNpcConfirmingV2868114=false;
+          if(player!==owner||!jevCanActV2846()||JSON.stringify(player)!==before)return false;
+          if(!addStoredItemV2905('inventory',item,count))return false;player.gold-=total;
+          let saved=false;try{saved=saveGame();}catch(_){}
+          if(!saved){player.gold+=total;player.inventory.splice(-count,count);showFloatingText('购买未保存，灵石与物品已恢复，可重试','#ff8a80');return false;}
+          updateStats();showMapNpcShop(npcId);showFloatingText(`已购入 ${item} ×${count}`,'#69f0ae');return true;
+        },done)??false;
+      }catch(_){return done();}
     }
 
 
@@ -16461,11 +16496,14 @@ function pillBatchCountV2905(name,mode){
  return [5,10].includes(mode)?Math.min(mode,max):mode==='full'&&kind!=='exp'||mode==='all'&&kind==='exp'?max:0;
 }
 function useItemBatchV2905(name,mode){
+ if(gameState!=='exploring'||!player||player.breakthrough?.isAnimating||COMBAT_FINISH_V2764.settling)return false;
+ const n=pillBatchCountV2905(name,mode);if(!n)return false;const curesMeridians=name==='玄玉护脉丹'&&hasStatusEffect('jingmai');
+ const owner=player,before=JSON.stringify(player);
+ // The pills are spent inside the item transaction only after confirmation and an unchanged-player recheck.
+ return gameConfirmOrRunV2868114(`服用【${name}】×${n}${curesMeridians?'，并清除经脉暗伤':''}？`,()=>{
  if(gameState!=='exploring')return false;
  return itemActionV2905('批量服用',()=>{
-  const n=pillBatchCountV2905(name,mode);if(!n)return false;const item=ITEMS[name],kind=item.type,curesMeridians=name==='玄玉护脉丹'&&hasStatusEffect('jingmai');
-  const owner=player,before=JSON.stringify(player);
-  if(typeof confirm==='function'&&!confirm(`服用【${name}】×${n}${curesMeridians?'，并清除经脉暗伤':''}？`))return false;
+  const item=ITEMS[name],kind=item.type;
   if(player!==owner||JSON.stringify(player)!==before)return false;
   if(gameState!=='exploring'||player.breakthrough?.isAnimating||COMBAT_FINISH_V2764.settling||pillBatchCountV2905(name,mode)!==n)return false;
   for(let i=0;i<n;i++)removeItem(name);
@@ -16474,6 +16512,7 @@ function useItemBatchV2905(name,mode){
   else if(kind==='mp'){const old=player.mp;player.mp=Math.min(getMaxMp(),old+item.value*n);gain=player.mp-old;}
   else{gain=item.value*n;player.exp+=gain;checkLevelUp();}
   updateStats();renderMobileInventory();showFloatingText(`服用 ${name} ×${n} · ${kind==='heal'?'气血':kind==='mp'?'灵力':'修为'} +${gain}${curesMeridians?' · 经脉暗伤已痊愈':''}`,'#69f0ae');return true;
+ });
  });
 }
 function pillBatchButtonsV2905(row,index){
@@ -16516,5 +16555,7 @@ function xtDialogV2868114(kind,message,done,defaultValue){
 }
 function gameAlertV2868114(message,done){return xtDialogV2868114('alert',message,done);}
 function gameConfirmV2868114(message,onOk,onCancel){return xtDialogV2868114('confirm',message,ok=>ok?onOk?.():onCancel?.());}
+// Sites that historically proceeded when no confirm existed (headless sandboxes) keep that behaviour.
+function gameConfirmOrRunV2868114(message,onOk){if(!xtDialogUsableV2868114()&&typeof globalThis.confirm!=='function')return onOk();return gameConfirmV2868114(message,onOk,()=>false);}
 function gamePromptV2868114(message,defaultValue,done){return xtDialogV2868114('prompt',message,done,defaultValue);}
 window.gameAlertV2868114=gameAlertV2868114;window.gameConfirmV2868114=gameConfirmV2868114;window.gamePromptV2868114=gamePromptV2868114;
