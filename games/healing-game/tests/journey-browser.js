@@ -11,7 +11,7 @@ async root => {
  async function state(){return page.evaluate(()=>__journey.state());}
  async function journal(tab='journey'){await page.locator('#kitLevelBtn').click();if(tab!=='journey')await page.locator('[data-jr-tab="'+tab+'"]').click();}
  await page.goto(url);await start();
- assert(await page.title()==='暮色浮岛 · 晨风铃谷 V8.0','version');
+ assert(await page.title()==='暮色浮岛 · 晨风铃谷 V8.1','version');
  await page.evaluate(()=>localStorage.setItem('xiantu_save','untouched'));
  await journal();assert(await page.locator('[data-jr-go="2"]').isDisabled(),'new save chapter2 locked');assert(await page.locator('[data-jr-go="3"]').isDisabled(),'new save chapter3 locked');
  await page.locator('[data-jr-tab="collection"]').click();assert(await page.locator('.jr-item').count()===41,'41 species in journal');await page.locator('#journeyClose').click();
@@ -74,6 +74,6 @@ async root => {
  assert(await page.evaluate(()=>localStorage.getItem('xiantu_save'))==='untouched','xiantu save untouched');
  await page.evaluate(()=>{Storage.prototype.setItem=function(){throw new DOMException('Storage full','QuotaExceededError');};});await pick();assert(await page.locator('#starSaveWarning').isVisible(),'save failure is visible');
  assert(errors.length===0,'page errors: '+errors.join(';'));assert(external.length===0,'external requests');
- const result={version:'8.0.0',migrated,completed,restored,childCount,errors,external,checks:'locks, migration, real touch collection, duplicate guard, modal input, charge cap, partial reload, 3 lamps, ending, growth idempotence, decor persistence, switching, landscape, isolated saves, quota warning'};
+ const result={version:'8.1.0',migrated,completed,restored,childCount,errors,external,checks:'locks, migration, real touch collection, duplicate guard, modal input, charge cap, partial reload, 3 lamps, ending, growth idempotence, decor persistence, switching, landscape, isolated saves, quota warning'};
  await root.evaluate(r=>window.__journeyResult=r,result);await context.close();return result;
 }

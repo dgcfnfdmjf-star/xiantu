@@ -13,7 +13,7 @@
   var GA = window.GardenAudio, K = GA && GA.kit, M = window.__music2, V = M && M.voices;
 
   /* ---------------------------- Nocturne --------------------------- */
-  if (K && V) M.register({ id: 'nightvoyage', name: '星灯夜曲', key: 61, bpm: 58, swing: 0, delay: 0.34, level: 1,
+  if (K && V) M.register({ id: 'nightvoyage', recording: true, name: '星灯夜曲', key: 61, bpm: 58, swing: 0, delay: 0.34, level: 1,
     // Dbadd9 Bbm7 Gbadd9 Absus | Db6 Bbm7 Ebm7 Absus
     prog: [[0, 'add9'], [9, 'm7'], [5, 'add9'], [7, 'sus'], [0, 'six'], [9, 'm7'], [2, 'm7'], [7, 'sus']],
     // Degrees 1 2 3 5 6 only: the melody stays on the pentatonic the catches are drawn from

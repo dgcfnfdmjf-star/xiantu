@@ -1,4 +1,4 @@
-"""Build the single-file V8 game from the preserved V5 upload and small additions."""
+"""Build the two-file V8.1 game from the preserved V5 upload and small additions."""
 from pathlib import Path
 import hashlib
 import zipfile
@@ -11,7 +11,7 @@ def replace(old, new):
     assert html.count(old) == 1, (old[:100], html.count(old))
     html = html.replace(old, new)
 
-replace('<title>暮色浮岛 · 小小花园</title>', '<title>暮色浮岛 · 晨风铃谷 V8.0</title>\n<meta name="garden-version" content="8.0.0">')
+replace('<title>暮色浮岛 · 小小花园</title>', '<title>暮色浮岛 · 晨风铃谷 V8.1</title>\n<meta name="garden-version" content="8.1.0">')
 # Flush existing debounced saves before the page can be frozen or discarded.
 for comment, source in [('private mode / quota: ignore', 'garden'), ('ignore', 'butterflies')]:
     old = '''  var saveTimer = null;
@@ -167,6 +167,12 @@ replace('setTarget(k, x + Math.cos(a + Math.PI) * 0.3, z + Math.sin(a + Math.PI)
 replace('ring = i < 3 ? 0.42 : 0.95,', 'ring = i < 3 ? 0.5 : 1,')
 replace('      for (var i = kittens.length - 1; i >= 0; i--) if (kittens[i]) updateOne(kittens[i], dt, t);\n', "      for (var i = kittens.length - 1; i >= 0; i--) if (kittens[i]) updateOne(kittens[i], dt, t);\n      for (i = 0; i < kittens.length; i++) if (kittens[i].state !== 'hug') resolve(kittens[i]); // idle ones get nudged too\n")
 replace('  onFlowerCountChanged();\n  frame();\n', '  window.GardenClip.world = { scene: scene, island: island, camera: camera, flowers: flowers };\n  onFlowerCountChanged();\n  frame();\n')
+# Level 3 recording uses the existing transport, player bus and volume controls.
+replace('  function schedule() {\n    if (!ctx) return;', (ROOT / 'src/nightvoyage-audio.js').read_text() + '\n  function schedule() {\n    if (!ctx) return;')
+replace('      if (now > p.until) { players.splice(k, 1); continue; }', '      if (now > p.until) { players.splice(k, 1); continue; }\n      if (tr.recording && recordedMusic(p)) continue;')
+replace('    if (p.until !== Infinity) return;', '    if (p.until !== Infinity) return;\n    stopRecording(p);')
+replace('    playing = false;\n    setMusicGain(0, 0.8);', '    playing = false;\n    players.forEach(stopRecording);\n    setMusicGain(0, 0.8);')
+
 # Fourth chapter labels and start-page guidance.
 replace("nb.innerHTML = n === 3 ?", "nb.innerHTML = n === 4 ? '♪<span>奏铃</span>' : n === 3 ?")
 replace("bk.textContent = n === 3 ?", "bk.textContent = n === 4 ? '📖 音符' : n === 3 ?")
@@ -177,12 +183,17 @@ replace("<script>\n(function () {\n  'use strict';\n\n  /* ---------------------
 out = ROOT / 'site/healing-game/index.html'
 out.parent.mkdir(parents=True, exist_ok=True)
 out.write_text(html)
-archive = ROOT.parents[1] / 'downloads/healing-game-v8-tencent.zip'
+asset = (ROOT / 'assets/nightvoyage-bgm.mp3').read_bytes()
+assert len(asset) == 2161729
+assert hashlib.sha256(asset).hexdigest() == '19a90003e4b3b45c075b4c1da5a81341fddac954397d481e680a6ea3c1a5cb31'
+(out.parent / 'nightvoyage-bgm.mp3').write_bytes(asset)
+archive = ROOT.parents[1] / 'downloads/healing-game-v8.1-tencent.zip'
 # Stable timestamps and bytes make the downloadable release reproducible.
 with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
-    entry = zipfile.ZipInfo('healing-game/index.html', (2026, 11, 5, 0, 0, 0))
-    entry.compress_type = zipfile.ZIP_DEFLATED
-    entry.external_attr = 0o100644 << 16
-    z.writestr(entry, html.encode())
-archive.with_name('healing-game-v8-SHA256SUMS.txt').write_text(hashlib.sha256(archive.read_bytes()).hexdigest() + '  ' + archive.name + '\n')
-print(f'Built V8: {len(out.read_bytes())} bytes; ZIP: {archive.stat().st_size} bytes')
+    for name, data in [('index.html', html.encode()), ('nightvoyage-bgm.mp3', asset)]:
+        entry = zipfile.ZipInfo('healing-game/' + name, (2026, 11, 5, 0, 0, 0))
+        entry.compress_type = zipfile.ZIP_DEFLATED
+        entry.external_attr = 0o100644 << 16
+        z.writestr(entry, data)
+archive.with_name('healing-game-v8.1-SHA256SUMS.txt').write_text(hashlib.sha256(archive.read_bytes()).hexdigest() + '  ' + archive.name + '\n')
+print(f'Built V8.1: {len(out.read_bytes())} bytes; ZIP: {archive.stat().st_size} bytes')

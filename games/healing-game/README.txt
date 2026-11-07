@@ -1,6 +1,13 @@
-暮色浮岛 V8.0 · 晨风铃谷
+暮色浮岛 V8.1 · 晨风铃谷
 
-本轮第四关
+V8.1 第三关音乐
+- 星灯夜航改用本地 90 秒 MP3，解码后以 AudioBufferSourceNode 无间隙循环；用户手势解锁后播放，切关或关闭音乐立即停止，音量沿用现有控制。
+- 下载或解码失败（含15秒超时）自动回退原合成《星灯夜曲》。
+- 第一、二、四关配乐、玩法、成长与存档键不变。手动在其他关选择星灯夜曲也保留原合成曲。
+- MP3 增益2.512（+8dB）；同一 Chromium 输出的10秒采样：第一关 -23.6、第二关 -24.7、第三关 -24.7、第四关 -27.9 dBFS RMS。保持原音乐/总音量总线，第三关样本峰值0.245，无削波。
+- MP3 原始字节不变：2161729 bytes；SHA256 19a90003e4b3b45c075b4c1da5a81341fddac954397d481e680a6ea3c1a5cb31。
+
+原有第四关
 - 三灯通关后，从第三关结局或旅程手账进入「晨风铃谷」。
 - 六座场景风铃和六个编号按钮，三段旋律（3音、3音、4音）；听一遍、看编号或展开乐谱均可。无倒计时、无需付费，错音仅重置当前段输入。
 - 六枚新音符加入统一手账，总收藏41种。首次发现每枚+5成长，首次通关+20，第四关最多新增50成长。前三级的数值和奖励保持原样。
@@ -11,7 +18,7 @@
 基线与参考
 - source/healing-game-v5.html 是此前用户提供的 V5 原始单文件，保留其中的 Three.js MIT 版权声明。
 - V7 在 V6 三关、35种收藏、五级成长基础上，整合附件 healing-game-v7.html 的星灯夜曲、星萤光轨、灯心偏好、纸船巡航与夜航记事；V8 在此基础上增加第四关。
-- V8 仍是一个自包含 HTML，无外部 CDN、数据库、广告、付费接口或新增云函数。
+- V8.1 为 index.html + nightvoyage-bgm.mp3 两文件，无外部 CDN、数据库、广告、付费接口或新增云函数。
 - 同一浏览器、同一域名继续沿用 healingGarden.* 和 hg_level2_unlocked 存档键。V7 字段为 stars/joys/memories，V8 增加 chimes.round/step/found，兼容已有 V5/V6 进度；成长仍由首次收藏和首次通关计算。
 
 构建（仓库根目录）
@@ -21,8 +28,8 @@ node games/healing-game/tests/chime-rules.cjs
 
 生成：
 - games/healing-game/site/healing-game/index.html（忽略的本地预览目录）
-- downloads/healing-game-v8-tencent.zip（仅 healing-game/index.html）
-- downloads/healing-game-v8-SHA256SUMS.txt
+- downloads/healing-game-v8.1-tencent.zip（healing-game/index.html + healing-game/nightvoyage-bgm.mp3）
+- downloads/healing-game-v8.1-SHA256SUMS.txt
 
 构建使用固定 ZIP 时间戳，重复构建字节相同。修改在 src/ 与 scripts/build.py，勿直接改生成的 HTML。V5 原始文件无需编辑；构建替换锚点丢失或重复会立即报错。
 
@@ -31,6 +38,7 @@ python3 -m http.server 8784 --bind 127.0.0.1 --directory /workspace
 使用 scripts/browser-cli.sh 打开本地页面（系统 Chromium /usr/bin/chromium），然后：
 scripts/browser-cli.sh -s=healing-v8 run-code --filename games/healing-game/tests/journey-browser.js
 scripts/browser-cli.sh -s=healing-v8 run-code --filename games/healing-game/tests/voyage-browser.js
+scripts/browser-cli.sh -s=healing-v8 run-code --filename games/healing-game/tests/nightvoyage-audio-browser.js
 scripts/browser-cli.sh -s=healing-v8 run-code --filename games/healing-game/tests/finale-audio-browser.js
 scripts/browser-cli.sh -s=healing-v8 run-code --filename games/healing-game/tests/chapter4-browser.js
 
@@ -46,7 +54,7 @@ V7 已有修正
 - 星光仍为4点点亮一盏灯，3灯通关。灯心偏好只增加声光反馈与纪念次数，不消耗货币、不增加成长星光。
 
 部署与限制
-仅部署独立 healing-game/index.html；不要把它传到仙途入口或根目录。详见 downloads/healing-game-v8-README.txt。
+部署独立 healing-game/index.html 和同目录 nightvoyage-bgm.mp3；不要把它传到仙途入口或根目录。详见 downloads/healing-game-v8.1-README.txt。
 浏览器验证使用 Linux Chromium 触屏模拟；不是 iPhone 真机。软件渲染环境帧间隔偏高，不能据此承诺手机帧率。没有新增独立绘制循环；未替用户部署腾讯云。
 
 V8 验证记录（2026-11-05）
@@ -67,3 +75,11 @@ V7 验证记录（2026-11-05）
 - 所有浏览器检查使用新建上下文与合成测试存档；游戏未请求外部资源。未验证物理 iPhone。
 - 同一 Linux Chromium 软件渲染环境，390×844、DPR 2、触屏模拟，参考/整合版第三关各采样4.5秒：帧间隔中位109.3/120.6ms，JS绘制调用中位1.4/1.3ms，场景44个几何体、8张纹理。小样本及程序生成场景有波动，本轮不声称帧率提升或真机流畅度保证。
 - 没有更改仙途运行目录、仙途下载 ZIP、Jev、#58 部署流程。
+
+V8.1 验证记录（2026-11-07）
+- MP3 下载字节数、SHA256 与分支原件完全一致；ffprobe 确认44.1kHz双声道、约90秒，音频未重编码。
+- test_package.py：6项通过，包含两文件 ZIP、音频身份、14段脚本语法、CRC、版本/校验和及重复构建一致性；chime-rules.cjs：6项通过。
+- nightvoyage-audio-browser.js：真实解码播放、手势前静音、循环边界（加速播放）、音乐开关、切至其他三关、其他关手动选择原夜曲、HTTP/解码/超时回退、延迟加载切关通过。测试插桩仅在测试浏览器，发布版无新增测试钩子。
+- journey-browser.js、voyage-browser.js、finale-audio-browser.js、chapter4-browser.js 通过；使用全新上下文和合成存档。
+- npm test：147个游戏回归脚本及限流、保存/错误、wrapper工具和打包套件通过；npm run test:browser：27项通过（系统 Chromium）。
+- 本轮只生成 V8.1 独立包，既有V8/V7包保持原字节，未部署腾讯云。
