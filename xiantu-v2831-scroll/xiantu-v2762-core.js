@@ -4464,13 +4464,14 @@
     // Node QA sandboxes fall back to the synchronous stubbed confirm and get onOk's return value.
     function confirmPurchaseV286867(name,cost,qty=1,currency='gold',detail='',onOk){
       if(purchaseConfirmingV286867||!player||gameState!=='exploring'||player.breakthrough?.isAnimating||!['gold','sectContribution'].includes(currency)||typeof name!=='string'||!name||!Number.isFinite(cost)||cost<0||!Number.isInteger(qty)||qty<1||!Number.isFinite(player[currency])||player[currency]<cost||typeof window.confirm!=='function')return false;
-      const owner=player,before=JSON.stringify(player),choices=currentChoices,quote=JSON.stringify(currentChoices),view=document.getElementById('storyText')?.innerHTML;
+      // Compare the spent balance, not the whole player: world ticks keep running while the in-game dialog is open.
+      const owner=player,balance=player[currency],choices=currentChoices,quote=JSON.stringify(currentChoices),view=document.getElementById('storyText')?.innerHTML;
       const unit=currency==='gold'?'灵石':'宗门贡献';
       let settled=false;
       const finish=accepted=>{
         if(settled)return false;settled=true;
         try{
-          if(!accepted||player!==owner||gameState!=='exploring'||player.breakthrough?.isAnimating||JSON.stringify(player)!==before||currentChoices!==choices||JSON.stringify(currentChoices)!==quote||document.getElementById('storyText')?.innerHTML!==view)return false;
+          if(!accepted||player!==owner||gameState!=='exploring'||player.breakthrough?.isAnimating||player[currency]!==balance||currentChoices!==choices||JSON.stringify(currentChoices)!==quote||document.getElementById('storyText')?.innerHTML!==view)return false;
           // In the browser the confirm returns before onOk; re-enter the item transaction so the spend saves or rolls back atomically.
           return typeof onOk==='function'?(typeof itemActionV2905==='function'?itemActionV2905('购买',onOk):onOk()):true;
         }finally{purchaseConfirmingV286867=false;}
@@ -10776,9 +10777,9 @@ function villageEnhanceV286897(){
       const r=discipleRosterV2815(),d=discipleCandidatesV2815().find(x=>x.id===index);
       if(!d||d.batch!==batch||r.hired.includes(index)||r.members.length>=sectDiscipleCapV2880())return showDisciplesV2815('候选或名额已变化，请重新查看。');
       if(player.gold<d.cost)return showDisciplesV2815('灵石不足。');
-      const owner=player,sect=player.sect,before=JSON.stringify(player);
+      const owner=player,sect=player.sect,gold=player.gold;
       gameConfirmV2868114(`招募 ${d.name}？消耗 ${d.cost} 灵石，剩余 ${player.gold-d.cost}。`,()=>{
-        if(player!==owner||player.sect!==sect||before!==JSON.stringify(player)||!discipleAllowedV2815()||discipleDayV2815()/30>=batch+1||r.hired.includes(index)||r.members.length>=sectDiscipleCapV2880())return;
+        if(player!==owner||player.sect!==sect||player.gold!==gold||!discipleAllowedV2815()||discipleDayV2815()/30>=batch+1||r.hired.includes(index)||r.members.length>=sectDiscipleCapV2880())return;
         const ok=commitMiniWeaveV286840(()=>{player.gold-=d.cost;r.hired.push(index);r.members.push({id:r.nextId++,name:d.name,level:1,specialty:d.specialty,traitsV2867:discipleTraitsV2867(d),job:null});});
         if(ok){updateStats();showDisciplesV2815('招募成功。');}
       });
@@ -12567,13 +12568,14 @@ function villageEnhanceV286897(){
       if(!jevCanActV2846()||!MAP_NPCS[npcId]||!Object.hasOwn(MAP_NPC_PRICES_V2876,item)||cost!==MAP_NPC_PRICES_V2876[item]||![1,5].includes(count)||(count===5&&!['heal','mp'].includes(ITEMS[item]?.type)))return false;
       const total=cost*count;
       if(!Number.isFinite(player.gold)||player.gold<total)return false;
-      const owner=player,before=JSON.stringify(player),owned=player.inventory.filter(x=>x===item).length;
+      const owner=player,owned=player.inventory.filter(x=>x===item).length;
+      const gold=player.gold,bag=JSON.stringify(player.inventory);
       if(mapNpcConfirmingV2868114)return false;mapNpcConfirmingV2868114=true;
       const done=()=>{mapNpcConfirmingV2868114=false;return false;};
       try{
         return gameConfirmV2868114(`购买 ${item} ×${count}？消耗 ${total} 灵石，剩余 ${player.gold-total}。\n当前持有 ${owned} 枚。`,()=>{
           mapNpcConfirmingV2868114=false;
-          if(player!==owner||!jevCanActV2846()||JSON.stringify(player)!==before)return false;
+          if(player!==owner||!jevCanActV2846()||player.gold!==gold||JSON.stringify(player.inventory)!==bag)return false;
           if(!addStoredItemV2905('inventory',item,count))return false;player.gold-=total;
           let saved=false;try{saved=saveGame();}catch(_){}
           if(!saved){player.gold+=total;player.inventory.splice(-count,count);showFloatingText('购买未保存，灵石与物品已恢复，可重试','#ff8a80');return false;}
@@ -16498,13 +16500,13 @@ function pillBatchCountV2905(name,mode){
 function useItemBatchV2905(name,mode){
  if(gameState!=='exploring'||!player||player.breakthrough?.isAnimating||COMBAT_FINISH_V2764.settling)return false;
  const n=pillBatchCountV2905(name,mode);if(!n)return false;const curesMeridians=name==='玄玉护脉丹'&&hasStatusEffect('jingmai');
- const owner=player,before=JSON.stringify(player);
+ const owner=player,have=player.inventory.filter(x=>x===name).length;
  // The pills are spent inside the item transaction only after confirmation and an unchanged-player recheck.
  return gameConfirmOrRunV2868114(`服用【${name}】×${n}${curesMeridians?'，并清除经脉暗伤':''}？`,()=>{
  if(gameState!=='exploring')return false;
  return itemActionV2905('批量服用',()=>{
   const item=ITEMS[name],kind=item.type;
-  if(player!==owner||JSON.stringify(player)!==before)return false;
+  if(player!==owner||player.inventory.filter(x=>x===name).length!==have)return false;
   if(gameState!=='exploring'||player.breakthrough?.isAnimating||COMBAT_FINISH_V2764.settling||pillBatchCountV2905(name,mode)!==n)return false;
   for(let i=0;i<n;i++)removeItem(name);
   let gain;
