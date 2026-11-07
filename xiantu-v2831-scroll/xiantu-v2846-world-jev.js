@@ -25,6 +25,7 @@ async function jevDecideV2846(state,fallback,fresh=()=>true,timeout=4500){
   if(!fresh()||document.hidden)return local('当前操作已变化');
   const endpoint=forgeJevEndpointV2842(),access=FORGE_ADVICE_V2842.access,key=JSON.stringify(state);
   if(!access||!endpoint)return local('尚未解锁，使用本地判断');
+  if(typeof navigator==='object'&&navigator?.onLine===false)return local('设备离线，使用本地判断');
   const old=JEV_WORLD_V2846.cache.get(key);
   if(old&&Date.now()-old.time<60000)return {...old.data,note:'复用一分钟内结果，未新增请求'};
   if(FORGE_ADVICE_V2842.busy||Date.now()<FORGE_ADVICE_V2842.nextAt)return local('请求间隔内，使用本地判断');

@@ -79,6 +79,13 @@ function initNpcBattleV2849(){
 function companionBattleV2849(){const s=currentEnemy&&NPC_JEV_V2849.allies.get(currentEnemy);return s&&s.owner===player&&s.token===COMBAT_FINISH_V2764.token&&s.id===companionIdV2849()?s:null;}
 const ALLY_ACTIONS_V2849=[{a:0,name:'吐纳',cost:0,cooldown:0},{a:1,name:'回生',cost:18,cooldown:3},{a:2,name:'护卫',cost:12,cooldown:2},{a:3,name:'集火',cost:16,cooldown:2}];
 function companionActionsV2849(s){return ALLY_ACTIONS_V2849.filter(o=>s.mp>=o.cost&&(s.cooldowns[o.a]||0)<=s.turn&&(o.a!==1||player.hp<getMaxHp())&&(o.a!==0||s.mp<60));}
+// Companion turns never wait longer than this; the ceiling also covers stalls outside the request race.
+const COMPANION_JEV_WAIT_V2868113=1500;
+function companionDecideV2868113(state,fallback,fresh){
+  let timer;const local={choice:fallback,source:'local',note:'同伴等待超时，使用本地策略'};
+  let decision;try{decision=jevDecideV2846(state,fallback,fresh,COMPANION_JEV_WAIT_V2868113);}catch(_){decision=local;}
+  return Promise.race([Promise.resolve(decision).catch(()=>local),new Promise(r=>{timer=setTimeout(()=>r(local),COMPANION_JEV_WAIT_V2868113+250);})]).finally(()=>clearTimeout(timer));
+}
 async function runCompanionTurnV2849(next){
   const s=companionBattleV2849();if(!s||currentEnemy.hp<=0)return next();if(s.locked||monsterStateV2844()?.locked)return;
   s.locked=true;s.turn++;s.guard=false;
@@ -91,7 +98,7 @@ async function runCompanionTurnV2849(next){
     const fresh=()=>battleFresh()&&companionBattleV2849()===s&&fingerprint()===signature;
     const enemyAi=monsterStateV2844(),requestBefore=FORGE_ADVICE_V2842.nextAt,enemyRequests=enemyAi?.requests||0;
     const fairTurn=!MONSTER_JEV_V2844.enabled||enemyAi?.failed||s.lastEnemyRequest===undefined||enemyRequests>s.lastEnemyRequest;
-    let answer=NPC_JEV_V2849.allyCloud&&options.length>1&&fairTurn?await jevDecideV2846(jevWireStateV2846('ally',[jevPercentV2846(player.hp,getMaxHp()),jevPercentV2846(enemy.hp,enemy.maxHp),s.mp,s.turn],options),'o'+options.indexOf(chosen),fresh,1500):{choice:'o'+options.indexOf(chosen),source:'local'};
+    let answer=NPC_JEV_V2849.allyCloud&&options.length>1&&fairTurn?await companionDecideV2868113(jevWireStateV2846('ally',[jevPercentV2846(player.hp,getMaxHp()),jevPercentV2846(enemy.hp,enemy.maxHp),s.mp,s.turn],options),'o'+options.indexOf(chosen),fresh):{choice:'o'+options.indexOf(chosen),source:'local'};
     if(FORGE_ADVICE_V2842.nextAt!==requestBefore)s.lastEnemyRequest=enemyRequests;
     if(!battleFresh())return;
     if(!fresh())return next();
@@ -105,6 +112,9 @@ async function runCompanionTurnV2849(next){
     if(action.a===3){const damage=dealEnemyDamageV2882(enemy,Math.min(enemy.hp,Math.max(1,Math.floor(getAtk()*.35-enemy.def*.2))),false,'companion');showDamageNumber(damage,'enemy',false,false,true,false,name+'·集火');addCombatLog(`${name}协同集火，造成 ${damage} 伤害。`,'pet');}
     addCombatLog('☯ 同伴 '+s.status+' · 灵力 '+s.mp+'/60','pet');updateCombatUI();updateStats();
     if(enemy.hp<=0){checkBattleEnd();return;}return next();
+  }catch(error){
+    // A failed support action must not stall the enemy turn; only continue in the same battle.
+    console.warn?.('companion turn skipped',error);if(battleFresh())return next();
   }finally{s.locked=false;}
 }
 function companionGuardV2849(damage){const s=companionBattleV2849();if(!s?.guard||damage<=0)return damage;s.guard=false;const next=Math.max(1,Math.floor(damage*.8));addCombatLog('同伴护卫抵消 '+(damage-next)+' 点伤害。','heal');return next;}
