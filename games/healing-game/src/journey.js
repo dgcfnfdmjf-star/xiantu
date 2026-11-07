@@ -203,6 +203,7 @@
   function showEnding() { setModal('starEnding', true); }
   function nightLevel() { return L3 ? L3.night() : .82; }
   function onLevel(n) {
+    if (LC && LC.beforeLevel) LC.beforeLevel(n);
     active = n === 3; world.visible = active; $('starHud').hidden = !active;
     window.GardenClip.syncFlowers(H.flowers, n);
     document.body.setAttribute('data-garden-level', n);
@@ -233,14 +234,14 @@
         ['猫咪午后', '先丢毛线球，再抱抱小猫。收集 20 点，解锁星灯湾。', Math.min(20, cats.total) + ' / 20'],
         ['星灯夜航', '轻点星萤积攒星光，每 4 点亮一座灯。让三盏灯照亮云海。', litCount() + ' / 3 座灯'],
         ['晨风铃谷', '听风铃、看编号，依次奏回三段旋律。可查看乐谱，没有限时。', S.chimes.round + ' / 3 乐章'],
-        ['月汐莲湾', '把三缕月光送给每朵莲花。没有限时，每一份温柔都会留下。', S.lotus.found.length + ' / 6 朵莲花']
+        ['月汐莲湾', '接月露、转月镜、引光、合光、铺叶舟、回应晚安，连成一条月光归途。', S.lotus.found.length + ' / 6 朵莲花']
       ];
       chapters.forEach(function (c, i) {
         var n = i + 1, current = level() === n, allowed = unlocked(n);
         body += '<section class="jr-row' + (current ? ' current' : '') + '"><h3>0' + n + ' · ' + c[0] + '</h3><p>' + c[1] + '</p><p>' + (done(n) ? '✧ 已完成 · ' : '') + c[2] + '</p><button data-jr-go="' + n + '"' + (allowed ? '' : ' disabled') + '>' + (current ? '继续这一程' : (allowed ? '前往' : '完成上一关解锁')) + '</button></section>';
       });
       if (VG && unlocked(3)) body += VG.journal();
-      body += '<p class="jr-note">切换关卡保留所有进度；收藏与成长永久累计。V9.0 · 月汐莲湾</p>';
+      body += '<p class="jr-note">切换关卡保留所有进度；收藏与成长永久累计。V9.1 · 月汐莲湾</p>';
     } else if (tab === 'collection') {
       var books = [
         ['月莲手记', window.LotusRules.blooms, S.lotus.found, '☾'],

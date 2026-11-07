@@ -1,4 +1,4 @@
-"""Build the two-file V9.0 game from the preserved V5 upload and small additions."""
+"""Build the two-file V9.1 game from the preserved V5 upload and small additions."""
 from pathlib import Path
 import hashlib
 import zipfile
@@ -11,7 +11,7 @@ def replace(old, new):
     assert html.count(old) == 1, (old[:100], html.count(old))
     html = html.replace(old, new)
 
-replace('<title>暮色浮岛 · 小小花园</title>', '<title>暮色浮岛 · 月汐莲湾 V9.0</title>\n<meta name="garden-version" content="9.0.0">')
+replace('<title>暮色浮岛 · 小小花园</title>', '<title>暮色浮岛 · 月汐莲湾 V9.1</title>\n<meta name="garden-version" content="9.1.0">')
 # Flush existing debounced saves before the page can be frozen or discarded.
 for comment, source in [('private mode / quota: ignore', 'garden'), ('ignore', 'butterflies')]:
     old = '''  var saveTimer = null;
@@ -193,6 +193,8 @@ replace('      if (cur) retire(cur, fade);\n      cur = makePlayer(trackIdx, fad
 replace('p.out.disconnect(); p.send.disconnect();', 'p.out.disconnect(); p.send.disconnect(); if (p.lushCleanup) p.lushCleanup();')
 replace('players[i].out.disconnect(); players[i].send.disconnect();', 'players[i].out.disconnect(); players[i].send.disconnect(); if (players[i].lushCleanup) players[i].lushCleanup();')
 
+replace('if (performance.now() - cam.lastInput > 4000)', 'if (performance.now() - cam.lastInput > 4000 && !(window.LotusChapter && window.LotusChapter.cameraBusy()))')
+
 # Chapter 5 extends only the level gate and the shared recording eligibility.
 # The chapter-3 recording implementation remains byte-for-byte in its source file.
 replace('window.__kittens.state().level !== 3', '(window.__kittens.state().level !== 3 && window.__kittens.state().level !== 5)')
@@ -210,7 +212,7 @@ replace("window.__kittens.state().level === 3 ? window.GardenJourney.hint()", "w
 replace("nb.innerHTML = n === 4 ?", "nb.innerHTML = n === 5 ? '☾<span>送光</span>' : n === 4 ?")
 replace("bk.textContent = n === 4 ?", "bk.textContent = n === 5 ? '📖 月莲' : n === 4 ?")
 replace("H.toast(n === 4 ? window.ChimeChapter.hint()", "H.toast(n === 5 ? window.LotusChapter.hint() : n === 4 ? window.ChimeChapter.hint()")
-replace("toast(lv === 4 ?", "toast(lv === 5 ? '欢迎来到月汐莲湾，把光慢慢送给莲花 ☾' : lv === 4 ?")
+replace("toast(lv === 4 ?", "toast(lv === 5 ? '欢迎来到月汐莲湾，循着六朵月莲找回归途 ☾' : lv === 4 ?")
 replace("window.__kittens.state().level === 4 ? window.ChimeChapter.hint()", "window.__kittens.state().level === 5 ? window.LotusChapter.hint() : window.__kittens.state().level === 4 ? window.ChimeChapter.hint()")
 replace("<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps", '<style>\n' + (ROOT / 'src/journey.css').read_text() + '\n' + (ROOT / 'src/chime-chapter.css').read_text() + '\n' + (ROOT / 'src/lotus-chapter.css').read_text() + '\n</style>\n<script>\n' + '\n</script>\n<script>\n'.join((ROOT / ('src/' + name + '.js')).read_text() for name in ['clipping', 'chime-rules', 'lotus-rules', 'journey', 'level3plus', 'level3fx', 'voyage', 'chime-chapter', 'lotus-chapter', 'music-lush']) + "\n</script>\n<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps")
 out = ROOT / 'site/healing-game/index.html'
@@ -220,7 +222,7 @@ asset = (ROOT / 'assets/nightvoyage-bgm.mp3').read_bytes()
 assert len(asset) == 2161729
 assert hashlib.sha256(asset).hexdigest() == '19a90003e4b3b45c075b4c1da5a81341fddac954397d481e680a6ea3c1a5cb31'
 (out.parent / 'nightvoyage-bgm.mp3').write_bytes(asset)
-archive = ROOT.parents[1] / 'downloads/healing-game-v9-tencent.zip'
+archive = ROOT.parents[1] / 'downloads/healing-game-v9.1-tencent.zip'
 # Stable timestamps and bytes make the downloadable release reproducible.
 with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
     for name, data in [('index.html', html.encode()), ('nightvoyage-bgm.mp3', asset)]:
@@ -228,5 +230,5 @@ with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
         entry.compress_type = zipfile.ZIP_DEFLATED
         entry.external_attr = 0o100644 << 16
         z.writestr(entry, data)
-archive.with_name('healing-game-v9-SHA256SUMS.txt').write_text(hashlib.sha256(archive.read_bytes()).hexdigest() + '  ' + archive.name + '\n')
-print(f'Built V9.0: {len(out.read_bytes())} bytes; ZIP: {archive.stat().st_size} bytes')
+archive.with_name('healing-game-v9.1-SHA256SUMS.txt').write_text(hashlib.sha256(archive.read_bytes()).hexdigest() + '  ' + archive.name + '\n')
+print(f'Built V9.1: {len(out.read_bytes())} bytes; ZIP: {archive.stat().st_size} bytes')

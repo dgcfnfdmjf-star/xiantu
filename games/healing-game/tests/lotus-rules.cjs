@@ -1,14 +1,10 @@
 const assert=require('node:assert/strict'),R=require('../src/lotus-rules.js');let checks=0;
 function test(name,run){run();checks++;console.log('PASS '+name)}
-test('old and malformed saves normalize without inventing collection',()=>{
- for(const raw of [undefined,null,{},[],{light:'bad'},{light:[-1,4,NaN,2.5,'3',Infinity],found:['moonpearl','__proto__']}])assert.deepEqual(R.normalize(raw),{light:[0,0,0,0,0,0],found:[]});
- assert.deepEqual(R.normalize({light:[3,2,1,0,3,0],found:['<img>']}),{light:[3,2,1,0,3,0],found:['moonpearl','violetrest']});
-});
-test('each gift survives serialization and never resets another flower',()=>{
- let s=R.normalize();R.give(s,2);R.give(s,2);R.give(s,0);s=R.normalize(JSON.parse(JSON.stringify(s)));assert.deepEqual(s.light,[1,0,2,0,0,0]);assert.equal(R.give(s,2).bloomed,true);assert.deepEqual(s.found,['rosecloud']);
-});
-test('any order completes exactly once; free play cannot farm rewards',()=>{
- const s=R.normalize();let finished=0,bloomed=0;for(const i of [5,3,1,4,0,2])for(let j=0;j<3;j++){const r=R.give(s,i);finished+=!!r.finished;bloomed+=!!r.bloomed;}assert.equal(finished,1);assert.equal(bloomed,6);const before=JSON.stringify(s);for(let i=0;i<100;i++)assert.equal(R.give(s,i%6).changed,false);assert.equal(JSON.stringify(s),before);
-});
-test('invalid inputs never mutate progress',()=>{const s=R.normalize(),before=JSON.stringify(s);for(const i of [undefined,null,-1,6,1.2,'1',NaN,Infinity])assert.equal(R.give(s,i).changed,false);assert.equal(JSON.stringify(s),before);});
+function solve(s,i){while(s.light[i]<3){const n=s.light[i];if(i===0)R.act(s,i,'color',R.dew[n]);if(i===1){while(s.mirror!==R.mirror[n])R.act(s,i,'turn',1);R.act(s,i,'shine');}if(i===2)R.act(s,i,'guide',n);if(i===3)R.act(s,i,'blend',['warm','cool','join'][n]);if(i===4){const k=s.leaves.findIndex(x=>x!==0);R.act(s,i,'leaf',k);}if(i===5)R.act(s,i,'note',R.song[n]);}}
+test('V9 progress, completed blooms and partial stages migrate intact',()=>{for(const light of [[0,0,0,0,0,0],[2,3,1,0,2,0],[3,3,3,3,3,3]]){const s=R.normalize({light});assert.deepEqual(s.light,light);assert.equal(s.found.length,light.filter(x=>x===3).length);assert.deepEqual(R.normalize(JSON.parse(JSON.stringify(s))),s);}});
+test('malformed fields and invalid actions cannot award progress',()=>{const s=R.normalize({light:[-1,4,'3',NaN,Infinity,1.2],mirror:99,leaves:['0',7,NaN],found:['__proto__']});assert.deepEqual(s.light,[0,0,0,0,0,0]);for(const i of [-1,6,'0',NaN])assert.equal(R.act(s,i,'color',0).changed,false);for(const kind of ['give','skip','note'])assert.equal(R.act(s,0,kind,0).changed,false);assert.equal(R.act(s,2,'guide',0).locked,true);});
+test('each of six different interactions progresses its own goal',()=>{const s=R.normalize();for(let i=0;i<6;i++){solve(s,i);assert.equal(s.light[i],3);assert.equal(s.found.length,i+1);}assert.equal(R.current(s),-1);});
+test('wrong colors, mirrors and notes retain every earned step',()=>{const s=R.normalize();R.act(s,0,'color',0);assert.equal(R.act(s,0,'color',0).hint,true);assert.equal(s.light[0],1);solve(s,0);assert.equal(R.act(s,1,'shine').hint,true);assert.equal(s.light[1],0);for(let i=1;i<5;i++)solve(s,i);R.act(s,5,'note',0);R.act(s,5,'note',1);assert.equal(s.light[5],1);});
+test('mirror and leaf adjustments survive reload without granting false blooms',()=>{const s=R.normalize({light:[3,0,0,0,0,0]});R.act(s,1,'turn',1);const reload=R.normalize(JSON.parse(JSON.stringify(s)));assert.equal(reload.mirror,1);assert.equal(reload.light[1],0);for(let i=1;i<4;i++)solve(reload,i);R.act(reload,4,'leaf',1);assert.equal(reload.light[4],1);assert.equal(R.normalize(reload).leaves[1],0);});
+test('completion and replay cannot duplicate collection or clear rewards',()=>{const s=R.normalize();for(let i=0;i<6;i++)solve(s,i);const saved=JSON.stringify(s);for(let i=0;i<6;i++)assert.equal(R.act(s,i,'color',0).changed,false);assert.equal(JSON.stringify(s),saved);const practice=R.normalize();solve(practice,0);assert.equal(JSON.stringify(s),saved);});
 console.log(checks+' lotus progression checks passed');
