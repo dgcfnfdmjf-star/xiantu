@@ -6,6 +6,7 @@ async root => {
  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
  const url='http://127.0.0.1:8784/xiantu/games/healing-game/site/healing-game/';
  await page.route('**/*',async r=>{if(new URL(r.request().url()).hostname!=='127.0.0.1'){external.push(r.request().url());return r.abort()}
+  if(r.request().resourceType()!=='document')return r.continue();
   const res=await r.fetch();let body=await res.text();body=body.replace('  renderer.setPixelRatio(DPR);','  window.__testRenderer=renderer; window.__draws=0; var oldRender=renderer.render; renderer.render=function(){window.__draws++;return oldRender.apply(this,arguments)};\n  renderer.setPixelRatio(DPR);');await r.fulfill({response:res,body});
  });
  await page.goto(url);
@@ -18,7 +19,7 @@ async root => {
  await page.reload();await page.locator('#start').click();await page.waitForTimeout(1300);
  const state=()=>page.evaluate(()=>__journey.state());
  const migrated=await state();assert(migrated.progress.stars===6,'V6 catches become six sky stars');assert(migrated.progress.charge===3&&migrated.progress.decor[0]===false,'V6 unfinished charge and decor retained');
- assert(await page.locator('meta[name="garden-version"]').getAttribute('content')==='8.0.0','version metadata');
+ assert(await page.locator('meta[name="garden-version"]').getAttribute('content')==='8.1.0','version metadata');
  assert(await page.evaluate(()=>GardenAudio.currentTrackName())==='星灯夜曲','level-specific music');
  results.push('V6 partial-save migration / version / nocturne');
  async function target(){

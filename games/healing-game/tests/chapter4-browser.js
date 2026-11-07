@@ -5,6 +5,7 @@ async root => {
  p.on('pageerror',e=>errors.push(e.message));
  await p.route('**/*',async r=>{
   if(new URL(r.request().url()).hostname!=='127.0.0.1'){external.push(r.request().url());return r.abort()}
+  if(r.request().resourceType()!=='document')return r.continue();
   const res=await r.fetch();let html=await res.text();
   // Inspection only in this intercepted test response, absent from the release.
   html=html.replace('  renderer.setPixelRatio(DPR);','  window.__chRenderer=renderer; window.__chDraws=0; var renderOld=renderer.render; renderer.render=function(){__chDraws++;return renderOld.apply(this,arguments);};\n  renderer.setPixelRatio(DPR);');
