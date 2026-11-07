@@ -74,6 +74,17 @@ test('rabbit turtle and bat use the new artwork in map and battle',async({page})
 });
 
 // UI draft integration must not bypass task guards, reuse a stale player, or steal overlay input.
+test('newcomer sees one map prompt and no errand panel before Qi Refining',async({page})=>{
+ await page.setViewportSize({width:390,height:844});await boot(page);await start(page);
+ const bar=page.locator('#xtQuestBar'),path=page.locator('#firstPathV2901'),bubble=page.locator('#tutorialBubble');
+ await page.evaluate(()=>{player.tutorial.completedSteps=['welcome','movement','interaction','combat','combat_attack','equipment'];player.tutorial.readPopups.push('training_reward');player.equipment.robe='布衣';closeTutorialBubble();triggerTutorial('tasks',true);});
+ await expect(bubble).toContainText('修炼与突破');await expect(bubble.getByRole('button',{name:'查看宗门任务'})).toHaveCount(0);await expect(page.locator('#storyPanel')).toBeHidden();
+ await bubble.getByRole('button',{name:'我已明白'}).click();await expect(page.locator('#storyPanel')).toBeVisible();await page.evaluate(()=>closeWorldOverlay());
+ await expect(path).toBeVisible();await expect(path).toContainText('山脚试手');await page.evaluate(()=>XT_UI.render());await expect(bar).toBeHidden();
+ await page.evaluate(()=>{player.firstJourneyV28687={step:5};XT_UI.render();});await expect(path).toContainText('首次突破');await expect(bar).toBeVisible();
+ await path.click();const rows=page.locator('.fp-step-v2901');await expect(rows.nth(9)).toContainText('首次突破');await expect(rows.nth(10)).toContainText('踏入练气后开放');
+ await expect(page.locator('[data-fp="go"]')).toHaveCount(1);await expect(page.locator('[data-fp="go"]')).toHaveAttribute('data-id','break');
+});
 test('jade quest shortcut hides with overlays and rejects stale owner, step and duplicate actions',async({page})=>{
  await page.setViewportSize({width:390,height:844});await boot(page);await start(page);
  await page.evaluate(()=>{tutorialState.active=false;closeWorldOverlay();player.level=2;player.phase=3;player.tasks.active={};player.tasks.completed=MAIN_TASKS.slice(0,6).map(t=>t.id);player.tasks.legacyMainV286823=[];checkTaskTriggers();updateWorldHUD();});

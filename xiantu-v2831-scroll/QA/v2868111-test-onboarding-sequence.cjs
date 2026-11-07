@@ -43,6 +43,21 @@ fresh("player.level=1;player.tutorial.skipped=true;player.firstJourneyV28687={st
 fresh("player.firstJourneyV28687={step:2}");a.equal(run('PATH_STEPS_V2901[4+2].id'),'skill');
 console.log('PASS realm-gated errand step, order, panel, completion and legacy delivered errands');
 
+// One map prompt at a time for an unguided newcomer only.
+fresh();const before=run('JSON.stringify(player)');a.equal(run('pathOwnsMapV2901()'),true);a.equal(run('JSON.stringify(player)'),before,'read-only');
+for(const [why,setup] of [
+ ['tutorial skipped without journey',"player.tutorial.skipped=true"],
+ ['tracker hidden',"player.tutorial.readPopups.push('path_v2901_hidden')"],
+ ['higher realm',"player.level=1"],
+ ['high-level save',"player.level=9;delete player.tutorial"],
+ ['main quest already advanced',"player.tasks.active.main_01={currentStep:1}"],
+ ['main quest completed',"player.tasks.completed=['main_01']"],
+ ['journey paused and tutorial skipped',"player.tutorial.skipped=true;player.firstJourneyV28687={step:2,paused:true}"],
+ ['letter read',"player.tutorial.skipped=true;player.firstJourneyV28687={step:5}"]
+]){fresh(setup);a.equal(run('pathOwnsMapV2901()'),false,why);}
+fresh("player.tutorial.skipped=true;player.firstJourneyV28687={step:1}");a.equal(run('pathOwnsMapV2901()'),true,'active journey keeps the tracker');
+console.log('PASS quest bar yields only while a newcomer follows the starter path');
+
 // Text shown to a mortal must not point at errands as the way to gain exp.
 fresh("player.tutorial.skipped=true;player.firstJourneyV28687={step:5};player.exp=0");
 a(!run("PATH_STEPS_V2901.find(s=>s.id==='break').hint").includes('差事'));

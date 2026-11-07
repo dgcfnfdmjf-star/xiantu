@@ -2572,6 +2572,13 @@ function pathCheckDoneV2901(){
  if(PATH_RT_V2901.sawOpen&&PATH_RT_V2901.owner===player&&!list.some(s=>s.state==='paused')&&typeof showTutorialToast==='function')showTutorialToast('🧭 起步之路已走完。之后的路，看【📖 修行指引 → 起步】里的「此刻宜行」。',5200);
  document.getElementById('firstPathV2901')?.remove();return true;
 }
+// 凡人新手走到「雨夜来信」之前，地图只留起步提示；略过或收起引导、已推进主线的角色不受影响。
+function pathOwnsMapV2901(){
+ if(!pathEligibleV2901()||(player.level|0)>=1||pathFlagsV2901().includes(FIRSTPATH_V2901.hiddenKey))return false;
+ if(player.tutorial?.skipped&&!player.firstJourneyV28687)return false;
+ if(player.tasks?.completed?.length||(player.tasks?.active?.main_01?.currentStep|0)>0)return false;
+ const next=pathNextV2901();return !!next&&next.state==='todo'&&next.id!=='break'&&next.id!=='task';
+}
 function pathTrackerVisibleV2901(){
  if(!pathEligibleV2901()||pathFlagsV2901().includes(FIRSTPATH_V2901.hiddenKey)||!pathStatesV2901().some(s=>s.state==='todo'))return false;
  if(typeof gameState==='undefined'||gameState!=='exploring'||noticeBusyV2901())return false;
