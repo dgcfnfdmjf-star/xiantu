@@ -143,7 +143,7 @@
     document.addEventListener('keydown',function(e){
       if(end.hidden)return;
       if(e.key==='Escape'){e.preventDefault();closeEnding();}
-      if(e.key==='Tab'){var first=$('chimeStay'),last=$('chimeJournal');if(e.shiftKey&&(document.activeElement===first||!end.contains(document.activeElement))){last.focus();e.preventDefault();}else if(!e.shiftKey&&(document.activeElement===last||!end.contains(document.activeElement))){first.focus();e.preventDefault();}}
+      if(e.key==='Tab'){var first=$('chimeStay'),last=$('lotusFromChime')||$('chimeJournal');if(e.shiftKey&&(document.activeElement===first||!end.contains(document.activeElement))){last.focus();e.preventDefault();}else if(!e.shiftKey&&(document.activeElement===last||!end.contains(document.activeElement))){first.focus();e.preventDefault();}}
     });
   }
   window.ChimeChapter={

@@ -23,7 +23,7 @@ async root => {
  await p.goto(url);await start();const before=await st();assert(before.xp===90,'V7 save keeps original XP');
  await p.locator('#kitLevelBtn').click();assert(await p.locator('[data-jr-go="4"]').isEnabled(),'V7 third-clear unlocks fourth');await p.locator('[data-jr-go="4"]').click();
  assert((await st()).level===4,'enter fourth');assert(await p.locator('#starHud').isHidden()&&await p.locator('#chimeHud').isVisible(),'correct HUD');assert(await p.evaluate(()=>GardenAudio.currentTrackName())==='晨风来信','fourth soundtrack');
- await p.locator('#gpBookBtn').click();assert(await p.locator('.jr-item').count()===41,'41 collectible species');await p.locator('#journeyClose').click();
+ await p.locator('#gpBookBtn').click();assert(await p.locator('.jr-item').count()===47,'47 collectible species');await p.locator('#journeyClose').click();
  const previews=(await st()).progress.chimes;
  await p.locator('#chimeListen').click();await p.waitForFunction(()=>document.getElementById('chimeEcho').textContent.includes('1'));
  assert(await p.locator('#chimeKey0').isDisabled(),'input locked while preview plays');

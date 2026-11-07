@@ -1,4 +1,4 @@
-"""Build the two-file V8.1 game from the preserved V5 upload and small additions."""
+"""Build the two-file V9.0 game from the preserved V5 upload and small additions."""
 from pathlib import Path
 import hashlib
 import zipfile
@@ -11,7 +11,7 @@ def replace(old, new):
     assert html.count(old) == 1, (old[:100], html.count(old))
     html = html.replace(old, new)
 
-replace('<title>暮色浮岛 · 小小花园</title>', '<title>暮色浮岛 · 晨风铃谷 V8.1</title>\n<meta name="garden-version" content="8.1.0">')
+replace('<title>暮色浮岛 · 小小花园</title>', '<title>暮色浮岛 · 月汐莲湾 V9.0</title>\n<meta name="garden-version" content="9.0.0">')
 # Flush existing debounced saves before the page can be frozen or discarded.
 for comment, source in [('private mode / quota: ignore', 'garden'), ('ignore', 'butterflies')]:
     old = '''  var saveTimer = null;
@@ -108,7 +108,7 @@ replace('''  function frame() {
 # V7 audio, scene and interaction bridges.
 replace('    kit: { gain: gain, filt: filt, osc: osc, mtof: mtof, rnd: rnd, pad: pad, bass: bass, brush: brush, degree: degree, melNote: melNote },\n', '    kit: { gain: gain, filt: filt, osc: osc, mtof: mtof, rnd: rnd, pad: pad, bass: bass, brush: brush, degree: degree, melNote: melNote, musicBox: musicBox },\n')
 replace('    milestone: sfx.milestone, ending: sfx.ending, melody: sfx.melody,\n', '    milestone: sfx.milestone, ending: sfx.ending, melody: sfx.melody,\n    // For sound effects built outside this file (see level3plus.js). sfxOut is null when sfx are off.\n    pent: pent, sfxOut: function () { return ok() ? sfxBus : null; },\n')
-replace("  var LEVEL_THEME = { 1: 'dreamy', 2: 'cozy' }, FADE = 3.5;\n", "  var LEVEL_THEME = { 1: 'dreamy', 2: 'cozy', 3: 'nightvoyage', 4: 'morningchimes' }, FADE = 3.5;\n")
+replace("  var LEVEL_THEME = { 1: 'dreamy', 2: 'cozy' }, FADE = 3.5;\n", "  var LEVEL_THEME = { 1: 'dreamy', 2: 'cozy', 3: 'nightvoyage', 4: 'morningchimes', 5: 'moonlotus' }, FADE = 3.5;\n")
 replace('    tracks: defs,\n', '    tracks: defs,\n    voices: { softPiano: softPiano, guitar: guitar, flute: flute, bus: bus },\n    // A track defined in another file. Register at load time, before the first onLevel.\n    register: function (def) { def.index = GA.addTrack(def); defs.push(def); return def.index; },\n')
 replace("    if (announce) H.toast(n === 3 ? '✦ 收集 4 点星光，再轻点一座引航灯' : (two ? '🐱 轻点小猫丢毛线球，再点一下抱抱它' : '🦋 回到第一关，蝴蝶们还在等你'), 3000);\n", "    if (announce) H.toast(n === 3 ? '✦ ' + window.GardenJourney.hint() : (two ? '🐱 轻点小猫丢毛线球，再点一下抱抱它' : '🦋 回到第一关，蝴蝶们还在等你'), 3000);\n")
 replace('    uMix: { value: 0 }, uSun: { value: new THREE.Vector3(-0.35, 0.06, -1).normalize() }\n', '    uMix: { value: 0 }, uDeep: { value: 0 }, uSun: { value: new THREE.Vector3(-0.35, 0.06, -1).normalize() }\n')
@@ -173,13 +173,46 @@ replace('      if (now > p.until) { players.splice(k, 1); continue; }', '      i
 replace('    if (p.until !== Infinity) return;', '    if (p.until !== Infinity) return;\n    stopRecording(p);')
 replace('    playing = false;\n    setMusicGain(0, 0.8);', '    playing = false;\n    players.forEach(stopRecording);\n    setMusicGain(0, 0.8);')
 
+# PR #62 instruments, scoped to lush players: original MP3/fallback graph stays intact.
+replace('    tracks: defs,\n    voices:', '    tracks: defs,\n    theme: LEVEL_THEME,\n    level: function () { return curLevel; },\n    voices:')
+replace('    out.gain.linearRampToValueAtTime(tr.level, now + fade);', '    if (tr.lush || equalPower) fadeCurve(out.gain, tr.level, now, 7, Math.sin);\n    else out.gain.linearRampToValueAtTime(tr.level, now + fade);')
+replace('    ramp(p.out.gain, 0.0001, fade);', '''    if (p.track.lush || equalPower) {
+      var from = p.out.gain.value;
+      p.out.gain.cancelScheduledValues(now); p.out.gain.setValueAtTime(from, now);
+      fadeCurve(p.out.gain, from, now, fade, Math.cos);
+    } else ramp(p.out.gain, 0.0001, fade);''')
+replace('  function makePlayer(idx, fade) {', '''  function fadeCurve(param, level, start, fade, shape) {
+    for (var i = 1; i <= 12; i++) param.linearRampToValueAtTime(Math.max(0.0001, level * shape(i / 12 * Math.PI / 2)), start + fade * i / 12);
+  }
+  function makePlayer(idx, fade, equalPower) {''')
+replace('  function retire(p, fade) {', '  function retire(p, fade, equalPower) {')
+replace('      if (cur) retire(cur, fade);\n      cur = makePlayer(trackIdx, fade);', '''      var equalPower = !TRACKS[trackIdx].recording && !(cur && cur.track.recording) && (TRACKS[trackIdx].lush || (cur && cur.track.lush));
+      if (equalPower) fade = 7;
+      if (cur) retire(cur, fade, equalPower);
+      cur = makePlayer(trackIdx, fade, equalPower);''')
+replace('p.out.disconnect(); p.send.disconnect();', 'p.out.disconnect(); p.send.disconnect(); if (p.lushCleanup) p.lushCleanup();')
+replace('players[i].out.disconnect(); players[i].send.disconnect();', 'players[i].out.disconnect(); players[i].send.disconnect(); if (players[i].lushCleanup) players[i].lushCleanup();')
+
+# Chapter 5 extends only the level gate and the shared recording eligibility.
+# The chapter-3 recording implementation remains byte-for-byte in its source file.
+replace('window.__kittens.state().level !== 3', '(window.__kittens.state().level !== 3 && window.__kittens.state().level !== 5)')
+replace('S.level = d.level === 4 ? 4 :', 'S.level = d.level === 5 ? 5 : d.level === 4 ? 4 :')
+replace('n !== 3 && n !== 4', 'n !== 3 && n !== 4 && n !== 5')
+replace('    if (n === 4 && (!window.GardenJourney || !window.GardenJourney.unlocked(4))) return;', '    if (n === 5 && (!window.GardenJourney || !window.GardenJourney.unlocked(5))) return;\n    if (n === 4 && (!window.GardenJourney || !window.GardenJourney.unlocked(4))) return;')
+replace('setLevel(want === 4 &&', 'setLevel(want === 5 && window.GardenJourney && window.GardenJourney.unlocked(5) ? 5 : want === 4 &&')
+
 # Fourth chapter labels and start-page guidance.
 replace("nb.innerHTML = n === 3 ?", "nb.innerHTML = n === 4 ? '♪<span>奏铃</span>' : n === 3 ?")
 replace("bk.textContent = n === 3 ?", "bk.textContent = n === 4 ? '📖 音符' : n === 3 ?")
 replace("H.toast(n === 3 ? '✦ ' + window.GardenJourney.hint()", "H.toast(n === 4 ? window.ChimeChapter.hint() : n === 3 ? '✦ ' + window.GardenJourney.hint()")
 replace("toast(lv === 3 ? '欢迎回到星灯湾", "toast(lv === 4 ? '欢迎来到晨风铃谷，先听一遍风里的旋律 ♪' : lv === 3 ? '欢迎回到星灯湾")
 replace("window.__kittens.state().level === 3 ? window.GardenJourney.hint()", "window.__kittens.state().level === 4 ? window.ChimeChapter.hint() : window.__kittens.state().level === 3 ? window.GardenJourney.hint()")
-replace("<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps", '<style>\n' + (ROOT / 'src/journey.css').read_text() + '\n' + (ROOT / 'src/chime-chapter.css').read_text() + '\n</style>\n<script>\n' + '\n</script>\n<script>\n'.join((ROOT / ('src/' + name + '.js')).read_text() for name in ['clipping', 'chime-rules', 'journey', 'level3plus', 'level3fx', 'voyage', 'chime-chapter']) + "\n</script>\n<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps")
+replace("nb.innerHTML = n === 4 ?", "nb.innerHTML = n === 5 ? '☾<span>送光</span>' : n === 4 ?")
+replace("bk.textContent = n === 4 ?", "bk.textContent = n === 5 ? '📖 月莲' : n === 4 ?")
+replace("H.toast(n === 4 ? window.ChimeChapter.hint()", "H.toast(n === 5 ? window.LotusChapter.hint() : n === 4 ? window.ChimeChapter.hint()")
+replace("toast(lv === 4 ?", "toast(lv === 5 ? '欢迎来到月汐莲湾，把光慢慢送给莲花 ☾' : lv === 4 ?")
+replace("window.__kittens.state().level === 4 ? window.ChimeChapter.hint()", "window.__kittens.state().level === 5 ? window.LotusChapter.hint() : window.__kittens.state().level === 4 ? window.ChimeChapter.hint()")
+replace("<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps", '<style>\n' + (ROOT / 'src/journey.css').read_text() + '\n' + (ROOT / 'src/chime-chapter.css').read_text() + '\n' + (ROOT / 'src/lotus-chapter.css').read_text() + '\n</style>\n<script>\n' + '\n</script>\n<script>\n'.join((ROOT / ('src/' + name + '.js')).read_text() for name in ['clipping', 'chime-rules', 'lotus-rules', 'journey', 'level3plus', 'level3fx', 'voyage', 'chime-chapter', 'lotus-chapter', 'music-lush']) + "\n</script>\n<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps")
 out = ROOT / 'site/healing-game/index.html'
 out.parent.mkdir(parents=True, exist_ok=True)
 out.write_text(html)
@@ -187,7 +220,7 @@ asset = (ROOT / 'assets/nightvoyage-bgm.mp3').read_bytes()
 assert len(asset) == 2161729
 assert hashlib.sha256(asset).hexdigest() == '19a90003e4b3b45c075b4c1da5a81341fddac954397d481e680a6ea3c1a5cb31'
 (out.parent / 'nightvoyage-bgm.mp3').write_bytes(asset)
-archive = ROOT.parents[1] / 'downloads/healing-game-v8.1-tencent.zip'
+archive = ROOT.parents[1] / 'downloads/healing-game-v9-tencent.zip'
 # Stable timestamps and bytes make the downloadable release reproducible.
 with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
     for name, data in [('index.html', html.encode()), ('nightvoyage-bgm.mp3', asset)]:
@@ -195,5 +228,5 @@ with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
         entry.compress_type = zipfile.ZIP_DEFLATED
         entry.external_attr = 0o100644 << 16
         z.writestr(entry, data)
-archive.with_name('healing-game-v8.1-SHA256SUMS.txt').write_text(hashlib.sha256(archive.read_bytes()).hexdigest() + '  ' + archive.name + '\n')
-print(f'Built V8.1: {len(out.read_bytes())} bytes; ZIP: {archive.stat().st_size} bytes')
+archive.with_name('healing-game-v9-SHA256SUMS.txt').write_text(hashlib.sha256(archive.read_bytes()).hexdigest() + '  ' + archive.name + '\n')
+print(f'Built V9.0: {len(out.read_bytes())} bytes; ZIP: {archive.stat().st_size} bytes')

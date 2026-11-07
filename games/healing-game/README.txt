@@ -1,4 +1,23 @@
-暮色浮岛 V8.1 · 晨风铃谷
+暮色浮岛 V9.0 · 月汐莲湾
+
+V9.0 本轮内容
+- 第一、二、四关接入 PR #62（1e6551f）的 PADsynth、Karplus–Strong 竖琴、毡音钢琴、七秒等功率淡化和独立大厅混响。__musicLush.setStyle('classic'|'lush') 仍可切回经典曲；风格选择不写存档。
+- 第三关原 MP3、音量、解锁、循环、开关、立即停止和原合成回退保留；不引入 PR #62 的 lush nightvoyage，也不改变第三关原混响。
+- 第五关「月汐莲湾」：第四关通关后，从结局或手账进入。轻触六朵月莲，或点击花名/送光按钮，每朵收到三缕月光就绽开。无顺序要求、无需等候、没有限时或失败状态。触屏、鼠标和键盘均可操作。
+- 六朵月莲加入统一收藏，总计47种；每朵首次盛开+5成长，首次通关+20，共50。通关后自由荡起涟漪，不会重复发奖。
+- 第五关复用第三关同一个 nightvoyage-bgm.mp3 和已解码缓冲区，切换两关也只有一份音频下载。风格切换不会重启第三或第五关的录音。
+- 沿用 healingGarden.journey.v1；新增可恢复的 lotus.light/found 字段。旧存档默认未送光，第四关已通关即解锁第五关；旧收藏、成长和所有其他关卡进度保留。每次送光都保存，写入失败沿用原提示与重试机制。
+- 新场景仅首次进入创建，复用现有岛屿和帧循环；切关隐藏，后台暂停。减少动态效果下无浮动、涟漪缩放，不延迟通关。
+- 构建继续只有 healing-game/index.html + healing-game/nightvoyage-bgm.mp3 两个部署文件；详见 downloads/healing-game-v9-README.txt 与 MUSIC-UPGRADE.md。
+
+新增检查
+node games/healing-game/tests/lotus-rules.cjs
+scripts/browser-cli.sh -s=healing9 run-code --filename games/healing-game/tests/lotus-browser.js
+scripts/browser-cli.sh -s=healing9 run-code --filename games/healing-game/tests/shared-audio-browser.js
+scripts/browser-cli.sh -s=healing9 run-code --filename games/healing-game/tests/music-lush-browser.js
+
+V8.1 基线与历史验证
+
 
 V8.1 第三关音乐
 - 星灯夜航改用本地 90 秒 MP3，解码后以 AudioBufferSourceNode 无间隙循环；用户手势解锁后播放，切关或关闭音乐立即停止，音量沿用现有控制。
@@ -28,8 +47,8 @@ node games/healing-game/tests/chime-rules.cjs
 
 生成：
 - games/healing-game/site/healing-game/index.html（忽略的本地预览目录）
-- downloads/healing-game-v8.1-tencent.zip（healing-game/index.html + healing-game/nightvoyage-bgm.mp3）
-- downloads/healing-game-v8.1-SHA256SUMS.txt
+- downloads/healing-game-v9-tencent.zip（healing-game/index.html + healing-game/nightvoyage-bgm.mp3）
+- downloads/healing-game-v9-SHA256SUMS.txt
 
 构建使用固定 ZIP 时间戳，重复构建字节相同。修改在 src/ 与 scripts/build.py，勿直接改生成的 HTML。V5 原始文件无需编辑；构建替换锚点丢失或重复会立即报错。
 
@@ -54,7 +73,7 @@ V7 已有修正
 - 星光仍为4点点亮一盏灯，3灯通关。灯心偏好只增加声光反馈与纪念次数，不消耗货币、不增加成长星光。
 
 部署与限制
-部署独立 healing-game/index.html 和同目录 nightvoyage-bgm.mp3；不要把它传到仙途入口或根目录。详见 downloads/healing-game-v8.1-README.txt。
+部署独立 healing-game/index.html 和同目录 nightvoyage-bgm.mp3；不要把它传到仙途入口或根目录。详见 downloads/healing-game-v9-README.txt。
 浏览器验证使用 Linux Chromium 触屏模拟；不是 iPhone 真机。软件渲染环境帧间隔偏高，不能据此承诺手机帧率。没有新增独立绘制循环；未替用户部署腾讯云。
 
 V8 验证记录（2026-11-05）
@@ -83,3 +102,12 @@ V8.1 验证记录（2026-11-07）
 - journey-browser.js、voyage-browser.js、finale-audio-browser.js、chapter4-browser.js 通过；使用全新上下文和合成存档。
 - npm test：147个游戏回归脚本及限流、保存/错误、wrapper工具和打包套件通过；npm run test:browser：27项通过（系统 Chromium）。
 - 本轮只生成 V8.1 独立包，既有V8/V7包保持原字节，未部署腾讯云。
+
+V9.0 验证记录（2026-11-07）
+- test_package.py：6项通过；部署ZIP严格包含index.html与唯一MP3，17段脚本通过语法检查，CRC/原音频哈希/重复构建一致性通过。chime-rules.cjs 6项与lotus-rules.cjs 4项通过。
+- lotus-browser.js：V8迁移、第五关解锁、第四关结局入口、场景触点与键盘、逐缕保存/刷新、后台暂停绘制、50成长上限、自由游玩、切换全部五关、横竖屏与桌面、写入失败恢复、减少动态效果、仙途存档隔离通过。三轮切关后稳定为78个几何体、23张纹理，第五关容器16个子节点。
+- music-lush-browser.js：三首lush曲、三首classic曲、所有乐段与六次循环变奏、300秒长播放与七秒交叉淡化通过；输出峰值不超过0.372，长播放最多34个活跃声部，交叉淡化最多38个。classic/lush风格API在第一、二、四关通过，第三关原曲定义保持不变。
+- nightvoyage-audio-browser.js、shared-audio-browser.js：MP3实际解码/循环边界、手势、开关、立即离场停止、HTTP/解码/超时回退、延迟加载切关、第三/第五关风格切换不重启、两关共享一次下载与解码缓冲区通过。
+- journey/voyage/finale-audio/chapter4浏览器回归通过。npm test：147个回归脚本及限流、保存/错误、wrapper工具与打包套件通过；npm run test:browser：27项通过。
+- 已知基线失败：旧clipping-browser.js的第三关星萤间距断言要求至少0.7，当前main（99c69ae）与本分支都测得0.589846445568015；原未固定种子的本分支运行另遇一次猫咪/毛线间距0.3866（要求0.4）。用相同固定种子、静音夹具复核main，确认星萤失败已存在。未放宽断言，也未为此修改旧关卡几何或玩法。
+- 截图已人工检查；Linux系统Chromium、软件渲染、手机390×844/DPR2、横屏844×390与桌面1280×800，非物理iPhone验证。无新增渲染循环，未部署腾讯云。
