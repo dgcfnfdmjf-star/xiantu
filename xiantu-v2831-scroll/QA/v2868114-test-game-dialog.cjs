@@ -10,7 +10,7 @@ a.doesNotMatch(src('xiantu-v2849-npc-jev.js'),/window\.confirm\(/);
 a.doesNotMatch(src('xiantu-v2762-15-petgrowthsystemv210.js'),/\bprompt\(`/);
 a.doesNotMatch(src('xiantu-v2768-systems.js'),/(^|[^\w.])(alert|confirm|prompt)\(/m,'save manager and boss abandon use the in-game dialog');
 a.doesNotMatch(src('xiantu-v2762-core.js').split('V28.68.114 青绿鎏金 in-game dialog')[1],/innerHTML/);
-for(const file of ['xiantu-v2839-war.js','xiantu-v2838-journey.js','xiantu-v28684-duel.js','xiantu-v2762-12-v277equipmentmanager.js'])a.doesNotMatch(src(file),/(^|[^\w.])(alert|confirm|prompt)\(/m,file+' uses the in-game dialog');
+for(const file of ['xiantu-v2839-war.js','xiantu-v2838-journey.js','xiantu-v28684-duel.js','xiantu-v2762-12-v277equipmentmanager.js','xiantu-v2868-sect-life.js','xiantu-v2762-14-v279-pet-capture-system.js','xiantu-v2852-relationships.js','xiantu-v2849-npc-jev.js','xiantu-v2762-15-petgrowthsystemv210.js','xiantu-v2762-08-feature-08.js'])a.doesNotMatch(src(file),/(^|[^\w.])(alert|confirm|prompt)\(/m,file+' uses the in-game dialog');
 const f=fixture(root);for(const file of JSON.parse(src('game-v2762.html').match(/var files=(\[[^;]+\]);/)[1]))f.load(file);
 f.run('startGame();closeWorldOverlay();');f.timers.clear();
 // Fallback: confirm result is delivered synchronously; cancel runs no action.
@@ -34,5 +34,16 @@ f.run("player.equipmentInventory=['木剑','木剑','木剑']");delete f.c.confi
 a.equal(f.run('bulkDismantleEquipment()'),true);a.equal(bag(),JSON.stringify([1000+pay,3-cnt]));a.equal(f.run('bulkDismantleEquipment()'),false,'nothing left to pay twice');
 f.c.confirm=()=>false;f.run("player.equipment.weapon='铁剑';player.equipmentLocks=[]");a.equal(f.run('unequipAllGear()'),false);a.equal(f.run('player.equipment.weapon'),'铁剑');
 f.c.confirm=()=>true;a.equal(f.run('unequipAllGear()'),true);a.equal(f.run('player.equipment.weapon'),null);
+// Material forge: cancel spends nothing; a resource change during confirm refuses; accept forges once.
+f.run("player.level=3;player.gold=1000;Object.assign(player.materials,{'灵木':6,'兽骨':4,'星辰砂':2});player.equipmentInventory=[];gameState='exploring';showMaterialWorkshop=()=>{}");
+const forge=()=>f.run("JSON.stringify([player.gold,player.materials['灵木'],player.equipmentInventory.length])");
+f.c.confirm=()=>false;a.equal(f.run("forgeMaterialEquipment('spirit_sword')"),false);a.equal(forge(),'[1000,6,0]');
+f.c.confirm=()=>{f.run('player.gold-=1');return true;};a.equal(f.run("forgeMaterialEquipment('spirit_sword')"),false,'gold changed during confirm');a.equal(forge(),'[999,6,0]');
+f.c.confirm=()=>true;a.equal(f.run("forgeMaterialEquipment('spirit_sword')"),true);a.equal(forge(),'[599,3,1]');
+// Beast karma cleanse: cancel keeps karma and herbs; accept spends once; a repeat has nothing to cleanse.
+f.run("ensurePetCaptureState();player.petCapture.killedBabyBeast=true;Object.assign(player.materials,{'仙果':2,'灵草':5});player.heartDemon={attachment:10}");
+f.c.confirm=()=>false;a.equal(f.run('cleanseBeastKarmaV2870()'),false);a.equal(f.run("player.petCapture.killedBabyBeast&&player.materials['仙果']"),2);
+f.c.confirm=()=>true;a.equal(f.run('cleanseBeastKarmaV2870()'),true);a.equal(f.run("[player.petCapture.killedBabyBeast,player.materials['仙果']||0].join()"),'false,0');
+a.equal(f.run('cleanseBeastKarmaV2870()'),false,'nothing left to cleanse twice');
 // Pet rename via gamePromptV2868114 is covered by v2870-test-pet-contract (cancel, invalid, save failure, success).
-console.log('PASS in-game dialog fallback, cancel/no-action, tutorial skip, equipment dismantle/unequip confirms');
+console.log('PASS in-game dialog fallback, cancel/no-action, tutorial skip, equipment dismantle/unequip, forge and beast-karma confirms');
