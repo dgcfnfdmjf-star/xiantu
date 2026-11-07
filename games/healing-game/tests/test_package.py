@@ -9,7 +9,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 REPO = ROOT.parents[1]
-ZIP = REPO / 'downloads/healing-game-v9.1-tencent.zip'
+ZIP = REPO / 'downloads/healing-game-v9.2-tencent.zip'
 
 class Package(unittest.TestCase):
     @classmethod
@@ -30,10 +30,10 @@ class Package(unittest.TestCase):
         self.assertEqual(hashlib.sha256(asset).hexdigest(), '19a90003e4b3b45c075b4c1da5a81341fddac954397d481e680a6ea3c1a5cb31')
 
     def test_version_and_checksum(self):
-        self.assertIn('月汐莲湾 V9.1'.encode(), self.html)
-        self.assertIn(b'name="garden-version" content="9.1.0"', self.html)
-        self.assertIn('V9.1 · 月汐莲湾'.encode(), self.html)
-        self.assertEqual(ZIP.with_name('healing-game-v9.1-SHA256SUMS.txt').read_text().split()[0], hashlib.sha256(ZIP.read_bytes()).hexdigest())
+        self.assertIn('月汐莲湾 V9.2'.encode(), self.html)
+        self.assertIn(b'name="garden-version" content="9.2.0"', self.html)
+        self.assertIn('V9.2 · 月汐莲湾'.encode(), self.html)
+        self.assertEqual(ZIP.with_name('healing-game-v9.2-SHA256SUMS.txt').read_text().split()[0], hashlib.sha256(ZIP.read_bytes()).hexdigest())
 
     def test_all_inline_scripts_parse(self):
         scripts = re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.html.decode())

@@ -1,4 +1,4 @@
-"""Build the two-file V9.1 game from the preserved V5 upload and small additions."""
+"""Build the two-file V9.2 game from the preserved V5 upload and small additions."""
 from pathlib import Path
 import hashlib
 import zipfile
@@ -11,7 +11,7 @@ def replace(old, new):
     assert html.count(old) == 1, (old[:100], html.count(old))
     html = html.replace(old, new)
 
-replace('<title>暮色浮岛 · 小小花园</title>', '<title>暮色浮岛 · 月汐莲湾 V9.1</title>\n<meta name="garden-version" content="9.1.0">')
+replace('<title>暮色浮岛 · 小小花园</title>', '<title>暮色浮岛 · 月汐莲湾 V9.2</title>\n<meta name="garden-version" content="9.2.0">')
 # Flush existing debounced saves before the page can be frozen or discarded.
 for comment, source in [('private mode / quota: ignore', 'garden'), ('ignore', 'butterflies')]:
     old = '''  var saveTimer = null;
@@ -142,7 +142,7 @@ replace("m.halo = new T.SpriteMaterial({ map: H.glowTex, color: 0xfff0b0, transp
 # Lanterns: cap seats on the body; spawn clear of flowers and canopy; steer round the tree and each other.
 replace('cap.position.y = 0.19;', 'cap.position.y = 0.2;')
 replace('    g.position.set(wx, wy + 0.25, wz); g.scale.set(0.01, 0.01, 0.01);\n', '    var clear = window.GardenClip.lanternSpawn(wx, wz, flowers);\n    g.position.set(clear.x, wy + 0.25, clear.z); g.scale.set(0.01, 0.01, 0.01);\n')
-replace('      L.g.rotation.y += dt * 0.3;\n', '      window.GardenClip.settleLantern(L, lanterns);\n      L.g.rotation.y += dt * 0.3;\n')
+replace('      L.g.rotation.y += dt * 0.3;\n', '      window.GardenClip.settleLantern(L, lanterns);\n      if (window.LotusChapter) window.LotusChapter.carryLantern(L);\n      L.g.rotation.y += dt * 0.3;\n')
 # Falling sparks settle on the grass instead of vanishing into it.
 replace('      sp.pos[j] += spVel[j] * dt; sp.pos[j + 1] += spVel[j + 1] * dt; sp.pos[j + 2] += spVel[j + 2] * dt;\n', '      sp.pos[j] += spVel[j] * dt; sp.pos[j + 1] += spVel[j + 1] * dt; sp.pos[j + 2] += spVel[j + 2] * dt;\n      if (sp.pos[j + 1] < iy + TOP_Y + 0.03 && sp.pos[j] * sp.pos[j] + sp.pos[j + 2] * sp.pos[j + 2] < 25) { sp.pos[j + 1] = iy + TOP_Y + 0.03; spVel[j + 1] = 0; }\n')
 replace('      var why = canPlant(lp.x, lp.z);\n', "      var why = canPlant(lp.x, lp.z) || window.GardenClip.plantBlocked(lp.x, lp.z, window.__kittens ? window.__kittens.state().level : 1, flowers);\n")
@@ -222,7 +222,7 @@ asset = (ROOT / 'assets/nightvoyage-bgm.mp3').read_bytes()
 assert len(asset) == 2161729
 assert hashlib.sha256(asset).hexdigest() == '19a90003e4b3b45c075b4c1da5a81341fddac954397d481e680a6ea3c1a5cb31'
 (out.parent / 'nightvoyage-bgm.mp3').write_bytes(asset)
-archive = ROOT.parents[1] / 'downloads/healing-game-v9.1-tencent.zip'
+archive = ROOT.parents[1] / 'downloads/healing-game-v9.2-tencent.zip'
 # Stable timestamps and bytes make the downloadable release reproducible.
 with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
     for name, data in [('index.html', html.encode()), ('nightvoyage-bgm.mp3', asset)]:
@@ -230,5 +230,5 @@ with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
         entry.compress_type = zipfile.ZIP_DEFLATED
         entry.external_attr = 0o100644 << 16
         z.writestr(entry, data)
-archive.with_name('healing-game-v9.1-SHA256SUMS.txt').write_text(hashlib.sha256(archive.read_bytes()).hexdigest() + '  ' + archive.name + '\n')
-print(f'Built V9.1: {len(out.read_bytes())} bytes; ZIP: {archive.stat().st_size} bytes')
+archive.with_name('healing-game-v9.2-SHA256SUMS.txt').write_text(hashlib.sha256(archive.read_bytes()).hexdigest() + '  ' + archive.name + '\n')
+print(f'Built V9.2: {len(out.read_bytes())} bytes; ZIP: {archive.stat().st_size} bytes')

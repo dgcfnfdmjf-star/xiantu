@@ -1,0 +1,27 @@
+暮色浮岛 V9.2 · 月汐莲湾（2026-11-07）
+
+本轮只修正第五关场景：复用第一至第四关的原始大浮岛及原池塘，保留草地、土层、岩体、花树、睡猫、云和浮石；删除上一版独立蓝色莲湾圆盘。六莲位于原池塘，目标道具悬于池上，舟灯结局在原池塘中完成。六目标玩法、音乐、解锁、存档与50点首次成长规则不变。
+镜头显示完整原岛，适配手机横竖屏和桌面；牵引坐标跟随原岛浮动。旧花朵仅做本关显示避让，不改变存档坐标。
+
+上传腾讯云
+解压 healing-game-v9.2-tencent.zip，严格只有：
+- healing-game/index.html
+- healing-game/nightvoyage-bgm.mp3
+
+腾讯云 https://console.cloud.tencent.com/tcb → 静态网站托管 → 文件管理。
+进入 xiantu-v2831-scroll/healing-game/，先备份旧文件，再把这两个文件上传到同一目录。MP3文件名保持不变，类型使用audio/mpeg；不要上传ZIP作为网页。
+不要覆盖根目录index.html、仙途入口或game-v2762.html。
+访问：
+https://xiantu-game-d9gy5heze4b039bf1-1255918878.tcloudbaseapp.com/xiantu-v2831-scroll/healing-game/index.html?v=9.2
+浏览器标题应为「暮色浮岛 · 月汐莲湾 V9.2」。保持原域名与浏览器才能继续原本地存档。
+
+兼容与校验
+V9.0/V9.1的莲花进度、收藏、镜面和叶舟方向、通关奖励继续保留。没有计时或失败；完成练习不清空存档、不重复领奖。手账仍47种，第五关仍于第四关完成后解锁。
+第三/第五关继续使用同一原MP3：2161729 bytes，SHA256 19a90003e4b3b45c075b4c1da5a81341fddac954397d481e680a6ea3c1a5cb31。
+HTML：989472 bytes；ZIP：2402217 bytes。
+ZIP SHA256：765d660ca3601eb6335cf3223bc7c06f558b206f5c4f1e20520d5cc38445cb05。
+包测试验证严格两文件、CRC、原MP3字节、17段内联脚本语法及重复构建一致。
+
+GitHub合并不代表腾讯云已部署。本包未修改仙途、Jev或音频实现；未合并main、未部署腾讯云。原岛身份、多视口、六目标和池塘几何已验证，物理iPhone未验证。详情和旧测试例外见 games/healing-game/README.txt。
+
+已知旧回归例外：第三关 clipping-browser.js 星萤间距0.589846445568015低于0.7，该问题已在旧main基线复现；本轮不修改第三关几何或放宽断言。第五关场景、跨关与几何检查全部通过。
