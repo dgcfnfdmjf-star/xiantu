@@ -40,7 +40,7 @@ function mentorDiscipleV2892(id,kind){
  const d=lifeActionDiscipleV2868(id);if(!d)return false;
  const plan=mentorPlanV2892(d,kind);if(!plan.ok){showFloatingText(plan.why,'#ffd76a');return false;}
  const owner=player,sect=player.sect,view=lifeViewV2868,record=JSON.stringify(d);
- if(!confirm(`${MENTOR_KINDS_V2892[kind]}「${d.name}」？消耗 ${plan.cost} 灵石，剩余 ${player.gold-plan.cost}；对应履历+1${kind==='training'&&mentorLevelV2892(d)<10?'，等级+1':''}。30个游戏日后可再受亲传，本类剩余 ${1-plan.m.counts[kind]} 次。`))return false;
+ return gameConfirmOnceV2868114('sect-mentor',`${MENTOR_KINDS_V2892[kind]}「${d.name}」？消耗 ${plan.cost} 灵石，剩余 ${player.gold-plan.cost}；对应履历+1${kind==='training'&&mentorLevelV2892(d)<10?'，等级+1':''}。30个游戏日后可再受亲传，本类剩余 ${1-plan.m.counts[kind]} 次。`,()=>{
  if(player!==owner||player.sect!==sect||lifeViewV2868!==view||lifeActionDiscipleV2868(id)!==d||JSON.stringify(d)!==record)return false;
  const again=mentorPlanV2892(d,kind);if(!again.ok||again.cost!==plan.cost||again.day!==plan.day)return false;
  const ok=commitMiniWeaveV286840(()=>{
@@ -50,6 +50,7 @@ function mentorDiscipleV2892(id,kind){
  });
  // Rollback restores nested objects, so rebind the view before allowing a retry.
  showDiscipleLifeV2868(id);if(ok){updateStats();showFloatingText(`「${d.name}」亲传已记入履历。`,'#ffd76a');}return ok;
+ });
 }
 
 let lifeViewV2868=null;
@@ -110,7 +111,7 @@ function claimAllSectTodoV2870(token,dispatch=false){
  const t=sectTodoReadV2868(),trip=tripYieldV286821().units>0;
  const trails=dispatch?t.trails:[];
  if(!t.jobs.length&&!t.thanks.length&&!trip&&!trails.length)return false;
- if(dispatch){const owner=player,before=JSON.stringify(player);if(!confirm(`领取${t.jobs.length}项成果、${t.thanks.length}份答谢${trip?'及游历收获（结束本趟）':''}，并派出${trails.length}名当前已就绪弟子寻踪4日？来信、委托和晋升仍需手动处理。`)||player!==owner||!sectQuickValidV2870(token)||!sectCanManageV2866()||before!==JSON.stringify(player))return false;}
+ const run=()=>{
  let jobs=0,thanks=0,claimedTrip=false;
  const ok=commitMiniWeaveV286840(()=>{
   if(t.jobs.length&&discipleAllowedV2815())jobs=settleDisciplesV2821(undefined,true)||0;
@@ -125,18 +126,26 @@ function claimAllSectTodoV2870(token,dispatch=false){
  updateStats();syncSectTodoV2868();showSectTodoV2868();
  if(ok)showFloatingText(`已领取：弟子成果${jobs}项、同门答谢${thanks}份${claimedTrip?'、游历收获':''}${trails.length?'；已派遣寻踪'+trails.length+'人':''}`,'#69f0ae');
  return ok;
+ };
+ if(!dispatch)return run();
+ const owner=player,before=JSON.stringify(player);
+ return gameConfirmOnceV2868114('sect-claim-dispatch',`领取${t.jobs.length}项成果、${t.thanks.length}份答谢${trip?'及游历收获（结束本趟）':''}，并派出${trails.length}名当前已就绪弟子寻踪4日？来信、委托和晋升仍需手动处理。`,()=>{
+  if(player!==owner||!sectQuickValidV2870(token)||!sectCanManageV2866()||before!==JSON.stringify(player))return false;return run();
+ });
 }
 function startAllSectTrailsV2870(token){
  if(!sectQuickValidV2870(token))return false;
  if(!discipleAllowedV2815())return false;
  const owner=player,sect=player.sect,ids=sectTodoReadV2868().trails;
- if(!ids.length||!confirm(`派遣${ids.length}名弟子进行古洞寻踪？每人占用4个游戏日，无费用；归来后各领取240灵石、妖丹×2。`))return false;
- if(player!==owner||player.sect!==sect||!discipleAllowedV2815())return false;
+ if(!ids.length)return false;
+ return gameConfirmOnceV2868114('sect-trails',`派遣${ids.length}名弟子进行古洞寻踪？每人占用4个游戏日，无费用；归来后各领取240灵石、妖丹×2。`,()=>{
+ if(player!==owner||player.sect!==sect||!sectQuickValidV2870(token)||!discipleAllowedV2815())return false;
  const eligible=sectMembersReadV2868().filter(d=>ids.includes(d.id)&&!d.job&&!warDiscipleBusyV286841(d.id)&&lifeReadV2868(d).trail?.state==='ready');
  if(!eligible.length)return false;
  const ok=commitMiniWeaveV286840(()=>{for(const d of eligible){const life=lifeReadV2868(d);life.trail.state='running';d.lifeV2868=life;lifeAddV2868(d,'trail');d.job={type:'mission',name:'古洞寻踪',end:discipleDayV2815()+4,gold:240,material:'妖丹',count:2,followupV2868:true};}});
  if(!ok)return false;
  syncSectTodoV2868();showSectTodoV2868();return ok;
+ });
 }
 function drawSectTodoV2868(ctx,o){if(!sectTodoCacheV2868.total||!player?.sect)return;const own=(o.action==='faction_gate_v2806'&&o.factionName===player.sect)||(player.sect==='凌霄宗'&&(o.action==='sect'||o.buildingId==='main_hall'));if(!own)return;ctx.save();ctx.fillStyle='#263d31';ctx.fillRect(-42,-o.r-22,84,22);ctx.fillStyle='#f1d89b';ctx.font='12px Microsoft YaHei';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(`待办 ${sectTodoCacheV2868.total}`,0,-o.r-11);ctx.restore();}
 // One reviewed settlement per click; never loops over newly generated commissions.
@@ -196,7 +205,7 @@ function settleReadySectTasksV2885(session){
  closeExpansionV286827();updateStats();syncSectTodoV2868();showFloatingText(`已速办${q.tasks.length}项委托，消耗与奖励已保存。`,'#69f0ae');showSectTodoV2868();return true;
 }
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.110';
+window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.112';
 
 
 // V28.68.40: saved random encounters and run-scoped blessings.
@@ -322,8 +331,8 @@ function executeSectMasterV2872(kind,token){
  const view=sectMasterViewV2872;if(!view||view.token!==token||view.owner!==player||view.sect!==player.sect||!document.getElementById('sectMasterTitleV2872')||document.getElementById('storyPanel')?.classList.contains('hidden'))return false;
  const plan=sectMasterPlanV2872(kind);if(!plan?.ok)return false;
  const snapshot=()=>JSON.stringify([player.sectContribution,player.gold,player.sectData?.prosperity,player.sectMasterV2872,discipleDayV2815(),sectMembersReadV2868(),sectMembersReadV2868().map(d=>[d.id,warDiscipleBusyV286841(d.id)])]),before=snapshot();
- if(!confirm(kind==='repair'?`支出${plan.contribution}贡献、${plan.gold}灵石，使繁荣度+${plan.gain}？两项议事将共同冷却30个游戏日。`:`支出${plan.contribution}贡献，亲授${plan.members.map(d=>d.name).join('、')}共${plan.members.length}名弟子，等级各+1、忠诚各+2？两项议事将共同冷却30个游戏日。`))return false;
- if(view!==sectMasterViewV2872||player!==view.owner||player.sect!==view.sect||!sectMasterPlanV2872(kind)?.ok||before!==snapshot())return false;
+ return gameConfirmOnceV2868114('sect-master',kind==='repair'?`支出${plan.contribution}贡献、${plan.gold}灵石，使繁荣度+${plan.gain}？两项议事将共同冷却30个游戏日。`:`支出${plan.contribution}贡献，亲授${plan.members.map(d=>d.name).join('、')}共${plan.members.length}名弟子，等级各+1、忠诚各+2？两项议事将共同冷却30个游戏日。`,()=>{
+ if(!document.getElementById('sectMasterTitleV2872')||view!==sectMasterViewV2872||player!==view.owner||player.sect!==view.sect||!sectMasterPlanV2872(kind)?.ok||before!==snapshot())return false;
  const ok=commitMiniWeaveV286840(()=>{
   player.sectContribution-=plan.contribution;player.gold-=plan.gold;
   const state=plan.state;state.nextDay=plan.day+SECT_MASTER_COUNCIL_V2872.cooldown;
@@ -332,6 +341,7 @@ function executeSectMasterV2872(kind,token){
   player.sectMasterV2872=state;
  });
  if(ok){updateStats();showSectMasterV2872();}return ok;
+ });
 }
 
 // Seasonal administration: explicit claims, immutable quarter quotes, no back pay.
@@ -404,7 +414,8 @@ function executeSectAdminV2873(kind,id,member,token){
  const view=sectAdminViewV2873,valid=()=>view&&view===sectAdminViewV2873&&token===view.token&&player===view.owner&&player.sect===view.sect&&!!document.getElementById('sectAdminTitleV2873')&&!document.getElementById('storyPanel')?.classList.contains('hidden')&&sectMasterAllowedV2872();
  if(!valid())return false;const p=sectAdminPlanV2873(kind,id,member);if(!p)return false;
  const snapshot=()=>JSON.stringify([player.sectAdminV2873,player.sectPathV2880,player.sectPromotion,player.level,player.gold,player.sectContribution,player.sectTotalContribution,player.sectData?.prosperity,discipleDayV2815(),sectMembersReadV2868()]),before=snapshot();
- if(!confirm(p.label+'？')||!valid()||before!==snapshot()||!sectAdminPlanV2873(kind,id,member))return false;
+ return gameConfirmOnceV2868114('sect-admin',p.label+'？',()=>{
+ if(!valid()||before!==snapshot()||!sectAdminPlanV2873(kind,id,member))return false;
  const ok=commitMiniWeaveV286840(()=>{
   const s=p.state;s.highDay=Math.max(s.highDay,p.day);player.gold-=p.gold;player.sectContribution-=p.contribution;
   const addPros=g=>{const old=Number.isFinite(Number(player.sectData.prosperity))?Number(player.sectData.prosperity):20;player.sectData.prosperity=Math.max(old,Math.min(100,old+g));};
@@ -420,6 +431,7 @@ function executeSectAdminV2873(kind,id,member,token){
   player.sectAdminV2873=s;
  });
  if(ok){updateStats();showSectAdminV2873();}return ok;
+ });
 }
 function showSectAdminV2873(){
  if(!sectMasterAllowedV2872())return;
@@ -523,7 +535,9 @@ function showSectPathV2880(){
 function executeSectPathV2880(kind,id,token){
  const v=sectPathViewV2880,valid=()=>v&&v===sectPathViewV2880&&v.token===token&&v.owner===player&&v.sect===player.sect&&document.getElementById('sectPathTitleV2880')&&!document.getElementById('storyPanel')?.classList.contains('hidden')&&sectCanManageV2866();
  if(!valid())return false;const p=sectPathPlanV2880(kind,id);if(!p)return false;
- const before=JSON.stringify(player);if(!confirm(p.label+'？')||!valid()||before!==JSON.stringify(player)||!sectPathPlanV2880(kind,id))return false;
+ const before=JSON.stringify(player);
+ return gameConfirmOnceV2868114('sect-path',p.label+'？',()=>{
+ if(!valid()||before!==JSON.stringify(player)||!sectPathPlanV2880(kind,id))return false;
  const ok=commitMiniWeaveV286840(()=>{
   const s=p.s;s.highDay=Math.max(s.highDay,p.day);
   if(kind==='start')s.stage=1;
@@ -537,6 +551,7 @@ function executeSectPathV2880(kind,id,token){
   player.sectPathV2880=s;
  });
  if(ok){updateStats();if(kind==='doctrine'){showSectAdminV2873();if(!p.master)showSectMasterCeremonyV2870();}else showSectPathV2880();}return ok;
+ });
 }
 function sectUpkeepTextV2880(q){
  return q.upkeep===undefined?'旧账册不收供养。':`供养组成：弟子${q.members}名、官职${q.posts}席；弟子每人20×(1+境界序号×0.1)，官职每席80，山门运转为繁荣度×3，再计道统及传承减免。`;

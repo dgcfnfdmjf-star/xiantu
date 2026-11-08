@@ -11,7 +11,7 @@ function jevMapNpcV2849(id){
   const npc=MAP_NPCS[id];if(!npc||!jevCanActV2846())return;
   const status=getMapNpcQuestState(id).status,affinity=getMapNpcAffinity(id),ready=getMapNpcQuestProgress(id).ready;
   const options=[{a:0,label:'提供本地线索 · 查看地域情报',apply:()=>showMapNpcIntel(id)},
-    ...(status==='completed'?[]:[{a:1,label:status==='accepted'?'谈谈当前委托 · 查看要求':'请求你的帮助 · 确认是否接取委托',apply:()=>{if(status==='accepted')return showMapNpcHub(id);if(window.confirm(`接取【${npc.quest.title}】？\n${npc.quest.desc}\n接取时不扣材料，备齐后自行提交。`))acceptMapNpcQuest(id);}}]),
+    ...(status==='completed'?[]:[{a:1,label:status==='accepted'?'谈谈当前委托 · 查看要求':'请求你的帮助 · 确认是否接取委托',apply:()=>{if(status==='accepted')return showMapNpcHub(id);const owner=player;gameConfirmV2868114(`接取【${npc.quest.title}】？\n${npc.quest.desc}\n接取时不扣材料，备齐后自行提交。`,()=>{if(player===owner)acceptMapNpcQuest(id);});}}]),
     {a:2,label:'保持谨慎 · 交谈一次',apply:()=>npcReservedTalkV2849(id)},
     {a:3,label:'交流近况 · 交谈一次',apply:()=>talkToMapNpc(id)}];
   return npcOptionsV2849(npc.name+' · Jev 行为','mapnpc',[affinity,['available','accepted','completed'].indexOf(status),Number(ready),jevPercentV2846(player.hp,getMaxHp()),player.level],options,ready&&status!=='completed'?1:0);
@@ -23,7 +23,7 @@ function jevElderV2849(){
   const options=SECT_TASK_TEMPLATES.filter(t=>!t.goldCost||player.gold>=t.goldCost).map(t=>{
     const owned=t.materials?Math.min(...Object.entries(t.materials).map(([k,v])=>Math.min(v,player.materials[k]||0))):t.goldCost?Math.min(player.gold,t.goldCost):0;
     return {a:t.type==='combat'?1:t.type==='donate'?2:0,b:getSectTaskCount(t),c:owned,d:t.contributionReward,e:t.goldCost||0,
-      label:`${t.name} · ${formatSectTaskDesc(t)} · ${t.contributionReward}贡献`,apply:()=>{if(window.confirm(`接取【${t.name}】？\n${formatSectTaskDesc(t)}\n接取时不扣资源，完成后按原规则提交。`))acceptSectTask(t.id);}};
+      label:`${t.name} · ${formatSectTaskDesc(t)} · ${t.contributionReward}贡献`,apply:()=>{const owner=player;gameConfirmV2868114(`接取【${t.name}】？\n${formatSectTaskDesc(t)}\n接取时不扣资源，完成后按原规则提交。`,()=>{if(player===owner)acceptSectTask(t.id);});}};
   });
   const preferred=Math.max(0,options.findIndex(o=>o.a===0&&o.c>=o.b));
   return npcOptionsV2849('宗门执事 · 安排差事','elder',[player.level,player.sectContribution,player.gold,jevPercentV2846(player.hp,getMaxHp())],options,preferred);
@@ -79,6 +79,13 @@ function initNpcBattleV2849(){
 function companionBattleV2849(){const s=currentEnemy&&NPC_JEV_V2849.allies.get(currentEnemy);return s&&s.owner===player&&s.token===COMBAT_FINISH_V2764.token&&s.id===companionIdV2849()?s:null;}
 const ALLY_ACTIONS_V2849=[{a:0,name:'吐纳',cost:0,cooldown:0},{a:1,name:'回生',cost:18,cooldown:3},{a:2,name:'护卫',cost:12,cooldown:2},{a:3,name:'集火',cost:16,cooldown:2}];
 function companionActionsV2849(s){return ALLY_ACTIONS_V2849.filter(o=>s.mp>=o.cost&&(s.cooldowns[o.a]||0)<=s.turn&&(o.a!==1||player.hp<getMaxHp())&&(o.a!==0||s.mp<60));}
+// Companion turns never wait longer than this; the ceiling also covers stalls outside the request race.
+const COMPANION_JEV_WAIT_V2868113=1500;
+function companionDecideV2868113(state,fallback,fresh){
+  let timer;const local={choice:fallback,source:'local',note:'同伴等待超时，使用本地策略'};
+  let decision;try{decision=jevDecideV2846(state,fallback,fresh,COMPANION_JEV_WAIT_V2868113);}catch(_){decision=local;}
+  return Promise.race([Promise.resolve(decision).catch(()=>local),new Promise(r=>{timer=setTimeout(()=>r(local),COMPANION_JEV_WAIT_V2868113+250);})]).finally(()=>clearTimeout(timer));
+}
 async function runCompanionTurnV2849(next){
   const s=companionBattleV2849();if(!s||currentEnemy.hp<=0)return next();if(s.locked||monsterStateV2844()?.locked)return;
   s.locked=true;s.turn++;s.guard=false;
@@ -91,7 +98,7 @@ async function runCompanionTurnV2849(next){
     const fresh=()=>battleFresh()&&companionBattleV2849()===s&&fingerprint()===signature;
     const enemyAi=monsterStateV2844(),requestBefore=FORGE_ADVICE_V2842.nextAt,enemyRequests=enemyAi?.requests||0;
     const fairTurn=!MONSTER_JEV_V2844.enabled||enemyAi?.failed||s.lastEnemyRequest===undefined||enemyRequests>s.lastEnemyRequest;
-    let answer=NPC_JEV_V2849.allyCloud&&options.length>1&&fairTurn?await jevDecideV2846(jevWireStateV2846('ally',[jevPercentV2846(player.hp,getMaxHp()),jevPercentV2846(enemy.hp,enemy.maxHp),s.mp,s.turn],options),'o'+options.indexOf(chosen),fresh,1500):{choice:'o'+options.indexOf(chosen),source:'local'};
+    let answer=NPC_JEV_V2849.allyCloud&&options.length>1&&fairTurn?await companionDecideV2868113(jevWireStateV2846('ally',[jevPercentV2846(player.hp,getMaxHp()),jevPercentV2846(enemy.hp,enemy.maxHp),s.mp,s.turn],options),'o'+options.indexOf(chosen),fresh):{choice:'o'+options.indexOf(chosen),source:'local'};
     if(FORGE_ADVICE_V2842.nextAt!==requestBefore)s.lastEnemyRequest=enemyRequests;
     if(!battleFresh())return;
     if(!fresh())return next();
@@ -105,6 +112,9 @@ async function runCompanionTurnV2849(next){
     if(action.a===3){const damage=dealEnemyDamageV2882(enemy,Math.min(enemy.hp,Math.max(1,Math.floor(getAtk()*.35-enemy.def*.2))),false,'companion');showDamageNumber(damage,'enemy',false,false,true,false,name+'·集火');addCombatLog(`${name}协同集火，造成 ${damage} 伤害。`,'pet');}
     addCombatLog('☯ 同伴 '+s.status+' · 灵力 '+s.mp+'/60','pet');updateCombatUI();updateStats();
     if(enemy.hp<=0){checkBattleEnd();return;}return next();
+  }catch(error){
+    // A failed support action must not stall the enemy turn; only continue in the same battle.
+    console.warn?.('companion turn skipped',error);if(battleFresh())return next();
   }finally{s.locked=false;}
 }
 function companionGuardV2849(damage){const s=companionBattleV2849();if(!s?.guard||damage<=0)return damage;s.guard=false;const next=Math.max(1,Math.floor(damage*.8));addCombatLog('同伴护卫抵消 '+(damage-next)+' 点伤害。','heal');return next;}
@@ -122,7 +132,7 @@ window.addEventListener('xiantu:combat-finishing',()=>{
   const pending=JEV_WORLD_V2846.pending;if(pending){pending.cancel();pending.controller?.abort();}
 });
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2849-npc-jev.js']='28.68.110';
+window.__xiantuBuildFilesV2814['xiantu-v2849-npc-jev.js']='28.68.112';
 
 // Rival trial records use entry-realm snapshots; rewards are claimed outside combat.
 const RIVAL_STYLES_V2874={sword:['兵刃剑枪','折锋障','防御提高12%'],thunder:['九天雷法','吞雷引','攻击提高10%'],fire:['焚世真火','寂灭灰','攻击提高10%'],ice:['玄冥寒冰','沸血煞','防御提高12%'],heal:['青莲生机','断生印','攻击提高10%']};
@@ -159,8 +169,10 @@ function rivalViewValidV2874(token){return jevCanActV2846()&&rivalViewV2874?.tok
 function startRivalTrialV2874(token){
  if(!rivalViewValidV2874(token)||player.hp<=getMaxHp()*.25)return false;
  const owner=player,stamp=()=>JSON.stringify([player.level,player.phase,player.hp,player.mp,player.skillLoadoutV212,player.rivalHistoryV2849]),before=stamp(),enemy=createYeWujiV2810();
- if(!confirm(`问锋试炼：${getEnemyRealmNameV2811(enemy)}。撑过6个完整敌方回合或直接击退即达成；败北不扣灵石。每境首通只领一次，重复演练无奖励。继续？`)||owner!==player||!rivalViewValidV2874(token)||before!==stamp())return false;
+ return gameConfirmOnceV2868114('rival-trial',`问锋试炼：${getEnemyRealmNameV2811(enemy)}。撑过6个完整敌方回合或直接击退即达成；败北不扣灵石。每境首通只领一次，重复演练无奖励。继续？`,()=>{
+ if(owner!==player||!rivalViewValidV2874(token)||before!==stamp()||gameState==='combat'||player.hp<=getMaxHp()*.25)return false;
  enemy._rivalTrialV2874=true;closeJevWorldV2846();closeWorldOverlay();startCombat(enemy,true,false);addCombatLog('六合问锋：完成6个敌方回合并存活，或击退宿敌。奖励在纪事碑领取；首次交手不加反制。','boss');return true;
+ });
 }
 function claimRivalTrialV2874(realm,token){
  if(!rivalViewValidV2874(token))return false;

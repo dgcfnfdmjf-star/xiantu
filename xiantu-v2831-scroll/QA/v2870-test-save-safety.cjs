@@ -89,6 +89,8 @@ fresh();{const raw=mkSave('A<B');put(K,raw);f.run('exportSaveV2768()');await tic
 fresh();put(K,mkSave('OK'));f.run('exportSaveV2768()');await tick();a.equal(f.downloads.length,1);a.equal(f.alerts.length,0);a(/^xiantu-save-\d+\.json$/.test(f.downloads[0].name));
 fresh();put(B,mkSave('A&B"x'));put(PREV,mkSave('P<Q'));f.run('exportSaveV2768(true);exportPreviousV2838()');await tick();a.equal(f.downloads.length,2);
 fresh();f.run('exportPreviousV2838();exportSaveV2768(true)');await tick();a.equal(f.alerts.length,2);a(f.alerts.every(m=>m.includes('导出失败')));
+// Exports carry an integrity digest; the payload under it must be the stored record unchanged.
+const unsealV2906=t=>{const d=JSON.parse(t);a.match(d.exportDigestV2906,/^[0-9a-f]{16}$/);delete d.exportDigestV2906;return JSON.stringify(d);};
 fresh();{put(K,mkSave('OK'));let shared=null;f.c.isMobileV2870=()=>true;f.c.navigator.canShare=()=>true;f.c.navigator.share=async o=>{shared=o;};
   f.run('exportSaveV2768()');await tick();a(shared&&shared.files[0].name.endsWith('.json'));a.equal(f.downloads.length,0);
   fresh();put(K,mkSave('OK'));f.c.isMobileV2870=()=>true;f.c.navigator.canShare=()=>true;f.c.navigator.share=async()=>{throw Object.assign(new Error('x'),{name:'AbortError'});};
@@ -96,10 +98,10 @@ fresh();{put(K,mkSave('OK'));let shared=null;f.c.isMobileV2870=()=>true;f.c.navi
 fresh();{put(K,mkSave('OK'));let used=false;f.c.isMobileV2870=()=>false;f.c.navigator.canShare=()=>true;f.c.navigator.share=async()=>{used=true;};
   f.run('exportSaveV2768()');await tick();a.equal(used,false);a.equal(f.downloads.length,1);}
 fresh();{const raw=mkSave('OK');put(K,raw);f.c.URL={createObjectURL(){throw new Error('blocked');}};let copied=null;f.c.navigator.clipboard={writeText:async t=>{copied=t;}};
-  f.run('exportSaveV2768()');await tick();a.equal(copied,raw);a(f.alerts.some(m=>m.includes('已复制')));
+  f.run('exportSaveV2768()');await tick();a.equal(unsealV2906(copied),raw);a(f.alerts.some(m=>m.includes('已复制')));
   fresh();put(K,raw);f.c.URL={createObjectURL(){throw new Error('blocked');}};f.run('exportSaveV2768()');await tick();
-  const overlay=f.ids.get('rawSaveTextV2870');a(overlay,'manual-copy text box appears');a.equal(overlay.children[0].children[2].value,raw);}
-fresh();{const raw=mkSave('OK');put(K,raw);let copied=null;f.c.navigator.clipboard={writeText:async t=>{copied=t;}};f.run('copySaveTextV2870()');await tick();a.equal(copied,raw);}
+  const overlay=f.ids.get('rawSaveTextV2870');a(overlay,'manual-copy text box appears');a.equal(unsealV2906(overlay.children[0].children[2].value),raw);}
+fresh();{const raw=mkSave('OK');put(K,raw);let copied=null;f.c.navigator.clipboard={writeText:async t=>{copied=t;}};f.run('copySaveTextV2870()');await tick();a.equal(unsealV2906(copied),raw);}
 fresh();{f.run('showSaveManagerV2768()');const html=f.ids.get('saveManagerV2768').innerHTML;
   for(const s of ['copySaveTextV2870()','restoreBeforeReplaceV2870()','exportBeforeReplaceV2870()','exportSaveV2768()','exportSaveV2768(true)','restoreBackupV2768()','restorePreviousV2838()','exportPreviousV2838()','importSaveV2768(this.files[0])'])a(html.includes(s),s);}
 console.log('PASS export: never gated by the validator, share on phones only, cancel does not download, download->clipboard->manual text fallbacks, manager controls');

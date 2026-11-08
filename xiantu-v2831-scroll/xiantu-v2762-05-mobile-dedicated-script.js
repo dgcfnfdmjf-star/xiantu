@@ -102,6 +102,7 @@
     const game=document.getElementById('gameScreen');if(!game||game.classList.contains('hidden')||!document.body.classList.contains('flat-world-active'))return false;
     if(typeof interiorV286886!=='undefined'&&interiorV286886)return false;
     if(typeof tutorialState!=='undefined'&&tutorialState.active)return false;
+    if(typeof pathOwnsMapV2901==='function'&&pathOwnsMapV2901())return false;
     if(typeof isWorldOverlayOpen!=='function'||isWorldOverlayOpen())return false;
     if(document.getElementById('mobileQuickMenu')?.classList.contains('show'))return false;
     return !Array.from(document.querySelectorAll('.load-dialog,.tutorial-popup,.tutorial-card,#afterBattleV2838,[role="dialog"]')).some(el=>!el.hidden&&!el.classList.contains('hidden')&&el.getClientRects().length>0);
@@ -181,4 +182,4 @@ function setUiPreferenceV2868109(kind,value){
  showGraphicsV2903(saved?'界面设置已保存。':'已应用；当前浏览器不允许保存偏好。');
 }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-05-mobile-dedicated-script.js"]="28.68.110";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-05-mobile-dedicated-script.js"]="28.68.112";

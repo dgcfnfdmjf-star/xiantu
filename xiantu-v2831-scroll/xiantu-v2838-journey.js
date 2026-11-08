@@ -269,30 +269,43 @@ function showBattleReviewV2878(){
 // New-game checkpoint is independent of the rolling autosave backup.
 const PREVIOUS_SAVE_V2838='xiantu_save_previous_character';
 function saveChangeAllowedV2838(){return gameState!=='combat'&&gameState!=='combat-ending'&&!player?.breakthrough?.isAnimating;}
-function prepareNewGameV2838(){
+function currentCharacterRawV2838(){
+ const live=!document.getElementById('gameScreen')?.classList.contains('hidden')&&gameState!=='start';
+ let raw=live&&!player.testAccount999?JSON.stringify(createSaveDataV2768()):(localStorage.getItem(SAVE_KEY)||localStorage.getItem(SAVE_BACKUP_KEY));
+ try{if(raw)parseSaveV2768(raw);}catch(_){raw=localStorage.getItem(SAVE_BACKUP_KEY);if(raw)parseSaveV2768(raw);}
+ return raw;
+}
+// proceed runs only after the current character is archived; cancel leaves every slot and the session untouched.
+function prepareNewGameV2838(proceed){
+ const go=()=>typeof proceed==='function'?(proceed(),true):true;
  try{assertSaveSessionV2868102();}catch(_){return false;}
- if(!saveChangeAllowedV2838()){alert('请先结束战斗或突破，再重新入世。');return false;}
+ if(!saveChangeAllowedV2838()){gameAlertV2868114('请先结束战斗或突破，再重新入世。');return false;}
  try{
-  const live=!document.getElementById('gameScreen')?.classList.contains('hidden')&&gameState!=='start';
-  let raw=live&&!player.testAccount999?JSON.stringify(createSaveDataV2768()):(localStorage.getItem(SAVE_KEY)||localStorage.getItem(SAVE_BACKUP_KEY));
-  try{if(raw)parseSaveV2768(raw);}catch(_){raw=localStorage.getItem(SAVE_BACKUP_KEY);if(raw)parseSaveV2768(raw);}
-  if(!raw)return true;
-  if(!confirm('重新入世将创建新角色。当前有效角色会保留在“存档管理 → 上一位角色”，该位置只保留最近一位。是否继续？'))return false;
-  localStorage.setItem(PREVIOUS_SAVE_V2838,raw);return true;
- }catch(e){alert('未开启新角色：旧记录无法保全，请先导出存档。'+e.message);return false;}
+  if(!currentCharacterRawV2838())return go();
+  const owner=player;
+  return gameConfirmOnceV2868114('new-game','重新入世将创建新角色。当前有效角色会保留在“存档管理 → 上一位角色”，该位置只保留最近一位。是否继续？',()=>{
+   try{
+    assertSaveSessionV2868102();
+    if(player!==owner||!saveChangeAllowedV2838())throw Error('确认期间角色或战斗状态已变化');
+    // Re-read at confirm time so progress made while the dialog was open is what gets archived.
+    const raw=currentCharacterRawV2838();if(raw)localStorage.setItem(PREVIOUS_SAVE_V2838,raw);
+   }catch(e){gameAlertV2868114('未开启新角色：旧记录无法保全，请先导出存档。'+e.message);return false;}
+   return go();
+  });
+ }catch(e){gameAlertV2868114('未开启新角色：旧记录无法保全，请先导出存档。'+e.message);return false;}
 }
 function restorePreviousV2838(){
- if(!saveChangeAllowedV2838()){alert('请先结束战斗或突破。');return;}
+ if(!saveChangeAllowedV2838()){gameAlertV2868114('请先结束战斗或突破。');return;}
+ if(saveConfirmOpenV2868114())return;
  try{const raw=localStorage.getItem(PREVIOUS_SAVE_V2838);if(!raw)throw Error('尚无上一位角色');const data=dryRunLoadV2870(raw);
-  if(!confirm(`恢复上一位角色「${data.player.name||'无名'}」？将与当前角色互换，当前角色保存在“上一位角色”。`))return;
-  replaceSaveV2870(raw,data,PREVIOUS_SAVE_V2838);
- }catch(e){alert('未恢复：'+e.message);}
+  saveConfirmV2868114(`恢复上一位角色「${data.player.name||'无名'}」？将与当前角色互换，当前角色保存在“上一位角色”。`,()=>localStorage.getItem(PREVIOUS_SAVE_V2838)!==raw&&'上一位角色记录已变化，未修改存档，请重新操作',()=>replaceSaveV2870(raw,data,PREVIOUS_SAVE_V2838),'未恢复：');
+ }catch(e){gameAlertV2868114('未恢复：'+e.message);}
 }
 async function exportPreviousV2838(){
  try{await exportRawSaveV2870(localStorage.getItem(PREVIOUS_SAVE_V2838),'xiantu-previous-character.json');}
- catch(e){alert('导出失败：'+e.message);}
+ catch(e){gameAlertV2868114('导出失败：'+e.message);}
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.110';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.112';
 
 // Small non-combat encounters, two per region and character. Persist choice and reward together.
 const ROAMING_KINDS_V286818=['traveler','ruins'];
@@ -834,8 +847,10 @@ function recoverAfterBattleV2875(owner,el){
  const valid=()=>player===owner&&gameState==='exploring'&&!player.breakthrough?.isAnimating&&document.getElementById('afterBattleV2838')===el;
  if(!valid())return false;const plan=recoveryPlanV2875();if(!Object.keys(plan.used).length){showFloatingText('无需恢复或没有可用恢复丹药，可选择寻找补给','#ffd76a');return false;}
  const before=JSON.stringify(player),stats=[getMaxHp(),getMaxMp()].join(',');
- if(!confirm(`消耗${Object.entries(plan.used).map(([k,v])=>k+'×'+v).join('、')}，气血恢复至${plan.hp}/${getMaxHp()}，灵力恢复至${plan.mp}/${getMaxMp()}？库存不足时仅部分恢复。`)||!valid()||before!==JSON.stringify(player)||stats!==[getMaxHp(),getMaxMp()].join(','))return false;
+ return gameConfirmOnceV2868114('after-battle-recover',`消耗${Object.entries(plan.used).map(([k,v])=>k+'×'+v).join('、')}，气血恢复至${plan.hp}/${getMaxHp()}，灵力恢复至${plan.mp}/${getMaxMp()}？库存不足时仅部分恢复。`,()=>{
+ if(!valid()||before!==JSON.stringify(player)||stats!==[getMaxHp(),getMaxMp()].join(','))return false;
  const left={...plan.used};player.inventory=player.inventory.filter(n=>{if(left[n]>0){left[n]--;return false;}return true;});player.hp=plan.hp;player.mp=plan.mp;
  try{if(!saveGame())throw Error('save failed');}catch(_){for(const k of Object.keys(owner))delete owner[k];Object.assign(owner,JSON.parse(before));if(owner.activePet?._petId)owner.activePet=owner.pets.find(p=>p._petId===owner.activePet._petId)||null;showFloatingText('保存失败，丹药与状态已恢复','#ff8a80');return false;}
  updateStats();updateWorldHUD();playSound('item');el.querySelector('[data-after-status]').textContent=`气血 ${Math.floor(player.hp)}/${getMaxHp()} · 灵力 ${Math.floor(player.mp)}/${getMaxMp()}`;showFloatingText('已服丹调息','#69f0ae');return true;
+ });
 }

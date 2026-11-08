@@ -1,6 +1,6 @@
 // ===== 新手引路：只描述当前版本真实存在的玩法 =====
 const TUTORIAL_STEPS={
-  welcome:{title:'🌅 初识仙途',desc:'从今日起，你要自己走这条修行路。先熟悉最常用的几件事：<b>移动、交互、战斗、装备、宗门差事与修炼突破</b>。',placement:'center',actions:[{text:'开始引路',action:'next',nextStep:'movement'},{text:'略过引路',action:'skip'}]},
+  welcome:{title:'🌅 初识仙途',desc:'从今日起，你要自己走这条修行路。先熟悉最常用的几件事：<b>移动、交互、战斗、装备与修炼突破</b>。',placement:'center',actions:[{text:'开始引路',action:'next',nextStep:'movement'},{text:'略过引路',action:'skip'}]},
   movement:{title:'🕹️ 行走四方',desc:'你可以 <b>拖动左下角摇杆</b>，也可以<b>轻点地面</b>让人物自动走过去。松开摇杆会立即停下，点地后人物会向目标点移动。<br><br>现在试着移动一小段。',compact:'轻点地面或拖动摇杆，移动一小段',target:'#virtualJoystick',placement:'right',waitFor:'movement'},
   interaction:{title:'✋ 与地点交互',desc:'地图上的建筑与地点都有进入范围。走进地点外圈后，右下角<b>【交互】</b>即可进入。<br><br>现在靠近任意地点并按一次【交互】。',compact:'靠近任意地点，进入外圈后按【交互】',target:'#touchAction',placement:'left',waitFor:'interaction'},
   combat:{title:'⚔️ 演武入门',desc:'先用一具低阶演武傀儡熟悉战斗。战斗中可以使用<b>普通攻击</b>或已掌握的功法，灵力不足时要留意恢复。',placement:'center',actions:[{text:'开始演武',action:'training'}]},
@@ -50,6 +50,8 @@ function highlightTutorialTarget(sel){clearTutorialHighlight();const el=resolveT
 
 function triggerTutorial(id,force=false){
   const t=ensureTutorialState();if(!t||(!force&&(t.skipped||t.completedSteps.includes(id))))return false;
+  // 差事等踏入练气后再讲：凡人越过此步但仍记为完成，旧档的步骤计数与续接不变。
+  if(id==='tasks'&&(player.level|0)<1){completeTutorialStep('tasks');id='cultivation';}
   const step=TUTORIAL_STEPS[id];if(!step)return false;
 
   // 新手开场遵循“教程先行”：前四步不会同时保留地点/自由行动面板。
@@ -133,11 +135,11 @@ function handleTutorialAction(action,stepId){
   if(action==='finish'){if(!firstJourneyV28687()&&player.level<2){player.firstJourneyV28687={step:0};const owner=player;setTimeout(()=>{if(player===owner&&!firstJourneyV28687()?.paused&&firstJourneyV28687()?.step===0&&forgeAllowedV2825())showFirstJourneyV28687()},600);}tutorialState.compactStepId=null;completeTutorialStep(stepId);closeTutorialBubble();hideTutorialSkipBtn();clearTutorialStepClasses();showTutorialToast('✅ 基础引路已完成。现在可以自由行走四域，更多内容可随时从【角色 → 修行指引】查看。',4300);return}
 }
 function skipAllTutorial(){
-  const t=ensureTutorialState();if(!t)return;if(!confirm('略过新手引路？基础说明仍可在【角色 → 修行指引】中随时查看。'))return;
+  const t=ensureTutorialState();if(!t)return;const owner=player;return gameConfirmV2868114('略过新手引路？基础说明仍可在【角色 → 修行指引】中随时查看。',()=>{if(player!==owner||ensureTutorialState()!==t||t.skipped)return;
   cancelTutorialTrainingV286845();t.skipped=true;for(const id of TUTORIAL_ORDER)if(!t.completedSteps.includes(id))t.completedSteps.push(id);
   // 只补发尚未取得的演武基础物资，避免重复领奖。
   if(!t.readPopups.includes('training_reward')){t.readPopups.push('training_reward');player.gold+=120;if(!playerOwnsEquipment('布衣'))player.equipmentInventory.push('布衣');}
-  tutorialState.compactStepId=null;closeTutorialBubble();hideTutorialSkipBtn();clearTutorialStepClasses();updateStats?.();autoSave?.();showTutorialToast('引路已略过。自由探索已开放，修行所需说明仍收录在【角色 → 修行指引】中。',4000)
+  tutorialState.compactStepId=null;closeTutorialBubble();hideTutorialSkipBtn();clearTutorialStepClasses();updateStats?.();autoSave?.();showTutorialToast('引路已略过。自由探索已开放，修行所需说明仍收录在【角色 → 修行指引】中。',4000)});
 }
 function checkAndStartTutorial(force=false){const t=ensureTutorialState();if(!t)return;if(t.skipped&&!force){clearTutorialStepClasses();return}if(force&&t.skipped)t.skipped=false;if(t.completedSteps.length>=TUTORIAL_ORDER.length){clearTutorialStepClasses();return}const resume=t.activeStep&&TUTORIAL_STEPS[t.activeStep]?t.activeStep:TUTORIAL_ORDER.find(id=>!t.completedSteps.includes(id));if(resume){syncTutorialStage(resume);setTimeout(()=>triggerTutorial(resume,true),260)}}
 function restartTutorial(){cancelTutorialTrainingV286845();const t=ensureTutorialState();t.skipped=false;t.completedSteps=[];t.activeStep=null;tutorialState.compactStepId=null;closeHelpManual();closeTutorialBubble();syncTutorialStage('welcome');showTutorialSkipBtn();setTimeout(()=>triggerTutorial('welcome',true),180);autoSave?.()}
@@ -205,7 +207,7 @@ function installGuideEntry(){
 
 window.addEventListener('load',()=>setTimeout(()=>{installTutorialInteractionHooks();installGuideEntry();installTutorialTooltips()},650));
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-04-tutorial-guide-script.js"]="28.68.110";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-04-tutorial-guide-script.js"]="28.68.112";
 
 // 初入仙途：只突出下一步，奖励随进度一次性保存。
 function firstJourneyV28687(){

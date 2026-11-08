@@ -85,10 +85,11 @@
         const d=row.data||{};
         const icon=d.icon || (d.type==='heal'?'💊':d.type==='mp'?'🔹':mobileInventoryTab==='materials'?'🌿':mobileInventoryTab==='equipment'?'⚔️':'🎐');
         const desc=d.desc || (mobileInventoryTab==='materials'?'修仙材料':mobileInventoryTab==='equipment'?'装备物品':'储物袋物品');
+        const q=mobileInventoryTab==='equipment'&&d.quality&&typeof getQualityInfo==='function'?getQualityInfo(d.quality)?.color:'';
         if(mobileInventoryTab==='items'){
-          return `<button class="mobile-inventory-item usable" data-bag-index="${index}"><span class="name">${escapeGameText(icon)} ${escapeGameText(row.name)}</span><span class="count">×${row.count}</span><span class="desc">${escapeGameText(desc)}</span></button>${pillBatchButtonsV2905(row,index)}`;
+          return `<button type="button" class="mobile-inventory-item xt-item-cell usable" data-bag-index="${index}"><span class="name"><span class="xt-cell-icon" aria-hidden="true">${escapeGameText(icon)}</span> ${escapeGameText(row.name)}</span><span class="count">×${row.count}</span><span class="desc">${escapeGameText(desc)}</span></button>${pillBatchButtonsV2905(row,index)}`;
         }
-        return `<div class="mobile-inventory-item"><span class="name">${escapeGameText(icon)} ${escapeGameText(row.name)}</span><span class="count">×${row.count}</span><span class="desc">${escapeGameText(desc)}</span></div>`;
+        return `<div class="mobile-inventory-item xt-item-cell"${q?` style="--q:${q}"`:''}><span class="name"><span class="xt-cell-icon" aria-hidden="true">${escapeGameText(icon)}</span> ${escapeGameText(row.name)}</span><span class="count">×${row.count}</span><span class="desc">${escapeGameText(desc)}</span></div>`;
       }).join(''):`<div class="mobile-inventory-empty">这一栏目前是空的</div>`;
       card.innerHTML=`
         <div class="mobile-inventory-head"><div><div class="mobile-inventory-title">🎒 储物袋</div><div style="font-size:10px;color:#8f99a4;margin-top:2px">随身物资与修行资源</div></div><button aria-label="关闭" class="mobile-inventory-close" onclick="closeMobileInventory()">✕</button></div>
@@ -130,7 +131,7 @@
       if(document.getElementById('saveConflictV2868102'))return;
       const el=document.createElement('div');el.id='saveConflictV2868102';el.className='mobile-inventory-overlay';el.style.zIndex='2147483646';
       el.innerHTML='<div class="mobile-inventory-card" role="alertdialog" aria-modal="true" aria-labelledby="saveConflictTitleV2868102" style="padding:24px"><h3 id="saveConflictTitleV2868102">另一窗口已更新修行记录</h3><p>本窗口已停止保存，避免覆盖新的进度。请关闭其他游戏窗口，再刷新读取最新记录。</p><p>本窗口尚未保存的进度可以单独导出留存。</p><button class="choice-btn" data-save-conflict="export">导出本窗口未保存记录</button><button class="choice-btn" data-save-conflict="reload">刷新读取最新记录</button></div>';
-      el.onclick=e=>{const op=e.target.closest('[data-save-conflict]')?.dataset.saveConflict;if(op==='reload')location.reload();if(op==='export')exportRawSaveV2870(JSON.stringify(createSaveDataV2768()),'xiantu-unsaved-window-'+Date.now()+'.json').catch(()=>alert('导出未完成，请重试'));};
+      el.onclick=e=>{const op=e.target.closest('[data-save-conflict]')?.dataset.saveConflict;if(op==='reload')location.reload();if(op==='export')exportRawSaveV2870(JSON.stringify(createSaveDataV2768()),'xiantu-unsaved-window-'+Date.now()+'.json').catch(()=>gameAlertV2868114('导出未完成，请重试'));};
       el.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Tab'){e.preventDefault();const buttons=[...el.querySelectorAll('button')],i=buttons.indexOf(document.activeElement);buttons[(i+(e.shiftKey?-1:1)+buttons.length)%buttons.length]?.focus();}});document.body.appendChild(el);el.querySelector('[data-save-conflict="reload"]')?.focus?.();
       try{resetWorldMovementV28686();pauseVisualsV2767();}catch(_){}
     }
@@ -244,9 +245,9 @@
     
     function manualSave() {
       if (saveGame()) {
-        alert(gameState==='combat'?'💾 已保留开战前记录；未结算时退出，会恢复当场消耗并返回开战前。':'💾 修行记录已记入玉简');
+        gameAlertV2868114(gameState==='combat'?'💾 已保留开战前记录；未结算时退出，会恢复当场消耗并返回开战前。':'💾 修行记录已记入玉简');
       } else {
-        alert('修行记录未能写入，请稍后再试');
+        gameAlertV2868114('修行记录未能写入，请稍后再试');
       }
     }
     
@@ -2515,10 +2516,11 @@
       const owned=player.inventory.filter(n=>n===name).length;
       if(used+owned>=d.limit)return showFloatingText?.('已服用与库存已足够达到终身上限，无需再买','#ffd76a');
       if(player.gold<d.cost)return showFloatingText?.('灵石不足','#ffd76a');
-      if(!confirmPurchaseV286867(name,d.cost))return;
-      if(!addStoredItemV2905('inventory',name))return;player.gold-=d.cost;
-      updateStats(); autoSave(); showRarePillShop();
-      showFloatingText?.(`已购买${name}，请在储物袋中服用`,'#69f0ae');
+      confirmPurchaseV286867(name,d.cost,1,'gold','',()=>{
+        if(!addStoredItemV2905('inventory',name))return;player.gold-=d.cost;
+        updateStats(); autoSave(); showRarePillShop();
+        showFloatingText?.(`已购买${name}，请在储物袋中服用`,'#69f0ae');
+      });
     }
     function showLongevityPanel() {
       if(!player || gameState==='combat')return;
@@ -2605,8 +2607,7 @@
     function buyBreakthroughPillV28683(name){
       const d=BREAKTHROUGH_PILLS_V28683[name];
       if(!d||gameState==='combat'||gameState==='combat-ending'||player.breakthrough?.isAnimating||player.level<d.level||player.gold<d.cost)return;
-      if(!confirmPurchaseV286867(name,d.cost))return;
-      if(!addStoredItemV2905('inventory',name))return;player.gold-=d.cost;autoSave();updateStats();showRarePillShop();
+      confirmPurchaseV286867(name,d.cost,1,'gold','',()=>{if(!addStoredItemV2905('inventory',name))return;player.gold-=d.cost;autoSave();updateStats();showRarePillShop();});
     }
     function breakthroughDetailsV28683(){
       const d=calculateBreakthroughSuccess();
@@ -4460,27 +4461,38 @@
       showStory(html,[{text:'返回仙市',action:'market'}]);
     }
     let purchaseConfirmingV286867=false;
-    function confirmPurchaseV286867(name,cost,qty=1,currency='gold',detail=''){
+    // onOk runs only after the in-game confirm and a fresh-state recheck; it is the single place that spends.
+    // Node QA sandboxes fall back to the synchronous stubbed confirm and get onOk's return value.
+    function confirmPurchaseV286867(name,cost,qty=1,currency='gold',detail='',onOk){
       if(purchaseConfirmingV286867||!player||gameState!=='exploring'||player.breakthrough?.isAnimating||!['gold','sectContribution'].includes(currency)||typeof name!=='string'||!name||!Number.isFinite(cost)||cost<0||!Number.isInteger(qty)||qty<1||!Number.isFinite(player[currency])||player[currency]<cost||typeof window.confirm!=='function')return false;
-      const owner=player,before=JSON.stringify(player),choices=currentChoices,quote=JSON.stringify(currentChoices),view=document.getElementById('storyText')?.innerHTML;
+      // Compare the spent balance, not the whole player: world ticks keep running while the in-game dialog is open.
+      const owner=player,balance=player[currency],choices=currentChoices,quote=JSON.stringify(currentChoices),view=document.getElementById('storyText')?.innerHTML;
       const unit=currency==='gold'?'灵石':'宗门贡献';
+      let settled=false;
+      const finish=accepted=>{
+        if(settled)return false;settled=true;
+        try{
+          if(!accepted||player!==owner||gameState!=='exploring'||player.breakthrough?.isAnimating||player[currency]!==balance||currentChoices!==choices||JSON.stringify(currentChoices)!==quote||document.getElementById('storyText')?.innerHTML!==view)return false;
+          // In the browser the confirm returns before onOk; re-enter the item transaction so the spend saves or rolls back atomically.
+          return typeof onOk==='function'?(typeof itemActionV2905==='function'?itemActionV2905('购买',onOk):onOk()):true;
+        }finally{purchaseConfirmingV286867=false;}
+      };
       purchaseConfirmingV286867=true;
       try{
-        if(!window.confirm(`确认购买？\n\n${name} ×${qty}\n本次花费：${cost} ${unit}\n购买后剩余：${player[currency]-cost} ${unit}${detail?'\n'+detail:''}\n\n确定后才会扣款；取消不购买。`))return false;
-        return player===owner&&gameState==='exploring'&&!player.breakthrough?.isAnimating&&JSON.stringify(player)===before&&currentChoices===choices&&JSON.stringify(currentChoices)===quote&&document.getElementById('storyText')?.innerHTML===view;
-      }catch(_){return false;}finally{purchaseConfirmingV286867=false;}
+        const result=gameConfirmV2868114(`确认购买？\n\n${name} ×${qty}\n本次花费：${cost} ${unit}\n购买后剩余：${player[currency]-cost} ${unit}${detail?'\n'+detail:''}\n\n确定后才会扣款；取消不购买。`,()=>finish(true),()=>finish(false));
+        return settled?result:false;
+      }catch(e){if(settled)throw e;settled=true;purchaseConfirmingV286867=false;return false;}
     }
-    function confirmGearPurchaseV2804(name,cost,qty=1){
+    function confirmGearPurchaseV2804(name,cost,qty=1,onOk){
       if(!Number.isFinite(cost)||cost<=0||!Number.isInteger(qty)||qty<1||player.gold<cost||typeof window.confirm!=='function')return false;
       const owned=(player.equipmentInventory||[]).filter(n=>n===name).length+(player.inventory||[]).filter(n=>n===name).length+Object.values(player.equipment||{}).filter(n=>n===name).length;
-      return confirmPurchaseV286867(name,cost,qty,'gold',`已持有：${owned}件（含已穿戴）`);
+      return confirmPurchaseV286867(name,cost,qty,'gold',`已持有：${owned}件（含已穿戴）`,onOk);
     }
 
     function buyNewGearV2790(family,piece,grade){
       if(gameState==='combat'||!NEW_SETS_V2790[family]||!Number.isInteger(piece)||piece<0||piece>4||!Number.isInteger(grade)||grade<1||grade>GRADES_V2790.length)return;
       const name=newGearNameV2790(family,piece,grade),d=EQUIPMENT_DB[name];if(!canEquipItem(name).ok||player.gold<d.priceV2790)return;
-      if(!confirmGearPurchaseV2804(name,d.priceV2790))return;
-      if(!addStoredItemV2905('equipmentInventory',name))return;player.gold-=d.priceV2790;autoSave();updateStats();showNewGearShopV2790(family,grade);
+      confirmGearPurchaseV2804(name,d.priceV2790,1,()=>{if(!addStoredItemV2905('equipmentInventory',name))return;player.gold-=d.priceV2790;autoSave();updateStats();showNewGearShopV2790(family,grade);});
     }
 
     // Old set pieces gain three versions. Baseline embeds the former quality multiplier.
@@ -4529,8 +4541,7 @@
     function buyOldGearV2792(family,piece,grade){
       if(gameState==='combat'||!OLD_SET_VERSIONS_V2792[family]||!Number.isInteger(piece)||piece<0||piece>=OLD_SET_VERSIONS_V2792[family].length||!Number.isInteger(grade)||grade<1||grade>GRADES_V2790.length)return;
       const name=oldVersionNameV2792(family,piece,grade),d=EQUIPMENT_DB[name];if(player.gold<d.priceV2790||!canEquipItem(name).ok)return;
-      if(!confirmGearPurchaseV2804(name,d.priceV2790))return;
-      if(!addStoredItemV2905('equipmentInventory',name))return;player.gold-=d.priceV2790;autoSave();updateStats();showOldGearShopV2792(family,grade);
+      confirmGearPurchaseV2804(name,d.priceV2790,1,()=>{if(!addStoredItemV2905('equipmentInventory',name))return;player.gold-=d.priceV2790;autoSave();updateStats();showOldGearShopV2792(family,grade);});
     }
 
     const FORGE_KEYS_V2825=new Set();
@@ -4607,13 +4618,16 @@
       const old=player.forgeV2825.items[ref.name],level=old?.level||0;if(old?.pending||(op==='enhance'&&level>=10))return;
       const grade=forgeGradeV2825(getEquipData(ref.name)),cost=op==='enhance'?100*grade*(level+1):200*grade;
       if(player.gold<cost)return;
-      if(!window.confirm(`${op==='enhance'?`强化至 +${level+1}`:'洗练两条词条'}：${ref.name}\n消耗 ${cost} 灵石，剩余 ${player.gold-cost}。${op==='wash'?'结果可选替换或保留，费用不退。':'强化必定成功。'}`))return;
-      if(!forgeCurrentV2825(nonce)||player.gold<cost)return;
-      const record=forgeIndividualV2825(ref);player.gold-=cost;
-      if(op==='enhance')record.level++;
-      else{const pool=Object.keys(FORGE_STATS_V2825),rows=[];for(let i=0;i<2;i++){const stat=pool.splice(Math.floor(Math.random()*pool.length),1)[0],range=FORGE_PERCENT_V286825[stat];rows.push({stat,unit:'percent',value:grade*(range.min+Math.floor(Math.random()*(range.max-range.min+1)))});}record.pending=rows;}
-      player.equipmentLocks ||= [];if(!player.equipmentLocks.includes(ref.name))player.equipmentLocks.push(ref.name);
-      forgeRegisterV2825(ref.name,record);autoSave();updateStats();renderForgeV2825();
+      const owner=player;
+      gameConfirmV2868114(`${op==='enhance'?`强化至 +${level+1}`:'洗练两条词条'}：${ref.name}\n消耗 ${cost} 灵石，剩余 ${player.gold-cost}。${op==='wash'?'结果可选替换或保留，费用不退。':'强化必定成功。'}`,()=>{
+        // Recheck after the dialog: same owner, item, level and no pending wash, so a stale or repeated confirm cannot spend twice.
+        const now=player.forgeV2825?.items?.[ref.name];if(player!==owner||!forgeCurrentV2825(nonce)||player.gold<cost||(now?.level||0)!==level||now?.pending)return;
+        const record=forgeIndividualV2825(ref);player.gold-=cost;
+        if(op==='enhance')record.level++;
+        else{const pool=Object.keys(FORGE_STATS_V2825),rows=[];for(let i=0;i<2;i++){const stat=pool.splice(Math.floor(Math.random()*pool.length),1)[0],range=FORGE_PERCENT_V286825[stat];rows.push({stat,unit:'percent',value:grade*(range.min+Math.floor(Math.random()*(range.max-range.min+1)))});}record.pending=rows;}
+        player.equipmentLocks ||= [];if(!player.equipmentLocks.includes(ref.name))player.equipmentLocks.push(ref.name);
+        forgeRegisterV2825(ref.name,record);autoSave();updateStats();renderForgeV2825();
+      });
     }
     function chooseForgeAffixesV2825(nonce,replace){
       const ref=forgeCurrentV2825(nonce);if(!ref||typeof replace!=='boolean')return;const record=player.forgeV2825.items[ref.name];if(!record?.pending)return;
@@ -5128,8 +5142,11 @@
     function challengeYeWujiV2810(){
       if(gameState==='combat'||gameState==='combat-ending'||COMBAT_FINISH_V2764.settling)return;
       const e=createYeWujiV2810();
-      if(!window.confirm(`挑战夜无疆（${getEnemyRealmNameV2811(e)}）？\n气血 ${e.hp} · 攻击 ${e.atk} · 防御 ${e.def}\n无灵石与修为奖励；战败按原规则扣款。`))return;
-      startCombat(e,true,false);
+      const owner=player;
+      gameConfirmV2868114(`挑战夜无疆（${getEnemyRealmNameV2811(e)}）？\n气血 ${e.hp} · 攻击 ${e.atk} · 防御 ${e.def}\n无灵石与修为奖励；战败按原规则扣款。`,()=>{
+        if(player!==owner||gameState==='combat'||gameState==='combat-ending'||COMBAT_FINISH_V2764.settling)return;
+        startCombat(e,true,false);
+      });
     }
 
     function getCombatBossData(enemy = currentEnemy) {
@@ -8785,9 +8802,12 @@
 
     function unequipAllGear(){
       const count=Object.values(player.equipment||{}).filter(Boolean).length;if(!count){showFloatingText?.('装备栏已经是空的','#aaa');return false;}
-      if(typeof confirm==='function'&&!confirm(`确定卸下全部 ${count} 件装备吗？`))return false;
+      const owner=player,before=JSON.stringify(player.equipment);
+      return gameConfirmOrRunV2868114(`确定卸下全部 ${count} 件装备吗？`,()=>{
+      if(player!==owner||JSON.stringify(player.equipment)!==before)return false;
       for(const slot of Object.keys(EQUIPMENT_SLOTS)){const name=player.equipment?.[slot];if(name)player.equipmentInventory.push(name);player.equipment[slot]=null;}
       checkSetBonuses();player.hp=Math.min(player.hp,getMaxHp());player.mp=Math.min(player.mp,getMaxMp());updateStats();updateWorldHUD?.();autoSave?.();showFloatingText?.(`↩️ 已卸下全部 ${count} 件装备`,'#ffd700');queueEquipmentRefreshV2906('panel',80);return true;
+      });
     }
 
     function getEquipCompareTarget(itemName){
@@ -8968,6 +8988,7 @@
       document.getElementById('artifactPanel').classList.add('hidden');
       
       gameState = 'alchemy';
+      alchemyFireV2868112='steady';
       updateAlchemyPanel();
       document.getElementById('alchemyPanel').scrollTop=0;
       alchemyStageOpenV2868110(true);
@@ -8992,7 +9013,7 @@
         const el=document.createElement('script');let done=false;
         const finish=(error)=>{if(done)return;done=true;clearTimeout(timer);el.onload=el.onerror=null;if(error){el.remove();reject(error);}else resolve(window.XiantuAlchemyStageV2868110);};
         const timer=setTimeout(()=>finish(new Error('alchemy visual timeout')),10000);
-        el.src='./xiantu-v2868110-alchemy-stage.js?v=28.68.110';el.async=true;
+        el.src='./xiantu-v2868110-alchemy-stage.js?v=28.68.112';el.async=true;
         el.onload=()=>finish(window.XiantuAlchemyStageV2868110?null:new Error('alchemy visual unavailable'));
         el.onerror=()=>finish(new Error('alchemy visual unavailable'));document.head.appendChild(el);
       }).catch(error=>{s.loading=null;throw error;});return s.loading;
@@ -9022,12 +9043,12 @@
       try{localStorage.setItem('xiantu_alchemy_fx_v2868110',enabled?'off':'auto');}catch(_){}
       alchemyStageOpenV2868110(false);
     }
-    function alchemyResultV2868110(owner,recipeName,attempted,success){
+    function alchemyResultV2868110(owner,recipeName,attempted,success,pills=success){
       const panel=document.getElementById('alchemyPanel');
       if(owner!==player||gameState!=='alchemy'||!panel||panel.classList.contains('hidden')||document.hidden)return;
       const recipe=RECIPES[recipeName],result=document.getElementById('alchemyResultV2868110');
       if(!recipe||!result)return;
-      result.textContent=`${recipe.result} · 投入 ${attempted} 炉 · 成丹 ${success} 枚 · 失败 ${attempted-success} 炉`;
+      result.textContent=`${recipe.result} · 投入 ${attempted} 炉 · 成丹 ${pills} 枚 · 失败 ${attempted-success} 炉`;
       result.dataset.outcome=success?'success':'failure';
       const data={name:recipe.result,materials:Object.keys(recipe.materials),attempted,success,at:performance.now()};
       ALCHEMY_STAGE_V2868110.last=data;
@@ -9035,6 +9056,22 @@
       document.getElementById('alchemyStageV2868110')?.scrollIntoView?.({block:'nearest',behavior:'auto'});
     }
     
+    // 火候只影响当次开炉，不写入存档；每次打开丹炉都回到稳火，稳火与原规则完全一致。
+    const ALCHEMY_FIRE_V2868112={
+      steady:{label:'稳火',hint:'原丹方、原成功率。',bonus:0,exp:10},
+      gentle:{label:'文火',hint:'每种材料多耗四分之一（向上取整），成功率+12%，成丹炼丹经验+50%。',bonus:0,exp:15},
+      fierce:{label:'武火',hint:'成功率降为四分之三，成丹时有三分之一机会得2枚；延寿丹不可用。',bonus:1/3,exp:10}
+    };
+    let alchemyFireV2868112='steady';
+    function alchemyFireCostV2868112(need,fire){return fire==='gentle'?need+Math.ceil(need/4):need;}
+    function alchemyFireRateV2868112(recipe,fire,level){
+      const rate=Math.min(1,recipe.baseSuccess+Math.floor((level-1)*3)/100);
+      return fire==='gentle'?Math.min(1,rate+.12):fire==='fierce'?rate*.75:rate;
+    }
+    function setAlchemyFireV2868112(fire){
+      if(!Object.prototype.hasOwnProperty.call(ALCHEMY_FIRE_V2868112,fire))return false;
+      alchemyFireV2868112=fire;updateAlchemyPanel();return true;
+    }
     function updateAlchemyPanel() {
       // 更新炼丹等级显示
       const successBonus = Math.floor((player.alchemyLevel - 1) * 3);
@@ -9054,11 +9091,13 @@
       
       // 更新丹方列表
       const recipeList = document.getElementById('recipeList');
-      recipeList.innerHTML = Object.entries(RECIPES).map(([name, recipe]) => {
-        const successRate = Math.min(1, recipe.baseSuccess + successBonus / 100);
+      const fire=alchemyFireV2868112;
+      recipeList.innerHTML = `<div class="alchemy-fire-v2868112" role="group" aria-label="火候" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">${Object.entries(ALCHEMY_FIRE_V2868112).map(([id,f])=>`<button type="button" class="craft-btn" style="min-height:40px${id===fire?'':';opacity:.62'}" aria-pressed="${id===fire}" onclick="setAlchemyFireV2868112('${id}')">${f.label}</button>`).join('')}</div><p class="recipe-materials" style="margin:0 0 10px">火候 · ${ALCHEMY_FIRE_V2868112[fire].label}：${ALCHEMY_FIRE_V2868112[fire].hint}</p>`+Object.entries(RECIPES).map(([name, recipe]) => {
+        const successRate = alchemyFireRateV2868112(recipe,fire,player.alchemyLevel);
         
         const materialText = Object.entries(recipe.materials)
-          .map(([mat, count]) => {
+          .map(([mat, base]) => {
+            const count = alchemyFireCostV2868112(base,fire);
             const have = player.materials[mat] || 0;
             const color = have >= count ? '#69f0ae' : '#ff6b6b';
             return `<span style="color:${color}">${mat}x${count}(${have})</span>`;
@@ -9072,14 +9111,15 @@
               <div class="recipe-success">成功率: ${Math.floor(successRate * 100)}% | ${recipe.desc}</div>
             </div>
             <div class="alchemy-batch-actions" style="display:flex;gap:6px;flex-wrap:wrap">
-              ${[1,5,10].map(n=>{const plan=getAlchemyPlanV286850(name,n);return `<button class="craft-btn" style="min-height:40px" onclick="craftPill('${name}',${n})" ${plan.count?'':'disabled'} title="${plan.reason||'按实际材料逐炉炼制，达到延寿上限停炉'}">×${n}${plan.count&&plan.count<n?'（可炼'+plan.count+'）':''}</button>`}).join('')}
+              ${[1,5,10].map(n=>{const plan=getAlchemyPlanV286850(name,n,fire);return `<button class="craft-btn" style="min-height:40px" onclick="craftPill('${name}',${n},'${fire}')" ${plan.count?'':'disabled'} title="${plan.reason||'按实际材料逐炉炼制，达到延寿上限停炉'}">×${n}${plan.count&&plan.count<n?'（可炼'+plan.count+'）':''}</button>`}).join('')}
             </div>
           </div>
         `;
       }).join('');
     }
     
-    function getAlchemyPlanV286850(recipeName,times=1){
+    function getAlchemyPlanV286850(recipeName,times=1,fire='steady'){
+      if(!Object.prototype.hasOwnProperty.call(ALCHEMY_FIRE_V2868112,fire))return {count:0,reason:'无效火候'};
       const recipe=Object.prototype.hasOwnProperty.call(RECIPES,recipeName)?RECIPES[recipeName]:null;
       if(!recipe||![1,5,10].includes(times))return {count:0,reason:'无效丹方或炉数'};
       if(!player||gameState==='start'||!forgeAllowedV2825())return {count:0,reason:'当前状态无法炼丹'};
@@ -9087,31 +9127,33 @@
       if(player.alchemyLevel<recipe.alchemyLevelRequired)return {count:0,reason:`需要炼丹等级 ${recipe.alchemyLevelRequired}`};
       const result=recipe.result,limit=LONGEVITY_PILLS[result];
       if(limit&&normalizeLongevity(player.longevity).uses[result]+player.inventory.filter(n=>n===result).length>=limit.limit)return {count:0,reason:'库存与已服用数量已达终身上限'};
+      if(fire==='fierce'&&limit)return {count:0,reason:'延寿丹有终身上限，不可用武火'};
       const costs=Object.entries(recipe.materials);if(!costs.length)return {count:0,reason:'丹方缺少材料配置'};
       let count=times;
-      for(const [mat,need] of costs){if(!Number.isSafeInteger(need)||need<=0)return {count:0,reason:'丹方材料配置异常'};const have=Number(player.materials[mat]||0);if(!Number.isSafeInteger(have)||have<0)return {count:0,reason:'材料数量异常'};count=Math.min(count,Math.floor(have/need));}
+      for(const [mat,need] of costs){if(!Number.isSafeInteger(need)||need<=0)return {count:0,reason:'丹方材料配置异常'};const have=Number(player.materials[mat]||0);if(!Number.isSafeInteger(have)||have<0)return {count:0,reason:'材料数量异常'};count=Math.min(count,Math.floor(have/alchemyFireCostV2868112(need,fire)));}
       return {count,reason:count?'':'材料不足',recipe};
     }
-    function craftPill(recipeName,times=1) {
-      const plan=getAlchemyPlanV286850(recipeName,times);
+    function craftPill(recipeName,times=1,fire='steady') {
+      const plan=getAlchemyPlanV286850(recipeName,times,fire);
       if(!plan.count){showFloatingText?.(plan.reason,'#ff8a80');return false;}
-      let attempted=0,success=0;const initialLevel=player.alchemyLevel;
+      let attempted=0,success=0,pills=0;const initialLevel=player.alchemyLevel,flame=ALCHEMY_FIRE_V2868112[fire];
       for(let i=0;i<plan.count;i++){
         // Recheck after each outcome: success may fill a lifetime cap or raise alchemy level.
-        const step=getAlchemyPlanV286850(recipeName,1);if(!step.count)break;
+        const step=getAlchemyPlanV286850(recipeName,1,fire);if(!step.count)break;
         const recipe=step.recipe;
-        for(const [mat,count] of Object.entries(recipe.materials)){player.materials[mat]-=count;if(player.materials[mat]<=0)delete player.materials[mat];}
-        const successRate=Math.min(1,recipe.baseSuccess+Math.floor((player.alchemyLevel-1)*3)/100);
+        for(const [mat,count] of Object.entries(recipe.materials)){player.materials[mat]-=alchemyFireCostV2868112(count,fire);if(player.materials[mat]<=0)delete player.materials[mat];}
+        const successRate=alchemyFireRateV2868112(recipe,fire,player.alchemyLevel);
         player.alchemyCount++;attempted++;
         if(Math.random()<successRate){
-          player.inventory.push(recipe.result);success++;player.alchemyExp+=10;
+          player.inventory.push(recipe.result);success++;pills++;player.alchemyExp+=flame.exp;
+          if(flame.bonus&&player.inventory.length<100000&&Math.random()<flame.bonus){player.inventory.push(recipe.result);pills++;}
           if(player.alchemyExp>=player.alchemyLevel*50){player.alchemyExp=0;player.alchemyLevel++;}
           updateAchievementProgress('alchemy');
         }
       }
-      showFloatingText?.(`🔥 投入 ${attempted} 炉 · ${plan.recipe.result} ×${success} · 失败 ${attempted-success} 炉${player.alchemyLevel>initialLevel?' · 炼丹升至 Lv.'+player.alchemyLevel:''}`,success?'#69f0ae':'#ff8a80');
+      showFloatingText?.(`🔥 投入 ${attempted} 炉 · ${plan.recipe.result} ×${pills} · 失败 ${attempted-success} 炉${player.alchemyLevel>initialLevel?' · 炼丹升至 Lv.'+player.alchemyLevel:''}`,success?'#69f0ae':'#ff8a80');
       if(success)playSound(player.alchemyLevel>initialLevel?'levelup':'item');
-      updateAlchemyPanel();updateStats();autoSave();alchemyResultV2868110(player,recipeName,attempted,success);return {attempted,success};
+      updateAlchemyPanel();updateStats();autoSave();alchemyResultV2868110(player,recipeName,attempted,success,pills);return {attempted,success,pills};
     }
 
     // ================== 宠物系统 ==================
@@ -9198,7 +9240,7 @@
       if (pet.exp >= expNeed) {
         pet.exp -= expNeed;
         pet.level++;
-        alert(`🎉 ${pet.name} 升级了！当前等级 ${pet.level}`);
+        gameAlertV2868114(`🎉 ${pet.name} 升级了！当前等级 ${pet.level}`);
         playSound('levelup');
       }
       
@@ -9318,7 +9360,7 @@
       const artType = ARTIFACT_TYPES[art.type];
       
       if (art.level >= artType.maxLevel) {
-        alert('已达最大等级！');
+        gameAlertV2868114('已达最大等级！');
         return;
       }
       
@@ -9333,7 +9375,7 @@
       }
       
       art.level++;
-      alert(`✨ ${art.name} 强化成功！当前等级 +${art.level}`);
+      gameAlertV2868114(`✨ ${art.name} 强化成功！当前等级 +${art.level}`);
       playSound('item');
       
       updateArtifactPanel();
@@ -9510,7 +9552,7 @@
       for(const [name,d] of items){
         const q=getQualityInfo(d.quality),allowed=canEquipItem(name).ok,owned=(player.equipmentInventory||[]).filter(n=>n===name).length+Object.values(player.equipment||{}).filter(n=>n===name).length;
         const reason=!allowed?`需${CULTIVATION_REALMS[d.realmRequired]?.name||'更高境界'}`:player.gold<d.priceV2790?`还差 ${d.priceV2790-player.gold} 灵石`:'购买';
-        html+=`<article class="gear-grade-card-v2791 market-item-v2800" style="--gear-color:${q.color}"><b style="color:var(--gear-color)">${name}</b><p>${equipSlotLabelV2895(d.slot)} · 需${CULTIVATION_REALMS[d.realmRequired]?.name} · 已持有 ${owned}</p><p>${formatEquipItemStatsV286813(name)}</p><details><summary>查看装备说明</summary><p>${d.desc||''}</p></details><div class="market-buy-v2800"><strong>${d.priceV2790} 灵石</strong><button type="button" class="choice-btn" ${!allowed||player.gold<d.priceV2790?'disabled':''} onclick="buyMarketGearV2800('${category}',${grade},'${family}','${d.familyV2790}',${d.pieceV2790})">${reason}</button></div></article>`;
+        html+=`<article class="gear-grade-card-v2791 market-item-v2800 xt-item-cell" style="--gear-color:${q.color};--q:${q.color}"><b style="color:var(--gear-color)">${name}</b><p>${equipSlotLabelV2895(d.slot)} · 需${CULTIVATION_REALMS[d.realmRequired]?.name} · 已持有 ${owned}</p><p>${formatEquipItemStatsV286813(name)}</p><details><summary>查看装备说明</summary><p>${d.desc||''}</p></details><div class="market-buy-v2800"><strong>${d.priceV2790} 灵石</strong><button type="button" class="choice-btn" ${!allowed||player.gold<d.priceV2790?'disabled':''} onclick="buyMarketGearV2800('${category}',${grade},'${family}','${d.familyV2790}',${d.pieceV2790})">${reason}</button></div></article>`;
       }
       showStory(html,[{text:category==='weapon'?'🛡️ 前往护身坊':'⚔️ 前往神兵铺',action:'market_switch_v2800',category:category==='weapon'?'armor':'weapon',grade},{text:'← 返回仙市',action:'market'}]);
     }
@@ -9520,8 +9562,7 @@
       if(!entry)return;
       const [name,d]=entry;
       if(!canEquipItem(name).ok||!Number.isFinite(d.priceV2790)||d.priceV2790<=0||player.gold<d.priceV2790)return;
-      if(!confirmGearPurchaseV2804(name,d.priceV2790))return;
-      if(!addStoredItemV2905('equipmentInventory',name))return;player.gold-=d.priceV2790;autoSave();updateStats();showMarketGearV2800(category,grade,filter);
+      confirmGearPurchaseV2804(name,d.priceV2790,1,()=>{if(!addStoredItemV2905('equipmentInventory',name))return;player.gold-=d.priceV2790;autoSave();updateStats();showMarketGearV2800(category,grade,filter);});
     }
 
     function showHome() {
@@ -10025,7 +10066,7 @@ function villageEnhanceV286897(){
       for(const [index,item] of GENERAL_SHOP_V2801.entries()){
         if(item.category!==category)continue;
         const d=EQUIPMENT_DB[item.name],allowed=hasReachedRealm(item.level),desc=item.name==='灵兽丹'?'宠物经验 +20':ITEMS[item.name]?.desc||d?.desc||({灵草:'炼丹、宗门捐献与赠礼材料',仙果:'宗门差事与赠礼材料',妖丹:'炼制、宗门差事与赠礼材料'}[item.name])||'灵宠捕捉与契约用品';
-        html+=`<article class="general-item-v2801"><div class="general-title-v2801"><b>${item.name}</b><span>持有 ${generalOwnedV2801(item)}</span></div><p>${desc}</p><div class="general-price-v2801">单价 <b>${item.cost}</b> 灵石${item.level>0?` · ${CULTIVATION_REALMS[item.level].name}可购买`:''}</div><div class="general-buy-v2801">`;
+        html+=`<article class="general-item-v2801 xt-item-cell"${d?.quality?` style="--q:${getQualityInfo(d.quality).color}"`:''}><div class="general-title-v2801"><b><span class="xt-cell-icon" aria-hidden="true">${d?(getQualityInfo(d.quality)?.icon||'⚔️'):ITEMS[item.name]?.icon||(item.category==='pill'?'💊':item.category==='material'?'🌿':'🐾')}</span> ${item.name}</b><span>持有 ${generalOwnedV2801(item)}</span></div><p>${desc}</p><div class="general-price-v2801">单价 <b>${item.cost}</b> 灵石${item.level>0?` · ${CULTIVATION_REALMS[item.level].name}可购买`:''}</div><div class="general-buy-v2801">`;
         for(const qty of category==='gear'?[1]:[1,5])html+=`<button type="button" ${!allowed||player.gold<item.cost*qty?'disabled':''} onclick="buyGeneralV2801(${index},${qty})">${!allowed?'境界未达标':`买 ${qty} 件 · ${item.cost*qty} 灵石`}</button>`;
         if(allowed&&player.gold<item.cost)html+=`<span>还差 ${item.cost-player.gold} 灵石</span>`;
         html+='</div></article>';
@@ -10036,10 +10077,12 @@ function villageEnhanceV286897(){
       if(gameState==='combat'||gameState==='combat-ending'||!Number.isInteger(index)||!Number.isInteger(qty))return;
       const item=GENERAL_SHOP_V2801[index];if(!item||![1,5].includes(qty)||(item.category==='gear'&&qty!==1))return;
       if(!hasReachedRealm(item.level)||player.gold<item.cost*qty)return;
-      if(!(item.category==='gear'?confirmGearPurchaseV2804(item.name,item.cost*qty,qty):confirmPurchaseV286867(item.name,item.cost*qty,qty)))return;
-      if(!addStoredItemV2905(item.store!=='auto'?item.store:EQUIPMENT_DB[item.name]?'equipmentInventory':'inventory',item.name,qty))return;
-      player.gold-=item.cost*qty;
-      autoSave();updateStats();showShop(item.category,`已购买 ${item.name} ×${qty}，花费 ${item.cost*qty} 灵石。`);
+      const settle=()=>{
+        if(!addStoredItemV2905(item.store!=='auto'?item.store:EQUIPMENT_DB[item.name]?'equipmentInventory':'inventory',item.name,qty))return;
+        player.gold-=item.cost*qty;
+        autoSave();updateStats();showShop(item.category,`已购买 ${item.name} ×${qty}，花费 ${item.cost*qty} 灵石。`);
+      };
+      if(item.category==='gear')confirmGearPurchaseV2804(item.name,item.cost*qty,qty,settle);else confirmPurchaseV286867(item.name,item.cost*qty,qty,'gold','',settle);
     }
 
     function showExplore() {
@@ -10158,6 +10201,7 @@ function villageEnhanceV286897(){
       showStory(html, choices);
     }
 
+    let sectTaskApprovedV2868114=null;
     function updateSectTaskProgress(index) {
       if(!sectCanManageV2866())return;
       const task = player.sectTasks[index];
@@ -10166,7 +10210,14 @@ function villageEnhanceV286897(){
       const guide=getSectTaskGuide(task), p=getSectTaskProgressInfo(task);
       if(template.type!=='combat'&&p.ready){
         const costs=template.goldCost?`${template.goldCost} 灵石`:Object.entries(template.materials||{}).map(([name,n])=>`${name} ×${n}`).join('、');
-        if(costs&&!window.confirm(`提交 ${template.name}？消耗 ${costs}。`))return;
+        if(costs&&sectTaskApprovedV2868114!==task){
+          const owner=player;
+          gameConfirmV2868114(`提交 ${template.name}？消耗 ${costs}。`,()=>{
+            if(player!==owner||player.sectTasks?.[index]!==task||task.completed||!sectCanManageV2866())return;
+            sectTaskApprovedV2868114=task;try{updateSectTaskProgress(index);}finally{sectTaskApprovedV2868114=null;}
+          });
+          return;
+        }
       }
       if (template.type === 'combat') {
         showStory(`<p>⚔️ <b>${template.name}</b></p>${getSectTaskGuideHtml(task)}
@@ -10655,11 +10706,13 @@ function villageEnhanceV286897(){
       if (player.sectContribution < cost) return showStory('贡献不足！', [{text:'返回', action:'sect_library'}]);
       const skillObj = SKILLS.find(s=>s.name===skillName);
       if (!skillObj) return showSectLibrary();
-      if(!confirmPurchaseV286867(skillName,cost,1,'sectContribution'))return;
+      confirmPurchaseV286867(skillName,cost,1,'sectContribution','',()=>{
+      if(player.skills.some(s=>s?.name===skillName)||player.sectContribution<cost)return;
       player.sectContribution -= cost;
       player.skills.push({...skillObj});
       autoSave();
       showStory(`✅ 成功兑换功法【${skillName}】！<br><span style="color:#aaa">剩余贡献：${player.sectContribution}</span>`, [{text:'继续', action:'sect_library'}]);
+      });
     }
 
     function showSectShop() {
@@ -10678,11 +10731,12 @@ function villageEnhanceV286897(){
       if (!itemDef) return showSectShop();
       cost=itemDef.cost;
       if (player.sectContribution < cost) return showStory('贡献不足！', [{text:'返回', action:'sect_shop'}]);
-      if(!confirmPurchaseV286867(itemName,cost,1,'sectContribution'))return;
-      if(!addStoredItemV2905(itemDef.type==='material'?'materials':'inventory',itemDef.type==='material'?itemDef.value:itemName))return;
+      confirmPurchaseV286867(itemName,cost,1,'sectContribution','',()=>{
+      if(player.sectContribution<cost||!addStoredItemV2905(itemDef.type==='material'?'materials':'inventory',itemDef.type==='material'?itemDef.value:itemName))return;
       player.sectContribution -= cost;
       autoSave();
       showStory(`✅ 购买成功！获得【${itemName}】<br><span style="color:#aaa">剩余贡献：${player.sectContribution}</span>`, [{text:'继续', action:'sect_shop'}]);
+      });
     }
 
     function showSectRank() {
@@ -10724,11 +10778,12 @@ function villageEnhanceV286897(){
       const r=discipleRosterV2815(),d=discipleCandidatesV2815().find(x=>x.id===index);
       if(!d||d.batch!==batch||r.hired.includes(index)||r.members.length>=sectDiscipleCapV2880())return showDisciplesV2815('候选或名额已变化，请重新查看。');
       if(player.gold<d.cost)return showDisciplesV2815('灵石不足。');
-      const owner=player,sect=player.sect,before=JSON.stringify(player);
-      if(!window.confirm(`招募 ${d.name}？消耗 ${d.cost} 灵石，剩余 ${player.gold-d.cost}。`))return;
-      if(player!==owner||player.sect!==sect||before!==JSON.stringify(player)||!discipleAllowedV2815()||discipleDayV2815()/30>=batch+1||r.members.length>=sectDiscipleCapV2880())return;
-      const ok=commitMiniWeaveV286840(()=>{player.gold-=d.cost;r.hired.push(index);r.members.push({id:r.nextId++,name:d.name,level:1,specialty:d.specialty,traitsV2867:discipleTraitsV2867(d),job:null});});
-      if(ok){updateStats();showDisciplesV2815('招募成功。');}
+      const owner=player,sect=player.sect,gold=player.gold;
+      gameConfirmV2868114(`招募 ${d.name}？消耗 ${d.cost} 灵石，剩余 ${player.gold-d.cost}。`,()=>{
+        if(player!==owner||player.sect!==sect||player.gold!==gold||!discipleAllowedV2815()||discipleDayV2815()/30>=batch+1||r.hired.includes(index)||r.members.length>=sectDiscipleCapV2880())return;
+        const ok=commitMiniWeaveV286840(()=>{player.gold-=d.cost;r.hired.push(index);r.members.push({id:r.nextId++,name:d.name,level:1,specialty:d.specialty,traitsV2867:discipleTraitsV2867(d),job:null});});
+        if(ok){updateStats();showDisciplesV2815('招募成功。');}
+      });
 
     }
     const DISCIPLE_TIERS_V2824=[{name:'普通',level:1,time:1,reward:1,count:1},{name:'进阶',level:3,time:1.5,reward:1.8,count:2},{name:'精英',level:6,time:2,reward:2.8,count:3}];
@@ -10748,20 +10803,25 @@ function villageEnhanceV286897(){
     function assignDiscipleV2815(id,type,tier=0){
       if(!discipleAllowedV2815())return showDisciplesV2815('当前无法处理宗门事务。');
       const d=discipleRosterV2815().members.find(x=>x.id===id);if(!d||d.job||warDiscipleBusyV286841(id))return;
-      const owner=player;
+      const owner=player,level=d.level;
+      // d.job and the level are rechecked in the callback, so a second confirm cannot charge or assign twice.
+      const fresh=()=>player===owner&&discipleAllowedV2815()&&!d.job&&d.level===level&&!warDiscipleBusyV286841(id)&&discipleRosterV2815().members.includes(d);
       if(type==='train'){
         if(d.level>=10)return;const cost=d.level*100;if(player.gold<cost)return showDisciplesV2815('培养灵石不足。');
-        if(!window.confirm(`培养 ${d.name}：消耗 ${cost} 灵石，需${discipleTrainDaysV2867(d)}个游戏日，完成后 Lv.${d.level} → Lv.${d.level+1}。`))return;
-        if(player!==owner||!discipleAllowedV2815()||d.job||warDiscipleBusyV286841(id)||player.gold<cost)return;
-        player.gold-=cost;d.job={type:'train',end:discipleDayV2815()+discipleTrainDaysV2867(d)};
+        gameConfirmV2868114(`培养 ${d.name}：消耗 ${cost} 灵石，需${discipleTrainDaysV2867(d)}个游戏日，完成后 Lv.${d.level} → Lv.${d.level+1}。`,()=>{
+          if(!fresh()||player.gold<cost)return;
+          player.gold-=cost;d.job={type:'train',end:discipleDayV2815()+discipleTrainDaysV2867(d)};
+          autoSave();showDisciplesV2815('已安排，推进游戏日期后回来结算。');
+        });
       }else{
         const plan=disciplePlanV2824(d,type,tier);if(!plan)return;
         if(!plan.allowed)return showDisciplesV2815(`该难度需要弟子 Lv.${plan.requiredLevel}。`);
-        if(!window.confirm(`派遣 ${d.name} · ${plan.name}\n耗时 ${plan.days} 个游戏日；完成领取 ${plan.gold} 灵石、${plan.material}×${plan.count}。\n已计入等级与专长加成，无派遣费用。`))return;
-        if(player!==owner||!discipleAllowedV2815()||d.job||warDiscipleBusyV286841(id))return;
-        d.job=discipleNewJobV2867(d,plan);d.lastMissionV2824={type,tier};
+        gameConfirmV2868114(`派遣 ${d.name} · ${plan.name}\n耗时 ${plan.days} 个游戏日；完成领取 ${plan.gold} 灵石、${plan.material}×${plan.count}。\n已计入等级与专长加成，无派遣费用。`,()=>{
+          if(!fresh())return;
+          d.job=discipleNewJobV2867(d,plan);d.lastMissionV2824={type,tier};
+          autoSave();showDisciplesV2815('已安排，推进游戏日期后回来结算。');
+        });
       }
-      autoSave();showDisciplesV2815('已安排，推进游戏日期后回来结算。');
     }
     function discipleReadyV2821(d){
       return !!d.job && Number.isFinite(d.job.end) && d.job.end<=discipleDayV2815();
@@ -10807,12 +10867,12 @@ function villageEnhanceV286897(){
       html+=`<div class="disciple-claim-v2821"><strong>待领取 ${ready.length} · 进行中 ${busy.length} · 随军 ${r.members.filter(d=>warDiscipleBusyV286841(d.id)).length} · 空闲 ${r.members.filter(d=>!d.job&&!warDiscipleBusyV286841(d.id)).length}</strong><p>${ready.length?esc(summary):busy.length?`最近一项还需 ${Math.min(...busy.map(d=>Math.max(0,d.job.end-day)))} 个游戏日`:'暂无待领取事务，可安排培养或派遣。'}</p><button class="choice-btn" onclick="claimAllDisciplesV2821()" ${!allowed||!ready.length?'disabled':''}>${ready.length?`一键领取全部 · ${ready.length} 项`:'暂无可领取成果'}</button></div>`;
 
       html+=`<details ${r.members.length?'':'open'}><summary>招募候选 · ${30-day%30} 个游戏日后换批</summary><div class="home-grid-v2812">`;
-      for(const d of discipleCandidatesV2815())html+=`<article><h4>${d.name}</h4><p>${d.age}岁 · ${special[d.specialty]}专长</p>${discipleTraitsHtmlV2867(d)}<p> · 同类派遣灵石 +20%</p><button class="choice-btn" onclick="recruitDiscipleV2815(${d.id},${d.batch})" ${!allowed||r.hired.includes(d.id)||r.members.length>=sectDiscipleCapV2880()||player.gold<d.cost?'disabled':''}>${r.hired.includes(d.id)?'已招募':`招募 · ${d.cost}灵石`}</button></article>`;
+      for(const d of discipleCandidatesV2815())html+=`<article class="xt-item-cell"><span class="xt-cell-icon" aria-hidden="true">👥</span><h4>${d.name}</h4><p>${d.age}岁 · ${special[d.specialty]}专长</p>${discipleTraitsHtmlV2867(d)}<p> · 同类派遣灵石 +20%</p><button class="choice-btn" onclick="recruitDiscipleV2815(${d.id},${d.batch})" ${!allowed||r.hired.includes(d.id)||r.members.length>=sectDiscipleCapV2880()||player.gold<d.cost?'disabled':''}>${r.hired.includes(d.id)?'已招募':`招募 · ${d.cost}灵石`}</button></article>`;
       html+='</div></details><h4>弟子名册</h4><div class="home-grid-v2812">';
       const order=d=>discipleReadyV2821(d)?0:d.job?1:2;
       const sorted=r.members.slice().sort((a,b)=>order(a)-order(b)||(a.job?.end||0)-(b.job?.end||0)||a.id-b.id);
       for(const d of sorted){
-        html+=`<article class="${discipleReadyV2821(d)?'disciple-ready-v2821':''}"><h4>${esc(d.name)} · Lv.${d.level}</h4><p>${special[d.specialty]}专长 · 战力 +${d.level*2}</p>${discipleTraitsHtmlV2867(d)}${discipleEventButtonV2867(d)}${lifeCardV2868(d)}`;
+        html+=`<article class="xt-item-cell ${discipleReadyV2821(d)?'disciple-ready-v2821':''}"><span class="xt-cell-icon" aria-hidden="true">👥</span><h4>${esc(d.name)} · Lv.${d.level}</h4><p>${special[d.specialty]}专长 · 战力 +${d.level*2}</p>${discipleTraitsHtmlV2867(d)}${discipleEventButtonV2867(d)}${lifeCardV2868(d)}`;
         if(warDiscipleBusyV286841(d.id)){html+='<p>随军统领 · 战役结束后解任，当前不能培养或派遣。</p>';}
         else if(d.job){const left=Math.max(0,d.job.end-day);html+=`<p>${d.job.type==='train'?'修行培养':esc(d.job.name)} · ${left?`还需 ${left} 个游戏日`:'✅ 已完成，待领取'}</p><p>${esc(discipleRewardTextV2821(d.job))}</p><button class="choice-btn" onclick="claimDiscipleV2815(${d.id})" ${left||!allowed?'disabled':''}>${left?'进行中':d.job.type==='train'?'完成培养':'领取奖励'}</button>`;}
         else{
@@ -11014,6 +11074,7 @@ function villageEnhanceV286897(){
     
     let currentChoices = [];
     
+    let purchaseApprovedChoiceV2868114=null;
     function handleChoice(index) {
       const choice = currentChoices[index];
       if(!choice)return;
@@ -11022,8 +11083,13 @@ function villageEnhanceV286897(){
       }
       
       if(['buy','buyMaterial','buyArtifactMaterial','buyPetMaterial','buy_set_item'].includes(choice.action)){
-        const ok=EQUIPMENT_DB[choice.item]?confirmGearPurchaseV2804(choice.item,choice.cost):confirmPurchaseV286867(choice.item,choice.cost);
-        if(!ok)return;
+        if(purchaseApprovedChoiceV2868114===choice)purchaseApprovedChoiceV2868114=null;
+        else{
+          // The confirm helper rechecks player/choices/view; resume this exact choice once.
+          const resume=()=>{if(currentChoices[index]!==choice)return false;purchaseApprovedChoiceV2868114=choice;try{return handleChoiceCoreV2868114(index);}finally{purchaseApprovedChoiceV2868114=null;}};
+          if(EQUIPMENT_DB[choice.item])confirmGearPurchaseV2804(choice.item,choice.cost,1,resume);else confirmPurchaseV286867(choice.item,choice.cost,1,'gold','',resume);
+          return;
+        }
       }
       switch(choice.action) {
         case 'tutorial_begin_world':
@@ -11659,6 +11725,7 @@ function villageEnhanceV286897(){
       }
       updateStats();
     }
+    const handleChoiceCoreV2868114=handleChoice;
     
     // 迷雾森林探索
     function handleForestExplore() {
@@ -11911,9 +11978,11 @@ function villageEnhanceV286897(){
       if(!d)return;
       if(h.furniture.some(f=>f.name===name)){showFurnitureShop('这件家具已经拥有，收纳后也无需再买。');return;}
       if(player.gold<d.cost){showFurnitureShop('灵石不足，还差 '+(d.cost-player.gold)+' 灵石。');return;}
-      if(!confirmPurchaseV286867(d.name,d.cost,1,'gold',d.desc+'\n每种限购一次，购买后自动摆放。'))return;
-      player.gold-=d.cost;h.furniture.push({name:d.name,type:d.type,value:d.value,active:true});
-      autoSave();updateStats();showFurnitureShop('购买成功，已摆放：'+d.name);
+      confirmPurchaseV286867(d.name,d.cost,1,'gold',d.desc+'\n每种限购一次，购买后自动摆放。',()=>{
+        if(h.furniture.some(f=>f.name===name)||player.gold<d.cost)return;
+        player.gold-=d.cost;h.furniture.push({name:d.name,type:d.type,value:d.value,active:true});
+        autoSave();updateStats();showFurnitureShop('购买成功，已摆放：'+d.name);
+      });
     }
     function setFurnitureV2812(name,active){
       const f=normalizeHomeV2812(player).furniture.find(x=>x.name===name);if(!f)return;
@@ -11926,7 +11995,7 @@ function villageEnhanceV286897(){
       let text=`<section class="home-board-v2812"><h3>🪑 家具铺</h3><p>持有灵石 <b>${player.gold}</b> · 每种限购一件</p><p>购买前需确认；收纳不销毁，重新摆放免费。不同名称的家具可同时生效。</p>${notice?`<p class="home-notice-v2812">${notice}</p>`:''}<div class="home-grid-v2812">`;
       for(const d of furnitureCatalogV2812()){
         const owned=h.furniture.find(f=>f.name===d.name);
-        text+=`<article><h4>${d.name}</h4><p>${d.desc}</p><strong>${owned?(owned.active===false?'已拥有 · 已收纳':'已拥有 · 已摆放'):d.cost+' 灵石'}</strong></article>`;
+        text+=`<article class="xt-item-cell"><span class="xt-cell-icon" aria-hidden="true">🪑</span><h4>${d.name}</h4><p>${d.desc}</p><strong>${owned?(owned.active===false?'已拥有 · 已收纳':'已拥有 · 已摆放'):d.cost+' 灵石'}</strong></article>`;
         if(!owned)choices.push({text:`购买 ${d.name} · ${d.cost}灵石${player.gold<d.cost?'（灵石不足）':''}`,action:'buy_furniture',item:d.name,condition:()=>player.gold>=d.cost});
       }
       text+='</div></section>';choices.push({text:'📋 管理洞府家具',action:'home_manage'},{text:'返回仙市',action:'market'});showStory(text,choices);
@@ -12013,7 +12082,7 @@ function villageEnhanceV286897(){
       for(const f of h.furniture){
         const d=furnitureCatalogV2812().find(x=>x.name===f.name);if(!d)continue;
         const active=f.active!==false;
-        text+=`<article><h4>${d.name}</h4><p>${d.desc}</p><strong>${active?'🟢 已摆放 · 生效中':'📦 已收纳'}</strong></article>`;
+        text+=`<article class="xt-item-cell"><span class="xt-cell-icon" aria-hidden="true">🪑</span><h4>${d.name}</h4><p>${d.desc}</p><strong>${active?'🟢 已摆放 · 生效中':'📦 已收纳'}</strong></article>`;
         choices.push({text:(active?'收纳 ':'摆放 ')+f.name,action:'set_furniture_v2812',item:f.name,active:!active});
       }
       if(!h.furniture.length)text+='<p>洞府尚未添置家具，可先购买聚灵阵辅助修炼。</p>';
@@ -12027,8 +12096,12 @@ function villageEnhanceV286897(){
     function handleHomeUpgrade(){
       const h=normalizeHomeV2812(player),cost=h.level*200;
       if(h.level>=5||player.gold<cost){showHomeManage();return;}
-      if(typeof window.confirm!=='function'||!window.confirm(`升级洞府至 Lv.${h.level+1}？\n消耗 ${cost} 灵石，剩余 ${player.gold-cost} 灵石。\n洞府修炼加成：${(h.level-1)*5}% → ${h.level*5}%`))return;
-      player.gold-=cost;h.level++;autoSave();updateStats();showHomeManage();
+      if(typeof window.confirm!=='function')return;
+      const owner=player,level=h.level;
+      gameConfirmV2868114(`升级洞府至 Lv.${h.level+1}？\n消耗 ${cost} 灵石，剩余 ${player.gold-cost} 灵石。\n洞府修炼加成：${(h.level-1)*5}% → ${h.level*5}%`,()=>{
+        if(player!==owner||normalizeHomeV2812(player)!==h||h.level!==level||player.gold<cost)return;
+        player.gold-=cost;h.level++;autoSave();updateStats();showHomeManage();
+      });
     }
     
 
@@ -12491,16 +12564,25 @@ function villageEnhanceV286897(){
       if(!v||v.token!==token||v.owner!==player||document.getElementById('storyPanel')?.classList.contains('hidden')||document.getElementById('traderBatchV2876')?.dataset.token!==String(token))return false;
       return buyFromMapNpc(v.npcId,item,MAP_NPC_PRICES_V2876[item],5);
     }
+    let mapNpcConfirmingV2868114=false;
     function buyFromMapNpc(npcId,item,cost,count=1){
       if(!jevCanActV2846()||!MAP_NPCS[npcId]||!Object.hasOwn(MAP_NPC_PRICES_V2876,item)||cost!==MAP_NPC_PRICES_V2876[item]||![1,5].includes(count)||(count===5&&!['heal','mp'].includes(ITEMS[item]?.type)))return false;
       const total=cost*count;
       if(!Number.isFinite(player.gold)||player.gold<total)return false;
-      const owner=player,before=JSON.stringify(player),owned=player.inventory.filter(x=>x===item).length;
-      if(!window.confirm(`购买 ${item} ×${count}？消耗 ${total} 灵石，剩余 ${player.gold-total}。\n当前持有 ${owned} 枚。`)||player!==owner||!jevCanActV2846()||JSON.stringify(player)!==before)return false;
-      if(!addStoredItemV2905('inventory',item,count))return false;player.gold-=total;
-      let saved=false;try{saved=saveGame();}catch(_){}
-      if(!saved){player.gold+=total;player.inventory.splice(-count,count);showFloatingText('购买未保存，灵石与物品已恢复，可重试','#ff8a80');return false;}
-      updateStats();showMapNpcShop(npcId);showFloatingText(`已购入 ${item} ×${count}`,'#69f0ae');return true;
+      const owner=player,owned=player.inventory.filter(x=>x===item).length;
+      const gold=player.gold,bag=JSON.stringify(player.inventory);
+      if(mapNpcConfirmingV2868114)return false;mapNpcConfirmingV2868114=true;
+      const done=()=>{mapNpcConfirmingV2868114=false;return false;};
+      try{
+        return gameConfirmV2868114(`购买 ${item} ×${count}？消耗 ${total} 灵石，剩余 ${player.gold-total}。\n当前持有 ${owned} 枚。`,()=>{
+          mapNpcConfirmingV2868114=false;
+          if(player!==owner||!jevCanActV2846()||player.gold!==gold||JSON.stringify(player.inventory)!==bag)return false;
+          if(!addStoredItemV2905('inventory',item,count))return false;player.gold-=total;
+          let saved=false;try{saved=saveGame();}catch(_){}
+          if(!saved){player.gold+=total;player.inventory.splice(-count,count);showFloatingText('购买未保存，灵石与物品已恢复，可重试','#ff8a80');return false;}
+          updateStats();showMapNpcShop(npcId);showFloatingText(`已购入 ${item} ×${count}`,'#69f0ae');return true;
+        },done)??false;
+      }catch(_){return done();}
     }
 
 
@@ -12622,16 +12704,16 @@ function villageEnhanceV286897(){
       let rows='';
       if(tab==='all'||tab==='heal'||tab==='mp'){
         const list=pills.filter(it=>tab==='all'||it.type===tab);
-        rows=list.length?list.map(it=>{const ready=combatMedicineAvailabilityV2856(it.name),esc=skillTextEscapeV212;return `<button type="button" class="combat-item-btn" ${ready.ok?'':'disabled'} onclick="useCombatBagItem(${esc(JSON.stringify(it.name))})"><span>${it.type==='heal'?'💊':'🔹'} ${esc(it.name)}<span class="count">×${it.count}</span></span><span class="meta">${ready.ok?`实际恢复 ${ready.gain} 点${it.type==='heal'?'气血':'灵力'}${ready.curesMeridians?' · 清除经脉暗伤':''}`:esc(ready.reason)}${ready.ok&&ready.waste>0?` · 超出上限 ${ready.waste} 点`:''}<br>${esc(it.desc||'')}<br>使用消耗一个回合</span></button>`}).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无丹药<span class="meta">去商铺或 NPC 处补给</span></button>`;
+        rows=list.length?list.map(it=>{const ready=combatMedicineAvailabilityV2856(it.name),esc=skillTextEscapeV212;return `<button type="button" class="combat-item-btn xt-item-cell" ${ready.ok?'':'disabled'} onclick="useCombatBagItem(${esc(JSON.stringify(it.name))})"><span><span class="xt-cell-icon" aria-hidden="true">${it.type==='heal'?'💊':'🔹'}</span> ${esc(it.name)}<span class="count">×${it.count}</span></span><span class="meta">${ready.ok?`实际恢复 ${ready.gain} 点${it.type==='heal'?'气血':'灵力'}${ready.curesMeridians?' · 清除经脉暗伤':''}`:esc(ready.reason)}${ready.ok&&ready.waste>0?` · 超出上限 ${ready.waste} 点`:''}<br>${esc(it.desc||'')}<br>使用消耗一个回合</span></button>`}).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无丹药<span class="meta">去商铺或 NPC 处补给</span></button>`;
       }else{
         const list=extras.filter(it=>tab==='equip'?['weapon','armor'].includes(it.type):!['weapon','armor'].includes(it.type));
-        rows=list.length?list.map(it=>`<button class="combat-item-btn combat-readonly" disabled><span>${['weapon','armor'].includes(it.type)?(it.type==='weapon'?'⚔️':'🛡️'):'🎐'} ${it.name}<span class="count">x${it.count}</span></span><span class="meta">${it.desc||'背包道具'}<br>${tab==='equip'?'战斗中可查看，脱战后再正式换装':'当前战斗仅查看，不会误用'}</span></button>`).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无物品<span class="meta">获得后会自动显示在这里</span></button>`;
+        rows=list.length?list.map(it=>`<button type="button" class="combat-item-btn xt-item-cell combat-readonly" disabled><span><span class="xt-cell-icon" aria-hidden="true">${['weapon','armor'].includes(it.type)?(it.type==='weapon'?'⚔️':'🛡️'):'🎐'}</span> ${it.name}<span class="count">x${it.count}</span></span><span class="meta">${it.desc||'背包道具'}<br>${tab==='equip'?'战斗中可查看，脱战后再正式换装':'当前战斗仅查看，不会误用'}</span></button>`).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无物品<span class="meta">获得后会自动显示在这里</span></button>`;
       }
       if(tab==='all'||tab==='item'){
         const count=player.inventory.filter(n=>n==='神行符').length;
-        if(count)rows+=`<button class="combat-item-btn" ${canFleeV286818()&&isPlayerTurn?'':'disabled'} onclick="combat('escapeScroll')"><span>神行符 ×${count}</span><span class="meta">${canFleeV286818()?'消耗一张，必定脱战':'此战禁止脱战'}</span></button>`;
+        if(count)rows+=`<button type="button" class="combat-item-btn xt-item-cell" ${canFleeV286818()&&isPlayerTurn?'':'disabled'} onclick="combat('escapeScroll')"><span>神行符 ×${count}</span><span class="meta">${canFleeV286818()?'消耗一张，必定脱战':'此战禁止脱战'}</span></button>`;
       }
-      drawer.innerHTML=`<div class="combat-item-head"><span>🎒 战斗背包</span><button class="choice-btn" style="min-height:32px;padding:4px 10px;font-size:11px" onclick="toggleCombatMedicineDrawer(false)">收起</button></div>
+      drawer.innerHTML=`<div class="combat-item-head"><span>🎒 战斗背包</span><button type="button" class="choice-btn" style="min-height:44px;min-width:44px;padding:4px 10px;font-size:11px" onclick="toggleCombatMedicineDrawer(false)">收起</button></div>
         <div class="combat-tab-row"><button class="combat-tab-btn ${tab==='all'?'active':''}" onclick="setCombatMedicineTab('all')">补给</button><button class="combat-tab-btn ${tab==='heal'?'active':''}" onclick="setCombatMedicineTab('heal')">回血</button><button class="combat-tab-btn ${tab==='mp'?'active':''}" onclick="setCombatMedicineTab('mp')">回灵</button><button class="combat-tab-btn ${tab==='item'?'active':''}" onclick="setCombatMedicineTab('item')">道具</button><button class="combat-tab-btn ${tab==='equip'?'active':''}" onclick="setCombatMedicineTab('equip')">装备</button></div><div class="combat-item-grid">${rows}</div><div class="quick-tip">回血、回灵物品在这里使用会消耗本回合；主战斗界面不会直接摆出丹药按钮。</div>`;
     }
 
@@ -14705,7 +14787,7 @@ function villageEnhanceV286897(){
       if(art.wildSceneRequested[region])return;
       art.wildSceneRequested[region]=true;const im=new Image();im.decoding='async';
       const failed=()=>{im.onload=im.onerror=null;(art.wildSceneFailed||(art.wildSceneFailed={}))[region]=true;
-        if(currentRegion===region){releaseStaticWorldCacheV2767();loadRegionalBuildingsV286879();loadJoinedArchitectureV286896();loadNorthernTerrainV286896();loadSectSceneV286896();}};
+        if(currentRegion===region){releaseStaticWorldCacheV2767();loadRegionalBuildingsV286879();loadJoinedArchitectureV286896();loadNorthernTerrainV286896();loadSectSceneV286896();}art.sceneSettledV2868111?.();};
       im.onload=()=>{im.onload=im.onerror=null;if(im.naturalWidth!==(s.width||1484)||im.naturalHeight!==(s.height||1060)){failed();return;}
         if(art.wildSceneFailed)delete art.wildSceneFailed[region];
         art.wildScenes=art.wildScenes||{};art.wildScenes[region]=im;trimWildScenesV2868101();
@@ -14714,7 +14796,7 @@ function villageEnhanceV286897(){
           resetWorldMovementV28686();if(q){p.x=q.x;p.y=q.y;}
           for(const m of FLAT_WORLD.monsters||[]){if(!m.alive||m.inCombat)continue;const safe=wildSceneSafePointV286898(m.x,m.y,m.r||22);if(safe){m.x=safe.x;m.y=safe.y;}}
           if(s.overview&&document.getElementById('scrollMapV2831'))renderScrollTargetsV2837();
-        }};
+        }art.sceneSettledV2868111?.();};
       im.onerror=failed;im.src='./'+s.file;
     }
     function drawWildSceneV286898(ctx){if(!wildSceneReadyV286898())return false;ctx.drawImage(SCROLL_ART_V2831.wildScenes[currentRegion],0,0,FLAT_WORLD.width,FLAT_WORLD.height);return true;}
@@ -14908,8 +14990,16 @@ function villageEnhanceV286897(){
         img.onerror=()=>{SCROLL_ART_V2831[key]=null;img.onload=img.onerror=null;if(key==='regions')request('landscape','scroll-landscape-v2831.webp',true);if(key==='monstersV2853'){request('enemies','ink-enemies-v2833.webp');request('beasts','ink-beasts-v2833.webp');}};
         img.src='./'+file;
       };
-      request('regions','scroll-regions-v2834.webp',true);
-      for(const [key,file] of [['smallBeastsV28682','monster-small-beasts-v28682.webp'],['palace','scroll-palace-v2831.webp'],['buildings','scroll-buildings-v2832.webp'],['monstersV2853','monster-map-v2853.webp?v=2868-mini-return-20261015']])request(key,file);
+      request('monstersV2853','monster-map-v2853.webp?v=2868-mini-return-20261015');
+      const art=SCROLL_ART_V2831;let sheetsRequested=false,sheetTimer=0;
+      const requestSheets=()=>{
+        if(sheetsRequested)return;sheetsRequested=true;clearTimeout(sheetTimer);art.sceneSettledV2868111=null;
+        request('regions','scroll-regions-v2834.webp',true);
+        for(const [key,file] of [['smallBeastsV28682','monster-small-beasts-v28682.webp'],['palace','scroll-palace-v2831.webp'],['buildings','scroll-buildings-v2832.webp']])request(key,file);
+      };
+      // Slow connections: the painted scene the player stands on comes before detail sheets, which all draw fallbacks until loaded.
+      if(wildSceneV286898()&&!wildSceneReadyV286898()&&!art.wildSceneFailed?.[currentRegion]){art.sceneSettledV2868111=requestSheets;sheetTimer=setTimeout(requestSheets,8000);}
+      else requestSheets();
     }
     function scrollRegionCellV2834(region=currentRegion){
       const n=['south','east','west','north','human_peaks','human_valleys','demon_domain','immortal_domain'].indexOf(region);return n<0?0:n;
@@ -15689,7 +15779,7 @@ function villageEnhanceV286897(){
       try{assertSaveSessionV2868102();}catch(_){return false;}
       const rawName = document.getElementById('playerName').value.trim();
       const name = rawName || '无名';
-      try{validateSaveTextV2869({name});}catch(e){alert('道号请使用文字、数字或空格，不要包含代码符号');return;}
+      try{validateSaveTextV2869({name});}catch(e){gameAlertV2868114('道号请使用文字、数字或空格，不要包含代码符号');return;}
       const isTest999 = rawName === '999' && devToolsAllowedV286838();
       resetRuntimeState();
 
@@ -15762,12 +15852,12 @@ function villageEnhanceV286897(){
         }
       }
       if (!saveData) {
-        alert('存档无法读取，请在存档管理中导入或恢复备份。原记录未删除。');
+        gameAlertV2868114('存档无法读取，请在存档管理中导入或恢复备份。原记录未删除。');
         showSaveManagerV2768();
         return;
       }
       
-      if(saveData._recoveredFromBackup)alert('主存档无法读取，已使用最近一次有效备用档恢复。');
+      if(saveData._recoveredFromBackup)gameAlertV2868114('主存档无法读取，已使用最近一次有效备用档恢复。');
       // Loading may initialize tasks; do not overwrite either recovery candidate during setup.
       const wasSaveDeferred=miniSaveDeferredV286840;miniSaveDeferredV286840=true;
       try{
@@ -15822,8 +15912,11 @@ function villageEnhanceV286897(){
       return true;
     }
     
+    // The reset runs only after the in-game confirm has archived the current character.
     function newGame() {
-      if(!prepareNewGameV2838())return;
+      prepareNewGameV2838(startNewGameAfterArchiveV2868114);
+    }
+    function startNewGameAfterArchiveV2868114() {
       resetRuntimeState();
       document.getElementById('loadDialog').style.display = 'none';
       player = createDefaultPlayer();
@@ -16085,7 +16178,7 @@ function villageEnhanceV286897(){
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.110";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.112";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
@@ -16409,12 +16502,15 @@ function pillBatchCountV2905(name,mode){
  return [5,10].includes(mode)?Math.min(mode,max):mode==='full'&&kind!=='exp'||mode==='all'&&kind==='exp'?max:0;
 }
 function useItemBatchV2905(name,mode){
+ if(gameState!=='exploring'||!player||player.breakthrough?.isAnimating||COMBAT_FINISH_V2764.settling)return false;
+ const n=pillBatchCountV2905(name,mode);if(!n)return false;const curesMeridians=name==='玄玉护脉丹'&&hasStatusEffect('jingmai');
+ const owner=player,have=player.inventory.filter(x=>x===name).length;
+ // The pills are spent inside the item transaction only after confirmation and an unchanged-player recheck.
+ return gameConfirmOrRunV2868114(`服用【${name}】×${n}${curesMeridians?'，并清除经脉暗伤':''}？`,()=>{
  if(gameState!=='exploring')return false;
  return itemActionV2905('批量服用',()=>{
-  const n=pillBatchCountV2905(name,mode);if(!n)return false;const item=ITEMS[name],kind=item.type,curesMeridians=name==='玄玉护脉丹'&&hasStatusEffect('jingmai');
-  const owner=player,before=JSON.stringify(player);
-  if(typeof confirm==='function'&&!confirm(`服用【${name}】×${n}${curesMeridians?'，并清除经脉暗伤':''}？`))return false;
-  if(player!==owner||JSON.stringify(player)!==before)return false;
+  const item=ITEMS[name],kind=item.type;
+  if(player!==owner||player.inventory.filter(x=>x===name).length!==have)return false;
   if(gameState!=='exploring'||player.breakthrough?.isAnimating||COMBAT_FINISH_V2764.settling||pillBatchCountV2905(name,mode)!==n)return false;
   for(let i=0;i<n;i++)removeItem(name);
   let gain;
@@ -16423,8 +16519,59 @@ function useItemBatchV2905(name,mode){
   else{gain=item.value*n;player.exp+=gain;checkLevelUp();}
   updateStats();renderMobileInventory();showFloatingText(`服用 ${name} ×${n} · ${kind==='heal'?'气血':kind==='mp'?'灵力':'修为'} +${gain}${curesMeridians?' · 经脉暗伤已痊愈':''}`,'#69f0ae');return true;
  });
+ });
 }
 function pillBatchButtonsV2905(row,index){
  const kind=row.data?.type;if(!['heal','mp','exp'].includes(kind)||row.count<2)return '';
  return `<div class="bag-batch-v2905">${[[5,'×5'],[10,'×10'],kind==='exp'?['all','全部（最多999）']:['full','用至满']].map(([mode,label])=>`<button type="button" class="choice-btn" data-bag-batch="${index}" data-mode="${mode}" ${pillBatchCountV2905(row.name,mode)?'':'disabled'}>${label}</button>`).join('')}</div>`;
 }
+
+// V28.68.114 青绿鎏金 in-game dialog: replaces native alert/confirm/prompt where the caller can continue via callback.
+// Without a real DOM (Node QA sandboxes) it falls back to the native/stubbed function synchronously.
+let xtDialogActiveV2868114=null;
+function xtDialogUsableV2868114(){try{return typeof document!=='undefined'&&typeof HTMLElement==='function'&&document.body instanceof HTMLElement;}catch(_){return false;}}
+function xtDialogV2868114(kind,message,done,defaultValue){
+ const text=String(message??'');
+ if(!xtDialogUsableV2868114()){
+  const native=kind==='prompt'?globalThis.prompt:kind==='confirm'?globalThis.confirm:globalThis.alert;
+  const value=typeof native==='function'?native(text,...(kind==='prompt'?[defaultValue??'']:[])):(kind==='confirm'?false:kind==='prompt'?null:undefined);
+  return typeof done==='function'?done(kind==='confirm'?!!value:value):value;
+ }
+ if(xtDialogActiveV2868114)xtDialogActiveV2868114.close(false);
+ const previous=document.activeElement,id='xtDialogV2868114';
+ const scrim=document.createElement('div');scrim.id=id;scrim.className='xt-dialog-scrim-v2868114';
+ const box=document.createElement('div');box.className='xt-frame xt-dialog-v2868114';box.setAttribute('role',kind==='alert'?'alertdialog':'dialog');box.setAttribute('aria-modal','true');box.setAttribute('aria-describedby',id+'Msg');box.setAttribute('aria-label',kind==='prompt'?'输入':kind==='confirm'?'确认':'提示');
+ const msg=document.createElement('p');msg.id=id+'Msg';msg.className='xt-dialog-msg-v2868114';msg.textContent=text;box.appendChild(msg);
+ let input=null;if(kind==='prompt'){input=document.createElement('input');input.type='text';input.className='xt-dialog-input-v2868114';input.value=String(defaultValue??'');input.setAttribute('aria-labelledby',id+'Msg');input.maxLength=64;box.appendChild(input);}
+ const actions=document.createElement('div');actions.className='xt-dialog-actions-v2868114';
+ const mk=(label,cls,act)=>{const b=document.createElement('button');b.type='button';b.className='xt-btn '+cls;b.textContent=label;b.dataset.xtDialog=act;actions.appendChild(b);return b;};
+ const cancel=kind==='alert'?null:mk('取消','xt-btn--jade','cancel');const ok=mk(kind==='alert'?'知道了':'确定','xt-btn--gold','ok');
+ box.appendChild(actions);scrim.appendChild(box);
+ let closed=false;
+ const close=accepted=>{if(closed)return;closed=true;document.removeEventListener('keydown',onKey,true);scrim.remove();if(xtDialogActiveV2868114?.scrim===scrim)xtDialogActiveV2868114=null;try{previous?.focus?.({preventScroll:true});}catch(_){}
+  const value=kind==='confirm'?!!accepted:kind==='prompt'?(accepted?input.value:null):undefined;if(typeof done==='function')done(value);};
+ const onKey=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close(false);return;}
+  if(e.key==='Enter'&&e.target===input){e.preventDefault();close(true);return;}
+  if(e.key==='Tab'){const f=[input,cancel,ok].filter(Boolean),i=f.indexOf(document.activeElement);e.preventDefault();f[(i+(e.shiftKey?f.length-1:1))%f.length].focus();}};
+ ok.onclick=()=>close(true);if(cancel)cancel.onclick=()=>close(false);
+ scrim.addEventListener('click',e=>{if(e.target===scrim)close(kind==='alert');});
+ document.addEventListener('keydown',onKey,true);document.body.appendChild(scrim);
+ xtDialogActiveV2868114={scrim,close};(input||cancel||ok).focus();if(input)input.select();
+ return undefined;
+}
+function gameAlertV2868114(message,done){return xtDialogV2868114('alert',message,done);}
+function gameConfirmV2868114(message,onOk,onCancel){return xtDialogV2868114('confirm',message,ok=>ok?onOk?.():onCancel?.());}
+// Sites that historically proceeded when no confirm existed (headless sandboxes) keep that behaviour.
+function gameConfirmOrRunV2868114(message,onOk){if(!xtDialogUsableV2868114()&&typeof globalThis.confirm!=='function')return onOk();return gameConfirmV2868114(message,onOk,()=>false);}
+// One pending confirm per key: a second open while it is showing is ignored and onOk runs at most once.
+// onOk must recheck every precondition itself; the sandbox fallback returns its result synchronously.
+const xtConfirmPendingV2868114=new Set();
+function gameConfirmOnceV2868114(key,message,onOk){
+ if(xtConfirmPendingV2868114.has(key)&&xtDialogUsableV2868114()&&document.getElementById('xtDialogV2868114'))return false;
+ let settled=false;xtConfirmPendingV2868114.add(key);
+ const settle=()=>{if(settled)return false;settled=true;xtConfirmPendingV2868114.delete(key);return true;};
+ try{return gameConfirmV2868114(message,()=>settle()?onOk():false,()=>{settle();return false;})??false;}
+ catch(e){settle();throw e;}
+}
+function gamePromptV2868114(message,defaultValue,done){return xtDialogV2868114('prompt',message,done,defaultValue);}
+window.gameAlertV2868114=gameAlertV2868114;window.gameConfirmV2868114=gameConfirmV2868114;window.gamePromptV2868114=gamePromptV2868114;window.gameConfirmOnceV2868114=gameConfirmOnceV2868114;

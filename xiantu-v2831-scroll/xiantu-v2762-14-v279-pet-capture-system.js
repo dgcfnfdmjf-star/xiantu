@@ -108,14 +108,21 @@ function consumeInventoryItem(name){const i=player.inventory.indexOf(name);if(i>
 function attemptCapture(enemy=currentEnemy){
   if(gameState!=='combat'||enemy!==currentEnemy||!isPlayerTurn||player?.breakthrough?.isAnimating)return false;
   const owner=player;let pc=ensurePetCaptureState();if(pc.isCapturing){showFloatingText?.('⏳ 正在收服中…','#ffd700');return}const c=canCaptureTarget(enemy);if(!c.ok){showFloatingText?.(`❌ ${c.reason}`,'#ff6b6b');return}
-  if(c.bestItem==='御灵葫芦'&&(PET_QUALITY_RANK[c.petData.quality]||1)<=2){
-    if(!confirm(`即将消耗【御灵葫芦】（价值500灵石）收服${getPetQualityInfo(c.petData.quality).label}【${enemy.name}】。是否继续？`))return false;
-    if(player!==owner||currentEnemy!==enemy||gameState!=='combat'||!isPlayerTurn)return false;
-    const check=canCaptureTarget(enemy);if(!check.ok||check.bestItem!==c.bestItem)return false;
-  }
+  const begin=()=>{
   pc=player.petCapture;
   pc.isCapturing=true;pc.captureTarget=enemy;pc.usedItem=c.bestItem;isPlayerTurn=false;updateCombatChoices?.();
   if(c.petData?.canBond){startBondingProcess(enemy,c.bestItem);return}const rate=getCaptureRate(enemy,c.bestItem);addCombatLog?.(`🌀 使用【${c.bestItem}】尝试收服 ${enemy.name}（成功率 ${Math.round(rate*100)}%）`,'pet');showCaptureProgress(rate,()=>{Math.random()<rate?captureSuccess(enemy,c.bestItem,!!c.petData?.isDemon):captureFail(enemy,c.bestItem,!!c.petData?.isDemon)})
+  };
+  if(c.bestItem==='御灵葫芦'&&(PET_QUALITY_RANK[c.petData.quality]||1)<=2){
+    const gourds=player.inventory.filter(n=>n==='御灵葫芦').length;
+    return gameConfirmOnceV2868114('pet-capture-gourd',`即将消耗【御灵葫芦】（价值500灵石）收服${getPetQualityInfo(c.petData.quality).label}【${enemy.name}】。是否继续？`,()=>{
+    if(player!==owner||currentEnemy!==enemy||gameState!=='combat'||!isPlayerTurn||player?.breakthrough?.isAnimating||player.petCapture?.isCapturing)return false;
+    if(player.inventory.filter(n=>n==='御灵葫芦').length!==gourds)return false;
+    const check=canCaptureTarget(enemy);if(!check.ok||check.bestItem!==c.bestItem)return false;
+    begin();return true;
+    });
+  }
+  return begin();
 }
 // One capture owns both its progress interval and its delayed completion.
 let captureRunV286846=null;
@@ -186,12 +193,13 @@ function changePetBondById(id,newType){
  if(!player.inventory.includes(item)){showFloatingText(`❌ 需要【${item}】`,'#ff6b6b');return false;}
  const owner=player,oldType=pet.bondType;
  const warning=newType==='soul'?'契约不可更改；强行放生会使气血降至最大值的30%。':'平等契不可退回滴血契。';
- if(!confirm(`消耗【${item}】×1，与「${pet.name}」缔结【${getPetBondLabel(newType)}】？\n${warning}`))return false;
+ return gameConfirmOnceV2868114('pet-bond',`消耗【${item}】×1，与「${pet.name}」缔结【${getPetBondLabel(newType)}】？\n${warning}`,()=>{
  if(player!==owner||!petBatchAllowedV286845()||getPetById(id)!==pet||pet.bondType!==oldType||!player.inventory.includes(item))return false;
  const inventory=player.inventory.slice(),hadSoul=Object.hasOwn(pet,'isSoulBonded'),soul=pet.isSoulBonded;
  consumeInventoryItem(item);pet.bondType=newType;if(newType==='soul')pet.isSoulBonded=true;
  if(!saveGame()){player.inventory.splice(0,player.inventory.length,...inventory);pet.bondType=oldType;if(hadSoul)pet.isSoulBonded=soul;else delete pet.isSoulBonded;return false;}
  showFloatingText(`✅ 契约变更为【${getPetBondLabel(newType)}】`,'#69f0ae');updatePetPanel();updateStats();return true;
+ });
 }
 function clearPetCaptureCooldownV2870(){
  if(player?.petCapture){player.petCapture.captureCooldown=0;player.petCapture.captureCooldownUntil=0;}
@@ -203,7 +211,7 @@ function releasePetById(id){
   const refund=getPetReleaseRefundV286846(pet),items=Object.entries(refund).map(([n,c])=>`${n}×${c}`).join('、'),soul=pet.bondType==='soul';
   const hint=items?`\n归元返还（实耗80%，逐项取整）：${items}`:'\n暂无可返还材料（每种实际消耗的80%，不足1件舍去）。';
   const msg=`确定放生「${pet.name}」吗？${soul?'\n解除神魂本命契会令气血降至30%。':''}${hint}\n仅计更新后记录的喂养与养成材料，不返还灵石。`;
-  if(typeof confirm==='function'&&!confirm(msg))return false;
+  const release=()=>{
   if(player!==owner||!petBatchAllowedV286845()||getPetById(id)!==pet||JSON.stringify(refund)!==JSON.stringify(getPetReleaseRefundV286846(pet)))return false;
   const before={pets:player.pets.slice(),active:player.activePet,hp:player.hp,mats:{...player.petMaterials}};
   if(Object.entries(refund).some(([n,c])=>!Number.isSafeInteger((Number(player.petMaterials[n])||0)+c)))return false;
@@ -215,6 +223,10 @@ function releasePetById(id){
   }catch(err){player.pets=before.pets;player.activePet=before.active;player.hp=before.hp;player.petMaterials=before.mats;showFloatingText?.('放生未保存，灵宠与材料已恢复，请稍后重试。','#ff6b6b');return false;}
   petFeedOpenId=null;petGrowthOpenIdV210=null;petContractOpenIdV29=null;
   showFloatingText?.(`已放生「${pet.name}」${items?' · 归元 '+items:''}${soul?' · 神魂受创':''}`,soul?'#ff6b6b':'#8fe3c4');updateStats?.();updatePetPanel?.();return true;
+  };
+  // Headless callers without confirm keep the historical proceed behaviour.
+  if(!xtDialogUsableV2868114()&&typeof globalThis.confirm!=='function')return release();
+  return gameConfirmOnceV2868114('pet-release',msg,release);
 }
 let petContractOpenIdV29=null;
 function togglePetContractMenuV29(id){petContractOpenIdV29=petContractOpenIdV29===id?null:id;updatePetPanel?.()}
@@ -225,14 +237,14 @@ window.getPetPower=function(pet){if(!pet)return 0;const lv=Math.max(1,Number(pet
 window.updatePetPanel=function(){
   ensurePetSystemState?.();ensurePetCaptureState();const pets=player.pets||[],active=player.activePet,summary=document.getElementById('petCollectionSummary');if(summary)summary.textContent=`灵宠 ${pets.length}/5 · ${active?`出战：${active.name} Lv.${active.level}`:'当前无出战灵宠'}`;const cap=document.getElementById('petCapacityBadge');if(cap)cap.textContent=`${pets.length} / 5`;
   const spot=document.getElementById('activePetSpotlight');if(spot){if(active){const t=PET_TYPES[active.type]||{icon:'🐾'},q=getPetQualityInfo(active.quality);spot.innerHTML=`<div class="pet-active-card"><div class="pet-active-avatar">${t.icon||'🐾'}</div><div><div class="pet-active-name">正在出战 · ${escapePetText(active.name)} <span class="pet-level-chip">Lv.${active.level}</span></div><div class="pet-quality-line-v29"><span class="pet-quality-badge-v29" style="color:${q.color}">${q.icon} ${q.label}</span><span class="pet-bond-badge-v29">${getPetBondLabel(active.bondType)}</span></div><div class="pet-active-desc">${escapePetText(getPetTalentText(active))}</div></div><div class="pet-active-power">灵宠战力<b>${getPetPower(active)}</b></div></div>`}else spot.innerHTML='<div class="pet-active-card empty">尚未选择出战灵宠 · 捕捉或选择灵宠后即可获得战斗加成</div>'}
-  const dash=document.getElementById('petCaptureDashboard');if(dash){const pc=player.petCapture,lv=pc.beastTamingLevel,costGold=lv*100+50,costExp=lv*50,counts={};for(const n of player.inventory||[])if(CAPTURE_ITEMS[n])counts[n]=(counts[n]||0)+1;dash.innerHTML=`<div class="pet-taming-card-v29"><div class="pet-v29-kicker">御兽功法</div><div class="pet-v29-title"><span>🪄 御灵诀</span><span class="pet-v29-level">Lv.${lv}/10</span></div><div class="pet-v29-desc">每提升1级，野外收服成功率 +3%。目标需先压至25%气血以下。<br>已结缘 ${pc.bondedBeasts.length} · 魔宠 ${pc.demonPetsCount}${syncCaptureCooldown()>0?` · 冷却 ${Math.ceil(syncCaptureCooldown())}秒`:''}</div><button class="pet-taming-upgrade-v29" ${lv>=10?'disabled':''} onclick="upgradeBeastTaming()">${lv>=10?'已修至圆满':`升级 · ${costGold}灵石 + ${costExp}修为`}</button></div><div class="pet-capture-items-v29"><div class="pet-v29-kicker">捕捉道具</div><div class="pet-v29-title"><span>🎒 御兽囊</span><span style="font-size:9px;color:#809a95">百宝阁购买</span></div><div class="pet-capture-item-grid-v29">${Object.entries(CAPTURE_ITEMS).map(([n,d])=>`<span class="pet-capture-chip-v29">${d.icon}${n} <b>×${counts[n]||0}</b></span>`).join('')}</div></div>`}
+  const dash=document.getElementById('petCaptureDashboard');if(dash){const pc=player.petCapture,lv=pc.beastTamingLevel,costGold=lv*100+50,costExp=lv*50,counts={};for(const n of player.inventory||[])if(CAPTURE_ITEMS[n])counts[n]=(counts[n]||0)+1;dash.innerHTML=`<div class="pet-taming-card-v29"><div class="pet-v29-kicker">御兽功法</div><div class="pet-v29-title"><span>🪄 御灵诀</span><span class="pet-v29-level">Lv.${lv}/10</span></div><div class="pet-v29-desc">每提升1级，野外收服成功率 +3%。目标需先压至25%气血以下。<br>已结缘 ${pc.bondedBeasts.length} · 魔宠 ${pc.demonPetsCount}${syncCaptureCooldown()>0?` · 冷却 ${Math.ceil(syncCaptureCooldown())}秒`:''}</div><button class="pet-taming-upgrade-v29" ${lv>=10?'disabled':''} onclick="upgradeBeastTaming()">${lv>=10?'已修至圆满':`升级 · ${costGold}灵石 + ${costExp}修为`}</button></div><div class="pet-capture-items-v29"><div class="pet-v29-kicker">捕捉道具</div><div class="pet-v29-title"><span>🎒 御兽囊</span><span style="font-size:9px;color:#809a95">百宝阁购买</span></div><div class="pet-capture-item-grid-v29">${Object.entries(CAPTURE_ITEMS).map(([n,d])=>`<span class="pet-capture-chip-v29 xt-item-cell"><span class="xt-cell-icon" aria-hidden="true">${d.icon}</span>${n} <b>×${counts[n]||0}</b></span>`).join('')}</div></div>`}
   const list=document.getElementById('petList');if(list){if(!pets.length)list.innerHTML='<div class="pet-empty-v28">暂无灵宠。野外将可收服的灵兽压至25%气血以下，再使用捕捉道具。</div>';else list.innerHTML=pets.map(pet=>{const t=PET_TYPES[pet.type]||{icon:'🐾'},q=getPetQualityInfo(pet.quality),activeNow=isActivePetV28(pet),lv=Math.max(1,Number(pet.level)||1),need=lv*30,exp=Math.max(0,Number(pet.exp)||0),pct=Math.max(0,Math.min(100,exp/Math.max(1,need)*100)),feedOpen=petFeedOpenId===pet._petId,contractOpen=petContractOpenIdV29===pet._petId,maxLv=q.maxLevel;const feedBtns=Object.entries(PET_FOOD).map(([n,f])=>{const c=Math.max(0,Number(player.petMaterials?.[n])||0);return `<button class="pet-feed-btn" ${c&&lv<maxLv?'':'disabled'} onclick="feedPetById('${pet._petId}','${n}')">${escapePetText(n)} ×${c}<br><b>${lv>=maxLv?'已满级':`+${f.exp}经验`}</b></button>`}).join('');return `<div class="pet-card-v28 ${activeNow?'active':''} ${pet.isDemon?'pet-demon-v29':''} ${pet.isBonded?'pet-bonded-v29':''}">${activeNow?'<span class="pet-active-tag">出战中</span>':''}<div class="pet-avatar-v28">${t.icon||'🐾'}</div><div><div class="pet-name-v28">${escapePetText(pet.name)}<span class="pet-level-chip">Lv.${lv}/${maxLv}</span></div><div class="pet-quality-line-v29"><span class="pet-quality-badge-v29" style="color:${q.color}">${q.icon} ${q.label}</span><span class="pet-bond-badge-v29">${getPetBondLabel(pet.bondType)}</span>${pet.isDemon?'<span class="pet-bond-badge-v29" style="color:#f18a9a">魔宠</span>':''}</div><div class="pet-stat-row-v28"><span class="pet-stat-chip-v28">⚔ ${getPetAttackPreview(pet)}</span><span class="pet-stat-chip-v28">战力 ${getPetPower(pet)}</span></div><div class="pet-bonus-v28">${escapePetText(getPetTalentText(pet))}</div></div><div class="pet-exp-wrap"><div class="pet-exp-line"><span>成长经验</span><span>${lv>=maxLv?'满级':`${exp} / ${need}`}</span></div><div class="pet-exp-track"><div class="pet-exp-fill" style="width:${lv>=maxLv?100:pct.toFixed(1)}%"></div></div></div><div class="pet-actions-v28"><button class="pet-action-v28 ${activeNow?'active':''}" onclick="setActivePetById('${pet._petId}')">${activeNow?'✓ 已出战':'⚔ 出战'}</button><button class="pet-action-v28 secondary" onclick="togglePetFeedMenu('${pet._petId}')">🍖 ${feedOpen?'收起':'培养'}</button><button class="pet-action-v28 secondary" onclick="togglePetContractMenuV29('${pet._petId}')">📜 契约</button><button class="pet-action-v28 pet-release-btn-v29" onclick="releasePetById('${pet._petId}')">放生</button></div>${feedOpen?`<div class="pet-feed-menu">${feedBtns}</div>`:''}${contractOpen?`<div class="pet-contract-menu-v29"><button class="pet-contract-btn-v29" ${pet.bondType==='blood'?'disabled':''} onclick="changePetBondById('${pet._petId}','blood')">滴血灵契</button><button class="pet-contract-btn-v29" ${pet.bondType==='soul'?'disabled':''} onclick="changePetBondById('${pet._petId}','equal')">平等灵契<br>需契约符</button><button class="pet-contract-btn-v29" ${pet.bondType==='soul'?'disabled':''} onclick="changePetBondById('${pet._petId}','soul')">神魂本命契<br>需契约石</button></div>`:''}</div>`}).join('')}
   const mat=document.getElementById('petMaterialInventory');if(mat)mat.innerHTML=Object.entries(PET_FOOD).map(([n,f])=>`<span class="pet-material-chip-v28">🍖 ${escapePetText(n)} <b>×${Math.max(0,Number(player.petMaterials?.[n])||0)}</b> · +${f.exp}经验</span>`).join('')
 };
 // 培养遵循品质等级上限；兼容旧宠物并支持一次多级。
 window.feedPet=function(index,foodName){ensurePetSystemState?.();ensurePetCaptureState();const pet=player.pets[index],food=PET_FOOD[foodName],count=Math.max(0,Number(player.petMaterials?.[foodName])||0);if(!pet||!food||count<=0)return;const maxLv=getPetQualityInfo(pet.quality).maxLevel;if((pet.level||1)>=maxLv){showFloatingText?.(`✅ ${pet.name} 已达到${getPetQualityInfo(pet.quality).label}等级上限 Lv.${maxLv}`,'#69f0ae');return}player.petMaterials[foodName]=count-1;if(player.petMaterials[foodName]<=0)delete player.petMaterials[foodName];pet.exp=Math.max(0,Number(pet.exp)||0)+Number(food.exp||0);let gained=0,safe=0;while(safe++<50&&(pet.level||1)<maxLv){const need=Math.max(1,Number(pet.level||1)*30);if(pet.exp<need)break;pet.exp-=need;pet.level=Math.min(maxLv,Math.max(1,Number(pet.level)||1)+1);gained++}if((pet.level||1)>=maxLv)pet.exp=0;if(gained){playSound?.('levelup');showFloatingText?.(`🎉 ${pet.name} 提升 ${gained} 级 → Lv.${pet.level}`,'#8ff0cf')}else showFloatingText?.(`🍖 ${pet.name} 经验 +${food.exp}`,'#d9c98e');updatePetPanel?.();updateStats?.();autoSave?.()};
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-14-v279-pet-capture-system.js"]="28.68.110";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-14-v279-pet-capture-system.js"]="28.68.112";
 
 function fieldEncounterV2870(enemy,boss,trib,monster){return !!monster&&!!enemy&&!boss&&!trib&&!enemy._isTutorial&&!enemy._isTaskBattle&&!enemy._taskId&&!enemy._warV2839&&!enemy.tournamentFight&&!enemy._nightRivalV2810&&!authoredStoryCombatV286835(enemy);}
 function mercyBabyV2870(){

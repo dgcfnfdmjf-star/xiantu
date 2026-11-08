@@ -78,11 +78,13 @@ function inviteRelationshipTeaV2876(id,rev){
   if(today<=n.teaDayV2876||!Number.isFinite(player.gold)||player.gold<50)return false;
   const r=player.romance.npcs[id],cap=id==='suwanqing'?getSuAffectionCap():100,gain=Math.max(0,Math.min(4,cap-r.affection));
   const before=JSON.stringify(player),oldNpc=JSON.parse(JSON.stringify(r)),oldDay=n.teaDayV2876,hp=player.hp,mp=player.mp,gold=player.gold;
-  if(!confirm(`与${ROMANCE_NPCS[id].name}品茗？消耗50灵石，好感+${gain}，气血/灵力恢复至${getMaxHp()}/${getMaxMp()}。每位知己每日一次。`)||!valid()||before!==JSON.stringify(player))return false;
+  return gameConfirmOnceV2868114('relationship-tea',`与${ROMANCE_NPCS[id].name}品茗？消耗50灵石，好感+${gain}，气血/灵力恢复至${getMaxHp()}/${getMaxMp()}。每位知己每日一次。`,()=>{
+  if(!valid()||before!==JSON.stringify(player)||today<=n.teaDayV2876||player.gold<50)return false;
   player.gold-=50;n.teaDayV2876=today;if(gain>0)addAffection(id,gain);player.hp=getMaxHp();player.mp=getMaxMp();
   let saved=false;try{saved=saveGame();}catch(_){}
   if(!saved){player.gold=gold;player.hp=hp;player.mp=mp;n.teaDayV2876=oldDay;player.romance.npcs[id]=oldNpc;showFloatingText('品茗未保存，消耗与收益已恢复，可重试','#ff8a80');return false;}
   updateStats();showRelationshipsV2852(id,screen.tab);showFloatingText(`共饮灵茶 · 好感+${gain} · 气血灵力已恢复`,'#8ff0cf');return true;
+  });
 }
 function showRelationshipsV2852(id,tab='stories'){
   if(!relationshipAllowedV2852(id))return;
@@ -175,7 +177,7 @@ async function relationshipChatV2852(id,topic){
   const warning='',esc=relationshipEscV2852;
   relationshipMountV2852(id,'chat',`<span class="rs-eyebrow-v2852">${esc(relationshipContextV2852(id))}</span>${relationshipChatTextV2852(id,record)}<p class="rs-hint-v2852" role="status">${esc(warning||answer.note||'已记入札记。')}</p><button class="rs-primary-v2852" onclick="showRelationshipsV2852('${id}','chat')">再聊一个话题</button><button class="rs-back-v2852" onclick="showRelationshipsV2852('${id}','diary')">翻开相处札记</button>`,{kind:'reply'});
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2852-relationships.js']='28.68.110';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2852-relationships.js']='28.68.112';
 
 function relationshipWarMomentV2865(){
  const story=player.yewujiStoryV2816;

@@ -3942,7 +3942,7 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 /* V28.12 洞府管理 */
 .home-board-v2812{padding:16px;border:1px solid #9eb781;border-radius:16px;background:linear-gradient(135deg,#14251e,#18202b);color:#e9eee3;line-height:1.65}.home-board-v2812 h3{color:#ead592;margin:0 0 12px}.home-grid-v2812{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-grid-v2812 article{padding:14px;border:1px solid #526454;border-radius:12px;background:#ffffff08}.home-grid-v2812 h4{margin:0;color:#e8d594}.home-grid-v2812 p{color:#d0dbd1}.home-grid-v2812 strong{color:#83ddb6}.home-notice-v2812{padding:12px;background:#31534066;border-radius:10px}@media(max-width:600px){.home-grid-v2812{grid-template-columns:1fr}.home-board-v2812{padding:12px;font-size:14px}}
 
-:root{--xiantu-build:2868110;}
+:root{--xiantu-build:2868112;}
 #xiantuBuildBadgeV2814{font-size:11px;min-height:32px;padding:5px 9px;white-space:nowrap;color:#b4d4bd;background:#18251f;border:1px solid #718475;border-radius:8px;}
 
 /* V28.68 战斗数值可视层 */
@@ -5159,3 +5159,30 @@ html.xiantu-mobile-dedicated.xt-theme .world-hud.mobile-hud-collapsed .world-bar
 @media(max-height:500px) and (orientation:landscape){.alchemy-stage-v110{height:200px}}
 
 @media(max-width:600px) and (orientation:portrait){html.xiantu-mobile-dedicated #gameScreen.world-mode #alchemyPanel:not(.hidden){max-height:82vh!important}.alchemy-stage-head-v110{gap:4px}.alchemy-stage-head-v110 button{padding:6px;font-size:12px}.alchemy-stage-head-v110 b{margin-right:auto;letter-spacing:.05em}}
+/* V28.68.114 青绿鎏金 in-game dialog (replaces native alert/confirm/prompt) */
+.xt-dialog-scrim-v2868114 { position: fixed; inset: 0; z-index: 2147483647; display: flex; align-items: center; justify-content: center; padding: var(--xt-s4); background: var(--xt-scrim, rgba(4, 8, 6, .72)); }
+.xt-dialog-v2868114 { width: min(420px, 100%); max-height: 80vh; overflow: auto; padding: var(--xt-s5) var(--xt-s4) var(--xt-s4); font: var(--xt-fs-md)/var(--xt-lh-body) var(--xt-font-body); }
+.xt-dialog-msg-v2868114 { margin: 0 0 var(--xt-s4); white-space: pre-line; color: var(--xt-text-1); overflow-wrap: anywhere; }
+.xt-dialog-input-v2868114 { box-sizing: border-box; width: 100%; min-height: 44px; margin: 0 0 var(--xt-s4); padding: 0 var(--xt-s3); border-radius: var(--xt-r-md); border: 1px solid var(--xt-line-jade, var(--xt-jade-500)); background: var(--xt-ink-850); color: var(--xt-text-1); font: var(--xt-fs-md) var(--xt-font-body); }
+.xt-dialog-actions-v2868114 { display: flex; gap: var(--xt-s3); justify-content: flex-end; }
+.xt-dialog-actions-v2868114 .xt-btn { flex: 1 1 0; }
+.xt-dialog-v2868114 .xt-btn:focus-visible, .xt-dialog-input-v2868114:focus-visible { outline: 2px solid var(--xt-gold-300); outline-offset: 2px; }
+/* V28.68.114 青绿鎏金 item cells: one frame, rarity edge (--q), icon box, label size, 44px targets and focus ring for bag, equipment bag and shop grids */
+html .xt-item-cell{--q:var(--xt-gold-700);box-sizing:border-box;border:1px solid rgba(212,176,106,.22);border-left:4px solid var(--q);border-radius:10px;background:var(--xt-fill-card);color:var(--xt-gold-100)}
+html .xt-item-cell.upgrade,html .bag-view-v2905 .xt-item-cell.open{border-color:rgba(240,220,160,.5);border-left-color:var(--q)}
+html .xt-cell-icon{display:inline-flex;flex:none;align-items:center;justify-content:center;width:22px;height:22px;font-size:18px;line-height:1;vertical-align:middle;color:var(--q,var(--xt-gold-500))}
+html .mobile-inventory-item.xt-item-cell .name,html .general-title-v2801 b{font-family:var(--xt-font-display);font-size:var(--xt-fs-md);color:var(--xt-gold-300)}
+html .mobile-inventory-item.xt-item-cell{min-height:56px;width:100%}
+html .mobile-inventory-tab,html .bag-batch-v2905 .choice-btn,html .bag-view-v2905 .bv-chip,html .general-buy-v2801 button,html .market-buy-v2800 button,html .market-filters-v2800 button{min-height:44px}
+html .mobile-inventory-item.usable:focus-visible,html .bag-view-v2905 .bv-main:focus-visible,html .bag-view-v2905 .bv-chip:focus-visible,html .mobile-inventory-tab:focus-visible,html .bag-batch-v2905 .choice-btn:focus-visible,html .general-buy-v2801 button:focus-visible,html .market-buy-v2800 button:focus-visible,html .market-filters-v2800 button:focus-visible{outline:2px solid var(--xt-gold-300);outline-offset:2px;box-shadow:var(--xt-glow-gold)}
+html .bag-view-v2905 .bv-main:focus-visible{outline-offset:-3px;border-radius:8px}
+/* V28.68.114 group H: the same item-cell frame, 44px targets and focus ring for equipment slots, pet-capture items, the combat bag and home/sect cards */
+html .equipment-slot-row.xt-item-cell{min-height:56px;border-left-color:var(--q)}
+html .home-grid-v2812 article.xt-item-cell,html .home-grid-v2812 article.xt-item-cell.disciple-ready-v2821{border-left:4px solid var(--q)}
+html .home-grid-v2812 article.xt-item-cell>.xt-cell-icon{float:left;margin:0 6px 0 0}
+html .pet-capture-chip-v29.xt-item-cell{display:inline-flex;align-items:center;gap:3px;min-height:30px}
+html #equipmentPanel .equip-lock-btn,html #equipmentPanel .equipment-panel-content>button[aria-label="关闭"],html #equipmentPanel .panel-action-btn,html #combatItemDrawer .combat-item-head .choice-btn,html .home-board-v2812 .choice-btn,html .home-board-v2812 summary{min-width:44px;min-height:44px}
+html.xiantu-mobile-dedicated #storyPanel:has(.home-board-v2812) .choice-btn{min-height:44px!important}
+html .home-board-v2812 summary{display:list-item;box-sizing:border-box;padding:12px 0;cursor:pointer}
+html .equipment-slot-row.xt-item-cell:focus-visible,html #equipmentPanel button:focus-visible,html #combatItemDrawer button:focus-visible,html .home-board-v2812 .choice-btn:focus-visible,html .home-board-v2812 summary:focus-visible{outline:2px solid var(--xt-gold-300);outline-offset:2px;box-shadow:var(--xt-glow-gold)}
+html .equipment-slot-row.xt-item-cell:focus-visible,html #combatItemDrawer .combat-item-btn:focus-visible{outline-offset:-3px}
