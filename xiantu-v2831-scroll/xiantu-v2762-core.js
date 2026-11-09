@@ -14380,7 +14380,7 @@ function villageEnhanceV286897(){
       ctx.beginPath();ctx.arc(w/2,h/2,Math.min(w,h)/2-3,0,Math.PI*2);ctx.clip();
       ctx.fillStyle=cfg.bg;ctx.fillRect(0,0,w,h);
       const painted=wildSceneReadyV286898()&&wildSceneV286898()?.minimap;
-      if(painted)ctx.drawImage(SCROLL_ART_V2831.wildScenes[currentRegion],mx(0),my(0),FLAT_WORLD.width*sx,FLAT_WORLD.height*sy);
+      if(painted){ctx.drawImage(SCROLL_ART_V2831.wildScenes[currentRegion],mx(0),my(0),FLAT_WORLD.width*sx,FLAT_WORLD.height*sy);drawWildFrostV2900(ctx,mx(0),my(0),FLAT_WORLD.width*sx,FLAT_WORLD.height*sy);}
       else drawRegionScrollV2834(ctx,mx(0),my(0),FLAT_WORLD.width*sx,FLAT_WORLD.height*sy);
       const route=worldRouteDisplayV2881();
       drawWorldRouteV2881(ctx,route,{x:mx,y:my});
@@ -14731,14 +14731,14 @@ function villageEnhanceV286897(){
       rocks:[[570,515,49],[825,555,44],[1055,755,35],[1245,785,32],[300,835,62],[656,850,13],[750,850,13],[1370,850,45],[130,680,40]],
       roads:[[705,390],[724,450],[710,525],[680,580],[335,505],[395,535],[500,580],[605,605],[1040,535],[985,555],[900,595],[820,610],[1070,220],[1070,270],[1180,320],[1160,385],[1150,445],[1100,500],[403,212],[363,270],[420,310],[500,355],[585,400],[402,866],[480,830],[535,780],[520,740],[555,700],[610,650],[1150,840],[1050,890],[985,880],[940,810],[875,755],[795,710],[710,665],[695,905],[700,825],[695,760],[700,680]],
       links:[[0,1],[1,2],[2,3],[4,5],[5,6],[6,7],[7,3],[8,9],[9,10],[10,11],[11,3],[12,13],[13,14],[14,15],[15,16],[16,17],[17,8],[18,19],[19,20],[20,21],[21,22],[22,0],[23,24],[24,25],[25,26],[26,27],[27,28],[28,7],[29,30],[30,31],[31,32],[32,33],[33,34],[34,35],[35,3],[36,37],[37,38],[38,39],[39,3]]},
-      east:{file:'east-panorama-v286898.webp',width:1484,height:1060,minimap:true,overview:true,rooms:{
+      east:{file:'east-panorama-v286898.webp',frost:'east-frost-v2900.webp',width:1484,height:1060,minimap:true,overview:true,rooms:{
         pets:{plaque:[500,250],door:[370,430],bounds:[130,135,490,435],mask:[[140,175],[295,140],[350,260],[280,290],[140,290]]},
         forest:{plaque:[1215,200],door:[965,390],bounds:[790,100,1250,400],mask:[[820,155],[1030,75],[1190,130],[1200,240],[1090,300],[900,285]]},
         secret:{plaque:[1400,480],door:[1178,774],bounds:[1090,415,1410,785],mask:[[1140,450],[1245,415],[1340,475],[1355,605],[1280,655],[1150,620]]},
         travel_gate:{door:[240,900],bounds:[175,750,290,900]}
       },rocks:[[235,225,48],[940,240,55],[1210,535,50],[670,420,55],[585,805,48],[1235,920,55]],
       roads:[[370,430],[465,490],[560,570],[690,610],[850,510],[920,445],[965,390],[860,710],[1030,780],[1178,774],[485,705],[425,795],[240,900]],links:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[3,7],[7,8],[8,9],[3,10],[10,11],[11,12]]},
-      west:{file:'west-panorama-v286898.webp',width:1484,height:1060,minimap:true,overview:true,rooms:{
+      west:{file:'west-panorama-v286898.webp',frost:'west-frost-v2900.webp',width:1484,height:1060,minimap:true,overview:true,rooms:{
         alchemy:{plaque:[610,350],door:[480,510],bounds:[300,245,590,515],mask:[[300,325],[395,280],[480,245],[535,345],[575,400],[540,455],[335,450]]},
         battlefield:{plaque:[1370,165],door:[1100,350],bounds:[925,10,1365,360],mask:[[930,220],[1015,80],[1060,105],[1130,10],[1220,75],[1320,135],[1360,278],[1250,306],[1000,300]]},
         artifacts:{plaque:[970,780],door:[810,760],bounds:[710,735,985,965],mask:[[730,780],[805,755],[900,730],[940,800],[920,880],[760,880]]},
@@ -14790,7 +14790,7 @@ function villageEnhanceV286897(){
         if(currentRegion===region){releaseStaticWorldCacheV2767();loadRegionalBuildingsV286879();loadJoinedArchitectureV286896();loadNorthernTerrainV286896();loadSectSceneV286896();}art.sceneSettledV2868111?.();};
       im.onload=()=>{im.onload=im.onerror=null;if(im.naturalWidth!==(s.width||1484)||im.naturalHeight!==(s.height||1060)){failed();return;}
         if(art.wildSceneFailed)delete art.wildSceneFailed[region];
-        art.wildScenes=art.wildScenes||{};art.wildScenes[region]=im;trimWildScenesV2868101();
+        art.wildScenes=art.wildScenes||{};art.wildScenes[region]=im;trimWildScenesV2868101();loadWildFrostV2900(region,s);
         if(currentRegion===region){releaseStaticWorldCacheV2767();rebuildWorldColliders();const p=FLAT_WORLD.player,q=wildSceneSafePointV286898(p.x,p.y,p.r||17);
           // Geometry changed: an old planned route must never cross a newly painted wall.
           resetWorldMovementV28686();if(q){p.x=q.x;p.y=q.y;}
@@ -14799,13 +14799,22 @@ function villageEnhanceV286897(){
         }art.sceneSettledV2868111?.();};
       im.onerror=failed;im.src='./'+s.file;
     }
-    function drawWildSceneV286898(ctx){if(!wildSceneReadyV286898())return false;ctx.drawImage(SCROLL_ART_V2831.wildScenes[currentRegion],0,0,FLAT_WORLD.width,FLAT_WORLD.height);return true;}
+    // North snow melts across the north-facing border of west/east: a small static overlay baked by scripts/build-frost-overlays.py.
+    function loadWildFrostV2900(region,s){
+      const art=SCROLL_ART_V2831;if(!s.frost||art.wildFrost?.[region]||art.wildFrostRequested?.[region])return;
+      (art.wildFrostRequested||(art.wildFrostRequested={}))[region]=true;const im=new Image();im.decoding='async';
+      im.onload=()=>{im.onload=im.onerror=null;(art.wildFrost||(art.wildFrost={}))[region]=im;if(currentRegion===region)releaseStaticWorldCacheV2767();};
+      im.onerror=()=>{im.onload=im.onerror=null;};im.src='./'+s.frost;
+    }
+    function wildFrostV2900(){return SCROLL_ART_V2831.wildFrost?.[currentRegion]||null;}
+    function drawWildFrostV2900(ctx,x,y,w,h){const im=wildFrostV2900();if(!im)return;ctx.drawImage(im,x,y,w,h);}
+    function drawWildSceneV286898(ctx){if(!wildSceneReadyV286898())return false;ctx.drawImage(SCROLL_ART_V2831.wildScenes[currentRegion],0,0,FLAT_WORLD.width,FLAT_WORLD.height);drawWildFrostV2900(ctx,0,0,FLAT_WORLD.width,FLAT_WORLD.height);return true;}
     function drawWildMaskV286898(ctx,p){
       const r=wildSceneRoomV286898(p);if(!r?.mask)return;
       ctx.save();ctx.beginPath();r.mask.forEach(([x,y],i)=>{const q=wildSceneWorldV286898(x,y);if(i)ctx.lineTo(q.x,q.y);else ctx.moveTo(q.x,q.y)});ctx.closePath();ctx.clip();
       const b=wildSceneBoundsV286898(p),actor=FLAT_WORLD.player;if(actor.x>b.left&&actor.x<b.right&&actor.y>b.top&&actor.y<b.bottom)ctx.globalAlpha*=.72;
       const xs=r.mask.map(v=>v[0]),ys=r.mask.map(v=>v[1]),x=Math.min(...xs),y=Math.min(...ys),w=Math.max(...xs)-x,h=Math.max(...ys)-y,q=wildSceneWorldV286898(x,y),end=wildSceneWorldV286898(x+w,y+h);
-      ctx.drawImage(SCROLL_ART_V2831.wildScenes[currentRegion],x,y,w,h,q.x,q.y,end.x-q.x,end.y-q.y);ctx.restore();
+      ctx.drawImage(SCROLL_ART_V2831.wildScenes[currentRegion],x,y,w,h,q.x,q.y,end.x-q.x,end.y-q.y);const fr=wildFrostV2900(),k=fr?fr.width/(wildSceneV286898().width||1484):0;if(fr)ctx.drawImage(fr,x*k,y*k,w*k,h*k,q.x,q.y,end.x-q.x,end.y-q.y);ctx.restore();
     }
     // Prefer authored road junctions for named landmarks. Manual ground clicks retain the existing planner.
     function wildSceneRouteV286898(goal,clear){
@@ -15010,7 +15019,7 @@ function villageEnhanceV286897(){
       ctx.drawImage(im,n%2*cw,Math.floor(n/2)*ch,cw,ch,x,y,w,h);return true;
     }
     function scrollRegionStyleV2834(){
-      const scene=wildSceneV286898();if(scene?.overview&&wildSceneReadyV286898())return `background-image:url('./${scene.file}');background-size:100% 100%;background-position:0 0;background-repeat:no-repeat;`;
+      const scene=wildSceneV286898();if(scene?.overview&&wildSceneReadyV286898())return `background-image:${scene.frost?`url('./${scene.frost}'),`:''}url('./${scene.file}');background-size:100% 100%;background-position:0 0;background-repeat:no-repeat;`;
       const n=scrollRegionCellV2834();return `background-image:url('./scroll-regions-v2834.webp');background-size:200% 400%;background-position:${n%2*100}% ${Math.floor(n/2)/3*100}%;`;
     }
     function drawScrollGroundV2831(ctx){

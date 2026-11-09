@@ -102,3 +102,23 @@ test('south/east/west scroll overview resolves to walking panoramas with painted
   expect((await mapLayout(page)).trueCoordinates,region).toBe(true);
  }
 });
+
+// North snow spreads into west (right edge faces north) and east (top edge faces north) as a gradual melt.
+test('west/east frost overlay is composited and densest on the north-facing edge',async({page})=>{
+ await openNorth(page,1280);
+ for(const [region,file,edge] of [['west','west-frost-v2900.webp','right'],['east','east-frost-v2900.webp','top']]){
+  await page.evaluate(r=>{document.getElementById('scrollMapV2831')?.remove();applyWorldMapLayout(r,true);},region);
+  await expect.poll(()=>page.evaluate(()=>!!wildSceneReadyV286898()&&!!wildFrostV2900())).toBe(true);
+  const info=await page.evaluate(edge=>{
+   const im=wildFrostV2900(),c=document.createElement('canvas');c.width=im.width;c.height=im.height;const g=c.getContext('2d');g.drawImage(im,0,0);
+   const band=(near)=>{const w=c.width,h=c.height,bw=edge==='right'?Math.round(w*.08):w,bh=edge==='top'?Math.round(h*.08):h;
+    const x=edge==='right'?(near?w-bw:0):0,y=edge==='top'?(near?0:h-bh):0,d=g.getImageData(x,y,bw,bh).data;let s=0;for(let i=3;i<d.length;i+=4)s+=d[i];return s/(d.length/4)/255;};
+   const field=document.createElement('canvas');field.width=200;field.height=150;const used=[];const f=field.getContext('2d'),draw=f.drawImage.bind(f);f.drawImage=(i,...r)=>{used.push(i===im);return draw(i,...r);};drawWildSceneV286898(f);
+   showScrollMapV2831();return {near:band(true),far:band(false),composited:used.join(),style:scrollRegionStyleV2834()};
+  },edge);
+  expect(info.composited,region).toBe('false,true');
+  expect(info.near,region).toBeGreaterThan(.3);expect(info.far,region).toBeLessThan(.08);
+  expect(info.style.indexOf(file)).toBeLessThan(info.style.indexOf(`${region}-panorama`));
+  await expect(page.locator('#scrollFieldV2831')).toHaveCSS('background-image',new RegExp(file.replace('.','\\.')));
+ }
+});
