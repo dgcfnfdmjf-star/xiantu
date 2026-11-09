@@ -84,3 +84,21 @@ test('late north panorama preserves zoom and remains the base when relief is tog
   expect((await mapLayout(page)).trueCoordinates).toBe(true);
  }
 });
+
+// 山河图 overview uses the same walking panorama as the field for every wild region; north is unchanged.
+test('south/east/west scroll overview resolves to walking panoramas with painted entrances',async({page})=>{
+ await openNorth(page,1280);
+ const files={north:'north-panorama-v2868108.webp',south:'south-panorama-v2868101.webp',east:'east-panorama-v286898.webp',west:'west-panorama-v286898.webp'};
+ for(const [region,file] of Object.entries(files)){
+  await page.evaluate(r=>{document.getElementById('scrollMapV2831')?.remove();applyWorldMapLayout(r,true);},region);
+  await expect.poll(()=>page.evaluate(()=>wildSceneReadyV286898())).toBe(true);
+  const info=await page.evaluate(()=>{showScrollMapV2831();const s=wildSceneV286898(),im=SCROLL_ART_V2831.wildScenes[currentRegion];
+   return {overview:s.overview,minimap:s.minimap,style:scrollRegionStyleV2834(),size:[im.naturalWidth,im.naturalHeight],scene:[s.width||1484,s.height||1060],
+    doors:FLAT_WORLD.pois.filter(p=>wildSceneDoorV286898(p)).length,rooms:Object.keys(s.rooms).length};});
+  expect(info.overview,region).toBe(true);expect(info.minimap,region).toBe(true);
+  expect(info.style).toContain(`url('./${file}')`);expect(info.style).not.toContain('scroll-regions-v2834');
+  expect(info.size).toEqual(info.scene);expect(info.doors,region).toBeGreaterThan(0);
+  await expect(page.locator('#scrollFieldV2831')).toHaveCSS('background-image',new RegExp(file.replace('.','\\.')));
+  expect((await mapLayout(page)).trueCoordinates,region).toBe(true);
+ }
+});
