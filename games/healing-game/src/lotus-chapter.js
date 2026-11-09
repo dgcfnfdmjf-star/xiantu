@@ -178,7 +178,7 @@
     // The base camera never saw the captured first finger. Keep the whole canceled
     // gesture here, or its second finger would become a fresh, reward-bearing tap.
     function end(e){delete downs[e.pointerId];if(!trailGesture)return;if(drag===e.pointerId){drag=null;if(e.type==='pointerup'&&canPlay())guideAt(e.clientX,e.clientY);}if(!Object.keys(downs).length)trailGesture=false;e.stopImmediatePropagation();}
-    canvas.addEventListener('pointerup',end,true);canvas.addEventListener('pointercancel',end,true);canvas.addEventListener('lostpointercapture',function(e){if(drag===e.pointerId)drag=null;},true);
+    canvas.addEventListener('pointerup',end,true);canvas.addEventListener('pointercancel',end,true);canvas.addEventListener('lostpointercapture',function(e){delete downs[e.pointerId];if(drag===e.pointerId)drag=null;if(!Object.keys(downs).length)trailGesture=false;},true);
     document.addEventListener('visibilitychange',function(){drag=null;downs={};trailGesture=false;echo=null;notePulse=null;});
   }
   function buildUI(){

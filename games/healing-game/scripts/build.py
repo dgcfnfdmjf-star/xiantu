@@ -105,6 +105,8 @@ replace('''  function frame() {
       frameId = null; pointers = {}; pCount = 0;
     } else if (frameId === null) { clock.getDelta(); frame(); }
   });''')
+# Clear the camera's touch table when capture or window focus is lost, as level3fx.js bindSwipes does.
+replace("  cvs.addEventListener('pointercancel', function (e) { endPointer(e, true); });\n", "  cvs.addEventListener('pointercancel', function (e) { endPointer(e, true); });\n  cvs.addEventListener('lostpointercapture', function (e) { endPointer(e, true); });\n  window.addEventListener('blur', function () { pointers = {}; pCount = 0; pinchDist = 0; });\n")
 # V7 audio, scene and interaction bridges.
 replace('    kit: { gain: gain, filt: filt, osc: osc, mtof: mtof, rnd: rnd, pad: pad, bass: bass, brush: brush, degree: degree, melNote: melNote },\n', '    kit: { gain: gain, filt: filt, osc: osc, mtof: mtof, rnd: rnd, pad: pad, bass: bass, brush: brush, degree: degree, melNote: melNote, musicBox: musicBox },\n')
 replace('    milestone: sfx.milestone, ending: sfx.ending, melody: sfx.melody,\n', '    milestone: sfx.milestone, ending: sfx.ending, melody: sfx.melody,\n    // For sound effects built outside this file (see level3plus.js). sfxOut is null when sfx are off.\n    pent: pent, sfxOut: function () { return ok() ? sfxBus : null; },\n')
