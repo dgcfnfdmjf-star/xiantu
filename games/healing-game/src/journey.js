@@ -215,6 +215,7 @@
     if (L3) L3.onLevel(active, litCount() === 3);
     if (FX) FX.onLevel(active, n, H.isStarted());
     if (VG) VG.onLevel(active);
+    if ((n === 4 || n === 5) && H.resetMode) H.resetMode();
     if (CH) CH.onLevel(n);
     if (LC) LC.onLevel(n);
     if (active) H.setNightTarget(nightLevel()); else if (H.refresh) H.refresh();
