@@ -4,7 +4,7 @@
   var R=window.LotusRules,GA=window.GardenAudio,M=window.__music2;
   if(M){var original=M.tracks.filter(function(t){return t.id==='nightvoyage';})[0],score={};Object.keys(original).forEach(function(k){score[k]=original[k];});score.id='moonlotus';score.name='星灯夜曲';M.register(score);}
   var H,T,J,group,water,moon,flowers=[],ripples=[],stations=[],beacons=[],leafBoats=[],melodyBells=[],vessels=[],mirrorArm,mirrorTarget,mote,boat,blendCore,lanterns=[],links=[];
-  var temp,active=false,reduced=false,selected=0,practice=null,finale=0,elapsed=0,bloomPause=0,pulse=0,lastFocus=null,drag=null,echo=null,notePulse=null,guideRay,guidePlane,guidePointer,layoutKey='',layoutPending=false,sceneZoom=null,noticeHomes=[],fitPoints=[],carriedLanterns=[];
+  var temp,active=false,reduced=false,selected=0,practice=null,finale=0,elapsed=0,bloomPause=0,pulse=0,lastFocus=null,drag=null,echo=null,notePulse=null,guideRay,guidePlane,guidePointer,layoutKey='',layoutPending=false,sceneZoom=null,noticeHomes=[],fitPoints=[],fitChunks=[],fitRects=null,flowerKey='',flowersMoved=false,carriedLanterns=[];
   var coords=[[-.468,.27],[-.468,-.27],[0,-.54],[.468,-.27],[.468,.27],[0,.54]],guide=[[-.8,-.45],[0,.35],[.8,-.45]];
   var WATER=.26,FLOWER_SCALE=.36,FLOWER_Y=.3212,MOON_Y=4.6,colors=[0xe9edff,0x91dfe7,0xffd79b];
   function $(id){return document.getElementById(id);}
@@ -37,7 +37,10 @@
   function listen(){if(!canPlay()||selected!==5)return;echo={index:0,wait:0};}
   // Some old flowers are pushed toward the pond by the optional wind-chime
   // ornament. Separate their display roots on this chapter only; saves stay intact.
+  // Positions only change when a flower is added, the chime toggles or the
+  // shared syncFlowers() puts them back, so the per-frame check is just a key.
   function clearPondFlowers(){
+    var c=window.GardenClip.chime,key=H.flowers.length+'/'+c.on+'/'+c.x+'/'+c.z;if(key===flowerKey&&!flowersMoved)return;flowerKey=key;flowersMoved=false;
     H.flowers.forEach(function(f){var p=f.root.position;
       for(var pass=0;pass<3;pass++){
         var dx=p.x-H.POND.x,dz=p.z-H.POND.z,d=Math.hypot(dx,dz);
@@ -47,33 +50,54 @@
       }
     });
   }
-  function layout(){layoutPending=true;}
+  function layout(){layoutPending=true;fitRects=null;}
   function placeNotices(inBay){
     if(inBay&&!noticeHomes.length){['toast','starSaveWarning'].forEach(function(id){var el=$(id);if(!el)return;noticeHomes.push({el:el,parent:el.parentNode,next:el.nextSibling});$('lotusDock').insertBefore(el,$('lotusActions'));});}
     if(!inBay){noticeHomes.forEach(function(n){n.parent.insertBefore(n.el,n.next&&n.next.parentNode===n.parent?n.next:null);});noticeHomes=[];}
   }
   // Capture the existing island, including its grass, rock underside, tree and
   // ornaments. Hidden chapter props do not affect the shared island's framing.
+  // fitPoints holds the extreme vertex along each of FIT_DIRS directions (a small
+  // convex sample). fitChunks keep every vertex in blocks of FIT_CHUNK with an
+  // island-local box; fitLayout() projects a block only when its box reaches past
+  // the sample's frame, so the result equals projecting all vertices.
+  var FIT_DIRS=48,FIT_CHUNK=128;
   function collectFitPoints(){
-    fitPoints=[];H.island.updateWorldMatrix(true,true);
+    fitPoints=[];fitChunks=[];H.island.updateWorldMatrix(true,true);var inv=new T.Matrix4().copy(H.island.matrixWorld).invert(),m=new T.Matrix4(),v=new T.Vector3(),best=[],score=[],chunk=null,d,i,k;
+    var dirs=[];for(k=0;k<FIT_DIRS;k++){var y=1-2*(k+.5)/FIT_DIRS,r=Math.sqrt(1-y*y),a=k*2.399963229728653;dirs.push(new T.Vector3(Math.cos(a)*r,y,Math.sin(a)*r));best.push(null);score.push(-Infinity);}
     H.island.traverse(function(o){
       if(!o.isMesh||!o.geometry||o.isInstancedMesh)return;
       for(var n=o;n&&n!==H.island;n=n.parent)if(!n.visible)return;
-      var a=o.geometry.attributes.position;if(!a)return;
-      for(var i=0;i<a.count;i++){var v=new T.Vector3().fromBufferAttribute(a,i).applyMatrix4(o.matrixWorld);H.island.worldToLocal(v);fitPoints.push(v);}
+      var a=o.geometry.attributes.position;if(!a)return;m.multiplyMatrices(inv,o.matrixWorld);
+      for(i=0;i<a.count;i++){
+        v.fromBufferAttribute(a,i).applyMatrix4(m);for(k=0;k<FIT_DIRS;k++){d=dirs[k].dot(v);if(d>score[k]){score[k]=d;best[k]=v.clone();}}
+        if(i%FIT_CHUNK===0){chunk={box:new T.Box3(),xyz:new Float32Array(Math.min(FIT_CHUNK,a.count-i)*3),corners:[]};fitChunks.push(chunk);}
+        chunk.box.expandByPoint(v);v.toArray(chunk.xyz,i%FIT_CHUNK*3);
+      }
     });
+    fitChunks.forEach(function(c){for(k=0;k<8;k++)c.corners.push(new T.Vector3(k&1?c.box.max.x:c.box.min.x,k&2?c.box.max.y:c.box.min.y,k&4?c.box.max.z:c.box.min.z));});
+    best.forEach(function(p){if(p&&!fitPoints.some(function(q){return q.equals(p);}))fitPoints.push(p);});
     // Reserve the whole moon and its finale pulse, even when the camera turns.
     [-.85,.85].forEach(function(x){[-.85,.85].forEach(function(y){[-.85,.85].forEach(function(z){fitPoints.push(new T.Vector3(x,MOON_Y+y,-.5+z));});});});
   }
   function fitLayout(){
     layoutPending=false;
-    if(!active||!group)return;var w=innerWidth,h=innerHeight,dock=$('lotusDock').getBoundingClientRect(),hud=$('lotusHud').getBoundingClientRect(),toggles=$('toggles').getBoundingClientRect(),top=w>=900?12:$('topbar').getBoundingClientRect().bottom+10;
+    if(!active||!group)return;var w=innerWidth,h=innerHeight;
+    // Panel rects are read once per layout change (resize, render, panel resize), not every frame.
+    if(!fitRects)fitRects={dock:$('lotusDock').getBoundingClientRect(),hud:$('lotusHud').getBoundingClientRect(),toggles:$('toggles').getBoundingClientRect(),top:w>=900?12:$('topbar').getBoundingClientRect().bottom+10};
+    var dock=fitRects.dock,hud=fitRects.hud,toggles=fitRects.toggles,top=fitRects.top;
     var left=w>=900?hud.right+12:12,right=h<480?dock.left-12:w>=900?toggles.left-12:w-12,bottom=h<480?h-12:dock.top-10,camera=H.camera;
     var key=[w,h,dock.left,dock.top,top,camera.position.x.toFixed(2),camera.position.y.toFixed(2),camera.position.z.toFixed(2)].join('/');if(key===layoutKey)return;layoutKey=key;
     if(sceneZoom===null)sceneZoom=camera.zoom;camera.clearViewOffset();camera.zoom=sceneZoom;camera.updateProjectionMatrix();camera.updateMatrixWorld();
     var lo={x:Infinity,y:Infinity},hi={x:-Infinity,y:-Infinity},v=new T.Vector3();
     // Island-local bounds ignore the tiny bob, keeping the initial/rotated scale stable.
-    fitPoints.forEach(function(p){v.copy(p).project(camera);var px=(v.x+1)*w/2,py=(1-v.y)*h/2;lo.x=Math.min(lo.x,px);lo.y=Math.min(lo.y,py);hi.x=Math.max(hi.x,px);hi.y=Math.max(hi.y,py);});
+    function add(p){v.copy(p).project(camera);var px=(v.x+1)*w/2,py=(1-v.y)*h/2;lo.x=Math.min(lo.x,px);lo.y=Math.min(lo.y,py);hi.x=Math.max(hi.x,px);hi.y=Math.max(hi.y,py);}
+    fitPoints.forEach(add);
+    // A block whose box corners all project inside the frame cannot widen it (boxes in front of the camera stay convex).
+    fitChunks.forEach(function(c){
+      var inside=c.corners.every(function(p){v.copy(p).project(camera);var px=(v.x+1)*w/2,py=(1-v.y)*h/2;return v.z>-1&&v.z<1&&px>=lo.x&&px<=hi.x&&py>=lo.y&&py<=hi.y;});
+      if(!inside)for(var i=0;i<c.xyz.length;i+=3)add(temp.fromArray(c.xyz,i));
+    });
     var scale=Math.max(.1,Math.min(1,(right-left)/(hi.x-lo.x),(bottom-top)/(hi.y-lo.y))*.94);camera.zoom=sceneZoom*scale;
     var cx=w/2+((lo.x+hi.x)/2-w/2)*scale,cy=h/2+((lo.y+hi.y)/2-h/2)*scale;
     camera.setViewOffset(w,h,cx-(left+right)/2,cy-(top+bottom)/2,w,h);
@@ -178,7 +202,7 @@
     // The base camera never saw the captured first finger. Keep the whole canceled
     // gesture here, or its second finger would become a fresh, reward-bearing tap.
     function end(e){delete downs[e.pointerId];if(!trailGesture)return;if(drag===e.pointerId){drag=null;if(e.type==='pointerup'&&canPlay())guideAt(e.clientX,e.clientY);}if(!Object.keys(downs).length)trailGesture=false;e.stopImmediatePropagation();}
-    canvas.addEventListener('pointerup',end,true);canvas.addEventListener('pointercancel',end,true);canvas.addEventListener('lostpointercapture',function(e){if(drag===e.pointerId)drag=null;},true);
+    canvas.addEventListener('pointerup',end,true);canvas.addEventListener('pointercancel',end,true);canvas.addEventListener('lostpointercapture',function(e){delete downs[e.pointerId];if(drag===e.pointerId)drag=null;if(!Object.keys(downs).length)trailGesture=false;},true);
     document.addEventListener('visibilitychange',function(){drag=null;downs={};trailGesture=false;echo=null;notePulse=null;});
   }
   function buildUI(){
@@ -191,9 +215,12 @@
     document.addEventListener('keydown',function(e){if(end.hidden)return;if(e.key==='Escape'){e.preventDefault();closeEnding();}if(e.key==='Tab'){var first=$('lotusStay'),last=$('lotusJournal');if(e.shiftKey&&(document.activeElement===first||!end.contains(document.activeElement))){last.focus();e.preventDefault();}else if(!e.shiftKey&&(document.activeElement===last||!end.contains(document.activeElement))){first.focus();e.preventDefault();}}});render();bindTrail();
   }
   window.LotusChapter={
-    init:function(hooks,bridge){H=hooks;T=hooks.THREE;J=bridge;temp=new T.Vector3();guideRay=new T.Raycaster();guidePlane=new T.Plane(new T.Vector3(0,1,0),-1.15);guidePointer=new T.Vector2();reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;buildUI();window.addEventListener('resize',layout);return this;},
+    init:function(hooks,bridge){H=hooks;T=hooks.THREE;J=bridge;temp=new T.Vector3();guideRay=new T.Raycaster();guidePlane=new T.Plane(new T.Vector3(0,1,0),-1.15);guidePointer=new T.Vector2();reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;buildUI();window.addEventListener('resize',layout);
+      // A toast or prompt can resize the panels without a render() or resize event.
+      if(window.ResizeObserver){var ro=new ResizeObserver(layout);['lotusDock','lotusHud','toggles','topbar'].forEach(function(id){if($(id))ro.observe($(id));});}
+      var clip=window.GardenClip,sync=clip.syncFlowers;clip.syncFlowers=function(){flowersMoved=true;return sync.apply(clip,arguments);};return this;},
     beforeLevel:function(n){if(active&&n!==5){restore();placeNotices(false);}},
-    onLevel:function(n){var leaving=active&&n!==5;active=n===5;drag=null;echo=null;notePulse=null;bloomPause=0;finale=0;elapsed=0;$('lotusEnding').hidden=true;$('lotusHud').hidden=$('lotusDock').hidden=!active;placeNotices(active);if(leaving){restore();practice=null;}if(active){buildWorld();group.visible=true;clearPondFlowers();collectFitPoints();layout();selected=Math.max(0,R.current(progress()));H.setNightTarget(.9);H.setDeepNight(0);pose(0,0);}if(group)group.visible=active;render();},
+    onLevel:function(n){var leaving=active&&n!==5;active=n===5;drag=null;echo=null;notePulse=null;bloomPause=0;finale=0;elapsed=0;$('lotusEnding').hidden=true;$('lotusHud').hidden=$('lotusDock').hidden=!active;placeNotices(active);if(leaving){restore();practice=null;}if(active){buildWorld();group.visible=true;flowerKey='';clearPondFlowers();collectFitPoints();layout();selected=Math.max(0,R.current(progress()));H.setNightTarget(.9);H.setDeepNight(0);pose(0,0);}if(group)group.visible=active;render();},
     update:function(dt,t){if(!active)return;clearPondFlowers();H.setNightTarget(.9);H.setDeepNight(0);fitLayout();if(document.hidden||J.blocked()){drag=null;return;}if(bloomPause){bloomPause=Math.max(0,bloomPause-dt);if(!bloomPause){selected=R.current(progress());render();}}if(echo){echo.wait-=dt;if(echo.wait<=0){if(echo.index<3){playNote(R.song[echo.index]);$('lotusPrompt').textContent='听见 '+(R.song[echo.index]+1)+' 号';echo.index++;echo.wait=.8;}else echo=null;}}if(finale){elapsed+=dt;finale=Math.max(0,7-elapsed);if(!finale)showEnding();}pose(dt,t);},
     tap:function(ray){if(!canPlay())return false;temp.copy(ray.ray.origin).addScaledVector(ray.ray.direction,10).project(H.camera);var x=(temp.x+1)*innerWidth/2,y=(1-temp.y)*innerHeight/2,best=-1,dist=40;
       function nearest(list){var index=-1,range=32;list.forEach(function(o,i){if(!o.visible)return;o.getWorldPosition(temp);temp.project(H.camera);var d=Math.hypot((temp.x+1)*innerWidth/2-x,(1-temp.y)*innerHeight/2-y);if(temp.z>=-1&&temp.z<=1&&d<range){index=i;range=d;}});return index;}
