@@ -14990,7 +14990,7 @@ function villageEnhanceV286897(){
         img.onerror=()=>{SCROLL_ART_V2831[key]=null;img.onload=img.onerror=null;if(key==='regions')request('landscape','scroll-landscape-v2831.webp',true);if(key==='monstersV2853'){request('enemies','ink-enemies-v2833.webp');request('beasts','ink-beasts-v2833.webp');}};
         img.src='./'+file;
       };
-      request('monstersV2853','monster-map-v2853.webp?v=2868-mini-return-20261015');
+      for(const [key,file] of [['monstersV2853','monster-map-v2853.webp?v=2868-mini-return-20261015'],['mapElderInkV2','art/npc/map-elder-ink-v2.webp']])request(key,file);
       const art=SCROLL_ART_V2831;let sheetsRequested=false,sheetTimer=0;
       const requestSheets=()=>{
         if(sheetsRequested)return;sheetsRequested=true;clearTimeout(sheetTimer);art.sceneSettledV2868111=null;
@@ -16222,6 +16222,15 @@ function drawMapNpcV2863(ctx,o){
  function ellipse(x,y,w,h,col){ctx.beginPath();ctx.ellipse(x,y,w,h,0,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();}
  function line(a,b,col,width=2){ctx.strokeStyle=col;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(...a);ctx.lineTo(...b);ctx.stroke();}
  ellipse(0,23,25,7,'rgba(22,37,31,.25)');
+ if(role==='elder'){
+  // First draw and map preload share the same request; retain the silhouette while pending or failed.
+  if(!SCROLL_ART_V2831.started)loadScrollArtV2831();
+  const im=SCROLL_ART_V2831.mapElderInkV2;
+  if(im?.complete&&im.naturalWidth>0&&im.naturalHeight>0){
+   // The transparent sprite keeps its natural proportions inside the original 58×86 body box.
+   ctx.drawImage(im,-29,-62,58,86);ctx.restore();return;
+  }
+ }
  if(role==='trader'){
   poly([[-27,-35],[-9,-39],[-7,8],[-28,5]],'#806a4c');
   for(let y=-30;y<5;y+=8)line([-26,y],[-9,y-2],'#c0aa7c',1);
