@@ -5,7 +5,7 @@
   'use strict';
   var KEY = 'healingGarden.journey.v1', H, T, world, decoration, wisps = [], lamps = [], ornaments = [];
   var time = 0, poll = 0, active = false, tab = 'journey', lastFocus = null, retryWarning = false;
-  var temp, color, oldRank = 0, L3 = null, FX = null, VG = null, CH = null, LC = null, failing = {}, retrySave = null;
+  var guard = null, temp, color, oldRank = 0, L3 = null, FX = null, VG = null, CH = null, LC = null, failing = {}, retrySave = null;
   var TYPES = [
     { id: 'dew', name: '露珠萤', color: 0xa9efd8, note: '像清晨草叶上的露珠' },
     { id: 'peach', name: '桃霞萤', color: 0xffb3cd, note: '把最后一缕晚霞藏在翅间' },
@@ -29,8 +29,8 @@
   }
   function load() {
     var d;
-    try { d = JSON.parse(window.localStorage.getItem(KEY) || 'null'); } catch (e) { return; }
-    if (!d || typeof d !== 'object') return;
+    try { guard = window.SaveGuard.create(window.localStorage, KEY); d = guard.read(); } catch (e) { return; }
+    if (!d) return;
     TYPES.forEach(function (sp) { S.caught[sp.id] = finite(d.caught && d.caught[sp.id], 99999); });
     S.charge = finite(d.charge, 4);
     S.completed = validList(d.completed, [1, 2, 3]);
@@ -56,9 +56,14 @@
   }
   function saveWarning(source) { failing[source || 'journey'] = true; showSaveWarning(); }
   function saveOk(source) { delete failing[source || 'journey']; showSaveWarning(); }
-  function save() {
+  // auto=true for pagehide/visibility/startup writes; they never replace a save that failed to load.
+  function save(auto) {
     if (retrySave !== null) { clearTimeout(retrySave); retrySave = null; }
-    try { window.localStorage.setItem(KEY, JSON.stringify(S)); saveOk(); return true; }
+    try {
+      if (!guard) window.localStorage.setItem(KEY, JSON.stringify(S));
+      else if (guard.write(JSON.stringify(S), auto === true) === 'blocked') return false;
+      saveOk(); return true;
+    }
     catch (e) { saveWarning(); if (!document.hidden) retrySave = setTimeout(save, 3000); return false; }
   }
   load();
@@ -86,7 +91,7 @@
     merge('kittens', ids(window.__kittens.kinds).filter(function (id) { return cats.caught[id] > 0; }));
     if (bf.ended || bf.total >= 30 || cats.unlocked) changed = complete(1) || changed;
     if (cats.ended || cats.total >= 20) changed = complete(2) || changed;
-    if (changed) { save(); updateRewards(); if ($('journeyPanel') && !$('journeyPanel').hidden) render(); }
+    if (changed) { save(quiet === true); updateRewards(); if ($('journeyPanel') && !$('journeyPanel').hidden) render(); }
     // Only move oldRank once the toast can show, so a rank gained behind a dialog waits for it to close.
     if (quiet || !H.isStarted() || blocked()) return;
     var r = rank();
@@ -348,7 +353,7 @@
     sync(true); oldRank = rank(); makeWorld(); buildUI();
     if (window.__level3) L3 = window.__level3.init(hooks, lamps);
     if (window.__level3fx) FX = window.__level3fx.init(hooks, { wisps: wisps, lamps: lamps, lit: function (i) { return S.lamps[i]; }, charge: function () { return S.charge; }, allLit: function () { return litCount() === 3; }, canPlay: canPlay, collect: collect });
-    if (window.__voyage) VG = window.__voyage.init(hooks, { progress: S, types: TYPES, wisps: wisps, lamps: lamps, save: save, canPlay: canPlay });
+    if (window.__voyage) VG = window.__voyage.init(hooks, { progress: S, types: TYPES, wisps: wisps, lamps: lamps, save: function () { return save(true); }, canPlay: canPlay });
     if (window.ChimeChapter) CH = window.ChimeChapter.init(hooks, { progress: S, blocked: blocked, complete: complete, open: open, go: go,
       changed: function () { save(); updateRewards(); if (!$('journeyPanel').hidden) render(); } });
     if (window.LotusChapter) LC = window.LotusChapter.init(hooks, { progress: S, blocked: blocked, complete: complete, open: open, go: go,
@@ -364,10 +369,11 @@
     if (!used && FX && active && mode === 'net') FX.ripple(ray);
     return used;
   };
-  window.addEventListener('pagehide', function () { if (API.ready) { sync(true); save(); } });
-  document.addEventListener('visibilitychange', function () { if (API.ready) { sync(true); save(); } });
+  window.addEventListener('pagehide', function () { if (API.ready) { sync(true); save(true); } });
+  document.addEventListener('visibilitychange', function () { if (API.ready) { sync(true); save(true); } });
   // Read-only inspection for regression tests; rewards still require real input handlers.
   window.__journey = {
+    saveStatus: function () { return guard ? guard.status() : null; },
     state: function () { return JSON.parse(JSON.stringify({ progress: S, xp: xp(), rank: rank() + 1, level: level(), active: active, worldChildren: world ? world.children.length : 0 })); },
     targets: function () { return wisps.filter(function (w) { return w.g.visible && !w.cooldown; }).map(function (w) { w.g.getWorldPosition(temp); temp.project(H.camera); return { id: TYPES[w.type].id, x: (temp.x + 1) * innerWidth / 2, y: (1 - temp.y) * innerHeight / 2, front: temp.z < 1 }; }); }
   };
