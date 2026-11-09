@@ -1,6 +1,10 @@
-# 仙途 V28.68.112
+# 仙途 V28.68.113
 
-部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.110，V28.68.111/V28.68.112 包尚未同步）；[上传步骤](downloads/README.md)。
+部署下载：[腾讯云游戏完整包](downloads/xiantu-v2831-scroll.zip)（V28.68.110，V28.68.111–V28.68.113 包尚未同步）；[上传步骤](downloads/README.md)。
+
+## V28.68.113 四域山河图与北域积雪连贯
+
+山河图总览改用南、东、西三域行走时的同一幅手绘整景（北域原已如此），地点标记对齐画中门户；`scroll-regions-v2834` 保留为加载失败回退。北域积雪沿西域右缘、东域上缘逐渐消融（`west-frost-v2900.webp`／`east-frost-v2900.webp`，各约40KB静态叠层，由 `scripts/build-frost-overlays.py` 生成），大地图、小地图、建筑遮挡与山河图同用一层；北域原画边缘未改。未改碰撞、传送、地点数据、存档、数值与音乐。本地包由 `npm run package:game` 生成在 `dist/`；`downloads/` 仍为V28.68.110。尚未合并main或部署腾讯云，无需更新Jev。
 
 ## V28.68.112 游戏内对话框与物品格统一
 
@@ -348,7 +352,7 @@ npm test
 npm run test:browser
 ```
 
-`npm test` 运行选定的 153 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
+`npm test` 运行选定的 154 个当前功能回归脚本、限流测试与函数覆盖扫描器测试；历史 QA 文件保留，但不将它们全部视为当前版本的兼容性承诺。测试支持 `XIANTU_TEST_ROOT`，不再依赖临时发布目录。V28.65 数值矩阵默认不覆盖仓库文件；需要导出时设置 `XIANTU_TEST_OUTPUT` 为已存在的目录。
 
 浏览器测试覆盖恶意存档拒绝且原主档/备份不变、正常导入与刷新恢复、360/390/430/1366px 导航入口可达性、预加载去重与版本错误提示。外部请求被拦截，不调用付费服务。已有 Chromium 的云环境可使用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser`。
 

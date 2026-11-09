@@ -84,3 +84,41 @@ test('late north panorama preserves zoom and remains the base when relief is tog
   expect((await mapLayout(page)).trueCoordinates).toBe(true);
  }
 });
+
+// 山河图 overview uses the same walking panorama as the field for every wild region; north is unchanged.
+test('south/east/west scroll overview resolves to walking panoramas with painted entrances',async({page})=>{
+ await openNorth(page,1280);
+ const files={north:'north-panorama-v2868108.webp',south:'south-panorama-v2868101.webp',east:'east-panorama-v286898.webp',west:'west-panorama-v286898.webp'};
+ for(const [region,file] of Object.entries(files)){
+  await page.evaluate(r=>{document.getElementById('scrollMapV2831')?.remove();applyWorldMapLayout(r,true);},region);
+  await expect.poll(()=>page.evaluate(()=>wildSceneReadyV286898())).toBe(true);
+  const info=await page.evaluate(()=>{showScrollMapV2831();const s=wildSceneV286898(),im=SCROLL_ART_V2831.wildScenes[currentRegion];
+   return {overview:s.overview,minimap:s.minimap,style:scrollRegionStyleV2834(),size:[im.naturalWidth,im.naturalHeight],scene:[s.width||1484,s.height||1060],
+    doors:FLAT_WORLD.pois.filter(p=>wildSceneDoorV286898(p)).length,rooms:Object.keys(s.rooms).length};});
+  expect(info.overview,region).toBe(true);expect(info.minimap,region).toBe(true);
+  expect(info.style).toContain(`url('./${file}')`);expect(info.style).not.toContain('scroll-regions-v2834');
+  expect(info.size).toEqual(info.scene);expect(info.doors,region).toBeGreaterThan(0);
+  await expect(page.locator('#scrollFieldV2831')).toHaveCSS('background-image',new RegExp(file.replace('.','\\.')));
+  expect((await mapLayout(page)).trueCoordinates,region).toBe(true);
+ }
+});
+
+// North snow spreads into west (right edge faces north) and east (top edge faces north) as a gradual melt.
+test('west/east frost overlay is composited and densest on the north-facing edge',async({page})=>{
+ await openNorth(page,1280);
+ for(const [region,file,edge] of [['west','west-frost-v2900.webp','right'],['east','east-frost-v2900.webp','top']]){
+  await page.evaluate(r=>{document.getElementById('scrollMapV2831')?.remove();applyWorldMapLayout(r,true);},region);
+  await expect.poll(()=>page.evaluate(()=>!!wildSceneReadyV286898()&&!!wildFrostV2900())).toBe(true);
+  const info=await page.evaluate(edge=>{
+   const im=wildFrostV2900(),c=document.createElement('canvas');c.width=im.width;c.height=im.height;const g=c.getContext('2d');g.drawImage(im,0,0);
+   const band=(near)=>{const w=c.width,h=c.height,bw=edge==='right'?Math.round(w*.08):w,bh=edge==='top'?Math.round(h*.08):h;
+    const x=edge==='right'?(near?w-bw:0):0,y=edge==='top'?(near?0:h-bh):0,d=g.getImageData(x,y,bw,bh).data;let s=0;for(let i=3;i<d.length;i+=4)s+=d[i];return s/(d.length/4)/255;};
+   const field=document.createElement('canvas');field.width=200;field.height=150;const used=[];const f=field.getContext('2d'),draw=f.drawImage.bind(f);f.drawImage=(i,...r)=>{used.push(i===im);return draw(i,...r);};drawWildSceneV286898(f);
+   showScrollMapV2831();return {near:band(true),far:band(false),composited:used.join(),style:scrollRegionStyleV2834()};
+  },edge);
+  expect(info.composited,region).toBe('false,true');
+  expect(info.near,region).toBeGreaterThan(.3);expect(info.far,region).toBeLessThan(.08);
+  expect(info.style.indexOf(file)).toBeLessThan(info.style.indexOf(`${region}-panorama`));
+  await expect(page.locator('#scrollFieldV2831')).toHaveCSS('background-image',new RegExp(file.replace('.','\\.')));
+ }
+});
