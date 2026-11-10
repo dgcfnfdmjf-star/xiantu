@@ -133,7 +133,7 @@ async root => {
  const completed=await state();
  assert(completed.progress.decor[2]===true,'crown preference remains saved');
  await p.locator('#kitLevelBtn').click();
- assert((await p.locator('#journeyContent').innerText()).includes('V9.4'),'journal release version');
+ assert((await p.locator('#journeyContent').innerText()).includes('V9.5'),'journal release version');
  await p.locator('[data-jr-go="1"]').click();
  assert(await p.evaluate(()=>!__c3Ornaments[2].visible),'crown absent outside chapter 3');
  await p.locator('#kitLevelBtn').click();await p.locator('[data-jr-go="3"]').click();

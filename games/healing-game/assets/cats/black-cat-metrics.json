@@ -1,0 +1,190 @@
+{
+  "asset": "black-cat",
+  "generator": "Blender Python original geometry and analytic painted atlas",
+  "blenderVersion": "4.3.2",
+  "seed": 20261110,
+  "triangles": 6886,
+  "sourceTriangles": 35280,
+  "sourceMeshCount": 6,
+  "sourceGeometrySha256": "251cf83811e309beb2e57faad67c37de2805de7ff44fcc3b5b0fad898283faf4",
+  "sourceAtlasSha256": "5771fd12c67c5b75076fbf093105edae7f7d154a08e8305737cd7b8c18ee0492",
+  "triangleBudget": 10000,
+  "meshes": 6,
+  "drawCalls": 6,
+  "materials": 6,
+  "textures": 1,
+  "images": 1,
+  "textureResolution": [
+    1024,
+    1024
+  ],
+  "textureEncoding": "JPEG",
+  "textureQuality": 90,
+  "pattern": "none",
+  "allImagesEmbedded": true,
+  "uvsOnTexturedMesh": true,
+  "normalsOnAllPrimitives": true,
+  "gltfUpAxis": "+Y",
+  "gltfForwardAxis": "+Z",
+  "blenderBounds": {
+    "min": [
+      -0.23239640891551971,
+      -0.3018219769001007,
+      0.0009777015075087547
+    ],
+    "max": [
+      0.3220817744731903,
+      0.19166149199008942,
+      0.885482132434845
+    ]
+  },
+  "height": 0.8845044309273362,
+  "glbBytes": 265032,
+  "glbSha256": "c58a2f66ca0499f8c65aebf21136ae2ada36eee2ab9910b70bbb7af4fa1da8c5",
+  "palette": {
+    "fur": "#35303c",
+    "belly": "#4a4452",
+    "eyes": "#ffe27a"
+  },
+  "uvBake": {
+    "conflictingTexels": 0,
+    "surfaceConflictTolerance": 0.0001,
+    "maxObservedSurfaceSeparation": 1.2195256578515014e-06,
+    "coveredTexels": 372724,
+    "coverageFraction": 0.3554573059082031,
+    "minimumTriangleAreaTexels": 1.8269405364990234,
+    "degenerateUVTriangles": 0,
+    "rasterConvention": "UV*SIZE with centers i+0.5",
+    "uncoveredTriangleCentroidsAfterPadding": 0,
+    "geometryAndCornerNormalsUnchanged": true,
+    "geometrySha256": "0cc622a838a21bccc9a0a2fbaa5473de6098aec9b1aa108b04276c62e771c4ad",
+    "uvSha256": "c344c4c23643f049fba613b29974bd5a1c1e646314132ce2e21461c2d1771143",
+    "atlasSha256": "efa81fa9603c766d17c8e50e32e7b6ebc9b872741c9e6122c5e519b12ff5e6e8"
+  },
+  "uvRepair": {
+    "success": true,
+    "textureSize": 1024,
+    "packingMargin": 0.012,
+    "conflictThreshold": 0.0001,
+    "geometryAndCornerNormalsUnchanged": true,
+    "geometryFingerprint": "0cc622a838a21bccc9a0a2fbaa5473de6098aec9b1aa108b04276c62e771c4ad",
+    "geometryFingerprintAfter": "0cc622a838a21bccc9a0a2fbaa5473de6098aec9b1aa108b04276c62e771c4ad",
+    "history": [
+      {
+        "conflictingTexels": 5251,
+        "maxObservedSurfaceSeparation": 0.14209787620673847,
+        "coveredTexels": 425780,
+        "coverageFraction": 0.4060554504394531,
+        "multiplyCoveredTexels": 5491,
+        "maximumCoverage": 3,
+        "degenerateUVTriangles": 0,
+        "subpixelUVTriangles": 0,
+        "charts": 129,
+        "seams": 1145,
+        "iteration": 0,
+        "cuts": [
+          {
+            "chart": 2248,
+            "faces": 612,
+            "axis": "Y",
+            "threshold": -0.04345495574590232
+          },
+          {
+            "chart": 4328,
+            "faces": 595,
+            "axis": "Y",
+            "threshold": -0.12413434856734229
+          },
+          {
+            "chart": 3508,
+            "faces": 543,
+            "axis": "Z",
+            "threshold": 0.28228143850962323
+          },
+          {
+            "chart": 5200,
+            "faces": 618,
+            "axis": "X",
+            "threshold": 0.25890638608268707
+          },
+          {
+            "chart": 4687,
+            "faces": 160,
+            "axis": "X",
+            "threshold": 0.0710354894399643
+          },
+          {
+            "chart": 5101,
+            "faces": 157,
+            "axis": "X",
+            "threshold": 0.08093686153491339
+          }
+        ],
+        "addedSeams": 55
+      },
+      {
+        "conflictingTexels": 345,
+        "maxObservedSurfaceSeparation": 0.07166843723544308,
+        "coveredTexels": 385264,
+        "coverageFraction": 0.3674163818359375,
+        "multiplyCoveredTexels": 537,
+        "maximumCoverage": 3,
+        "degenerateUVTriangles": 0,
+        "subpixelUVTriangles": 0,
+        "charts": 142,
+        "seams": 1200,
+        "iteration": 1,
+        "cuts": [
+          {
+            "chart": 4328,
+            "faces": 442,
+            "axis": "X",
+            "threshold": 0.09025109962148722
+          },
+          {
+            "chart": 3508,
+            "faces": 217,
+            "axis": "Z",
+            "threshold": 0.44080498814582825
+          }
+        ],
+        "addedSeams": 19
+      },
+      {
+        "conflictingTexels": 0,
+        "maxObservedSurfaceSeparation": 1.2196481528405412e-06,
+        "coveredTexels": 372724,
+        "coverageFraction": 0.3554573059082031,
+        "multiplyCoveredTexels": 197,
+        "maximumCoverage": 2,
+        "degenerateUVTriangles": 0,
+        "subpixelUVTriangles": 0,
+        "charts": 147,
+        "seams": 1219,
+        "iteration": 2
+      }
+    ],
+    "final": {
+      "conflictingTexels": 0,
+      "maxObservedSurfaceSeparation": 1.2196481528405412e-06,
+      "coveredTexels": 372724,
+      "coverageFraction": 0.3554573059082031,
+      "multiplyCoveredTexels": 197,
+      "maximumCoverage": 2,
+      "degenerateUVTriangles": 0,
+      "subpixelUVTriangles": 0,
+      "charts": 147,
+      "seams": 1219,
+      "iteration": 2
+    }
+  },
+  "render": {
+    "engine": "Cycles CPU",
+    "samples": 128,
+    "resolution": [
+      1024,
+      1024
+    ]
+  },
+  "license": "Original generated artwork for this repository; no external model or image dependencies."
+}
