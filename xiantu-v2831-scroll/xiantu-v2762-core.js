@@ -8608,6 +8608,7 @@
     function showBreakthroughSuccess(result={}) {
       const before=result.snapshot||{},after=result.after||createBreakthroughSnapshot();
       const d=(a,b)=>Math.max(0,Math.round((Number(a)||0)-(Number(b)||0)));
+      const num=v=>Math.round(Number(v)||0),fromOf=(b,a)=>Number.isFinite(Number(b))&&b!==undefined&&b!==null?Math.min(num(b),num(a)):num(a);
       const newSkills=(after.skills||[]).filter(n=>!(before.skills||[]).includes(n));
       const newRegions=(after.unlockedRegions||[]).filter(id=>!(before.unlockedRegions||[]).includes(id));
       const regionText=newRegions.map(id=>getRegionInfo?.(id)?.shortName||id).join('、');
@@ -8616,17 +8617,65 @@
         <div class="subtitle">${result.fromName||before.name||''} → <span>${result.toName||after.name||getCultivationName()}</span></div>
         ${result.daoTextV286883?`<p class="breakthrough-outcome-v286883">${escapeGameText(result.daoTextV286883)}</p>`:''}
         <hr class="divider"><div class="reward-list">
-          <div class="item"><span class="icon">⏳</span><span class="label">寿元上限</span><span class="value">${after.lifespan||getTotalMaxLifespan()}${d(after.lifespan,before.lifespan)?`（+${d(after.lifespan,before.lifespan)}）`:''}</span></div>
-          <div class="item"><span class="icon">⚔️</span><span class="label">攻击</span><span class="value">${after.atk}${d(after.atk,before.atk)?`（+${d(after.atk,before.atk)}）`:''}</span></div>
-          <div class="item"><span class="icon">🛡️</span><span class="label">防御</span><span class="value">${after.def}${d(after.def,before.def)?`（+${d(after.def,before.def)}）`:''}</span></div>
-          <div class="item"><span class="icon">❤️</span><span class="label">气血上限</span><span class="value">${after.hp}${d(after.hp,before.hp)?`（+${d(after.hp,before.hp)}）`:''}</span></div>
+          <div class="item"><span class="icon">⏳</span><span class="label">寿元上限</span><span class="value" data-to="${num(after.lifespan||getTotalMaxLifespan())}" data-from="${fromOf(before.lifespan,after.lifespan||getTotalMaxLifespan())}"><b class="num-v2868116">${after.lifespan||getTotalMaxLifespan()}</b>${d(after.lifespan,before.lifespan)?`<small class="delta-v2868116">（+${d(after.lifespan,before.lifespan)}）</small>`:''}</span></div>
+          <div class="item"><span class="icon">⚔️</span><span class="label">攻击</span><span class="value" data-to="${num(after.atk)}" data-from="${fromOf(before.atk,after.atk)}"><b class="num-v2868116">${after.atk}</b>${d(after.atk,before.atk)?`<small class="delta-v2868116">（+${d(after.atk,before.atk)}）</small>`:''}</span></div>
+          <div class="item"><span class="icon">🛡️</span><span class="label">防御</span><span class="value" data-to="${num(after.def)}" data-from="${fromOf(before.def,after.def)}"><b class="num-v2868116">${after.def}</b>${d(after.def,before.def)?`<small class="delta-v2868116">（+${d(after.def,before.def)}）</small>`:''}</span></div>
+          <div class="item"><span class="icon">❤️</span><span class="label">气血上限</span><span class="value" data-to="${num(after.hp)}" data-from="${fromOf(before.hp,after.hp)}"><b class="num-v2868116">${after.hp}</b>${d(after.hp,before.hp)?`<small class="delta-v2868116">（+${d(after.hp,before.hp)}）</small>`:''}</span></div>
           ${newSkills.length?`<div class="item"><span class="icon">📖</span><span class="label">新功法</span><span class="value">${newSkills.join('、')}</span></div>`:''}
           ${regionText?`<div class="item"><span class="icon">🗺️</span><span class="label">新地域</span><span class="value">${regionText}已解锁</span></div>`:''}
-        </div><hr class="divider"><button class="btn-continue" onclick="closeBreakthroughSuccess(false)">继续修仙</button><div class="auto-close-v2764">轻触按钮继续 · 5秒后自动收起</div></div>`;
+        </div><hr class="divider"><button class="btn-continue xt-btn--gold-v2868116" onclick="closeBreakthroughSuccess(false)">继续修仙</button><div class="auto-close-v2764">轻触按钮继续 · 5秒后自动收起</div></div>`;
       document.getElementById('breakthroughSuccess')?.remove();
       const wrap=document.createElement('div'),panelId=Symbol('breakthroughSuccess');
       wrap.innerHTML=html;const panel=wrap.firstElementChild,owner=player;panel._v2764PanelId=panelId;panel._ownerV2905=owner;document.body.appendChild(panel);
+      animateBreakthroughSuccessV2868116(panel);
       setTimeout(()=>{if(player===owner&&panel.isConnected&&panel._v2764PanelId===panelId)closeBreakthroughSuccess(true)},5200);
+    }
+
+    // V28.68.116 (audit A5): display-only count-up, one realm flash and a short gold burst; values are final in the DOM data.
+    function breakthroughFxStillV2868116(){
+      let off=false;try{off=localStorage.getItem('xiantu_map_fx_v2868104')==='off';}catch(_){}
+      return off||document.documentElement.classList.contains('xt-reduce-motion')||!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    }
+    function animateBreakthroughSuccessV2868116(panel){
+      if(!panel)return;
+      if(breakthroughFxStillV2868116()){panel.classList.add('still-v2868116');return;}
+      const raf=window.requestAnimationFrame||(cb=>setTimeout(()=>cb(performance.now()),33));
+      const rows=Array.from(panel.querySelectorAll('.value[data-to]')).map((el,i)=>({el,num:el.querySelector('.num-v2868116'),from:Number(el.dataset.from)||0,to:Number(el.dataset.to)||0,i})).filter(r=>r.num&&r.to!==r.from);
+      const t0=performance.now(),dur=900,step=110,end=dur+step*Math.max(0,rows.length-1);
+      const finish=()=>{rows.forEach(r=>{r.num.textContent=String(r.to);});panel.classList.remove('counting-v2868116');};
+      if(rows.length){panel.classList.add('counting-v2868116');rows.forEach(r=>{r.num.textContent=String(r.from);});}
+      const tick=now=>{
+        if(!panel.isConnected||panel._doneV2868116)return;
+        let busy=false;
+        rows.forEach(r=>{const t=Math.max(0,Math.min(1,(now-t0-r.i*step)/dur));if(t<1)busy=true;const e=1-Math.pow(1-t,3);r.num.textContent=String(Math.round(r.from+(r.to-r.from)*e));});
+        if(busy&&now-t0<end+400)raf(tick);else{panel._doneV2868116=true;finish();}
+      };
+      raf(tick);
+      // Hidden tabs pause rAF: always land on the final numbers.
+      setTimeout(()=>{if(panel.isConnected&&!panel._doneV2868116){panel._doneV2868116=true;finish();}},end+300);
+      goldBurstV2868116(panel);
+    }
+    function goldBurstV2868116(panel){
+      // Same radial glow sprite as the map-fx layer (xiantu-v2868104-map-fx.js glowTexture), tinted gold; fixed 36 particles, ~1.2 s, then removed.
+      const title=panel.querySelector('.title');if(!title||typeof document.createElement('canvas').getContext!=='function')return;
+      const c=document.createElement('canvas');c.className='breakthrough-burst-v2868116';c.setAttribute('aria-hidden','true');
+      const x=c.getContext('2d');if(!x)return;
+      const dpr=Math.min(2,window.devicePixelRatio||1),w=panel.clientWidth||320,h=Math.min(panel.clientHeight||240,260);
+      c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);c.style.width=w+'px';c.style.height=h+'px';panel.insertBefore(c,panel.firstChild);
+      const g=document.createElement('canvas');g.width=g.height=64;const gx=g.getContext('2d');
+      if(gx){const r=gx.createRadialGradient(32,32,0,32,32,32);r.addColorStop(0,'rgba(255,250,228,1)');r.addColorStop(.22,'rgba(240,220,160,.75)');r.addColorStop(1,'rgba(212,176,106,0)');gx.fillStyle=r;gx.fillRect(0,0,64,64);}
+      const cx=w/2,cy=Math.max(24,title.offsetTop+title.offsetHeight/2),parts=[];
+      for(let i=0;i<36;i++){const a=(i/36)*Math.PI*2+(i%3)*.21,b=((i*37)%17)/17;parts.push({a,speed:60+b*120,size:5+((i*13)%7)});}
+      const raf=window.requestAnimationFrame||(cb=>setTimeout(()=>cb(performance.now()),33));
+      const t0=performance.now(),life=1200;
+      const draw=now=>{
+        const t=(now-t0)/1000;if(!panel.isConnected||t*1000>life){c.remove();return;}
+        x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);x.globalCompositeOperation='lighter';
+        for(const p of parts){const dx=Math.cos(p.a)*p.speed*t,dy=-Math.sin(p.a)*p.speed*t*.7+t*t*40,al=Math.max(0,1-t*1000/life);x.globalAlpha=al*.9;const s=p.size*(1+t);x.drawImage(g,cx+dx-s/2,cy+dy-s/2,s,s);}
+        x.globalAlpha=1;raf(draw);
+      };
+      raf(draw);
+      setTimeout(()=>c.remove(),life+400);
     }
 
     function closeBreakthroughSuccess(autoClose=false) {
@@ -9052,7 +9101,7 @@
         const el=document.createElement('script');let done=false;
         const finish=(error)=>{if(done)return;done=true;clearTimeout(timer);el.onload=el.onerror=null;if(error){el.remove();reject(error);}else resolve(window.XiantuAlchemyStageV2868110);};
         const timer=setTimeout(()=>finish(new Error('alchemy visual timeout')),10000);
-        el.src='./xiantu-v2868110-alchemy-stage.js?v=28.68.114';el.async=true;
+        el.src='./xiantu-v2868110-alchemy-stage.js?v=28.68.116';el.async=true;
         el.onload=()=>finish(window.XiantuAlchemyStageV2868110?null:new Error('alchemy visual unavailable'));
         el.onerror=()=>finish(new Error('alchemy visual unavailable'));document.head.appendChild(el);
       }).catch(error=>{s.loading=null;throw error;});return s.loading;
@@ -16230,7 +16279,7 @@ function villageEnhanceV286897(){
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.114";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.116";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

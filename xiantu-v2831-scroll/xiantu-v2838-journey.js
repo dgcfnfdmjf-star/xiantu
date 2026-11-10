@@ -332,7 +332,7 @@ async function exportPreviousV2838(){
  try{await exportRawSaveV2870(localStorage.getItem(PREVIOUS_SAVE_V2838),'xiantu-previous-character.json');}
  catch(e){gameAlertV2868114('导出失败：'+e.message);}
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.114';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.116';
 
 // Small non-combat encounters, two per region and character. Persist choice and reward together.
 const ROAMING_KINDS_V286818=['traveler','ruins'];

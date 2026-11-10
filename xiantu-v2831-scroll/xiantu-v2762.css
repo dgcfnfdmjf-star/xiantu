@@ -3942,7 +3942,7 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 /* V28.12 洞府管理 */
 .home-board-v2812{padding:16px;border:1px solid #9eb781;border-radius:16px;background:linear-gradient(135deg,#14251e,#18202b);color:#e9eee3;line-height:1.65}.home-board-v2812 h3{color:#ead592;margin:0 0 12px}.home-grid-v2812{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-grid-v2812 article{padding:14px;border:1px solid #526454;border-radius:12px;background:#ffffff08}.home-grid-v2812 h4{margin:0;color:#e8d594}.home-grid-v2812 p{color:#d0dbd1}.home-grid-v2812 strong{color:#83ddb6}.home-notice-v2812{padding:12px;background:#31534066;border-radius:10px}@media(max-width:600px){.home-grid-v2812{grid-template-columns:1fr}.home-board-v2812{padding:12px;font-size:14px}}
 
-:root{--xiantu-build:2868114;}
+:root{--xiantu-build:2868116;}
 #xiantuBuildBadgeV2814{font-size:11px;min-height:32px;padding:5px 9px;white-space:nowrap;color:#b4d4bd;background:#18251f;border:1px solid #718475;border-radius:8px;}
 
 /* V28.68 战斗数值可视层 */
@@ -5211,3 +5211,48 @@ html.xt-reduce-motion .tutorial-highlight{animation:none!important}
 .achievement-popup .achievement-dismiss-v2764{color:var(--xt-text-3,#8a978e)}
 .achievement-popup.still-v2868114,html.xt-reduce-motion .achievement-popup{animation:none}
 @media (prefers-reduced-motion:reduce){.achievement-popup{animation:none}}
+
+/* V28.68.116 breakthrough-ready cue (audit G4) and success card (audit A5). 青绿鎏金 tokens. */
+.world-realm.has-break-chip-v2868116{display:inline-block!important;vertical-align:middle}
+.xt-break-chip-v2868116{position:relative;display:inline-flex;align-items:center;vertical-align:middle;height:22px;margin:0 0 0 6px;padding:0 9px;border-radius:11px;border:1px solid var(--xt-gold-300,#f0dca0);background:linear-gradient(180deg,var(--xt-gold-300,#f0dca0),var(--xt-gold-500,#d4b06a));color:var(--xt-text-on-gold,#2a1c08);font:700 11px/1 var(--xt-font-display,serif);letter-spacing:.04em;white-space:nowrap;cursor:pointer;touch-action:manipulation;box-shadow:0 0 0 1px rgba(9,14,12,.6),0 0 10px rgba(212,176,106,.45)}
+.xt-break-chip-v2868116::before{content:'';position:absolute;inset:-11px -4px}
+.xt-break-chip-v2868116[hidden]{display:none!important}
+.xt-break-chip-v2868116[data-state="cooling"]{border-color:var(--xt-jade-500,#4f8f7a);background:var(--xt-ink-800,#16221d);color:var(--xt-jade-100,#d7efe4);box-shadow:0 0 0 1px rgba(9,14,12,.6)}
+.xt-break-chip-v2868116:focus-visible{outline:2px solid var(--xt-gold-100,#fbf1d3);outline-offset:2px}
+.world-bar-row.xt-exp-ready-v2868116>span:first-child{color:var(--xt-gold-300,#f0dca0)!important}
+.world-bar-row.xt-exp-ready-v2868116 .world-bar{position:relative;overflow:hidden;box-shadow:0 0 0 1px rgba(240,220,160,.6),0 0 8px rgba(212,176,106,.55)!important}
+.world-bar-row.xt-exp-ready-v2868116 .world-bar::after{content:'';position:absolute;top:0;bottom:0;left:0;width:40%;pointer-events:none;background:linear-gradient(90deg,rgba(251,241,211,0),rgba(251,241,211,.9),rgba(251,241,211,0));transform:translateX(-110%);animation:xtExpShimmerV2868116 2.6s ease-in-out infinite}
+@keyframes xtExpShimmerV2868116{0%{transform:translateX(-110%)}55%,100%{transform:translateX(260%)}}
+.world-bar-row.still-v2868116 .world-bar::after,html.xt-reduce-motion .world-bar-row.xt-exp-ready-v2868116 .world-bar::after{animation:none;display:none}
+@media (prefers-reduced-motion:reduce){.world-bar-row.xt-exp-ready-v2868116 .world-bar::after{animation:none;display:none}}
+
+.breakthrough-success{background:radial-gradient(120% 60% at 50% 0%,rgba(79,143,122,.28),rgba(79,143,122,0) 70%),linear-gradient(160deg,rgba(30,58,48,.985),rgba(12,20,17,.99));border:1px solid var(--xt-gold-500,#d4b06a);box-shadow:0 0 0 1px rgba(79,143,122,.45) inset,0 0 0 4px rgba(9,14,12,.85) inset,0 0 0 5px rgba(212,176,106,.24) inset,0 30px 80px rgba(0,0,0,.72),0 0 36px rgba(212,176,106,.18)}
+.breakthrough-success>*:not(.breakthrough-burst-v2868116){position:relative}
+.breakthrough-success .breakthrough-burst-v2868116{position:absolute;left:0;top:0;pointer-events:none;z-index:0}
+.breakthrough-success .title{color:var(--xt-gold-300,#f0dca0);font-family:var(--xt-font-display,serif);letter-spacing:.08em;text-shadow:0 0 22px rgba(212,176,106,.4)}
+.breakthrough-success .subtitle{color:var(--xt-jade-300,#8cc7b0)}
+.breakthrough-success .subtitle span{color:var(--xt-gold-100,#fbf1d3);display:inline-block;animation:xtRealmFlashV2868116 1s ease-out .15s 1 both}
+@keyframes xtRealmFlashV2868116{0%{transform:scale(.92);text-shadow:0 0 0 rgba(240,220,160,0)}35%{transform:scale(1.08);text-shadow:0 0 18px rgba(255,236,170,.95),0 0 32px rgba(212,176,106,.7)}100%{transform:scale(1);text-shadow:0 0 8px rgba(212,176,106,.35)}}
+.breakthrough-success .divider{border-top-color:var(--xt-line-gold-soft,rgba(212,176,106,.24))}
+.breakthrough-success .reward-list{color:var(--xt-text-1,#f1e9d6)}
+.breakthrough-success .reward-list .item{border-bottom-color:rgba(140,199,176,.12)}
+.breakthrough-success .reward-list .label{color:var(--xt-text-2,#bcc6b9)}
+.breakthrough-success .reward-list .value{color:var(--xt-gold-300,#f0dca0);font-variant-numeric:tabular-nums}
+.breakthrough-success .delta-v2868116{font-size:inherit;color:var(--xt-jade-300,#8cc7b0);transition:opacity .25s}
+.breakthrough-success.counting-v2868116 .delta-v2868116{opacity:0}
+.breakthrough-success .btn-continue.xt-btn--gold-v2868116{border:1px solid var(--xt-gold-300,#f0dca0);background:linear-gradient(180deg,var(--xt-gold-300,#f0dca0),var(--xt-gold-500,#d4b06a) 60%,var(--xt-gold-700,#8a6a32));color:var(--xt-text-on-gold,#2a1c08);font-family:var(--xt-font-display,serif);letter-spacing:.12em;box-shadow:0 0 0 1px rgba(9,14,12,.7),0 6px 16px rgba(0,0,0,.4)}
+.breakthrough-success .btn-continue.xt-btn--gold-v2868116:focus-visible{outline:2px solid var(--xt-gold-100,#fbf1d3);outline-offset:3px}
+.breakthrough-success .auto-close-v2764{color:var(--xt-text-3,#8a978e)}
+.breakthrough-success.still-v2868116 .subtitle span,html.xt-reduce-motion .breakthrough-success .subtitle span{animation:none}
+@media (prefers-reduced-motion:reduce){.breakthrough-success .subtitle span{animation:none}}
+/* Short landscape: keep the continue button on screen (it used to overflow below 84vh). */
+@media (max-height:500px) and (orientation:landscape){
+  .breakthrough-success{width:min(92vw,620px);max-height:92vh;padding:14px 20px 12px;top:50%}
+  .breakthrough-success .title{font-size:20px;margin-bottom:2px}
+  .breakthrough-success .subtitle{font-size:14px;margin-bottom:6px}
+  .breakthrough-success .divider{margin:6px 0}
+  .breakthrough-success .reward-list{display:grid;grid-template-columns:1fr 1fr;column-gap:16px;font-size:12px}
+  .breakthrough-success .reward-list .item{padding:3px 0}
+  .breakthrough-success .btn-continue{margin-top:8px;min-height:44px;width:auto;padding:8px 40px}
+  .breakthrough-success .auto-close-v2764{margin-top:4px}
+}

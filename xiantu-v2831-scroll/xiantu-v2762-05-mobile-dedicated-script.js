@@ -97,8 +97,8 @@
       if(!el.hasAttribute('aria-label'))el.setAttribute('aria-label',original.textContent.trim()||label);
     });
   }
-  function contextAllowed(){
-    if(!enabled()||document.hidden||typeof player==='undefined'||!player||typeof gameState==='undefined'||gameState!=='exploring'||player.breakthrough?.isAnimating)return false;
+  function contextAllowed(themed=true){
+    if((themed&&!enabled())||document.hidden||typeof player==='undefined'||!player||typeof gameState==='undefined'||gameState!=='exploring'||player.breakthrough?.isAnimating)return false;
     const game=document.getElementById('gameScreen');if(!game||game.classList.contains('hidden')||!document.body.classList.contains('flat-world-active'))return false;
     if(typeof interiorV286886!=='undefined'&&interiorV286886)return false;
     if(typeof tutorialState!=='undefined'&&tutorialState.active)return false;
@@ -131,7 +131,44 @@
     document.body.appendChild(bar);
   }
   function text(el,value){if(el.textContent!==value)el.textContent=value;}
+  // V28.68.116 breakthrough-ready cue (audit G4): derived from existing state only, opens the existing screen.
+  let breakBusy=0;
+  function breakState(){
+    if(typeof player==='undefined'||!player||typeof getCurrentExpNeed!=='function'||typeof CULTIVATION_REALMS==='undefined')return {state:'hidden'};
+    const bt=player.breakthrough||{};if(bt.isAnimating||bt.pendingV28683)return {state:'hidden'};
+    if(player.level===CULTIVATION_REALMS.length-1&&(player.phase||0)>=3)return {state:'max'};
+    if((Number(player.exp)||0)<Math.max(1,getCurrentExpNeed()))return {state:'below'};
+    const next=getNextCultivationName(),days=Math.ceil(Number(bt.cooldownDays)||0);
+    if(typeof isFinalTribulationGate==='function'&&isFinalTribulationGate())return {state:'tribulation',next};
+    return days>0?{state:'cooling',days,next}:{state:'ready',next};
+  }
+  function fxStill(){let off=false;try{off=localStorage.getItem('xiantu_map_fx_v2868104')==='off';}catch(_){}return off||root.classList.contains('xt-reduce-motion')||!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);}
+  function openBreak(){
+    const chip=document.getElementById('xtBreakChipV2868116');
+    if(!chip||chip.hidden||Date.now()<breakBusy||!contextAllowed(false))return false;
+    const s=breakState();if(s.state!==chip.dataset.state||!['ready','cooling','tribulation'].includes(s.state)){schedule();return false;}
+    breakBusy=Date.now()+450;
+    if(typeof showRetreatBreakthroughV2798==='function')showRetreatBreakthroughV2798();
+    schedule();return true;
+  }
+  function renderBreak(){
+    const realm=document.getElementById('worldRealm'),row=document.getElementById('worldExpBar')?.closest('.world-bar-row');if(!realm)return;
+    const s=started&&contextAllowed(false)?breakState():{state:'hidden'},show=['ready','cooling','tribulation'].includes(s.state);
+    let chip=document.getElementById('xtBreakChipV2868116');
+    if(show&&!chip){chip=document.createElement('button');chip.type='button';chip.id='xtBreakChipV2868116';chip.className='xt-break-chip-v2868116';chip.addEventListener('click',e=>{e.stopPropagation();openBreak();});}
+    if(chip&&chip.previousElementSibling!==realm)realm.insertAdjacentElement('afterend',chip);
+    const glow=s.state==='ready'||s.state==='tribulation';
+    if(row){row.classList.toggle('xt-exp-ready-v2868116',glow);row.classList.toggle('still-v2868116',glow&&fxStill());}
+    realm.classList.toggle('has-break-chip-v2868116',show);
+    if(!chip)return;
+    chip.hidden=!show;chip.disabled=!show;chip.dataset.state=s.state;if(!show)return;
+    const label=s.state==='cooling'?'调息 '+s.days+'天':s.state==='tribulation'?'待渡天劫':'可突破 · '+s.next;
+    text(chip,label);
+    chip.setAttribute('aria-label',s.state==='cooling'?'经脉调息还需'+s.days+'天，查看突破至'+s.next:s.state==='tribulation'?'修为圆满，查看飞升天劫要求':'修为已满，可突破至'+s.next+'，打开闭关突破');
+  }
+  window.breakthroughCueV2868116={state:breakState,open:openBreak,render:()=>renderBreak()};
   function render(){
+    renderBreak();
     if(!started||!contextAllowed()){hide();return;}
     const now=current();if(!now){hide();return;}ensureBar();
     const locked=now.status===TASK_STATUS.LOCKED,action=now.step?.action||'';
@@ -182,4 +219,4 @@ function setUiPreferenceV2868109(kind,value){
  showGraphicsV2903(saved?'界面设置已保存。':'已应用；当前浏览器不允许保存偏好。');
 }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-05-mobile-dedicated-script.js"]="28.68.114";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-05-mobile-dedicated-script.js"]="28.68.116";
