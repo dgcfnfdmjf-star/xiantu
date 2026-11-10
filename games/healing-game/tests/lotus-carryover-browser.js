@@ -3,6 +3,7 @@ async root=>{
  const c=await root.context().browser().newContext({viewport:{width:1280,height:800}}),p=await c.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
  await p.route('**/*',async r=>{if(new URL(r.request().url()).hostname!=='127.0.0.1')throw Error('External request');if(r.request().resourceType()!=='document')return r.continue();const response=await r.fetch();let body=await response.text();
   body=body.replace('render();pose(0,0);','window.__carry={H,group,moon,pose,lanterns,stations,sample:i=>{selected=Math.min(i,5);progress().light=Array(6).fill(i===6?3:0);finale=i===6?7:0;elapsed=0;render();pose(0,0);}};render();pose(0,0);');
+  body=body.replace('  function updateCat(dt, t) {', '  function updateCat(dt, t) { window.__oldCat=cat.root;');
   body=body.replace('  function updateBirds(dt, t) {','  function updateBirds(dt, t) { window.__oldBirds={birds:birds,play:singBirds};');
   body=body.replace('  var lanternCol = new THREE.Color','  window.__oldLantern={release:releaseLantern,list:lanterns,step:update};\n  var lanternCol = new THREE.Color');await r.fulfill({response,body});});
  await p.addInitScript(()=>{localStorage.setItem('hg_level2_unlocked','1');localStorage.setItem('healingGarden.kittens.v1',JSON.stringify({level:1,total:20,ended:true}));localStorage.setItem('healingGarden.journey.v1',JSON.stringify({completed:[1,2,3,4],lamps:[true,true,true],chimes:{round:3}}));});
@@ -13,7 +14,7 @@ async root=>{
    __kittens.setLevel(1);const v=new THREE.Vector3(2.3,.26,-1.3);W.island.localToWorld(v);__oldLantern.release(v.x,v.y,v.z);const L=__oldLantern.list.at(-1);L.dx=L.dz=0;L.vy=.6;
    for(let t=0;t<10;t++)__oldLantern.step(.05);check(L.g.visible,'old lantern still visible in original chapter');
    __kittens.setLevel(5);__carry.sample(station);
-   for(let t=0;t<60;t++){__oldLantern.step(.05);frames++;check(!L.g.visible,'carryover lantern crosses goal '+station);check(W.island.visible&&shared.every(o=>o.visible)&&moving.every(o=>o.visible),'permanent island scenery was hidden');if(station===6)check(__carry.lanterns.every(o=>o.visible),'chapter5 finale lanterns must remain visible');}
+   for(let t=0;t<60;t++){__oldLantern.step(.05);frames++;check(!L.g.visible,'carryover lantern crosses goal '+station);check(W.island.visible&&shared.every(o=>o===__oldCat?!o.visible:o.visible)&&moving.every(o=>o.visible),'shared scenery stays visible and original cat remains chapter2-only');if(station===6)check(__carry.lanterns.every(o=>o.visible),'chapter5 finale lanterns must remain visible');}
    check(L.age>3&&L.fade===1,'hidden carryover keeps original lifetime');__kittens.setLevel(4);check(L.g.visible,'leaving5 restores surviving carryover');L.fade=0;__oldLantern.step(0);
   }
   // An already hidden transient must not become visible merely because chapter5 exits.

@@ -8,7 +8,7 @@ async root => {
  await page.route('**/*',async r=>{
   if(new URL(r.request().url()).hostname!=='127.0.0.1'){external.push(r.request().url());return r.abort();}
   if(r.request().resourceType()!=='document')return r.continue();
-  const response=await r.fetch();let body=await response.text();const anchor='    var sp = TYPES[w.type], fresh = !S.caught[sp.id];';
+  const response=await r.fetch();let body=await response.text();const anchor='    S.caught[sp.id] = Math.min(99999, (S.caught[sp.id] || 0) + 1);';
   if(!body.includes(anchor))throw Error('Catch inspection anchor missing');
   body=body.replace(anchor,'    (window.__caughtWispSlots||(window.__caughtWispSlots=[])).push(w.slot);\n'+anchor);await r.fulfill({response,body});
  });
@@ -18,7 +18,7 @@ async root => {
  async function state(){return page.evaluate(()=>__journey.state());}
  async function journal(tab='journey'){await page.locator('#kitLevelBtn').click();if(tab!=='journey')await page.locator('[data-jr-tab="'+tab+'"]').click();}
  await page.goto(url);await start();
- assert(await page.title()==='暮色浮岛 · 月汐莲湾 V9.2','version');
+ assert(await page.title()==='暮色浮岛 · 月汐莲湾 V9.4','version');
  await page.evaluate(()=>localStorage.setItem('xiantu_save','untouched'));
  await journal();assert(await page.locator('[data-jr-go="2"]').isDisabled(),'new save chapter2 locked');assert(await page.locator('[data-jr-go="3"]').isDisabled(),'new save chapter3 locked');
  await page.locator('[data-jr-tab="collection"]').click();assert(await page.locator('.jr-item').count()===47,'47 species in journal');await page.locator('#journeyClose').click();
@@ -40,12 +40,19 @@ async root => {
  // Actual touch input on projected objects, not a reward-granting debug hook.
  async function pick(){
   for(let attempt=0;attempt<25;attempt++){
-   const targets=await page.evaluate(()=>__journey.targets().filter(p=>p.front&&p.x>10&&p.x<innerWidth-10&&p.y>180&&p.y<innerHeight-115&&document.elementFromPoint(p.x,p.y)?.tagName==='CANVAS'&&__level3fx.wispAt(p.x,p.y)&&__level3fx.lampAt(p.x,p.y)<0));
+   const targets=await page.evaluate(()=>{
+    const ids=['dew','peach','amber','moon','violet','tide'],preferences=[['peach','amber'],['dew','moon'],['violet','tide']],progress=__journey.state().progress,next=progress.lamps.indexOf(false),allowed=next<0?ids:preferences[next];
+    return __journey.targets().filter(p=>{const w=__level3fx.wispAt(p.x,p.y);return allowed.includes(p.id)&&p.front&&p.x>10&&p.x<innerWidth-10&&p.y>180&&p.y<innerHeight-115&&document.elementFromPoint(p.x,p.y)?.tagName==='CANVAS'&&w&&ids[w.type]===p.id&&__level3fx.lampAt(p.x,p.y)<0;});
+   });
    for(const p of targets){
     const old=await state();
     await page.touchscreen.tap(p.x,p.y);
     const after=await state();
-    if(JSON.stringify(after.progress.caught)!==JSON.stringify(old.progress.caught))return p;
+    if(JSON.stringify(after.progress.caught)!==JSON.stringify(old.progress.caught)){
+     if(!old.progress.completed.includes(3))assert(after.progress.charge===old.progress.charge+1&&after.progress.joys===old.progress.joys+1,'preferred catch adds exactly one charge and joy');
+     else assert(after.progress.charge===old.progress.charge,'free-play catch does not add charge');
+     return p;
+    }
    }
    await page.waitForTimeout(250);
   }throw Error('No touch target caught');
@@ -59,7 +66,8 @@ async root => {
   while((await state()).progress.charge<4)await pick();
   if(lamp===0){
    await page.screenshot({path:'output/playwright/v8-star-phone.png',scale:'css'});
-   const beforeCap=await state();await pickAtFull();assert((await state()).progress.charge===4,'charge is capped');
+   const beforeCap=await state();await pickAtFull();const afterCap=await state();assert(afterCap.progress.charge===4,'charge is capped');
+   assert(JSON.stringify(afterCap.progress.caught)===JSON.stringify(beforeCap.progress.caught)&&afterCap.progress.stars===beforeCap.progress.stars&&afterCap.progress.joys===beforeCap.progress.joys&&afterCap.xp===beforeCap.xp,'full charge gives no collection, sky, joy, or growth reward');
    await page.reload();await start();assert((await state()).progress.charge===4,'partial progress persists');
   }
   await page.locator('#starLamp'+lamp).click();
@@ -82,8 +90,9 @@ async root => {
  assert((await state()).worldChildren===childCount,'no duplicate scene objects');assert((await state()).xp===completed.xp,'switching cannot farm growth');
  await page.setViewportSize({width:844,height:390});await page.waitForTimeout(600);await journal();await page.screenshot({path:'output/playwright/v8-journal-landscape.png',scale:'css'});await page.locator('#journeyClose').click();
  assert(await page.evaluate(()=>localStorage.getItem('xiantu_save'))==='untouched','xiantu save untouched');
+ await page.setViewportSize({width:390,height:844});
  await page.evaluate(()=>{Storage.prototype.setItem=function(){throw new DOMException('Storage full','QuotaExceededError');};});await pick();assert(await page.locator('#starSaveWarning').isVisible(),'save failure is visible');
  assert(errors.length===0,'page errors: '+errors.join(';'));assert(external.length===0,'external requests');
- const result={version:'9.2.0',migrated,completed,restored,childCount,repeatTap,errors,external,checks:'locks, migration, real touch collection, duplicate guard, modal input, charge cap, partial reload, 3 lamps, ending, growth idempotence, decor persistence, switching, landscape, isolated saves, quota warning'};
+ const result={version:'9.4.0',migrated,completed,restored,childCount,repeatTap,errors,external,checks:'locks, migration, real touch collection, duplicate guard, modal input, charge cap, partial reload, 3 lamps, ending, growth idempotence, decor persistence, switching, landscape, isolated saves, quota warning'};
  await root.evaluate(r=>window.__journeyResult=r,result);await context.close();return result;
 }

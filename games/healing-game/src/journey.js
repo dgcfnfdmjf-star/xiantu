@@ -4,7 +4,7 @@
 (function (window, document) {
   'use strict';
   var KEY = 'healingGarden.journey.v1', H, T, world, decoration, wisps = [], lamps = [], ornaments = [];
-  var time = 0, poll = 0, active = false, tab = 'journey', lastFocus = null, retryWarning = false;
+  var time = 0, poll = 0, active = false, tab = 'journey', lastFocus = null, retryWarning = false, lastMiss = -10, feedbackUntil = 0;
   var guard = null, temp, color, oldRank = 0, L3 = null, FX = null, VG = null, CH = null, LC = null, failing = {}, retrySave = null;
   var TYPES = [
     { id: 'dew', name: '露珠萤', color: 0xa9efd8, note: '像清晨草叶上的露珠' },
@@ -93,7 +93,7 @@
     if (cats.ended || cats.total >= 20) changed = complete(2) || changed;
     if (changed) { save(quiet === true); updateRewards(); if ($('journeyPanel') && !$('journeyPanel').hidden) render(); }
     // Only move oldRank once the toast can show, so a rank gained behind a dialog waits for it to close.
-    if (quiet || !H.isStarted() || blocked()) return;
+    if (quiet || !H.isStarted() || blocked() || feedbackBusy()) return;
     var r = rank();
     if (r > oldRank) H.toast('成长了 ✧ ' + RANKS[r].name + ' · 去手账看看新的收获', 3200);
     oldRank = r;
@@ -160,7 +160,7 @@
     ornaments.push(crown); decoration.add(crown); updateRewards(); updateLamps();
   }
   function updateRewards() {
-    ornaments.forEach(function (g, i) { g.visible = rank() >= i + 1 && S.decor[i]; });
+    ornaments.forEach(function (g, i) { g.visible = rank() >= i + 1 && S.decor[i] && (i !== 2 || (active && !done(3))); });
     if (ornaments[0]) window.GardenClip.chime.on = ornaments[0].visible; // sync() can run before makeWorld()
     if (API.ready) window.GardenClip.syncFlowers(H.flowers, level());
   }
@@ -170,33 +170,44 @@
   }
   function collect(w) {
     if (w.cooldown > 0 || !w.g.visible) return false;
-    if (!done(3) && S.charge >= 4) { H.toast('星光装满了，轻点发亮的星灯把光送过去 ✦', 2200); return true; }
+    feedbackUntil = time + 3;
+    if (!done(3) && S.charge >= 4) { H.toast('星光已满 4 / 4 · 轻点带「点我点亮」的星灯，或上方未亮的编号', 2600); return true; }
     var sp = TYPES[w.type], fresh = !S.caught[sp.id];
+    if (!done(3) && VG && !VG.accepts(w.type)) {
+      w.g.getWorldPosition(temp); VG.onMismatch(w, temp);
+      H.toast('接到了' + sp.name + '，先让它继续飞吧 · ' + VG.wishHint() + ' · 这次不加分', 3000);
+      return true;
+    }
     S.caught[sp.id] = Math.min(99999, (S.caught[sp.id] || 0) + 1);
     if (!done(3)) S.charge++;
     w.cooldown = 2.2; w.g.visible = false;
     w.g.getWorldPosition(temp); burst(temp, sp.color); if (FX) FX.sendLight(temp, sp.color, w.type); if (L3) L3.catchSound(w.type, litCount()); else chime(false);
     var wish = VG && VG.onCatch(w, temp);
     save(); updateRewards(); renderHud();
-    H.toast((wish ? '灯心欢喜 ✧ ' : '') + (fresh ? '新朋友 · ' + sp.name + '，已收入星萤图鉴' : (done(3) ? sp.name + '在掌心轻轻闪了闪' : (S.charge >= 4 ? '星光满了，轻点发亮的星灯 ✦' : '星光 +1 · ' + S.charge + ' / 4'))), 1800);
+    var message = done(3) ? sp.name + '在掌心轻轻闪了闪' : '星光 +1 · ' + S.charge + ' / 4';
+    if (fresh) message += ' · 新朋友：' + sp.name;
+    if (S.charge >= 4 && !done(3)) message += ' · 现在可以点亮星灯';
+    else if (wish) message += ' · 灯心欢喜 ✧';
+    H.toast(message, 2300);
     return true;
   }
   function light(index) {
     if (!active || !H.isStarted() || blocked() || index < 0 || index > 2) return;
-    if (S.lamps[index]) { H.toast(litCount() === 3 ? '三座星灯都亮着，云海有了归途 ✦' : '这座星灯已经亮了，去点亮下一座吧'); return; }
-    if (S.charge < 4) { H.toast('还需要 ' + (4 - S.charge) + ' 点星光 · 轻点或划过星萤'); return; }
+    feedbackUntil = time + 3;
+    if (S.lamps[index]) { H.toast(litCount() === 3 ? '三座星灯都亮着，云海有了归途 ✦' : '这座星灯已经亮了 · 请选未亮的星灯，星光会保留'); return; }
+    if (S.charge < 4) { H.toast('还差 ' + (4 - S.charge) + ' 点星光 · ' + VG.wishHint() + '，匹配才 +1', 3000); return; }
     S.charge -= 4; S.lamps[index] = true; if (FX) FX.onLamp(index);
     lamps[index].core.getWorldPosition(temp); burst(temp, 0xffd58a); if (L3) L3.lampSound(litCount()); else chime(true);
     if (litCount() === 3) complete(3);
     if (VG) VG.onLamp(index);
     save(); updateRewards(); updateLamps(); renderHud();
-    if (done(3)) { if (L3) L3.startFinale(index, showEnding); else showEnding(); } else H.toast('第 ' + litCount() + ' 座星灯亮起来了 ✧', 2600);
+    if (done(3)) { if (L3) L3.startFinale(index, showEnding); else showEnding(); } else H.toast((index + 1) + ' 号星灯亮起来了 ✧ · ' + VG.wishHint(), 3000);
   }
   function renderHud() {
     if (!$('starHud')) return;
     $('starCount').textContent = done(3) ? '星灯湾 · 自由拾光' : '星灯 ' + litCount() + ' / 3';
-    $('starHint').textContent = done(3) ? '星萤图鉴 ' + starsSeen() + ' / 6' : '星光 ' + S.charge + ' / 4 · ' + (S.charge >= 4 ? '点 ' + (S.lamps.indexOf(false) + 1) + ' 号星灯' : '轻点或划过星萤');
-    [0, 1, 2].forEach(function (n) { var b = $('starLamp' + n); b.classList.toggle('lit', S.lamps[n]); b.classList.toggle('ready', S.charge >= 4 && S.lamps.indexOf(false) === n); b.textContent = (n + 1) + (S.lamps[n] ? ' ✦' : ' ◇'); b.setAttribute('aria-label', (n + 1) + ' 号星灯' + (S.lamps[n] ? '已点亮' : '，需要4点星光')); });
+    $('starHint').textContent = done(3) ? '星萤图鉴 ' + starsSeen() + ' / 6' : '星光 ' + S.charge + ' / 4 · ' + (S.charge >= 4 ? '轻点一座未亮星灯' : '匹配偏爱色才 +1');
+    [0, 1, 2].forEach(function (n) { var b = $('starLamp' + n), ready = S.charge >= 4 && !S.lamps[n]; b.classList.toggle('lit', S.lamps[n]); b.classList.toggle('ready', ready); b.textContent = (n + 1) + (S.lamps[n] ? ' ✦' : ready ? ' 点亮' : ' ◇'); b.setAttribute('aria-label', (n + 1) + ' 号星灯' + (S.lamps[n] ? '已点亮' : ready ? '，星光已满，点击点亮' : '，需要4点星光，匹配当前灯的偏爱色才加分')); });
     if (VG) VG.renderHud();
   }
   function setModal(id, open) {
@@ -210,6 +221,7 @@
   function onLevel(n) {
     if (LC && LC.beforeLevel) LC.beforeLevel(n);
     active = n === 3; world.visible = active; $('starHud').hidden = !active;
+    updateRewards(); lastMiss = -10; feedbackUntil = 0;
     window.GardenClip.syncFlowers(H.flowers, n);
     document.body.setAttribute('data-garden-level', n);
     if (L3) L3.onLevel(active, litCount() === 3);
@@ -234,11 +246,11 @@
     var body = '', bf = window.__bf.state(), cats = window.__kittens.state(), r = rank(), experience = xp();
     document.querySelectorAll('[data-jr-tab]').forEach(function (el) { el.setAttribute('aria-selected', el.getAttribute('data-jr-tab') === tab ? 'true' : 'false'); });
     if (tab === 'journey') {
-      body = '<p class="jr-note">每一程都留下一点温柔。完成上一关，下一座小岛便会亮起。</p>';
+      body = '<p class="jr-note">选择想去的章节，切换会保留所有进度。完成上一关，下一座小岛便会亮起。</p>';
       var chapters = [
-        ['蝴蝶来信', '轻点或划过花间的蝴蝶，收集 30 点，解锁猫咪伙伴。', Math.min(30, bf.total) + ' / 30'],
+        ['蝴蝶来信', '轻点花间的蝴蝶，收集 30 点心动，解锁猫咪伙伴。', Math.min(30, bf.total) + ' / 30 点'],
         ['猫咪午后', '先丢毛线球，再抱抱小猫。收集 20 点，解锁星灯湾。', Math.min(20, cats.total) + ' / 20'],
-        ['星灯夜航', '轻点星萤积攒星光，每 4 点亮一座灯。让三盏灯照亮云海。', litCount() + ' / 3 座灯'],
+        ['星灯夜航', '当前灯是编号最小的未亮星灯。轻点它偏爱的两种颜色之一才 +1，其他颜色不加分也不扣分。集满 4 点，轻点任一未亮星灯或上方编号；共点亮三盏。', litCount() + ' / 3 座灯'],
         ['晨风铃谷', '听风铃、看编号，依次奏回三段旋律。可查看乐谱，没有限时。', S.chimes.round + ' / 3 乐章'],
         ['月汐莲湾', '接月露、转月镜、引光、合光、铺叶舟、回应晚安，连成一条月光归途。', S.lotus.found.length + ' / 6 朵莲花']
       ];
@@ -247,7 +259,7 @@
         body += '<section class="jr-row' + (current ? ' current' : '') + '"><h3>0' + n + ' · ' + c[0] + '</h3><p>' + c[1] + '</p><p>' + (done(n) ? '✧ 已完成 · ' : '') + c[2] + '</p><button data-jr-go="' + n + '"' + (allowed ? '' : ' disabled') + '>' + (current ? '继续这一程' : (allowed ? '前往' : '完成上一关解锁')) + '</button></section>';
       });
       if (VG && unlocked(3)) body += VG.journal();
-      body += '<p class="jr-note">切换关卡保留所有进度；收藏与成长永久累计。V9.2 · 月汐莲湾</p>';
+      body += '<p class="jr-note">切换关卡保留所有进度；收藏与成长永久累计。V9.4 · 月汐莲湾</p>';
     } else if (tab === 'collection') {
       var books = [
         ['月莲手记', window.LotusRules.blooms, S.lotus.found, '☾'],
@@ -265,7 +277,7 @@
     } else {
       var next = RANKS[r + 1], fraction = next ? (experience - RANKS[r].xp) / (next.xp - RANKS[r].xp) : 1;
       body = '<h2>Lv.' + (r + 1) + ' · ' + RANKS[r].name + '</h2><div class="jr-meter"><i style="width:' + Math.min(100, fraction * 100) + '%"></i></div><p>' + experience + ' 成长星光' + (next ? ' · 再收集 ' + (next.xp - experience) + ' 点成为「' + next.name + '」' : ' · 小岛已记住你的每一份温柔') + '</p><p class="jr-note">每发现一个新物种 +5；每关首次完成 +20。重复收集与重玩不会重复发放成长星光。</p>';
-      ['贝壳风铃', '星砂小径', '云上星环'].forEach(function (name, i) { var owned = r >= i + 1; body += '<div class="jr-reward"><div>' + name + '<br><small class="jr-note">Lv.' + (i + 2) + ' · ' + (owned ? '已获得' : '尚未解锁') + '</small></div><label><input type="checkbox" data-jr-decor="' + i + '"' + (S.decor[i] && owned ? ' checked' : '') + (owned ? '' : ' disabled') + '>摆放</label></div>'; });
+      ['贝壳风铃', '星砂小径', '云上星环'].forEach(function (name, i) { var owned = r >= i + 1; body += '<div class="jr-reward"><div>' + name + '<br><small class="jr-note">Lv.' + (i + 2) + ' · ' + (owned ? '已获得' : '尚未解锁') + (i === 2 ? ' · 第三关进行中显示' : '') + '</small></div><label><input type="checkbox" data-jr-decor="' + i + '"' + (S.decor[i] && owned ? ' checked' : '') + (owned ? '' : ' disabled') + '>摆放</label></div>'; });
       body += '<p class="jr-note">老版本的花卉、蝴蝶与猫咪收藏会自动计入。所有奖励都来自游玩，无需付费或每日签到。</p>';
     }
     $('journeyContent').innerHTML = body;
@@ -273,7 +285,7 @@
   function buildUI() {
     var panel = document.createElement('div'); panel.id = 'journeyPanel'; panel.hidden = true;
     panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); panel.setAttribute('aria-labelledby', 'journeyTitle');
-    panel.innerHTML = '<div class="jr-card"><div class="jr-head"><div><div class="jr-eyebrow">TWILIGHT ISLES · JOURNAL</div><h2 id="journeyTitle">浮岛手账</h2></div><button class="jr-close" id="journeyClose" aria-label="合上手账">×</button></div><div class="jr-tabs" role="tablist" aria-label="手账分类"><button role="tab" data-jr-tab="journey">旅程</button><button role="tab" data-jr-tab="collection">收藏</button><button role="tab" data-jr-tab="growth">成长</button></div><div id="journeyContent"></div></div>';
+    panel.innerHTML = '<div class="jr-card"><div class="jr-head"><div><div class="jr-eyebrow">TWILIGHT ISLES · JOURNAL</div><h2 id="journeyTitle">浮岛手账</h2></div><button class="jr-close" id="journeyClose" aria-label="合上手账">×</button></div><div class="jr-tabs" role="tablist" aria-label="手账分类"><button role="tab" data-jr-tab="journey">选关</button><button role="tab" data-jr-tab="collection">收藏</button><button role="tab" data-jr-tab="growth">成长</button></div><div id="journeyContent"></div></div>';
     document.body.appendChild(panel);
     $('journeyClose').onclick = function () { setModal('journeyPanel', false); };
     panel.addEventListener('click', function (e) {
@@ -334,26 +346,33 @@
     if (!FX || !canPlay()) return false;
     // Screen-space hit targets stay usable on narrow phones and at every zoom.
     var p = FX.screenOf(ray), lamp = FX.lampAt(p.x, p.y), wisp = FX.wispAt(p.x, p.y);
-    if (wisp) return collect(wisp);
     if (lamp >= 0 && !S.lamps[lamp] && S.charge >= 4) { light(lamp); return true; }
+    if (wisp) return collect(wisp);
     // Other modes keep their own use of the ground around a lamp that can't be lit yet
     if (lamp >= 0 && mode === 'net') { light(lamp); return true; }
     return false; // nothing here: let the cat and birds in gameplay.js answer
   }
   function canPlay() { return active && H.isStarted() && !blocked(); }
+  function feedbackBusy() { return time < feedbackUntil || (active && !done(3) && S.charge >= 4); }
+  function miss() {
+    if (time - lastMiss < 2) return;
+    lastMiss = time;
+    feedbackUntil = time + 3;
+    H.toast(done(3) ? '轻点正在飞舞的彩色星萤，继续收集图鉴' : S.charge >= 4 ? '星光已满 · 轻点带「点我点亮」的星灯，或上方未亮编号' : '这里没有接到星萤 · ' + VG.wishHint() + '，匹配才 +1', 3000);
+  }
   function hint() {
     if (done(3)) return '三座星灯都亮着 · 留下来慢慢拾光';
-    if (S.charge >= 4) return '星光满了 · 轻点发亮的星灯';
-    return '轻点或划过星萤，集满 4 点星光点亮星灯 · 没有时间限制';
+    if (S.charge >= 4) return '星光已满 · 轻点带「点我点亮」的星灯，或上方未亮编号';
+    return VG.wishHint() + '，匹配才 +1 · 集满 4 点可点亮任一未亮星灯';
   }
-  var API = window.GardenJourney = { ready: false, open: open, blocked: blocked, unlocked: unlocked, onLevel: onLevel, saveWarning: saveWarning, saveOk: saveOk, hint: hint };
+  var API = window.GardenJourney = { ready: false, open: open, blocked: blocked, unlocked: unlocked, onLevel: onLevel, saveWarning: saveWarning, saveOk: saveOk, hint: hint, feedbackBusy: feedbackBusy };
   var GP = window.GardenPlay, baseInit = GP.init, baseUpdate = GP.update, baseTap = GP.onTap;
   GP.init = function (hooks) {
     baseInit.apply(GP, arguments); H = hooks; T = hooks.THREE;
     temp = new T.Vector3(); color = new T.Color();
     sync(true); oldRank = rank(); makeWorld(); buildUI();
     if (window.__level3) L3 = window.__level3.init(hooks, lamps);
-    if (window.__level3fx) FX = window.__level3fx.init(hooks, { wisps: wisps, lamps: lamps, lit: function (i) { return S.lamps[i]; }, charge: function () { return S.charge; }, allLit: function () { return litCount() === 3; }, canPlay: canPlay, collect: collect });
+    if (window.__level3fx) FX = window.__level3fx.init(hooks, { wisps: wisps, lamps: lamps, lit: function (i) { return S.lamps[i]; }, charge: function () { return S.charge; }, allLit: function () { return litCount() === 3; }, canPlay: canPlay, collect: collect, miss: miss });
     if (window.__voyage) VG = window.__voyage.init(hooks, { progress: S, types: TYPES, wisps: wisps, lamps: lamps, save: function () { return save(true); }, canPlay: canPlay });
     if (window.ChimeChapter) CH = window.ChimeChapter.init(hooks, { progress: S, blocked: blocked, complete: complete, open: open, go: go,
       changed: function () { save(); updateRewards(); if (!$('journeyPanel').hidden) render(); } });
@@ -367,7 +386,7 @@
     if (CH && level() === 4 && CH.tap(ray)) return true;
     if (tap(ray, mode)) return true;
     var used = baseTap.apply(GP, arguments);
-    if (!used && FX && active && mode === 'net') FX.ripple(ray);
+    if (!used && FX && canPlay() && mode === 'net') { FX.ripple(ray); miss(); }
     return used;
   };
   window.addEventListener('pagehide', function () { if (API.ready) { sync(true); save(true); } });

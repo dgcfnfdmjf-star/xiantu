@@ -19,15 +19,23 @@ async root => {
  await page.reload();await page.locator('#start').click();await page.waitForTimeout(1300);
  const state=()=>page.evaluate(()=>__journey.state());
  const migrated=await state();assert(migrated.progress.stars===6,'V6 catches become six sky stars');assert(migrated.progress.charge===3&&migrated.progress.decor[0]===false,'V6 unfinished charge and decor retained');
- assert(await page.locator('meta[name="garden-version"]').getAttribute('content')==='9.2.0','version metadata');
+ assert(await page.locator('meta[name="garden-version"]').getAttribute('content')==='9.4.0','version metadata');
  assert(await page.evaluate(()=>GardenAudio.currentTrackName())==='星灯夜曲','level-specific music');
  results.push('V6 partial-save migration / version / nocturne');
- async function target(){
-  await page.waitForFunction(()=>__journey.targets().some(p=>p.front&&p.y>290&&p.y<700&&document.elementFromPoint(p.x,p.y)?.tagName==='CANVAS'&&__level3fx.wispAt(p.x,p.y)&&__level3fx.lampAt(p.x,p.y)<0));
-  return page.evaluate(()=>__journey.targets().find(p=>p.front&&p.y>290&&p.y<700&&document.elementFromPoint(p.x,p.y)?.tagName==='CANVAS'&&__level3fx.wispAt(p.x,p.y)&&__level3fx.lampAt(p.x,p.y)<0));
+ const targetProbe=wanted=>{
+  const ids=['dew','peach','amber','moon','violet','tide'],preferences=[['peach','amber'],['dew','moon'],['violet','tide']],progress=__journey.state().progress,next=progress.lamps.indexOf(false),allowed=next<0?ids:preferences[next];
+  return __journey.targets().find(p=>{const w=__level3fx.wispAt(p.x,p.y);return (!wanted||p.id===wanted)&&allowed.includes(p.id)&&p.front&&p.y>290&&p.y<700&&document.elementFromPoint(p.x,p.y)?.tagName==='CANVAS'&&w&&ids[w.type]===p.id&&__level3fx.lampAt(p.x,p.y)<0;});
+ };
+ async function target(wanted=null){
+  const handle=await page.waitForFunction(targetProbe,wanted,{timeout:15000}),point=await handle.jsonValue();await handle.dispose();return point;
  }
- async function catchOne(){for(let i=0;i<20;i++){const old=JSON.stringify((await state()).progress.caught),t=await target();await page.touchscreen.tap(t.x,t.y);if(JSON.stringify((await state()).progress.caught)!==old)return;}throw Error('No wisp captured');}
- await catchOne();assert((await state()).progress.charge===4,'one genuine catch restores full charge');
+ async function catchOne(wanted=null){for(let i=0;i<20;i++){const before=await state(),t=await target(wanted);await page.touchscreen.tap(t.x,t.y);const after=await state();if(JSON.stringify(after.progress.caught)!==JSON.stringify(before.progress.caught)){
+  if(wanted)assert((after.progress.caught[wanted]||0)===(before.progress.caught[wanted]||0)+1,'requested free-play color '+wanted+' collected');
+  if(before.progress.completed.includes(3))assert(after.progress.charge===before.progress.charge,'free-play collection leaves charge unchanged');
+  else assert(after.progress.charge===before.progress.charge+1&&after.progress.joys===before.progress.joys+1,'preferred catch adds exactly one charge and joy');
+  return t.id;
+ }}throw Error('No eligible wisp captured'+(wanted?' for '+wanted:''));}
+ const resumedColor=await catchOne();assert(['violet','tide'].includes(resumedColor)&&(await state()).progress.charge===4,'one lamp-3 preferred catch restores the preserved partial charge');
  await page.locator('#starLamp2').click();assert(await page.evaluate(()=>__level3.isRunning()),'finale starts');
  const won=await state();assert(won.progress.completed.includes(3)&&won.progress.lamps.every(Boolean),'completion persisted before animation');
  await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});document.dispatchEvent(new Event('visibilitychange'));});
@@ -74,6 +82,23 @@ async root => {
  await page.emulateMedia({reducedMotion:'reduce'});
  await page.addInitScript(()=>{if(sessionStorage.getItem('fixture-reduced'))return;sessionStorage.setItem('fixture-reduced','1');const s=JSON.parse(localStorage.getItem('healingGarden.journey.v1'));s.lamps=[true,true,false];s.charge=4;s.completed=[1,2];localStorage.setItem('healingGarden.journey.v1',JSON.stringify(s));});
  await page.reload();await page.locator('#start').click();await page.locator('#starLamp2').click();assert(await page.locator('#starEnding').isVisible(),'reduced-motion skips lengthy finale');assert(!await page.evaluate(()=>__level3.isRunning()||__voyage.state().looping),'no finale or boat loop with reduced motion');results.push('reduced-motion ending');
+ // An old completed save can lack its completion flag and all additive voyage fields.
+ await page.addInitScript(()=>{
+  if(sessionStorage.getItem('fixture-old-complete'))return;sessionStorage.setItem('fixture-old-complete','1');
+  localStorage.setItem('healingGarden.kittens.v1',JSON.stringify({total:20,ended:true,level:3,caught:{orange:20}}));
+  localStorage.setItem('healingGarden.journey.v1',JSON.stringify({caught:{dew:1,peach:1,amber:1,moon:1,violet:1,tide:1},charge:0,lamps:[true,true,true],completed:[1,2],decor:[false,true,false]}));
+ });
+ await page.setViewportSize({width:390,height:844});
+ await page.reload();await page.locator('#start').click();await page.waitForTimeout(1000);
+ const legacyComplete=await state();
+ assert(legacyComplete.progress.completed.includes(3)&&legacyComplete.progress.stars===6&&legacyComplete.progress.charge===0,'old completed lamps restore completion and sky without charging');
+ assert(legacyComplete.progress.decor[0]===false&&legacyComplete.progress.decor[2]===false,'old completed decoration choices retained');
+ for(const id of ['dew','peach','amber','moon','violet','tide'])await catchOne(id);
+ const freePlay=await state();
+ assert(freePlay.progress.charge===0&&freePlay.progress.stars===12&&freePlay.progress.joys===0&&freePlay.xp===legacyComplete.xp,'all six free-play colors collect without charge, preference joy, or duplicate growth');
+ await page.reload();await page.locator('#start').click();
+ const legacyReload=await state();assert(legacyReload.xp===freePlay.xp&&legacyReload.progress.stars===12&&legacyReload.progress.charge===0,'legacy completed free play persists without duplicate rewards');
+ results.push('old completed save / all-six-color free play / unchanged charge / no duplicate reward');
  assert(errors.length===0,'page errors: '+errors.join(';'));assert(external.length===0,'no external dependencies');
- await context.close();return {checks:results,errors,external,migrated,won};
+ await context.close();return {checks:results,errors,external,migrated,won,legacyComplete,freePlay};
 }

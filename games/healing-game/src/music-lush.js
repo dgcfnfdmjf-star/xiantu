@@ -430,7 +430,7 @@
     setStyle: function (next) {
       style = next === 'classic' ? 'classic' : 'lush';
       [1, 2, 4].forEach(function (level, i) { M.theme[level] = TRACKS[i].id + (style === 'classic' ? '_classic' : ''); });
-      // A style change must not restart, rename or replace either MP3 chapter.
+      // A style change must not restart, rename or replace either chapter-specific score.
       if (M.level() === 3 || M.level() === 5) return true;
       return M.play(M.theme[M.level()]);
     }
