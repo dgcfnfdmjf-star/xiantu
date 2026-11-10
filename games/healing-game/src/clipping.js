@@ -68,17 +68,17 @@
       return true;
     },
     settleKitten: function (k, kittens, flowers) {
-      var i, p, pinned = k.state === 'play' || k.state === 'sleep'; // a kitten busy with its yarn or asleep stays put; others walk round it
+      var i, p, radius = k.catFootprint || .31, pinned = k.state === 'play' || k.state === 'sleep'; // a kitten busy with its yarn or asleep stays put; others walk round it
       for (i = 0; i < kittens.length; i++) {
         p = kittens[i];
         if (p === k || p.dead) continue;
-        if (p.yarn && !pinned) pushCircle(k, p.yarn.position.x, p.yarn.position.z, .45);
-        if (!pinned && p.state !== 'hug') pushCircle(k, p.x, p.z, .62, p.state === 'play' || p.state === 'sleep' ? 1 : .5);
+        if (p.yarn && !pinned) pushCircle(k, p.yarn.position.x, p.yarn.position.z, k.catFootprint ? radius + .14 : .45);
+        if (!pinned && p.state !== 'hug') pushCircle(k, p.x, p.z, radius + (p.catFootprint || .31), p.state === 'play' || p.state === 'sleep' ? 1 : .5);
       }
-      for (i = 0; i < flowers.length; i++) { p = flowers[i].root.position; pushCircle(k, p.x, p.z, FLOWER_R + .2); }
-      if (chime.on) pushCircle(k, chime.x, chime.z, .35);
-      pushCircle(k, CAT.x, CAT.z, CAT_R + .25);
-      for (i = 0; i < BUSHES.length; i++) pushCircle(k, BUSHES[i][0], BUSHES[i][1], BUSH_R + .3);
+      for (i = 0; i < flowers.length; i++) { p = flowers[i].root.position; pushCircle(k, p.x, p.z, FLOWER_R + (k.catFootprint || .2)); }
+      if (chime.on) pushCircle(k, chime.x, chime.z, k.catFootprint ? radius + .05 : .35);
+      pushCircle(k, CAT.x, CAT.z, CAT_R + (k.catFootprint || .25));
+      for (i = 0; i < BUSHES.length; i++) pushCircle(k, BUSHES[i][0], BUSHES[i][1], BUSH_R + (k.catFootprint || .3));
     },
     // World space: butterflies live in the scene, so island-local props are shifted by the island's bob
     settleButterfly: function (p, list, self, iy, flowers) {

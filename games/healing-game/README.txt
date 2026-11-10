@@ -1,52 +1,73 @@
-暮色浮岛 V9.4 · 月汐莲湾（2026-11-10）
+暮色浮岛 V9.5 · 四种 Blender 猫咪（2026-11-10）
 
-基于 main a43994e（含 PR #72）的五章体验反馈修复。原岛、树、池塘、五章解锁顺序、无失败玩法与旧存档继续沿用。
+在已通过评审的 PR #74 橘猫样品分支 codex/healing-cat-orange-sample 上继续，
+将该 PR 扩展为四种毛色与第二关接入。只提交评审，不合并 main、不部署。
 
-交互与反馈
-- 第一关统一提示「轻点蝴蝶」。种花成功后自动切回捕蝶；本关停止自动绕岛，手动旋转和缩放保留。蝴蝶接近镜头时按视深和屏幕尺寸平滑缩小、退隐，不推入原岛地物；不可见蝴蝶不能截获点击。
-- 捕蝶进度一直是心动点数：普通蝶 +1、稀有蝶 +3。现在界面明确标点数，结局进度固定显示30/30，图鉴另列累计真实只数；旧 total 与 caught 不重算。修复29→32（以及29→30）触发结局时手势已清空、后续仍访问 stroke.n 的异常；点击和划动两条路径均覆盖。
-- 第二关第一次点小猫后，固定任务文字和跟随猫咪的气泡明确提示「玩毛线球 · 再点抱抱」。沿用原来可立即再次点击的规则，没有新增等待；点错猫或空处有反馈，准备好的猫不会因隐藏时间窗失效，旧开场提示不再覆盖操作反馈。
-- 进行中的猫咪章节每种毛色最多贡献4次抱抱，随后引导找其他毛色；新来的猫偏向较少陪玩的毛色。新字段 companions 只记录本程、明确重玩时清空；旧 total/caught/通关状态完整保留，旧图鉴不会锁死重玩，完成后的自由陪玩照常。
-- 第三关只有当前灯偏爱的两种颜色能 +1 星光。当前灯是编号最小的未亮灯，入口、任务卡与编号描边明确当前目标及颜色。点中其他颜色会轻闪并说明所需颜色，不增加或扣除充能、图鉴、星空、欢喜和成长奖励，也不隐藏该星萤。新物种反馈与充能合并；开场、天气、成长、纸船和延迟发现通知遵守同一保护规则，不覆盖操作及满4点点灯指引。
-- 旧部分进度和已得分数不重算；场上持续保留当前灯的两种偏爱色，避免旧存档或非顺序点灯后无色可接。集满4点仍可点亮任意未亮灯，再按第一未亮灯更新偏爱；三灯完成后的自由拾光仍可收集所有颜色。
-- 星萤光晕增大变亮、轨道速度放缓，点击区域扩大；空点、未满灯、已亮灯都有温和解释。满4点时所有可点星灯同时出现明亮呼吸光晕与世界文字「点我点亮」，可点任意未亮灯，上方编号按钮仍可用。
-- 第五关独立曲目《月汐摇光》：F大调、64 BPM、16小节的拨弦/长笛/钢琴合成配乐，复用原音频时钟、总线、音乐/音效开关与手势解锁。第三关仍用原《星灯夜曲》MP3及其网络失败合成回退；切关和异步解码不会串音。
-- 潮璃莲月镜光束加粗、增亮；未对准时说明最短向左/右转几格，提示相应按钮并轻亮目标，正确对准后高亮送光按钮。失败不扣分、不改已得进度。
-- 雨仅在第二关出现且较轻，离开立即清空；原睡猫及其命中代理只在第二关启用。第三关树上薄环的实际归属是成长奖励「云上星环」，现仅在未完成第三关显示，完成/离开即隐藏；第五关的月镜和月环保留。
-- 结局对话框采用深色背景与不透明卡片；右上新增明确的「🗺 选关」文案，直接打开现有选关页，切换保留进度。标题、garden-version、手账页脚统一V9.4。
+本版变化
+- 橘猫、三花猫、小煤球、狸花猫使用同一套 Blender 4.3.2 bpy 流程和坐姿。
+  每种提供内嵌纹理 GLB、打包纹理的 .blend、实际 Blender 渲染 PNG。
+  运行 GLB 在保留已审轮廓的前提下减到每只 6,886 面；原 35,280 面源网格
+  保留在 .blend 中。四只 GLB 合计 1,149,404 字节。
+  没有骨骼/粒子毛发。运行面数、大小和减面验证以各 metrics 文件为准。
+- 毛色按原 KINDS 定义。橘猫保留已审造型；三花有橘/深色花斑，小煤球无纹，
+  狸花有深色条纹，眼睛分别为原定的深色/黄色/绿色。
+- 2048px PNG 毛色贴图改为 1024px 内嵌 JPEG；已审坐姿、配色和花纹保留。
+  拆分重叠的后脚/尾巴 UV 区域，修正像素中心采样并重新烘焙；导出前检查
+  重叠与覆盖，避免减面后出现贴图碎斑。渲染 PNG 与实际运行 GLB 使用同一网格。
+  实际各文件大小、哈希、贴图参数和面数见 assets/cats/*-metrics.json。
+- 第二关按需加载 ./cats/{orange,calico,black,tabby}-cat.glb；同毛色实例共享
+  模板几何体、材质和纹理。装饰橘猫也复用橘猫模板。模型以原猫场景尺度放置，
+  呼吸、行进和抱起沿用整体模型变换，不引入骨骼动画或额外渲染循环。
+- 加载期间或失败时使用原代码猫，玩法可继续；离开第二关后异步结果不挂回场景。
+  返回第二关复用已下载模板；每种失败本页不反复重试，刷新可重新加载。
+- 真实模型的地面尺寸用于第二关避让，点选中心随实际模型调整。
+  GLB 材质单独适配旧页面的线性色彩输出，修复黑猫被压暗的问题；不改全局渲染。
+  未改相机、其他关卡的光照/造型、音乐、数值或存档格式。
 
-兼容边界
-- healingGarden.journey.v1、healingGarden.kittens.v1、healingGarden.butterflies.v1 与 lotus.version=2 不变；新增 companions 字段缺失时安全初始化，不改旧猫图鉴或分数。
-- 第五关六目标、首次奖励总计50、已完成练习隔离、第四关完成后解锁、47种手账保持。原岛与原池塘对象继续复用，无新岛盘。
-- nightvoyage-bgm.mp3：2161729 bytes；SHA256 19a90003e4b3b45c075b4c1da5a81341fddac954397d481e680a6ea3c1a5cb31。源与包内文件不变。
-- 不修改仙途/Jev逻辑、不合并main、不部署。改动范围仅 games/healing-game 与用户授权的三层校验清单。
+玩法与兼容性
+先丢毛线球，再点同一只抱抱；每种毛色每程最多 4 次、集满 20 点解锁第三关，
+稀有猫的原价值与出现规则全部保留。源码还定义小雪团和稀有星光猫，它们继续
+使用原造型，避免本次四种替换改变毛色种类、旧图鉴和通关条件。
+healingGarden.kittens.v1、companions、caught、total、ended 与其他存档键不变。
+第三关 nightvoyage-bgm.mp3 保持 2161729 bytes，SHA256：
+19a90003e4b3b45c075b4c1da5a81341fddac954397d481e680a6ea3c1a5cb31。
+V9.4 试玩反馈和第五关六个目标、原岛、终章配乐继续保留。
 
-构建与校验（仓库根目录）
-python3 games/healing-game/scripts/build.py
-python3 games/healing-game/tests/test_package.py
-node games/healing-game/tests/feedback-butterfly.cjs
-node games/healing-game/tests/chime-rules.cjs
-node games/healing-game/tests/lotus-rules.cjs
-node games/healing-game/tests/save-guard-rules.cjs
-node games/healing-game/tests/pointer-cleanup.cjs
-npm test
-PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser
+构建与部署包说明
+在仓库根目录执行：
+  python3 games/healing-game/scripts/build.py
+  python3 games/healing-game/tests/test_package.py
 
-预览输出 games/healing-game/site/healing-game/index.html（1,011,463 bytes，未直接编辑）。V9.4包与包SHA256位于 games/healing-game/releases/，严格只含 healing-game/index.html 和 healing-game/nightvoyage-bgm.mp3；原 downloads/ 历史包保留。固定ZIP元数据使重复构建字节一致。保留V5源文件不修改；scripts/feedback-v94.py 与 scripts/butterfly-v94.py 提供检查唯一匹配的兼容补丁。
-校验按PR #70流程依次生成/验证 xiantu-v2831-scroll/checksums.sha256、根 checksums.sha256、handoff-checksums.sha256（含根清单对应条目），使用 python3 scripts/checksums.py --write 后 python3 scripts/checksums.py。
+生成 games/healing-game/site/healing-game/ 和 releases/healing-game-v9.5-tencent.zip。
+ZIP 必须完整保留 healing-game/ 目录，当前包含六个文件：
+  healing-game/index.html
+  healing-game/nightvoyage-bgm.mp3
+  healing-game/cats/orange-cat.glb
+  healing-game/cats/calico-cat.glb
+  healing-game/cats/black-cat.glb
+  healing-game/cats/tabby-cat.glb
 
-真实浏览器验证
-使用 scripts/browser-cli.sh 的独立会话、系统 Chromium /usr/bin/chromium 与8784本地HTTP服务。所有上下文全新、只用合成存档并阻止外网，不加载真实玩家数据。测试响应中的观测插桩不进入发布版。
-运行 tests/ 下 journey、voyage、finale-audio、chapter4、nightvoyage-audio、shared-audio、music-lush、mode-reset、chapter3-feedback、feedback-v94、feedback-lifecycle、feedback-cat-save、wisp-geometry，以及 lotus-browser、lotus-finale、lotus-clipping、lotus-layout、lotus-carryover 浏览器套件。截图/原始日志保留于忽略的 output/playwright/healing-v94-validation、astra94-review、lotus94-own 与 chapter3v94。
-Linux软件渲染与触屏模拟不代表实体手机帧率。原 clipping-browser.js 的第三关星萤间距 <0.7 为已知旧基线问题，本轮不降低断言、不扩展到无关几何修正；最新实测结果见PR验证记录。
+本版不再是 V9.4 的两文件包；只上传 index.html 会丢失模型。GLTFLoader 已内联，
+没有 CDN 或额外解码器依赖。Blender 源文件、渲染预览、独立查看页和构建脚本均
+不进入游戏 ZIP。构建使用固定元数据，重复运行字节一致；ZIP 校验见同目录
+healing-game-v9.5-SHA256SUMS.txt。V9.4 与更早历史包保留。
+source/healing-game-v5.html 保持原上传；新外观挂钩在 scripts/cats-v95.py，
+模型适配在 src/cat-models.js。发布 HTML 不直接编辑。
+标题、garden-version 和手账页脚统一为 V9.5 / 9.5.0。
 
-本轮验证记录
-- 偏爱色计分修订后重新通过 npm test、66项根浏览器、6项包测试和7项蝴蝶反馈测试；chapter3-feedback、journey、voyage、feedback-v94、feedback-lifecycle、finale-audio 六套真实浏览器回归通过，独立Astra实测与截图复核通过。重复错色的进度、原始存档和冷却均不变；12次匹配捕获完成3→1→2，旧部分/高收藏/满4存档与通关全色拾光可继续。
-- npm test：154个游戏回归脚本与限流、保存/错误、包装工具、打包套件全部通过；根Chromium浏览器66/66通过。
-- 包测试6项（17段脚本解析、资源不外链、固定元数据重复构建）、蝴蝶反馈7项、风铃6项、月莲6项、保存保护8项、指针清理5项通过。
-- 实际触屏覆盖猫咪首次/错误/再次点击、单毛色上限、旧图鉴100次仍可玩、刷新、完成与重玩；第三关按当前偏爱色真实拾取、重复错色不计分且提示所需颜色、任意顺序3→1→2世界点灯与目标更新、满星光和操作反馈优先、旧部分存档与完成后全色自由拾光。
-- 第五关五套浏览器回归通过：六目标/50奖励、自然结局与手势、288姿态/120绽放/30合光/64叶舟/29归航/64相机、五视口六任务、420跨关灯笼帧及1680鸟/月环姿态。独立音频与第三关MP3共8种成功/失败/延迟解码上下文通过。
-- 蝴蝶相机回归扫查15,552组合，10,368组可见，最近可见翼顶点视深3.207296（近面0.5），最大投影占短边25.902%；真实手动缩放/旋转后的390px截图最大翼跨度73.09px，无巨大近镜翅膀。
-- 原 clipping-browser.js 本次也通过：第一关3056步、第二关3744步、第三关3664步；星萤中心最小间距0.869700。历史长时间基线曾低于0.7，本次保留原断言，短时通过不代表修复该旧问题。
-- V9.4 ZIP：2410126 bytes；SHA256 827dd5c0f0a6c7dabba8dd906716f90230d8f06524bcc0bc86c5ba9d5b8d9134。
-- 星萤实体另以25,000步完整分离轴检测复核：693,234组网格配对，最终新增交叠0。以较大光晕增强可见性，原实体尺寸保留。真实旧版路径的树接触样本340，最终336；灯接触均0。历史接触未冒充本轮修复。
+查看四只猫
+assets/cats/preview-cat-orange.html 保留原文件名，新增四毛色切换、旋转与缩放。
+本地服务与 Blender 重建步骤见 assets/cats/README.txt。
+
+验证
+  npm test
+  PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser
+  PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium node games/healing-game/assets/cats/tests/preview-cat-orange.cjs
+  PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium node games/healing-game/tests/cat-models-browser.cjs
+  PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium node games/healing-game/tests/cat-models-performance.cjs
+
+保留原猫咪反馈/存档、选关/旅程、音频等浏览器回归。只使用合成存档，阻止外部
+服务请求。加载与渲染测量的网络参数、样本及限制见 assets/cats/VALIDATION.txt。
+云端 Chromium 手机布局模拟不等于实体手机性能保证。
+按顺序更新与校验三层清单：python3 scripts/checksums.py --write，随后
+python3 scripts/checksums.py；不改仙途/Jev 代码，不部署任何游戏或云函数。
