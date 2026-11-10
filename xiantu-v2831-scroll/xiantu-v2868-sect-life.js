@@ -81,7 +81,7 @@ function sectTodoReadV2868(){
 }
 let sectTodoCacheV2868={total:0};
 function syncSectTodoV2868(){
- sectTodoCacheV2868=sectTodoReadV2868();const bar=document.getElementById('characterUtilityActions');if(!bar)return;let button=document.getElementById('sectTodoBtnV2868');if(!button){button=document.createElement('button');button.id='sectTodoBtnV2868';button.onclick=()=>showSectTodoV2868();bar.appendChild(button);}button.hidden=!player?.sect||player.sect==='散修'||isFactionDestroyed(player.sect);button.disabled=!sectCanManageV2866();button.textContent=sectTodoCacheV2868.total?`宗门待办 ${sectTodoCacheV2868.total}`:'宗门';button.setAttribute('aria-label',button.textContent);
+ sectTodoCacheV2868=sectTodoReadV2868();if(typeof syncTodayDotV2868117==='function')syncTodayDotV2868117(sectTodoCacheV2868);const bar=document.getElementById('characterUtilityActions');if(!bar)return;let button=document.getElementById('sectTodoBtnV2868');if(!button){button=document.createElement('button');button.id='sectTodoBtnV2868';button.onclick=()=>showSectTodoV2868();bar.appendChild(button);}button.hidden=!player?.sect||player.sect==='散修'||isFactionDestroyed(player.sect);button.disabled=!sectCanManageV2866();button.textContent=sectTodoCacheV2868.total?`宗门待办 ${sectTodoCacheV2868.total}`:'宗门';button.setAttribute('aria-label',button.textContent);
 }
 function showSectTodoV2868(){
  if(!sectCanManageV2866())return;const t=sectTodoReadV2868(),esc=discipleEscV2815,names=new Map(sectMembersReadV2868().map(d=>[d.id,esc(d.name)]));let html='<section class="sect-board-v2866"><h3>宗门待办</h3>'+sectQuickHtmlV2870();
@@ -205,7 +205,7 @@ function settleReadySectTasksV2885(session){
  closeExpansionV286827();updateStats();syncSectTodoV2868();showFloatingText(`已速办${q.tasks.length}项委托，消耗与奖励已保存。`,'#69f0ae');showSectTodoV2868();return true;
 }
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.116';
+window.__xiantuBuildFilesV2814['xiantu-v2868-sect-life.js']='28.68.117';
 
 
 // V28.68.40: saved random encounters and run-scoped blessings.
@@ -556,3 +556,71 @@ function executeSectPathV2880(kind,id,token){
 function sectUpkeepTextV2880(q){
  return q.upkeep===undefined?'旧账册不收供养。':`供养组成：弟子${q.members}名、官职${q.posts}席；弟子每人20×(1+境界序号×0.1)，官职每席80，山门运转为繁荣度×3，再计道统及传承减免。`;
 }
+
+// V28.68.117 (audit G6 phase 1): 今日修行 card. Read-only summary of the existing daily and weekly tasks, the real-time
+// trip (游历) and sect to-dos. Adds no reward, no save field; every button calls the existing guarded function.
+function todayReadV2868117(todo){
+ const out={tasks:[],trip:{active:false,name:'',units:0,gold:0,herbs:0,claimable:false},todo:{total:0,mails:[],jobs:[],thanks:[],trails:[],tasks:[],promotion:false,income:false,doctrine:false},sect:false,sectTasks:[],claimable:false,dailyDone:0,dailyTotal:0};
+ if(typeof player==='undefined'||!player)return out;
+ ensureTaskState();
+ for(const t of SIDE_TASKS.filter(t=>t.type==='daily'||t.type==='weekly')){
+  const status=getTaskStatus(t.id),inst=getTaskInstance(t.id),step=inst&&!inst.completed?getCurrentTaskStep(t.id):null;
+  out.tasks.push({id:t.id,type:t.type,title:t.title,status,progress:status===TASK_STATUS.COMPLETED?100:getTaskProgress(t.id),step:step?getTaskStepDisplay(t.id,step):'',stepNo:inst?Math.min(inst.currentStep||0,t.steps.length):0,steps:t.steps.length,rewards:t.rewards});
+  if(t.type==='daily'){out.dailyTotal++;if(status===TASK_STATUS.COMPLETED)out.dailyDone++;}
+ }
+ const s=tripStateV286821(),y=tripYieldV286821(),route=TRIP_ROUTES_V286821.find(r=>r.key===s.active?.key);
+ if(route)out.trip={active:true,name:route.name,units:y.units,gold:y.gold,herbs:y.herbs,claimable:y.units>0};
+ out.sect=!!player.sect&&player.sect!=='散修'&&!isFactionDestroyed(player.sect);
+ out.todo=todo||sectTodoReadV2868();
+ if(out.sect)for(const [i,t] of (player.sectTasks||[]).entries())if(t&&!t.completed&&t.template){const p=getSectTaskProgressInfo(t);out.sectTasks.push({index:i,name:t.template.name||'宗门委托',label:p.label,ready:!!p.ready,combat:t.template.type==='combat'});}
+ out.claimable=out.trip.claimable||out.todo.total>0;
+ return out;
+}
+function todayOpenV2868117(kind,arg){
+ if(typeof gameState==='undefined'||gameState!=='exploring'||player?.breakthrough?.isAnimating)return false;
+ if(kind==='accept'){const ok=acceptTask(arg);renderTaskList('today');return ok;}
+ if(kind==='task'){performTaskAction(arg);if(document.getElementById('taskListContainer')&&currentTaskTab==='today')renderTaskList('today');return true;}
+ closeTaskPanel();
+ if(kind==='claimTrip'){const ok=claimTripV286821();if(!ok)showTripV286821();return ok;}
+ if(kind==='trip'){showTripV286821();return true;}
+ if(kind==='todo'){showSectTodoV2868();return true;}
+ if(kind==='sectTasks'){showSectTasks();return true;}
+ return false;
+}
+function renderTodayV2868117(c){
+ const d=todayReadV2868117(),esc=discipleEscV2815,S=TASK_STATUS;
+ const row=t=>{
+  let btn='';
+  if(t.status===S.AVAILABLE)btn=`<button class="task-action gold" onclick="todayOpenV2868117('accept','${t.id}')">接取</button>`;
+  else if(t.status===S.ACTIVE)btn=`<button class="task-action gold" onclick="todayOpenV2868117('task','${t.id}')">${esc(getTaskActionLabel(t.id))}</button>`;
+  const state=t.status===S.COMPLETED?'已完成 · 奖励已到账':t.status===S.ACTIVE?`进行中 · ${t.stepNo}/${t.steps} 步`:t.status===S.AVAILABLE?'可接取':taskStatusText(t.status);
+  return `<li class="today-row-v2868117" data-task-id="${t.id}" data-status="${t.status}"><div><b>${esc(t.title)}</b><small>${esc(state)}</small>${t.step?`<span>${esc(t.step)}</span>`:''}<progress max="100" value="${t.progress}" aria-label="${esc(t.title)}进度"></progress></div>${btn}</li>`;
+ };
+ const daily=d.tasks.filter(t=>t.type==='daily'),weekly=d.tasks.filter(t=>t.type==='weekly'),tr=d.trip,todo=d.todo;
+ let html=`<section class="today-card-v2868117" id="todayCardV2868117" data-claimable="${d.claimable}"><header><h3>今日修行</h3><p>汇总已有的日常、周常、游历与宗门事务；领取仍走原有入口，不额外发放奖励。</p></header>`;
+ html+=`<article data-today="daily"><h4>日常 <em>${d.dailyDone}/${d.dailyTotal}</em></h4><ul>${daily.map(row).join('')}</ul></article>`;
+ html+=`<article data-today="weekly"><h4>周常</h4><ul>${weekly.map(row).join('')}</ul></article>`;
+ html+=`<article data-today="trip" class="${tr.claimable?'claimable-v2868117':''}"><h4>游历${tr.claimable?' <i class="today-dot-v2868117" aria-hidden="true"></i>':''}</h4>`+(tr.active?`<p>${esc(tr.name)} · 已积累${tr.units*10}/480分钟</p><p>待领 ${tr.gold} 灵石、${tr.herbs} 灵草</p>${tr.claimable?`<button class="task-action gold" onclick="todayOpenV2868117('claimTrip')">领取游历收获并结束本趟</button>`:''}<button class="task-action" onclick="todayOpenV2868117('trip')">查看游历</button>`:`<p>暂无进行中的游历，可在洞府安排下一趟。</p><button class="task-action" onclick="todayOpenV2868117('trip')">安排游历</button>`)+`</article>`;
+ html+=`<article data-today="sect" class="${todo.total?'claimable-v2868117':''}"><h4>宗门${todo.total?' <i class="today-dot-v2868117" aria-hidden="true"></i>':''}</h4>`;
+ if(!d.sect)html+='<p>尚未加入宗门。</p>';
+ else{
+  html+=`<p>弟子成果 ${todo.jobs.length} · 途中来信 ${todo.mails.length} · 同门答谢 ${todo.thanks.length} · 可交付委托 ${todo.tasks.length}</p>`;
+  if(d.sectTasks.length)html+=`<ul>${d.sectTasks.map(t=>`<li class="today-row-v2868117" data-sect-task="${t.index}"><div><b>${esc(t.name)}</b><small>${t.ready?'可以交付':'进行中'} · ${esc(t.label)}</small></div></li>`).join('')}</ul><button class="task-action" onclick="todayOpenV2868117('sectTasks')">查看宗门委托</button>`;
+  html+=todo.total?`<button class="task-action gold" onclick="todayOpenV2868117('todo')">查看宗门待办 · ${todo.total}</button>`:'<p>暂无待办。</p>';
+ }
+ c.innerHTML=html+'</article></section>';
+}
+let todayDotAtV2868117=0;
+function syncTodayDotV2868117(todo){
+ const b=document.getElementById('taskBtn');if(!b||typeof player==='undefined'||!player)return false;
+ let on=false;try{on=todayReadV2868117(todo).claimable;}catch(_){on=false;}
+ let dot=b.querySelector('.today-dot-v2868117');
+ if(on&&!dot){dot=document.createElement('i');dot.className='today-dot-v2868117';dot.setAttribute('aria-hidden','true');b.appendChild(dot);}
+ if(dot&&dot.parentNode!==b)b.appendChild(dot);
+ if(dot){let still=false;try{still=localStorage.getItem('xiantu_map_fx_v2868104')==='off';}catch(_){}dot.classList.toggle('still-v2868117',still);}
+ if(!on&&dot)dot.remove();
+ b.classList.toggle('has-today-v2868117',on);b.setAttribute('aria-label',on?'任务（今日修行有可领取）':'任务');
+ todayDotAtV2868117=Date.now();return on;
+}
+// Trip yield accrues in real time (10-minute units), so recheck occasionally while visible.
+if(typeof setInterval==='function'&&typeof document!=='undefined'&&!globalThis.__todayTimerV2868117)globalThis.__todayTimerV2868117=setInterval(()=>{if(!document.hidden&&Date.now()-todayDotAtV2868117>20000)try{syncTodayDotV2868117();}catch(_){}},30000);

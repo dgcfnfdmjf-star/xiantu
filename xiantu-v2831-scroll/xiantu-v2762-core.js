@@ -6559,6 +6559,7 @@
       document.querySelectorAll('.task-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===filter));
       const list=filter==='main'?MAIN_TASKS:filter==='journey'?JOURNEYS_V2838.map(j=>getTaskData(j.id)):getTaskListByFilter(filter),esc=discipleEscV2815;
       if(filter==='journal'){renderJournalV2838(c);return;}
+      if(filter==='today'){if(typeof renderTodayV2868117==='function')renderTodayV2868117(c);else c.innerHTML='<div class="task-empty">当前没有可显示的任务</div>';return;}
       if(!list.length){c.innerHTML='<div class="task-empty">当前没有可显示的任务</div>';return;}
       const card=task=>{
         const st=getTaskStatus(task.id),inst=getTaskInstance(task.id),step=inst&&!inst.completed?getCurrentTaskStep(task.id):null;let buttons='';
@@ -6575,7 +6576,7 @@
     function showTaskPanel(filter='main'){
       taskBattlePromptV2868103=null;
       if(gameState!=='combat'&&gameState!=='combat-ending'&&!player.breakthrough?.isAnimating)checkTaskTriggers();
-      closeTaskPanel();const ov=document.createElement('div');ov.id='taskPanel';ov.className='task-panel-overlay';ov.innerHTML=`<div class="task-panel-box"><div class="task-panel-head"><div><div class="task-panel-title">📜 仙途任务志</div><div class="task-panel-sub">主线 · 三界游历 · 修行纪事</div></div><button aria-label="关闭" class="task-close" onclick="closeTaskPanel()">✕</button></div><div class="task-tabs">${[['main','主线'],['journey','游历'],['journal','纪事'],['side','支线'],['daily','日常'],['weekly','周常'],['hidden','隐藏']].map(([id,n])=>`<button class="task-tab" data-tab="${id}" onclick="renderTaskList('${id}')">${n}</button>`).join('')}</div><div id="taskListContainer"></div></div>`;document.body.appendChild(ov);ov.addEventListener('pointerdown',e=>{if(e.target===ov)closeTaskPanel();});renderTaskList(filter);
+      closeTaskPanel();const ov=document.createElement('div');ov.id='taskPanel';ov.className='task-panel-overlay';ov.innerHTML=`<div class="task-panel-box"><div class="task-panel-head"><div><div class="task-panel-title">📜 仙途任务志</div><div class="task-panel-sub">主线 · 三界游历 · 修行纪事</div></div><button aria-label="关闭" class="task-close" onclick="closeTaskPanel()">✕</button></div><div class="task-tabs">${[['main','主线'],['today','今日修行'],['journey','游历'],['journal','纪事'],['side','支线'],['daily','日常'],['weekly','周常'],['hidden','隐藏']].map(([id,n])=>`<button class="task-tab" data-tab="${id}" onclick="renderTaskList('${id}')">${n}</button>`).join('')}</div><div id="taskListContainer"></div></div>`;document.body.appendChild(ov);ov.addEventListener('pointerdown',e=>{if(e.target===ov)closeTaskPanel();});renderTaskList(filter);
     }
     function closeTaskPanel(){document.getElementById('taskPanel')?.remove();}
     function addTaskButton(){const actions=document.querySelector('.world-hud-top > div:last-child');if(!actions||document.getElementById('taskBtn'))return;const b=document.createElement('button');b.id='taskBtn';b.textContent='📜 任务';b.onclick=()=>showTaskPanel('main');actions.insertBefore(b,actions.firstChild);}
@@ -16279,7 +16280,7 @@ function villageEnhanceV286897(){
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.116";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.117";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

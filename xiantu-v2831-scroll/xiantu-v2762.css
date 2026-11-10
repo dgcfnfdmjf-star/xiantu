@@ -3942,7 +3942,7 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 /* V28.12 洞府管理 */
 .home-board-v2812{padding:16px;border:1px solid #9eb781;border-radius:16px;background:linear-gradient(135deg,#14251e,#18202b);color:#e9eee3;line-height:1.65}.home-board-v2812 h3{color:#ead592;margin:0 0 12px}.home-grid-v2812{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-grid-v2812 article{padding:14px;border:1px solid #526454;border-radius:12px;background:#ffffff08}.home-grid-v2812 h4{margin:0;color:#e8d594}.home-grid-v2812 p{color:#d0dbd1}.home-grid-v2812 strong{color:#83ddb6}.home-notice-v2812{padding:12px;background:#31534066;border-radius:10px}@media(max-width:600px){.home-grid-v2812{grid-template-columns:1fr}.home-board-v2812{padding:12px;font-size:14px}}
 
-:root{--xiantu-build:2868116;}
+:root{--xiantu-build:2868117;}
 #xiantuBuildBadgeV2814{font-size:11px;min-height:32px;padding:5px 9px;white-space:nowrap;color:#b4d4bd;background:#18251f;border:1px solid #718475;border-radius:8px;}
 
 /* V28.68 战斗数值可视层 */
@@ -5256,3 +5256,32 @@ html.xt-reduce-motion .tutorial-highlight{animation:none!important}
   .breakthrough-success .btn-continue{margin-top:8px;min-height:44px;width:auto;padding:8px 40px}
   .breakthrough-success .auto-close-v2764{margin-top:4px}
 }
+
+/* V28.68.117 今日修行 card and claimable dot on the 任务 button (audit G6 phase 1). 青绿鎏金 tokens. */
+#taskBtn{position:relative}
+.today-dot-v2868117{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--xt-gold-300,#f0dca0);box-shadow:0 0 0 2px var(--xt-ink-900,#0c1411),0 0 0 3px var(--xt-jade-500,#4f8f7a),0 0 8px rgba(212,176,106,.7);vertical-align:middle;pointer-events:none}
+#taskBtn>.today-dot-v2868117{position:absolute;top:-3px;right:-3px;z-index:2;animation:xtTodayDotV2868117 2.4s ease-in-out infinite}
+@keyframes xtTodayDotV2868117{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
+#taskBtn>.today-dot-v2868117.still-v2868117,html.xt-reduce-motion #taskBtn>.today-dot-v2868117{animation:none}
+@media (prefers-reduced-motion:reduce){#taskBtn>.today-dot-v2868117{animation:none}}
+.today-card-v2868117{display:grid;gap:10px;color:var(--xt-jade-100,#d7efe4)}
+.today-card-v2868117 header h3{margin:0 0 4px;color:var(--xt-gold-300,#f0dca0);font-family:var(--xt-font-display,serif);letter-spacing:.08em;font-size:17px}
+.today-card-v2868117 header p{margin:0;color:var(--xt-jade-300,#8cc7b0);font-size:12px;line-height:1.6}
+.today-card-v2868117 article{border:1px solid rgba(79,143,122,.45);border-radius:12px;padding:10px 11px;background:linear-gradient(160deg,rgba(30,58,48,.55),rgba(12,20,17,.7))}
+.today-card-v2868117 article.claimable-v2868117{border-color:var(--xt-gold-500,#d4b06a);box-shadow:0 0 0 1px rgba(212,176,106,.25) inset}
+.today-card-v2868117 h4{margin:0 0 6px;color:var(--xt-gold-100,#fbf1d3);font-size:14px;display:flex;align-items:center;gap:8px}
+.today-card-v2868117 h4 em{font-style:normal;color:var(--xt-gold-300,#f0dca0);font-size:12px}
+.today-card-v2868117 article>p{margin:0 0 6px;font-size:12px;line-height:1.6;color:var(--xt-jade-100,#d7efe4)}
+.today-card-v2868117 ul{list-style:none;margin:0 0 6px;padding:0;display:grid;gap:6px}
+.today-row-v2868117{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:7px 8px;border-radius:9px;background:rgba(7,12,10,.45);border:1px solid rgba(79,143,122,.25)}
+.today-row-v2868117>div{display:grid;gap:2px;min-width:0;flex:1}
+.today-row-v2868117 b{color:var(--xt-gold-100,#fbf1d3);font-size:13px}
+.today-row-v2868117 small{color:var(--xt-jade-300,#8cc7b0);font-size:12px}
+.today-row-v2868117 span{color:var(--xt-jade-100,#d7efe4);font-size:12px;overflow-wrap:anywhere}
+.today-row-v2868117 progress{width:100%;height:4px;appearance:none;-webkit-appearance:none;border:0;border-radius:2px;background:rgba(79,143,122,.25);overflow:hidden}
+.today-row-v2868117 progress::-webkit-progress-bar{background:rgba(79,143,122,.25)}
+.today-row-v2868117 progress::-webkit-progress-value{background:linear-gradient(90deg,var(--xt-jade-500,#4f8f7a),var(--xt-gold-300,#f0dca0))}
+.today-row-v2868117 progress::-moz-progress-bar{background:var(--xt-gold-300,#f0dca0)}
+.today-row-v2868117[data-status="completed"] b{color:var(--xt-jade-300,#8cc7b0)}
+.today-row-v2868117 .task-action{flex:0 0 auto;min-height:44px;margin:0}
+.today-card-v2868117 article>.task-action{min-height:44px;margin:4px 6px 0 0}
