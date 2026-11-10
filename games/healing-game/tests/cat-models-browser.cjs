@@ -14,15 +14,15 @@ async function ready(page, except) {
       .every(k => k.catModel && k.catVisual && !k.inner.visible), except, { timeout: 30000 });
 }
 
-async function choose(page, id) {
+async function choose(page, id, uuid) {
   for (let attempt = 0; attempt < 50; attempt++) {
-    const candidate = await page.evaluate(id => {
+    const candidate = await page.evaluate(({ id, uuid }) => {
       const all = __kittens.list.filter(k => !k.dead && k.state !== 'hug' && k.fade >= .9)
         .map(k => ({ ...__kittens.screenOf(k), uuid: k.root.uuid, id: k.kind.id, state: k.state }));
-      return all.filter(k => (!id || k.id === id) && k.x > 22 && k.x < innerWidth - 22 && k.y > 230 && k.y < innerHeight - 140 &&
+      return all.filter(k => (!id || k.id === id) && (!uuid || k.uuid === uuid) && k.x > 22 && k.x < innerWidth - 22 && k.y > 230 && k.y < innerHeight - 140 &&
         document.elementFromPoint(k.x, k.y)?.tagName === 'CANVAS')
         .sort((a, b) => b.y - a.y)[0] || null;
-    }, id);
+    }, { id, uuid });
     if (candidate) return candidate;
     await page.waitForTimeout(150);
   }
@@ -34,8 +34,8 @@ async function tap(test, point) {
   else await test.page.mouse.click(point.x, point.y);
 }
 
-async function twoTap(test, id) {
-  const { page } = test, point = await choose(page, id);
+async function twoTap(test, id, uuid) {
+  const { page } = test, point = await choose(page, id, uuid);
   const before = await page.evaluate(() => __kittens.state().total);
   await tap(test, point);
   const first = await page.evaluate(uuid => {
@@ -54,11 +54,14 @@ async function twoTap(test, id) {
   }, point.uuid);
   assert.equal(second.state, 'hug', 'immediate second canvas tap hugs');
   assert.equal(second.total, before + second.value, 'hug grants exactly the original coat value');
-  await tap(test, secondPoint);
-  assert.equal(await page.evaluate(() => __kittens.state().total), second.total, 'repeated tap cannot score the hugged actor twice');
+  return { point, first, secondPoint, second };
+}
+
+async function repeatTapNoScore(test, action) {
+  await tap(test, action.secondPoint);
+  assert.equal(await test.page.evaluate(() => __kittens.state().total), action.second.total, 'repeated tap cannot score the hugged actor twice');
   // A repeated tap can invite a different overlapping actor. Clear that invitation by
   // leaving/re-entering through the existing chapter lifecycle before the next case.
-  return { point, first, second };
 }
 
 async function chapter(page, n) {
@@ -124,7 +127,8 @@ async function basicAndCache(server, mobile) {
   const actions = [];
   for (const kind of mobile ? f.kinds : ['orange']) {
     assert(await page.evaluate(kind => __kittens.list.some(k => k.kind.id === kind && k.catModel), kind), 'tested input target uses its loaded GLB');
-    actions.push(await twoTap(test, kind));
+    const action = await twoTap(test, kind);
+    actions.push(action); await repeatTapNoScore(test, action);
     if (mobile && kind !== f.kinds.at(-1)) { await chapter(page, 1); await chapter(page, 2); await ready(page); }
   }
   console.log('  exact two-tap interaction passed');
@@ -180,20 +184,38 @@ async function rulesAndFallback() {
   console.log('Checking failed GLB fallback and exact cap/goal/save rules');
   const server = await f.server({ spawnSequence: ['black', 'black', 'orange', 'calico', 'white', 'tabby'] });
   const caught = { orange: 100, calico: 100, black: 100, white: 100, tabby: 100, glow: 100 };
-  const test = await f.fresh(browser, { save: { level: 2, total: 18, ended: false, caught, companions: { black: 3 } } });
+  const test = await f.fresh(browser, { randomSeed: 129771998, save: { level: 2, total: 18, ended: false, caught, companions: { black: 3 } } });
   await test.context.route('**/black-cat.glb', route => route.abort('failed'));
   try {
     await f.start(test, server.url); await ready(test.page, 'black'); await test.page.waitForTimeout(1000);
     assert(await test.page.evaluate(() => __kittens.list.filter(k => k.kind.id === 'black').every(k => !k.catModel && k.inner.visible)), 'failed GLB keeps original interactive cat');
-    const fourth = await twoTap(test, 'black');
+    // Keep the cap fixture visible and stationary. The close black pair reproduces
+    // the old helper's third-tap bug: after the first hugs, that ray can hit the second.
+    const pair = await test.page.evaluate(() => {
+      const positions = [[0, 2], [0, 1.35], [-3, 1.6], [-.5, -2.2], [2.8, 1.3], [-1.4, -3.2]];
+      __kittens.list.forEach((k, i) => {
+        k.x = positions[i][0]; k.z = positions[i][1]; k.y = 0;
+        k.tx = k.x; k.tz = k.z; k.state = 'idle'; k.timer = 1000; k.fade = 1;
+      });
+      const black = __kittens.list.filter(k => k.kind.id === 'black');
+      window.__catTestFifth = black[1];
+      return black.map(k => k.root.uuid);
+    });
+    assert.equal(pair.length, 2, 'cap fixture has two distinct black actors');
+    await test.page.waitForFunction(() => __kittens.list.every(k => Math.hypot(k.x - k.root.position.x, k.z - k.root.position.z) < .001));
+    const fourth = await twoTap(test, 'black', pair[0]);
     assert.equal(fourth.second.total, 19, 'fourth companion earns its original point');
     assert.equal(fourth.second.save.caught.black, 101, 'legacy lifetime collection is additive');
     assert.equal(fourth.second.save.companions.black, 4, 'fourth companion reaches cap');
-    const fifth = await choose(test.page, 'black'); await tap(test, fifth);
+    assert(await test.page.evaluate(() => !__catTestFifth.dead && __catTestFifth.state === 'idle'), 'reserved fifth actor remains available after exactly two taps');
+    const fifth = await choose(test.page, 'black', pair[1]); await tap(test, fifth);
+    assert.notEqual(fifth.uuid, fourth.point.uuid, 'fifth cap check targets the other black actor');
+    assert.equal(await test.page.evaluate(() => __catTestFifth.state), 'hug', 'explicit fifth tap reaches the capped actor');
     assert.equal(await test.page.evaluate(() => __kittens.state().total), 19, 'fifth same-coat interaction cannot score');
     assert.match(await test.page.locator('#toast').textContent(), /4次|休息/, 'cap has visible feedback');
     await chapter(test.page, 1); await chapter(test.page, 2);
     const last = await twoTap(test, 'white');
+    await repeatTapNoScore(test, last);
     assert.equal(last.second.total, 20, 'unchanged twenty-point goal');
     assert(await test.page.evaluate(() => __kittens.state().ended), 'goal completion persisted');
     await test.page.waitForFunction(() => GardenJourney.unlocked(3));
@@ -218,9 +240,11 @@ async function rareValues() {
     await f.start(test, server.url); await ready(test.page); await test.page.waitForTimeout(1000);
     assert(await test.page.evaluate(() => __kittens.list.filter(k => ['white', 'glow'].includes(k.kind.id)).every(k => !k.catModel && k.inner.visible)), 'white and rare glow retain original visuals');
     const glow = await twoTap(test, 'glow');
+    await repeatTapNoScore(test, glow);
     assert.equal(glow.second.total, 3, 'rare glow still gives three points');
     await chapter(test.page, 1); await chapter(test.page, 2);
     const white = await twoTap(test, 'white');
+    await repeatTapNoScore(test, white);
     assert.equal(white.second.total, 4, 'white still gives one point');
     assert.equal(white.second.save.caught.glow, 71); assert.equal(white.second.save.caught.white, 51);
     report.rare = { glow, white };

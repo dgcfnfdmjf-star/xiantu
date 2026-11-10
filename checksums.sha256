@@ -1285,7 +1285,7 @@ cb5bd7784bfa9a050951558274ef4d930221eede3b7d840408b97a5e0a93a7e1  games/healing-
 2828fbe11685f965a95253551d9adee2b253ccf71b179ff8816bd6795c7aa3a2  games/healing-game/src/nightvoyage-audio.js
 ff566590f97a6210e58a61655cc6df6094208da13678f6274c1f3c7be8b1578b  games/healing-game/src/save-guard.js
 84c1f29cc872cb7b268141814beaeff526924e8c3351e1c2bb4e6327dee5fa71  games/healing-game/src/voyage.js
-115392b29c488b639e96fc415af0e70b34ab97b4e3fc20e217e1616ea9eb42f4  games/healing-game/tests/cat-models-browser.cjs
+93abb7f9238e455110997cdebc7c2bc09547f3cb4aa40b505625eb18267a491f  games/healing-game/tests/cat-models-browser.cjs
 543729b2b46950aa16a3800bddd786748550afc5190322e1f40bd46d18afa260  games/healing-game/tests/cat-models-fixture.cjs
 48283a7f837403f14af55a375383a4104ea80c3819dbb16bd56148833bef428d  games/healing-game/tests/cat-models-performance.cjs
 23531169a6279dedaf969f0cfbbaa43e97389a2df93b975fa2cb58df11c2c05a  games/healing-game/tests/chapter3-feedback-browser.js
