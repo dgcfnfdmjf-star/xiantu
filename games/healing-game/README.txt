@@ -1,59 +1,50 @@
-暮色浮岛 V9.2 · 月汐莲湾（2026-11-07）
+暮色浮岛 V9.4 · 月汐莲湾（2026-11-10）
 
-本轮仅修正第五关的场景复用。
-第五关直接在第一至第四关的同一个 H.island 上继续旅程，保留原来的草地、土层、锥形岩体、粉色花树、睡猫、云和浮石。原池塘、水面材质、岸石与岛屿模型不重建，也不隐藏；上一版独立的蓝色莲湾圆盘、池体和外圈岸沿已删除。
+基于 main a43994e（含 PR #72）的五章体验反馈修复。原岛、树、池塘、五章解锁顺序、无失败玩法与旧存档继续沿用。
 
-场景与交互
-- 六朵月莲按原池塘的尺度种在水中。花、叶片、涟漪与岸石各有净空；小叶舟和归航舟沿池塘中央的空水道活动，六束愿光从花冠上方升起。
-- 当前目标的月露、月镜、引光路标、冷暖光和音柱浮在池塘上方，叶舟位于水面。六个目标仍为接月露、转月镜、牵引光路、调和晨曦、转叶舟、回应晚安；顺序、判定、按钮、旋律、七秒舟灯结局和跳过行为全部沿用 V9.1。
-- 第五关对象挂在原岛下，跟随同样的浮动与轻摇；牵引光的射线平面和命中点按父级变换转换，拖动不因岛屿浮动而偏移。新光晕参与深度测试，不从实体背后透出。
-- 旧存档的花朵可能被已有风铃摆件推向池塘。本关只临时分开它们的显示位置，不修改已保存坐标；离开时由原关卡的布局恢复。
-- 前一关尚在飘升的临时灯笼在第五关暂时隐藏，寿命照常推进；离开时恢复仍存活灯笼原来的可见性。第五关自己的归航愿光、原岛地标和天空景物继续显示。
-- 保留月环和夜色；月环抬高到原鸟类起飞/落栖轨迹上方。镜头按整个原岛的真实网格顶点与月环取景，显示完整岩体；桌面使用左右控件之间的空间，手机竖屏把原声音/手账按钮排成两行，给原岛留出空间。手动绕行、缩放、横竖屏与返回其他关卡仍可用。
-- 320×568 的最小屏幕同时容纳完整岛屿与操作面板时，池塘内物体较小；所有目标继续提供原来的44像素按钮操作。390×844 默认岛屿约333像素宽。
+交互与反馈
+- 第一关统一提示「轻点蝴蝶」。种花成功后自动切回捕蝶；本关停止自动绕岛，手动旋转和缩放保留。蝴蝶接近镜头时按视深和屏幕尺寸平滑缩小、退隐，不推入原岛地物；不可见蝴蝶不能截获点击。
+- 捕蝶进度一直是心动点数：普通蝶 +1、稀有蝶 +3。现在界面明确标点数，结局进度固定显示30/30，图鉴另列累计真实只数；旧 total 与 caught 不重算。修复29→32（以及29→30）触发结局时手势已清空、后续仍访问 stroke.n 的异常；点击和划动两条路径均覆盖。
+- 第二关第一次点小猫后，固定任务文字和跟随猫咪的气泡明确提示「玩毛线球 · 再点抱抱」。沿用原来可立即再次点击的规则，没有新增等待；点错猫或空处有反馈，准备好的猫不会因隐藏时间窗失效，旧开场提示不再覆盖操作反馈。
+- 进行中的猫咪章节每种毛色最多贡献4次抱抱，随后引导找其他毛色；新来的猫偏向较少陪玩的毛色。新字段 companions 只记录本程、明确重玩时清空；旧 total/caught/通关状态完整保留，旧图鉴不会锁死重玩，完成后的自由陪玩照常。
+- 第三关所有颜色成功拾取均 +1 星光，偏爱色只额外庆祝，不影响充能。入口、任务卡与捕获反馈明确这一规则；新物种反馈与充能合并；开场、天气、成长、纸船和延迟发现通知遵守同一保护规则，不覆盖操作及满4点点灯指引。
+- 星萤光晕增大变亮、轨道速度放缓，点击区域扩大；空点、未满灯、已亮灯都有温和解释。满4点时所有可点星灯同时出现明亮呼吸光晕与世界文字「点我点亮」，可点任意未亮灯，上方编号按钮仍可用。
+- 第五关独立曲目《月汐摇光》：F大调、64 BPM、16小节的拨弦/长笛/钢琴合成配乐，复用原音频时钟、总线、音乐/音效开关与手势解锁。第三关仍用原《星灯夜曲》MP3及其网络失败合成回退；切关和异步解码不会串音。
+- 潮璃莲月镜光束加粗、增亮；未对准时说明最短向左/右转几格，提示相应按钮并轻亮目标，正确对准后高亮送光按钮。失败不扣分、不改已得进度。
+- 雨仅在第二关出现且较轻，离开立即清空；原睡猫及其命中代理只在第二关启用。第三关树上薄环的实际归属是成长奖励「云上星环」，现仅在未完成第三关显示，完成/离开即隐藏；第五关的月镜和月环保留。
+- 结局对话框采用深色背景与不透明卡片；右上新增明确的「🗺 选关」文案，直接打开现有选关页，切换保留进度。标题、garden-version、手账页脚统一V9.4。
 
-兼容与未改变的行为
-- 第四关完成后解锁；没有计时、失败、扣分或进度重置。
-- healingGarden.journey.v1 存档键与 lotus.version=2 不变；V9.0/V9.1 的逐朵进度、镜面、叶舟、收藏与通关奖励保留。
-- 六个首次收藏各+5、首次通关+20，总计50成长；练习不覆盖完成存档、不重复领奖。手账仍为47种。
-- 第三、第五关继续共用原 nightvoyage-bgm.mp3；音频代码没有改动。原文件2161729 bytes，SHA256 19a90003e4b3b45c075b4c1da5a81341fddac954397d481e680a6ea3c1a5cb31。
-- 提示/保存失败警告仍在第五关任务面板中，离开恢复；菜单、后台暂停、减少动态效果及保存失败重试保留。
+兼容边界
+- healingGarden.journey.v1、healingGarden.kittens.v1、healingGarden.butterflies.v1 与 lotus.version=2 不变；新增 companions 字段缺失时安全初始化，不改旧猫图鉴或分数。
+- 第五关六目标、首次奖励总计50、已完成练习隔离、第四关完成后解锁、47种手账保持。原岛与原池塘对象继续复用，无新岛盘。
+- nightvoyage-bgm.mp3：2161729 bytes；SHA256 19a90003e4b3b45c075b4c1da5a81341fddac954397d481e680a6ea3c1a5cb31。源与包内文件不变。
+- 不修改仙途/Jev逻辑、不合并main、不部署。改动范围仅 games/healing-game 与用户授权的三层校验清单。
 
-构建（仓库根目录）
+构建与校验（仓库根目录）
 python3 games/healing-game/scripts/build.py
 python3 games/healing-game/tests/test_package.py
+node games/healing-game/tests/feedback-butterfly.cjs
 node games/healing-game/tests/chime-rules.cjs
 node games/healing-game/tests/lotus-rules.cjs
-
-预览：games/healing-game/site/healing-game/
-发布：downloads/healing-game-v9.2-tencent.zip、healing-game-v9.2-SHA256SUMS.txt。
-ZIP严格只含 healing-game/index.html 与 healing-game/nightvoyage-bgm.mp3。
-HTML：989472 bytes；ZIP：2402217 bytes。
-ZIP SHA256：765d660ca3601eb6335cf3223bc7c06f558b206f5c4f1e20520d5cc38445cb05。
-固定ZIP元数据，重复构建字节一致。只编辑 src/ 与 scripts/build.py，不直接修改生成HTML或保留的V5源文件。旧发布包保留。上传说明见 downloads/healing-game-v9.2-README.txt。
-
-浏览器检查
-python3 -m http.server 8784 --bind 127.0.0.1 --directory /workspace
-使用 scripts/browser-cli.sh 的新会话和系统Chromium（/usr/bin/chromium）。
-scripts/browser-cli.sh -s=lotus92 run-code --filename games/healing-game/tests/lotus-browser.js
-scripts/browser-cli.sh -s=lotus92 run-code --filename games/healing-game/tests/lotus-clipping-browser.js
-scripts/browser-cli.sh -s=lotus92 run-code --filename games/healing-game/tests/lotus-finale-browser.js
-scripts/browser-cli.sh -s=lotus92 run-code --filename games/healing-game/tests/lotus-layout-browser.js
-scripts/browser-cli.sh -s=lotus92 run-code --filename games/healing-game/tests/lotus-carryover-browser.js
-其余 journey/voyage/finale-audio/chapter4/nightvoyage-audio/shared-audio/music-lush/clipping-browser.js 沿用原入口。
+node games/healing-game/tests/save-guard-rules.cjs
+node games/healing-game/tests/pointer-cleanup.cjs
 npm test
 PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser
 
-验证记录
-- 原第四关与第五关的岛屿、草地/土层/岩体/树/池塘为相同对象，原几何、材质、本地变换与可见性一致；云与浮石继续显示。4→5→4恢复原镜头、提示位置与音乐，临时花朵避让不改变存档。
-- 六目标实走通过：键盘与世界点击、真实拖动、双指取消、错输入保留进度、断点续玩、旧存档、50点一次奖励、已完成练习、菜单/后台、保存失败重试、自然/跳过结局和减少动态效果。
-- 五种视口各六任务布局共30组通过，覆盖320×568、568×320、390×844、844×390、1280×800；初次加载与旋转返回尺度一致。检查完整原岛、六莲、目标道具和月环的投影顶点不被HUD/任务面板覆盖，并检查实际截图。
-- 原池塘几何扫查通过：288组姿态（包含岛屿浮动/轻摇）、120帧绽放、30帧合光、64组叶舟朝向、29个归航位置、64组相机方位/俯仰/缩放。最低水面净空0.00250000568，莲花最大半径0.192600，涟漪最大半径0.208195，舟与花最小包络间隙0.043300；整个岛屿距相机最近3.511759，近裁剪面0.5。
-- 反复进出时，第五关32个根对象及其所有子对象、几何和材质身份完全复用。全场景GPU计数包含原关卡临时动物/效果，单独记录而不当作第五关泄漏判据。审计时并发软件渲染样本21帧，帧间隔中位268.5ms、渲染调用中位6ms，只记录该测试主机的负载状况，不代表手机帧率。
-- 根 npm test：147个游戏回归脚本及限流、保存/错误、包装工具和打包套件全部通过；根Chromium浏览器27/27通过。第四关逻辑6项、第五关逻辑6项、包测试6项通过，17段内联脚本全部可解析。
-- 原灯笼跨关回归覆盖六目标与归航共420帧；保留原15个地标和13个云/浮石对象的可见性，并验证离开后的灯笼可见性恢复。原鸟类起飞/绕行/落栖与月环的1680个姿态组合无实体顶点穿入月环。
-- journey、voyage、finale-audio、chapter4、nightvoyage-audio、shared-audio、music-lush浏览器回归全部通过；原clipping最终结果见下。
+预览输出 games/healing-game/site/healing-game/index.html（1,009,664 bytes，未直接编辑）。V9.4包与包SHA256位于 games/healing-game/releases/，严格只含 healing-game/index.html 和 healing-game/nightvoyage-bgm.mp3；原 downloads/ 历史包保留。固定ZIP元数据使重复构建字节一致。保留V5源文件不修改；scripts/feedback-v94.py 与 scripts/butterfly-v94.py 提供检查唯一匹配的兼容补丁。
+校验按PR #70流程依次生成/验证 xiantu-v2831-scroll/checksums.sha256、根 checksums.sha256、handoff-checksums.sha256（含根清单对应条目），使用 python3 scripts/checksums.py --write 后 python3 scripts/checksums.py。
 
-验证边界
-所有检查使用全新浏览器上下文、合成存档及临时响应插桩，不加载真实玩家数据，发布版不加入测试接口。截图与原始日志位于忽略的 output/playwright/healing-v9.2-validation/，独立审阅证据在 output/playwright/astra92-*。未部署腾讯云、未合并main、未修改仙途或Jev。Linux软件渲染和触屏模拟不等同于物理iPhone验证。
-已知旧回归例外：本轮原 clipping-browser.js 仍在第三关星萤间距断言失败（0.589846445568015 < 0.7），第一、二关几何检查通过。本轮没有修改该断言或第三关几何。上一轮已用origin/main 6abe73a的V9原包按25000步×0.05秒固定推进，基线最小0.5789664、当时工作版本0.5918612，均低于0.7，证明该问题已存在；短时间按墙钟采样可能未覆盖靠近阶段。本轮第五关的原池塘/鸟/月环/舟灯及跨关审计均通过，独立复核无未解决发现。
+真实浏览器验证
+使用 scripts/browser-cli.sh 的独立会话、系统 Chromium /usr/bin/chromium 与8784本地HTTP服务。所有上下文全新、只用合成存档并阻止外网，不加载真实玩家数据。测试响应中的观测插桩不进入发布版。
+运行 tests/ 下 journey、voyage、finale-audio、chapter4、nightvoyage-audio、shared-audio、music-lush、mode-reset、chapter3-feedback、feedback-v94、feedback-lifecycle、feedback-cat-save、wisp-geometry，以及 lotus-browser、lotus-finale、lotus-clipping、lotus-layout、lotus-carryover 浏览器套件。截图/原始日志保留于忽略的 output/playwright/healing-v94-validation、astra94-review、lotus94-own 与 chapter3v94。
+Linux软件渲染与触屏模拟不代表实体手机帧率。原 clipping-browser.js 的第三关星萤间距 <0.7 为已知旧基线问题，本轮不降低断言、不扩展到无关几何修正；最新实测结果见PR验证记录。
+
+本轮验证记录
+- npm test：154个游戏回归脚本与限流、保存/错误、包装工具、打包套件全部通过；根Chromium浏览器66/66通过。
+- 包测试6项（17段脚本解析、资源不外链、固定元数据重复构建）、蝴蝶反馈7项、风铃6项、月莲6项、保存保护8项、指针清理5项通过。
+- 实际触屏覆盖猫咪首次/错误/再次点击、单毛色上限、旧图鉴100次仍可玩、刷新、完成与重玩；第三关六色各两次真实拾取、任意顺序3→1→2世界点灯、满星光升级提示优先、刷新与跨章生命周期通过。
+- 第五关五套浏览器回归通过：六目标/50奖励、自然结局与手势、288姿态/120绽放/30合光/64叶舟/29归航/64相机、五视口六任务、420跨关灯笼帧及1680鸟/月环姿态。独立音频与第三关MP3共8种成功/失败/延迟解码上下文通过。
+- 蝴蝶相机回归扫查15,552组合，10,368组可见，最近可见翼顶点视深3.207296（近面0.5），最大投影占短边25.902%；真实手动缩放/旋转后的390px截图最大翼跨度73.09px，无巨大近镜翅膀。
+- 原 clipping-browser.js 本次也通过：第一关3056步、第二关3744步、第三关3664步；星萤中心最小间距0.869700。历史长时间基线曾低于0.7，本次保留原断言，短时通过不代表修复该旧问题。
+- V9.4 ZIP：2409608 bytes；SHA256 8bd24f66c76749964ddd4f802e5d68ded7afaf93fd201af4a3b0c0c7791504a3。
+- 星萤实体另以25,000步完整分离轴检测复核：693,234组网格配对，最终新增交叠0。以较大光晕增强可见性，原实体尺寸保留。真实旧版路径的树接触样本340，最终336；灯接触均0。历史接触未冒充本轮修复。

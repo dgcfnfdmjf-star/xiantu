@@ -112,11 +112,11 @@
       var b = document.getElementById('starLamp' + n), html = '<span class="vg-dots">';
       WISHES[n].forEach(function (type) { html += '<i style="background:' + hex(TYPES[type].color) + '"></i>'; });
       b.insertAdjacentHTML('beforeend', html + '</span>');
-      b.setAttribute('aria-label', b.getAttribute('aria-label') + '，偏爱' + TYPES[WISHES[n][0]].name + '和' + TYPES[WISHES[n][1]].name);
+      b.setAttribute('aria-label', b.getAttribute('aria-label') + '，偏爱' + TYPES[WISHES[n][0]].name + '和' + TYPES[WISHES[n][1]].name + '，偏爱只增添欢喜，所有颜色每只都加1点星光');
     });
     row.hidden = next < 0;
     if (next < 0) return;
-    row.innerHTML = '灯心偏爱' + WISHES[next].map(function (type) { return ' <i style="background:' + hex(TYPES[type].color) + '"></i>' + short(TYPES[type]); }).join('');
+    row.innerHTML = '所有颜色都 +1<br>偏爱只添欢喜：' + WISHES[next].map(function (type) { return '<i style="background:' + hex(TYPES[type].color) + '"></i>' + short(TYPES[type]); }).join('');
   }
 
   /* ----------------------------- Stars ----------------------------- */
@@ -323,7 +323,7 @@
   function addUI() {
     var st = document.createElement('style');
     st.textContent = [
-      '#vgWish{font-size:12px;line-height:1.5;color:#e0d9e8;margin-bottom:6px;white-space:nowrap}',
+      '#vgWish{font-size:12px;line-height:1.5;color:#e0d9e8;margin-bottom:6px}',
       '#vgWish[hidden]{display:none}',
       '#vgWish i,.vg-dots i,.vg-count i{display:inline-block;width:8px;height:8px;border-radius:50%;box-shadow:0 0 5px currentColor}',
       '#vgWish i{margin:0 2px 0 4px}',
@@ -410,7 +410,10 @@
       });
       if (announce > 0) {
         announce -= dt;
-        if (announce <= 0 && J.canPlay()) H.toast('一只小纸船，从云里漂了出来', 2800);
+        if (announce <= 0) {
+          if (J.canPlay() && !(window.GardenJourney && window.GardenJourney.feedbackBusy())) H.toast('一只小纸船，从云里漂了出来', 2800);
+          else announce = 0.1; // Wait for action feedback and dialogs; onLevel cancels a pending announcement.
+        }
       }
     },
     renderHud: renderHud,
