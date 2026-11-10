@@ -1,0 +1,52 @@
+{
+  "asset": "orange-cat",
+  "generator": "Blender Python original geometry and analytic painted atlas",
+  "blenderVersion": "4.3.2",
+  "seed": 20261110,
+  "triangles": 35280,
+  "triangleBudget": 50000,
+  "meshes": 6,
+  "drawCalls": 6,
+  "materials": 6,
+  "textures": 1,
+  "images": 1,
+  "textureResolution": [
+    2048,
+    2048
+  ],
+  "allImagesEmbedded": true,
+  "uvsOnTexturedMesh": true,
+  "normalsOnAllPrimitives": true,
+  "gltfUpAxis": "+Y",
+  "gltfForwardAxis": "+Z",
+  "blenderBounds": {
+    "min": [
+      -0.23254916071891785,
+      -0.3013668954372406,
+      0.0010887207463383675
+    ],
+    "max": [
+      0.3215597867965698,
+      0.19158123433589935,
+      0.885860800743103
+    ]
+  },
+  "height": 0.8847720799967647,
+  "glbBytes": 2932264,
+  "glbSha256": "7ccf9a1ffbca351f203f6e1ef7fbf50e28230ef5ba8e1e3d2dd9f3b28e06ff7b",
+  "palette": {
+    "fur": "#f6a457",
+    "belly": "#ffe3c0",
+    "stripes": "#d97f33",
+    "eyes": "#33262a"
+  },
+  "render": {
+    "engine": "Cycles CPU",
+    "samples": 128,
+    "resolution": [
+      1024,
+      1024
+    ]
+  },
+  "license": "Original generated artwork for this repository; no external model or image dependencies."
+}

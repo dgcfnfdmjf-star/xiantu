@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self' blob:; object-src 'none'; base-uri 'none'">
+  <link rel="icon" href="data:,">
+  <title>橘猫 · 造型预览</title>
+  <style>
+    :root{color-scheme:light;--ink:#49483e;--muted:#797a6b;--paper:#f5f2e9;--line:#d9d6c8;--green:#65755e}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--paper);color:var(--ink)}
+    body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(ellipse at 20% 4%,#dce2d151,transparent 45%),radial-gradient(ellipse at 96% 82%,#e2d5b643,transparent 36%),var(--paper)}
+    main{width:min(1080px,100%);margin:auto;padding:24px max(20px,env(safe-area-inset-right)) 20px max(20px,env(safe-area-inset-left))}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}h1{font-family:Georgia,"Songti SC",serif;font-size:27px;font-weight:500;letter-spacing:.13em;margin:0 0 7px}
+    .eyebrow{color:var(--green);font-size:11px;letter-spacing:.2em;margin:0 0 8px}.subtitle{font-size:13px;color:var(--muted);margin:0;line-height:1.7}.seal{display:grid;place-items:center;width:42px;height:48px;border:1px solid #a66f57;color:#a66f57;font-family:serif;font-size:17px;line-height:1.2;transform:rotate(4deg);flex:none}
+    .stage{position:relative;height:clamp(360px,65vh,660px);overflow:hidden;border:1px solid var(--line);border-radius:20px;background:radial-gradient(ellipse at 50% 60%,#fffdf7 0%,#f3f0e6 68%,#eaeade 100%)}
+    canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab;outline:none}canvas:active{cursor:grabbing}canvas:focus-visible{outline:3px solid var(--green);outline-offset:-5px}
+    .stage-label{position:absolute;top:17px;left:20px;font-size:12px;color:var(--muted);letter-spacing:.15em;pointer-events:none}.status{position:absolute;bottom:17px;left:20px;right:20px;margin:0;font-size:12px;color:var(--muted);text-align:center;pointer-events:none}
+    .fallback{position:absolute;inset:46px 20px 160px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;margin:0}.fallback img{display:block;max-width:100%;max-height:calc(100% - 26px);object-fit:contain;border-radius:12px}.fallback figcaption{font-size:12px;color:var(--muted)}
+    .error{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding:16px;pointer-events:none}.error-box{max-width:650px;background:#faf8f1f5;border:1px solid var(--line);border-radius:12px;padding:12px 16px;text-align:center;font-size:13px;line-height:1.7;pointer-events:auto}.error-box p{margin:0 0 8px}.error-box code{font-size:11px;overflow-wrap:anywhere}.error-box button{min-height:40px}
+    [hidden]{display:none!important}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px}.views{display:flex;gap:8px;flex-wrap:wrap}button{appearance:none;min-height:44px;padding:9px 18px;border:1px solid var(--line);border-radius:24px;background:#faf8f1;color:var(--ink);font:inherit;font-size:13px;cursor:pointer}button:hover{border-color:#94a087;background:#edf0e5}button:focus-visible,summary:focus-visible{outline:3px solid #839575;outline-offset:3px}button:disabled{opacity:.45;cursor:default}button[aria-pressed="true"]{border-color:var(--green);background:#e8ecdf;color:#4e6248}.reset{background:#65755e;color:#fff;border-color:#65755e}.reset:hover{background:#53654d;color:#fff}
+    .help{margin:12px 0 0;text-align:center;font-size:12px;color:var(--muted);line-height:1.7}footer{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-top:18px;font-size:11px;line-height:1.7;color:var(--muted)}footer p{margin:0}details{text-align:right}summary{cursor:pointer;min-height:30px;list-style:none}summary:after{content:" ＋"}details[open] summary:after{content:" −"}.metrics{margin:5px 0 0;font-variant-numeric:tabular-nums}
+    @media(max-width:600px){main{padding-top:18px}h1{font-size:24px}.stage{height:clamp(360px,62vh,600px);border-radius:16px}.toolbar{gap:8px}.views{gap:6px}button{padding:9px 15px}.stage-label{left:16px}.subtitle{font-size:12px}.seal{width:35px;height:42px;font-size:15px}footer{margin-top:14px}}
+    @media(max-height:500px) and (orientation:landscape){main{padding-top:10px;padding-bottom:10px}header{margin-bottom:7px}h1{font-size:20px;margin-bottom:0}.eyebrow,.subtitle,.seal{display:none}.stage{height:calc(100vh - 142px);min-height:190px}.toolbar{margin-top:8px}.help{margin-top:5px}footer{margin-top:6px}footer>p{display:none}.fallback{inset:42px 20px auto}.fallback img{display:none}}
+  </style>
+</head>
+<body>
+<main>
+  <header><div><p class="eyebrow">一只猫，一段闲暇</p><h1>橘猫 · 造型预览</h1><p class="subtitle">转一转，看看它安静的模样。</p></div><span class="seal" aria-hidden="true">闲<br>时</span></header>
+  <section class="stage" aria-label="橘猫三维预览">
+    <canvas id="cat-canvas" tabindex="0" role="img" aria-label="橘猫三维模型。拖动旋转，滚轮或双指缩放。也可使用下方视角按钮。"></canvas>
+    <span class="stage-label">橘猫 / 01</span>
+    <p class="status" id="status" role="status" aria-live="polite">正在请橘猫过来…</p>
+    <figure class="fallback" id="fallback" hidden><img id="fallback-image" alt="橘猫 Blender 正面静态渲染图"><figcaption>静态预览 · 暂不可旋转</figcaption></figure>
+    <div class="error" id="error" hidden><div class="error-box"><p id="error-text"></p><p id="serve-help" hidden>请通过本地网页服务打开。在本目录执行 <code>python3 -m http.server 8000</code>，然后访问 <code>http://localhost:8000/preview-cat-orange.html</code>。</p><button id="retry" type="button">重新加载</button></div></div>
+  </section>
+  <nav class="toolbar" aria-label="调整预览视角"><div class="views"><button type="button" data-view="front" aria-pressed="true" disabled>正面</button><button type="button" data-view="side" aria-pressed="false" disabled>侧面</button><button type="button" data-view="back" aria-pressed="false" disabled>背面</button></div><button type="button" class="reset" id="reset" disabled>重置视角</button></nav>
+  <p class="help">拖动旋转 · 滚轮或双指缩放 · 方向键转动，＋ / − 缩放</p>
+  <footer><p>独立造型样本</p><details><summary>模型信息</summary><p class="metrics" id="metrics">模型尚未加载</p></details></footer>
+</main>
+<noscript>请启用 JavaScript 以查看三维模型；静态正面图为 orange-cat-preview.png。</noscript>
+<script src="vendor/three-r128/three.min.js"></script>
+<script src="vendor/three-r128/GLTFLoader.js"></script>
+<script src="vendor/three-r128/OrbitControls.js"></script>
+<script>
+(() => {
+  'use strict';
+  const canvas = document.getElementById('cat-canvas');
+  const status = document.getElementById('status');
+  const error = document.getElementById('error');
+  const fallback = document.getElementById('fallback');
+  const buttons = [...document.querySelectorAll('[data-view]'), document.getElementById('reset')];
+  let renderer, scene, camera, controls, model, frame = 0, contextLost = false;
+  let generation = 0, state = 'loading', triangles = 0, meshes = 0, textures = 0, renderedFrames = 0;
+  let sphere, center, fittedDistance = 2, currentView = 'front';
+  const setButtons = enabled => buttons.forEach(button => { button.disabled = !enabled; });
+  const markView = view => document.querySelectorAll('[data-view]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.view === view)));
+  function requestRender() {
+    if (frame || document.hidden || contextLost || !renderer) return;
+    frame = requestAnimationFrame(() => {
+      frame = 0;
+      if (document.hidden || contextLost) return;
+      renderer.render(scene, camera);
+      renderedFrames++;
+    });
+  }
+  function showError(message) {
+    state = 'error';
+    status.hidden = true;
+    error.hidden = false;
+    document.getElementById('error-text').textContent = message;
+    document.getElementById('serve-help').hidden = location.protocol !== 'file:';
+    const image = document.getElementById('fallback-image');
+    image.onerror = () => { fallback.hidden = true; };
+    image.onload = () => { if (state === 'error') fallback.hidden = false; };
+    if (!image.getAttribute('src')) image.src = 'orange-cat-preview.png';
+    else fallback.hidden = !image.complete || !image.naturalWidth;
+    canvas.style.visibility = 'hidden';
+    setButtons(false);
+  }
+  function showReady() {
+    state = 'ready';
+    error.hidden = fallback.hidden = true;
+    canvas.style.visibility = 'visible';
+    status.hidden = false;
+    status.textContent = '轻轻拖动，换个角度';
+    setButtons(true);
+    requestRender();
+  }
+  function fitDistance() {
+    const vertical = THREE.MathUtils.degToRad(camera.fov / 2);
+    const horizontal = Math.atan(Math.tan(vertical) * camera.aspect);
+    fittedDistance = sphere.radius / Math.sin(Math.min(vertical, horizontal)) * 1.10;
+    controls.minDistance = sphere.radius * 1.28;
+    controls.maxDistance = fittedDistance * 2.8;
+    camera.near = Math.max(sphere.radius / 100, 0.001);
+    camera.far = controls.maxDistance + sphere.radius * 8;
+    camera.updateProjectionMatrix();
+  }
+  function setView(view = 'front') {
+    if (!model) return;
+    currentView = view;
+    controls.target.copy(center);
+    const angle = view === 'side' ? Math.PI / 2 : view === 'back' ? Math.PI : 0;
+    camera.position.set(center.x + Math.sin(angle) * fittedDistance, center.y + fittedDistance * 0.08, center.z + Math.cos(angle) * fittedDistance);
+    controls.update();
+    markView(view);
+    requestRender();
+  }
+  function resize() {
+    if (!renderer) return;
+    const { width, height } = canvas.getBoundingClientRect();
+    if (!width || !height) return;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(width, height, false);
+    camera.aspect = width / height;
+    if (model) {
+      const ratio = camera.position.distanceTo(controls.target) / fittedDistance;
+      const direction = camera.position.clone().sub(controls.target).normalize();
+      fitDistance();
+      camera.position.copy(controls.target).addScaledVector(direction, Math.min(controls.maxDistance, Math.max(controls.minDistance, fittedDistance * ratio)));
+      controls.update();
+    } else camera.updateProjectionMatrix();
+    requestRender();
+  }
+  function disposeModel(root) {
+    const geometries = new Set(), materials = new Set(), maps = new Set();
+    root.traverse(object => {
+      if (!object.isMesh) return;
+      geometries.add(object.geometry);
+      (Array.isArray(object.material) ? object.material : [object.material]).forEach(material => materials.add(material));
+    });
+    materials.forEach(material => { Object.values(material).forEach(value => { if (value && value.isTexture) maps.add(value); }); material.dispose(); });
+    maps.forEach(map => map.dispose());
+    geometries.forEach(geometry => geometry.dispose());
+  }
+  function loadModel() {
+    const request = ++generation;
+    state = 'loading';
+    status.hidden = false;
+    status.textContent = '正在请橘猫过来…';
+    error.hidden = fallback.hidden = true;
+    document.getElementById('metrics').textContent = '模型尚未加载';
+    setButtons(false);
+    new THREE.GLTFLoader().load('orange-cat.glb', gltf => {
+      if (request !== generation) { disposeModel(gltf.scene); return; }
+      if (model) { scene.remove(model); disposeModel(model); }
+      model = gltf.scene;
+      triangles = meshes = 0;
+      const maps = new Set();
+      model.traverse(object => {
+        if (!object.isMesh) return;
+        meshes++;
+        const geometry = object.geometry;
+        triangles += (geometry.index ? geometry.index.count : geometry.attributes.position.count) / 3;
+        (Array.isArray(object.material) ? object.material : [object.material]).forEach(material => Object.values(material).forEach(value => { if (value && value.isTexture) maps.add(value); }));
+      });
+      textures = maps.size;
+      scene.add(model);
+      const bounds = new THREE.Box3().setFromObject(model);
+      if (!meshes || bounds.isEmpty()) { showError('模型中没有可显示的造型，请检查 orange-cat.glb。'); return; }
+      sphere = bounds.getBoundingSphere(new THREE.Sphere());
+      center = bounds.getCenter(new THREE.Vector3());
+      fitDistance();
+      setView('front');
+      document.getElementById('metrics').textContent = `${triangles.toLocaleString('zh-CN')} 个三角面 · ${textures} 张内嵌贴图`;
+      if (contextLost) showError('三维显示暂时中断，恢复后可继续查看。');
+      else showReady();
+    }, undefined, () => {
+      if (request === generation) showError('三维模型加载失败。请确认 orange-cat.glb 与此页面放在同一目录，再重新加载。');
+    });
+  }
+  try {
+    if (!window.THREE || !THREE.GLTFLoader || !THREE.OrbitControls) throw new Error('缺少本地预览组件');
+    renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'low-power' });
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.setClearColor(0x000000, 0);
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(32, 1, .01, 100);
+    camera.position.set(0, .5, 2);
+    controls = new THREE.OrbitControls(camera, canvas);
+    controls.enablePan = false;
+    controls.enableDamping = false;
+    controls.rotateSpeed = .7;
+    controls.zoomSpeed = .8;
+    controls.minPolarAngle = .20;
+    controls.maxPolarAngle = Math.PI * .52;
+    controls.addEventListener('change', requestRender);
+    controls.addEventListener('start', () => { currentView = 'custom'; markView(''); });
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xc3c5bb, .6));
+    const key = new THREE.DirectionalLight(0xffffff, .65);
+    key.position.set(-3, 4, 5);
+    scene.add(key);
+    const fill = new THREE.DirectionalLight(0xffffff, .2);
+    fill.position.set(3, 2, -3);
+    scene.add(fill);
+    const shadowCanvas = document.createElement('canvas');
+    shadowCanvas.width = shadowCanvas.height = 64;
+    const context = shadowCanvas.getContext('2d');
+    const gradient = context.createRadialGradient(32, 32, 3, 32, 32, 30);
+    gradient.addColorStop(0, 'rgba(84,73,51,0.20)');
+    gradient.addColorStop(1, 'rgba(84,73,51,0)');
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, 64, 64);
+    const shadow = new THREE.Mesh(new THREE.PlaneGeometry(.95, .7), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(shadowCanvas), transparent: true, depthWrite: false }));
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.y = -.002;
+    scene.add(shadow);
+    canvas.addEventListener('webglcontextlost', event => {
+      event.preventDefault();
+      contextLost = true;
+      if (frame) { cancelAnimationFrame(frame); frame = 0; }
+      showError('三维显示暂时中断，恢复后可继续查看。');
+    });
+    canvas.addEventListener('webglcontextrestored', () => { contextLost = false; if (model) showReady(); else loadModel(); });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && frame) { cancelAnimationFrame(frame); frame = 0; }
+      if (!document.hidden) requestRender();
+    });
+    window.addEventListener('resize', resize);
+    new ResizeObserver(resize).observe(canvas.parentElement);
+    document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => setView(button.dataset.view)));
+    document.getElementById('reset').addEventListener('click', () => setView('front'));
+    canvas.addEventListener('keydown', event => {
+      if (state !== 'ready' || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', '+', '=', '-', 'Home'].includes(event.key)) return;
+      event.preventDefault();
+      if (event.key === 'Home') { setView('front'); return; }
+      const orbit = new THREE.Spherical().setFromVector3(camera.position.clone().sub(controls.target));
+      if (event.key === 'ArrowLeft') orbit.theta -= .12;
+      if (event.key === 'ArrowRight') orbit.theta += .12;
+      if (event.key === 'ArrowUp') orbit.phi -= .12;
+      if (event.key === 'ArrowDown') orbit.phi += .12;
+      if (event.key === '+' || event.key === '=') orbit.radius *= .9;
+      if (event.key === '-') orbit.radius /= .9;
+      orbit.phi = Math.max(controls.minPolarAngle, Math.min(controls.maxPolarAngle, orbit.phi));
+      orbit.radius = Math.max(controls.minDistance, Math.min(controls.maxDistance, orbit.radius));
+      camera.position.copy(controls.target).add(new THREE.Vector3().setFromSpherical(orbit));
+      currentView = 'custom'; markView(''); controls.update(); requestRender();
+    });
+    resize();
+    loadModel();
+  } catch (failure) {
+    showError('此浏览器暂时无法显示三维模型，以下为静态正面预览。可换用支持 WebGL 的浏览器重试。');
+  }
+  document.getElementById('retry').addEventListener('click', () => {
+    if (!renderer || contextLost) location.reload();
+    else loadModel();
+  });
+  // Read-only diagnostics for this standalone review page; no game or save access.
+  Object.defineProperty(window, '__catPreview', { get: () => Object.freeze({
+    state, triangles, meshes, textures, renderedFrames, pendingFrame: Boolean(frame), contextLost,
+    distance: controls ? camera.position.distanceTo(controls.target) : null,
+    minDistance: controls && controls.minDistance, maxDistance: controls && controls.maxDistance,
+    view: currentView, dpr: renderer && renderer.getPixelRatio(),
+    drawCalls: renderer && renderer.info.render.calls, drawnTriangles: renderer && renderer.info.render.triangles,
+    gpuTextures: renderer && renderer.info.memory.textures,
+    width: canvas.width, height: canvas.height
+  }) });
+})();
+</script>
+</body>
+</html>
