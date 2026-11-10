@@ -2,6 +2,8 @@ async root => {
  const assert=(ok,msg)=>{if(!ok)throw Error(msg)},browser=root.context().browser();
  const c=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
  const p=await c.newPage(),errors=[],external=[],catches=[],checks=[];
+ const TYPES=['dew','peach','amber','moon','violet','tide'],PREFS=[['peach','amber'],['dew','moon'],['violet','tide']];
+ const preferred=progress=>PREFS[progress.lamps.indexOf(false)]||TYPES;
  p.on('pageerror',e=>errors.push(e.message));
  await p.route('**/*',async r=>{
   if(new URL(r.request().url()).hostname!=='127.0.0.1'){external.push(r.request().url());return r.abort();}
@@ -11,7 +13,7 @@ async root => {
   const edits=[['  function toast(msg, ms) {','  function toast(msg, ms) { (window.__c3Notices||(window.__c3Notices=[])).push({msg:msg,t:performance.now()});'],
    ['wisps = [], lamps = [], ornaments = []','wisps = [], lamps = [], ornaments = window.__c3Ornaments = []'],
    ['      addStyle(); prepareWisps(); buildLamps(); bindSwipes();','      addStyle(); prepareWisps(); buildLamps(); bindSwipes(); window.__c3Inspect={H:H,J:J,fx:lampFx};'],
-   ['    var sp = TYPES[w.type], fresh = !S.caught[sp.id];','    window.__c3LastCatch={type:w.type,id:TYPES[w.type].id};\n    var sp = TYPES[w.type], fresh = !S.caught[sp.id];']];
+   ['    S.caught[sp.id] = Math.min(99999, (S.caught[sp.id] || 0) + 1);','    window.__c3LastCatch={type:w.type,id:TYPES[w.type].id};\n    S.caught[sp.id] = Math.min(99999, (S.caught[sp.id] || 0) + 1);']];
   for(const [a,b]of edits){assert(html.includes(a),'inspection anchor missing: '+a);html=html.replace(a,b);}
   await r.fulfill({response:res,body:html});
  });
@@ -21,12 +23,12 @@ async root => {
   if(sessionStorage.getItem('chapter3-feedback'))return;sessionStorage.setItem('chapter3-feedback','1');
   localStorage.setItem('hg_level2_unlocked','1');localStorage.setItem('xiantu_save','KEEP');
   localStorage.setItem('healingGarden.kittens.v1',JSON.stringify({level:3,total:20,ended:true}));
-  localStorage.setItem('healingGarden.journey.v1',JSON.stringify({completed:[1,2],lamps:[false,false,false],charge:0,decor:[true,true,true]}));
+  localStorage.setItem('healingGarden.journey.v1',JSON.stringify({completed:[1,2],lamps:[false,false,false],charge:0,decor:[true,true,true],seen:{flowers:['daisy','rose']}}));
  });
  const url='http://127.0.0.1:8784/xiantu/games/healing-game/site/healing-game/',state=()=>p.evaluate(()=>__journey.state());
  try {
  await p.goto(url);
- assert((await p.locator('#start').innerText()).includes('所有颜色每只都 +1'),'entry explains every color');
+ assert((await p.locator('#start').innerText()).includes('偏爱')&&!(await p.locator('#start').innerText()).includes('所有颜色每只都 +1'),'entry explains preferred-color scoring');
  await p.locator('#start').click();await p.waitForTimeout(300);
  assert(await p.evaluate(()=>!__c3Ornaments[2].visible),'locked crown stays hidden');
  const identity=await p.evaluate(()=>{window.__c3Island=GardenClip.world.island;return __journey.state().worldChildren;});
@@ -41,29 +43,60 @@ async root => {
  assert(empty,'empty point is available');await p.touchscreen.tap(empty.x,empty.y);
  assert((await p.locator('#toast').innerText()).includes('没有接到星萤'),'empty tap gives guidance');
  assert((await state()).progress.charge===0,'empty tap grants no charge');
- async function pick(){
-  for(let attempt=0;attempt<30;attempt++){
-   const targets=await p.evaluate(()=>{const caught=__journey.state().progress.caught;return __journey.targets().filter(t=>t.front&&t.x>10&&t.x<innerWidth-10&&t.y>230&&t.y<innerHeight-120&&document.elementFromPoint(t.x,t.y)?.tagName==='CANVAS'&&__level3fx.wispAt(t.x,t.y)&&__level3fx.lampAt(t.x,t.y)<0).sort((a,b)=>(caught[a.id]||0)-(caught[b.id]||0));});
-   for(const t of targets){
+ async function targets(ids,slot){
+  return p.evaluate(({ids,slot,TYPES})=>{const caught=__journey.state().progress.caught;return __c3Inspect.J.wisps.filter(w=>w.g.visible&&!w.cooldown&&w.fade>=.3&&(slot==null||w.slot===slot)&&ids.includes(TYPES[w.type])).map(w=>{const v=w.g.getWorldPosition(new THREE.Vector3()).project(__c3Inspect.H.camera);return{id:TYPES[w.type],type:w.type,slot:w.slot,x:(v.x+1)*innerWidth/2,y:(1-v.y)*innerHeight/2,front:v.z<1};}).filter(t=>t.front&&t.x>10&&t.x<innerWidth-10&&t.y>230&&t.y<innerHeight-120&&document.elementFromPoint(t.x,t.y)?.tagName==='CANVAS'&&__level3fx.wispAt(t.x,t.y)?.slot===t.slot&&__level3fx.lampAt(t.x,t.y)<0).sort((a,b)=>(caught[a.id]||0)-(caught[b.id]||0));},{ids,slot,TYPES});
+ }
+ async function availability(){
+  const progress=(await state()).progress,expected=preferred(progress),observed=await p.evaluate(()=>({voyage:__voyage.state(),types:__c3Inspect.J.wisps.map(w=>w.type)}));
+  assert(observed.voyage.currentLamp===progress.lamps.indexOf(false),'current lamp is the first unlit lamp');
+  if(progress.lamps.some(v=>!v))assert(expected.every(id=>observed.types.includes(TYPES.indexOf(id))),'both preferred colors remain available, including bounded respawn cooldowns');
+ }
+ async function wrongHits(){
+  const progress=(await state()).progress,wrong=TYPES.filter(id=>!preferred(progress).includes(id));let target;
+  for(let attempt=0;attempt<60&&!target;attempt++){target=(await targets(wrong))[0];if(!target)await p.waitForTimeout(150);}
+  assert(target,'a non-preferred wisp is reachable');
+  for(let repeat=0;repeat<3;repeat++){
+   const current=(await targets(wrong,target.slot))[0];assert(current,'rejected wisp remains available for repeated taps');
+   const before=await p.evaluate(slot=>({progress:__journey.state().progress,saved:localStorage.getItem('healingGarden.journey.v1'),wisp:__c3Inspect.J.wisps.filter(w=>w.slot===slot).map(w=>({type:w.type,cooldown:w.cooldown,visible:w.g.visible}))}),target.slot);
+   await p.touchscreen.tap(current.x,current.y);
+   const after=await p.evaluate(slot=>({progress:__journey.state().progress,saved:localStorage.getItem('healingGarden.journey.v1'),wisp:__c3Inspect.J.wisps.filter(w=>w.slot===slot).map(w=>({type:w.type,cooldown:w.cooldown,visible:w.g.visible}))}),target.slot);
+   assert(JSON.stringify(after)===JSON.stringify(before),'wrong-color taps preserve all progress, saved state, type, cooldown and visibility');
+   assert((await p.locator('#toast').innerText()).includes('不加分'),'wrong color receives gentle non-scoring feedback');
+  }
+ }
+ async function pick(ids){
+  for(let attempt=0;attempt<80;attempt++){
+   const beforeTargets=(await state()).progress,allowed=ids||preferred(beforeTargets),list=await targets(allowed);
+   for(const t of list){
     const before=await state();await p.touchscreen.tap(t.x,t.y);const after=await state();
-    if(after.progress.charge===before.progress.charge+1){
+    if(Object.values(after.progress.caught).reduce((a,b)=>a+b,0)===Object.values(before.progress.caught).reduce((a,b)=>a+b,0)+1){
      const last=await p.evaluate(()=>__c3LastCatch),toast=await p.locator('#toast').innerText();
-     assert(toast.includes('星光 +1')&&toast.includes(after.progress.charge+' / 4'),'every catch shows its actual +1 and charge: '+JSON.stringify({toast,notices:await p.evaluate(()=>window.__c3Notices.slice(-5))}));
-     if(after.progress.charge===4)assert(toast.includes('点亮星灯'),'full charge instruction survives a discovery');
-     catches.push({...last,before:before.progress.charge,after:after.progress.charge,joy:after.progress.joys-before.progress.joys});return;
+     if(!before.progress.completed.includes(3)){
+      assert(preferred(before.progress).includes(last.id),'only the current first-unlit lamp preference scores');
+      assert(after.progress.charge===before.progress.charge+1&&after.progress.stars===before.progress.stars+1&&after.progress.joys===before.progress.joys+1,'accepted colors grant exactly one charge, sky star and joy');
+      assert(toast.includes('星光 +1')&&toast.includes(after.progress.charge+' / 4'),'accepted catch shows its +1 and charge: '+JSON.stringify({toast,notices:await p.evaluate(()=>window.__c3Notices.slice(-5))}));
+      if(after.progress.charge===4)assert(toast.includes('点亮星灯'),'full charge instruction survives a discovery');
+      catches.push({...last,currentLamp:before.progress.lamps.indexOf(false),before:before.progress.charge,after:after.progress.charge,joy:after.progress.joys-before.progress.joys});
+     }else assert(after.progress.charge===before.progress.charge&&after.progress.stars===before.progress.stars+1&&after.progress.joys===before.progress.joys,'completed free play collects any color without charging or preference bonuses');
+     await availability();return last;
     }
    }
    await p.waitForTimeout(180);
-  }throw Error('No reachable wisp');
+  }throw Error('Preferred colors became unreachable or starved');
  }
- // Choose lamp 3 first: the real rules allow any unlit lamp, regardless of its preferred colors.
+ // Charging follows the first unlit lamp; spending four points still permits any unlit lamp.
  for(const index of [2,0,1]){
+  await availability();await wrongHits();
   while((await state()).progress.charge<4)await pick();
+  const fullBefore=(await state()).progress;let fullTarget;
+  for(let attempt=0;attempt<60&&!fullTarget;attempt++){fullTarget=(await targets(preferred(fullBefore)))[0];if(!fullTarget)await p.waitForTimeout(150);}
+  assert(fullTarget,'a preferred wisp respawns at full charge');
+  await p.touchscreen.tap(fullTarget.x,fullTarget.y);assert(JSON.stringify((await state()).progress)===JSON.stringify(fullBefore),'full charge blocks collection and every reward');
   const ready=await p.evaluate(()=>__c3Inspect.fx.map((f,i)=>({lit:__c3Inspect.J.lit(i),label:f.readyLabel.visible,halo:__c3Inspect.J.lamps[i].halo.scale.x})));
   assert(ready.every(f=>f.lit||f.label&&f.halo>=3.3),'every available lamp has the bright world label and large halo');
   if(index===2){
    await p.waitForTimeout(700);
-   assert((await state()).xp>=60&&(await p.locator('#toast').innerText()).includes('点亮星灯'),'rank-up polling preserves the full-charge action notice');
+   assert((await state()).xp>=60&&/点亮星灯|点我点亮/.test(await p.locator('#toast').innerText()),'rank-up polling preserves the full-charge action notice');
    await p.screenshot({path:'output/playwright/healing-v94-chapter3-ready.png',scale:'css'});
    await p.setViewportSize({width:1280,height:800});await p.waitForTimeout(350);
    await p.screenshot({path:'output/playwright/healing-v94-chapter3-ready-desktop.png',scale:'css'});
@@ -85,16 +118,18 @@ async root => {
   assert(await p.evaluate(pt=>document.elementFromPoint(pt.x,pt.y)?.tagName==='CANVAS',target),'ready world label is unobscured');
   await p.touchscreen.tap(target.x,target.y);
   assert((await state()).progress.lamps[index]&&(await state()).progress.charge===0,'world label lights requested lamp and spends exactly four');
+  await availability();
   if(index!==1){
    await p.locator('#starLamp'+index).click();
    if(index===2)await p.evaluate(()=>__voyage.update(3.1,__voyage.state().clock+3.1));
    assert((await p.locator('#toast').innerText()).includes('已经亮了'),'already-lit feedback survives the pending boat announcement');
   }
  }
- assert(new Set(catches.map(s=>s.id)).size===6,'all six colors collected in twelve catches');
- assert(catches.some(s=>s.joy===0)&&catches.some(s=>s.joy===1),'preferred and ordinary colors both grant exactly one charge');
+ assert(catches.length===12&&catches.every(s=>PREFS[s.currentLamp].includes(s.id)&&s.joy===1),'twelve accepted catches respect the changing current-lamp preferences');
+ assert(catches.slice(0,8).every(s=>PREFS[0].includes(s.id))&&catches.slice(8).every(s=>PREFS[1].includes(s.id)),'lighting lamp 3 first preserves lamp 1 preference; lighting lamp 1 advances to lamp 2');
  assert(await p.evaluate(()=>!__c3Ornaments[2].visible),'crown clears immediately on third lamp');
  await p.locator('#starFinaleSkip').click();await p.locator('#starStay').click();
+ await pick(['violet','tide']);
  const completed=await state();
  assert(completed.progress.decor[2]===true,'crown preference remains saved');
  await p.locator('#kitLevelBtn').click();
@@ -108,7 +143,7 @@ async root => {
  assert((await state()).progress.lamps.every(Boolean)&&!(await p.evaluate(()=>__c3Ornaments[2].visible)),'completed save restores with no crown');
  assert(await p.evaluate(()=>localStorage.getItem('xiantu_save'))==='KEEP','Xiantu save isolated');
  assert(!errors.length&&!external.length,JSON.stringify({errors,external}));
- checks.push('truthful entry / all colors +1 / fresh catch instruction / empty and invalid feedback / passive notice priority / any-order world lamps / charge reload / crown lifecycle / scene identity / saved preferences');
+ checks.push('preferred-color scoring / repeated wrong-color non-mutation / available preferred targets / full charge blocks awards / free-play all colors / passive notice priority / any-order world lamps / charge reload / crown lifecycle / scene identity / saved preferences');
  await c.close();return{checks,catches,completed,errors,external};
  } catch(e) {
   const notices=await p.evaluate(()=>window.__c3Notices&&window.__c3Notices.slice(-8)).catch(()=>[]);

@@ -1,16 +1,16 @@
 /* ==================================================================
  * voyage.js — lamp wishes and the night voyage for level 3 (星灯夜航).
- * - Each lamp softly prefers two 星萤. Any species counts; a match adds
- *   a flourish. Species are dealt so a 12-catch run finds all six.
+ * - The first unlit lamp accepts its two preferred 星萤. Other colours
+ *   answer with a gentle flash, without changing score or collection.
  * - A paper boat drifts between lit lamps and loops them in the finale.
- * - Each catch adds a star (cap 60); the journal keeps counts and memories.
+ * - Each accepted catch adds a star (cap 60); free play accepts all colours.
  * Loaded after journey.js, which calls in through window.__voyage.
  * Plain ES5. No external resources.
  * ================================================================== */
 (function (window, document) {
   'use strict';
   var GA = window.GardenAudio, K = GA && GA.kit;
-  var RUN_CATCHES = 12, STAR_CAP = 60, FLY_TIME = 1.1, LAND_TIME = 0.8, DRIFT_SPEED = 0.5, LOOP_TIME = 6, HOVER_Y = 0.62, FLOWER_CLEAR = 1.05;
+  var STAR_CAP = 60, FLY_TIME = 1.1, LAND_TIME = 0.8, DRIFT_SPEED = 0.5, LOOP_TIME = 6, HOVER_Y = 0.62, FLOWER_CLEAR = 1.05;
   // Lamp index -> species index in TYPES: warm, clear, dreaming. Together they cover all six.
   var WISHES = [[1, 2], [0, 3], [4, 5]];
   var MEMORY = {
@@ -36,6 +36,11 @@
   function litCount() { return S.lamps.filter(Boolean).length; }
   function allLit() { return litCount() === 3; }
   function nextLamp() { return S.lamps.indexOf(false); }
+  function accepts(type) { var next = nextLamp(); return next < 0 || WISHES[next].indexOf(type) >= 0; }
+  function wishHint() {
+    var next = nextLamp();
+    return next < 0 ? '三座星灯都亮着，所有颜色都可收入图鉴' : '当前 ' + (next + 1) + ' 号灯偏爱' + WISHES[next].map(function (type) { return TYPES[type].name; }).join('、');
+  }
   function emitRing(pos, col, count, speed, size) {
     for (var i = 0; i < count; i++) {
       var a = i / count * Math.PI * 2;
@@ -66,17 +71,21 @@
     var fresh = missing.filter(absent), wish = next >= 0 ? WISHES[next].filter(absent) : [];
     return leastPresent(fresh.length ? fresh : (wish.length ? wish : all), w);
   }
-  // Once the catches left only just cover the species left, every wisp must be a new friend.
-  // type changes at once so the guarantee holds; the colour follows softly in tintWisps.
+  // Keep both currently accepted colours available, even in an old partial save
+  // or after lighting lamps out of order. Never replace them just to fill the journal.
   function balance() {
-    var missing = unseen();
-    if (allLit() || !missing.length || RUN_CATCHES - litCount() * 4 - S.charge > missing.length) return;
-    J.wisps.forEach(function (w) {
-      if (missing.indexOf(w.type) >= 0) return;
-      w.type = leastPresent(missing, w);
-      if (w.cooldown > 0) return;
-      w.g.getWorldPosition(wp); tint.setHex(TYPES[w.type].color);
-      emitRing(wp, tint, 5, 0.2, 0.06);
+    var next = nextLamp();
+    if (next < 0) return;
+    WISHES[next].forEach(function (type) {
+      if (J.wisps.some(function (w) { return w.type === type; })) return;
+      var candidates = J.wisps.filter(function (w) { return !accepts(w.type); });
+      if (!candidates.length) candidates = J.wisps.filter(function (w) { return J.wisps.filter(function (other) { return other.type === w.type; }).length > 1; });
+      var w = candidates[0];
+      if (!w) return;
+      w.type = type; tint.setHex(TYPES[type].color);
+      // Matching uses the visible colour immediately, not a delayed colour crossfade.
+      w.wings[0].material.color.copy(tint); w.glow.material.color.copy(tint);
+      if (w.cooldown === 0) { w.g.getWorldPosition(wp); emitRing(wp, tint, 5, 0.2, 0.06); }
     });
   }
   function tintWisps(dt, snap) {
@@ -112,11 +121,13 @@
       var b = document.getElementById('starLamp' + n), html = '<span class="vg-dots">';
       WISHES[n].forEach(function (type) { html += '<i style="background:' + hex(TYPES[type].color) + '"></i>'; });
       b.insertAdjacentHTML('beforeend', html + '</span>');
-      b.setAttribute('aria-label', b.getAttribute('aria-label') + '，偏爱' + TYPES[WISHES[n][0]].name + '和' + TYPES[WISHES[n][1]].name + '，偏爱只增添欢喜，所有颜色每只都加1点星光');
+      b.classList.toggle('current', n === next && S.charge < 4);
+      if (n === next && S.charge < 4) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+      b.setAttribute('aria-label', b.getAttribute('aria-label') + (n === next ? '，当前收集目标' : '') + '，偏爱' + TYPES[WISHES[n][0]].name + '和' + TYPES[WISHES[n][1]].name);
     });
     row.hidden = next < 0;
     if (next < 0) return;
-    row.innerHTML = '所有颜色都 +1<br>偏爱只添欢喜：' + WISHES[next].map(function (type) { return '<i style="background:' + hex(TYPES[type].color) + '"></i>' + short(TYPES[type]); }).join('');
+    row.innerHTML = S.charge >= 4 ? '星光已满 · 任一未亮灯可点亮' : '当前 ' + (next + 1) + ' 号灯 · 只收偏爱色<br>' + WISHES[next].map(function (type) { return '<i style="background:' + hex(TYPES[type].color) + '"></i>' + short(TYPES[type]); }).join('');
   }
 
   /* ----------------------------- Stars ----------------------------- */
@@ -325,6 +336,7 @@
     st.textContent = [
       '#vgWish{font-size:12px;line-height:1.5;color:#e0d9e8;margin-bottom:6px}',
       '#vgWish[hidden]{display:none}',
+      '#starLampButtons button.current{outline:2px solid var(--ink);outline-offset:2px}',
       '#vgWish i,.vg-dots i,.vg-count i{display:inline-block;width:8px;height:8px;border-radius:50%;box-shadow:0 0 5px currentColor}',
       '#vgWish i{margin:0 2px 0 4px}',
       '.vg-dots{display:flex;justify-content:center;gap:4px;margin-top:3px;pointer-events:none}',
@@ -417,13 +429,19 @@
       }
     },
     renderHud: renderHud,
+    accepts: accepts,
+    wishHint: wishHint,
+    onMismatch: function (w, pos) {
+      tint.setHex(TYPES[w.type].color); emitRing(pos, tint, 8, 0.35, 0.11);
+      var next = nextLamp(); if (next >= 0) dots[next].pulse = 0.7;
+    },
     journal: journal,
     lampOf: function (type) { for (var i = 0; i < 3; i++) if (WISHES[i].indexOf(type) >= 0) return i; return type % 3; },
     wishes: WISHES,
     // Read-only inspection for regression tests
     state: function () {
       return { stars: S.stars, shown: shown, boat: boat.visible, looping: !!loop, u: u, appear: appear, route: route ? route.points.length : 0, skyVisible: sky.visible, flights: flights.filter(function (f) { return f.on; }).length,
-        pos: boat.position.toArray(), clock: clock };
+        pos: boat.position.toArray(), clock: clock, currentLamp: nextLamp(), preferred: nextLamp() < 0 ? [] : WISHES[nextLamp()].slice() };
     },
     // Where a star seat lands on screen, to check they stay in view
     starScreen: function (i) {

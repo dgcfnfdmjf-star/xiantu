@@ -39,13 +39,13 @@
     ].join('\n');
     document.body.appendChild(st); // after journey's stylesheet in the body, which sets the same rules
   }
-  var LV3_ITEMS = ['✦ 轻点或划过彩色星萤，所有颜色每只都 +1', '🕯 每集满 4 点，轻点任一未亮星灯或上方编号；点亮三盏就完成', '彩色小圆点只表示灯的偏爱，遇见时多一份欢喜，星光仍是 +1', '🌷 种花 · 🏮 许愿 · ✨ 唤萤 · 📖 星萤', '👆 双指旋转 / 缩放视角 · 没有时间限制'];
+  var LV3_ITEMS = ['✦ 只接当前灯偏爱的两种颜色，每只 +1；其他颜色不加分也不扣分', '🕯 每集满 4 点，轻点任一未亮星灯或上方编号；点亮三盏就完成', '当前灯是编号最小的未亮灯；任务卡写明偏爱色，灯旁色点也可对照', '🌷 种花 · 🏮 许愿 · ✨ 唤萤 · 📖 星萤', '👆 双指旋转 / 缩放视角 · 没有时间限制'];
   var CARDS = {
     5: { p: '月色落在一湾静水里，六朵莲花在等光。<br>找回月露、倒影和光路，陪一叶小舟归航。<br>不用赶路，也不用担心做错。', items: ['☾ 六朵月莲，各有一种温柔的小目标', '接月露、转月镜、引光与合奏；没有限时', '📖 六朵月莲会收入收藏手账', '完成后可留下来，听听月色'] },
     4: { p: '星灯歇下，晨风带来了六枚风铃。<br>听一遍，再按编号奏回三段旋律，<br>把早安送给醒来的小岛。', items: ['♪ 先听旋律，再点风铃或底部编号', '📖 可查看乐谱，静音也有编号提示', '✧ 三段旋律与六枚音符可存档续玩', '没有限时，错音可以慢慢重来'] },
     2: { p: '小猫们在花丛里等你，<br>丢个毛线球，再轻轻抱抱它们，<br>收集 20 点，就能去往星灯湾。',
       items: ['🐱 轻点小猫丢毛线球，再点一下抱抱它', '✨ 稀有的小猫值更多点数', '🌷 种花 · 🏮 放灯 · 📖 猫谱', '👆 双指旋转 / 缩放视角'] },
-    3: { p: '夜色落在云海上，三座星灯还在沉睡。<br>先轻点彩色星萤收集 4 点星光，<br>再轻点发亮的灯，把三盏依次点亮。', items: LV3_ITEMS },
+    3: { p: '夜色落在云海上，三座星灯还在沉睡。<br>先按当前灯的偏爱色收集 4 点星光，<br>再轻点发亮的灯，把三盏依次点亮。', items: LV3_ITEMS },
     done: { p: '三座星灯都亮着，云海有了归途。<br>星萤还在岛上慢慢飞，<br>留下来，陪它们看一会儿夜色吧。',
       items: ['✦ 轻点或划过星萤，把它们记进图鉴', LV3_ITEMS[3], LV3_ITEMS[4]] }
   };
@@ -55,6 +55,7 @@
     if (!originalCard) originalCard = { p: p.innerHTML, ul: ul.innerHTML };
     var copy = level === 3 && J.allLit() ? CARDS.done : CARDS[level];
     p.innerHTML = copy ? copy.p : originalCard.p;
+    if (level === 3 && !J.allLit() && window.__voyage.wishHint) p.innerHTML += '<br>' + window.__voyage.wishHint();
     ul.innerHTML = copy ? '<li>' + copy.items.join('</li><li>') + '</li>' : originalCard.ul;
   }
   // 放灯 and 萤火 name other things in level 3, where the lamps and 星萤 are the story

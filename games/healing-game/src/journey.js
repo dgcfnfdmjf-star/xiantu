@@ -173,6 +173,11 @@
     feedbackUntil = time + 3;
     if (!done(3) && S.charge >= 4) { H.toast('星光已满 4 / 4 · 轻点带「点我点亮」的星灯，或上方未亮的编号', 2600); return true; }
     var sp = TYPES[w.type], fresh = !S.caught[sp.id];
+    if (!done(3) && VG && !VG.accepts(w.type)) {
+      w.g.getWorldPosition(temp); VG.onMismatch(w, temp);
+      H.toast('接到了' + sp.name + '，先让它继续飞吧 · ' + VG.wishHint() + ' · 这次不加分', 3000);
+      return true;
+    }
     S.caught[sp.id] = Math.min(99999, (S.caught[sp.id] || 0) + 1);
     if (!done(3)) S.charge++;
     w.cooldown = 2.2; w.g.visible = false;
@@ -190,19 +195,19 @@
     if (!active || !H.isStarted() || blocked() || index < 0 || index > 2) return;
     feedbackUntil = time + 3;
     if (S.lamps[index]) { H.toast(litCount() === 3 ? '三座星灯都亮着，云海有了归途 ✦' : '这座星灯已经亮了 · 请选未亮的星灯，星光会保留'); return; }
-    if (S.charge < 4) { H.toast('还差 ' + (4 - S.charge) + ' 点星光 · 轻点彩色星萤，所有颜色每只都 +1'); return; }
+    if (S.charge < 4) { H.toast('还差 ' + (4 - S.charge) + ' 点星光 · ' + VG.wishHint() + '，匹配才 +1', 3000); return; }
     S.charge -= 4; S.lamps[index] = true; if (FX) FX.onLamp(index);
     lamps[index].core.getWorldPosition(temp); burst(temp, 0xffd58a); if (L3) L3.lampSound(litCount()); else chime(true);
     if (litCount() === 3) complete(3);
     if (VG) VG.onLamp(index);
     save(); updateRewards(); updateLamps(); renderHud();
-    if (done(3)) { if (L3) L3.startFinale(index, showEnding); else showEnding(); } else H.toast('第 ' + litCount() + ' 座星灯亮起来了 ✧', 2600);
+    if (done(3)) { if (L3) L3.startFinale(index, showEnding); else showEnding(); } else H.toast((index + 1) + ' 号星灯亮起来了 ✧ · ' + VG.wishHint(), 3000);
   }
   function renderHud() {
     if (!$('starHud')) return;
     $('starCount').textContent = done(3) ? '星灯湾 · 自由拾光' : '星灯 ' + litCount() + ' / 3';
-    $('starHint').textContent = done(3) ? '星萤图鉴 ' + starsSeen() + ' / 6' : '星光 ' + S.charge + ' / 4 · ' + (S.charge >= 4 ? '轻点一座未亮星灯' : '轻点彩色星萤 · 每只 +1');
-    [0, 1, 2].forEach(function (n) { var b = $('starLamp' + n), ready = S.charge >= 4 && !S.lamps[n]; b.classList.toggle('lit', S.lamps[n]); b.classList.toggle('ready', ready); b.textContent = (n + 1) + (S.lamps[n] ? ' ✦' : ready ? ' 点亮' : ' ◇'); b.setAttribute('aria-label', (n + 1) + ' 号星灯' + (S.lamps[n] ? '已点亮' : ready ? '，星光已满，点击点亮' : '，需要4点星光，所有颜色都能收集')); });
+    $('starHint').textContent = done(3) ? '星萤图鉴 ' + starsSeen() + ' / 6' : '星光 ' + S.charge + ' / 4 · ' + (S.charge >= 4 ? '轻点一座未亮星灯' : '匹配偏爱色才 +1');
+    [0, 1, 2].forEach(function (n) { var b = $('starLamp' + n), ready = S.charge >= 4 && !S.lamps[n]; b.classList.toggle('lit', S.lamps[n]); b.classList.toggle('ready', ready); b.textContent = (n + 1) + (S.lamps[n] ? ' ✦' : ready ? ' 点亮' : ' ◇'); b.setAttribute('aria-label', (n + 1) + ' 号星灯' + (S.lamps[n] ? '已点亮' : ready ? '，星光已满，点击点亮' : '，需要4点星光，匹配当前灯的偏爱色才加分')); });
     if (VG) VG.renderHud();
   }
   function setModal(id, open) {
@@ -245,7 +250,7 @@
       var chapters = [
         ['蝴蝶来信', '轻点花间的蝴蝶，收集 30 点心动，解锁猫咪伙伴。', Math.min(30, bf.total) + ' / 30 点'],
         ['猫咪午后', '先丢毛线球，再抱抱小猫。收集 20 点，解锁星灯湾。', Math.min(20, cats.total) + ' / 20'],
-        ['星灯夜航', '轻点彩色星萤，所有颜色每只都 +1。集满 4 点，轻点任一未亮星灯或上方编号；共点亮三盏。灯旁色点只表示偏爱。', litCount() + ' / 3 座灯'],
+        ['星灯夜航', '当前灯是编号最小的未亮星灯。轻点它偏爱的两种颜色之一才 +1，其他颜色不加分也不扣分。集满 4 点，轻点任一未亮星灯或上方编号；共点亮三盏。', litCount() + ' / 3 座灯'],
         ['晨风铃谷', '听风铃、看编号，依次奏回三段旋律。可查看乐谱，没有限时。', S.chimes.round + ' / 3 乐章'],
         ['月汐莲湾', '接月露、转月镜、引光、合光、铺叶舟、回应晚安，连成一条月光归途。', S.lotus.found.length + ' / 6 朵莲花']
       ];
@@ -353,12 +358,12 @@
     if (time - lastMiss < 2) return;
     lastMiss = time;
     feedbackUntil = time + 3;
-    H.toast(done(3) ? '轻点正在飞舞的彩色星萤，继续收集图鉴' : S.charge >= 4 ? '星光已满 · 轻点带「点我点亮」的星灯，或上方未亮编号' : '这里没有接到星萤 · 轻点彩色亮光，所有颜色每只都 +1', 2400);
+    H.toast(done(3) ? '轻点正在飞舞的彩色星萤，继续收集图鉴' : S.charge >= 4 ? '星光已满 · 轻点带「点我点亮」的星灯，或上方未亮编号' : '这里没有接到星萤 · ' + VG.wishHint() + '，匹配才 +1', 3000);
   }
   function hint() {
     if (done(3)) return '三座星灯都亮着 · 留下来慢慢拾光';
     if (S.charge >= 4) return '星光已满 · 轻点带「点我点亮」的星灯，或上方未亮编号';
-    return '所有颜色的星萤每只都 +1 · 集满 4 点，轻点未亮星灯或上方编号';
+    return VG.wishHint() + '，匹配才 +1 · 集满 4 点可点亮任一未亮星灯';
   }
   var API = window.GardenJourney = { ready: false, open: open, blocked: blocked, unlocked: unlocked, onLevel: onLevel, saveWarning: saveWarning, saveOk: saveOk, hint: hint, feedbackBusy: feedbackBusy };
   var GP = window.GardenPlay, baseInit = GP.init, baseUpdate = GP.update, baseTap = GP.onTap;
