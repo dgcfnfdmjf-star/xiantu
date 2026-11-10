@@ -677,11 +677,21 @@
       popup.setAttribute('role', 'status');
       popup.setAttribute('aria-live', 'polite');
       popup.innerHTML = `
-        <div style="font-size: 24px; margin-bottom: 5px;">🏆 成就解锁！</div>
-        <div style="font-size: 18px; color: #ffd700;">${ach.icon} ${ach.name}</div>
-        <div style="font-size: 12px; color: #aaa; margin-top: 5px;">${ach.desc}</div>
+        <div class="achievement-kicker-v2868114">🏆 成就解锁</div>
+        <div class="achievement-name-v2868114">${ach.icon} ${ach.name}</div>
+        <div class="achievement-desc-v2868114">${ach.desc}</div>
         <div class="achievement-dismiss-v2764">轻触关闭 · 将自动消失</div>
       `;
+      // V28.68.114: honour reduced motion / effects off; never sit under the battle receipt.
+      let fxOff = false; try { fxOff = localStorage.getItem('xiantu_map_fx_v2868104') === 'off'; } catch (_) {}
+      if (fxOff || document.documentElement.classList.contains('xt-reduce-motion')) popup.classList.add('still-v2868114');
+      const receipt = document.getElementById('afterBattleV2838');
+      if (receipt) {
+        let r = receipt.getBoundingClientRect();
+        // Short landscape screens: fold an untouched receipt to its title row so the card fits below it.
+        if (r.height && r.bottom + 150 > innerHeight && !receipt._watchV2868114?.touched && typeof setAfterBattleCollapsedV2868114 === 'function') { setAfterBattleCollapsedV2868114(receipt, true); r = receipt.getBoundingClientRect(); }
+        if (r.height) popup.style.top = Math.round(Math.min(r.bottom + 10, innerHeight - 140)) + 'px';
+      }
       const dismiss = () => { if (popup.isConnected) popup.remove(); };
       popup.addEventListener('pointerup', dismiss, {once:true});
       popup.addEventListener('click', dismiss, {once:true});
@@ -6430,6 +6440,35 @@
       if(!p||p.seq!==seq||p.owner!==player||document.getElementById('storyPanel')?.classList.contains('hidden')||document.getElementById('taskPanel')||getTaskInstance(p.id)!==p.inst||getCurrentTaskStep(p.id)!==p.step||document.getElementById('taskBattlePromptV2868103')?.dataset.prompt!==String(seq)||!taskBattleReadyV2868103(p.id,p.action))return false;
       taskBattlePromptV2868103=null;p.launch();return true;
     }
+    // V28.68.114: wandering monsters wait while the first guided steps (up to the first real fight) are open.
+    function wildContactGuardedV2868114(){
+      if(typeof tutorialCardOpenV2868114==='function'&&tutorialCardOpenV2868114())return true;
+      return typeof guidedTutorialUnfinishedV2868114==='function'&&guidedTutorialUnfinishedV2868114();
+    }
+    // Contact fights reuse the task-battle low-health threshold and prompt.
+    let wildContactPromptV2868114=null;
+    function warnWildContactV2868114(monster){
+      if(!monster||player.hp>=getMaxHp()*.5)return false;
+      const seq=++taskBattleSeqV2868103;
+      wildContactPromptV2868114={seq,owner:player,monster,region:monster.regionId};
+      monster.battleCooldown=8;   // same grace as after fleeing, so declining lets the player walk away
+      stopNavigationV2830?.();FLAT_WORLD.keys={};FLAT_WORLD.target=null;FLAT_WORLD.moving=false;
+      showStory(`<section id="taskBattlePromptV2868103" data-prompt="${seq}" data-kind="wild"><h3>⚠️ 气血不足，先整备再迎战</h3><p>${discipleEscV2815(monster.enemy?.name||'妖兽')}挡在路前。当前气血 ${Math.floor(player.hp)} / ${getMaxHp()}，不足一半。战败会损失身上灵石的20%，且仅保留1点气血。</p><button class="choice-btn" onclick="showTaskSuppliesV2868103()">💧 先去补给</button><button class="choice-btn" onclick="confirmWildContactV2868114(${seq})">仍要出战</button></section>`,[{text:'暂且避开',action:'return_to_map'}]);
+      document.getElementById('storyText').scrollTop=0;
+      document.querySelector('#taskBattlePromptV2868103 button')?.focus();
+      return true;
+    }
+    function confirmWildContactV2868114(seq){
+      const p=wildContactPromptV2868114,m=p?.monster;
+      if(!p||p.seq!==seq||p.owner!==player||document.getElementById('taskBattlePromptV2868103')?.dataset.prompt!==String(seq)||gameState!=='exploring'||COMBAT_FINISH_V2764.settling||player.breakthrough?.isAnimating)return false;
+      wildContactPromptV2868114=null;
+      if(!m.alive||m.inCombat||!FLAT_WORLD.monsters.includes(m)||m.regionId!==(currentRegion||getPlayerRegion())){closeWorldOverlay();showFloatingText('妖兽已经离开。','#e5cf87');return false;}
+      closeWorldOverlay();
+      m.inCombat=true;FLAT_WORLD.target=null;FLAT_WORLD.moving=false;
+      startCombat({...m.enemy,maxHp:m.enemy.maxHp||m.enemy.hp},false,false,m);
+      return true;
+    }
+    window.confirmWildContactV2868114=confirmWildContactV2868114;
     function showTaskSuppliesV2868103(){
       if(!taskInteractionAllowedV2822()||gameState!=='exploring')return;
       taskBattlePromptV2868103=null;closeTaskPanel();
@@ -9013,7 +9052,7 @@
         const el=document.createElement('script');let done=false;
         const finish=(error)=>{if(done)return;done=true;clearTimeout(timer);el.onload=el.onerror=null;if(error){el.remove();reject(error);}else resolve(window.XiantuAlchemyStageV2868110);};
         const timer=setTimeout(()=>finish(new Error('alchemy visual timeout')),10000);
-        el.src='./xiantu-v2868110-alchemy-stage.js?v=28.68.113';el.async=true;
+        el.src='./xiantu-v2868110-alchemy-stage.js?v=28.68.114';el.async=true;
         el.onload=()=>finish(window.XiantuAlchemyStageV2868110?null:new Error('alchemy visual unavailable'));
         el.onerror=()=>finish(new Error('alchemy visual unavailable'));document.head.appendChild(el);
       }).catch(error=>{s.loading=null;throw error;});return s.loading;
@@ -13714,6 +13753,8 @@ function villageEnhanceV286897(){
         for (const monster of FLAT_WORLD.monsters) {
           if (!monster.alive || monster.inCombat || monster.battleCooldown > 0) continue;
           if (Math.hypot(p.x - monster.x, p.y - monster.y) < 60) {
+            if (wildContactGuardedV2868114()) { monster.battleCooldown = Math.max(monster.battleCooldown, 1.5); continue; }
+            if (warnWildContactV2868114(monster)) break;
             monster.inCombat = true;
             FLAT_WORLD.target = null;
             FLAT_WORLD.moving = false;
@@ -15801,6 +15842,8 @@ function villageEnhanceV286897(){
         player.name = name;
         player.inventory = ['小还丹', '小还丹'];
         player.materials = { '灵草': 2 };
+        // V28.68.114: a new character starts at its shown maximum (the base 100 predates the larger maximum).
+        player.hp = getMaxHp();
       }
       
       bindSaveSessionV2868102();
@@ -16187,7 +16230,7 @@ function villageEnhanceV286897(){
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.113";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.114";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

@@ -3942,7 +3942,7 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 /* V28.12 洞府管理 */
 .home-board-v2812{padding:16px;border:1px solid #9eb781;border-radius:16px;background:linear-gradient(135deg,#14251e,#18202b);color:#e9eee3;line-height:1.65}.home-board-v2812 h3{color:#ead592;margin:0 0 12px}.home-grid-v2812{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-grid-v2812 article{padding:14px;border:1px solid #526454;border-radius:12px;background:#ffffff08}.home-grid-v2812 h4{margin:0;color:#e8d594}.home-grid-v2812 p{color:#d0dbd1}.home-grid-v2812 strong{color:#83ddb6}.home-notice-v2812{padding:12px;background:#31534066;border-radius:10px}@media(max-width:600px){.home-grid-v2812{grid-template-columns:1fr}.home-board-v2812{padding:12px;font-size:14px}}
 
-:root{--xiantu-build:2868113;}
+:root{--xiantu-build:2868114;}
 #xiantuBuildBadgeV2814{font-size:11px;min-height:32px;padding:5px 9px;white-space:nowrap;color:#b4d4bd;background:#18251f;border:1px solid #718475;border-radius:8px;}
 
 /* V28.68 战斗数值可视层 */
@@ -5186,3 +5186,28 @@ html.xiantu-mobile-dedicated #storyPanel:has(.home-board-v2812) .choice-btn{min-
 html .home-board-v2812 summary{display:list-item;box-sizing:border-box;padding:12px 0;cursor:pointer}
 html .equipment-slot-row.xt-item-cell:focus-visible,html #equipmentPanel button:focus-visible,html #combatItemDrawer button:focus-visible,html .home-board-v2812 .choice-btn:focus-visible,html .home-board-v2812 summary:focus-visible{outline:2px solid var(--xt-gold-300);outline-offset:2px;box-shadow:var(--xt-glow-gold)}
 html .equipment-slot-row.xt-item-cell:focus-visible,html #combatItemDrawer .combat-item-btn:focus-visible{outline-offset:-3px}
+
+/* ===== V28.68.114 first-ten-minutes clarity: tutorial spotlight, receipt fold, jade/gold achievement ===== */
+body.tutorial-guided-mode .tutorial-dim.acting{background:transparent!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.tutorial-spotlight-v2868114{position:fixed;z-index:5481;pointer-events:none;border-radius:16px;box-shadow:0 0 0 2px rgba(240,220,160,.85),0 0 18px 2px rgba(212,176,106,.35),0 0 0 200vmax rgba(3,7,5,.15);transition:left .18s ease,top .18s ease,width .18s ease,height .18s ease}
+.tutorial-spotlight-v2868114[hidden]{display:none}
+html.xt-reduce-motion .tutorial-spotlight-v2868114{transition:none}
+html.xt-reduce-motion .tutorial-highlight{animation:none!important}
+@media (prefers-reduced-motion:reduce){.tutorial-spotlight-v2868114{transition:none}.tutorial-highlight{animation:none!important}}
+
+.after-battle-v2838 strong[role=button]{cursor:pointer}
+.after-battle-v2838 strong[role=button]:focus-visible{outline:3px solid #a9ddd2;outline-offset:2px;border-radius:6px}
+.after-battle-v2838 strong[role=button]::after{content:' ▾';color:var(--xt-gold-500,#d4b06a);font-size:12px}
+.after-battle-v2838.collapsed{width:auto;max-width:min(calc(100% - 32px),370px);padding:6px 12px}
+.after-battle-v2838.collapsed>:not(:first-child){display:none}
+.after-battle-v2838.collapsed strong{font-size:14px}
+.after-battle-v2838.collapsed strong[role=button]::after{content:' ▸'}
+.after-battle-v2838.collapsed>div:first-child button{min-height:36px;padding:4px 10px}
+
+.achievement-popup{z-index:9750;top:max(84px,env(safe-area-inset-top));width:max-content;max-width:min(86vw,380px);padding:12px 20px;border-radius:16px;border:1px solid var(--xt-gold-500,#d4b06a);background:linear-gradient(160deg,rgba(30,58,48,.97),rgba(12,20,17,.97));color:var(--xt-text-1,#f1e9d6);box-shadow:0 0 0 1px rgba(79,143,122,.45) inset,0 12px 34px rgba(0,0,0,.5),0 0 22px rgba(212,176,106,.18)}
+.achievement-popup .achievement-kicker-v2868114{font-size:13px;letter-spacing:.18em;color:var(--xt-jade-300,#8cc7b0);margin-bottom:4px}
+.achievement-popup .achievement-name-v2868114{font-size:18px;font-weight:700;color:var(--xt-gold-300,#f0dca0)}
+.achievement-popup .achievement-desc-v2868114{font-size:12px;color:var(--xt-text-2,#bcc6b9);margin-top:4px}
+.achievement-popup .achievement-dismiss-v2764{color:var(--xt-text-3,#8a978e)}
+.achievement-popup.still-v2868114,html.xt-reduce-motion .achievement-popup{animation:none}
+@media (prefers-reduced-motion:reduce){.achievement-popup{animation:none}}

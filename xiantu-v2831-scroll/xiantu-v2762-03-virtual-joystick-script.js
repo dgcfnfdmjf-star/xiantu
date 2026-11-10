@@ -71,4 +71,4 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};
-window.__xiantuBuildFilesV2814['xiantu-v2762-03-virtual-joystick-script.js']='28.68.113';
+window.__xiantuBuildFilesV2814['xiantu-v2762-03-virtual-joystick-script.js']='28.68.114';

@@ -233,9 +233,36 @@ function recordBattleSummaryV2838(enemy,before){
 }
 function showAfterBattleV2838(owner){
  const r=lastBattleV2838;lastBattleV2838=null;if(!r||r.owner!==owner||player!==owner||gameState!=='exploring'||typeof tutorialState!=='undefined'&&tutorialState.active)return;
+ // V28.68.114: the guided tutorial owns the screen until its last step id is done (its bubble flag drops between steps).
+ if(typeof guidedTutorialUnfinishedV2868114==='function'&&guidedTutorialUnfinishedV2868114()||typeof tutorialCardOpenV2868114==='function'&&tutorialCardOpenV2868114())return;
+ if(afterBattlePanelOpenV2868114())return;
  document.getElementById('afterBattleV2838')?.remove();const el=document.createElement('aside');el.id='afterBattleV2838';el.className='after-battle-v2838';el.setAttribute('aria-label','战后简报');const esc=discipleEscV2815;
  el.innerHTML=`<div><strong>战胜 · ${esc(r.name)}</strong><button type="button" data-after="close" aria-label="收起战后简报">×</button></div>${r.gold||r.exp?`<p>灵石 +${r.gold}　修为 +${r.exp}<small>含本战结算时已到账的任务奖励</small></p>`:''}<p data-after-status>气血 ${Math.floor(player.hp)}/${getMaxHp()} · 灵力 ${Math.floor(player.mp)}/${getMaxMp()}</p><div><button type="button" data-after="review">回看本场战斗</button><button type="button" data-after="recover">服丹调息 · 查看消耗</button><button type="button" data-after="tasks">继续任务</button><button type="button" data-after="rest">寻找补给</button></div>`;
  el.onclick=e=>{const act=e.target.closest('[data-after]')?.dataset.after;if(!act)return;if(act==='recover'){recoverAfterBattleV2875(owner,el);return;}el.remove();if(player!==owner||gameState!=='exploring'||player.breakthrough?.isAnimating)return;if(act==='review')showBattleReviewV2878();if(act==='tasks')showTaskPanel(r.taskType);if(act==='rest'){showScrollMapV2831();nearestScrollRestV2837();}};document.body.appendChild(el);
+ watchAfterBattleV2868114(el);
+}
+// A full panel replaces the receipt; untouched receipts fold to their title row after a few seconds.
+const AFTER_BATTLE_V2868114=Object.freeze({collapseMs:6000,pollMs:400});
+function afterBattlePanelOpenV2868114(){
+ try{if(typeof isWorldOverlayOpen==='function'&&isWorldOverlayOpen())return true;}catch(_){}
+ return !!document.querySelector('.mobile-inventory-overlay, .help-manual-overlay.active, #tutorialUnlock, #breakthroughSuccess, #breakthroughFail');
+}
+function watchAfterBattleV2868114(el){
+ const st={owner:player,touched:false,collapseAt:Date.now()+AFTER_BATTLE_V2868114.collapseMs,timer:null};el._watchV2868114=st;
+ const title=el.children[0]?.querySelector('strong');
+ if(title){title.tabIndex=0;title.setAttribute('role','button');title.setAttribute('aria-expanded','true');title.title='展开或收起战后简报';
+  const toggle=e=>{e.stopPropagation();st.touched=true;setAfterBattleCollapsedV2868114(el,!el.classList.contains('collapsed'));};
+  title.addEventListener('click',toggle);title.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle(e);}});}
+ el.addEventListener('pointerdown',()=>{st.touched=true;});el.addEventListener('focusin',()=>{st.touched=true;});
+ st.timer=setInterval(()=>tickAfterBattleV2868114(el),AFTER_BATTLE_V2868114.pollMs);
+}
+function setAfterBattleCollapsedV2868114(el,on){el.classList.toggle('collapsed',!!on);el.children[0]?.querySelector('strong')?.setAttribute('aria-expanded',on?'false':'true');}
+function tickAfterBattleV2868114(el,now=Date.now()){
+ const st=el?._watchV2868114;if(!st)return 'gone';
+ if(!el.isConnected){clearInterval(st.timer);return 'gone';}
+ if(player!==st.owner||gameState!=='exploring'||afterBattlePanelOpenV2868114()){clearInterval(st.timer);el.remove();return 'removed';}
+ if(!st.touched&&!el.classList.contains('collapsed')&&now>=st.collapseAt){setAfterBattleCollapsedV2868114(el,true);return 'collapsed';}
+ return 'kept';
 }
 // A bounded, plain-text receipt. Never re-enters combat or reward handlers.
 function normalizeBattleReviewV2878(raw){
@@ -305,7 +332,7 @@ async function exportPreviousV2838(){
  try{await exportRawSaveV2870(localStorage.getItem(PREVIOUS_SAVE_V2838),'xiantu-previous-character.json');}
  catch(e){gameAlertV2868114('导出失败：'+e.message);}
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.113';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.114';
 
 // Small non-combat encounters, two per region and character. Persist choice and reward together.
 const ROAMING_KINDS_V286818=['traveler','ruins'];
