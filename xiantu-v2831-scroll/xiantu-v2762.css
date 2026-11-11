@@ -3942,7 +3942,7 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 /* V28.12 洞府管理 */
 .home-board-v2812{padding:16px;border:1px solid #9eb781;border-radius:16px;background:linear-gradient(135deg,#14251e,#18202b);color:#e9eee3;line-height:1.65}.home-board-v2812 h3{color:#ead592;margin:0 0 12px}.home-grid-v2812{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-grid-v2812 article{padding:14px;border:1px solid #526454;border-radius:12px;background:#ffffff08}.home-grid-v2812 h4{margin:0;color:#e8d594}.home-grid-v2812 p{color:#d0dbd1}.home-grid-v2812 strong{color:#83ddb6}.home-notice-v2812{padding:12px;background:#31534066;border-radius:10px}@media(max-width:600px){.home-grid-v2812{grid-template-columns:1fr}.home-board-v2812{padding:12px;font-size:14px}}
 
-:root{--xiantu-build:2868118;}
+:root{--xiantu-build:2868119;}
 #xiantuBuildBadgeV2814{font-size:11px;min-height:32px;padding:5px 9px;white-space:nowrap;color:#b4d4bd;background:#18251f;border:1px solid #718475;border-radius:8px;}
 
 /* V28.68 战斗数值可视层 */
@@ -5303,3 +5303,28 @@ html .after-battle-loot-v2868118 .loot-tile-v2868118.rare{border-color:rgba(240,
 .today-row-v2868117[data-status="completed"] b{color:var(--xt-jade-300,#8cc7b0)}
 .today-row-v2868117 .task-action{flex:0 0 auto;min-height:44px;margin:0}
 .today-card-v2868117 article>.task-action{min-height:44px;margin:4px 6px 0 0}
+
+/* ===== V28.68.119 alchemy show (audit A4): 青绿鎏金 recipe controls, fire selector and material chips ===== */
+html #alchemyPanel.alchemy-panel{background:var(--xt-fill-panel,#16221d);border-color:var(--xt-line-gold,#8a6a32)}
+html #alchemyPanel .alchemy-level{background:var(--xt-fill-jade,#2f5a4b);border:1px solid var(--xt-line-gold,#8a6a32);color:var(--xt-text-1,#f1e9d6)}
+html #alchemyPanel .alchemy-level b{color:var(--xt-gold-300,#f0dca0)}
+html #alchemyPanel .alchemy-preview-v110{border-color:var(--xt-gold-700,#8a6a32)}
+html #alchemyPanel .alchemy-stage-head-v110 button{border-color:var(--xt-gold-700,#8a6a32);background:var(--xt-jade-700,#2f5a4b);color:var(--xt-gold-100,#fbf1d3)}
+html #alchemyPanel .recipe-item{gap:8px;padding:10px 12px;background:var(--xt-fill-card,#1e2d26);border:1px solid var(--xt-line-gold-soft,rgba(212,176,106,.24));border-left:3px solid var(--xt-gold-700,#8a6a32);border-radius:var(--xt-r-md,10px)}
+html #alchemyPanel .recipe-name{font-family:var(--xt-font-display,serif);color:var(--xt-gold-300,#f0dca0);letter-spacing:.06em}
+html #alchemyPanel .recipe-materials{color:var(--xt-text-2,#bcc6b9)}
+html #alchemyPanel .recipe-success{color:var(--xt-jade-300,#8cc7b0)}
+html #alchemyPanel .alchemy-have-v2868119.ok{color:var(--xt-jade-300,#8cc7b0)}
+html #alchemyPanel .alchemy-have-v2868119.short{color:var(--xt-cinnabar-300,#ec8a6e)}
+html #alchemyPanel .craft-btn{min-height:44px!important;min-width:48px;padding:8px 14px;background:var(--xt-fill-jade,#2f5a4b);border:1px solid var(--xt-gold-700,#8a6a32);border-radius:var(--xt-r-sm,6px);color:var(--xt-gold-100,#fbf1d3);font-size:13px;transition:background-color .15s,border-color .15s,box-shadow .15s}
+html #alchemyPanel .craft-btn:hover:not(:disabled){border-color:var(--xt-gold-500,#d4b06a);box-shadow:0 0 10px rgba(212,176,106,.28)}
+html #alchemyPanel .craft-btn:focus-visible{outline:2px solid var(--xt-gold-300,#f0dca0);outline-offset:2px}
+html #alchemyPanel .craft-btn:disabled{opacity:.45;border-color:var(--xt-ink-600,#2a3d34);color:var(--xt-text-3,#8a978e)}
+html #alchemyPanel .alchemy-fire-v2868112 .craft-btn[aria-pressed="false"]{background:transparent;border-color:var(--xt-line-jade,rgba(140,199,176,.38));color:var(--xt-jade-100,#d7efe4)}
+html #alchemyPanel .alchemy-fire-v2868112 .craft-btn[aria-pressed="true"]{background:var(--xt-fill-gold,#d4b06a);border-color:var(--xt-gold-300,#f0dca0);color:var(--xt-text-on-gold,#2a1c08);font-weight:700;box-shadow:var(--xt-glow-gold,0 0 10px rgba(212,176,106,.45))}
+html #alchemyPanel .material-tag{padding:3px 8px;margin:2px;border-radius:var(--xt-r-pill,999px);font-size:12px;border:1px solid var(--xt-line-jade,rgba(140,199,176,.38));background:rgba(47,90,75,.45);color:var(--xt-jade-100,#d7efe4)}
+html #alchemyPanel .material-tag.material-fruit{border-color:var(--xt-line-gold,rgba(212,176,106,.55));background:rgba(138,106,50,.32);color:var(--xt-gold-300,#f0dca0)}
+html #alchemyPanel .material-tag.material-core{border-color:rgba(180,140,230,.45);background:rgba(138,108,196,.22);color:#dccbf6}
+html #alchemyPanel .material-tag.material-stone{border-color:var(--xt-line-gold,rgba(212,176,106,.55));background:rgba(94,68,32,.4);color:var(--xt-gold-100,#fbf1d3)}
+html.xt-reduce-motion #alchemyPanel .craft-btn{transition:none}
+@media (prefers-reduced-motion:reduce){html #alchemyPanel .craft-btn{transition:none}}

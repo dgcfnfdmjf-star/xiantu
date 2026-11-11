@@ -9086,7 +9086,7 @@
     }
 
     // Optional visual presentation; economic results are committed by itemActionV2905 first.
-    const ALCHEMY_STAGE_V2868110={revision:0,instance:null,loading:null,last:null,preference:null};
+    const ALCHEMY_STAGE_V2868110={revision:0,instance:null,loading:null,last:null,preference:null,levelUp:false};
     function alchemyStageAllowedV2868110(){
       if(ALCHEMY_STAGE_V2868110.preference==='off')return false;
       try{if((ALCHEMY_STAGE_V2868110.preference===null&&localStorage.getItem('xiantu_alchemy_fx_v2868110')==='off')||localStorage.getItem('xiantu_map_fx_v2868104')==='off')return false;}catch(_){}
@@ -9141,7 +9141,9 @@
       if(!recipe||!result)return;
       result.textContent=`${recipe.result} · 投入 ${attempted} 炉 · 成丹 ${pills} 枚 · 失败 ${attempted-success} 炉`;
       result.dataset.outcome=success?'success':'failure';
-      const data={name:recipe.result,materials:Object.keys(recipe.materials),attempted,success,at:performance.now()};
+      // V28.68.119: the stage shows one pill per pill made and 紫霄丹雷 on a level-up; display data only, never saved.
+      const levelUp=ALCHEMY_STAGE_V2868110.levelUp===true;ALCHEMY_STAGE_V2868110.levelUp=false;
+      const data={name:recipe.result,materials:Object.keys(recipe.materials),attempted,success,pills,levelUp,at:performance.now()};
       ALCHEMY_STAGE_V2868110.last=data;
       if(ALCHEMY_STAGE_V2868110.instance)ALCHEMY_STAGE_V2868110.instance.play(data);
       document.getElementById('alchemyStageV2868110')?.scrollIntoView?.({block:'nearest',behavior:'auto'});
@@ -9183,15 +9185,14 @@
       // 更新丹方列表
       const recipeList = document.getElementById('recipeList');
       const fire=alchemyFireV2868112;
-      recipeList.innerHTML = `<div class="alchemy-fire-v2868112" role="group" aria-label="火候" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">${Object.entries(ALCHEMY_FIRE_V2868112).map(([id,f])=>`<button type="button" class="craft-btn" style="min-height:40px${id===fire?'':';opacity:.62'}" aria-pressed="${id===fire}" onclick="setAlchemyFireV2868112('${id}')">${f.label}</button>`).join('')}</div><p class="recipe-materials" style="margin:0 0 10px">火候 · ${ALCHEMY_FIRE_V2868112[fire].label}：${ALCHEMY_FIRE_V2868112[fire].hint}</p>`+Object.entries(RECIPES).map(([name, recipe]) => {
+      recipeList.innerHTML = `<div class="alchemy-fire-v2868112" role="group" aria-label="火候" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">${Object.entries(ALCHEMY_FIRE_V2868112).map(([id,f])=>`<button type="button" class="craft-btn" style="min-height:40px" aria-pressed="${id===fire}" onclick="setAlchemyFireV2868112('${id}')">${f.label}</button>`).join('')}</div><p class="recipe-materials" style="margin:0 0 10px">火候 · ${ALCHEMY_FIRE_V2868112[fire].label}：${ALCHEMY_FIRE_V2868112[fire].hint}</p>`+Object.entries(RECIPES).map(([name, recipe]) => {
         const successRate = alchemyFireRateV2868112(recipe,fire,player.alchemyLevel);
         
         const materialText = Object.entries(recipe.materials)
           .map(([mat, base]) => {
             const count = alchemyFireCostV2868112(base,fire);
             const have = player.materials[mat] || 0;
-            const color = have >= count ? '#69f0ae' : '#ff6b6b';
-            return `<span style="color:${color}">${mat}x${count}(${have})</span>`;
+            return `<span class="alchemy-have-v2868119 ${have >= count ? 'ok' : 'short'}">${mat}x${count}(${have})</span>`;
           }).join(', ');
         
         return `
@@ -9244,7 +9245,7 @@
       }
       showFloatingText?.(`🔥 投入 ${attempted} 炉 · ${plan.recipe.result} ×${pills} · 失败 ${attempted-success} 炉${player.alchemyLevel>initialLevel?' · 炼丹升至 Lv.'+player.alchemyLevel:''}`,success?'#69f0ae':'#ff8a80');
       if(success)playSound(player.alchemyLevel>initialLevel?'levelup':'item');
-      updateAlchemyPanel();updateStats();autoSave();alchemyResultV2868110(player,recipeName,attempted,success,pills);return {attempted,success,pills};
+      updateAlchemyPanel();updateStats();autoSave();ALCHEMY_STAGE_V2868110.levelUp=player.alchemyLevel>initialLevel; /* consumed by the (possibly deferred) presentation */ alchemyResultV2868110(player,recipeName,attempted,success,pills);return {attempted,success,pills};
     }
 
     // ================== 宠物系统 ==================
@@ -16282,7 +16283,7 @@ function villageEnhanceV286897(){
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.118";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.119";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
