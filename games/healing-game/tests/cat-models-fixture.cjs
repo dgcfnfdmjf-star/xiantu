@@ -10,15 +10,31 @@ const repo = path.resolve(__dirname, '../../..');
 const site = path.join(repo, 'games/healing-game/site/healing-game');
 const output = path.join(repo, 'output/playwright/cat-models');
 const kinds = ['orange', 'calico', 'black', 'tabby'];
-const mime = { '.html': 'text/html', '.js': 'text/javascript', '.glb': 'model/gltf-binary', '.png': 'image/png', '.mp3': 'audio/mpeg' };
+const mime = { '.cjs': 'text/javascript', '.html': 'text/html', '.js': 'text/javascript', '.glb': 'model/gltf-binary', '.png': 'image/png', '.mp3': 'audio/mpeg' };
 
 function instrument(html, spawnSequence) {
   const marker = 'renderer.setPixelRatio(DPR);';
   if (!html.includes(marker)) throw Error('Renderer diagnostic injection point missing');
   html = html.replace(marker, `window.__catTestRenderer=renderer;
+    // Three r128's CPU boneTransform reads normalized integer weights as raw bytes.
+    // Mirror GPU normalization without changing shared geometry or the running game.
+    (function(){var skinPoint=new THREE.Vector3(),skinResult=new THREE.Vector3(),skinTemp=new THREE.Vector3(),skinMatrix=new THREE.Matrix4();
+      var components=['getX','getY','getZ','getW'];
+      window.__catTestSkinVertex=function(node,index,point){
+        var morph=node.geometry.morphAttributes.position||[];
+        for(var m=0;m<morph.length;m++)if(node.morphTargetInfluences[m])point.addScaledVector(skinTemp.fromBufferAttribute(morph[m],index),node.morphTargetInfluences[m]);
+        var weights=node.geometry.attributes.skinWeight,joints=node.geometry.attributes.skinIndex,divisor=1;
+        if(weights.normalized){if(weights.array instanceof Uint8Array)divisor=255;else if(weights.array instanceof Uint16Array)divisor=65535;else throw Error('Unsupported normalized test skin weights');}
+        skinPoint.copy(point).applyMatrix4(node.bindMatrix);skinResult.set(0,0,0);
+        for(var j=0;j<4;j++){var weight=weights[components[j]](index)/divisor;if(!weight)continue;
+          skinMatrix.fromArray(node.skeleton.boneMatrices,joints[components[j]](index)*16);
+          skinTemp.copy(skinPoint).applyMatrix4(skinMatrix);skinResult.addScaledVector(skinTemp,weight);}
+        return point.copy(skinResult).applyMatrix4(node.bindMatrixInverse);
+      };
+    })();
     window.__catTestFrames=[];window.__catTestDraws=0;
     var catTestRender=renderer.render,catTestLast=null;
-    renderer.render=function(){var begin=performance.now(),value=catTestRender.apply(this,arguments),end=performance.now();
+    renderer.render=function(){window.__catTestScene=arguments[0];window.__catTestCamera=arguments[1];var begin=performance.now(),value=catTestRender.apply(this,arguments),end=performance.now();
       window.__catTestDraws++;if(window.__catTestFrames.length<1500)window.__catTestFrames.push({at:begin,interval:catTestLast===null?null:begin-catTestLast,draw:end-begin});catTestLast=begin;return value;};
     ${marker}`);
   html = html.replace('cat = { root: root, head:', 'cat = window.__catTestAmbient = { root: root, head:');
@@ -84,7 +100,8 @@ async function fresh(browser, options = {}) {
 
 async function start(test, url) {
   await test.page.goto(url || process.env.CAT_MODELS_BASE_URL);
-  await test.page.locator('#start').click();
+  if (test.mobile) await test.page.locator('#start').tap();
+  else await test.page.locator('#start').click();
   await test.page.waitForFunction(() => window.__kittens && window.GardenJourney?.ready);
 }
 

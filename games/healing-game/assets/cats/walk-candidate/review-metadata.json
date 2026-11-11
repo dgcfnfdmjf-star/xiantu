@@ -1,0 +1,411 @@
+{
+  "status": "candidate_not_accepted",
+  "candidateSource": "Unmodified final v24 compact orange candidate from the previous attempt",
+  "model": {
+    "file": "orange-cat-walk-v24.glb",
+    "bytes": 380140,
+    "sha256": "c992a7fa4294ee4d3fd9331dba484096010f5b19ba222a565feca343a25d4fb1",
+    "triangles": 8044,
+    "clip": "Walk",
+    "clipSeconds": 1.6,
+    "playback": "1x in place; default seated; no game integration"
+  },
+  "knownDefects": [
+    "Fine seated chest/foreleg seams",
+    "Visible haunch/tail-root/paw closing surfaces during Walk",
+    "Angular hind hock transition"
+  ],
+  "capture": {
+    "browser": "151.0.7922.173",
+    "headless": true,
+    "viewport": {
+      "width": 1100,
+      "height": 900,
+      "deviceScaleFactor": 1
+    },
+    "page": "preview-orange-walk.html",
+    "pageErrors": [],
+    "externalRequests": [],
+    "onlyModelRequested": [
+      "/walk-candidate/orange-cat-walk-v24.glb"
+    ],
+    "rotationControlVerified": true,
+    "rawRecordingSeconds": 17.4,
+    "trimLoadingLeadInSeconds": 1.6,
+    "mp4": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "width": 1100,
+          "height": 900,
+          "pix_fmt": "yuv420p",
+          "color_range": "tv",
+          "color_space": "bt709",
+          "r_frame_rate": "25/1",
+          "nb_frames": "395"
+        }
+      ],
+      "format": {
+        "duration": "15.800000",
+        "size": "969146"
+      }
+    },
+    "gif": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "gif",
+          "width": 600,
+          "height": 491,
+          "pix_fmt": "bgra",
+          "r_frame_rate": "8/1",
+          "nb_frames": "126"
+        }
+      ],
+      "format": {
+        "duration": "15.760000",
+        "size": "2769032"
+      }
+    },
+    "rangeHandling": "Explicit source full-range BT.601 to limited-range BT.709 conversion; H.264 tagged tv/bt709. GIF derived from corrected decoded RGB; no appearance enhancement.",
+    "colorRangeCheck": {
+      "comparison": "Decoded corrected MP4 at0.4s against lossless browser seated PNG, same camera/crop",
+      "samples": [
+        {
+          "cropXY": [
+            10,
+            10
+          ],
+          "screenshotRGB": [
+            242,
+            239,
+            229
+          ],
+          "decodedVideoRGB": [
+            238,
+            239,
+            225
+          ],
+          "maximumChannelError": 4
+        },
+        {
+          "cropXY": [
+            640,
+            10
+          ],
+          "screenshotRGB": [
+            242,
+            239,
+            229
+          ],
+          "decodedVideoRGB": [
+            238,
+            237,
+            224
+          ],
+          "maximumChannelError": 5
+        },
+        {
+          "cropXY": [
+            10,
+            450
+          ],
+          "screenshotRGB": [
+            245,
+            242,
+            233
+          ],
+          "decodedVideoRGB": [
+            241,
+            242,
+            228
+          ],
+          "maximumChannelError": 5
+        },
+        {
+          "cropXY": [
+            640,
+            450
+          ],
+          "screenshotRGB": [
+            245,
+            243,
+            234
+          ],
+          "decodedVideoRGB": [
+            242,
+            240,
+            232
+          ],
+          "maximumChannelError": 3
+        },
+        {
+          "cropXY": [
+            330,
+            20
+          ],
+          "screenshotRGB": [
+            245,
+            242,
+            233
+          ],
+          "decodedVideoRGB": [
+            242,
+            240,
+            232
+          ],
+          "maximumChannelError": 3
+        },
+        {
+          "cropXY": [
+            300,
+            200
+          ],
+          "screenshotRGB": [
+            255,
+            235,
+            194
+          ],
+          "decodedVideoRGB": [
+            253,
+            232,
+            193
+          ],
+          "maximumChannelError": 3
+        }
+      ],
+      "allCropPixels": {
+        "medianMaximumChannelError": 4.0,
+        "p95MaximumChannelError": 7,
+        "maximum": 80
+      }
+    }
+  },
+  "shots": [
+    {
+      "file": "orange-sit-front.png",
+      "motion": "sit",
+      "view": "front",
+      "phase": 0,
+      "browserClip": {
+        "x": 220,
+        "y": 202,
+        "width": 660,
+        "height": 485
+      },
+      "camera": {
+        "position": [
+          0.0448426827788353,
+          0.6269549094443639,
+          2.3615548134844984
+        ],
+        "quaternion": [
+          -0.03990439489501755,
+          0,
+          0,
+          0.9992035024298417
+        ],
+        "fov": 32,
+        "target": [
+          0.0448426827788353,
+          0.4424369437620044,
+          0.055080242455005646
+        ],
+        "distance": 2.3138435181457795,
+        "fittedDistance": 2.306474571029493,
+        "near": 0.005779550472888335,
+        "far": 11.081769177193248,
+        "aspect": 1.7804459691252144
+      },
+      "rawAnimationTime": 0,
+      "dpr": 1,
+      "cameraZoomOnly": false
+    },
+    {
+      "file": "orange-walk-front.png",
+      "motion": "walk",
+      "view": "front",
+      "phase": 0.25,
+      "browserClip": {
+        "x": 220,
+        "y": 202,
+        "width": 660,
+        "height": 485
+      },
+      "camera": {
+        "position": [
+          0.0448426827788353,
+          0.6269549094443639,
+          2.3615548134844984
+        ],
+        "quaternion": [
+          -0.03990439489501755,
+          0,
+          0,
+          0.9992035024298417
+        ],
+        "fov": 32,
+        "target": [
+          0.0448426827788353,
+          0.4424369437620044,
+          0.055080242455005646
+        ],
+        "distance": 2.3138435181457795,
+        "fittedDistance": 2.306474571029493,
+        "near": 0.005779550472888335,
+        "far": 11.081769177193248,
+        "aspect": 1.7804459691252144
+      },
+      "rawAnimationTime": 0.4000000059604645,
+      "dpr": 1,
+      "cameraZoomOnly": false
+    },
+    {
+      "file": "orange-walk-side.png",
+      "motion": "walk",
+      "view": "side",
+      "phase": 0.25,
+      "browserClip": {
+        "x": 140,
+        "y": 202,
+        "width": 820,
+        "height": 485
+      },
+      "camera": {
+        "position": [
+          2.351317253808328,
+          0.6269549094443639,
+          0.055080242455005785
+        ],
+        "quaternion": [
+          -0.02821666822941276,
+          0.70654357235349,
+          0.02821666822941276,
+          0.70654357235349
+        ],
+        "fov": 32,
+        "target": [
+          0.0448426827788353,
+          0.4424369437620044,
+          0.055080242455005646
+        ],
+        "distance": 2.3138435181457795,
+        "fittedDistance": 2.306474571029493,
+        "near": 0.005779550472888335,
+        "far": 11.081769177193248,
+        "aspect": 1.7804459691252144
+      },
+      "rawAnimationTime": 0.4000000059604645,
+      "dpr": 1,
+      "cameraZoomOnly": false
+    },
+    {
+      "file": "orange-sit-seam-detail.png",
+      "motion": "sit",
+      "view": "front",
+      "phase": 0,
+      "browserClip": {
+        "x": 310,
+        "y": 237,
+        "width": 480,
+        "height": 440
+      },
+      "camera": {
+        "position": [
+          0.0448426827788353,
+          0.5463195979067424,
+          1.35361341926423
+        ],
+        "quaternion": [
+          -0.03990439489501757,
+          0,
+          0,
+          0.9992035024298415
+        ],
+        "fov": 32,
+        "target": [
+          0.0448426827788353,
+          0.4424369437620044,
+          0.055080242455005646
+        ],
+        "distance": 1.302681855675595,
+        "fittedDistance": 2.306474571029493,
+        "near": 0.005779550472888335,
+        "far": 11.081769177193248,
+        "aspect": 1.7804459691252144
+      },
+      "rawAnimationTime": 0,
+      "dpr": 1,
+      "cameraZoomOnly": true
+    }
+  ],
+  "vendorBaseCommit": "8812ff565b29a0f57bdcb80698f6c8b950ca3965",
+  "vendors": [
+    {
+      "path": "../vendor/three-r128/three.min.js",
+      "sha256": "9274bbcec8d96168626c732b5d31c775aa8cfb7eaa0599bec0c175908a2c1ce2",
+      "matchesBaseCommit": true
+    },
+    {
+      "path": "../vendor/three-r128/GLTFLoader.js",
+      "sha256": "5c15967ba830918a9caea6338712c994c354bccd4edc4569bde411c3ec06a3e6",
+      "matchesBaseCommit": true
+    },
+    {
+      "path": "../vendor/three-r128/OrbitControls.js",
+      "sha256": "02bb4ade710f3e607329e37a21f098bc3ac70eb6e33daf8a65e79f4db785e7b2",
+      "matchesBaseCommit": true
+    }
+  ],
+  "files": [
+    {
+      "file": "README.txt",
+      "bytes": 2481,
+      "sha256": "19acbee2f6e56400eaaedf59ed90f3011260fd5ece69234685bbcb45abdf852e"
+    },
+    {
+      "file": "orange-cat-walk-v24.glb",
+      "bytes": 380140,
+      "sha256": "c992a7fa4294ee4d3fd9331dba484096010f5b19ba222a565feca343a25d4fb1"
+    },
+    {
+      "file": "orange-sit-front.png",
+      "bytes": 181925,
+      "sha256": "b4b29f087154f651a2f6b70276bad906873a37fd6a7b9a40442d66ced417f173"
+    },
+    {
+      "file": "orange-sit-seam-detail.png",
+      "bytes": 131962,
+      "sha256": "65ce62e45fa78ca07aab9a5d561d94d3654fd5152b33a04e7835a88b988dee75"
+    },
+    {
+      "file": "orange-walk-candidate.gif",
+      "bytes": 2769032,
+      "sha256": "530277e084ca3ca798ae91624658affda0f579aa93cad0c6c8a20d63480f8c6e"
+    },
+    {
+      "file": "orange-walk-candidate.mp4",
+      "bytes": 969146,
+      "sha256": "61749dbd1dad6e59cf5ec638e080f0802a236d7d8c6aa44b8d77437adc344d4e"
+    },
+    {
+      "file": "orange-walk-front.png",
+      "bytes": 179332,
+      "sha256": "865b58f292baf2e824d7586ecb8f788be6a890160bbb8ece6d02270a34702edd"
+    },
+    {
+      "file": "orange-walk-side.png",
+      "bytes": 208368,
+      "sha256": "2cb72c6c298f415bcdb4811394bafb59a53c25136b56d09a165d792f9b5bba75"
+    },
+    {
+      "file": "preview-orange-walk.html",
+      "bytes": 16109,
+      "sha256": "012e4cad7453dfa8dc306c4bcbc2c809e1bc664d318149e1abe1b45faa08f3d4"
+    }
+  ],
+  "manifestNote": "This manifest excludes its own hash. No production model, .blend, game code or save is changed by these review files."
+}
