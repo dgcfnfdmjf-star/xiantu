@@ -224,7 +224,15 @@ async function rulesAndFallback() {
     assert.equal(last.second.total, 20, 'unchanged twenty-point goal');
     assert(await test.page.evaluate(() => __kittens.state().ended), 'goal completion persisted');
     await test.page.waitForFunction(() => GardenJourney.unlocked(3));
+    // The clear plays the 60s cutscene first: skip to its end card, tap to continue, then the same card appears.
+    await test.page.waitForFunction(() => __l2Cutscene.playing(), null, { timeout: 20000 });
+    assert(await test.page.evaluate(() => document.getElementById('kitEnding').classList.contains('hidden')), 'card waits behind the cutscene');
+    assert.equal(await test.page.evaluate(() => __l2Cutscene.skip() && __l2Cutscene.finished() && __l2Cutscene.state()), 'ended', 'skip lands on the end title');
+    assert(await test.page.evaluate(() => document.getElementById('kitEnding').classList.contains('hidden')), 'end title still needs its own tap');
+    await test.page.waitForTimeout(700);
+    await test.page.locator('#l2csGo').tap();
     await test.page.waitForFunction(() => !document.getElementById('kitEnding').classList.contains('hidden'), null, { timeout: 20000 });
+    await test.page.waitForFunction(() => __kittens.list.some(k => k.state === 'sleep'), null, { timeout: 20000 });
     for (const cat of await inspectBounds(test.page)) assert(cat.min[1] >= -.002 && cat.rootY >= .249, 'gather/sleep finale model remains above the ground plane');
     await test.page.locator('#kitAgain').click();
     const replay = await test.page.evaluate(() => JSON.parse(localStorage.getItem('healingGarden.kittens.v1')));

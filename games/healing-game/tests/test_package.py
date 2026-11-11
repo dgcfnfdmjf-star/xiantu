@@ -18,7 +18,9 @@ class Package(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         subprocess.run(['python3', str(ROOT / 'scripts/build.py')], check=True)
-        cls.html = (ROOT / 'site/healing-game/index.html').read_bytes()
+        # The ZIP carries the frozen V9.5 HTML; the working site adds the V9.6 level-2 cutscene scaffold.
+        cls.html = (ROOT / 'site/healing-game-v9.5-baseline/index.html').read_bytes()
+        cls.site = (ROOT / 'site/healing-game/index.html').read_bytes()
 
     def test_independent_folder_and_crc(self):
         with zipfile.ZipFile(ZIP) as z:
@@ -43,8 +45,9 @@ class Package(unittest.TestCase):
         self.assertEqual(ZIP.with_name('healing-game-v9.5-SHA256SUMS.txt').read_text().split()[0], hashlib.sha256(ZIP.read_bytes()).hexdigest())
 
     def test_all_inline_scripts_parse(self):
-        scripts = re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.html.decode())
-        self.assertEqual(len(scripts), 19)
+        self.assertEqual(len(re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.html.decode())), 19)
+        scripts = re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.site.decode())
+        self.assertEqual(len(scripts), 21)  # V9.5's 19 + cutscene + its score
         with tempfile.TemporaryDirectory() as tmp:
             for i, script in enumerate(scripts):
                 path = Path(tmp) / f'{i}.js'
@@ -53,8 +56,9 @@ class Package(unittest.TestCase):
 
     def test_no_remote_assets(self):
         # URLs in the embedded MIT library comments are not network assets.
-        markup = re.sub(r'<script[^>]*>[\s\S]*?</script>', '', self.html.decode())
-        self.assertFalse(re.search(r'(?:src|href)=["\'](?:https?:)?//', markup))
+        for html in (self.html, self.site):
+            markup = re.sub(r'<script[^>]*>[\s\S]*?</script>', '', html.decode())
+            self.assertFalse(re.search(r'(?:src|href)=["\'](?:https?:)?//', markup))
 
     def test_cats_embedded_and_mobile_budget(self):
         total_bytes = 0
@@ -83,6 +87,14 @@ class Package(unittest.TestCase):
             self.assertLessEqual(triangles, 7500)
         # Keep the animated cats close to the 1,149,404-byte seated baseline.
         self.assertLess(total_bytes, 1_200_000)
+
+    def test_working_site_cutscene_stays_out_of_release(self):
+        module = (ROOT / 'src/l2-cutscene.js').read_bytes()
+        self.assertIn(module, self.site)
+        self.assertIn(b'name="garden-working" content="9.6-l2-cutscene"', self.site)
+        self.assertIn(b'name="garden-version" content="9.5.0"', self.site)
+        self.assertNotIn(b'__l2Cutscene', self.html)
+        self.assertNotIn(b'garden-working', self.html)
 
     def test_reproducible_release(self):
         before = ZIP.read_bytes()
