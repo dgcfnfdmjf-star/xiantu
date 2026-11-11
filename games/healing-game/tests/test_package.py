@@ -87,7 +87,7 @@ class Package(unittest.TestCase):
     def test_working_site_cutscene_stays_out_of_release(self):
         module = (ROOT / 'src/l2-cutscene.js').read_bytes()
         self.assertIn(module, self.site)
-        self.assertIn(b'name="garden-working" content="9.6-l2-cutscene-scaffold"', self.site)
+        self.assertIn(b'name="garden-working" content="9.6-l2-cutscene"', self.site)
         self.assertIn(b'name="garden-version" content="9.5.0"', self.site)
         self.assertNotIn(b'__l2Cutscene', self.html)
         self.assertNotIn(b'garden-working', self.html)

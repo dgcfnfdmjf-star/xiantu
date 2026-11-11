@@ -1,7 +1,9 @@
 # 第二关通关过场 · Level-2 clear cutscene storyboard
 
-Status: **scaffold** (item 1). The timeline, API, skip/seek/continue and the build hook exist;
-visuals are placeholders (dusk veil, CSS stars, beat captions, clock chip). No music yet.
+Status: **scenes animated** (item 2). The 60 s clock drives a cinematic in the live three.js
+island: camera rig, display-only kitten cast (Blender coats when loaded, code-built otherwise,
+one 星光猫 always), bush rustle, lanterns, extra stars, cat teaser, three butterflies, hearts,
+z's, the 图鉴 panel and the end title. Music is still silent. In-game hook still behind the flag.
 
 - Module: `src/l2-cutscene.js` (ES5, no dependencies, no save access) → `window.__l2Cutscene`
 - Build hook: `scripts/l2-cutscene-v96.py`, run by `scripts/build.py` after the V9.5 HTML is frozen
@@ -91,6 +93,28 @@ real visuals and score land.
   until the next `play()`.
 - Preview: `?cutscene=1` starts on the first gesture; `?cutscene=1&mute=1` starts immediately.
 
+## How item 2 is built
+
+- **Pure model** (`frame(t)`): camera keys, every cat's position / yaw / curl / state, teaser,
+  butterflies, lanterns, book and card light are numbers computed from `t` only. No tweens exist,
+  so `seek()` cannot leave anything behind; `tests/l2-cutscene.cjs` checks the 5 / 20 / 40 / 58 s
+  marks and speed/camera continuity on this model.
+- **Stage**: chained onto `GardenPlay.init/update`. On entry it hides the gameplay kittens and the
+  catchable butterflies, shows the level-2 bushes, hides all game UI (`body.l2cs-on`), and poses
+  its own actors built with the game's `buildKitten` (through `window.__l2Stage`, added by the
+  build hook). `GardenCatModels.attachStage` + `pose` give the four Blender coats. While staged,
+  kittens.js skips its own kitten update. On close everything is restored; the game recomputes
+  its camera every frame, so the camera needs no restore.
+- **Cast**: six kittens in the coats the player has hugged (all five on an empty preview save)
+  plus one 星光猫 that always visits. Book cards light only for kinds really hugged.
+- **Pile point**: (-0.2, 1.1), half a metre from the gameplay pile, so the front bush never
+  covers the ring; pile azimuth stays in 0.9–1.5 rad for the same reason.
+- **Reduced motion** (`prefers-reduced-motion`): duration and story unchanged; hops, wander, bush
+  rustle and teaser bob run at 30 % amplitude, tumbles are removed, the continue pulse stops.
+- Dusk uses the game's `setNightTarget` (0.45 → 0.75 → 0.9), which eases over a few seconds, so
+  a still taken right after a seek shows the sky slightly behind; everything else is exact.
+- `?csclock=1` shows the debug clock chip. `__l2Cutscene.stage()` reports stage state for tests.
+
 ## Approach comparison
 
 Timeline libraries looked at on GitHub: anime.js (MIT; `timeline().seek()`), tween.js (MIT;
@@ -101,9 +125,7 @@ a single ES5 inline HTML with no CDN, its scene runs on the existing three r128 
 linear 60 s sequence needs only ramps and easing. Theatre.js's studio and GSAP's licence add
 weight without a matching need.
 
-## Out of scope for the scaffold / next items
+## Next items
 
-1. Scene direction for beats 1–5 on the live three.js scene (camera rig, staggered gather, teaser path, butterflies).
-2. 图鉴 book panel and card glow.
 3. The 60 s lush score and seek-aware scheduling; duck `GardenAudio.ending()`.
 4. Flip the feature flag on by default; update the two browser tests that wait for `#kitEnding` within 20 s.

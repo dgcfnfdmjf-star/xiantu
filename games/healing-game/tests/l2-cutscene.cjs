@@ -1,4 +1,4 @@
-// Level-2 clear cutscene scaffold: timeline API, skip/seek/continue, build hooks and kitten save parsing.
+// Level-2 clear cutscene: timeline API, storyboard model at the 5/20/40/58 s marks, skip/seek/continue, build hooks and kitten save parsing.
 // Run: node games/healing-game/tests/l2-cutscene.cjs   (builds the working site first)
 const assert = require('assert');
 const fs = require('fs');
@@ -151,6 +151,53 @@ check('module is ES5 and never touches saves', () => {
   assert(!/=>|\b(?:let|const|class)\s|`/.test(source.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '')), 'ES5 syntax only');
 });
 
+check('storyboard beats at the 5 / 20 / 40 / 58 s marks', () => {
+  const { cs } = load();
+  const at = t => plain(cs.frame(t));
+  const five = at(5), twenty = at(20), forty = at(40), last = at(58);
+  // 5 s: island settling, lanterns lighting one by one, no cat out yet.
+  assert(five.cats.every(c => c.state === 'hide' && c.fade === 0), 'no cats at 5s');
+  assert(five.lanterns[0] === 1 && five.lanterns[4] < 1 && five.lanterns.some(v => v > 0 && v < 1), 'lanterns mid-lighting');
+  assert(five.book === 0 && five.teaser === 0 && five.title === 0);
+  // 20 s: six kittens seated, the glowing one still walking in.
+  assert.strictEqual(twenty.cats.length, 7);
+  assert.strictEqual(twenty.cats.filter(c => c.rare).length, 1, 'one glowing rare kitten');
+  assert(twenty.cats.every(c => c.fade === 1), 'whole cast visible at 20s');
+  const rare = twenty.cats.find(c => c.rare);
+  assert(rare.state === 'gather' && rare.moving, 'rare cat is on its way at 20s');
+  assert.strictEqual(twenty.cats.filter(c => c.state === 'idle').length, 6);
+  assert(new Set(twenty.cats.map(c => c.kind)).size >= 6, 'various coats');
+  assert(twenty.lanterns.every(v => v === 1));
+  // 30 s: teaser, butterflies, hearts.
+  const play = at(30);
+  assert(play.teaser === 1 && play.butterflies === 1 && play.hearts && play.cats.every(c => c.state === 'play'));
+  assert(at(34).landed > 0.99, 'butterfly on a nose at 34s');
+  // 40 s: book open, first card lit, later cards not yet; cats circling.
+  assert(forty.book === 1 && forty.cards[0] === 1 && forty.cards[5] === 0 && forty.teaser === 0);
+  assert(forty.cats.every(c => c.state === 'gather' && c.moving && c.curl === 0));
+  assert(at(47).cards.every(v => v === 1), 'all cards lit before the book closes');
+  // 58 s: sleep pile, title up, book gone.
+  assert(last.cats.every(c => c.state === 'sleep' && c.curl === 1 && !c.moving && c.y === 0));
+  assert(last.book === 0 && last.zs && last.title === 1 && last.canContinue === false);
+  const spread = last.cats.map(c => Math.hypot(c.x - last.cats[6].x, c.z - last.cats[6].z));
+  assert(Math.max(...spread) < 1.5, 'pile is tight');
+});
+
+check('motion is gentle and continuous', () => {
+  const { cs } = load();
+  let prev = cs.frame(0);
+  for (let t = 0.05; t <= 60; t += 0.05) {
+    const f = cs.frame(t);
+    f.cats.forEach((c, i) => {
+      const step = Math.hypot(c.x - prev.cats[i].x, c.z - prev.cats[i].z) / 0.05;
+      assert(step < 2.2, 'cat ' + i + ' speed ' + step.toFixed(2) + ' @' + t.toFixed(2));
+      assert(c.y >= 0 && c.y < 0.4, 'hop height');
+    });
+    for (const key of ['x', 'y', 'z', 'th', 'phi', 'w', 'lift']) assert(Math.abs(f.camera[key] - prev.camera[key]) < 0.05, 'camera ' + key + ' @' + t.toFixed(2));
+    prev = f;
+  }
+});
+
 // ---- Built working site: hooks present, numbers and save parsing untouched ----
 execFileSync('python3', [path.join(ROOT, 'scripts/build.py')], { stdio: 'pipe' });
 const site = fs.readFileSync(path.join(ROOT, 'site/healing-game/index.html'), 'utf8');
@@ -174,7 +221,7 @@ check('gameplay numbers unchanged', () => {
   assert(head.includes('var RARE_CHANCE = 0.08;'));
   assert(head.includes("value: 3, rare: true }"));
   // Outside the cutscene block and its two hooks the working site equals the release HTML.
-  const strip = text => text.split('\n').filter(line => !/__l2Cutscene|showCard|garden-working/.test(line)).join('\n');
+  const strip = text => text.split('\n').filter(line => !/__l2Cutscene|__l2Stage|showCard|garden-working/.test(line)).join('\n');
   const without = site.replace('<script>\n' + source + '\n</script>\n', '');
   const base = release.split('\n').filter(line => !line.includes("$('kitEnding').classList.remove('hidden'); }, 7000);")).join('\n');
   assert.strictEqual(strip(without), base);

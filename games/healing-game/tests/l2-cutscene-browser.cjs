@@ -1,6 +1,6 @@
 'use strict';
 
-// Standalone preview smoke for the level-2 clear cutscene scaffold (portrait and landscape phone).
+// Standalone preview smoke for the level-2 clear cutscene (portrait and landscape phone).
 // Run after python3 games/healing-game/scripts/build.py:
 // PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/google-chrome node games/healing-game/tests/l2-cutscene-browser.cjs
 const assert = require('node:assert/strict');
@@ -48,13 +48,44 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.mp3': 'audio/mpeg', '.glb'
       assert(skip.width >= 44 && skip.height >= 44, 'skip touch target');
       assert(skip.x + skip.width <= width && skip.y >= 0 && skip.y + skip.height < height * 0.25, 'skip sits in the top corner');
 
-      for (const t of [5, 20, 40, 58]) {
+      // The stage owns the island: game UI hidden, display-only cast built, Blender coats attached.
+      await page.waitForFunction(() => window.__l2Cutscene.stage().staged && window.__l2Cutscene.stage().blender >= 4);
+      assert.equal(await page.locator('#start').isVisible(), false, 'start card steps aside');
+      const shots = {};
+      const shoot = async t => {
         await page.evaluate(t => { window.__l2Cutscene.pause(); window.__l2Cutscene.seek(t); }, t);
-        await page.waitForTimeout(120);
+        await page.waitForTimeout(150);
+        return page.evaluate(() => window.__l2Cutscene.stage().shot);
+      };
+      for (const t of [5, 20, 40, 58]) {
+        shots[t] = await shoot(t);
         assert.equal(await page.evaluate(() => window.__l2Cutscene.time()), t);
         assert.equal(await page.locator('#l2csGo').isVisible(), false);
         await page.screenshot({ path: path.join(OUT, `${width}x${height}-t${t}.png`) });
+        if (t === 40) {
+          assert.equal(await page.locator('#l2csBook').evaluate(e => getComputedStyle(e).opacity), '1', 'book open at 40s');
+          assert.equal(await page.locator('.l2cs-card').count(), 6);
+          const book = await page.locator('#l2csBook').boundingBox();
+          assert(book.x >= 0 && book.x + book.width <= width && book.y + book.height <= height, 'book fits the viewport');
+        }
       }
+      const actors = async t => { await shoot(t); return page.evaluate(() => window.__l2Cutscene.stage().actors); };
+      assert.equal(await actors(5), 0, 'no kitten on stage at 5s');
+      assert.equal(await actors(20), 7, 'full cast at 20s');
+      assert(shots[5].lanterns >= 2 && shots[5].lanterns < 5 && !shots[5].teaser && shots[5].flies === 0);
+      assert(shots[20].lanterns === 5 && shots[20].halo === 1 && shots[20].zs === 0, 'rare cat with halo at 20s');
+      assert(shots[58].zs > 0 && shots[58].hearts === 0 && shots[58].cats.every(c => c[3] === 1), 'sleep pile at 58s');
+      assert.notDeepEqual(shots[5].camera, shots[58].camera, 'camera moves');
+      // Seeking is idempotent: any route to a mark gives the same picture, with nothing left over.
+      assert.deepEqual(await shoot(30).then(s => [s.teaser, s.flies, s.hearts > 0]), [true, 3, true]);
+      for (const t of [58, 20, 5, 40]) {
+        const again = await shoot(t);
+        // The island itself keeps bobbing (±0.12), so the world-space camera may differ by that much.
+        again.camera.forEach((v, i) => assert(Math.abs(v - shots[t].camera[i]) < 0.35, 'camera repeats at ' + t));
+        assert.deepEqual({ ...again, camera: 0 }, { ...shots[t], camera: 0 }, 'seek(' + t + ') repeats');
+      }
+      assert.equal(await page.evaluate(() => window.__kittens.list.length + ':' + window.__kittens.state().total), await page.evaluate(() => window.__kittens.list.length + ':0'), 'actors never join gameplay');
+      await shoot(58);
       assert.equal(await page.locator('#l2csEnd').evaluate(e => getComputedStyle(e).opacity), '1', 'title visible at 58s');
 
       // Skip lands on the end card; the same tap must not dismiss it.
@@ -71,6 +102,8 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.mp3': 'audio/mpeg', '.glb'
       await page.locator('#l2csGo').tap();
       assert.equal(await page.evaluate(() => window.__l2Cutscene.state()), 'closed');
       assert.equal(await page.locator('#l2cs').isVisible(), false);
+      assert.equal(await page.evaluate(() => window.__l2Cutscene.staged()), false);
+      assert.equal(await page.locator('#start').isVisible(), true, 'game UI returns');
       assert.equal(await saves(), before, 'cutscene writes no save');
 
       // Unmuted preview waits for the first gesture.
