@@ -71,3 +71,14 @@ assets/cats/preview-cat-orange.html 保留原文件名，新增四毛色切换�
 云端 Chromium 手机布局模拟不等于实体手机性能保证。
 按顺序更新与校验三层清单：python3 scripts/checksums.py --write，随后
 python3 scripts/checksums.py；不改仙途/Jev 代码，不部署任何游戏或云函数。
+
+V9.6 工作版备注：第二关通关过场（脚手架，未发布）
+build.py 先冻结 V9.5 发布 HTML 并照旧生成 releases/healing-game-v9.5-tencent.zip（字节不变），
+再由 scripts/l2-cutscene-v96.py 把 src/l2-cutscene.js 挂入工作站点 site/healing-game/；
+site/healing-game-v9.5-baseline/ 为与 ZIP 一致的对照页。目前只有 60 秒时间轴、跳过、
+轻触继续和占位画面，无配乐；游戏内默认关闭，URL 加 ?l2cutscene=1 才在抱满 20 只后播放，
+结束后回到原“小猫睡着了”卡片。独立预览：?cutscene=1（首次触摸后开始）或
+?cutscene=1&mute=1（立即开始）。不读写任何存档，GOAL、稀有猫规则和奖励不变。
+分镜见 docs/l2-cutscene-storyboard.md。
+  node games/healing-game/tests/l2-cutscene.cjs
+  PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/google-chrome node games/healing-game/tests/l2-cutscene-browser.cjs
