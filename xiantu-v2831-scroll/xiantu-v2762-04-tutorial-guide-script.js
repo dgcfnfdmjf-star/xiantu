@@ -10,6 +10,7 @@ const TUTORIAL_STEPS={
   cultivation:{title:'🧘 修炼与突破',desc:'修为达到当前瓶颈后，会进入突破流程，突破存在失败风险。失败后需要调息，时间会随仙历流逝而减少。<br><br><b>闭关十年最多推进一个小段</b>，不会连续跨越多个境界；渡劫圆满必须真正渡过飞升天劫，方能进入地仙。',placement:'center',actions:[{text:'我已明白',action:'finish'}]}
 };
 const TUTORIAL_ORDER=['welcome','movement','interaction','combat','combat_attack','equipment','tasks','cultivation'];
+const TUTORIAL_DIRECT_STEPS_V2868121=new Set(['movement','interaction','combat_attack']);
 let tutorialState={active:false,currentStepId:null,bubble:null,dim:null,skipBtn:null,trainingWatcher:null,lastMoveX:null,lastMoveY:null,freeExploreAnnounced:false,compactStepId:null};
 
 function ensureTutorialState(){
@@ -88,6 +89,9 @@ function triggerTutorial(id,force=false){
   tutorialState.currentStepId=id;t.activeStep=id;tutorialState.active=true;
   syncTutorialStage(id);
 
+  // V28.68.121 (audit G5): move, interact and first attack skip the explanation card and its
+  // 「开始操作」 tap; they open straight on the compact reminder with the action-phase spotlight.
+  if(TUTORIAL_DIRECT_STEPS_V2868121.has(id))tutorialState.compactStepId=id;
   const modalSteps=new Set(['welcome','combat','cultivation']);
   const focusSteps=new Set(['movement','interaction','combat_attack']);
   const dockableSteps=new Set(['movement','interaction','combat_attack']);
@@ -235,7 +239,7 @@ function installGuideEntry(){
 
 window.addEventListener('load',()=>setTimeout(()=>{installTutorialInteractionHooks();installGuideEntry();installTutorialTooltips()},650));
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-04-tutorial-guide-script.js"]="28.68.120";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-04-tutorial-guide-script.js"]="28.68.121";
 
 // 初入仙途：只突出下一步，奖励随进度一次性保存。
 function firstJourneyV28687(){

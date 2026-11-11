@@ -3942,7 +3942,7 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 /* V28.12 洞府管理 */
 .home-board-v2812{padding:16px;border:1px solid #9eb781;border-radius:16px;background:linear-gradient(135deg,#14251e,#18202b);color:#e9eee3;line-height:1.65}.home-board-v2812 h3{color:#ead592;margin:0 0 12px}.home-grid-v2812{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-grid-v2812 article{padding:14px;border:1px solid #526454;border-radius:12px;background:#ffffff08}.home-grid-v2812 h4{margin:0;color:#e8d594}.home-grid-v2812 p{color:#d0dbd1}.home-grid-v2812 strong{color:#83ddb6}.home-notice-v2812{padding:12px;background:#31534066;border-radius:10px}@media(max-width:600px){.home-grid-v2812{grid-template-columns:1fr}.home-board-v2812{padding:12px;font-size:14px}}
 
-:root{--xiantu-build:2868120;}
+:root{--xiantu-build:2868121;}
 #xiantuBuildBadgeV2814{font-size:11px;min-height:32px;padding:5px 9px;white-space:nowrap;color:#b4d4bd;background:#18251f;border:1px solid #718475;border-radius:8px;}
 
 /* V28.68 战斗数值可视层 */
@@ -5362,3 +5362,11 @@ html.xiantu-mobile-dedicated #startScreen .title-vignette-v2868120{position:fixe
   #startScreen .title-form-v2868120 .start-btn{margin-top:0}
   #loadDialog .load-dialog-content{max-height:96dvh;overflow:auto}
 }
+
+/* V28.68.121 tutorial pacing (audit G5): per-card counter inside the 起步之路 row. 青绿鎏金 tokens, static (no motion). */
+.tutorial-bubble .tutorial-counter{display:flex;align-items:center;justify-content:flex-end;gap:8px;color:var(--xt-jade-300,#8cc7b0);font-size:12px;letter-spacing:.04em}
+.tutorial-pips-v2868121{display:inline-flex;gap:4px;align-items:center}
+.tutorial-pips-v2868121 i{display:block;width:6px;height:6px;border-radius:50%;border:1px solid var(--xt-jade-500,#4f8f7a);background:transparent}
+.tutorial-pips-v2868121 i.done{background:var(--xt-jade-500,#4f8f7a)}
+.tutorial-pips-v2868121 i.cur{background:var(--xt-gold-300,#f0dca0);border-color:var(--xt-gold-500,#d4b06a);box-shadow:0 0 0 1px rgba(212,176,106,.35)}
+.tutorial-bubble.tutorial-docked .tutorial-mini-progress{font-size:12px!important;color:var(--xt-gold-300,#f0dca0)!important;letter-spacing:.02em}

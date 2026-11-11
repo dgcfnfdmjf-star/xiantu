@@ -85,7 +85,7 @@ console.log('PASS receipt: suppressed by step id, removed by full panels, auto-c
 fresh();run("tutorialState.compactStepId='movement';triggerTutorial('movement',true)");
 a(run("document.querySelector('.tutorial-dim').classList.contains('acting')"),'action phase uses the light dim');
 a(run("document.querySelector('.tutorial-spotlight-v2868114')"),'spotlight cut around the control');
-run("tutorialState.compactStepId=null;triggerTutorial('movement',true)");
+run("tutorialState.compactStepId=null;triggerTutorial('welcome',true)");   // V28.68.121: simple steps always dock; the welcome card is an explanation card
 a(!run("document.querySelector('.tutorial-dim').classList.contains('acting')"),'explanation card keeps the full dim');
 a(!run("document.querySelector('.tutorial-spotlight-v2868114')"),'no spotlight while reading');
 run('closeTutorialBubble()');a(!run("document.querySelector('.tutorial-spotlight-v2868114')"),'spotlight cleared with the bubble');

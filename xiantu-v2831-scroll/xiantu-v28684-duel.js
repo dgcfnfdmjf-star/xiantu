@@ -2634,9 +2634,19 @@ function showFirstPathV2901(){
 // 统一编号：引路气泡、初入仙途标题都改成「起步之路 n/11」
 function pathRelabelTutorialV2901(id){
  const b=document.getElementById('tutorialBubble'),n=PATH_TUTORIAL_V2901[id];if(!b||!n)return;
- const total=PATH_STEPS_V2901.length;
- const c=b.querySelector('.tutorial-counter');if(c)c.textContent=`起步之路 ${n} / ${total}`;
- const m=b.querySelector('.tutorial-mini-progress');if(m)m.textContent=`${n}/${total}`;
+ const total=PATH_STEPS_V2901.length,sub=pathTutorialCardV2868121(id);
+ // V28.68.121 (audit G5): several cards share one path row, so each card also shows its place in that row.
+ const c=b.querySelector('.tutorial-counter');
+ if(c){c.textContent=`起步之路 ${n} / ${total}`+(sub?` · 本段 ${sub.i}/${sub.of}`:'');c.dataset.card=sub?`${n}.${sub.i}`:String(n);
+  if(sub){const pips=document.createElement('span');pips.className='tutorial-pips-v2868121';pips.setAttribute('aria-hidden','true');
+   for(let k=1;k<=sub.of;k++){const d=document.createElement('i');if(k<sub.i)d.className='done';else if(k===sub.i)d.className='cur';pips.appendChild(d);}c.appendChild(pips);}}
+ const m=b.querySelector('.tutorial-mini-progress');if(m)m.textContent=`${n}/${total}`+(sub?` · ${sub.i}/${sub.of}`:'');
+}
+// Card position inside its path row, from the tutorial order; null when the row has a single card.
+function pathTutorialCardV2868121(id){
+ const n=PATH_TUTORIAL_V2901[id];if(!n||typeof TUTORIAL_ORDER==='undefined')return null;
+ const row=TUTORIAL_ORDER.filter(x=>PATH_TUTORIAL_V2901[x]===n),i=row.indexOf(id)+1;
+ return row.length>1&&i>0?{i,of:row.length}:null;
 }
 function pathRelabelJourneyV2901(){
  const box=document.getElementById('storyText'),s=typeof firstJourneyV28687==='function'?firstJourneyV28687():null;if(!box||!s)return;
@@ -3290,7 +3300,7 @@ function drawInteriorV286886(){
  drawActor25DV2770(ctx,s.player);ctx.restore();return true;
 }
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.120';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.121';
 
 
 if(typeof installBagViewV2905==='function')installBagViewV2905();
