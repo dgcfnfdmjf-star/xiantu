@@ -10,7 +10,12 @@ const http = require('node:http');
 const { createHash } = require('node:crypto');
 const { chromium } = require('playwright');
 const { auditFurUV } = require('./cat-uv-overlap.cjs');
+const { check: checkWalkAsset } = require('./cat-walk-assets.cjs');
+const { unpackGLB, ready: decoderReady } = require('./decode-cat-glb.cjs');
+const seatedRest = require('./cat-seated-rest.json');
 
+async function main() {
+await decoderReady;
 const assetRoot = path.resolve(__dirname, '..');
 const repoRoot = path.resolve(assetRoot, '../../../..');
 const output = path.join(repoRoot, 'output/playwright/cat-variants');
@@ -46,14 +51,18 @@ const assets = Object.fromEntries(cats.map(id => {
   }
   gltf.scenes[gltf.scene || 0].nodes.forEach(visit);
   assert(expectedTriangles > 0 && expectedTriangles <= 50000, `${id} within 50k triangles`);
-  const uv = auditFurUV(glb, { resolution: 1024, tolerance: 1e-4 });
+  const walk = checkWalkAsset(glb, seatedRest.cats[id], id);
+  const fur = walk.rest.surfaces.find(s => s.material === 'Watercolor fur · runtime atlas');
+  assert.equal(fur.originalTriangles, 5254, `${id} retains every approved fur triangle`);
+  // Internal caps use new, non-overlapping atlas cells, so audit the whole fur mesh.
+  const uv = auditFurUV(unpackGLB(glb), { resolution: 1024, tolerance: 1e-4 });
   assert.equal(uv.conflictingTexels, 0, `${id} fur UVs must not assign distant surfaces to the same atlas texel`);
   assert.equal(uv.degenerateTriangles, 0, `${id} fur triangles must retain nonzero UV area`);
-  return [id, { gltf, base64, uv, triangles: expectedTriangles, images: gltf.images.length, bytes: glb.length }];
+  return [id, { gltf, base64, uv, walk, triangles: expectedTriangles, images: gltf.images.length, bytes: glb.length }];
 }));
 const gltf = assets.orange.gltf, expectedTriangles = assets.orange.triangles;
 
-const contentTypes = { '.html': 'text/html', '.js': 'text/javascript', '.png': 'image/png' };
+const contentTypes = { '.cjs': 'text/javascript', '.html': 'text/html', '.js': 'text/javascript', '.png': 'image/png' };
 const server = http.createServer((request, response) => {
   const file = path.resolve(assetRoot, '.' + new URL(request.url, 'http://localhost').pathname);
   if (!file.startsWith(assetRoot + path.sep)) { response.writeHead(403); response.end(); return; }
@@ -64,7 +73,7 @@ const server = http.createServer((request, response) => {
     response.end(error ? 'Missing fixture' : bytes);
   });
 });
-const report = { assets: Object.fromEntries(cats.map(id => [id, { triangles: assets[id].triangles, embeddedImages: assets[id].images, bytes: assets[id].bytes, uv: assets[id].uv }])), checks: [], views: [] };
+const report = { assets: Object.fromEntries(cats.map(id => [id, { triangles: assets[id].triangles, embeddedImages: assets[id].images, bytes: assets[id].bytes, uv: assets[id].uv, walk: assets[id].walk }])), checks: [], views: [] };
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 let browser;
 const snapshot = page => page.evaluate(() => window.__catPreview);
@@ -79,10 +88,77 @@ async function selectCat(page, id) {
   assert.equal(info.selectedCat, id);
   assert.equal(info.triangles, assets[id].triangles, `${id} renders actual geometry`);
   assert.equal(info.textures, assets[id].gltf.textures.length, `${id} actual embedded atlas loaded`);
-  assert.equal(info.gpuTextures, info.textures + 1, `${id} retains only current GPU atlas and shadow`);
-  assert.equal(info.gpuGeometries, assets[id].gltf.meshes.length + 1, `${id} retains only current meshes and shadow`);
+  assert.equal(info.gpuTextures, info.textures + info.skeletonTextures + 1, `${id} retains only current GPU atlas, bone textures and shadow`);
+  assert.equal(info.gpuGeometries, assets[id].gltf.meshes.reduce((sum,m)=>sum+m.primitives.length,0) + 1, `${id} retains only current meshes and shadow`);
   assert.equal(info.view, 'front', 'switch resets view');
   return info;
+}
+async function checkWalkPreview(page, id, checkPause = false, capture = false) {
+  const seated = await snapshot(page);
+  assert.equal(seated.motion, 'sit');
+  assert.equal(seated.animationClipCount, 1);
+  assert(seated.skinnedMeshes > 0 && seated.boneTransforms.length > 0, `${id} is actually skinned`);
+  assert(await page.locator('[data-motion="walk"]').isEnabled());
+  await page.locator('[data-motion="walk"]').click();
+  await page.waitForFunction(() => __catPreview.animationRunning && __catPreview.animationTime > .15);
+  const walking = await snapshot(page);
+  assert.notDeepEqual(walking.boneTransforms, seated.boneTransforms, `${id} visible rig articulates`);
+  if (capture) {
+    for (const [view, name] of [['front', '正面'], ['side', '侧面']]) {
+      await page.getByRole('button', { name, exact: true }).click();
+      await page.screenshot({ path: path.join(output, `${id}-walk-${view}.png`), scale: 'css' });
+    }
+    await page.getByRole('button', { name: '正面', exact: true }).click();
+  }
+  if (checkPause) {
+    await page.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable: true, value: true }); document.dispatchEvent(new Event('visibilitychange')); });
+    const hidden = await snapshot(page);
+    await pause(250);
+    const stillHidden = await snapshot(page);
+    assert.equal(stillHidden.renderedFrames, hidden.renderedFrames, 'hidden Walk draws no frames');
+    assert.equal(stillHidden.animationTime, hidden.animationTime, 'hidden Walk clock does not advance');
+    assert.equal(stillHidden.pendingFrame, false);
+    const resumedTime = await page.evaluate(() => {
+      delete document.hidden; document.dispatchEvent(new Event('visibilitychange'));
+      return new Promise(resolve => requestAnimationFrame(() => resolve(__catPreview.animationTime)));
+    });
+    assert.equal(resumedTime, hidden.animationTime, 'resume resets elapsed time instead of jumping over hidden duration');
+    await page.waitForFunction(n => __catPreview.renderedFrames > n, hidden.renderedFrames);
+    assert((await snapshot(page)).animationRunning, 'visible Walk resumes');
+    const hasContextLoss = await page.evaluate(() => {
+      const canvas = document.getElementById('cat-canvas');
+      const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+      window.__loseWalkContext = gl.getExtension('WEBGL_lose_context');
+      if (__loseWalkContext) __loseWalkContext.loseContext();
+      return Boolean(__loseWalkContext);
+    });
+    assert(hasContextLoss, 'Walk context-loss fixture available');
+    await page.waitForFunction(() => __catPreview.contextLost && __catPreview.state === 'error');
+    const lost = await snapshot(page);
+    await pause(150);
+    const stillLost = await snapshot(page);
+    assert.equal(stillLost.animationTime, lost.animationTime, 'context loss freezes the active Walk clock');
+    assert.equal(stillLost.renderedFrames, lost.renderedFrames, 'context loss draws no frames');
+    assert.equal(stillLost.pendingFrame, false);
+    const restoredTime = await page.evaluate(() => new Promise(resolve => {
+      document.getElementById('cat-canvas').addEventListener('webglcontextrestored', () => {
+        requestAnimationFrame(() => resolve(__catPreview.animationTime));
+      }, { once: true });
+      __loseWalkContext.restoreContext();
+    }));
+    assert.equal(restoredTime, lost.animationTime, 'restored context resumes at the paused Walk pose');
+    await page.waitForFunction(() => __catPreview.state === 'ready' && __catPreview.animationRunning);
+    const restored = await snapshot(page);
+    assert.equal(restored.gpuTextures, restored.textures + restored.skeletonTextures + 1, 'restored context retains only its current atlas, bones and shadow');
+  }
+  await page.locator('[data-motion="sit"]').click();
+  await ready(page, id);
+  const rested = await snapshot(page);
+  assert.equal(rested.motion, 'sit');
+  assert.equal(rested.animationRunning, false);
+  assert.deepEqual(rested.boneTransforms, seated.boneTransforms, `${id} Sit restores exact original bone transforms`);
+  await pause(150);
+  assert.equal((await snapshot(page)).renderedFrames, rested.renderedFrames, 'Sit returns to on-demand rendering');
 }
 async function captureViews(page, label, id) {
   for (const [view, name] of [['front', '正面'], ['side', '侧面'], ['back', '背面']]) {
@@ -141,7 +217,7 @@ async function verifyIsolation(test) {
   assert.deepEqual(test.external, [], 'no external service requests');
   assert.deepEqual(test.errors, [], 'no uncaught browser errors');
   assert.equal(await test.page.evaluate(() => window.__storageTouches), 0, 'no storage access');
-  assert(test.requests.every(url => /^\/(preview-cat-orange\.html|(orange|calico|black|tabby)-cat-preview\.png|vendor\/three-r128\/(three\.min\.js|GLTFLoader\.js|OrbitControls\.js))$/.test(url)), 'only preview, PNGs and committed vendor files requested; no external GLBs');
+  assert(test.requests.every(url => /^\/(preview-cat-orange\.html|cat-geometry\.js|vendor\/meshoptimizer-1\.3\.0\/meshopt_decoder\.cjs|(orange|calico|black|tabby)-cat-preview\.png|vendor\/three-r128\/(three\.min\.js|GLTFLoader\.js|OrbitControls\.js))$/.test(url)), 'only preview, PNGs and committed vendor files requested; no external GLBs');
 }
 async function corruptEmbeddedModels(context, ids) {
   let source = previewSource;
@@ -159,7 +235,7 @@ async function restoreEmbeddedModels(page, ids) {
   }, Object.fromEntries(ids.map(id => [id, assets[id].base64])));
 }
 
-(async () => {
+try {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const url = `http://127.0.0.1:${server.address().port}/preview-cat-orange.html`;
   browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH } : {}), args: ['--no-sandbox'] });
@@ -218,7 +294,7 @@ async function restoreEmbeddedModels(page, ids) {
   assert.equal((await snapshot(page)).renderedFrames, idleFrames, 'hidden page does not render');
   assert.equal((await snapshot(page)).pendingFrame, false);
   await page.evaluate(() => { delete document.hidden; document.dispatchEvent(new Event('visibilitychange')); });
-  await pause(100);
+  await page.waitForFunction(n => __catPreview.renderedFrames > n && !__catPreview.pendingFrame, idleFrames);
   assert.equal((await snapshot(page)).renderedFrames, idleFrames + 1, 'resume schedules one frame');
   const contextExtension = await page.evaluate(() => {
     const canvas = document.getElementById('cat-canvas');
@@ -236,6 +312,7 @@ async function restoreEmbeddedModels(page, ids) {
     const info = await selectCat(page, id);
     report.views.push({ label: `${id} desktop`, viewport: { width: 1200, height: 900 }, ...info });
     await captureViews(page, 'desktop', id);
+    await checkWalkPreview(page, id, id === 'orange', true);
     const beforeDrag = await canvas.screenshot();
     await page.mouse.move(box.x + box.width * .4, box.y + box.height * .48);
     await page.mouse.down();
@@ -248,12 +325,22 @@ async function restoreEmbeddedModels(page, ids) {
     await page.getByRole('button', { name: '重置视角', exact: true }).click();
     assert(Math.abs((await snapshot(page)).distance - info.distance) < 1e-6, `${id} reset restores fitted distance`);
   }
+  await page.locator('[data-motion="walk"]').click();
+  await page.waitForFunction(() => __catPreview.animationRunning && __catPreview.animationTime > .15);
+  const beforeWalkSwitch = await snapshot(page);
+  const afterWalkSwitch = await selectCat(page, 'orange');
+  assert.equal(afterWalkSwitch.motion, 'sit', 'switching away from a walking cat selects the new seated pose');
+  assert.equal(afterWalkSwitch.animationRunning, false, 'the replaced Walk does not animate the next cat');
+  assert.equal(afterWalkSwitch.animationTime, 0, 'the new mixer starts at zero');
+  assert.equal(afterWalkSwitch.disposedModels, beforeWalkSwitch.disposedModels + 1, 'walking model is disposed once');
+  await pause(150);
+  assert.equal((await snapshot(page)).renderedFrames, afterWalkSwitch.renderedFrames, 'switching away from Walk cancels continuous rendering');
   for (let round = 0; round < 3; round++) for (const id of cats) await selectCat(page, id);
   await page.waitForFunction(() => window.__catPreview.pendingLoads === 0);
   const bitmap = await page.evaluate(() => window.__bitmapStats);
   assert.equal(bitmap.created - bitmap.closed, assets.tabby.gltf.textures.length, 'repeated switches close all replaced decoded image bitmaps');
   assert.equal(await page.evaluate(() => window.__blobURLStats.live), 0, 'all encoded atlas object URLs are revoked');
-  report.checks.push('all four cats front/side/back, drag, wheel, fitted reset', 'three complete switch cycles retain only current model textures and six model geometries', 'all replaced decoded ImageBitmaps are closed');
+  report.checks.push('all four cats front/side/back, drag, wheel, fitted reset', 'four real Walk clips articulate and return to exact Sit; Walk pauses and resumes without a time jump across background/context loss; switching away from Walk disposes it and stops continuous rendering', 'three complete switch cycles retain only current model textures and six model geometries', 'all replaced decoded ImageBitmaps are closed');
   await verifyIsolation(desktop);
   report.views.push({ label: 'desktop', viewport: { width: 1200, height: 900 }, ...initial });
   report.checks.push('embedded GLB bytes match accepted files, scene triangle counts and zero fur UV conflicts', 'actual rendered drag image changes', 'front/side/back/reset', 'wheel min/max and keyboard controls', 'idle rendering stops', 'simulated document.hidden cancels rendering; resume renders once', 'real WebGL context loss/restoration', 'no external requests, external GLBs or storage access');
@@ -288,7 +375,8 @@ async function restoreEmbeddedModels(page, ids) {
   await stale.page.evaluate(() => window.__releaseBitmap());
   await stale.page.waitForFunction(() => window.__catPreview.pendingLoads === 0);
   assert.equal((await snapshot(stale.page)).loadedCat, 'tabby', 'late decoded GLB cannot replace current selection');
-  assert.equal((await snapshot(stale.page)).gpuTextures, assets.tabby.gltf.textures.length + 1, 'late result allocates no persistent GPU atlas');
+  const lateResources = await snapshot(stale.page);
+  assert.equal(lateResources.gpuTextures, assets.tabby.gltf.textures.length + lateResources.skeletonTextures + 1, 'late result allocates no persistent GPU atlas or skeleton texture');
   const lateBitmaps = await stale.page.evaluate(() => window.__bitmapStats);
   assert.equal(lateBitmaps.created - lateBitmaps.closed, assets.tabby.gltf.textures.length, 'late decoded atlas is closed');
   assert.equal(await stale.page.evaluate(() => window.__blobURLStats.live), 0, 'late decoded atlas object URL is revoked');
@@ -335,6 +423,7 @@ async function restoreEmbeddedModels(page, ids) {
       assert.equal(info.dpr, 2);
       assert.equal(await phone.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${id} ${label} has no horizontal overflow`);
       await captureViews(phone.page, label, id);
+      if (label === 'phone-portrait') await checkWalkPreview(phone.page, id);
       report.views.push({ label: `${id} ${label}`, viewport: { width, height }, ...info });
     }
   }
@@ -414,7 +503,9 @@ async function restoreEmbeddedModels(page, ids) {
   report.environment = 'Headless Chromium on cloud Linux; viewport/touch emulation, not a physical phone or FPS benchmark.';
   fs.writeFileSync(path.join(output, 'validation.json'), JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify(report, null, 2));
-})().catch(error => { console.error(error); process.exitCode = 1; }).finally(async () => {
+} finally {
   if (browser) await browser.close();
   server.close();
-});
+}
+}
+main().catch(error => {console.error(error); process.exitCode=1;});

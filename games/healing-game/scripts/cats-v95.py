@@ -3,7 +3,9 @@
 replace('    kittens.push(k);\n    return k;', '    kittens.push(k);\n    if (window.GardenCatModels) window.GardenCatModels.attach(k);\n    return k;')
 replace('  function removeKitten(k) {\n    k.dead = true;', '  function removeKitten(k) {\n    k.dead = true;\n    if (window.GardenCatModels) window.GardenCatModels.remove(k);')
 replace('    group.visible = two;', '    group.visible = two;\n    if (window.GardenCatModels) window.GardenCatModels.setLevel(n, kittens);')
-replace('    k.root.scale.set(sc, sc, sc);\n    k.inner.scale.y', '    k.root.scale.set(sc, sc, sc);\n    if (window.GardenCatModels && window.GardenCatModels.pose(k, t)) return;\n    k.inner.scale.y')
+replace('    k.x = wx; k.z = wz;\n    resolve(k);', '    k.x = wx; k.z = wz;\n    if (window.GardenCatModels) window.GardenCatModels.prepareWalk(k, dt);\n    resolve(k);')
+replace('    k.moving = true;\n', '    k.moving = true;\n    k.catWalkSpeed = speed; // Display-only cadence; movement keeps the original speed.\n')
+replace('    k.root.scale.set(sc, sc, sc);\n    k.inner.scale.y', '    k.root.scale.set(sc, sc, sc);\n    if (window.GardenCatModels && window.GardenCatModels.pose(k, t, dt)) return;\n    k.inner.scale.y')
 replace('      k.root.getWorldPosition(tmp2); tmp2.y += 0.3;\n', '      if (window.GardenCatModels) window.GardenCatModels.hitPoint(k, tmp2);\n      else { k.root.getWorldPosition(tmp2); tmp2.y += 0.3; }\n')
 replace('      k.root.getWorldPosition(tmp2); tmp2.y += 0.3; tmp2.project(H.camera);', '      if (window.GardenCatModels) window.GardenCatModels.hitPoint(k, tmp2);\n      else { k.root.getWorldPosition(tmp2); tmp2.y += 0.3; }\n      tmp2.project(H.camera);')
 

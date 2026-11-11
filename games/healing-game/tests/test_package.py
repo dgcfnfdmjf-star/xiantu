@@ -65,7 +65,11 @@ class Package(unittest.TestCase):
             length, chunk = struct.unpack_from('<II', asset, 12)
             self.assertEqual(chunk, 0x4E4F534A)
             data = json.loads(asset[20:20 + length])
-            self.assertFalse(data.get('extensionsRequired'))
+            # Core skinning with the locally bundled official meshopt decoder.
+            self.assertLessEqual(set(data.get('extensionsRequired', [])), {'KHR_mesh_quantization', 'EXT_meshopt_compression'})
+            self.assertTrue(data.get('skins'), 'walking cats must retain their deformation rig')
+            self.assertEqual([clip.get('name') for clip in data.get('animations', [])], ['Walk'])
+            self.assertTrue(data['animations'][0].get('channels'))
             self.assertTrue(data['images'])
             self.assertTrue(all('bufferView' in image and 'uri' not in image for image in data['images']))
             self.assertTrue(all('uri' not in buffer for buffer in data['buffers']))
@@ -76,9 +80,9 @@ class Package(unittest.TestCase):
                     triangles += data['accessors'][primitive['indices']]['count'] // 3
             self.assertGreater(triangles, 0)
             # Keep the optimized runtime mesh; the retained 35k source is Blender-only.
-            self.assertLessEqual(triangles, 10000)
-        # Prevent reintroducing the measured high-detail loading/rendering regression.
-        self.assertLess(total_bytes, 2_000_000)
+            self.assertLessEqual(triangles, 7500)
+        # Keep the animated cats close to the 1,149,404-byte seated baseline.
+        self.assertLess(total_bytes, 1_200_000)
 
     def test_reproducible_release(self):
         before = ZIP.read_bytes()
