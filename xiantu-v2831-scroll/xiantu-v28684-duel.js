@@ -2184,6 +2184,7 @@ async function saveMirrorOfferV2895(){
    el.remove();
    const info=document.getElementById('saveInfo');if(info)info.innerHTML='已从浏览器备用库恢复修行记录。<br>点击“续行仙途”继续。';
    const dialog=document.getElementById('loadDialog');if(dialog)dialog.style.display='flex';
+   try{window.refreshTitleSaveCardV2868120?.();}catch(_){}
   }catch(err){gameAlertV2868114('恢复失败：'+(err?.message||err));}
  });
  document.body.appendChild(el);el.querySelector('[data-su="restore"]')?.focus?.();
@@ -3289,7 +3290,7 @@ function drawInteriorV286886(){
  drawActor25DV2770(ctx,s.player);ctx.restore();return true;
 }
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.119';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.120';
 
 
 if(typeof installBagViewV2905==='function')installBagViewV2905();

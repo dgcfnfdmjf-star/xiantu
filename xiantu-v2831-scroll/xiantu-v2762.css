@@ -3942,7 +3942,7 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 /* V28.12 洞府管理 */
 .home-board-v2812{padding:16px;border:1px solid #9eb781;border-radius:16px;background:linear-gradient(135deg,#14251e,#18202b);color:#e9eee3;line-height:1.65}.home-board-v2812 h3{color:#ead592;margin:0 0 12px}.home-grid-v2812{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-grid-v2812 article{padding:14px;border:1px solid #526454;border-radius:12px;background:#ffffff08}.home-grid-v2812 h4{margin:0;color:#e8d594}.home-grid-v2812 p{color:#d0dbd1}.home-grid-v2812 strong{color:#83ddb6}.home-notice-v2812{padding:12px;background:#31534066;border-radius:10px}@media(max-width:600px){.home-grid-v2812{grid-template-columns:1fr}.home-board-v2812{padding:12px;font-size:14px}}
 
-:root{--xiantu-build:2868119;}
+:root{--xiantu-build:2868120;}
 #xiantuBuildBadgeV2814{font-size:11px;min-height:32px;padding:5px 9px;white-space:nowrap;color:#b4d4bd;background:#18251f;border:1px solid #718475;border-radius:8px;}
 
 /* V28.68 战斗数值可视层 */
@@ -5328,3 +5328,37 @@ html #alchemyPanel .material-tag.material-core{border-color:rgba(180,140,230,.45
 html #alchemyPanel .material-tag.material-stone{border-color:var(--xt-line-gold,rgba(212,176,106,.55));background:rgba(94,68,32,.4);color:var(--xt-gold-100,#fbf1d3)}
 html.xt-reduce-motion #alchemyPanel .craft-btn{transition:none}
 @media (prefers-reduced-motion:reduce){html #alchemyPanel .craft-btn{transition:none}}
+
+/* ===== V28.68.120 title screen (audit A1): gilded 仙途, mist and gold motes, returning card, landscape two columns ===== */
+#startScreen.title-v2868120{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;min-height:min(640px,100svh);background:var(--xt-ink-950,#070c0a)}
+html.xiantu-mobile-dedicated #startScreen.title-v2868120{background:var(--xt-ink-950,#070c0a)!important;justify-content:center!important;gap:12px}
+#startScreen.title-v2868120.hidden,html.xiantu-mobile-dedicated #startScreen.title-v2868120.hidden{display:none!important}
+#startScreen .title-mist-v2868120{position:absolute;inset:0;width:100%;height:100%;z-index:-2;display:block;pointer-events:none}
+html.xiantu-mobile-dedicated #startScreen .title-mist-v2868120{position:fixed}
+#startScreen .title-vignette-v2868120{position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 72% 62% at 50% 42%,transparent 45%,rgba(4,8,6,.55) 78%,rgba(2,4,3,.9) 100%)}
+html.xiantu-mobile-dedicated #startScreen .title-vignette-v2868120{position:fixed}
+#startScreen .title-brand-v2868120,#startScreen .title-form-v2868120{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:360px}
+#startScreen .title-logo-v2868120{margin:0;display:flex;gap:.08em;font-family:"STXingkai","Xingkai SC","华文行楷","STKaiti","Kaiti SC","KaiTi","楷体",var(--xt-font-display,serif);font-size:clamp(64px,22vw,104px);font-weight:700;line-height:1;letter-spacing:.06em;
+  background:linear-gradient(180deg,var(--xt-gold-100,#fbf1d3) 0%,var(--xt-gold-300,#f0dca0) 34%,var(--xt-gold-500,#d4b06a) 62%,var(--xt-gold-700,#8a6a32) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 2px 0 rgba(94,68,32,.9)) drop-shadow(0 0 14px rgba(212,176,106,.38))}
+#startScreen .title-logo-v2868120 span:last-child{transform:translateY(.12em)}
+#startScreen .title-logo-v2868120::after{content:"";align-self:flex-end;width:.2em;height:.2em;margin:0 0 .1em .06em;border-radius:3px;background:#a5322a;box-shadow:inset 0 0 0 2px rgba(251,241,211,.35)}
+#startScreen .title-hero-v2868120{display:block;margin:0 auto;border-radius:12px;border:1px solid var(--xt-line-gold,rgba(212,176,106,.55));background:rgba(12,20,17,.65);box-shadow:0 6px 18px rgba(0,0,0,.45),0 0 0 3px rgba(79,143,122,.18)}
+#startScreen .title-tagline-v2868120{margin:0;font-family:var(--xt-font-display,serif);font-size:16px;letter-spacing:.12em;color:var(--xt-jade-100,#d7efe4);text-shadow:0 1px 6px rgba(0,0,0,.8)}
+#startScreen .title-form-v2868120 .save-btn{margin:0}
+#startScreen .title-form-v2868120 .start-btn{margin-top:4px}
+#loadDialog .save-summary-v2868120{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:baseline;margin:4px 0 12px;padding:10px 14px;border-radius:10px;border:1px solid var(--xt-line-gold,rgba(212,176,106,.55));background:linear-gradient(135deg,rgba(47,90,75,.42),rgba(12,20,17,.85));text-align:left}
+#loadDialog .save-summary-v2868120[hidden]{display:none}
+#loadDialog .save-summary-name-v2868120{font-family:var(--xt-font-display,serif);font-size:20px;font-weight:700;color:var(--xt-gold-300,#f0dca0)}
+#loadDialog .save-summary-realm-v2868120{font-size:14px;color:var(--xt-jade-300,#8cc7b0);text-align:right}
+#loadDialog .save-summary-time-v2868120{grid-column:1/-1;font-size:12px;color:var(--xt-text-2,#c9c0aa)}
+@media (orientation:landscape) and (max-height:500px){
+  #startScreen.title-v2868120,html.xiantu-mobile-dedicated #startScreen.title-v2868120{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center!important;justify-items:center;column-gap:24px;padding:calc(var(--mx-safe-t,0px) + 10px) calc(var(--mx-safe-r,0px) + 24px) calc(var(--mx-safe-b,0px) + 10px) calc(var(--mx-safe-l,0px) + 24px)!important}
+  #startScreen .title-brand-v2868120{gap:8px}
+  #startScreen .title-logo-v2868120{font-size:clamp(56px,17vh,84px)}
+  #startScreen .title-hero-v2868120{width:64px!important;height:77px!important}
+  #startScreen .title-tagline-v2868120{font-size:14px}
+  #startScreen .title-form-v2868120{gap:10px}
+  #startScreen .title-form-v2868120 .start-btn{margin-top:0}
+  #loadDialog .load-dialog-content{max-height:96dvh;overflow:auto}
+}

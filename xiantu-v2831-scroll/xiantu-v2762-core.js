@@ -16035,6 +16035,7 @@ function villageEnhanceV286897(){
       document.getElementById('playerName').value = '';
       document.getElementById('startScreen').classList.remove('hidden');
       document.getElementById('gameScreen').classList.add('hidden');
+      startTitleFxV2868120();
     }
 
     function checkSaveOnStart() {
@@ -16053,6 +16054,7 @@ function villageEnhanceV286897(){
         if (info) info.innerHTML = '检测到旧日修行记录。<br>点击“续行仙途”后读取，道具、境界与剧情均会保留。';
         const dialog = document.getElementById('loadDialog');
         if (dialog) dialog.style.display = 'flex';
+        refreshTitleSaveCardV2868120();
       } else {
         try{window.saveMirrorOfferV2895?.();}catch(_){}
       }
@@ -16067,9 +16069,103 @@ function villageEnhanceV286897(){
       return result;
     };
 
+    // V28.68.120 (audit A1): title backdrop and returning-player card. Display only; reads saves, never writes.
+    const TITLE_SUMMARY_MAX_V2868120=1536*1024; // larger saves stay unparsed until 续行仙途, as before
+    function titleSaveSummaryV2868120(raw){
+      if(typeof raw!=='string'||!raw)return null;
+      if(raw.length>TITLE_SUMMARY_MAX_V2868120){const m=raw.match(/"timestamp":(\d{10,14})\s*(?:,"version":\d+)?\s*}\s*$/);return {name:'',realm:'',ts:m?Number(m[1]):0,large:true};}
+      try{
+        const d=JSON.parse(raw),p=d&&d.player;
+        if(!p||typeof p!=='object')return null;
+        const lv=Number.isInteger(p.level)&&p.level>=0&&p.level<CULTIVATION_REALMS.length?p.level:0;
+        return {name:String(p.name||'无名').slice(0,12),realm:getCultivationName(lv,p.phase),ts:Number(d.timestamp)||0,large:false};
+      }catch(_){return null;}
+    }
+    function titleAgoV2868120(ts){
+      const d=Date.now()-ts;if(!(ts>0)||d<0)return '';
+      if(d<60e3)return '刚刚';if(d<3600e3)return Math.floor(d/60e3)+' 分钟前';if(d<86400e3)return Math.floor(d/3600e3)+' 小时前';return Math.floor(d/86400e3)+' 天前';
+    }
+    function refreshTitleSaveCardV2868120(){
+      const card=document.getElementById('saveSummaryV2868120');if(!card)return null;
+      let raw=null,backup=false;
+      try{raw=localStorage.getItem(SAVE_KEY);if(!raw){raw=localStorage.getItem(SAVE_BACKUP_KEY);backup=!!raw;}}catch(_){}
+      const sum=titleSaveSummaryV2868120(raw);
+      if(!sum){card.hidden=true;return null;}
+      const when=sum.ts>0?`${formatSaveTime(sum.ts)}${titleAgoV2868120(sum.ts)?' · '+titleAgoV2868120(sum.ts):''}`:'时间未知';
+      card.innerHTML=sum.large
+        ?`<span class="save-summary-name-v2868120">修行记录较大</span><span class="save-summary-realm-v2868120">续行后读取道号与境界</span><span class="save-summary-time-v2868120">保存于 ${escapeGameText(when)}${backup?' · 备用档':''}</span>`
+        :`<span class="save-summary-name-v2868120">${escapeGameText(sum.name)}</span><span class="save-summary-realm-v2868120">${escapeGameText(sum.realm)}</span><span class="save-summary-time-v2868120">保存于 ${escapeGameText(when)}${backup?' · 备用档':''}</span>`;
+      card.hidden=false;return sum;
+    }
+    window.refreshTitleSaveCardV2868120=refreshTitleSaveCardV2868120;
+    const TITLE_FX_V2868120={raf:0,canvas:null,ctx:null,blob:null,mist:[],motes:[],w:0,h:0,dpr:1,last:0,still:false};
+    function titleFxStillV2868120(){
+      let off=false;try{off=localStorage.getItem('xiantu_map_fx_v2868104')==='off';}catch(_){}
+      return off||document.documentElement.classList.contains('xt-reduce-motion')||!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    }
+    function titleScreenShownV2868120(){const s=document.getElementById('startScreen');return !!s&&!s.classList.contains('hidden')&&!document.hidden;}
+    function titleFxSizeV2868120(){
+      const F=TITLE_FX_V2868120,c=F.canvas,r=c.getBoundingClientRect();
+      F.dpr=Math.min(1.5,window.devicePixelRatio||1);F.w=Math.max(1,Math.round(r.width));F.h=Math.max(1,Math.round(r.height));
+      const bw=Math.round(F.w*F.dpr),bh=Math.round(F.h*F.dpr);if(c.width!==bw||c.height!==bh){c.width=bw;c.height=bh;}
+    }
+    function titleFxDrawV2868120(t){
+      const F=TITLE_FX_V2868120,g=F.ctx,w=F.w,h=F.h;if(!g)return;
+      g.setTransform(F.dpr,0,0,F.dpr,0,0);
+      const sky=g.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#16302a');sky.addColorStop(.55,'#0c1411');sky.addColorStop(1,'#070c0a');
+      g.globalCompositeOperation='source-over';g.globalAlpha=1;g.fillStyle=sky;g.fillRect(0,0,w,h);
+      // Far ridgelines in ink jade.
+      for(let k=0;k<2;k++){
+        g.fillStyle=k?'rgba(12,24,20,.9)':'rgba(30,52,44,.55)';g.beginPath();g.moveTo(0,h);
+        const base=h*(k?.78:.66),amp=h*(k?.06:.09);
+        for(let x=0;x<=w+20;x+=20)g.lineTo(x,base-amp*(Math.sin(x*.011+k*2.1)*.6+Math.sin(x*.027+k)*.4));
+        g.lineTo(w,h);g.closePath();g.fill();
+      }
+      const s=t*0.001;
+      g.globalCompositeOperation='lighter';
+      for(const m of F.mist){const x=((m.x+s*m.v)%1.6+1.6)%1.6-.3;g.globalAlpha=m.a;g.drawImage(F.blob,x*w-m.r,m.y*h-m.r*.42,m.r*2,m.r*.84);}
+      for(const p of F.motes){
+        const y=1.08-((p.y+s*p.v)%1.16+1.16)%1.16,x=p.x+Math.sin(s*.6+p.ph)*.012;
+        g.globalAlpha=p.a*(.55+.45*Math.sin(s*1.7+p.ph));g.fillStyle='#f0dca0';g.beginPath();g.arc(x*w,y*h,p.r,0,6.2832);g.fill();
+      }
+      g.globalAlpha=1;g.globalCompositeOperation='source-over';
+    }
+    function titleFxLoopV2868120(t){
+      const F=TITLE_FX_V2868120;F.raf=0;
+      if(!F.canvas?.isConnected||!titleScreenShownV2868120())return;
+      if(t-F.last>=33){F.last=t;titleFxDrawV2868120(t);} // ~30fps cap
+      F.raf=requestAnimationFrame(titleFxLoopV2868120);
+    }
+    function startTitleFxV2868120(){try{startTitleFxInnerV2868120();}catch(e){console.warn('title backdrop skipped',e);}}
+    function startTitleFxInnerV2868120(){
+      const F=TITLE_FX_V2868120,c=document.getElementById('titleMistV2868120');
+      if(!c||typeof c.getContext!=='function'||typeof c.getBoundingClientRect!=='function'||typeof requestAnimationFrame!=='function')return;
+      if(F.raf){cancelAnimationFrame(F.raf);F.raf=0;}
+      if(F.canvas!==c){
+        F.canvas=c;F.ctx=c.getContext('2d');if(!F.ctx)return;
+        const b=document.createElement('canvas');b.width=b.height=128;const bg=b.getContext('2d'),rg=bg.createRadialGradient(64,64,0,64,64,64);
+        rg.addColorStop(0,'rgba(140,199,176,.55)');rg.addColorStop(.5,'rgba(79,143,122,.22)');rg.addColorStop(1,'rgba(79,143,122,0)');bg.fillStyle=rg;bg.fillRect(0,0,128,128);F.blob=b;
+        // Deterministic layout so the static frame is stable between visits; pools are fixed at mount.
+        let seed=2868120;const rnd=()=>((seed=(seed*16807)%2147483647)/2147483647);
+        F.mist=Array.from({length:9},(_,i)=>({x:rnd()*1.6-.3,y:.42+(i%3)*.14+rnd()*.06,r:140+rnd()*160,v:.004+rnd()*.008,a:.18+rnd()*.14}));
+        F.motes=Array.from({length:36},()=>({x:rnd(),y:rnd()*1.16,r:.8+rnd()*1.6,v:.012+rnd()*.02,a:.35+rnd()*.5,ph:rnd()*6.28}));
+      }
+      titleFxSizeV2868120();
+      // During safe boot the start screen is still display:none; size again once it is laid out.
+      if(F.w<2||F.h<2){clearTimeout(F.retry);if((F.tries=(F.tries||0)+1)<80)F.retry=setTimeout(startTitleFxV2868120,100);return;}
+      F.tries=0;
+      F.still=titleFxStillV2868120();c.dataset.mode=F.still?'still':'live';
+      titleFxDrawV2868120(F.still?0:performance.now());
+      if(!F.still&&titleScreenShownV2868120())F.raf=requestAnimationFrame(titleFxLoopV2868120);
+    }
+    window.startTitleFxV2868120=startTitleFxV2868120;
+    window.addEventListener('resize',()=>{if(TITLE_FX_V2868120.canvas&&titleScreenShownV2868120())startTitleFxV2868120();});
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden&&TITLE_FX_V2868120.canvas&&titleScreenShownV2868120())startTitleFxV2868120();});
+
     window.onload = function() {
       refreshProtagonistPortraits();
       checkSaveOnStart();
+      startTitleFxV2868120();
     };
     
     // 点击按钮时初始化音频（用户交互后才能播放音频）
@@ -16283,7 +16379,7 @@ function villageEnhanceV286897(){
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.119";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.120";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
