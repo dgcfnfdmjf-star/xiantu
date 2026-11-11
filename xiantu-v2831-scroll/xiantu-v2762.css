@@ -3942,7 +3942,7 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 /* V28.12 洞府管理 */
 .home-board-v2812{padding:16px;border:1px solid #9eb781;border-radius:16px;background:linear-gradient(135deg,#14251e,#18202b);color:#e9eee3;line-height:1.65}.home-board-v2812 h3{color:#ead592;margin:0 0 12px}.home-grid-v2812{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-grid-v2812 article{padding:14px;border:1px solid #526454;border-radius:12px;background:#ffffff08}.home-grid-v2812 h4{margin:0;color:#e8d594}.home-grid-v2812 p{color:#d0dbd1}.home-grid-v2812 strong{color:#83ddb6}.home-notice-v2812{padding:12px;background:#31534066;border-radius:10px}@media(max-width:600px){.home-grid-v2812{grid-template-columns:1fr}.home-board-v2812{padding:12px;font-size:14px}}
 
-:root{--xiantu-build:2868113;}
+:root{--xiantu-build:2868122;}
 #xiantuBuildBadgeV2814{font-size:11px;min-height:32px;padding:5px 9px;white-space:nowrap;color:#b4d4bd;background:#18251f;border:1px solid #718475;border-radius:8px;}
 
 /* V28.68 战斗数值可视层 */
@@ -5186,3 +5186,194 @@ html.xiantu-mobile-dedicated #storyPanel:has(.home-board-v2812) .choice-btn{min-
 html .home-board-v2812 summary{display:list-item;box-sizing:border-box;padding:12px 0;cursor:pointer}
 html .equipment-slot-row.xt-item-cell:focus-visible,html #equipmentPanel button:focus-visible,html #combatItemDrawer button:focus-visible,html .home-board-v2812 .choice-btn:focus-visible,html .home-board-v2812 summary:focus-visible{outline:2px solid var(--xt-gold-300);outline-offset:2px;box-shadow:var(--xt-glow-gold)}
 html .equipment-slot-row.xt-item-cell:focus-visible,html #combatItemDrawer .combat-item-btn:focus-visible{outline-offset:-3px}
+
+/* ===== V28.68.114 first-ten-minutes clarity: tutorial spotlight, receipt fold, jade/gold achievement ===== */
+body.tutorial-guided-mode .tutorial-dim.acting{background:transparent!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.tutorial-spotlight-v2868114{position:fixed;z-index:5481;pointer-events:none;border-radius:16px;box-shadow:0 0 0 2px rgba(240,220,160,.85),0 0 18px 2px rgba(212,176,106,.35),0 0 0 200vmax rgba(3,7,5,.15);transition:left .18s ease,top .18s ease,width .18s ease,height .18s ease}
+.tutorial-spotlight-v2868114[hidden]{display:none}
+html.xt-reduce-motion .tutorial-spotlight-v2868114{transition:none}
+html.xt-reduce-motion .tutorial-highlight{animation:none!important}
+@media (prefers-reduced-motion:reduce){.tutorial-spotlight-v2868114{transition:none}.tutorial-highlight{animation:none!important}}
+
+.after-battle-v2838 strong[role=button]{cursor:pointer}
+.after-battle-v2838 strong[role=button]:focus-visible{outline:3px solid #a9ddd2;outline-offset:2px;border-radius:6px}
+.after-battle-v2838 strong[role=button]::after{content:' ▾';color:var(--xt-gold-500,#d4b06a);font-size:12px}
+.after-battle-v2838.collapsed{width:auto;max-width:min(calc(100% - 32px),370px);padding:6px 12px}
+.after-battle-v2838.collapsed>:not(:first-child){display:none}
+.after-battle-v2838.collapsed strong{font-size:14px}
+.after-battle-v2838.collapsed strong[role=button]::after{content:' ▸'}
+.after-battle-v2838.collapsed>div:first-child button{min-height:36px;padding:4px 10px}
+
+.achievement-popup{z-index:9750;top:max(84px,env(safe-area-inset-top));width:max-content;max-width:min(86vw,380px);padding:12px 20px;border-radius:16px;border:1px solid var(--xt-gold-500,#d4b06a);background:linear-gradient(160deg,rgba(30,58,48,.97),rgba(12,20,17,.97));color:var(--xt-text-1,#f1e9d6);box-shadow:0 0 0 1px rgba(79,143,122,.45) inset,0 12px 34px rgba(0,0,0,.5),0 0 22px rgba(212,176,106,.18)}
+.achievement-popup .achievement-kicker-v2868114{font-size:13px;letter-spacing:.18em;color:var(--xt-jade-300,#8cc7b0);margin-bottom:4px}
+.achievement-popup .achievement-name-v2868114{font-size:18px;font-weight:700;color:var(--xt-gold-300,#f0dca0)}
+.achievement-popup .achievement-desc-v2868114{font-size:12px;color:var(--xt-text-2,#bcc6b9);margin-top:4px}
+.achievement-popup .achievement-dismiss-v2764{color:var(--xt-text-3,#8a978e)}
+.achievement-popup.still-v2868114,html.xt-reduce-motion .achievement-popup{animation:none}
+@media (prefers-reduced-motion:reduce){.achievement-popup{animation:none}}
+
+/* ===== V28.68.118 battle loot reveal (audit A3): item tiles in the receipt, count-up, gilded sweep for rare drops, 2x2 actions ===== */
+.after-battle-v2838 .after-battle-gains-v2868118 b{color:var(--xt-gold-300,#f0dca0);font-variant-numeric:tabular-nums}
+.after-battle-loot-v2868118{list-style:none;margin:8px 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:6px}
+html .after-battle-loot-v2868118 .loot-tile-v2868118{position:relative;overflow:hidden;display:flex;align-items:center;gap:4px;min-height:40px;padding:4px 6px;font-size:13px;line-height:1.25;animation:lootInV2868118 .32s ease-out both;animation-delay:calc(var(--i,0) * 90ms)}
+.loot-tile-v2868118 .loot-name-v2868118{flex:1;min-width:0;overflow-wrap:anywhere;color:var(--xt-gold-100,#fbf1d3)}
+.loot-tile-v2868118 b{flex:none;font-size:12px;color:var(--xt-jade-300,#8cc7b0)}
+html .after-battle-loot-v2868118 .loot-tile-v2868118.rare{border-color:rgba(240,220,160,.55);box-shadow:0 0 0 1px rgba(212,176,106,.25) inset,0 0 10px rgba(212,176,106,.28)}
+.loot-tile-v2868118.rare::after{content:'';position:absolute;inset:0 auto 0 -60%;width:50%;pointer-events:none;background:linear-gradient(100deg,transparent,rgba(251,241,211,.0) 20%,rgba(240,220,160,.55) 50%,transparent 80%);transform:skewX(-18deg);animation:lootSweepV2868118 1.1s ease-in-out 2 both;animation-delay:calc(var(--i,0) * 90ms + .3s)}
+.loot-more-v2868118{grid-column:1/-1;font-size:12px;color:var(--xt-text-2,#bcc6b9)}
+.after-battle-v2838.has-rare-v2868118{border-color:var(--xt-gold-500,#d4b06a);box-shadow:0 8px 26px #0005,0 0 18px rgba(212,176,106,.22)}
+.after-battle-v2838>div.after-battle-actions-v2868118{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.after-battle-v2838>div.after-battle-actions-v2868118 button{min-height:44px;padding:6px 6px;font-size:13px;line-height:1.3;border-color:var(--xt-gold-700,#8a6a32);background:var(--xt-jade-700,#2f5a4b);color:var(--xt-gold-100,#fbf1d3)}
+@keyframes lootInV2868118{from{opacity:0;transform:translateY(6px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes lootSweepV2868118{from{left:-60%}to{left:120%}}
+.after-battle-v2838.still-v2868118 .loot-tile-v2868118,html.xt-reduce-motion .after-battle-v2838 .loot-tile-v2868118{animation:none}
+.after-battle-v2838.still-v2868118 .loot-tile-v2868118.rare::after,html.xt-reduce-motion .after-battle-v2838 .loot-tile-v2868118.rare::after{display:none}
+@media (prefers-reduced-motion:reduce){.after-battle-v2838 .loot-tile-v2868118{animation:none}.after-battle-v2838 .loot-tile-v2868118.rare::after{display:none}}
+@media (orientation:landscape) and (max-height:500px){.after-battle-v2838{max-height:calc(100vh - 96px);overflow:auto;padding:8px 14px;line-height:1.4}.after-battle-v2838 p{margin:4px 0}.after-battle-v2838 .after-battle-gains-v2868118 small{display:inline;margin-left:8px}.after-battle-loot-v2868118{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:4px 0}html .after-battle-loot-v2868118 .loot-tile-v2868118{min-height:34px;padding:2px 4px;font-size:12px}.after-battle-v2838>div.after-battle-actions-v2868118{gap:4px}.after-battle-v2838>div.after-battle-actions-v2868118 button{min-height:40px;padding:4px}}
+/* V28.68.116 breakthrough-ready cue (audit G4) and success card (audit A5). 青绿鎏金 tokens. */
+.world-realm.has-break-chip-v2868116{display:inline-block!important;vertical-align:middle}
+.xt-break-chip-v2868116{position:relative;display:inline-flex;align-items:center;vertical-align:middle;height:22px;margin:0 0 0 6px;padding:0 9px;border-radius:11px;border:1px solid var(--xt-gold-300,#f0dca0);background:linear-gradient(180deg,var(--xt-gold-300,#f0dca0),var(--xt-gold-500,#d4b06a));color:var(--xt-text-on-gold,#2a1c08);font:700 11px/1 var(--xt-font-display,serif);letter-spacing:.04em;white-space:nowrap;cursor:pointer;touch-action:manipulation;box-shadow:0 0 0 1px rgba(9,14,12,.6),0 0 10px rgba(212,176,106,.45)}
+.xt-break-chip-v2868116::before{content:'';position:absolute;inset:-11px -4px}
+.xt-break-chip-v2868116[hidden]{display:none!important}
+.xt-break-chip-v2868116[data-state="cooling"]{border-color:var(--xt-jade-500,#4f8f7a);background:var(--xt-ink-800,#16221d);color:var(--xt-jade-100,#d7efe4);box-shadow:0 0 0 1px rgba(9,14,12,.6)}
+.xt-break-chip-v2868116:focus-visible{outline:2px solid var(--xt-gold-100,#fbf1d3);outline-offset:2px}
+.world-bar-row.xt-exp-ready-v2868116>span:first-child{color:var(--xt-gold-300,#f0dca0)!important}
+.world-bar-row.xt-exp-ready-v2868116 .world-bar{position:relative;overflow:hidden;box-shadow:0 0 0 1px rgba(240,220,160,.6),0 0 8px rgba(212,176,106,.55)!important}
+.world-bar-row.xt-exp-ready-v2868116 .world-bar::after{content:'';position:absolute;top:0;bottom:0;left:0;width:40%;pointer-events:none;background:linear-gradient(90deg,rgba(251,241,211,0),rgba(251,241,211,.9),rgba(251,241,211,0));transform:translateX(-110%);animation:xtExpShimmerV2868116 2.6s ease-in-out infinite}
+@keyframes xtExpShimmerV2868116{0%{transform:translateX(-110%)}55%,100%{transform:translateX(260%)}}
+.world-bar-row.still-v2868116 .world-bar::after,html.xt-reduce-motion .world-bar-row.xt-exp-ready-v2868116 .world-bar::after{animation:none;display:none}
+@media (prefers-reduced-motion:reduce){.world-bar-row.xt-exp-ready-v2868116 .world-bar::after{animation:none;display:none}}
+
+.breakthrough-success{background:radial-gradient(120% 60% at 50% 0%,rgba(79,143,122,.28),rgba(79,143,122,0) 70%),linear-gradient(160deg,rgba(30,58,48,.985),rgba(12,20,17,.99));border:1px solid var(--xt-gold-500,#d4b06a);box-shadow:0 0 0 1px rgba(79,143,122,.45) inset,0 0 0 4px rgba(9,14,12,.85) inset,0 0 0 5px rgba(212,176,106,.24) inset,0 30px 80px rgba(0,0,0,.72),0 0 36px rgba(212,176,106,.18)}
+.breakthrough-success>*:not(.breakthrough-burst-v2868116){position:relative}
+.breakthrough-success .breakthrough-burst-v2868116{position:absolute;left:0;top:0;pointer-events:none;z-index:0}
+.breakthrough-success .title{color:var(--xt-gold-300,#f0dca0);font-family:var(--xt-font-display,serif);letter-spacing:.08em;text-shadow:0 0 22px rgba(212,176,106,.4)}
+.breakthrough-success .subtitle{color:var(--xt-jade-300,#8cc7b0)}
+.breakthrough-success .subtitle span{color:var(--xt-gold-100,#fbf1d3);display:inline-block;animation:xtRealmFlashV2868116 1s ease-out .15s 1 both}
+@keyframes xtRealmFlashV2868116{0%{transform:scale(.92);text-shadow:0 0 0 rgba(240,220,160,0)}35%{transform:scale(1.08);text-shadow:0 0 18px rgba(255,236,170,.95),0 0 32px rgba(212,176,106,.7)}100%{transform:scale(1);text-shadow:0 0 8px rgba(212,176,106,.35)}}
+.breakthrough-success .divider{border-top-color:var(--xt-line-gold-soft,rgba(212,176,106,.24))}
+.breakthrough-success .reward-list{color:var(--xt-text-1,#f1e9d6)}
+.breakthrough-success .reward-list .item{border-bottom-color:rgba(140,199,176,.12)}
+.breakthrough-success .reward-list .label{color:var(--xt-text-2,#bcc6b9)}
+.breakthrough-success .reward-list .value{color:var(--xt-gold-300,#f0dca0);font-variant-numeric:tabular-nums}
+.breakthrough-success .delta-v2868116{font-size:inherit;color:var(--xt-jade-300,#8cc7b0);transition:opacity .25s}
+.breakthrough-success.counting-v2868116 .delta-v2868116{opacity:0}
+.breakthrough-success .btn-continue.xt-btn--gold-v2868116{border:1px solid var(--xt-gold-300,#f0dca0);background:linear-gradient(180deg,var(--xt-gold-300,#f0dca0),var(--xt-gold-500,#d4b06a) 60%,var(--xt-gold-700,#8a6a32));color:var(--xt-text-on-gold,#2a1c08);font-family:var(--xt-font-display,serif);letter-spacing:.12em;box-shadow:0 0 0 1px rgba(9,14,12,.7),0 6px 16px rgba(0,0,0,.4)}
+.breakthrough-success .btn-continue.xt-btn--gold-v2868116:focus-visible{outline:2px solid var(--xt-gold-100,#fbf1d3);outline-offset:3px}
+.breakthrough-success .auto-close-v2764{color:var(--xt-text-3,#8a978e)}
+.breakthrough-success.still-v2868116 .subtitle span,html.xt-reduce-motion .breakthrough-success .subtitle span{animation:none}
+@media (prefers-reduced-motion:reduce){.breakthrough-success .subtitle span{animation:none}}
+/* Short landscape: keep the continue button on screen (it used to overflow below 84vh). */
+@media (max-height:500px) and (orientation:landscape){
+  .breakthrough-success{width:min(92vw,620px);max-height:92vh;padding:14px 20px 12px;top:50%}
+  .breakthrough-success .title{font-size:20px;margin-bottom:2px}
+  .breakthrough-success .subtitle{font-size:14px;margin-bottom:6px}
+  .breakthrough-success .divider{margin:6px 0}
+  .breakthrough-success .reward-list{display:grid;grid-template-columns:1fr 1fr;column-gap:16px;font-size:12px}
+  .breakthrough-success .reward-list .item{padding:3px 0}
+  .breakthrough-success .btn-continue{margin-top:8px;min-height:44px;width:auto;padding:8px 40px}
+  .breakthrough-success .auto-close-v2764{margin-top:4px}
+}
+
+/* V28.68.117 今日修行 card and claimable dot on the 任务 button (audit G6 phase 1). 青绿鎏金 tokens. */
+#taskBtn{position:relative}
+.today-dot-v2868117{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--xt-gold-300,#f0dca0);box-shadow:0 0 0 2px var(--xt-ink-900,#0c1411),0 0 0 3px var(--xt-jade-500,#4f8f7a),0 0 8px rgba(212,176,106,.7);vertical-align:middle;pointer-events:none}
+#taskBtn>.today-dot-v2868117{position:absolute;top:-3px;right:-3px;z-index:2;animation:xtTodayDotV2868117 2.4s ease-in-out infinite}
+@keyframes xtTodayDotV2868117{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
+#taskBtn>.today-dot-v2868117.still-v2868117,html.xt-reduce-motion #taskBtn>.today-dot-v2868117{animation:none}
+@media (prefers-reduced-motion:reduce){#taskBtn>.today-dot-v2868117{animation:none}}
+.today-card-v2868117{display:grid;gap:10px;color:var(--xt-jade-100,#d7efe4)}
+.today-card-v2868117 header h3{margin:0 0 4px;color:var(--xt-gold-300,#f0dca0);font-family:var(--xt-font-display,serif);letter-spacing:.08em;font-size:17px}
+.today-card-v2868117 header p{margin:0;color:var(--xt-jade-300,#8cc7b0);font-size:12px;line-height:1.6}
+.today-card-v2868117 article{border:1px solid rgba(79,143,122,.45);border-radius:12px;padding:10px 11px;background:linear-gradient(160deg,rgba(30,58,48,.55),rgba(12,20,17,.7))}
+.today-card-v2868117 article.claimable-v2868117{border-color:var(--xt-gold-500,#d4b06a);box-shadow:0 0 0 1px rgba(212,176,106,.25) inset}
+.today-card-v2868117 h4{margin:0 0 6px;color:var(--xt-gold-100,#fbf1d3);font-size:14px;display:flex;align-items:center;gap:8px}
+.today-card-v2868117 h4 em{font-style:normal;color:var(--xt-gold-300,#f0dca0);font-size:12px}
+.today-card-v2868117 article>p{margin:0 0 6px;font-size:12px;line-height:1.6;color:var(--xt-jade-100,#d7efe4)}
+.today-card-v2868117 ul{list-style:none;margin:0 0 6px;padding:0;display:grid;gap:6px}
+.today-row-v2868117{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:7px 8px;border-radius:9px;background:rgba(7,12,10,.45);border:1px solid rgba(79,143,122,.25)}
+.today-row-v2868117>div{display:grid;gap:2px;min-width:0;flex:1}
+.today-row-v2868117 b{color:var(--xt-gold-100,#fbf1d3);font-size:13px}
+.today-row-v2868117 small{color:var(--xt-jade-300,#8cc7b0);font-size:12px}
+.today-row-v2868117 span{color:var(--xt-jade-100,#d7efe4);font-size:12px;overflow-wrap:anywhere}
+.today-row-v2868117 progress{width:100%;height:4px;appearance:none;-webkit-appearance:none;border:0;border-radius:2px;background:rgba(79,143,122,.25);overflow:hidden}
+.today-row-v2868117 progress::-webkit-progress-bar{background:rgba(79,143,122,.25)}
+.today-row-v2868117 progress::-webkit-progress-value{background:linear-gradient(90deg,var(--xt-jade-500,#4f8f7a),var(--xt-gold-300,#f0dca0))}
+.today-row-v2868117 progress::-moz-progress-bar{background:var(--xt-gold-300,#f0dca0)}
+.today-row-v2868117[data-status="completed"] b{color:var(--xt-jade-300,#8cc7b0)}
+.today-row-v2868117 .task-action{flex:0 0 auto;min-height:44px;margin:0}
+.today-card-v2868117 article>.task-action{min-height:44px;margin:4px 6px 0 0}
+
+/* ===== V28.68.119 alchemy show (audit A4): 青绿鎏金 recipe controls, fire selector and material chips ===== */
+html #alchemyPanel.alchemy-panel{background:var(--xt-fill-panel,#16221d);border-color:var(--xt-line-gold,#8a6a32)}
+html #alchemyPanel .alchemy-level{background:var(--xt-fill-jade,#2f5a4b);border:1px solid var(--xt-line-gold,#8a6a32);color:var(--xt-text-1,#f1e9d6)}
+html #alchemyPanel .alchemy-level b{color:var(--xt-gold-300,#f0dca0)}
+html #alchemyPanel .alchemy-preview-v110{border-color:var(--xt-gold-700,#8a6a32)}
+html #alchemyPanel .alchemy-stage-head-v110 button{border-color:var(--xt-gold-700,#8a6a32);background:var(--xt-jade-700,#2f5a4b);color:var(--xt-gold-100,#fbf1d3)}
+html #alchemyPanel .recipe-item{gap:8px;padding:10px 12px;background:var(--xt-fill-card,#1e2d26);border:1px solid var(--xt-line-gold-soft,rgba(212,176,106,.24));border-left:3px solid var(--xt-gold-700,#8a6a32);border-radius:var(--xt-r-md,10px)}
+html #alchemyPanel .recipe-name{font-family:var(--xt-font-display,serif);color:var(--xt-gold-300,#f0dca0);letter-spacing:.06em}
+html #alchemyPanel .recipe-materials{color:var(--xt-text-2,#bcc6b9)}
+html #alchemyPanel .recipe-success{color:var(--xt-jade-300,#8cc7b0)}
+html #alchemyPanel .alchemy-have-v2868119.ok{color:var(--xt-jade-300,#8cc7b0)}
+html #alchemyPanel .alchemy-have-v2868119.short{color:var(--xt-cinnabar-300,#ec8a6e)}
+html #alchemyPanel .craft-btn{min-height:44px!important;min-width:48px;padding:8px 14px;background:var(--xt-fill-jade,#2f5a4b);border:1px solid var(--xt-gold-700,#8a6a32);border-radius:var(--xt-r-sm,6px);color:var(--xt-gold-100,#fbf1d3);font-size:13px;transition:background-color .15s,border-color .15s,box-shadow .15s}
+html #alchemyPanel .craft-btn:hover:not(:disabled){border-color:var(--xt-gold-500,#d4b06a);box-shadow:0 0 10px rgba(212,176,106,.28)}
+html #alchemyPanel .craft-btn:focus-visible{outline:2px solid var(--xt-gold-300,#f0dca0);outline-offset:2px}
+html #alchemyPanel .craft-btn:disabled{opacity:.45;border-color:var(--xt-ink-600,#2a3d34);color:var(--xt-text-3,#8a978e)}
+html #alchemyPanel .alchemy-fire-v2868112 .craft-btn[aria-pressed="false"]{background:transparent;border-color:var(--xt-line-jade,rgba(140,199,176,.38));color:var(--xt-jade-100,#d7efe4)}
+html #alchemyPanel .alchemy-fire-v2868112 .craft-btn[aria-pressed="true"]{background:var(--xt-fill-gold,#d4b06a);border-color:var(--xt-gold-300,#f0dca0);color:var(--xt-text-on-gold,#2a1c08);font-weight:700;box-shadow:var(--xt-glow-gold,0 0 10px rgba(212,176,106,.45))}
+html #alchemyPanel .material-tag{padding:3px 8px;margin:2px;border-radius:var(--xt-r-pill,999px);font-size:12px;border:1px solid var(--xt-line-jade,rgba(140,199,176,.38));background:rgba(47,90,75,.45);color:var(--xt-jade-100,#d7efe4)}
+html #alchemyPanel .material-tag.material-fruit{border-color:var(--xt-line-gold,rgba(212,176,106,.55));background:rgba(138,106,50,.32);color:var(--xt-gold-300,#f0dca0)}
+html #alchemyPanel .material-tag.material-core{border-color:rgba(180,140,230,.45);background:rgba(138,108,196,.22);color:#dccbf6}
+html #alchemyPanel .material-tag.material-stone{border-color:var(--xt-line-gold,rgba(212,176,106,.55));background:rgba(94,68,32,.4);color:var(--xt-gold-100,#fbf1d3)}
+html.xt-reduce-motion #alchemyPanel .craft-btn{transition:none}
+@media (prefers-reduced-motion:reduce){html #alchemyPanel .craft-btn{transition:none}}
+
+/* ===== V28.68.120 title screen (audit A1): gilded 仙途, mist and gold motes, returning card, landscape two columns ===== */
+#startScreen.title-v2868120{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;min-height:min(640px,100svh);background:var(--xt-ink-950,#070c0a)}
+html.xiantu-mobile-dedicated #startScreen.title-v2868120{background:var(--xt-ink-950,#070c0a)!important;justify-content:center!important;gap:12px}
+#startScreen.title-v2868120.hidden,html.xiantu-mobile-dedicated #startScreen.title-v2868120.hidden{display:none!important}
+#startScreen .title-mist-v2868120{position:absolute;inset:0;width:100%;height:100%;z-index:-2;display:block;pointer-events:none}
+html.xiantu-mobile-dedicated #startScreen .title-mist-v2868120{position:fixed}
+#startScreen .title-vignette-v2868120{position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 72% 62% at 50% 42%,transparent 45%,rgba(4,8,6,.55) 78%,rgba(2,4,3,.9) 100%)}
+html.xiantu-mobile-dedicated #startScreen .title-vignette-v2868120{position:fixed}
+#startScreen .title-brand-v2868120,#startScreen .title-form-v2868120{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:360px}
+#startScreen .title-logo-v2868120{margin:0;display:flex;gap:.08em;font-family:"STXingkai","Xingkai SC","华文行楷","STKaiti","Kaiti SC","KaiTi","楷体",var(--xt-font-display,serif);font-size:clamp(64px,22vw,104px);font-weight:700;line-height:1;letter-spacing:.06em;
+  background:linear-gradient(180deg,var(--xt-gold-100,#fbf1d3) 0%,var(--xt-gold-300,#f0dca0) 34%,var(--xt-gold-500,#d4b06a) 62%,var(--xt-gold-700,#8a6a32) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 2px 0 rgba(94,68,32,.9)) drop-shadow(0 0 14px rgba(212,176,106,.38))}
+#startScreen .title-logo-v2868120 span:last-child{transform:translateY(.12em)}
+#startScreen .title-logo-v2868120::after{content:"";align-self:flex-end;width:.2em;height:.2em;margin:0 0 .1em .06em;border-radius:3px;background:#a5322a;box-shadow:inset 0 0 0 2px rgba(251,241,211,.35)}
+#startScreen .title-hero-v2868120{display:block;margin:0 auto;border-radius:12px;border:1px solid var(--xt-line-gold,rgba(212,176,106,.55));background:rgba(12,20,17,.65);box-shadow:0 6px 18px rgba(0,0,0,.45),0 0 0 3px rgba(79,143,122,.18)}
+#startScreen .title-tagline-v2868120{margin:0;font-family:var(--xt-font-display,serif);font-size:16px;letter-spacing:.12em;color:var(--xt-jade-100,#d7efe4);text-shadow:0 1px 6px rgba(0,0,0,.8)}
+#startScreen .title-form-v2868120 .save-btn{margin:0}
+#startScreen .title-form-v2868120 .start-btn{margin-top:4px}
+#loadDialog .save-summary-v2868120{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:baseline;margin:4px 0 12px;padding:10px 14px;border-radius:10px;border:1px solid var(--xt-line-gold,rgba(212,176,106,.55));background:linear-gradient(135deg,rgba(47,90,75,.42),rgba(12,20,17,.85));text-align:left}
+#loadDialog .save-summary-v2868120[hidden]{display:none}
+#loadDialog .save-summary-name-v2868120{font-family:var(--xt-font-display,serif);font-size:20px;font-weight:700;color:var(--xt-gold-300,#f0dca0)}
+#loadDialog .save-summary-realm-v2868120{font-size:14px;color:var(--xt-jade-300,#8cc7b0);text-align:right}
+#loadDialog .save-summary-time-v2868120{grid-column:1/-1;font-size:12px;color:var(--xt-text-2,#c9c0aa)}
+@media (orientation:landscape) and (max-height:500px){
+  #startScreen.title-v2868120,html.xiantu-mobile-dedicated #startScreen.title-v2868120{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center!important;justify-items:center;column-gap:24px;padding:calc(var(--mx-safe-t,0px) + 10px) calc(var(--mx-safe-r,0px) + 24px) calc(var(--mx-safe-b,0px) + 10px) calc(var(--mx-safe-l,0px) + 24px)!important}
+  #startScreen .title-brand-v2868120{gap:8px}
+  #startScreen .title-logo-v2868120{font-size:clamp(56px,17vh,84px)}
+  #startScreen .title-hero-v2868120{width:64px!important;height:77px!important}
+  #startScreen .title-tagline-v2868120{font-size:14px}
+  #startScreen .title-form-v2868120{gap:10px}
+  #startScreen .title-form-v2868120 .start-btn{margin-top:0}
+  #loadDialog .load-dialog-content{max-height:96dvh;overflow:auto}
+}
+
+/* V28.68.121 tutorial pacing (audit G5): per-card counter inside the 起步之路 row. 青绿鎏金 tokens, static (no motion). */
+.tutorial-bubble .tutorial-counter{display:flex;align-items:center;justify-content:flex-end;gap:8px;color:var(--xt-jade-300,#8cc7b0);font-size:12px;letter-spacing:.04em}
+.tutorial-pips-v2868121{display:inline-flex;gap:4px;align-items:center}
+.tutorial-pips-v2868121 i{display:block;width:6px;height:6px;border-radius:50%;border:1px solid var(--xt-jade-500,#4f8f7a);background:transparent}
+.tutorial-pips-v2868121 i.done{background:var(--xt-jade-500,#4f8f7a)}
+.tutorial-pips-v2868121 i.cur{background:var(--xt-gold-300,#f0dca0);border-color:var(--xt-gold-500,#d4b06a);box-shadow:0 0 0 1px rgba(212,176,106,.35)}
+.tutorial-bubble.tutorial-docked .tutorial-mini-progress{font-size:12px!important;color:var(--xt-gold-300,#f0dca0)!important;letter-spacing:.02em}
+/* V28.68.122 (audit A8): gold line glyphs for equipment slots and exploration points; static glyphs, nothing moves */
+.xt-glyph{display:inline-block;width:1em;height:1em;vertical-align:-.14em;flex:none;overflow:visible}
+html .xt-cell-icon.xt-slot-glyph-v2868122{width:30px;height:30px;font-size:22px;border-radius:50%;color:var(--xt-gold-300,#f0dca0);background:radial-gradient(circle at 50% 40%,rgba(30,45,38,.92),rgba(12,20,17,.92));box-shadow:inset 0 0 0 1px rgba(212,176,106,.55),0 0 0 1px rgba(47,90,75,.45)}
+html .xt-cell-icon.xt-slot-glyph-v2868122.is-empty{color:var(--xt-gold-700,#8a6a32);box-shadow:inset 0 0 0 1px rgba(138,106,50,.45)}
+html .xt-cell-icon.xt-slot-glyph-v2868122.is-locked{color:var(--xt-text-3,#8a978e);box-shadow:inset 0 0 0 1px rgba(138,151,142,.35)}
+.xt-inline-glyph-v2868122{display:inline-flex;align-items:center;color:var(--xt-gold-300,#f0dca0)}
+.scroll-poi-v2831 i.xt-scroll-glyph-v2868122{display:flex;align-items:center;justify-content:center;width:30px;height:30px;font-size:20px;text-shadow:none;color:var(--xt-gold-300,#f0dca0);background:var(--xt-ink-800,#16221d);border:1px solid var(--xt-gold-500,#d4b06a);border-radius:50%}

@@ -57,7 +57,7 @@ tabby 狸花：通过。原条纹与绿眼保留，尾巴和后脚纹理无新�
 极近距离仍可见轻量网格关节的少量折线；这不是高面数或照片级模型。
 
 可查看：
-  walk-preview/four-cats-walk-browser.mp4       56.6 秒真实浏览器录屏，四猫连续 Walk
+  walk-preview/four-cats-walk-browser.mp4       43.6 秒真实浏览器录屏，四猫连续 Walk
   walk-preview/four-cats-walk-keyframes.png    四猫 0/25/50/75% 相位对照
   walk-preview/four-cats-seated-check.png      四猫原坐姿正/侧面对照
   walk-preview/{kind}-walk-{00,25,50,75}.png  原尺寸浏览器关键帧
@@ -92,8 +92,8 @@ OS/进程/GPU 缓存可能预热，包含解析、图片解码和调度，不是
 
 测试
 ----
-- npm test：154 个游戏回归脚本 + 辅助套件 + 9 项打包测试，无失败。
-- npm run test:browser：66 passed。
+- npm test：162 个游戏回归脚本 + 辅助套件 + 9 项打包测试，无失败。
+- npm run test:browser：86 passed（同步 main 2c84e6f 后重跑）。
 - test_compact_skin_glb.py：30 passed，二进制打包与稀疏/归一化数据。
 - test_package.py：7 passed，六文件包、MP3 身份、V9.5 版本、语法、预算、确定构建。
 - preview-cat-orange.cjs：21 组检查 / 15 个视图；内嵌 GLB 一致性、原表面和贴图

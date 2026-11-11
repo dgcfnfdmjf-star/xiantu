@@ -1,7 +1,7 @@
 四猫 Walk 最终浏览器验收
 =======================
 
-four-cats-walk-browser.mp4 是 Chromium 实际加载正式压缩 GLB 的 56.6 秒录屏，
+four-cats-walk-browser.mp4 是 Chromium 实际加载正式压缩 GLB 的 43.6 秒录屏，
 顺序为橘猫、三花、小煤球、狸花。每只先看坐姿，再看侧面连续 Walk，最后
 停在 0/25/50/75% 相位。没有用 Blender 渲染替换浏览器画面。
 

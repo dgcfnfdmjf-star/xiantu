@@ -229,13 +229,84 @@ function launchJourneyBattleV2838(id){
 let lastBattleV2838=null;
 function recordBattleSummaryV2838(enemy,before){
  if(enemy.tournamentFight){lastBattleV2838=null;return;}
- lastBattleV2838={owner:player,name:enemy.name,gold:Math.max(0,player.gold-before.gold),exp:Math.max(0,player.exp-before.exp),taskType:getTaskData(enemy._taskId)?.type||'main'};
+ lastBattleV2838={owner:player,name:enemy.name,gold:Math.max(0,player.gold-before.gold),exp:Math.max(0,player.exp-before.exp),taskType:getTaskData(enemy._taskId)?.type||'main',drops:lootDiffV2868118(before.lootV2868118,lootSnapshotV2868118(),before.underdogV2868118)};
+}
+// V28.68.118 loot reveal (audit A3). The core has already settled every reward; this only compares bag
+// counts from just before settlement with just after it. The list lives in lastBattleV2838 (memory only).
+const LOOT_REVEAL_V2868118=Object.freeze({maxTiles:8,countMs:800,staggerMs:90});
+function lootSnapshotV2868118(){
+ const p=player||{},tally=list=>{const m=Object.create(null);for(const n of Array.isArray(list)?list:[])if(typeof n==='string')m[n]=(m[n]||0)+1;return m;};
+ const nums=o=>{const m=Object.create(null);if(o&&typeof o==='object')for(const [k,v] of Object.entries(o)){const n=Number(v);if(Number.isFinite(n))m[k]=n;}return m;};
+ return {inv:tally(p.inventory),mat:nums(p.materials),pet:nums(p.petMaterials),equip:tally(p.equipmentInventory),art:Array.isArray(p.artifacts)?p.artifacts.length:0};
+}
+function lootDiffV2868118(before,after,underdog){
+ if(!before||!after)return [];
+ const out=[],gained=(b,a)=>Object.keys(a).map(k=>[k,Math.floor((a[k]||0)-(b[k]||0))]).filter(([,n])=>n>0);
+ const equipTile=(name,n)=>{const q=typeof getQualityInfo==='function'?getQualityInfo(EQUIPMENT_DB[name].quality):null;return {kind:'equip',name,count:n,icon:q?.icon||'⚔️',color:q?.color||'',rare:true};};
+ for(const [name,n] of gained(before.inv,after.inv)){
+  if(typeof EQUIPMENT_DB!=='undefined'&&EQUIPMENT_DB[name]){out.push(equipTile(name,n));continue;}
+  const d=typeof ITEMS!=='undefined'?ITEMS[name]:null;out.push({kind:'item',name,count:n,icon:d?.icon||(d?.type==='heal'?'💊':d?.type==='mp'?'🔹':'🎐'),color:'',rare:name===underdog});
+ }
+ for(const [name,n] of gained(before.equip,after.equip))out.push(typeof EQUIPMENT_DB!=='undefined'&&EQUIPMENT_DB[name]?equipTile(name,n):{kind:'equip',name,count:n,icon:'⚔️',color:'',rare:true});
+ for(const [name,n] of gained(before.mat,after.mat))out.push({kind:'material',name,count:n,icon:(typeof MATERIALS!=='undefined'&&MATERIALS[name]?.icon)||'🌿',color:'',rare:name===underdog});
+ for(const [name,n] of gained(before.pet,after.pet))out.push({kind:'pet',name,count:n,icon:'🐾',color:'',rare:false});
+ const arts=Array.isArray(player?.artifacts)?player.artifacts.slice(before.art,after.art):[];
+ for(const art of arts){const t=typeof ARTIFACT_TYPES!=='undefined'?ARTIFACT_TYPES[art?.type]:null;out.push({kind:'artifact',name:String(art?.name||t?.name||'法宝'),count:1,icon:t?.icon||'✨',color:'var(--xt-q-immortal,#b48ce6)',rare:true});}
+ return out;
+}
+function lootStillV2868118(){
+ let off=false;try{off=localStorage.getItem('xiantu_map_fx_v2868104')==='off';}catch(_){}
+ try{if(!off&&typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches)off=true;}catch(_){}
+ return off||!!document.documentElement?.classList?.contains('xt-reduce-motion');
+}
+function lootTilesHtmlV2868118(drops){
+ const esc=discipleEscV2815,list=Array.isArray(drops)?drops:[];if(!list.length)return '';
+ const shown=list.slice(0,LOOT_REVEAL_V2868118.maxTiles),more=list.length-shown.length;
+ // A colour is only ever a quality token or one of EQUIPMENT_QUALITIES' hex values; anything else falls back to the frame default.
+ const safeColor=c=>/^(#[0-9a-f]{3,8}|var\(--xt-q-[a-z]+,#[0-9a-f]{3,8}\))$/i.test(c||'')?c:'';
+ return `<ul class="after-battle-loot-v2868118" aria-label="战利品">${shown.map((d,i)=>{const c=safeColor(d.color);return `<li class="xt-item-cell loot-tile-v2868118${d.rare?' rare':''}" data-loot-kind="${esc(d.kind)}" style="--i:${i}${c?';--q:'+c:''}"><span class="xt-cell-icon" aria-hidden="true">${esc(d.icon)}</span><span class="loot-name-v2868118">${esc(d.name)}</span>${d.count>1?`<b>×${d.count}</b>`:''}</li>`;}).join('')}${more>0?`<li class="loot-more-v2868118">另有 ${more} 件 · 见储物袋</li>`:''}</ul>`;
+}
+// Count the gold and exp up (countUp.js-style easeOutExpo); the final numbers are already in the DOM.
+function countUpLootV2868118(el){
+ if(el.classList.contains('still-v2868118')||typeof requestAnimationFrame!=='function')return false;
+ const nodes=Array.from(el.querySelectorAll('[data-count]')),start=Date.now(),ease=t=>t>=1?1:1-Math.pow(2,-10*t);
+ if(!nodes.length)return false;
+ const step=()=>{if(!el.isConnected){for(const n of nodes)n.textContent=n.dataset.count;return;}const t=Math.min(1,(Date.now()-start)/LOOT_REVEAL_V2868118.countMs);for(const n of nodes)n.textContent=String(Math.round(Number(n.dataset.count)*ease(t)));if(t<1)requestAnimationFrame(step);};
+ for(const n of nodes)n.textContent='0';requestAnimationFrame(step);return true;
 }
 function showAfterBattleV2838(owner){
  const r=lastBattleV2838;lastBattleV2838=null;if(!r||r.owner!==owner||player!==owner||gameState!=='exploring'||typeof tutorialState!=='undefined'&&tutorialState.active)return;
+ // V28.68.114: the guided tutorial owns the screen until its last step id is done (its bubble flag drops between steps).
+ if(typeof guidedTutorialUnfinishedV2868114==='function'&&guidedTutorialUnfinishedV2868114()||typeof tutorialCardOpenV2868114==='function'&&tutorialCardOpenV2868114())return;
+ if(afterBattlePanelOpenV2868114())return;
  document.getElementById('afterBattleV2838')?.remove();const el=document.createElement('aside');el.id='afterBattleV2838';el.className='after-battle-v2838';el.setAttribute('aria-label','战后简报');const esc=discipleEscV2815;
- el.innerHTML=`<div><strong>战胜 · ${esc(r.name)}</strong><button type="button" data-after="close" aria-label="收起战后简报">×</button></div>${r.gold||r.exp?`<p>灵石 +${r.gold}　修为 +${r.exp}<small>含本战结算时已到账的任务奖励</small></p>`:''}<p data-after-status>气血 ${Math.floor(player.hp)}/${getMaxHp()} · 灵力 ${Math.floor(player.mp)}/${getMaxMp()}</p><div><button type="button" data-after="review">回看本场战斗</button><button type="button" data-after="recover">服丹调息 · 查看消耗</button><button type="button" data-after="tasks">继续任务</button><button type="button" data-after="rest">寻找补给</button></div>`;
+ const drops=Array.isArray(r.drops)?r.drops:[];if(lootStillV2868118())el.classList.add('still-v2868118');if(drops.some(d=>d.rare))el.classList.add('has-rare-v2868118');
+ el.innerHTML=`<div><strong>战胜 · ${esc(r.name)}</strong><button type="button" data-after="close" aria-label="收起战后简报">×</button></div>${r.gold||r.exp?`<p class="after-battle-gains-v2868118" aria-label="灵石 +${r.gold}，修为 +${r.exp}"><span aria-hidden="true">灵石 +<b data-count="${r.gold}">${r.gold}</b>　修为 +<b data-count="${r.exp}">${r.exp}</b></span><small>含本战结算时已到账的任务奖励</small></p>`:''}${lootTilesHtmlV2868118(drops)}<p data-after-status>气血 ${Math.floor(player.hp)}/${getMaxHp()} · 灵力 ${Math.floor(player.mp)}/${getMaxMp()}</p><div class="after-battle-actions-v2868118"><button type="button" data-after="review">回看本场战斗</button><button type="button" data-after="recover">服丹调息 · 查看消耗</button><button type="button" data-after="tasks">继续任务</button><button type="button" data-after="rest">寻找补给</button></div>`;
  el.onclick=e=>{const act=e.target.closest('[data-after]')?.dataset.after;if(!act)return;if(act==='recover'){recoverAfterBattleV2875(owner,el);return;}el.remove();if(player!==owner||gameState!=='exploring'||player.breakthrough?.isAnimating)return;if(act==='review')showBattleReviewV2878();if(act==='tasks')showTaskPanel(r.taskType);if(act==='rest'){showScrollMapV2831();nearestScrollRestV2837();}};document.body.appendChild(el);
+ watchAfterBattleV2868114(el);countUpLootV2868118(el);
+}
+// A full panel replaces the receipt; untouched receipts fold to their title row after a few seconds.
+const AFTER_BATTLE_V2868114=Object.freeze({collapseMs:6000,pollMs:400});
+function afterBattlePanelOpenV2868114(){
+ try{if(typeof isWorldOverlayOpen==='function'&&isWorldOverlayOpen())return true;}catch(_){}
+ return !!document.querySelector('.mobile-inventory-overlay, .help-manual-overlay.active, #tutorialUnlock, #breakthroughSuccess, #breakthroughFail');
+}
+function watchAfterBattleV2868114(el){
+ const st={owner:player,touched:false,collapseAt:Date.now()+AFTER_BATTLE_V2868114.collapseMs,timer:null};el._watchV2868114=st;
+ const title=el.children[0]?.querySelector('strong');
+ if(title){title.tabIndex=0;title.setAttribute('role','button');title.setAttribute('aria-expanded','true');title.title='展开或收起战后简报';
+  const toggle=e=>{e.stopPropagation();st.touched=true;setAfterBattleCollapsedV2868114(el,!el.classList.contains('collapsed'));};
+  title.addEventListener('click',toggle);title.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle(e);}});}
+ el.addEventListener('pointerdown',()=>{st.touched=true;});el.addEventListener('focusin',()=>{st.touched=true;});
+ st.timer=setInterval(()=>tickAfterBattleV2868114(el),AFTER_BATTLE_V2868114.pollMs);
+}
+function setAfterBattleCollapsedV2868114(el,on){el.classList.toggle('collapsed',!!on);el.children[0]?.querySelector('strong')?.setAttribute('aria-expanded',on?'false':'true');}
+function tickAfterBattleV2868114(el,now=Date.now()){
+ const st=el?._watchV2868114;if(!st)return 'gone';
+ if(!el.isConnected){clearInterval(st.timer);return 'gone';}
+ if(player!==st.owner||gameState!=='exploring'||afterBattlePanelOpenV2868114()){clearInterval(st.timer);el.remove();return 'removed';}
+ if(!st.touched&&!el.classList.contains('collapsed')&&now>=st.collapseAt){setAfterBattleCollapsedV2868114(el,true);return 'collapsed';}
+ return 'kept';
 }
 // A bounded, plain-text receipt. Never re-enters combat or reward handlers.
 function normalizeBattleReviewV2878(raw){
@@ -305,7 +376,7 @@ async function exportPreviousV2838(){
  try{await exportRawSaveV2870(localStorage.getItem(PREVIOUS_SAVE_V2838),'xiantu-previous-character.json');}
  catch(e){gameAlertV2868114('导出失败：'+e.message);}
 }
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.113';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2838-journey.js']='28.68.122';
 
 // Small non-combat encounters, two per region and character. Persist choice and reward together.
 const ROAMING_KINDS_V286818=['traveler','ruins'];
