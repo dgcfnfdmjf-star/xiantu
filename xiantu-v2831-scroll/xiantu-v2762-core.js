@@ -677,11 +677,21 @@
       popup.setAttribute('role', 'status');
       popup.setAttribute('aria-live', 'polite');
       popup.innerHTML = `
-        <div style="font-size: 24px; margin-bottom: 5px;">🏆 成就解锁！</div>
-        <div style="font-size: 18px; color: #ffd700;">${ach.icon} ${ach.name}</div>
-        <div style="font-size: 12px; color: #aaa; margin-top: 5px;">${ach.desc}</div>
+        <div class="achievement-kicker-v2868114">🏆 成就解锁</div>
+        <div class="achievement-name-v2868114">${ach.icon} ${ach.name}</div>
+        <div class="achievement-desc-v2868114">${ach.desc}</div>
         <div class="achievement-dismiss-v2764">轻触关闭 · 将自动消失</div>
       `;
+      // V28.68.114: honour reduced motion / effects off; never sit under the battle receipt.
+      let fxOff = false; try { fxOff = localStorage.getItem('xiantu_map_fx_v2868104') === 'off'; } catch (_) {}
+      if (fxOff || document.documentElement.classList.contains('xt-reduce-motion')) popup.classList.add('still-v2868114');
+      const receipt = document.getElementById('afterBattleV2838');
+      if (receipt) {
+        let r = receipt.getBoundingClientRect();
+        // Short landscape screens: fold an untouched receipt to its title row so the card fits below it.
+        if (r.height && r.bottom + 150 > innerHeight && !receipt._watchV2868114?.touched && typeof setAfterBattleCollapsedV2868114 === 'function') { setAfterBattleCollapsedV2868114(receipt, true); r = receipt.getBoundingClientRect(); }
+        if (r.height) popup.style.top = Math.round(Math.min(r.bottom + 10, innerHeight - 140)) + 'px';
+      }
       const dismiss = () => { if (popup.isConnected) popup.remove(); };
       popup.addEventListener('pointerup', dismiss, {once:true});
       popup.addEventListener('click', dismiss, {once:true});
@@ -2882,7 +2892,7 @@
       set('panelRivalState',getRivalV2Status());
       const statuses=document.getElementById('panelStatuses');
       if(statuses){let arr=(player.statusEffects||[]).map(e=>({...e,_region:false}));if(activeRegionDebuff)arr.push({name:activeRegionDebuff.desc,icon:'🗺️',type:'debuff',_region:true});if(activeRegionBuff)arr.push({name:activeRegionBuff.desc,icon:'🗺️',type:'buff',_region:true});statuses.innerHTML=arr.length?arr.map(e=>`<span class="status-tag ${e._region?'region':e.type==='buff'?'buff':'debuff'}" title="${e.desc||e.name||''}">${e.icon||'•'} ${e.name||e.desc}${Number(e.remainingDays)>0?` (${Math.ceil(e.remainingDays)}天)`:''}</span>`).join(''):'<span style="color:#888;font-size:12px">无特殊状态</span>';}
-      const eq=document.getElementById('panelEquipmentFull');if(eq){const filled=Object.entries(player.equipment||{}).filter(([,v])=>v);let h=filled.slice(0,7).map(([slot,name])=>{const s=EQUIPMENT_SLOTS[slot],d=getEquipData(name),q=d?getQualityInfo(d.quality):null;return `<span class="equip-slot" style="color:${q?.color||'#ffd96f'}">${s?.icon||'•'} ${name}</span>`}).join('');h+=`<span class="equip-slot" style="cursor:pointer;border-color:#ffd76a" onclick="showEquipmentPanel()">🎒 查看全部 ${filled.length}/${Object.keys(EQUIPMENT_SLOTS).length}</span>`;if(player.activeArtifact){const t=ARTIFACT_TYPES[player.activeArtifact.type];h+=`<span class="equip-slot" style="color:#ff8cff">旧法宝：${t?.icon||'🔮'} ${player.activeArtifact.name}+${player.activeArtifact.level}</span>`;}if(player.activePet){const t=PET_TYPES[player.activePet.type];h+=`<span class="equip-slot" style="color:#79e8ff">🐾 ${t?.icon||'🐾'} ${player.activePet.name} Lv.${player.activePet.level}</span>`;}eq.innerHTML=h||'<span style="color:#888;font-size:12px">未装备</span>';}
+      const eq=document.getElementById('panelEquipmentFull');if(eq){const filled=Object.entries(player.equipment||{}).filter(([,v])=>v);let h=filled.slice(0,7).map(([slot,name])=>{const s=EQUIPMENT_SLOTS[slot],d=getEquipData(name),q=d?getQualityInfo(d.quality):null;return `<span class="equip-slot" style="color:${q?.color||'#ffd96f'}"><span class="xt-inline-glyph-v2868122">${equipSlotIconV2868122(slot)}</span> ${name}</span>`}).join('');h+=`<span class="equip-slot" style="cursor:pointer;border-color:#ffd76a" onclick="showEquipmentPanel()">🎒 查看全部 ${filled.length}/${Object.keys(EQUIPMENT_SLOTS).length}</span>`;if(player.activeArtifact){const t=ARTIFACT_TYPES[player.activeArtifact.type];h+=`<span class="equip-slot" style="color:#ff8cff">旧法宝：${t?.icon||'🔮'} ${player.activeArtifact.name}+${player.activeArtifact.level}</span>`;}if(player.activePet){const t=PET_TYPES[player.activePet.type];h+=`<span class="equip-slot" style="color:#79e8ff">🐾 ${t?.icon||'🐾'} ${player.activePet.name} Lv.${player.activePet.level}</span>`;}eq.innerHTML=h||'<span style="color:#888;font-size:12px">未装备</span>';}
     }
 
     // ================== 境界压制战斗系统 ==================
@@ -4267,6 +4277,49 @@
       offhand:{label:'副手',icon:'🛡️',type:'weapon'}, artifact1:{label:'法宝·天',icon:'🔮',type:'artifact'}, artifact2:{label:'法宝·地',icon:'🔮',type:'artifact'},
       artifact3:{label:'法宝·人',icon:'🔮',type:'artifact'}, flying:{label:'飞行法器',icon:'🪁',type:'artifact'}, lifeArtifact:{label:'本命法宝',icon:'✨',type:'life_artifact'}
     };
+    // V28.68.122 (audit A8): single-colour gold line glyphs on a 24px grid (fill none, round caps, stroke currentColor),
+    // the convention shared by Lucide/Feather/Tabler; paths are original. The same path strings feed inline SVG and canvas Path2D.
+    // Looked up by slot key / exploration type only; the emoji `icon` fields stay as text fallbacks and for old callers.
+    const XT_GLYPHS_V2868122={
+      head:'M7 18h10M8 18l-.6-5.5a4.6 4.6 0 0 1 9.2 0L16 18M3.5 12.5h17M12 7.9V5.5M10.6 5.5h2.8',
+      robe:'M9 3l3 3 3-3 5 3-2 4.5-2-1V21H8V9.5l-2 1L4 6zM12 6v15M8 14h8',
+      bracer:'M8 5.5c-1.3 3-1.3 10 0 13h8c1.3-3 1.3-10 0-13zM7.5 9.5h9M7.5 14.5h9',
+      belt:'M3 10h18v4H3zM9.5 8.5h5v7h-5zM12 12h2.5',
+      pants:'M7 3h10l1.2 18h-4L12 10.5 9.8 21h-4zM7 6.5h10',
+      boots:'M8.5 3h5v10l5.5 2.8V20H6v-4.2l2.5-2.8zM6 17h13M8.5 6.5h5',
+      necklace:'M5 3.5c0 7 3 10.5 7 10.5s7-3.5 7-10.5M12 14v1.5M12 15.5l-2.5 3 2.5 2.5 2.5-2.5z',
+      bracelet:'M19.5 12a7.5 5 0 1 1-15 0a7.5 5 0 1 1 15 0zM17 12a5 3 0 1 1-10 0a5 3 0 1 1 10 0zM12 7v2',
+      ring:'M17.5 15a5.5 5.5 0 1 1-11 0a5.5 5.5 0 1 1 11 0zM9.5 10L12 4.5l2.5 5.5M9.8 4.5h4.4',
+      jade:'M18 9a6 6 0 1 1-12 0a6 6 0 1 1 12 0zM14 9a2 2 0 1 1-4 0a2 2 0 1 1 4 0zM12 15v1.8M12 16.8l-1.3 1.3 1.3 1.3 1.3-1.3zM11.2 19.6l-1 1.9M12.8 19.6l1 1.9',
+      weapon:'M12 2l2 3v10.5h-4V5zM7 15.5h10M12 15.5v4.5M10.5 21h3',
+      offhand:'M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6zM12 7v10M8.5 11h7',
+      artifact:'M12 2.5v2M9.5 4.5h5M15 8a3 3 0 1 1-6 0a3 3 0 1 1 6 0zM10 10.6a5.5 5.5 0 1 0 4 0',
+      flying:'M5 14.5h11.5a3 3 0 0 0 0-6 4.2 4.2 0 0 0-7.8-1.2A3.4 3.4 0 0 0 5 14.5zM3 18.5h9M14.5 18.5h5.5M7 21.5h6',
+      lifeArtifact:'M12 6.5l4 5.5-4 5.5-4-5.5zM12 2v2.2M12 19.8V22M2 12h2.2M19.8 12H22M5 5l1.6 1.6M17.4 17.4L19 19M19 5l-1.6 1.6M6.6 17.4L5 19',
+      lock:'M7 11h10v9H7zM9 11V8.2a3 3 0 0 1 6 0V11M12 14.5v2',
+      herb:'M12 21V10M12 14.5c-4 0-6-3-6-7 4 0 6 3 6 7zM12 11.5c0-4 2-7.5 6-7.5 0 4-2 7.5-6 7.5zM8 21h8',
+      satchel:'M5 9h14v11H5zM9 9V7.2a3 3 0 0 1 6 0V9M5 13h14M11 13v2.2h2V13',
+      stele:'M7 20V7.5C7 5 9.2 3 12 3s5 2 5 4.5V20M5 20.5h14M10 9h4M10 12h4M10 15h2.5',
+      check:'M5 12.5l4.5 4.5L19 7'
+    };
+    const XT_SLOT_GLYPH_V2868122={head:'head',robe:'robe',bracer:'bracer',belt:'belt',pants:'pants',boots:'boots',necklace:'necklace',bracelet:'bracelet',ring1:'ring',ring2:'ring',jade:'jade',weapon:'weapon',offhand:'offhand',artifact1:'artifact',artifact2:'artifact',artifact3:'artifact',flying:'flying',lifeArtifact:'lifeArtifact'};
+    const XT_EXPLORE_GLYPH_V2868122=['herb','satchel','stele'];
+    function xtGlyphKeyV2868122(slot){return XT_SLOT_GLYPH_V2868122[slot]||null;}
+    function xtGlyphSvgV2868122(key,cls=''){
+      const d=XT_GLYPHS_V2868122[key];if(!d)return '';
+      return `<svg class="xt-glyph${cls?' '+cls:''}" data-glyph="${key}" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="${d}"/></svg>`;
+    }
+    // Slot icon markup: glyph when the key is known, otherwise the legacy emoji text.
+    function equipSlotIconV2868122(slot,locked=false){return xtGlyphSvgV2868122(locked?'lock':xtGlyphKeyV2868122(slot))||(locked?'🔒':EQUIPMENT_SLOTS[slot]?.icon||'•');}
+    function exploreGlyphKeyV2868122(p){return XT_EXPLORE_GLYPH_V2868122[p?.exploreTypeV2828]||null;}
+    function exploreIconV2868122(p){return xtGlyphSvgV2868122(exploreGlyphKeyV2868122(p))||p?.icon||'◇';}
+    const XT_GLYPH_PATHS_V2868122=new Map();
+    // Canvas: stroke a glyph centred on (x,y) at `size` px. Returns false (caller keeps its emoji fallback) without Path2D.
+    function drawXtGlyphV2868122(ctx,key,x,y,size,color='#f0dca0',width=1.7){
+      const d=XT_GLYPHS_V2868122[key];if(!d||typeof Path2D!=='function')return false;
+      let path=XT_GLYPH_PATHS_V2868122.get(key);if(!path){path=new Path2D(d);XT_GLYPH_PATHS_V2868122.set(key,path);}
+      const s=size/24;ctx.save();ctx.translate(x-size/2,y-size/2);ctx.scale(s,s);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke(path);ctx.restore();return true;
+    }
     // V2895: player-facing names for slot keys and slot types (never show the English keys).
     const EQUIP_TYPE_LABELS_V2895={armor:'防具',jewelry:'饰品',weapon:'兵器',artifact:'法宝',life_artifact:'本命'};
     const EQUIP_SLOT_EXTRA_V2895={ring:'戒指',artifact:'法宝',life_artifact:'本命法宝'};
@@ -6430,6 +6483,35 @@
       if(!p||p.seq!==seq||p.owner!==player||document.getElementById('storyPanel')?.classList.contains('hidden')||document.getElementById('taskPanel')||getTaskInstance(p.id)!==p.inst||getCurrentTaskStep(p.id)!==p.step||document.getElementById('taskBattlePromptV2868103')?.dataset.prompt!==String(seq)||!taskBattleReadyV2868103(p.id,p.action))return false;
       taskBattlePromptV2868103=null;p.launch();return true;
     }
+    // V28.68.114: wandering monsters wait while the first guided steps (up to the first real fight) are open.
+    function wildContactGuardedV2868114(){
+      if(typeof tutorialCardOpenV2868114==='function'&&tutorialCardOpenV2868114())return true;
+      return typeof guidedTutorialUnfinishedV2868114==='function'&&guidedTutorialUnfinishedV2868114();
+    }
+    // Contact fights reuse the task-battle low-health threshold and prompt.
+    let wildContactPromptV2868114=null;
+    function warnWildContactV2868114(monster){
+      if(!monster||player.hp>=getMaxHp()*.5)return false;
+      const seq=++taskBattleSeqV2868103;
+      wildContactPromptV2868114={seq,owner:player,monster,region:monster.regionId};
+      monster.battleCooldown=8;   // same grace as after fleeing, so declining lets the player walk away
+      stopNavigationV2830?.();FLAT_WORLD.keys={};FLAT_WORLD.target=null;FLAT_WORLD.moving=false;
+      showStory(`<section id="taskBattlePromptV2868103" data-prompt="${seq}" data-kind="wild"><h3>⚠️ 气血不足，先整备再迎战</h3><p>${discipleEscV2815(monster.enemy?.name||'妖兽')}挡在路前。当前气血 ${Math.floor(player.hp)} / ${getMaxHp()}，不足一半。战败会损失身上灵石的20%，且仅保留1点气血。</p><button class="choice-btn" onclick="showTaskSuppliesV2868103()">💧 先去补给</button><button class="choice-btn" onclick="confirmWildContactV2868114(${seq})">仍要出战</button></section>`,[{text:'暂且避开',action:'return_to_map'}]);
+      document.getElementById('storyText').scrollTop=0;
+      document.querySelector('#taskBattlePromptV2868103 button')?.focus();
+      return true;
+    }
+    function confirmWildContactV2868114(seq){
+      const p=wildContactPromptV2868114,m=p?.monster;
+      if(!p||p.seq!==seq||p.owner!==player||document.getElementById('taskBattlePromptV2868103')?.dataset.prompt!==String(seq)||gameState!=='exploring'||COMBAT_FINISH_V2764.settling||player.breakthrough?.isAnimating)return false;
+      wildContactPromptV2868114=null;
+      if(!m.alive||m.inCombat||!FLAT_WORLD.monsters.includes(m)||m.regionId!==(currentRegion||getPlayerRegion())){closeWorldOverlay();showFloatingText('妖兽已经离开。','#e5cf87');return false;}
+      closeWorldOverlay();
+      m.inCombat=true;FLAT_WORLD.target=null;FLAT_WORLD.moving=false;
+      startCombat({...m.enemy,maxHp:m.enemy.maxHp||m.enemy.hp},false,false,m);
+      return true;
+    }
+    window.confirmWildContactV2868114=confirmWildContactV2868114;
     function showTaskSuppliesV2868103(){
       if(!taskInteractionAllowedV2822()||gameState!=='exploring')return;
       taskBattlePromptV2868103=null;closeTaskPanel();
@@ -6520,6 +6602,7 @@
       document.querySelectorAll('.task-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===filter));
       const list=filter==='main'?MAIN_TASKS:filter==='journey'?JOURNEYS_V2838.map(j=>getTaskData(j.id)):getTaskListByFilter(filter),esc=discipleEscV2815;
       if(filter==='journal'){renderJournalV2838(c);return;}
+      if(filter==='today'){if(typeof renderTodayV2868117==='function')renderTodayV2868117(c);else c.innerHTML='<div class="task-empty">当前没有可显示的任务</div>';return;}
       if(!list.length){c.innerHTML='<div class="task-empty">当前没有可显示的任务</div>';return;}
       const card=task=>{
         const st=getTaskStatus(task.id),inst=getTaskInstance(task.id),step=inst&&!inst.completed?getCurrentTaskStep(task.id):null;let buttons='';
@@ -6536,7 +6619,7 @@
     function showTaskPanel(filter='main'){
       taskBattlePromptV2868103=null;
       if(gameState!=='combat'&&gameState!=='combat-ending'&&!player.breakthrough?.isAnimating)checkTaskTriggers();
-      closeTaskPanel();const ov=document.createElement('div');ov.id='taskPanel';ov.className='task-panel-overlay';ov.innerHTML=`<div class="task-panel-box"><div class="task-panel-head"><div><div class="task-panel-title">📜 仙途任务志</div><div class="task-panel-sub">主线 · 三界游历 · 修行纪事</div></div><button aria-label="关闭" class="task-close" onclick="closeTaskPanel()">✕</button></div><div class="task-tabs">${[['main','主线'],['journey','游历'],['journal','纪事'],['side','支线'],['daily','日常'],['weekly','周常'],['hidden','隐藏']].map(([id,n])=>`<button class="task-tab" data-tab="${id}" onclick="renderTaskList('${id}')">${n}</button>`).join('')}</div><div id="taskListContainer"></div></div>`;document.body.appendChild(ov);ov.addEventListener('pointerdown',e=>{if(e.target===ov)closeTaskPanel();});renderTaskList(filter);
+      closeTaskPanel();const ov=document.createElement('div');ov.id='taskPanel';ov.className='task-panel-overlay';ov.innerHTML=`<div class="task-panel-box"><div class="task-panel-head"><div><div class="task-panel-title">📜 仙途任务志</div><div class="task-panel-sub">主线 · 三界游历 · 修行纪事</div></div><button aria-label="关闭" class="task-close" onclick="closeTaskPanel()">✕</button></div><div class="task-tabs">${[['main','主线'],['today','今日修行'],['journey','游历'],['journal','纪事'],['side','支线'],['daily','日常'],['weekly','周常'],['hidden','隐藏']].map(([id,n])=>`<button class="task-tab" data-tab="${id}" onclick="renderTaskList('${id}')">${n}</button>`).join('')}</div><div id="taskListContainer"></div></div>`;document.body.appendChild(ov);ov.addEventListener('pointerdown',e=>{if(e.target===ov)closeTaskPanel();});renderTaskList(filter);
     }
     function closeTaskPanel(){document.getElementById('taskPanel')?.remove();}
     function addTaskButton(){const actions=document.querySelector('.world-hud-top > div:last-child');if(!actions||document.getElementById('taskBtn'))return;const b=document.createElement('button');b.id='taskBtn';b.textContent='📜 任务';b.onclick=()=>showTaskPanel('main');actions.insertBefore(b,actions.firstChild);}
@@ -7700,7 +7783,7 @@
         const tournamentFightV2764 = !!currentEnemy?.tournamentFight;
         const tournamentEnemyV2779=currentEnemy;
         let shouldBreakthroughV2764 = false;
-        const rewardOwnerV2838=player,rewardBeforeV2838={gold:player.gold,exp:player.exp};
+        const rewardOwnerV2838=player,rewardBeforeV2838={gold:player.gold,exp:player.exp,lootV2868118:typeof lootSnapshotV2868118==='function'?lootSnapshotV2868118():null};
         beginCombatFinishV2764('victory', {disabled:true, watchdogDelay:3200});
         (() => {
           try {
@@ -7718,7 +7801,8 @@
           
           player.gold += goldGain;
           player.exp += expGain;
-          addCombatLog(`获得 ${goldGain} 灵石，${expGain} 修为${earlyGoldBonus?`（含历练补贴 ${earlyGoldBonus} 灵石）`:''}`, 'gold');
+          // V28.68.118 (audit G3): the training puppet grants nothing here; its real reward comes from the tutorial, so skip the "获得 0 灵石，0 修为" line.
+          if(!(currentEnemy?._isTutorial&&!goldGain&&!expGain))addCombatLog(`获得 ${goldGain} 灵石，${expGain} 修为${earlyGoldBonus?`（含历练补贴 ${earlyGoldBonus} 灵石）`:''}`, 'gold');
           // 越级击杀：仅普通非大比敌人追加奖励
           const enemyRealmValue=(currentEnemy._realmLevel||0)+((currentEnemy._realmPhase||0)/4);
           const playerRealmValue=(player.level||0)+((player.phase||0)/4);
@@ -7731,6 +7815,7 @@
               const drop=rare[Math.floor(Math.random()*rare.length)];
               if(drop==='天元丹')player.inventory.push(drop);else player.materials[drop]=(player.materials[drop]||0)+1;
               addCombatLog(`🎁 越级奖励：获得 ${drop}！`,'gold');
+              rewardBeforeV2838.underdogV2868118=drop;
             }
           }
           // Boss战胜利处理
@@ -8569,6 +8654,7 @@
     function showBreakthroughSuccess(result={}) {
       const before=result.snapshot||{},after=result.after||createBreakthroughSnapshot();
       const d=(a,b)=>Math.max(0,Math.round((Number(a)||0)-(Number(b)||0)));
+      const num=v=>Math.round(Number(v)||0),fromOf=(b,a)=>Number.isFinite(Number(b))&&b!==undefined&&b!==null?Math.min(num(b),num(a)):num(a);
       const newSkills=(after.skills||[]).filter(n=>!(before.skills||[]).includes(n));
       const newRegions=(after.unlockedRegions||[]).filter(id=>!(before.unlockedRegions||[]).includes(id));
       const regionText=newRegions.map(id=>getRegionInfo?.(id)?.shortName||id).join('、');
@@ -8577,17 +8663,65 @@
         <div class="subtitle">${result.fromName||before.name||''} → <span>${result.toName||after.name||getCultivationName()}</span></div>
         ${result.daoTextV286883?`<p class="breakthrough-outcome-v286883">${escapeGameText(result.daoTextV286883)}</p>`:''}
         <hr class="divider"><div class="reward-list">
-          <div class="item"><span class="icon">⏳</span><span class="label">寿元上限</span><span class="value">${after.lifespan||getTotalMaxLifespan()}${d(after.lifespan,before.lifespan)?`（+${d(after.lifespan,before.lifespan)}）`:''}</span></div>
-          <div class="item"><span class="icon">⚔️</span><span class="label">攻击</span><span class="value">${after.atk}${d(after.atk,before.atk)?`（+${d(after.atk,before.atk)}）`:''}</span></div>
-          <div class="item"><span class="icon">🛡️</span><span class="label">防御</span><span class="value">${after.def}${d(after.def,before.def)?`（+${d(after.def,before.def)}）`:''}</span></div>
-          <div class="item"><span class="icon">❤️</span><span class="label">气血上限</span><span class="value">${after.hp}${d(after.hp,before.hp)?`（+${d(after.hp,before.hp)}）`:''}</span></div>
+          <div class="item"><span class="icon">⏳</span><span class="label">寿元上限</span><span class="value" data-to="${num(after.lifespan||getTotalMaxLifespan())}" data-from="${fromOf(before.lifespan,after.lifespan||getTotalMaxLifespan())}"><b class="num-v2868116">${after.lifespan||getTotalMaxLifespan()}</b>${d(after.lifespan,before.lifespan)?`<small class="delta-v2868116">（+${d(after.lifespan,before.lifespan)}）</small>`:''}</span></div>
+          <div class="item"><span class="icon">⚔️</span><span class="label">攻击</span><span class="value" data-to="${num(after.atk)}" data-from="${fromOf(before.atk,after.atk)}"><b class="num-v2868116">${after.atk}</b>${d(after.atk,before.atk)?`<small class="delta-v2868116">（+${d(after.atk,before.atk)}）</small>`:''}</span></div>
+          <div class="item"><span class="icon">🛡️</span><span class="label">防御</span><span class="value" data-to="${num(after.def)}" data-from="${fromOf(before.def,after.def)}"><b class="num-v2868116">${after.def}</b>${d(after.def,before.def)?`<small class="delta-v2868116">（+${d(after.def,before.def)}）</small>`:''}</span></div>
+          <div class="item"><span class="icon">❤️</span><span class="label">气血上限</span><span class="value" data-to="${num(after.hp)}" data-from="${fromOf(before.hp,after.hp)}"><b class="num-v2868116">${after.hp}</b>${d(after.hp,before.hp)?`<small class="delta-v2868116">（+${d(after.hp,before.hp)}）</small>`:''}</span></div>
           ${newSkills.length?`<div class="item"><span class="icon">📖</span><span class="label">新功法</span><span class="value">${newSkills.join('、')}</span></div>`:''}
           ${regionText?`<div class="item"><span class="icon">🗺️</span><span class="label">新地域</span><span class="value">${regionText}已解锁</span></div>`:''}
-        </div><hr class="divider"><button class="btn-continue" onclick="closeBreakthroughSuccess(false)">继续修仙</button><div class="auto-close-v2764">轻触按钮继续 · 5秒后自动收起</div></div>`;
+        </div><hr class="divider"><button class="btn-continue xt-btn--gold-v2868116" onclick="closeBreakthroughSuccess(false)">继续修仙</button><div class="auto-close-v2764">轻触按钮继续 · 5秒后自动收起</div></div>`;
       document.getElementById('breakthroughSuccess')?.remove();
       const wrap=document.createElement('div'),panelId=Symbol('breakthroughSuccess');
       wrap.innerHTML=html;const panel=wrap.firstElementChild,owner=player;panel._v2764PanelId=panelId;panel._ownerV2905=owner;document.body.appendChild(panel);
+      animateBreakthroughSuccessV2868116(panel);
       setTimeout(()=>{if(player===owner&&panel.isConnected&&panel._v2764PanelId===panelId)closeBreakthroughSuccess(true)},5200);
+    }
+
+    // V28.68.116 (audit A5): display-only count-up, one realm flash and a short gold burst; values are final in the DOM data.
+    function breakthroughFxStillV2868116(){
+      let off=false;try{off=localStorage.getItem('xiantu_map_fx_v2868104')==='off';}catch(_){}
+      return off||document.documentElement.classList.contains('xt-reduce-motion')||!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    }
+    function animateBreakthroughSuccessV2868116(panel){
+      if(!panel)return;
+      if(breakthroughFxStillV2868116()){panel.classList.add('still-v2868116');return;}
+      const raf=window.requestAnimationFrame||(cb=>setTimeout(()=>cb(performance.now()),33));
+      const rows=Array.from(panel.querySelectorAll('.value[data-to]')).map((el,i)=>({el,num:el.querySelector('.num-v2868116'),from:Number(el.dataset.from)||0,to:Number(el.dataset.to)||0,i})).filter(r=>r.num&&r.to!==r.from);
+      const t0=performance.now(),dur=900,step=110,end=dur+step*Math.max(0,rows.length-1);
+      const finish=()=>{rows.forEach(r=>{r.num.textContent=String(r.to);});panel.classList.remove('counting-v2868116');};
+      if(rows.length){panel.classList.add('counting-v2868116');rows.forEach(r=>{r.num.textContent=String(r.from);});}
+      const tick=now=>{
+        if(!panel.isConnected||panel._doneV2868116)return;
+        let busy=false;
+        rows.forEach(r=>{const t=Math.max(0,Math.min(1,(now-t0-r.i*step)/dur));if(t<1)busy=true;const e=1-Math.pow(1-t,3);r.num.textContent=String(Math.round(r.from+(r.to-r.from)*e));});
+        if(busy&&now-t0<end+400)raf(tick);else{panel._doneV2868116=true;finish();}
+      };
+      raf(tick);
+      // Hidden tabs pause rAF: always land on the final numbers.
+      setTimeout(()=>{if(panel.isConnected&&!panel._doneV2868116){panel._doneV2868116=true;finish();}},end+300);
+      goldBurstV2868116(panel);
+    }
+    function goldBurstV2868116(panel){
+      // Same radial glow sprite as the map-fx layer (xiantu-v2868104-map-fx.js glowTexture), tinted gold; fixed 36 particles, ~1.2 s, then removed.
+      const title=panel.querySelector('.title');if(!title||typeof document.createElement('canvas').getContext!=='function')return;
+      const c=document.createElement('canvas');c.className='breakthrough-burst-v2868116';c.setAttribute('aria-hidden','true');
+      const x=c.getContext('2d');if(!x)return;
+      const dpr=Math.min(2,window.devicePixelRatio||1),w=panel.clientWidth||320,h=Math.min(panel.clientHeight||240,260);
+      c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);c.style.width=w+'px';c.style.height=h+'px';panel.insertBefore(c,panel.firstChild);
+      const g=document.createElement('canvas');g.width=g.height=64;const gx=g.getContext('2d');
+      if(gx){const r=gx.createRadialGradient(32,32,0,32,32,32);r.addColorStop(0,'rgba(255,250,228,1)');r.addColorStop(.22,'rgba(240,220,160,.75)');r.addColorStop(1,'rgba(212,176,106,0)');gx.fillStyle=r;gx.fillRect(0,0,64,64);}
+      const cx=w/2,cy=Math.max(24,title.offsetTop+title.offsetHeight/2),parts=[];
+      for(let i=0;i<36;i++){const a=(i/36)*Math.PI*2+(i%3)*.21,b=((i*37)%17)/17;parts.push({a,speed:60+b*120,size:5+((i*13)%7)});}
+      const raf=window.requestAnimationFrame||(cb=>setTimeout(()=>cb(performance.now()),33));
+      const t0=performance.now(),life=1200;
+      const draw=now=>{
+        const t=(now-t0)/1000;if(!panel.isConnected||t*1000>life){c.remove();return;}
+        x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);x.globalCompositeOperation='lighter';
+        for(const p of parts){const dx=Math.cos(p.a)*p.speed*t,dy=-Math.sin(p.a)*p.speed*t*.7+t*t*40,al=Math.max(0,1-t*1000/life);x.globalAlpha=al*.9;const s=p.size*(1+t);x.drawImage(g,cx+dx-s/2,cy+dy-s/2,s,s);}
+        x.globalAlpha=1;raf(draw);
+      };
+      raf(draw);
+      setTimeout(()=>c.remove(),life+400);
     }
 
     function closeBreakthroughSuccess(autoClose=false) {
@@ -8882,7 +9016,7 @@
         const locked=slot==='lifeArtifact'&&(player.level||0)<3, name=player.equipment?.[slot], data=name&&getEquipData(name), q=data?getQualityInfo(data.quality):null,upgrade=!locked?getBestBagUpgradeForSlot(slot):null;
         const itemText=locked?'🔒 未解锁':name||'空'; const color=locked?'#555':q?.color||(name?'#ddd':'#666');
         return `<div class="equipment-slot-row ${name?'equipped':''} ${upgrade?'has-upgrade':''}" ${name?`onclick="unequipItem('${slot}',true)" title="点击卸下"`:''}>
-          <span style="font-size:18px;text-align:center">${locked?'🔒':s.icon}</span><div class="slot-main"><span class="slot-name">${s.label}</span><span class="item-name" style="color:${color}">${itemText}</span>${data?`<span style="font-size:9px;color:${q.color}">${q.icon} ${q.name} · ${formatEquipItemStatsV286813(name)}</span>`:''}${upgrade?`<span class="slot-upgrade-hint">↑ 背包有更优：${upgrade.name}</span>`:''}</div><span style="font-size:9px;color:#555">${equipTypeLabelV2895(s.type)}</span></div>`;
+          <span class="xt-cell-icon xt-slot-glyph-v2868122 ${name?'':'is-empty'} ${locked?'is-locked':''}" aria-hidden="true">${equipSlotIconV2868122(slot,locked)}</span><div class="slot-main"><span class="slot-name">${s.label}</span><span class="item-name" style="color:${color}">${itemText}</span>${data?`<span style="font-size:9px;color:${q.color}">${q.icon} ${q.name} · ${formatEquipItemStatsV286813(name)}</span>`:''}${upgrade?`<span class="slot-upgrade-hint">↑ 背包有更优：${upgrade.name}</span>`:''}</div><span style="font-size:9px;color:#555">${equipTypeLabelV2895(s.type)}</span></div>`;
       }).join('');
     }
 
@@ -8995,7 +9129,7 @@
     }
 
     // Optional visual presentation; economic results are committed by itemActionV2905 first.
-    const ALCHEMY_STAGE_V2868110={revision:0,instance:null,loading:null,last:null,preference:null};
+    const ALCHEMY_STAGE_V2868110={revision:0,instance:null,loading:null,last:null,preference:null,levelUp:false};
     function alchemyStageAllowedV2868110(){
       if(ALCHEMY_STAGE_V2868110.preference==='off')return false;
       try{if((ALCHEMY_STAGE_V2868110.preference===null&&localStorage.getItem('xiantu_alchemy_fx_v2868110')==='off')||localStorage.getItem('xiantu_map_fx_v2868104')==='off')return false;}catch(_){}
@@ -9013,7 +9147,7 @@
         const el=document.createElement('script');let done=false;
         const finish=(error)=>{if(done)return;done=true;clearTimeout(timer);el.onload=el.onerror=null;if(error){el.remove();reject(error);}else resolve(window.XiantuAlchemyStageV2868110);};
         const timer=setTimeout(()=>finish(new Error('alchemy visual timeout')),10000);
-        el.src='./xiantu-v2868110-alchemy-stage.js?v=28.68.113';el.async=true;
+        el.src='./xiantu-v2868110-alchemy-stage.js?v=28.68.116';el.async=true;
         el.onload=()=>finish(window.XiantuAlchemyStageV2868110?null:new Error('alchemy visual unavailable'));
         el.onerror=()=>finish(new Error('alchemy visual unavailable'));document.head.appendChild(el);
       }).catch(error=>{s.loading=null;throw error;});return s.loading;
@@ -9050,7 +9184,9 @@
       if(!recipe||!result)return;
       result.textContent=`${recipe.result} · 投入 ${attempted} 炉 · 成丹 ${pills} 枚 · 失败 ${attempted-success} 炉`;
       result.dataset.outcome=success?'success':'failure';
-      const data={name:recipe.result,materials:Object.keys(recipe.materials),attempted,success,at:performance.now()};
+      // V28.68.119: the stage shows one pill per pill made and 紫霄丹雷 on a level-up; display data only, never saved.
+      const levelUp=ALCHEMY_STAGE_V2868110.levelUp===true;ALCHEMY_STAGE_V2868110.levelUp=false;
+      const data={name:recipe.result,materials:Object.keys(recipe.materials),attempted,success,pills,levelUp,at:performance.now()};
       ALCHEMY_STAGE_V2868110.last=data;
       if(ALCHEMY_STAGE_V2868110.instance)ALCHEMY_STAGE_V2868110.instance.play(data);
       document.getElementById('alchemyStageV2868110')?.scrollIntoView?.({block:'nearest',behavior:'auto'});
@@ -9092,15 +9228,14 @@
       // 更新丹方列表
       const recipeList = document.getElementById('recipeList');
       const fire=alchemyFireV2868112;
-      recipeList.innerHTML = `<div class="alchemy-fire-v2868112" role="group" aria-label="火候" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">${Object.entries(ALCHEMY_FIRE_V2868112).map(([id,f])=>`<button type="button" class="craft-btn" style="min-height:40px${id===fire?'':';opacity:.62'}" aria-pressed="${id===fire}" onclick="setAlchemyFireV2868112('${id}')">${f.label}</button>`).join('')}</div><p class="recipe-materials" style="margin:0 0 10px">火候 · ${ALCHEMY_FIRE_V2868112[fire].label}：${ALCHEMY_FIRE_V2868112[fire].hint}</p>`+Object.entries(RECIPES).map(([name, recipe]) => {
+      recipeList.innerHTML = `<div class="alchemy-fire-v2868112" role="group" aria-label="火候" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">${Object.entries(ALCHEMY_FIRE_V2868112).map(([id,f])=>`<button type="button" class="craft-btn" style="min-height:40px" aria-pressed="${id===fire}" onclick="setAlchemyFireV2868112('${id}')">${f.label}</button>`).join('')}</div><p class="recipe-materials" style="margin:0 0 10px">火候 · ${ALCHEMY_FIRE_V2868112[fire].label}：${ALCHEMY_FIRE_V2868112[fire].hint}</p>`+Object.entries(RECIPES).map(([name, recipe]) => {
         const successRate = alchemyFireRateV2868112(recipe,fire,player.alchemyLevel);
         
         const materialText = Object.entries(recipe.materials)
           .map(([mat, base]) => {
             const count = alchemyFireCostV2868112(base,fire);
             const have = player.materials[mat] || 0;
-            const color = have >= count ? '#69f0ae' : '#ff6b6b';
-            return `<span style="color:${color}">${mat}x${count}(${have})</span>`;
+            return `<span class="alchemy-have-v2868119 ${have >= count ? 'ok' : 'short'}">${mat}x${count}(${have})</span>`;
           }).join(', ');
         
         return `
@@ -9153,7 +9288,7 @@
       }
       showFloatingText?.(`🔥 投入 ${attempted} 炉 · ${plan.recipe.result} ×${pills} · 失败 ${attempted-success} 炉${player.alchemyLevel>initialLevel?' · 炼丹升至 Lv.'+player.alchemyLevel:''}`,success?'#69f0ae':'#ff8a80');
       if(success)playSound(player.alchemyLevel>initialLevel?'levelup':'item');
-      updateAlchemyPanel();updateStats();autoSave();alchemyResultV2868110(player,recipeName,attempted,success,pills);return {attempted,success,pills};
+      updateAlchemyPanel();updateStats();autoSave();ALCHEMY_STAGE_V2868110.levelUp=player.alchemyLevel>initialLevel; /* consumed by the (possibly deferred) presentation */ alchemyResultV2868110(player,recipeName,attempted,success,pills);return {attempted,success,pills};
     }
 
     // ================== 宠物系统 ==================
@@ -13714,6 +13849,8 @@ function villageEnhanceV286897(){
         for (const monster of FLAT_WORLD.monsters) {
           if (!monster.alive || monster.inCombat || monster.battleCooldown > 0) continue;
           if (Math.hypot(p.x - monster.x, p.y - monster.y) < 60) {
+            if (wildContactGuardedV2868114()) { monster.battleCooldown = Math.max(monster.battleCooldown, 1.5); continue; }
+            if (warnWildContactV2868114(monster)) break;
             monster.inCombat = true;
             FLAT_WORLD.target = null;
             FLAT_WORLD.moving = false;
@@ -14455,7 +14592,7 @@ function villageEnhanceV286897(){
       if(!forgeAllowedV2825())return;const p=FLAT_WORLD.pois.find(p=>p.id===id&&p.action==='explore_v2828');if(!p||Math.hypot(p.x-FLAT_WORLD.player.x,p.y-FLAT_WORLD.player.y)>p.r+70)return;
       const done=explorationV2828().claimed[id],esc=discipleEscV2815;
       const text=r=>r.material?`${r.material} ×${r.count}`:r.gold?`${r.gold} 灵石`:`${r.exp} 修为`;
-      let html=`<section class="main-overview-v2822"><h3>${p.icon} ${esc(p.name)}</h3><p>${['沿着叶脉的微光，你找到一丛成熟灵草。采下后，这处灵根需要漫长岁月休养。','旧行囊半埋在荒草中，里面留有无主灵石。','风霜磨损了碑文，尚能辨认出一段修行心得。你可以原地参悟，或整理拓本换取灵石。'][p.exploreTypeV2828]}</p><p>本地图探索点仅领取一次，切图和重载不会刷新。不会自动推进游戏日期。</p>`;
+      let html=`<section class="main-overview-v2822"><h3><span class="xt-inline-glyph-v2868122">${exploreIconV2868122(p)}</span> ${esc(p.name)}</h3><p>${['沿着叶脉的微光，你找到一丛成熟灵草。采下后，这处灵根需要漫长岁月休养。','旧行囊半埋在荒草中，里面留有无主灵石。','风霜磨损了碑文，尚能辨认出一段修行心得。你可以原地参悟，或整理拓本换取灵石。'][p.exploreTypeV2828]}</p><p>本地图探索点仅领取一次，切图和重载不会刷新。不会自动推进游戏日期。</p>`;
       if(done)html+='<p>✓ 此处已探索，奖励已领取。</p>';
       else for(const choice of p.exploreTypeV2828===2?['study','copy']:['take'])html+=`<button class="choice-btn" onclick="claimExplorationV2828('${id}','${choice}')">${choice==='study'?'参悟碑文':choice==='copy'?'整理拓本':'领取资源'} · ${text(explorationRewardV2828(p,choice))}</button>`;
       html+='</section>';showStory(html,[{text:'返回地图',action:'return_to_map'}]);
@@ -14709,7 +14846,7 @@ function villageEnhanceV286897(){
       const distance=p=>Math.hypot(p.x-FLAT_WORLD.player.x,p.y-FLAT_WORLD.player.y);
       const pending=progress.found.filter(p=>!map.claimed[p.id]).sort((a,b)=>distance(a)-distance(b));
       const services=FLAT_WORLD.pois.filter(p=>p.action==='rest'||p.buildingId==='spirit_spring'||p.id==='travel_gate'||p.action==='shop').sort((a,b)=>distance(a)-distance(b));
-      const row=p=>`<article class="task-card"><strong>${p.icon} ${esc(p.name)}</strong><p>${esc(explorationDirectionV2829(p))}</p><button class="choice-btn" onclick="markExplorationV2829('${p.id}')">${marked?.id===p.id?'已标记 · 更新指引':'标记方向'}</button><button class="choice-btn" onclick="startNavigationV2830('${p.id}')">自动前往</button>${p.action==='explore_v2828'&&distance(p)<p.r+62?`<button class="choice-btn" onclick="showExplorationV2828('${p.id}')">查看探索点</button>`:''}</article>`;
+      const row=p=>`<article class="task-card"><strong><span class="xt-inline-glyph-v2868122">${exploreIconV2868122(p)}</span> ${esc(p.name)}</strong><p>${esc(explorationDirectionV2829(p))}</p><button class="choice-btn" onclick="markExplorationV2829('${p.id}')">${marked?.id===p.id?'已标记 · 更新指引':'标记方向'}</button><button class="choice-btn" onclick="startNavigationV2830('${p.id}')">自动前往</button>${p.action==='explore_v2828'&&distance(p)<p.r+62?`<button class="choice-btn" onclick="showExplorationV2828('${p.id}')">查看探索点</button>`:''}</article>`;
       showStory(`<section class="main-overview-v2822"><h3>🧭 ${esc(getRegionInfo(currentRegion||'south').name)} · 探索手册</h3><p>地面探索 ${progress.percent}% · 地点发现 ${progress.found.length}/${progress.points.length} · 已领取 ${progress.claimed.length}/${progress.points.length}</p><progress value="${progress.percent}" max="100" aria-label="地图探索进度"></progress><p>可选择方向标记或自动前往。自动寻路绕开静态障碍，到附近停下；摇杆、键盘或点地图可接管，遭遇战会停止。未发现探索点不显示坐标。</p>${marked?`<p>当前标记：${esc(marked.name)} · ${esc(explorationDirectionV2829(marked))}</p><button class="choice-btn" onclick="markExplorationV2829(null)">清除标记</button>`:''}${autoNavigationV2830?`<button class="choice-btn" onclick="stopNavigationV2830();showExplorationJournalV2829()">停止自动寻路</button>`:""}${typeof roamingNoticeV286818==='function'?roamingNoticeV286818():''}<button class="choice-btn" onclick="showEliteBoardV2883()">四域凶煞 · 悬赏榜</button><h4>已发现 · 待领取</h4>${pending.length?pending.map(row).join(''):'<p>暂无待领取地点，继续探索周围区域吧。</p>'}<details><summary>补给与返回入口</summary>${services.map(row).join('')}</details><p>每处探索资源仅领取一次。切换地图后，仅显示当前地图的标记。</p></section>`,[{text:'返回地图',action:'return_to_map'}]);
     }
 
@@ -15111,6 +15248,7 @@ function villageEnhanceV286897(){
       if(scrollPalacePoiV2831(p))return '<img src="./scroll-palace-v2831.webp" alt="">';
       const n=scrollBuildingCellV2832(p);
       if(n>=0)return `<i class="scroll-building-v2832" style="background-position:${n%3*50}% ${Math.floor(n/3)*100}%"></i>`;
+      if(p.action==='explore_v2828'&&exploreGlyphKeyV2868122(p))return `<i class="xt-scroll-glyph-v2868122">${exploreIconV2868122(p)}</i>`;
       return `<i>${p.icon||'◇'}</i>`;
     }
     function ensureScrollButtonV2831(){
@@ -15460,13 +15598,18 @@ function villageEnhanceV286897(){
     }
     function drawExplorationPresenceV286889(ctx,o){
       const done=!!explorationV2828().claimed[o.id],quality=mapAliveQualityV2893(),active=!done&&exploredPointV2828(o.x,o.y)&&quality!=='off';
-      ctx.save();
+      ctx.save();const baseAlpha=ctx.globalAlpha;
       if(active){
         const animate=quality==='high'&&!PERF_CONFIG.lowEnd&&!mapAliveCalmV2893(),pulse=animate?(Math.sin(performance.now()*.002+o.x)+1)/2:0;
         if(quality==='high'&&!PERF_CONFIG.lowEnd){ctx.globalAlpha*=.8+pulse*.2;ctx.drawImage(explorationBeaconV286889(o.exploreTypeV2828),-28,-80,56,100);}
         ctx.strokeStyle=['#69bf98','#c8a34e','#72aabf'][o.exploreTypeV2828]||'#72aabf';ctx.lineWidth=1.8;ctx.beginPath();ctx.ellipse(0,15,28+pulse*3,10+pulse,0,0,Math.PI*2);ctx.stroke();
       }
-      ctx.scale(1.38,1.38);ctx.fillStyle=done?'#7c8980':'#d4bd7e';ctx.beginPath();ctx.ellipse(0,13,20,7,0,0,Math.PI*2);ctx.fill();ctx.font='27px "Segoe UI Emoji"';ctx.textAlign='center';ctx.fillText(done?'✓':o.icon,0,5);ctx.restore();
+      ctx.scale(1.38,1.38);ctx.fillStyle=done?'#7c8980':'#d4bd7e';ctx.beginPath();ctx.ellipse(0,13,20,7,0,0,Math.PI*2);ctx.fill();
+      // V28.68.122 (A8): jade-ink medallion with a gold line glyph instead of an emoji; static, so effects-off and reduced motion need no branch.
+      const glyph=done?'check':exploreGlyphKeyV2868122(o);
+      if(glyph&&typeof Path2D==='function'){ctx.globalAlpha=baseAlpha;ctx.fillStyle=done?'#2a3d34':'#16221d';ctx.strokeStyle=done?'#8a978e':'#d4b06a';ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(0,-6,14,0,Math.PI*2);ctx.fill();ctx.stroke();drawXtGlyphV2868122(ctx,glyph,0,-6,19,done?'#bcc6b9':'#f0dca0',2);}
+      else{ctx.font='27px "Segoe UI Emoji"';ctx.textAlign='center';ctx.fillText(done?'✓':o.icon,0,5);}
+      ctx.restore();
     }
     function drawMapNpcPresenceV286889(ctx,o,status){
       ctx.save();if(mapAliveQualityV2893()!=='off'){ctx.strokeStyle=o.action==='yewuji_v2810'?'rgba(180,120,210,.45)':'rgba(100,160,140,.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(0,24,36,11,0,0,Math.PI*2);ctx.stroke();}
@@ -15801,6 +15944,8 @@ function villageEnhanceV286897(){
         player.name = name;
         player.inventory = ['小还丹', '小还丹'];
         player.materials = { '灵草': 2 };
+        // V28.68.114: a new character starts at its shown maximum (the base 100 predates the larger maximum).
+        player.hp = getMaxHp();
       }
       
       bindSaveSessionV2868102();
@@ -15939,6 +16084,7 @@ function villageEnhanceV286897(){
       document.getElementById('playerName').value = '';
       document.getElementById('startScreen').classList.remove('hidden');
       document.getElementById('gameScreen').classList.add('hidden');
+      startTitleFxV2868120();
     }
 
     function checkSaveOnStart() {
@@ -15957,6 +16103,7 @@ function villageEnhanceV286897(){
         if (info) info.innerHTML = '检测到旧日修行记录。<br>点击“续行仙途”后读取，道具、境界与剧情均会保留。';
         const dialog = document.getElementById('loadDialog');
         if (dialog) dialog.style.display = 'flex';
+        refreshTitleSaveCardV2868120();
       } else {
         try{window.saveMirrorOfferV2895?.();}catch(_){}
       }
@@ -15971,9 +16118,103 @@ function villageEnhanceV286897(){
       return result;
     };
 
+    // V28.68.120 (audit A1): title backdrop and returning-player card. Display only; reads saves, never writes.
+    const TITLE_SUMMARY_MAX_V2868120=1536*1024; // larger saves stay unparsed until 续行仙途, as before
+    function titleSaveSummaryV2868120(raw){
+      if(typeof raw!=='string'||!raw)return null;
+      if(raw.length>TITLE_SUMMARY_MAX_V2868120){const m=raw.match(/"timestamp":(\d{10,14})\s*(?:,"version":\d+)?\s*}\s*$/);return {name:'',realm:'',ts:m?Number(m[1]):0,large:true};}
+      try{
+        const d=JSON.parse(raw),p=d&&d.player;
+        if(!p||typeof p!=='object')return null;
+        const lv=Number.isInteger(p.level)&&p.level>=0&&p.level<CULTIVATION_REALMS.length?p.level:0;
+        return {name:String(p.name||'无名').slice(0,12),realm:getCultivationName(lv,p.phase),ts:Number(d.timestamp)||0,large:false};
+      }catch(_){return null;}
+    }
+    function titleAgoV2868120(ts){
+      const d=Date.now()-ts;if(!(ts>0)||d<0)return '';
+      if(d<60e3)return '刚刚';if(d<3600e3)return Math.floor(d/60e3)+' 分钟前';if(d<86400e3)return Math.floor(d/3600e3)+' 小时前';return Math.floor(d/86400e3)+' 天前';
+    }
+    function refreshTitleSaveCardV2868120(){
+      const card=document.getElementById('saveSummaryV2868120');if(!card)return null;
+      let raw=null,backup=false;
+      try{raw=localStorage.getItem(SAVE_KEY);if(!raw){raw=localStorage.getItem(SAVE_BACKUP_KEY);backup=!!raw;}}catch(_){}
+      const sum=titleSaveSummaryV2868120(raw);
+      if(!sum){card.hidden=true;return null;}
+      const when=sum.ts>0?`${formatSaveTime(sum.ts)}${titleAgoV2868120(sum.ts)?' · '+titleAgoV2868120(sum.ts):''}`:'时间未知';
+      card.innerHTML=sum.large
+        ?`<span class="save-summary-name-v2868120">修行记录较大</span><span class="save-summary-realm-v2868120">续行后读取道号与境界</span><span class="save-summary-time-v2868120">保存于 ${escapeGameText(when)}${backup?' · 备用档':''}</span>`
+        :`<span class="save-summary-name-v2868120">${escapeGameText(sum.name)}</span><span class="save-summary-realm-v2868120">${escapeGameText(sum.realm)}</span><span class="save-summary-time-v2868120">保存于 ${escapeGameText(when)}${backup?' · 备用档':''}</span>`;
+      card.hidden=false;return sum;
+    }
+    window.refreshTitleSaveCardV2868120=refreshTitleSaveCardV2868120;
+    const TITLE_FX_V2868120={raf:0,canvas:null,ctx:null,blob:null,mist:[],motes:[],w:0,h:0,dpr:1,last:0,still:false};
+    function titleFxStillV2868120(){
+      let off=false;try{off=localStorage.getItem('xiantu_map_fx_v2868104')==='off';}catch(_){}
+      return off||document.documentElement.classList.contains('xt-reduce-motion')||!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    }
+    function titleScreenShownV2868120(){const s=document.getElementById('startScreen');return !!s&&!s.classList.contains('hidden')&&!document.hidden;}
+    function titleFxSizeV2868120(){
+      const F=TITLE_FX_V2868120,c=F.canvas,r=c.getBoundingClientRect();
+      F.dpr=Math.min(1.5,window.devicePixelRatio||1);F.w=Math.max(1,Math.round(r.width));F.h=Math.max(1,Math.round(r.height));
+      const bw=Math.round(F.w*F.dpr),bh=Math.round(F.h*F.dpr);if(c.width!==bw||c.height!==bh){c.width=bw;c.height=bh;}
+    }
+    function titleFxDrawV2868120(t){
+      const F=TITLE_FX_V2868120,g=F.ctx,w=F.w,h=F.h;if(!g)return;
+      g.setTransform(F.dpr,0,0,F.dpr,0,0);
+      const sky=g.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#16302a');sky.addColorStop(.55,'#0c1411');sky.addColorStop(1,'#070c0a');
+      g.globalCompositeOperation='source-over';g.globalAlpha=1;g.fillStyle=sky;g.fillRect(0,0,w,h);
+      // Far ridgelines in ink jade.
+      for(let k=0;k<2;k++){
+        g.fillStyle=k?'rgba(12,24,20,.9)':'rgba(30,52,44,.55)';g.beginPath();g.moveTo(0,h);
+        const base=h*(k?.78:.66),amp=h*(k?.06:.09);
+        for(let x=0;x<=w+20;x+=20)g.lineTo(x,base-amp*(Math.sin(x*.011+k*2.1)*.6+Math.sin(x*.027+k)*.4));
+        g.lineTo(w,h);g.closePath();g.fill();
+      }
+      const s=t*0.001;
+      g.globalCompositeOperation='lighter';
+      for(const m of F.mist){const x=((m.x+s*m.v)%1.6+1.6)%1.6-.3;g.globalAlpha=m.a;g.drawImage(F.blob,x*w-m.r,m.y*h-m.r*.42,m.r*2,m.r*.84);}
+      for(const p of F.motes){
+        const y=1.08-((p.y+s*p.v)%1.16+1.16)%1.16,x=p.x+Math.sin(s*.6+p.ph)*.012;
+        g.globalAlpha=p.a*(.55+.45*Math.sin(s*1.7+p.ph));g.fillStyle='#f0dca0';g.beginPath();g.arc(x*w,y*h,p.r,0,6.2832);g.fill();
+      }
+      g.globalAlpha=1;g.globalCompositeOperation='source-over';
+    }
+    function titleFxLoopV2868120(t){
+      const F=TITLE_FX_V2868120;F.raf=0;
+      if(!F.canvas?.isConnected||!titleScreenShownV2868120())return;
+      if(t-F.last>=33){F.last=t;titleFxDrawV2868120(t);} // ~30fps cap
+      F.raf=requestAnimationFrame(titleFxLoopV2868120);
+    }
+    function startTitleFxV2868120(){try{startTitleFxInnerV2868120();}catch(e){console.warn('title backdrop skipped',e);}}
+    function startTitleFxInnerV2868120(){
+      const F=TITLE_FX_V2868120,c=document.getElementById('titleMistV2868120');
+      if(!c||typeof c.getContext!=='function'||typeof c.getBoundingClientRect!=='function'||typeof requestAnimationFrame!=='function')return;
+      if(F.raf){cancelAnimationFrame(F.raf);F.raf=0;}
+      if(F.canvas!==c){
+        F.canvas=c;F.ctx=c.getContext('2d');if(!F.ctx)return;
+        const b=document.createElement('canvas');b.width=b.height=128;const bg=b.getContext('2d'),rg=bg.createRadialGradient(64,64,0,64,64,64);
+        rg.addColorStop(0,'rgba(140,199,176,.55)');rg.addColorStop(.5,'rgba(79,143,122,.22)');rg.addColorStop(1,'rgba(79,143,122,0)');bg.fillStyle=rg;bg.fillRect(0,0,128,128);F.blob=b;
+        // Deterministic layout so the static frame is stable between visits; pools are fixed at mount.
+        let seed=2868120;const rnd=()=>((seed=(seed*16807)%2147483647)/2147483647);
+        F.mist=Array.from({length:9},(_,i)=>({x:rnd()*1.6-.3,y:.42+(i%3)*.14+rnd()*.06,r:140+rnd()*160,v:.004+rnd()*.008,a:.18+rnd()*.14}));
+        F.motes=Array.from({length:36},()=>({x:rnd(),y:rnd()*1.16,r:.8+rnd()*1.6,v:.012+rnd()*.02,a:.35+rnd()*.5,ph:rnd()*6.28}));
+      }
+      titleFxSizeV2868120();
+      // During safe boot the start screen is still display:none; size again once it is laid out.
+      if(F.w<2||F.h<2){clearTimeout(F.retry);if((F.tries=(F.tries||0)+1)<80)F.retry=setTimeout(startTitleFxV2868120,100);return;}
+      F.tries=0;
+      F.still=titleFxStillV2868120();c.dataset.mode=F.still?'still':'live';
+      titleFxDrawV2868120(F.still?0:performance.now());
+      if(!F.still&&titleScreenShownV2868120())F.raf=requestAnimationFrame(titleFxLoopV2868120);
+    }
+    window.startTitleFxV2868120=startTitleFxV2868120;
+    window.addEventListener('resize',()=>{if(TITLE_FX_V2868120.canvas&&titleScreenShownV2868120())startTitleFxV2868120();});
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden&&TITLE_FX_V2868120.canvas&&titleScreenShownV2868120())startTitleFxV2868120();});
+
     window.onload = function() {
       refreshProtagonistPortraits();
       checkSaveOnStart();
+      startTitleFxV2868120();
     };
     
     // 点击按钮时初始化音频（用户交互后才能播放音频）
@@ -16187,7 +16428,7 @@ function villageEnhanceV286897(){
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.113";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.122";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){

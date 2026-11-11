@@ -10,6 +10,7 @@ const TUTORIAL_STEPS={
   cultivation:{title:'🧘 修炼与突破',desc:'修为达到当前瓶颈后，会进入突破流程，突破存在失败风险。失败后需要调息，时间会随仙历流逝而减少。<br><br><b>闭关十年最多推进一个小段</b>，不会连续跨越多个境界；渡劫圆满必须真正渡过飞升天劫，方能进入地仙。',placement:'center',actions:[{text:'我已明白',action:'finish'}]}
 };
 const TUTORIAL_ORDER=['welcome','movement','interaction','combat','combat_attack','equipment','tasks','cultivation'];
+const TUTORIAL_DIRECT_STEPS_V2868121=new Set(['movement','interaction','combat_attack']);
 let tutorialState={active:false,currentStepId:null,bubble:null,dim:null,skipBtn:null,trainingWatcher:null,lastMoveX:null,lastMoveY:null,freeExploreAnnounced:false,compactStepId:null};
 
 function ensureTutorialState(){
@@ -40,13 +41,41 @@ function syncTutorialStage(stepId=null){
 }
 function completeTutorialStep(id){const t=ensureTutorialState();if(!t)return;if(!t.completedSteps.includes(id))t.completedSteps.push(id);if(t.activeStep===id)t.activeStep=null;autoSave?.();}
 function resolveTutorialTarget(sel){if(!sel)return null;try{return sel.startsWith('#')||sel.startsWith('.')?document.querySelector(sel):document.getElementById(sel)}catch(_){return null}}
-function clearTutorialHighlight(){document.querySelectorAll('.tutorial-highlight').forEach(el=>el.classList.remove('tutorial-highlight'));tutorialState.dim?.remove();tutorialState.dim=null;}
+function clearTutorialHighlight(){document.querySelectorAll('.tutorial-highlight').forEach(el=>el.classList.remove('tutorial-highlight'));tutorialState.dim?.remove();tutorialState.dim=null;clearTutorialSpotlightV2868114();}
+// V28.68.114: during the action phase the world stays readable (light dim, no blur) and a
+// box-shadow cutout spotlights the control. Same idea as driver.js stage padding/radius, one element.
+const TUTORIAL_SPOT_V2868114={el:null,timer:null,sel:null};
+function clearTutorialSpotlightV2868114(){const s=TUTORIAL_SPOT_V2868114;clearInterval(s.timer);s.timer=null;s.el?.remove();s.el=null;s.sel=null;}
+function placeTutorialSpotlightV2868114(){
+  const s=TUTORIAL_SPOT_V2868114;if(!s.el)return;
+  let target=document.querySelector('.tutorial-highlight');
+  if(!target&&s.sel){target=resolveTutorialTarget(s.sel);target?.classList.add('tutorial-highlight');}   // combat choices re-render
+  const r=target?.getBoundingClientRect?.();
+  if(!r||(!r.width&&!r.height)){s.el.hidden=true;return;}
+  const pad=10;s.el.hidden=false;
+  s.el.style.left=Math.round(r.left-pad)+'px';s.el.style.top=Math.round(r.top-pad)+'px';
+  s.el.style.width=Math.round(r.width+pad*2)+'px';s.el.style.height=Math.round(r.height+pad*2)+'px';
+}
+function showTutorialSpotlightV2868114(sel){
+  clearTutorialSpotlightV2868114();const s=TUTORIAL_SPOT_V2868114;
+  const el=document.createElement('div');el.className='tutorial-spotlight-v2868114';el.setAttribute('aria-hidden','true');
+  document.body.appendChild(el);s.el=el;s.sel=sel;placeTutorialSpotlightV2868114();
+  s.timer=setInterval(placeTutorialSpotlightV2868114,300);
+}
+// The guided sequence is unfinished while any basic step id is still open (the bubble flag drops between steps).
+function guidedTutorialUnfinishedV2868114(){
+  if(typeof player==='undefined'||!player||player.testAccount999||(player.level|0)>1)return false;   // 起步之路 covers mortal and Qi Refining only
+  const t=player.tutorial;if(!t||typeof t!=='object'||t.skipped)return false;
+  const done=Array.isArray(t.completedSteps)?t.completedSteps:[];
+  return TUTORIAL_ORDER.some(id=>!done.includes(id));
+}
+function tutorialCardOpenV2868114(){return !!(tutorialState.bubble?.isConnected||document.getElementById('tutorialBubble'));}
 function createTutorialDim(blocking=false){tutorialState.dim?.remove();const dim=document.createElement('div');dim.className=`tutorial-dim show${blocking?' blocking':''}`;document.body.appendChild(dim);tutorialState.dim=dim;return dim;}
 function closeTutorialBubble(){tutorialState.bubble?.remove();tutorialState.bubble=null;clearTutorialHighlight();tutorialState.active=false;}
 function showTutorialToast(text,duration=3600){document.getElementById('tutorialToast')?.remove();const el=document.createElement('div');el.id='tutorialToast';el.className='tutorial-toast';el.innerHTML=text;document.body.appendChild(el);requestAnimationFrame(()=>el.classList.add('show'));setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),260)},duration)}
 function showTutorialSkipBtn(){if(document.getElementById('tutorialSkipBtn')||ensureTutorialState()?.skipped)return;const b=document.createElement('button');b.id='tutorialSkipBtn';b.className='tutorial-skip-btn';b.textContent='略过新手引路';b.onclick=skipAllTutorial;document.body.appendChild(b);tutorialState.skipBtn=b}
 function hideTutorialSkipBtn(){document.getElementById('tutorialSkipBtn')?.remove();tutorialState.skipBtn=null}
-function highlightTutorialTarget(sel){clearTutorialHighlight();const el=resolveTutorialTarget(sel);createTutorialDim(false);if(!el)return;el.classList.add('tutorial-highlight')}
+function highlightTutorialTarget(sel,acting=false){clearTutorialHighlight();const el=resolveTutorialTarget(sel);const dim=createTutorialDim(false);if(acting)dim.classList.add('acting');if(el)el.classList.add('tutorial-highlight');if(acting)showTutorialSpotlightV2868114(sel);}
 
 function triggerTutorial(id,force=false){
   const t=ensureTutorialState();if(!t||(!force&&(t.skipped||t.completedSteps.includes(id))))return false;
@@ -60,6 +89,9 @@ function triggerTutorial(id,force=false){
   tutorialState.currentStepId=id;t.activeStep=id;tutorialState.active=true;
   syncTutorialStage(id);
 
+  // V28.68.121 (audit G5): move, interact and first attack skip the explanation card and its
+  // 「开始操作」 tap; they open straight on the compact reminder with the action-phase spotlight.
+  if(TUTORIAL_DIRECT_STEPS_V2868121.has(id))tutorialState.compactStepId=id;
   const modalSteps=new Set(['welcome','combat','cultivation']);
   const focusSteps=new Set(['movement','interaction','combat_attack']);
   const dockableSteps=new Set(['movement','interaction','combat_attack']);
@@ -81,7 +113,7 @@ function triggerTutorial(id,force=false){
   }
   document.body.appendChild(bubble);tutorialState.bubble=bubble;
 
-  if(step.target)highlightTutorialTarget(step.target);else createTutorialDim(true);
+  if(step.target)highlightTutorialTarget(step.target,isDocked);else createTutorialDim(true);
   showTutorialSkipBtn();autoSave?.();return true;
 }
 function goTutorialNext(stepId,explicitNext=null){const step=TUTORIAL_STEPS[stepId];completeTutorialStep(stepId);tutorialState.compactStepId=null;closeTutorialBubble();const next=explicitNext||step?.actions?.find(a=>a.nextStep)?.nextStep;if(next)setTimeout(()=>triggerTutorial(next,true),260)}
@@ -207,7 +239,7 @@ function installGuideEntry(){
 
 window.addEventListener('load',()=>setTimeout(()=>{installTutorialInteractionHooks();installGuideEntry();installTutorialTooltips()},650));
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-04-tutorial-guide-script.js"]="28.68.113";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-04-tutorial-guide-script.js"]="28.68.122";
 
 // 初入仙途：只突出下一步，奖励随进度一次性保存。
 function firstJourneyV28687(){
