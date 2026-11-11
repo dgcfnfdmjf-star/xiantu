@@ -138,7 +138,7 @@ function renderEquipSlots(slots){
     const realmLocked=slot==='lifeArtifact'&&(player.level||0)<3,name=player.equipment?.[slot],data=name&&getEquipData(name),q=data?getQualityInfo(data.quality):null,upgrade=!realmLocked?getBestBagUpgradeForSlot(slot):null,itemLocked=name&&isEquipmentLocked(name);
     const itemText=realmLocked?'🔒 未解锁':name||'空',color=realmLocked?'#555':q?.color||(name?'#ddd':'#666'),enc=name?encodeURIComponent(name):'';
     return `<div style="--q:${q?.color||'#555'}" class="equipment-slot-row xt-item-cell ${name?'equipped':''} ${upgrade?'has-upgrade':''} ${itemLocked?'item-locked':''}" ${name?`role="button" tabindex="0" onclick="unequipItem('${slot}',true)" onkeydown="if((event.key==='Enter'||event.key===' ')&&event.target===this){event.preventDefault();this.click();}" title="${itemLocked?'已锁定；点击后确认卸下':'点击卸下'}"`:''}>
-      <span class="xt-cell-icon" aria-hidden="true">${realmLocked?'🔒':s.icon}</span><div class="slot-main"><span class="slot-name">${s.label}</span><span class="item-name" style="color:${color}">${itemText}</span>${data?`<span style="font-size:9px;color:${q.color}">${q.icon} ${q.name} · ${formatEquipItemStatsV286813(name)}</span><span class="equip-item-power">⚡ 单件战力 ${getItemPowerDisplay(name)} ${itemLocked?'<span class="equip-lock-badge">锁定</span>':''}</span>`:''}${upgrade?`<span class="slot-upgrade-hint">↑ 背包有更优：${upgrade.name}</span>`:''}</div>${name?`<button class="equip-lock-btn ${itemLocked?'locked':''}" onclick="event.stopPropagation();toggleEquippedLockEncoded('${enc}')" title="${itemLocked?'解除锁定':'锁定装备'}">${itemLocked?'🔒':'🔓'}</button>`:`<span style="font-size:9px;color:#555">${equipTypeLabelV2895(s.type)}</span>`}</div>`;
+      <span class="xt-cell-icon xt-slot-glyph-v2868122 ${name?'':'is-empty'} ${realmLocked?'is-locked':''}" aria-hidden="true">${equipSlotIconV2868122(slot,realmLocked)}</span><div class="slot-main"><span class="slot-name">${s.label}</span><span class="item-name" style="color:${color}">${itemText}</span>${data?`<span style="font-size:9px;color:${q.color}">${q.icon} ${q.name} · ${formatEquipItemStatsV286813(name)}</span><span class="equip-item-power">⚡ 单件战力 ${getItemPowerDisplay(name)} ${itemLocked?'<span class="equip-lock-badge">锁定</span>':''}</span>`:''}${upgrade?`<span class="slot-upgrade-hint">↑ 背包有更优：${upgrade.name}</span>`:''}</div>${name?`<button class="equip-lock-btn ${itemLocked?'locked':''}" onclick="event.stopPropagation();toggleEquippedLockEncoded('${enc}')" title="${itemLocked?'解除锁定':'锁定装备'}">${itemLocked?'🔒':'🔓'}</button>`:`<span style="font-size:9px;color:#555">${equipTypeLabelV2895(s.type)}</span>`}</div>`;
   }).join('');
 }
 
@@ -374,7 +374,7 @@ function showGradeUpgradePanelV2869(){
 // 初始化锁定字段；旧存档无需迁移结构，下一次保存会自动写入 player。
 try{ensureEquipmentManagerState();}catch(_){ }
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-12-v277equipmentmanager.js"]="28.68.121";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-12-v277equipmentmanager.js"]="28.68.122";
 
 const LOADOUT_NAMES_V2870=['方案一·日常','方案二·爆发','方案三·护体'];
 function saveLoadoutPresetV2870(index){

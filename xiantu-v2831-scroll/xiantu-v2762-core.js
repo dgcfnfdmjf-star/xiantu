@@ -2892,7 +2892,7 @@
       set('panelRivalState',getRivalV2Status());
       const statuses=document.getElementById('panelStatuses');
       if(statuses){let arr=(player.statusEffects||[]).map(e=>({...e,_region:false}));if(activeRegionDebuff)arr.push({name:activeRegionDebuff.desc,icon:'🗺️',type:'debuff',_region:true});if(activeRegionBuff)arr.push({name:activeRegionBuff.desc,icon:'🗺️',type:'buff',_region:true});statuses.innerHTML=arr.length?arr.map(e=>`<span class="status-tag ${e._region?'region':e.type==='buff'?'buff':'debuff'}" title="${e.desc||e.name||''}">${e.icon||'•'} ${e.name||e.desc}${Number(e.remainingDays)>0?` (${Math.ceil(e.remainingDays)}天)`:''}</span>`).join(''):'<span style="color:#888;font-size:12px">无特殊状态</span>';}
-      const eq=document.getElementById('panelEquipmentFull');if(eq){const filled=Object.entries(player.equipment||{}).filter(([,v])=>v);let h=filled.slice(0,7).map(([slot,name])=>{const s=EQUIPMENT_SLOTS[slot],d=getEquipData(name),q=d?getQualityInfo(d.quality):null;return `<span class="equip-slot" style="color:${q?.color||'#ffd96f'}">${s?.icon||'•'} ${name}</span>`}).join('');h+=`<span class="equip-slot" style="cursor:pointer;border-color:#ffd76a" onclick="showEquipmentPanel()">🎒 查看全部 ${filled.length}/${Object.keys(EQUIPMENT_SLOTS).length}</span>`;if(player.activeArtifact){const t=ARTIFACT_TYPES[player.activeArtifact.type];h+=`<span class="equip-slot" style="color:#ff8cff">旧法宝：${t?.icon||'🔮'} ${player.activeArtifact.name}+${player.activeArtifact.level}</span>`;}if(player.activePet){const t=PET_TYPES[player.activePet.type];h+=`<span class="equip-slot" style="color:#79e8ff">🐾 ${t?.icon||'🐾'} ${player.activePet.name} Lv.${player.activePet.level}</span>`;}eq.innerHTML=h||'<span style="color:#888;font-size:12px">未装备</span>';}
+      const eq=document.getElementById('panelEquipmentFull');if(eq){const filled=Object.entries(player.equipment||{}).filter(([,v])=>v);let h=filled.slice(0,7).map(([slot,name])=>{const s=EQUIPMENT_SLOTS[slot],d=getEquipData(name),q=d?getQualityInfo(d.quality):null;return `<span class="equip-slot" style="color:${q?.color||'#ffd96f'}"><span class="xt-inline-glyph-v2868122">${equipSlotIconV2868122(slot)}</span> ${name}</span>`}).join('');h+=`<span class="equip-slot" style="cursor:pointer;border-color:#ffd76a" onclick="showEquipmentPanel()">🎒 查看全部 ${filled.length}/${Object.keys(EQUIPMENT_SLOTS).length}</span>`;if(player.activeArtifact){const t=ARTIFACT_TYPES[player.activeArtifact.type];h+=`<span class="equip-slot" style="color:#ff8cff">旧法宝：${t?.icon||'🔮'} ${player.activeArtifact.name}+${player.activeArtifact.level}</span>`;}if(player.activePet){const t=PET_TYPES[player.activePet.type];h+=`<span class="equip-slot" style="color:#79e8ff">🐾 ${t?.icon||'🐾'} ${player.activePet.name} Lv.${player.activePet.level}</span>`;}eq.innerHTML=h||'<span style="color:#888;font-size:12px">未装备</span>';}
     }
 
     // ================== 境界压制战斗系统 ==================
@@ -4277,6 +4277,49 @@
       offhand:{label:'副手',icon:'🛡️',type:'weapon'}, artifact1:{label:'法宝·天',icon:'🔮',type:'artifact'}, artifact2:{label:'法宝·地',icon:'🔮',type:'artifact'},
       artifact3:{label:'法宝·人',icon:'🔮',type:'artifact'}, flying:{label:'飞行法器',icon:'🪁',type:'artifact'}, lifeArtifact:{label:'本命法宝',icon:'✨',type:'life_artifact'}
     };
+    // V28.68.122 (audit A8): single-colour gold line glyphs on a 24px grid (fill none, round caps, stroke currentColor),
+    // the convention shared by Lucide/Feather/Tabler; paths are original. The same path strings feed inline SVG and canvas Path2D.
+    // Looked up by slot key / exploration type only; the emoji `icon` fields stay as text fallbacks and for old callers.
+    const XT_GLYPHS_V2868122={
+      head:'M7 18h10M8 18l-.6-5.5a4.6 4.6 0 0 1 9.2 0L16 18M3.5 12.5h17M12 7.9V5.5M10.6 5.5h2.8',
+      robe:'M9 3l3 3 3-3 5 3-2 4.5-2-1V21H8V9.5l-2 1L4 6zM12 6v15M8 14h8',
+      bracer:'M8 5.5c-1.3 3-1.3 10 0 13h8c1.3-3 1.3-10 0-13zM7.5 9.5h9M7.5 14.5h9',
+      belt:'M3 10h18v4H3zM9.5 8.5h5v7h-5zM12 12h2.5',
+      pants:'M7 3h10l1.2 18h-4L12 10.5 9.8 21h-4zM7 6.5h10',
+      boots:'M8.5 3h5v10l5.5 2.8V20H6v-4.2l2.5-2.8zM6 17h13M8.5 6.5h5',
+      necklace:'M5 3.5c0 7 3 10.5 7 10.5s7-3.5 7-10.5M12 14v1.5M12 15.5l-2.5 3 2.5 2.5 2.5-2.5z',
+      bracelet:'M19.5 12a7.5 5 0 1 1-15 0a7.5 5 0 1 1 15 0zM17 12a5 3 0 1 1-10 0a5 3 0 1 1 10 0zM12 7v2',
+      ring:'M17.5 15a5.5 5.5 0 1 1-11 0a5.5 5.5 0 1 1 11 0zM9.5 10L12 4.5l2.5 5.5M9.8 4.5h4.4',
+      jade:'M18 9a6 6 0 1 1-12 0a6 6 0 1 1 12 0zM14 9a2 2 0 1 1-4 0a2 2 0 1 1 4 0zM12 15v1.8M12 16.8l-1.3 1.3 1.3 1.3 1.3-1.3zM11.2 19.6l-1 1.9M12.8 19.6l1 1.9',
+      weapon:'M12 2l2 3v10.5h-4V5zM7 15.5h10M12 15.5v4.5M10.5 21h3',
+      offhand:'M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6zM12 7v10M8.5 11h7',
+      artifact:'M12 2.5v2M9.5 4.5h5M15 8a3 3 0 1 1-6 0a3 3 0 1 1 6 0zM10 10.6a5.5 5.5 0 1 0 4 0',
+      flying:'M5 14.5h11.5a3 3 0 0 0 0-6 4.2 4.2 0 0 0-7.8-1.2A3.4 3.4 0 0 0 5 14.5zM3 18.5h9M14.5 18.5h5.5M7 21.5h6',
+      lifeArtifact:'M12 6.5l4 5.5-4 5.5-4-5.5zM12 2v2.2M12 19.8V22M2 12h2.2M19.8 12H22M5 5l1.6 1.6M17.4 17.4L19 19M19 5l-1.6 1.6M6.6 17.4L5 19',
+      lock:'M7 11h10v9H7zM9 11V8.2a3 3 0 0 1 6 0V11M12 14.5v2',
+      herb:'M12 21V10M12 14.5c-4 0-6-3-6-7 4 0 6 3 6 7zM12 11.5c0-4 2-7.5 6-7.5 0 4-2 7.5-6 7.5zM8 21h8',
+      satchel:'M5 9h14v11H5zM9 9V7.2a3 3 0 0 1 6 0V9M5 13h14M11 13v2.2h2V13',
+      stele:'M7 20V7.5C7 5 9.2 3 12 3s5 2 5 4.5V20M5 20.5h14M10 9h4M10 12h4M10 15h2.5',
+      check:'M5 12.5l4.5 4.5L19 7'
+    };
+    const XT_SLOT_GLYPH_V2868122={head:'head',robe:'robe',bracer:'bracer',belt:'belt',pants:'pants',boots:'boots',necklace:'necklace',bracelet:'bracelet',ring1:'ring',ring2:'ring',jade:'jade',weapon:'weapon',offhand:'offhand',artifact1:'artifact',artifact2:'artifact',artifact3:'artifact',flying:'flying',lifeArtifact:'lifeArtifact'};
+    const XT_EXPLORE_GLYPH_V2868122=['herb','satchel','stele'];
+    function xtGlyphKeyV2868122(slot){return XT_SLOT_GLYPH_V2868122[slot]||null;}
+    function xtGlyphSvgV2868122(key,cls=''){
+      const d=XT_GLYPHS_V2868122[key];if(!d)return '';
+      return `<svg class="xt-glyph${cls?' '+cls:''}" data-glyph="${key}" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="${d}"/></svg>`;
+    }
+    // Slot icon markup: glyph when the key is known, otherwise the legacy emoji text.
+    function equipSlotIconV2868122(slot,locked=false){return xtGlyphSvgV2868122(locked?'lock':xtGlyphKeyV2868122(slot))||(locked?'🔒':EQUIPMENT_SLOTS[slot]?.icon||'•');}
+    function exploreGlyphKeyV2868122(p){return XT_EXPLORE_GLYPH_V2868122[p?.exploreTypeV2828]||null;}
+    function exploreIconV2868122(p){return xtGlyphSvgV2868122(exploreGlyphKeyV2868122(p))||p?.icon||'◇';}
+    const XT_GLYPH_PATHS_V2868122=new Map();
+    // Canvas: stroke a glyph centred on (x,y) at `size` px. Returns false (caller keeps its emoji fallback) without Path2D.
+    function drawXtGlyphV2868122(ctx,key,x,y,size,color='#f0dca0',width=1.7){
+      const d=XT_GLYPHS_V2868122[key];if(!d||typeof Path2D!=='function')return false;
+      let path=XT_GLYPH_PATHS_V2868122.get(key);if(!path){path=new Path2D(d);XT_GLYPH_PATHS_V2868122.set(key,path);}
+      const s=size/24;ctx.save();ctx.translate(x-size/2,y-size/2);ctx.scale(s,s);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke(path);ctx.restore();return true;
+    }
     // V2895: player-facing names for slot keys and slot types (never show the English keys).
     const EQUIP_TYPE_LABELS_V2895={armor:'防具',jewelry:'饰品',weapon:'兵器',artifact:'法宝',life_artifact:'本命'};
     const EQUIP_SLOT_EXTRA_V2895={ring:'戒指',artifact:'法宝',life_artifact:'本命法宝'};
@@ -8973,7 +9016,7 @@
         const locked=slot==='lifeArtifact'&&(player.level||0)<3, name=player.equipment?.[slot], data=name&&getEquipData(name), q=data?getQualityInfo(data.quality):null,upgrade=!locked?getBestBagUpgradeForSlot(slot):null;
         const itemText=locked?'🔒 未解锁':name||'空'; const color=locked?'#555':q?.color||(name?'#ddd':'#666');
         return `<div class="equipment-slot-row ${name?'equipped':''} ${upgrade?'has-upgrade':''}" ${name?`onclick="unequipItem('${slot}',true)" title="点击卸下"`:''}>
-          <span style="font-size:18px;text-align:center">${locked?'🔒':s.icon}</span><div class="slot-main"><span class="slot-name">${s.label}</span><span class="item-name" style="color:${color}">${itemText}</span>${data?`<span style="font-size:9px;color:${q.color}">${q.icon} ${q.name} · ${formatEquipItemStatsV286813(name)}</span>`:''}${upgrade?`<span class="slot-upgrade-hint">↑ 背包有更优：${upgrade.name}</span>`:''}</div><span style="font-size:9px;color:#555">${equipTypeLabelV2895(s.type)}</span></div>`;
+          <span class="xt-cell-icon xt-slot-glyph-v2868122 ${name?'':'is-empty'} ${locked?'is-locked':''}" aria-hidden="true">${equipSlotIconV2868122(slot,locked)}</span><div class="slot-main"><span class="slot-name">${s.label}</span><span class="item-name" style="color:${color}">${itemText}</span>${data?`<span style="font-size:9px;color:${q.color}">${q.icon} ${q.name} · ${formatEquipItemStatsV286813(name)}</span>`:''}${upgrade?`<span class="slot-upgrade-hint">↑ 背包有更优：${upgrade.name}</span>`:''}</div><span style="font-size:9px;color:#555">${equipTypeLabelV2895(s.type)}</span></div>`;
       }).join('');
     }
 
@@ -14549,7 +14592,7 @@ function villageEnhanceV286897(){
       if(!forgeAllowedV2825())return;const p=FLAT_WORLD.pois.find(p=>p.id===id&&p.action==='explore_v2828');if(!p||Math.hypot(p.x-FLAT_WORLD.player.x,p.y-FLAT_WORLD.player.y)>p.r+70)return;
       const done=explorationV2828().claimed[id],esc=discipleEscV2815;
       const text=r=>r.material?`${r.material} ×${r.count}`:r.gold?`${r.gold} 灵石`:`${r.exp} 修为`;
-      let html=`<section class="main-overview-v2822"><h3>${p.icon} ${esc(p.name)}</h3><p>${['沿着叶脉的微光，你找到一丛成熟灵草。采下后，这处灵根需要漫长岁月休养。','旧行囊半埋在荒草中，里面留有无主灵石。','风霜磨损了碑文，尚能辨认出一段修行心得。你可以原地参悟，或整理拓本换取灵石。'][p.exploreTypeV2828]}</p><p>本地图探索点仅领取一次，切图和重载不会刷新。不会自动推进游戏日期。</p>`;
+      let html=`<section class="main-overview-v2822"><h3><span class="xt-inline-glyph-v2868122">${exploreIconV2868122(p)}</span> ${esc(p.name)}</h3><p>${['沿着叶脉的微光，你找到一丛成熟灵草。采下后，这处灵根需要漫长岁月休养。','旧行囊半埋在荒草中，里面留有无主灵石。','风霜磨损了碑文，尚能辨认出一段修行心得。你可以原地参悟，或整理拓本换取灵石。'][p.exploreTypeV2828]}</p><p>本地图探索点仅领取一次，切图和重载不会刷新。不会自动推进游戏日期。</p>`;
       if(done)html+='<p>✓ 此处已探索，奖励已领取。</p>';
       else for(const choice of p.exploreTypeV2828===2?['study','copy']:['take'])html+=`<button class="choice-btn" onclick="claimExplorationV2828('${id}','${choice}')">${choice==='study'?'参悟碑文':choice==='copy'?'整理拓本':'领取资源'} · ${text(explorationRewardV2828(p,choice))}</button>`;
       html+='</section>';showStory(html,[{text:'返回地图',action:'return_to_map'}]);
@@ -14803,7 +14846,7 @@ function villageEnhanceV286897(){
       const distance=p=>Math.hypot(p.x-FLAT_WORLD.player.x,p.y-FLAT_WORLD.player.y);
       const pending=progress.found.filter(p=>!map.claimed[p.id]).sort((a,b)=>distance(a)-distance(b));
       const services=FLAT_WORLD.pois.filter(p=>p.action==='rest'||p.buildingId==='spirit_spring'||p.id==='travel_gate'||p.action==='shop').sort((a,b)=>distance(a)-distance(b));
-      const row=p=>`<article class="task-card"><strong>${p.icon} ${esc(p.name)}</strong><p>${esc(explorationDirectionV2829(p))}</p><button class="choice-btn" onclick="markExplorationV2829('${p.id}')">${marked?.id===p.id?'已标记 · 更新指引':'标记方向'}</button><button class="choice-btn" onclick="startNavigationV2830('${p.id}')">自动前往</button>${p.action==='explore_v2828'&&distance(p)<p.r+62?`<button class="choice-btn" onclick="showExplorationV2828('${p.id}')">查看探索点</button>`:''}</article>`;
+      const row=p=>`<article class="task-card"><strong><span class="xt-inline-glyph-v2868122">${exploreIconV2868122(p)}</span> ${esc(p.name)}</strong><p>${esc(explorationDirectionV2829(p))}</p><button class="choice-btn" onclick="markExplorationV2829('${p.id}')">${marked?.id===p.id?'已标记 · 更新指引':'标记方向'}</button><button class="choice-btn" onclick="startNavigationV2830('${p.id}')">自动前往</button>${p.action==='explore_v2828'&&distance(p)<p.r+62?`<button class="choice-btn" onclick="showExplorationV2828('${p.id}')">查看探索点</button>`:''}</article>`;
       showStory(`<section class="main-overview-v2822"><h3>🧭 ${esc(getRegionInfo(currentRegion||'south').name)} · 探索手册</h3><p>地面探索 ${progress.percent}% · 地点发现 ${progress.found.length}/${progress.points.length} · 已领取 ${progress.claimed.length}/${progress.points.length}</p><progress value="${progress.percent}" max="100" aria-label="地图探索进度"></progress><p>可选择方向标记或自动前往。自动寻路绕开静态障碍，到附近停下；摇杆、键盘或点地图可接管，遭遇战会停止。未发现探索点不显示坐标。</p>${marked?`<p>当前标记：${esc(marked.name)} · ${esc(explorationDirectionV2829(marked))}</p><button class="choice-btn" onclick="markExplorationV2829(null)">清除标记</button>`:''}${autoNavigationV2830?`<button class="choice-btn" onclick="stopNavigationV2830();showExplorationJournalV2829()">停止自动寻路</button>`:""}${typeof roamingNoticeV286818==='function'?roamingNoticeV286818():''}<button class="choice-btn" onclick="showEliteBoardV2883()">四域凶煞 · 悬赏榜</button><h4>已发现 · 待领取</h4>${pending.length?pending.map(row).join(''):'<p>暂无待领取地点，继续探索周围区域吧。</p>'}<details><summary>补给与返回入口</summary>${services.map(row).join('')}</details><p>每处探索资源仅领取一次。切换地图后，仅显示当前地图的标记。</p></section>`,[{text:'返回地图',action:'return_to_map'}]);
     }
 
@@ -15205,6 +15248,7 @@ function villageEnhanceV286897(){
       if(scrollPalacePoiV2831(p))return '<img src="./scroll-palace-v2831.webp" alt="">';
       const n=scrollBuildingCellV2832(p);
       if(n>=0)return `<i class="scroll-building-v2832" style="background-position:${n%3*50}% ${Math.floor(n/3)*100}%"></i>`;
+      if(p.action==='explore_v2828'&&exploreGlyphKeyV2868122(p))return `<i class="xt-scroll-glyph-v2868122">${exploreIconV2868122(p)}</i>`;
       return `<i>${p.icon||'◇'}</i>`;
     }
     function ensureScrollButtonV2831(){
@@ -15554,13 +15598,18 @@ function villageEnhanceV286897(){
     }
     function drawExplorationPresenceV286889(ctx,o){
       const done=!!explorationV2828().claimed[o.id],quality=mapAliveQualityV2893(),active=!done&&exploredPointV2828(o.x,o.y)&&quality!=='off';
-      ctx.save();
+      ctx.save();const baseAlpha=ctx.globalAlpha;
       if(active){
         const animate=quality==='high'&&!PERF_CONFIG.lowEnd&&!mapAliveCalmV2893(),pulse=animate?(Math.sin(performance.now()*.002+o.x)+1)/2:0;
         if(quality==='high'&&!PERF_CONFIG.lowEnd){ctx.globalAlpha*=.8+pulse*.2;ctx.drawImage(explorationBeaconV286889(o.exploreTypeV2828),-28,-80,56,100);}
         ctx.strokeStyle=['#69bf98','#c8a34e','#72aabf'][o.exploreTypeV2828]||'#72aabf';ctx.lineWidth=1.8;ctx.beginPath();ctx.ellipse(0,15,28+pulse*3,10+pulse,0,0,Math.PI*2);ctx.stroke();
       }
-      ctx.scale(1.38,1.38);ctx.fillStyle=done?'#7c8980':'#d4bd7e';ctx.beginPath();ctx.ellipse(0,13,20,7,0,0,Math.PI*2);ctx.fill();ctx.font='27px "Segoe UI Emoji"';ctx.textAlign='center';ctx.fillText(done?'✓':o.icon,0,5);ctx.restore();
+      ctx.scale(1.38,1.38);ctx.fillStyle=done?'#7c8980':'#d4bd7e';ctx.beginPath();ctx.ellipse(0,13,20,7,0,0,Math.PI*2);ctx.fill();
+      // V28.68.122 (A8): jade-ink medallion with a gold line glyph instead of an emoji; static, so effects-off and reduced motion need no branch.
+      const glyph=done?'check':exploreGlyphKeyV2868122(o);
+      if(glyph&&typeof Path2D==='function'){ctx.globalAlpha=baseAlpha;ctx.fillStyle=done?'#2a3d34':'#16221d';ctx.strokeStyle=done?'#8a978e':'#d4b06a';ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(0,-6,14,0,Math.PI*2);ctx.fill();ctx.stroke();drawXtGlyphV2868122(ctx,glyph,0,-6,19,done?'#bcc6b9':'#f0dca0',2);}
+      else{ctx.font='27px "Segoe UI Emoji"';ctx.textAlign='center';ctx.fillText(done?'✓':o.icon,0,5);}
+      ctx.restore();
     }
     function drawMapNpcPresenceV286889(ctx,o,status){
       ctx.save();if(mapAliveQualityV2893()!=='off'){ctx.strokeStyle=o.action==='yewuji_v2810'?'rgba(180,120,210,.45)':'rgba(100,160,140,.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(0,24,36,11,0,0,Math.PI*2);ctx.stroke();}
@@ -16379,7 +16428,7 @@ function villageEnhanceV286897(){
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.121";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.122";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
