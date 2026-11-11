@@ -3,7 +3,7 @@
 Status: **scenes animated (item 2), painterly restyle (item 3)**. The 60 s clock drives a cinematic in the live three.js
 island: camera rig, display-only kitten cast (Blender coats when loaded, code-built otherwise,
 one 星光猫 always), bush rustle, lanterns, extra stars, cat teaser, three butterflies, hearts,
-z's, the 图鉴 panel and the end title. Music is still silent. In-game hook still behind the flag.
+z's, the 图鉴 panel and the end title. Music: the original waltz 「猫团圆舞曲」 (item 4, see below). In-game hook is on by default (`?l2cutscene=0` opts out).
 
 - Module: `src/l2-cutscene.js` (ES5, no dependencies, no save access) → `window.__l2Cutscene`
 - Build hook: `scripts/l2-cutscene-v96.py`, run by `scripts/build.py` after the V9.5 HTML is frozen
@@ -110,10 +110,8 @@ else setTimeout(showCard, 7000);
 cutscene behind. The save is already written before the cutscene starts, so closing the tab
 mid-cutscene loses nothing; on reload `S.ended` is true and the cutscene does not replay.
 
-**Feature flag.** During the scaffold the in-game path is off unless the URL has `?l2cutscene=1`
-(or a test calls `__l2Cutscene.setEnabled(true)`); the flag is session-only and never saved.
-Default players and the existing browser tests still get the 7 s card. Flip the default once the
-real visuals and score land.
+**Feature flag.** The in-game path is on by default since item 4. `?l2cutscene=0` (or `__l2Cutscene.setEnabled(false)`)
+falls back to the 7 s card; the switch is session-only and never saved.
 
 ## API (`window.__l2Cutscene`)
 
@@ -164,3 +162,31 @@ weight without a matching need.
 
 3. The 60 s lush score and seek-aware scheduling; duck `GardenAudio.ending()`.
 4. Flip the feature flag on by default; update the two browser tests that wait for `#kitEnding` within 20 s.
+
+## Item 4 — score and in-game hook
+
+**Score.** `src/l2-cutscene-music.js`, 「猫团圆舞曲」: original G-major waltz, 3/4, one bar = 2 s, 30 bars = 60 s.
+
+| Bars | Time | Picture | Music |
+|---|---|---|---|
+| 1–4 | 0–8 s | island settles | harp arpeggios over a string swell (G, C/G, G, Dsus), piano pickup |
+| 5–12 | 8–24 s | kittens gather | the tune on solo felt piano over an oom-pah-pah left hand; strings from bar 9 |
+| 13–20 | 24–40 s | play | middle strain on C: harp eighths, fuller strings, flute answering below the piano |
+| 21–26 | 40–52 s | 图鉴 lights, curl up | tune returns, harp doubling an octave up; six harp glints on the card times (38.8 s + 0.9 s each) |
+| 27–30 | 52–60 s | sleep pile, title | lullaby echo at about half level, harp ripple, last low G chord |
+
+Voices are the game's own: music-lush `felt`, `harp`, `padTone('warm')` and the music2 `flute`, through a registered
+GardenAudio track, so the music switch, music volume, bus reverb/delay apply as for any other track. No samples, no quoted
+melody. The file is injected by `scripts/l2-cutscene-v96.py` after the V9.5 HTML is frozen; `src/music-lush.js` is unchanged.
+
+**Transport.** The score is a table keyed by score time; the engine's lookahead tick plays the eighth that is due against
+an origin taken from `__l2Cutscene.time()`. `seek()` fades what is ringing (0.25 s) and re-anchors; `skip()` fades the
+running phrase over 1.4 s and plays the last two bars under the end title; pause holds; `close()` hands the previous track
+back with a 3 s crossfade. Muted runs (`?mute=1`) never start it. Outside the cutscene the piece loops as one more entry in
+the track list. Approaches compared: `mohayonao/web-audio-scheduler` and `felixroos/zyklus` (stand-alone lookahead queues),
+Tone.js Transport (time-keyed events, seek = move the position). Kept the game's existing two-clock scheduler and took only
+the time-keyed-table idea, so no second clock or dependency was added.
+
+**Hook.** `startEnding` (20th point, `!S.ended`) plays the cutscene; `S.ended` is saved before it starts, so a reload of an
+ended save goes straight to free play. Tap-to-continue shows the unchanged `#kitEnding` card; `kitStay` / `kitAgain` behave
+as before. No save field was added. Test hook: `window.__l2Score.state()`.

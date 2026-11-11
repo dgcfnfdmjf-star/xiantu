@@ -138,12 +138,13 @@ check('continue is refused before the end; close() drops the callback', () => {
 });
 
 check('feature flag and preview query', () => {
-  assert.strictEqual(load().cs.enabled(), false, 'in-game path is off by default');
-  assert.strictEqual(load('?l2cutscene=1').cs.enabled(), true);
+  assert.strictEqual(load().cs.enabled(), true, 'in-game path is on by default');
+  assert.strictEqual(load('?l2cutscene=0').cs.enabled(), false, 'opt-out keeps the 7s card');
+  assert.strictEqual(load().cs.scored(), false, 'no score without the audio engine');
   assert.strictEqual(load('?cutscene=1&mute=1').cs.muted(), true);
   const { cs } = load();
-  assert.strictEqual(cs.setEnabled(true), true);
-  assert.strictEqual(cs.enabled(), true);
+  assert.strictEqual(cs.setEnabled(false), false);
+  assert.strictEqual(cs.enabled(), false);
 });
 
 check('module is ES5 and never touches saves', () => {
@@ -221,7 +222,10 @@ check('build wires the module and the flagged startEnding hook', () => {
   assert(site.includes(source), 'module inlined in the working site');
   assert(!release.includes('__l2Cutscene'), 'V9.5 release HTML is free of the cutscene');
   assert(kit.includes("if (window.__l2Cutscene && window.__l2Cutscene.enabled()) window.__l2Cutscene.play({ source: 'level2', onContinue: showCard });"));
-  assert(kit.includes('else setTimeout(showCard, 7000);'), 'default path keeps the 7s card');
+  assert(kit.includes('else setTimeout(showCard, 7000);'), 'opt-out path keeps the 7s card');
+  const music = fs.readFileSync(path.join(ROOT, 'src/l2-cutscene-music.js'), 'utf8');
+  assert(site.includes(music) && !release.includes('__l2Score'), 'score inlined in the working site only');
+  assert(site.indexOf('window.__musicLush = {') < site.indexOf('window.__l2Score = {'), 'score loads after the music-lush voices');
   assert(kit.includes("$('kitStay').addEventListener('click', function () { closeEnding(false); });"));
   assert(kit.includes("$('kitAgain').addEventListener('click', function () { closeEnding(true); });"));
   assert(site.indexOf('window.__l2Cutscene = api') < site.indexOf('<script>/* kittens.js'), 'module loads before kittens.js');
@@ -235,7 +239,8 @@ check('gameplay numbers unchanged', () => {
   assert(head.includes("value: 3, rare: true }"));
   // Outside the cutscene block and its two hooks the working site equals the release HTML.
   const strip = text => text.split('\n').filter(line => !/__l2Cutscene|__l2Stage|showCard|garden-working/.test(line)).join('\n');
-  const without = site.replace('<script>\n' + source + '\n</script>\n', '');
+  const score = fs.readFileSync(path.join(ROOT, 'src/l2-cutscene-music.js'), 'utf8');
+  const without = site.replace('<script>\n' + source + '\n</script>\n', '').replace('<script>\n' + score + '\n</script>\n', '');
   const base = release.split('\n').filter(line => !line.includes("$('kitEnding').classList.remove('hidden'); }, 7000);")).join('\n');
   assert.strictEqual(strip(without), base);
 });

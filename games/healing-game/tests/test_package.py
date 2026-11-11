@@ -47,7 +47,7 @@ class Package(unittest.TestCase):
     def test_all_inline_scripts_parse(self):
         self.assertEqual(len(re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.html.decode())), 19)
         scripts = re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.site.decode())
-        self.assertEqual(len(scripts), 20)
+        self.assertEqual(len(scripts), 21)  # V9.5's 19 + cutscene + its score
         with tempfile.TemporaryDirectory() as tmp:
             for i, script in enumerate(scripts):
                 path = Path(tmp) / f'{i}.js'

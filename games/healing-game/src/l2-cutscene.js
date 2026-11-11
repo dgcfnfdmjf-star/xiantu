@@ -24,7 +24,7 @@
   };
   // idle -> playing <-> paused -> ended -> closed
   var state = 'idle', base = 0, anchor = 0, done = false, endedAt = 0;
-  var opts = {}, enabled = false, muted = false, ready = !doc;
+  var opts = {}, enabled = true, muted = false, scored = false, ready = !doc;
   var el = null, raf = 0, ticker = 0, showClock = false;
 
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
@@ -866,9 +866,12 @@
   }
 
   /* ------------------------------- API ------------------------------- */
+  // Score lives in l2-cutscene-music.js; muted runs (headless capture) never start it.
+  function score() { return root.__l2Score || null; }
   function play(o) {
     opts = o || {};
     if (opts.muted !== undefined) muted = !!opts.muted;
+    scored = !muted && !!score() && score().start();
     build();
     if (el && stageKit()) buildCards();
     base = clamp(+opts.from || 0, 0, DURATION); anchor = clock(); done = false; state = 'playing';
@@ -883,12 +886,14 @@
     base = t; anchor = clock();
     if (t >= DURATION) reach();
     else state = running ? 'playing' : 'paused'; // seeking a closed cutscene shows a still frame
+    if (scored) score().sync();
     run();
     return t;
   }
   function skip() {
     if (state !== 'playing' && state !== 'paused') return false;
     reach();
+    if (scored) score().settle();
     render();
     return true;
   }
@@ -897,6 +902,7 @@
   function close() {
     if (state === 'idle' || state === 'closed') return false;
     state = 'closed'; opts = {};
+    if (scored) { scored = false; score().stop(); }
     if (doc) exitStage();
     render();
     return true;
@@ -940,7 +946,8 @@
     frame: function (t) { return frame(t === undefined ? time() : clamp(+t || 0, 0, DURATION)); },
     text: function () { return { title: TITLE, subtitle: SUBTITLE, cont: CONTINUE, skip: SKIP }; },
     muted: function () { return muted; },
-    // Feature flag for the in-game hook; session-only, never saved. Off unless ?l2cutscene=1.
+    scored: function () { return scored; },
+    // In-game hook switch; session-only, never saved. On by default, ?l2cutscene=0 keeps the old 7s card.
     enabled: function () { return enabled; },
     setEnabled: function (v) { enabled = !!v; return enabled; },
     _setClock: function (fn) { clock = fn; }
@@ -948,7 +955,7 @@
   root.__l2Cutscene = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 
-  enabled = query('l2cutscene') === '1';
+  enabled = query('l2cutscene') !== '0';
   muted = query('mute') === '1';
   if (!doc) return;
   function boot() {

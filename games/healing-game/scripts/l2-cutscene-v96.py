@@ -1,6 +1,6 @@
 """Level-2 clear cutscene hooks (V9.6 working build only), applied after the V9.5 release HTML is frozen."""
 
-# The 7s card stays the default; the cutscene path hands the same card back through onContinue.
+# The cutscene plays by default and hands the same card back through onContinue; ?l2cutscene=0 keeps the 7s card.
 replace("    setTimeout(function () { $('kitEnding').classList.remove('hidden'); }, 7000);",
         "    var showCard = function () { $('kitEnding').classList.remove('hidden'); };\n"
         "    if (window.__l2Cutscene && window.__l2Cutscene.enabled()) window.__l2Cutscene.play({ source: 'level2', onContinue: showCard });\n"
@@ -22,3 +22,6 @@ replace('  function attach(k) {\n',
         '  function attachStage(k) { if (k.catVisual || !COATS[k.kind.id]) return; load(k.kind.id).then(function (template) { if (!template || k.dead || !k.root.parent || k.catVisual) return; createVisual(k, template, KITTEN_HEIGHT); k.inner.visible = false; }); } // __l2Stage\n'
         '  function attach(k) {\n')
 replace('    attach: attach,\n', '    attach: attach,\n    attachStage: attachStage, // __l2Stage\n')
+# The score needs the music-lush voices, so it loads right after them (before the main game script).
+MAIN = "<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps"
+replace(MAIN, '<script>\n' + (ROOT / 'src/l2-cutscene-music.js').read_text() + '\n</script>\n' + MAIN)
