@@ -88,12 +88,15 @@ async function inspectBounds(page) {
       if (!node.isMesh) return;
       meshes.push({ geometry: node.geometry.uuid, material: node.material.uuid });
       const position = node.geometry.attributes.position;
+      if (node.isSkinnedMesh) node.skeleton.update();
       for (let i = 0; i < position.count; i++) {
-        point.fromBufferAttribute(position, i).applyMatrix4(node.matrixWorld).applyMatrix4(rootInverse);
+        point.fromBufferAttribute(position, i);
+        if (node.isSkinnedMesh) __catTestSkinVertex(node, i, point);
+        point.applyMatrix4(node.matrixWorld).applyMatrix4(rootInverse);
         min.min(point); max.max(point);
       }
     });
-    return { kind: k.kind.id, min: min.toArray(), max: max.toArray(), size: k.size, rootY: k.root.position.y, jumpY: k.y, footprint: k.catFootprint, meshes };
+    return { kind: k.kind.id, walking: !!k.catWalkActive, min: min.toArray(), max: max.toArray(), size: k.size, rootY: k.root.position.y, jumpY: k.y, footprint: k.catFootprint, meshes };
   }));
 }
 
@@ -112,7 +115,9 @@ async function basicAndCache(server, mobile) {
   const bounds = await inspectBounds(page);
   for (const cat of bounds) {
     assert(cat.min[1] >= -.002, 'model geometry stays above floor: ' + cat.kind);
-    assert(cat.max[1] >= .65 && cat.max[1] <= .75, 'normalized model height: ' + cat.kind);
+    // Walking lowers the torso/head from the upright seated pose. The original
+    // sitting height remains unchanged; active Walk is intentionally lower.
+    assert(cat.max[1] >= (cat.walking ? .5 : .65) && cat.max[1] <= .75, 'normalized seated/walking height: ' + JSON.stringify(cat));
     assert(cat.rootY >= .25 - .001 && cat.footprint > .1 && cat.footprint < 1.2, 'finite footprint and original ground plane');
   }
   assert(await page.evaluate(() => __catTestAmbient.catModel && !__catTestAmbient.body.visible && __catTestAmbient.root.visible), 'ambient orange replaced in chapter two');
@@ -120,8 +125,8 @@ async function basicAndCache(server, mobile) {
     const orange = __kittens.list.find(k => k.kind.id === 'orange'), a = [], b = [];
     orange.catModel.traverse(n => { if (n.isMesh) a.push(n); });
     __catTestAmbient.catModel.traverse(n => { if (n.isMesh) b.push(n); });
-    return a.length > 0 && a.length === b.length && a.every((node, i) => node !== b[i] && node.geometry === b[i].geometry && node.material === b[i].material);
-  }), 'ambient and interactive orange clone the graph and share cached GPU resources');
+    return a.length > 0 && a.length === b.length && a.every((node, i) => node !== b[i] && node.geometry.index === b[i].geometry.index && node.geometry.attributes.uv === b[i].geometry.attributes.uv && node.geometry.attributes.skinWeight === b[i].geometry.attributes.skinWeight && node.material.map === b[i].material.map && node.material.color.equals(b[i].material.color));
+  }), 'ambient and interactive orange clone the graph and share cached indices/UVs/weights/materials across seated and walking surfaces');
   const image = f.path.join(f.output, mobile ? 'phone-390x844.png' : 'desktop-1200x900.png');
   await page.screenshot({ path: image });
   const actions = [];
@@ -171,10 +176,10 @@ async function basicAndCache(server, mobile) {
     return Object.values(kinds).every(cats => cats.slice(1).every(cat => {
       const a = [], b = [];
       cats[0].traverse(n => { if (n.isMesh) a.push(n); }); cat.traverse(n => { if (n.isMesh) b.push(n); });
-      return a.length === b.length && a.every((n, i) => n.geometry === b[i].geometry && n.material === b[i].material && n !== b[i]);
+      return a.length === b.length && a.every((n, i) => n.geometry.index === b[i].geometry.index && n.geometry.attributes.uv === b[i].geometry.attributes.uv && n.geometry.attributes.skinWeight === b[i].geometry.attributes.skinWeight && n.material.map === b[i].material.map && n.material.color.equals(b[i].material.color) && n !== b[i]);
     }));
   });
-  assert(shared, 'cloned actors share template geometry/material resources');
+  assert(shared, 'cloned actors share template index/UV/weight/material resources across the two precomputed surfaces');
   await clean(test);
   console.log('  three cache reentries passed');
   report.checks.push((mobile ? 'phone' : 'desktop') + ': lazy four-coat load, normalized floor bounds, immediate two-tap input, hidden freeze, repeated chapter cache reuse');

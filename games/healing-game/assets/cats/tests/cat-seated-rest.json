@@ -1,0 +1,283 @@
+{
+  "baseline": "main 8812ff565b29a0f57bdcb80698f6c8b950ca3965 (approved V9.5 static cats)",
+  "cats": {
+    "orange": {
+      "surfaces": [
+        {
+          "material": "Cat eyes · runtime",
+          "attributes": {
+            "POSITION": "07ac206c61469d4b7490d114b34fbb6f3b7589167de5f1e0dc8a703ef4da8297",
+            "NORMAL": "64b57b31620c66fcc7652c07091c41db5d9b6a259738cac433a0123fc4fe2212"
+          },
+          "topology": "488fd214db063cac9f760c78b9379ee10ae5bc1ce8b926f7093ebd065b9eed81",
+          "triangles": 564,
+          "materialHash": "4e913aa304f818fb1dfda354322f4cc27d3d90f4023622a0f34cda113bbe73a8"
+        },
+        {
+          "material": "Muted rose nose",
+          "attributes": {
+            "POSITION": "e68f907223c3dfabeedfa7c9481f0203c3a71c1c40c924240d7387e5e4dea73c",
+            "NORMAL": "45dee1afff6fc0fbb9df3d9454bf932d67e8012a7c6732547db22681443bb151"
+          },
+          "topology": "ceedd696059fbea6a8c2d867f21f98b6a45f20f997b3da0648ecd9bd9229416f",
+          "triangles": 98,
+          "materialHash": "ac1d6f38e9a740404c1607eaf96a4dcea2da3757e36fdc91fd7f786e0ba89272"
+        },
+        {
+          "material": "Sepia facial detail",
+          "attributes": {
+            "POSITION": "ae772fe397ae83d0c42d28e16c563bbd4066c6372a608443bd216eeef3fd8efb",
+            "NORMAL": "49c909fe22d39e0ecafaa2f4f1567f7d4aea156ae1c849faea26b4f7b3924a25"
+          },
+          "topology": "6154d0e6704b89c6bd6e2e64674298eca297370dc248a6db5b0e5b9ae28e9a83",
+          "triangles": 336,
+          "materialHash": "543e61a90b886530e796327c27fdf62da5ddbe61531d5f79745df202fac2b625"
+        },
+        {
+          "material": "Soft eye catchlight",
+          "attributes": {
+            "POSITION": "f709034f94266581897e17d1a2dc04b81571a69e13a7c66be9ca552556a57b7b",
+            "NORMAL": "b14a03ec3b26686df2f6734693ed3293439214b1539d6a690176e5840ff42fb6",
+            "TEXCOORD_0": "d4536aafb4e9910ecd64a9037a7fd613787375ab6902806f22deb8f205c51c9a"
+          },
+          "topology": "93e7edaec550ec5ebafdbc0952b5f0750530a7d3ec218a38fb04d11d53131a52",
+          "triangles": 220,
+          "materialHash": "d661af1f866145adc1f3164fd93024f7df685bba6102164a47403016e3a3680c"
+        },
+        {
+          "material": "Warm cream whiskers",
+          "attributes": {
+            "POSITION": "3496d0265e3335da5c9de18ac49db59e67d9baf5274f08e27ac78fddae84d15f",
+            "NORMAL": "757ff7d90779fd59f31e801956f2db3a86b556f11b7fbaaf3d6b3cb2788a0ff4"
+          },
+          "topology": "3a3cfa3e5e2cfa7652f5214a130cf0b8e236ec541efa46b3136e69e2af9a5b84",
+          "triangles": 414,
+          "materialHash": "0ddfd291a865847a71df8bd6c3a7fb0e9f39798e356f623eea8e23fd17c1f1f1"
+        },
+        {
+          "material": "Watercolor fur · runtime atlas",
+          "attributes": {
+            "POSITION": "2cf06630eb9886e4b3a46aefab2f896435eaaea0ea59ee4893a69e7a44c06a77",
+            "NORMAL": "1f887422972de5caf29f83e5401c87649889ba24f96fc5e32f3be71b7a5c635d",
+            "TEXCOORD_0": "8208ead9dc7c432033d1579e891605deb29535bb9f65f437fa1f97da1809d29d"
+          },
+          "topology": "096fed5268b03c55da595dd8faeffdb00af110602a001c3defe0bbac0e66a23b",
+          "triangles": 5254,
+          "materialHash": "6537d7f12ca22062a19dd8d96188c5c7c0373afd966dfae5988a1e208a2b5d0b"
+        }
+      ],
+      "images": [
+        "6d256c0c897b152799fea77e29656cd3e2b4d4b2af9be7980ee94ec44b8f365e"
+      ]
+    },
+    "calico": {
+      "surfaces": [
+        {
+          "material": "Cat eyes · runtime",
+          "attributes": {
+            "POSITION": "07ac206c61469d4b7490d114b34fbb6f3b7589167de5f1e0dc8a703ef4da8297",
+            "NORMAL": "64b57b31620c66fcc7652c07091c41db5d9b6a259738cac433a0123fc4fe2212"
+          },
+          "topology": "488fd214db063cac9f760c78b9379ee10ae5bc1ce8b926f7093ebd065b9eed81",
+          "triangles": 564,
+          "materialHash": "4e913aa304f818fb1dfda354322f4cc27d3d90f4023622a0f34cda113bbe73a8"
+        },
+        {
+          "material": "Muted rose nose",
+          "attributes": {
+            "POSITION": "e68f907223c3dfabeedfa7c9481f0203c3a71c1c40c924240d7387e5e4dea73c",
+            "NORMAL": "45dee1afff6fc0fbb9df3d9454bf932d67e8012a7c6732547db22681443bb151"
+          },
+          "topology": "ceedd696059fbea6a8c2d867f21f98b6a45f20f997b3da0648ecd9bd9229416f",
+          "triangles": 98,
+          "materialHash": "ac1d6f38e9a740404c1607eaf96a4dcea2da3757e36fdc91fd7f786e0ba89272"
+        },
+        {
+          "material": "Sepia facial detail",
+          "attributes": {
+            "POSITION": "ae772fe397ae83d0c42d28e16c563bbd4066c6372a608443bd216eeef3fd8efb",
+            "NORMAL": "49c909fe22d39e0ecafaa2f4f1567f7d4aea156ae1c849faea26b4f7b3924a25"
+          },
+          "topology": "6154d0e6704b89c6bd6e2e64674298eca297370dc248a6db5b0e5b9ae28e9a83",
+          "triangles": 336,
+          "materialHash": "543e61a90b886530e796327c27fdf62da5ddbe61531d5f79745df202fac2b625"
+        },
+        {
+          "material": "Soft eye catchlight",
+          "attributes": {
+            "POSITION": "3f18fb49ae341044abec85f22197d1f08faf357fcf6d01668ae0c6d294d543b1",
+            "NORMAL": "816ae3272e050dc699187e3551837560784f48629211964729d923e58430428f",
+            "TEXCOORD_0": "baa39c814b6d692029a7762c6632eb05c91b499fb35ea2e6321f14f9ffa95eac"
+          },
+          "topology": "5d2404dcbca7d2259206a7a1543cef20a328e37c444f69b5817aaa35900802b3",
+          "triangles": 220,
+          "materialHash": "d661af1f866145adc1f3164fd93024f7df685bba6102164a47403016e3a3680c"
+        },
+        {
+          "material": "Warm cream whiskers",
+          "attributes": {
+            "POSITION": "3496d0265e3335da5c9de18ac49db59e67d9baf5274f08e27ac78fddae84d15f",
+            "NORMAL": "757ff7d90779fd59f31e801956f2db3a86b556f11b7fbaaf3d6b3cb2788a0ff4"
+          },
+          "topology": "3a3cfa3e5e2cfa7652f5214a130cf0b8e236ec541efa46b3136e69e2af9a5b84",
+          "triangles": 414,
+          "materialHash": "0ddfd291a865847a71df8bd6c3a7fb0e9f39798e356f623eea8e23fd17c1f1f1"
+        },
+        {
+          "material": "Watercolor fur · runtime atlas",
+          "attributes": {
+            "POSITION": "2cf06630eb9886e4b3a46aefab2f896435eaaea0ea59ee4893a69e7a44c06a77",
+            "NORMAL": "1f887422972de5caf29f83e5401c87649889ba24f96fc5e32f3be71b7a5c635d",
+            "TEXCOORD_0": "8208ead9dc7c432033d1579e891605deb29535bb9f65f437fa1f97da1809d29d"
+          },
+          "topology": "096fed5268b03c55da595dd8faeffdb00af110602a001c3defe0bbac0e66a23b",
+          "triangles": 5254,
+          "materialHash": "6537d7f12ca22062a19dd8d96188c5c7c0373afd966dfae5988a1e208a2b5d0b"
+        }
+      ],
+      "images": [
+        "2e1eff12603ecf47b3b5ab68fa5448641615a5b5c32f9faa68a9509bc7cf9641"
+      ]
+    },
+    "black": {
+      "surfaces": [
+        {
+          "material": "Cat eyes · runtime",
+          "attributes": {
+            "POSITION": "07ac206c61469d4b7490d114b34fbb6f3b7589167de5f1e0dc8a703ef4da8297",
+            "NORMAL": "64b57b31620c66fcc7652c07091c41db5d9b6a259738cac433a0123fc4fe2212",
+            "TEXCOORD_0": "355be3627e8c9cbbf9c96981f51dd40aeecb3f949484d147a308425bda390b7f"
+          },
+          "topology": "488fd214db063cac9f760c78b9379ee10ae5bc1ce8b926f7093ebd065b9eed81",
+          "triangles": 564,
+          "materialHash": "9e73c66f66fdbbd2e17950d6f9004bdca735578048316373171b6b513d74a693"
+        },
+        {
+          "material": "Muted rose nose",
+          "attributes": {
+            "POSITION": "e68f907223c3dfabeedfa7c9481f0203c3a71c1c40c924240d7387e5e4dea73c",
+            "NORMAL": "45dee1afff6fc0fbb9df3d9454bf932d67e8012a7c6732547db22681443bb151"
+          },
+          "topology": "ceedd696059fbea6a8c2d867f21f98b6a45f20f997b3da0648ecd9bd9229416f",
+          "triangles": 98,
+          "materialHash": "ac1d6f38e9a740404c1607eaf96a4dcea2da3757e36fdc91fd7f786e0ba89272"
+        },
+        {
+          "material": "Sepia facial detail",
+          "attributes": {
+            "POSITION": "ae772fe397ae83d0c42d28e16c563bbd4066c6372a608443bd216eeef3fd8efb",
+            "NORMAL": "49c909fe22d39e0ecafaa2f4f1567f7d4aea156ae1c849faea26b4f7b3924a25"
+          },
+          "topology": "6154d0e6704b89c6bd6e2e64674298eca297370dc248a6db5b0e5b9ae28e9a83",
+          "triangles": 336,
+          "materialHash": "543e61a90b886530e796327c27fdf62da5ddbe61531d5f79745df202fac2b625"
+        },
+        {
+          "material": "Soft eye catchlight",
+          "attributes": {
+            "POSITION": "73ef8d58b334cc2201ddadfe90f8ebe22954c09e3056dfaa732395421318dede",
+            "NORMAL": "02ab42ef0f5f74c105b46fdcc5adc7a1d67618571efd9b4ff921371b6553353d",
+            "TEXCOORD_0": "e95befca7331579a04bac1a50416c1db69ee63449714cf3a3f60cb4d39b91992"
+          },
+          "topology": "5ac69681c7a979e1a6b2b8bd1d792609654e4433b567cf364e211e4b29f5f9d0",
+          "triangles": 220,
+          "materialHash": "d661af1f866145adc1f3164fd93024f7df685bba6102164a47403016e3a3680c"
+        },
+        {
+          "material": "Warm cream whiskers",
+          "attributes": {
+            "POSITION": "3496d0265e3335da5c9de18ac49db59e67d9baf5274f08e27ac78fddae84d15f",
+            "NORMAL": "757ff7d90779fd59f31e801956f2db3a86b556f11b7fbaaf3d6b3cb2788a0ff4"
+          },
+          "topology": "3a3cfa3e5e2cfa7652f5214a130cf0b8e236ec541efa46b3136e69e2af9a5b84",
+          "triangles": 414,
+          "materialHash": "0ddfd291a865847a71df8bd6c3a7fb0e9f39798e356f623eea8e23fd17c1f1f1"
+        },
+        {
+          "material": "Watercolor fur · runtime atlas",
+          "attributes": {
+            "POSITION": "2cf06630eb9886e4b3a46aefab2f896435eaaea0ea59ee4893a69e7a44c06a77",
+            "NORMAL": "1f887422972de5caf29f83e5401c87649889ba24f96fc5e32f3be71b7a5c635d",
+            "TEXCOORD_0": "8208ead9dc7c432033d1579e891605deb29535bb9f65f437fa1f97da1809d29d"
+          },
+          "topology": "096fed5268b03c55da595dd8faeffdb00af110602a001c3defe0bbac0e66a23b",
+          "triangles": 5254,
+          "materialHash": "6537d7f12ca22062a19dd8d96188c5c7c0373afd966dfae5988a1e208a2b5d0b"
+        }
+      ],
+      "images": [
+        "efa81fa9603c766d17c8e50e32e7b6ebc9b872741c9e6122c5e519b12ff5e6e8"
+      ]
+    },
+    "tabby": {
+      "surfaces": [
+        {
+          "material": "Cat eyes · runtime",
+          "attributes": {
+            "POSITION": "07ac206c61469d4b7490d114b34fbb6f3b7589167de5f1e0dc8a703ef4da8297",
+            "NORMAL": "64b57b31620c66fcc7652c07091c41db5d9b6a259738cac433a0123fc4fe2212",
+            "TEXCOORD_0": "355be3627e8c9cbbf9c96981f51dd40aeecb3f949484d147a308425bda390b7f"
+          },
+          "topology": "488fd214db063cac9f760c78b9379ee10ae5bc1ce8b926f7093ebd065b9eed81",
+          "triangles": 564,
+          "materialHash": "9e73c66f66fdbbd2e17950d6f9004bdca735578048316373171b6b513d74a693"
+        },
+        {
+          "material": "Muted rose nose",
+          "attributes": {
+            "POSITION": "e68f907223c3dfabeedfa7c9481f0203c3a71c1c40c924240d7387e5e4dea73c",
+            "NORMAL": "45dee1afff6fc0fbb9df3d9454bf932d67e8012a7c6732547db22681443bb151"
+          },
+          "topology": "ceedd696059fbea6a8c2d867f21f98b6a45f20f997b3da0648ecd9bd9229416f",
+          "triangles": 98,
+          "materialHash": "ac1d6f38e9a740404c1607eaf96a4dcea2da3757e36fdc91fd7f786e0ba89272"
+        },
+        {
+          "material": "Sepia facial detail",
+          "attributes": {
+            "POSITION": "ae772fe397ae83d0c42d28e16c563bbd4066c6372a608443bd216eeef3fd8efb",
+            "NORMAL": "49c909fe22d39e0ecafaa2f4f1567f7d4aea156ae1c849faea26b4f7b3924a25"
+          },
+          "topology": "6154d0e6704b89c6bd6e2e64674298eca297370dc248a6db5b0e5b9ae28e9a83",
+          "triangles": 336,
+          "materialHash": "543e61a90b886530e796327c27fdf62da5ddbe61531d5f79745df202fac2b625"
+        },
+        {
+          "material": "Soft eye catchlight",
+          "attributes": {
+            "POSITION": "4ff71e6c033bcf8ef2995f7d08c4bcbce90e03344a05df51c29e6e46e5823b29",
+            "NORMAL": "afc0389239d6dba25e2d3fea0e04205a4efd44e4470498bffb48af880447cd7d",
+            "TEXCOORD_0": "5ca979c2b658916d33d9af68878e0bcbd42ec11e5a3fb68bf96509a27cbda7a9"
+          },
+          "topology": "ca43a40e5a60145b7cc0ae6318122bd25b8e5d02cf5bdba64cee83bd6c0d9d06",
+          "triangles": 220,
+          "materialHash": "d661af1f866145adc1f3164fd93024f7df685bba6102164a47403016e3a3680c"
+        },
+        {
+          "material": "Warm cream whiskers",
+          "attributes": {
+            "POSITION": "3496d0265e3335da5c9de18ac49db59e67d9baf5274f08e27ac78fddae84d15f",
+            "NORMAL": "757ff7d90779fd59f31e801956f2db3a86b556f11b7fbaaf3d6b3cb2788a0ff4"
+          },
+          "topology": "3a3cfa3e5e2cfa7652f5214a130cf0b8e236ec541efa46b3136e69e2af9a5b84",
+          "triangles": 414,
+          "materialHash": "0ddfd291a865847a71df8bd6c3a7fb0e9f39798e356f623eea8e23fd17c1f1f1"
+        },
+        {
+          "material": "Watercolor fur · runtime atlas",
+          "attributes": {
+            "POSITION": "2cf06630eb9886e4b3a46aefab2f896435eaaea0ea59ee4893a69e7a44c06a77",
+            "NORMAL": "1f887422972de5caf29f83e5401c87649889ba24f96fc5e32f3be71b7a5c635d",
+            "TEXCOORD_0": "8208ead9dc7c432033d1579e891605deb29535bb9f65f437fa1f97da1809d29d"
+          },
+          "topology": "096fed5268b03c55da595dd8faeffdb00af110602a001c3defe0bbac0e66a23b",
+          "triangles": 5254,
+          "materialHash": "6537d7f12ca22062a19dd8d96188c5c7c0373afd966dfae5988a1e208a2b5d0b"
+        }
+      ],
+      "images": [
+        "b6ca771312586efee7976782d7f6533ce1fecce234b58d3d97eb3c578d85ca9a"
+      ]
+    }
+  }
+}

@@ -1,0 +1,380 @@
+{
+  "baseline": "8812ff565b29a0f57bdcb80698f6c8b950ca3965",
+  "assets": {
+    "html": "db67e892fe84de5df2c97cf65fddff142a28dba8b1e07103c5cc7117014f5f8a",
+    "assets": [
+      {
+        "kind": "orange",
+        "bytes": 286140,
+        "sha256": "e7da71dbe0e99610bcd8f307d0bc69748a34ca08b80a890233e88d698da50289"
+      },
+      {
+        "kind": "calico",
+        "bytes": 307824,
+        "sha256": "c4cf0c2651be2e2afa65f82c11bf32cc9a3ae1c8654fc9492ae7e434daa5cf8b"
+      },
+      {
+        "kind": "black",
+        "bytes": 256916,
+        "sha256": "80c16d834409686f02d6aee180d634f67e125267fe743c3ee45c32f8532e9369"
+      },
+      {
+        "kind": "tabby",
+        "bytes": 292172,
+        "sha256": "591426b32b4e0269b4b819d7c8472207ac6cbd29d49ff20c8443e8a72fe027c1"
+      }
+    ]
+  },
+  "browser": "151.0.7922.173",
+  "checks": [
+    "desktop: actual roam articulation/+Z; independent skin clones; opposite paw steps; exact loop/rest; 96 ground samples per coat; special-state/background/exit stop; untouched saves before real moving-head two-tap input",
+    "phone: actual roam articulation/+Z; independent skin clones; opposite paw steps; exact loop/rest; 96 ground samples per coat; special-state/background/exit stop; untouched saves before real moving-head two-tap input",
+    "desktop: lazy four-coat load, normalized floor bounds, immediate two-tap input, hidden freeze, repeated chapter cache reuse",
+    "phone: lazy four-coat load, normalized floor bounds, immediate two-tap input, hidden freeze, repeated chapter cache reuse",
+    "failed GLB playable fallback; fourth/fifth same-coat cap; legacy six-coat saves; goal20/chapter3 unlock/replay",
+    "white +1 and rare glow +3 with legacy counts retained",
+    "delayed model responses after chapter exit do not attach; reentry cache; removed actor detaches",
+    "all four cats front/side/back, drag, wheel, fitted reset",
+    "four real Walk clips articulate and return to exact Sit; Walk pauses and resumes without a time jump across background/context loss; switching away from Walk disposes it and stops continuous rendering",
+    "three complete switch cycles retain only current model textures and six model geometries",
+    "all replaced decoded ImageBitmaps are closed",
+    "embedded GLB bytes match accepted files, scene triangle counts and zero fur UV conflicts",
+    "actual rendered drag image changes",
+    "front/side/back/reset",
+    "wheel min/max and keyboard controls",
+    "idle rendering stops",
+    "simulated document.hidden cancels rendering; resume renders once",
+    "real WebGL context loss/restoration",
+    "no external requests, external GLBs or storage access",
+    "context loss during initial embedded atlas decode restores fitted view",
+    "late embedded texture decode preserves latest cat and releases replaced resources; decode failure retries",
+    "phone portrait/landscape resize",
+    "DPR 3 capped to 2",
+    "real CDP touch pinch",
+    "reduced motion has no idle animation",
+    "corrupt embedded GLB displays labeled static PNG and disables 3D controls; restored snapshot retry succeeds",
+    "each failed selection shows its own PNG; selected-cat retry and later switches recover",
+    "WebGL unavailable shows explicit static fallback"
+  ],
+  "animationGeometry": [
+    {
+      "label": "desktop",
+      "viewport": "1200x900 DPR1",
+      "phases": [
+        {
+          "kind": "orange",
+          "minY": 0.0007395446346744052,
+          "maxRadius": 0.7050317012601037,
+          "pawQuarter": [
+            [
+              -0.0966836397410917,
+              0.0345080747007093,
+              0.22240224274077097
+            ],
+            [
+              0.09790002391078487,
+              0.09165168549502163,
+              0.14077711563747375
+            ]
+          ],
+          "pawThreeQuarter": [
+            [
+              -0.09668637759212684,
+              0.09058294457019266,
+              0.13936850264457232
+            ],
+            [
+              0.09789853360322132,
+              0.03557319391497978,
+              0.22380214688334238
+            ]
+          ],
+          "seamDifference": 1.1636977810258742e-06,
+          "surfaceChange": 0.20139726023607268
+        },
+        {
+          "kind": "calico",
+          "minY": 0.0007395386428997173,
+          "maxRadius": 0.7050316679355041,
+          "pawQuarter": [
+            [
+              -0.09668371950880238,
+              0.034508073466103614,
+              0.22240221327626536
+            ],
+            [
+              0.0979000984963954,
+              0.09165168646040994,
+              0.14077709694507118
+            ]
+          ],
+          "pawThreeQuarter": [
+            [
+              -0.09668632256350002,
+              0.09058293298198992,
+              0.13936846946382364
+            ],
+            [
+              0.097898471798132,
+              0.035573175848083914,
+              0.2238021283385322
+            ]
+          ],
+          "seamDifference": 1.1268509320094822e-06,
+          "surfaceChange": 0.20139731862857407
+        },
+        {
+          "kind": "black",
+          "minY": 0.0007395389561621335,
+          "maxRadius": 0.7050316657916718,
+          "pawQuarter": [
+            [
+              -0.09668358288909072,
+              0.03450806120944554,
+              0.22240221843784838
+            ],
+            [
+              0.09790009067921647,
+              0.09165168822255797,
+              0.1407770747123403
+            ]
+          ],
+          "pawThreeQuarter": [
+            [
+              -0.09668636773476093,
+              0.0905829326833908,
+              0.13936846163115896
+            ],
+            [
+              0.09789843173708296,
+              0.035573196197154634,
+              0.2238021662178123
+            ]
+          ],
+          "seamDifference": 1.1400421554563778e-06,
+          "surfaceChange": 0.20139729124926564
+        },
+        {
+          "kind": "tabby",
+          "minY": 0.0007395398242147075,
+          "maxRadius": 0.7050317202000981,
+          "pawQuarter": [
+            [
+              -0.09668374582844858,
+              0.03450807946770661,
+              0.22240220837938732
+            ],
+            [
+              0.09789992766484357,
+              0.0916516963160192,
+              0.14077705506771857
+            ]
+          ],
+          "pawThreeQuarter": [
+            [
+              -0.09668628363462023,
+              0.0905829273016054,
+              0.13936851698530667
+            ],
+            [
+              0.09789843071110087,
+              0.035573197511608035,
+              0.22380219104480922
+            ]
+          ],
+          "seamDifference": 1.176842772787623e-06,
+          "surfaceChange": 0.20139733694484468
+        }
+      ],
+      "movement": {
+        "before": [
+          0,
+          0.8825
+        ],
+        "after": [
+          0,
+          0.9924999999999998
+        ],
+        "speed": 0.55,
+        "actionTimeScale": 2.165018859331575
+      }
+    },
+    {
+      "label": "phone",
+      "viewport": "390x844 DPR2",
+      "phases": [
+        {
+          "kind": "orange",
+          "minY": 0.0007395459648599778,
+          "maxRadius": 0.7050316895445139,
+          "pawQuarter": [
+            [
+              -0.09668364003396117,
+              0.03450806144437708,
+              0.22240228755283006
+            ],
+            [
+              0.09790002521525565,
+              0.09165167888999454,
+              0.1407770702142429
+            ]
+          ],
+          "pawThreeQuarter": [
+            [
+              -0.09668637965788926,
+              0.09058294000032678,
+              0.13936845725601074
+            ],
+            [
+              0.09789853484338357,
+              0.035573178519261554,
+              0.22380219185252545
+            ]
+          ],
+          "seamDifference": 1.0583294272059618e-06,
+          "surfaceChange": 0.20139727680264752
+        },
+        {
+          "kind": "calico",
+          "minY": 0.0007395399958406434,
+          "maxRadius": 0.7050317177682648,
+          "pawQuarter": [
+            [
+              -0.09668354471943885,
+              0.03450805875568359,
+              0.2224022410892144
+            ],
+            [
+              0.09790001521441528,
+              0.09165169129320257,
+              0.14077709725342202
+            ]
+          ],
+          "pawThreeQuarter": [
+            [
+              -0.09668627359025643,
+              0.09058293465036264,
+              0.13936847395164442
+            ],
+            [
+              0.09789851413046448,
+              0.03557319362535139,
+              0.22380215213917246
+            ]
+          ],
+          "seamDifference": 1.1043231794571895e-06,
+          "surfaceChange": 0.20139730350539345
+        },
+        {
+          "kind": "black",
+          "minY": 0.0007395378948478193,
+          "maxRadius": 0.7050317582197108,
+          "pawQuarter": [
+            [
+              -0.09668353089239576,
+              0.0345080613372824,
+              0.22240222044051067
+            ],
+            [
+              0.09790003788661783,
+              0.09165168742959043,
+              0.1407770933064508
+            ]
+          ],
+          "pawThreeQuarter": [
+            [
+              -0.09668625741496316,
+              0.0905829484374983,
+              0.13936845101587553
+            ],
+            [
+              0.09789853383578116,
+              0.03557317851013394,
+              0.2238021502802373
+            ]
+          ],
+          "seamDifference": 1.1033228315415755e-06,
+          "surfaceChange": 0.20139729959942265
+        },
+        {
+          "kind": "tabby",
+          "minY": 0.0007395386875224674,
+          "maxRadius": 0.7050316980857176,
+          "pawQuarter": [
+            [
+              -0.09668358368512495,
+              0.03450806250754753,
+              0.22240232610165928
+            ],
+            [
+              0.09790006371229025,
+              0.0916516819149756,
+              0.14077713308619846
+            ]
+          ],
+          "pawThreeQuarter": [
+            [
+              -0.09668632833599249,
+              0.09058293540713394,
+              0.13936849845292912
+            ],
+            [
+              0.09789858922879445,
+              0.03557318726019535,
+              0.22380213523810505
+            ]
+          ],
+          "seamDifference": 1.0622543720195665e-06,
+          "surfaceChange": 0.20139728994704198
+        }
+      ],
+      "movement": {
+        "before": [
+          0,
+          0.8825
+        ],
+        "after": [
+          0,
+          0.9924999999999998
+        ],
+        "speed": 0.55,
+        "actionTimeScale": 2.1919226096609723
+      }
+    }
+  ],
+  "visualReview": {
+    "orange": {
+      "result": "PASS in captured desktop/phone browser views",
+      "hindLegVolume": "no collapsed calves in reviewed loop phases",
+      "pawCaps": "curved inner surfaces use coat texture; no flat cap color blocks",
+      "seatedSeams": "no visible open joints in reviewed seated front/side/back views",
+      "forward": "+Z",
+      "textures": "original 1024px JPEG bytes preserved"
+    },
+    "calico": {
+      "result": "PASS in captured desktop/phone browser views",
+      "hindLegVolume": "no collapsed calves in reviewed loop phases",
+      "pawCaps": "curved inner surfaces use coat texture; no flat cap color blocks",
+      "seatedSeams": "no visible open joints in reviewed seated front/side/back views",
+      "forward": "+Z",
+      "textures": "original 1024px JPEG bytes preserved"
+    },
+    "black": {
+      "result": "PASS in captured desktop/phone browser views",
+      "hindLegVolume": "no collapsed calves in reviewed loop phases",
+      "pawCaps": "curved inner surfaces use coat texture; no flat cap color blocks",
+      "seatedSeams": "no visible open joints in reviewed seated front/side/back views",
+      "forward": "+Z",
+      "textures": "original 1024px JPEG bytes preserved"
+    },
+    "tabby": {
+      "result": "PASS in captured desktop/phone browser views",
+      "hindLegVolume": "no collapsed calves in reviewed loop phases",
+      "pawCaps": "curved inner surfaces use coat texture; no flat cap color blocks",
+      "seatedSeams": "no visible open joints in reviewed seated front/side/back views",
+      "forward": "+Z",
+      "textures": "original 1024px JPEG bytes preserved"
+    }
+  },
+  "limitation": "Cloud Chromium/SwiftShader and touch emulation; not physical-phone FPS. Low-poly joint facets remain visible at extreme zoom."
+}
