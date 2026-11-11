@@ -2184,6 +2184,7 @@ async function saveMirrorOfferV2895(){
    el.remove();
    const info=document.getElementById('saveInfo');if(info)info.innerHTML='已从浏览器备用库恢复修行记录。<br>点击“续行仙途”继续。';
    const dialog=document.getElementById('loadDialog');if(dialog)dialog.style.display='flex';
+   try{window.refreshTitleSaveCardV2868120?.();}catch(_){}
   }catch(err){gameAlertV2868114('恢复失败：'+(err?.message||err));}
  });
  document.body.appendChild(el);el.querySelector('[data-su="restore"]')?.focus?.();
@@ -2633,9 +2634,19 @@ function showFirstPathV2901(){
 // 统一编号：引路气泡、初入仙途标题都改成「起步之路 n/11」
 function pathRelabelTutorialV2901(id){
  const b=document.getElementById('tutorialBubble'),n=PATH_TUTORIAL_V2901[id];if(!b||!n)return;
- const total=PATH_STEPS_V2901.length;
- const c=b.querySelector('.tutorial-counter');if(c)c.textContent=`起步之路 ${n} / ${total}`;
- const m=b.querySelector('.tutorial-mini-progress');if(m)m.textContent=`${n}/${total}`;
+ const total=PATH_STEPS_V2901.length,sub=pathTutorialCardV2868121(id);
+ // V28.68.121 (audit G5): several cards share one path row, so each card also shows its place in that row.
+ const c=b.querySelector('.tutorial-counter');
+ if(c){c.textContent=`起步之路 ${n} / ${total}`+(sub?` · 本段 ${sub.i}/${sub.of}`:'');c.dataset.card=sub?`${n}.${sub.i}`:String(n);
+  if(sub){const pips=document.createElement('span');pips.className='tutorial-pips-v2868121';pips.setAttribute('aria-hidden','true');
+   for(let k=1;k<=sub.of;k++){const d=document.createElement('i');if(k<sub.i)d.className='done';else if(k===sub.i)d.className='cur';pips.appendChild(d);}c.appendChild(pips);}}
+ const m=b.querySelector('.tutorial-mini-progress');if(m)m.textContent=`${n}/${total}`+(sub?` · ${sub.i}/${sub.of}`:'');
+}
+// Card position inside its path row, from the tutorial order; null when the row has a single card.
+function pathTutorialCardV2868121(id){
+ const n=PATH_TUTORIAL_V2901[id];if(!n||typeof TUTORIAL_ORDER==='undefined')return null;
+ const row=TUTORIAL_ORDER.filter(x=>PATH_TUTORIAL_V2901[x]===n),i=row.indexOf(id)+1;
+ return row.length>1&&i>0?{i,of:row.length}:null;
 }
 function pathRelabelJourneyV2901(){
  const box=document.getElementById('storyText'),s=typeof firstJourneyV28687==='function'?firstJourneyV28687():null;if(!box||!s)return;
@@ -3289,7 +3300,7 @@ function drawInteriorV286886(){
  drawActor25DV2770(ctx,s.player);ctx.restore();return true;
 }
 
-window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.113';
+window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v28684-duel.js']='28.68.122';
 
 
 if(typeof installBagViewV2905==='function')installBagViewV2905();
@@ -3300,7 +3311,7 @@ function mapFxPreferenceV2868104(){try{const p=localStorage.getItem('xiantu_map_
 function mapFxReducedV2868104(){return typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;}
 function mapFxLoadV2868104(){
  const h=MAP_FX_HOST_V2868104;if(h.api)return Promise.resolve(h.api);if(h.failed)return Promise.resolve(null);if(h.loading)return h.loading;
- h.loading=new Promise(resolve=>{const s=document.createElement('script');let done=false;const finish=()=>{if(done)return;done=true;clearTimeout(timer);h.api=window.XiantuMapFxV2868104||null;h.failed=!h.api;resolve(h.api);};const timer=setTimeout(finish,10000);s.src='./xiantu-v2868104-map-fx.js?v='+encodeURIComponent(window.__xiantuBuildFilesV2814?.['xiantu-v28684-duel.js']||'28.68.113');s.onload=finish;s.onerror=finish;document.head.appendChild(s);});return h.loading;
+ h.loading=new Promise(resolve=>{const s=document.createElement('script');let done=false;const finish=()=>{if(done)return;done=true;clearTimeout(timer);h.api=window.XiantuMapFxV2868104||null;h.failed=!h.api;resolve(h.api);};const timer=setTimeout(finish,10000);s.src='./xiantu-v2868104-map-fx.js?v='+encodeURIComponent(window.__xiantuBuildFilesV2814?.['xiantu-v28684-duel.js']||'28.68.116');s.onload=finish;s.onerror=finish;document.head.appendChild(s);});return h.loading;
 }
 function mapFxCancelV2868104(){const h=MAP_FX_HOST_V2868104;h.revision++;try{h.api?.pause(true);}catch(_){h.failed=true;}}
 function mapFxFrameV2868104(t){

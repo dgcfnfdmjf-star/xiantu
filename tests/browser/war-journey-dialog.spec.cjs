@@ -31,7 +31,7 @@ test('war merit exchange: cancel, reopen, double-confirm and stale merit spend e
 
 test('after-battle recovery: cancel keeps pills, double-confirm spends once, stale bag spends nothing',async({page})=>{
  await boot(page);
- const open=()=>page.evaluate(()=>{player.hp=getMaxHp()-80;player.inventory=['小还丹','小还丹','小还丹'];lastBattleV2838={owner:player,name:'野狼',gold:5,exp:5};showAfterBattleV2838(player);});
+ const open=()=>page.evaluate(()=>{player.tutorial.skipped=true;player.hp=getMaxHp()-80;player.inventory=['小还丹','小还丹','小还丹'];lastBattleV2838={owner:player,name:'野狼',gold:5,exp:5};showAfterBattleV2838(player);});
  const bag=()=>page.evaluate(()=>[player.inventory.length,player.hp===getMaxHp()]);
  await open();const recover=page.locator('#afterBattleV2838 [data-after="recover"]');
  await recover.click();await press(page,'cancel');expect(await bag()).toEqual([3,false]);
