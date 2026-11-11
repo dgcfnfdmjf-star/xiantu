@@ -1378,7 +1378,7 @@ c50e9123437a2899d7ac4aaab2e9b840c7469a431db4bc3b2dbd19245cbc359e  games/healing-
 c2414ed83c79150f6bd7341cfa556a92caaa5bff4869f7c7f155c7924db27f14  games/healing-game/tests/finale-audio-browser.js
 517f64c3b47062e6d71e74e256c4bf2e3d9c136adc8bacd1ce3d211cbd50ccf1  games/healing-game/tests/journey-browser.js
 43cf4074b84a14b6bb341c121bf2e331c45427e0ce532a88a3474babae19b551  games/healing-game/tests/l2-cutscene-browser.cjs
-63734e1cb80de849a75e804e15057c2279fec9b5836daae584193d6aeefa9960  games/healing-game/tests/l2-cutscene-ingame-browser.cjs
+ddedbce7f39733b0fef8234c77ac5404f3d89ba28312f2423160ffb3d747e521  games/healing-game/tests/l2-cutscene-ingame-browser.cjs
 53b59398d72cb6e77036320c6b8a89f58be14310b816271e533a872dbb48e1ff  games/healing-game/tests/l2-cutscene.cjs
 ae7febbcbc47b09e383dfc5d86df3717af98fe397b1c8f70b0158a514912fba6  games/healing-game/tests/lotus-browser.js
 9749a6701c9e7b2e9ea821fdd0a0aa8f63235972041ef133cfe1805bb80d9c3b  games/healing-game/tests/lotus-carryover-browser.js

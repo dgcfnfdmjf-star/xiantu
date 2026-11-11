@@ -82,12 +82,22 @@ const KEY = 'healingGarden.kittens.v1';
     assert.equal(await page.locator('#l2csSkip').isVisible(), true, 'skip is reachable');
 
     // seek() moves the score with the picture.
-    await cs(() => __l2Cutscene.seek(30));
+    const seekStart = await cs(() => {
+      __l2Cutscene.seek(30);
+      return { at: performance.now(), t: __l2Cutscene.time() };
+    });
+    assert(Math.abs(seekStart.t - 30) < 0.15, 'seek starts at the requested time: ' + seekStart.t);
     let peakLive = 0;
     await page.waitForTimeout(3000); // let the level theme's tails from before the seek ring out
     for (let i = 0; i < 16; i++) { await page.waitForTimeout(250); peakLive = Math.max(peakLive, await cs(() => __musicLush.live())); }
-    score = await cs(() => ({ s: __l2Score.state(), t: __l2Cutscene.time() }));
-    assert(score.t > 36 && score.t < 39.5, 'seek keeps real time: ' + score.t);
+    score = await cs(() => ({ s: __l2Score.state(), t: __l2Cutscene.time(), at: performance.now() }));
+    // Browser round trips add time to the 16 samples, especially with software
+    // rendering. Compare the timeline with the actual monotonic clock, rather
+    // than assuming the waitForTimeout calls are the entire elapsed duration.
+    const elapsed = (score.at - seekStart.at) / 1000, advanced = score.t - seekStart.t;
+    report.seekTiming = { elapsed, advanced, drift: Math.abs(advanced - elapsed) };
+    assert(elapsed >= 7 && score.t < 60 && report.seekTiming.drift < 0.15,
+      'seek keeps real time: ' + JSON.stringify(report.seekTiming));
     assert(Math.abs(score.s.position - score.t) < 0.45 && score.s.lastStep >= 105, 'score jumped with seek: ' + JSON.stringify(score));
     assert(peakLive > 4 && peakLive <= 34, 'voice count in the busiest strain: ' + peakLive);
     report.peakLive = peakLive;
