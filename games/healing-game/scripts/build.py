@@ -1,4 +1,4 @@
-"""Build the two-file V9.2 game from the preserved V5 upload and small additions."""
+"""Build V9.5 with its recording and four local Blender cat models."""
 from pathlib import Path
 import hashlib
 import zipfile
@@ -11,7 +11,7 @@ def replace(old, new):
     assert html.count(old) == 1, (old[:100], html.count(old))
     html = html.replace(old, new)
 
-replace('<title>暮色浮岛 · 小小花园</title>', '<title>暮色浮岛 · 月汐莲湾 V9.2</title>\n<meta name="garden-version" content="9.2.0">')
+replace('<title>暮色浮岛 · 小小花园</title>', '<title>暮色浮岛 · 月汐莲湾 V9.5</title>\n<meta name="garden-version" content="9.5.0">')
 # Flush existing debounced saves before the page can be frozen or discarded.
 for comment, source in [('private mode / quota: ignore', 'garden'), ('ignore', 'butterflies')]:
     old = '''  var saveTimer = null;
@@ -71,7 +71,7 @@ replace('''  function store(k, v) {
   document.addEventListener('visibilitychange', flushKitWrites);''')
 replace('  function save() { store(SAVE_KEY, JSON.stringify(S)); }', "  function save() { store(SAVE_KEY, JSON.stringify(S)); }\n  function level3Unlocked() { return S.ended || S.total >= GOAL || (window.GardenJourney && window.GardenJourney.unlocked(3)); }")
 replace('  function setLevels(open) {\n    if (open && endingUp) return;', "  function setLevels(open) {\n    if (open && endingUp) return;\n    if (open && window.GardenJourney && window.GardenJourney.ready) { window.GardenJourney.open('journey'); return; }")
-replace("    var lb = $('kitLevelBtn'); if (lb) lb.style.display = on ? 'block' : 'none';", "    var lb = $('kitLevelBtn'); if (lb) { lb.style.display = 'block'; lb.textContent = '✧ 旅程手账'; }")
+replace("    var lb = $('kitLevelBtn'); if (lb) lb.style.display = on ? 'block' : 'none';", "    var lb = $('kitLevelBtn'); if (lb) { lb.style.display = 'block'; lb.textContent = '🗺 选关'; lb.setAttribute('aria-label', '打开选关，切换章节并保留进度'); }")
 replace('    if (endingUp) return;\n    if (n === 2 && !isUnlocked()) return;', '    if (endingUp || (n !== 1 && n !== 2 && n !== 3 && n !== 4)) return;\n    if (n === 2 && !isUnlocked()) return;\n    if (n === 3 && !level3Unlocked()) return;\n    if (n === 4 && (!window.GardenJourney || !window.GardenJourney.unlocked(4))) return;')
 replace('    hideButterflies(two);', '    hideButterflies(n !== 1);')
 replace("    if (bh) bh.style.display = two ? 'none' : '';", "    if (bh) bh.style.display = n !== 1 ? 'none' : '';")
@@ -197,9 +197,7 @@ replace('players[i].out.disconnect(); players[i].send.disconnect();', 'players[i
 
 replace('if (performance.now() - cam.lastInput > 4000)', 'if (performance.now() - cam.lastInput > 4000 && !(window.LotusChapter && window.LotusChapter.cameraBusy()))')
 
-# Chapter 5 extends only the level gate and the shared recording eligibility.
-# The chapter-3 recording implementation remains byte-for-byte in its source file.
-replace('window.__kittens.state().level !== 3', '(window.__kittens.state().level !== 3 && window.__kittens.state().level !== 5)')
+# Chapter 5 extends the level gate. Its own score uses the existing synth transport.
 replace('S.level = d.level === 4 ? 4 :', 'S.level = d.level === 5 ? 5 : d.level === 4 ? 4 :')
 replace('n !== 3 && n !== 4', 'n !== 3 && n !== 4 && n !== 5')
 replace('    if (n === 4 && (!window.GardenJourney || !window.GardenJourney.unlocked(4))) return;', '    if (n === 5 && (!window.GardenJourney || !window.GardenJourney.unlocked(5))) return;\n    if (n === 4 && (!window.GardenJourney || !window.GardenJourney.unlocked(4))) return;')
@@ -216,6 +214,11 @@ replace("bk.textContent = n === 4 ?", "bk.textContent = n === 5 ? '📖 月莲' 
 replace("H.toast(n === 4 ? window.ChimeChapter.hint()", "H.toast(n === 5 ? window.LotusChapter.hint() : n === 4 ? window.ChimeChapter.hint()")
 replace("toast(lv === 4 ?", "toast(lv === 5 ? '欢迎来到月汐莲湾，循着六朵月莲找回归途 ☾' : lv === 4 ?")
 replace("window.__kittens.state().level === 4 ? window.ChimeChapter.hint()", "window.__kittens.state().level === 5 ? window.LotusChapter.hint() : window.__kittens.state().level === 4 ? window.ChimeChapter.hint()")
+exec((ROOT / 'scripts/feedback-v94.py').read_text())
+exec((ROOT / 'scripts/butterfly-v94.py').read_text())
+exec((ROOT / 'scripts/cats-v95.py').read_text())
+# Pin the loader locally and keep the model adapter ready before kitten init.
+replace('<script>/* kittens.js', '<script>\n' + (ROOT / 'assets/cats/vendor/three-r128/GLTFLoader.js').read_text() + '\n</script>\n<script>\n' + (ROOT / 'src/cat-models.js').read_text() + '\n</script>\n<script>/* kittens.js')
 replace("<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps", '<style>\n' + (ROOT / 'src/journey.css').read_text() + '\n' + (ROOT / 'src/chime-chapter.css').read_text() + '\n' + (ROOT / 'src/lotus-chapter.css').read_text() + '\n</style>\n<script>\n' + '\n</script>\n<script>\n'.join('\n'.join((ROOT / ('src/' + part + '.js')).read_text() for part in name.split('+')) for name in ['clipping', 'chime-rules', 'lotus-rules', 'save-guard+journey', 'level3plus', 'level3fx', 'voyage', 'chime-chapter', 'lotus-chapter', 'music-lush']) + "\n</script>\n<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps")
 out = ROOT / 'site/healing-game/index.html'
 out.parent.mkdir(parents=True, exist_ok=True)
@@ -224,13 +227,23 @@ asset = (ROOT / 'assets/nightvoyage-bgm.mp3').read_bytes()
 assert len(asset) == 2161729
 assert hashlib.sha256(asset).hexdigest() == '19a90003e4b3b45c075b4c1da5a81341fddac954397d481e680a6ea3c1a5cb31'
 (out.parent / 'nightvoyage-bgm.mp3').write_bytes(asset)
-archive = ROOT.parents[1] / 'downloads/healing-game-v9.2-tencent.zip'
+package_files = [('index.html', html.encode()), ('nightvoyage-bgm.mp3', asset)]
+for kind in ('orange', 'calico', 'black', 'tabby'):
+    name = 'cats/' + kind + '-cat.glb'
+    data = (ROOT / 'assets' / name).read_bytes()
+    assert data[:4] == b'glTF', name
+    target = out.parent / name
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(data)
+    package_files.append((name, data))
+archive = ROOT / 'releases/healing-game-v9.5-tencent.zip'
+archive.parent.mkdir(parents=True, exist_ok=True)
 # Stable timestamps and bytes make the downloadable release reproducible.
 with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
-    for name, data in [('index.html', html.encode()), ('nightvoyage-bgm.mp3', asset)]:
+    for name, data in package_files:
         entry = zipfile.ZipInfo('healing-game/' + name, (2026, 11, 5, 0, 0, 0))
         entry.compress_type = zipfile.ZIP_DEFLATED
         entry.external_attr = 0o100644 << 16
         z.writestr(entry, data)
-archive.with_name('healing-game-v9.2-SHA256SUMS.txt').write_text(hashlib.sha256(archive.read_bytes()).hexdigest() + '  ' + archive.name + '\n')
-print(f'Built V9.2: {len(out.read_bytes())} bytes; ZIP: {archive.stat().st_size} bytes')
+archive.with_name('healing-game-v9.5-SHA256SUMS.txt').write_text(hashlib.sha256(archive.read_bytes()).hexdigest() + '  ' + archive.name + '\n')
+print(f'Built V9.5: {len(out.read_bytes())} bytes; cats: {sum(len(data) for _, data in package_files[2:])} bytes; ZIP: {archive.stat().st_size} bytes')

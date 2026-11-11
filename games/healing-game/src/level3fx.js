@@ -11,8 +11,8 @@
 (function (window, document) {
   'use strict';
   var GA = window.GardenAudio, K = GA && GA.kit;
-  var SPARK_TIME = 0.8, FADE_IN = 0.9, HIT_PX = 28, SWIPE_PX = 9, STEP_PX = 14, CATCHABLE_FADE = 0.3;
-  var CORE_Y = 0.91, RING_R = 0.31, LABEL_Y = 1.62, STAGES = 4;
+  var SPARK_TIME = 0.8, FADE_IN = 0.9, WISP_HIT_PX = 44, LAMP_HIT_PX = 36, SWIPE_PX = 9, STEP_PX = 14, CATCHABLE_FADE = 0.3;
+  var CORE_Y = 0.91, RING_R = 0.31, LABEL_Y = 1.62, READY_Y = 2.45, STAGES = 4;
   var INK = ['#ffb3cd', '#a9efd8', '#89d7ff'];
   var H, T, J, group, sparks = [], lampFx = [], active = false, inflight = 0;
   var temp, temp2, scr, dimCol, warmCol, dustCol, originalCard = null;
@@ -39,15 +39,15 @@
     ].join('\n');
     document.body.appendChild(st); // after journey's stylesheet in the body, which sets the same rules
   }
-  var LV3_ITEMS = ['✦ 轻点或划过星萤，收集星光', '🕯 每集满 4 点，轻点发亮的星灯 · 小圆点是灯偏爱的星萤', '🌷 种花 · 🏮 许愿 · ✨ 唤萤 · 📖 星萤', '👆 双指旋转 / 缩放视角'];
+  var LV3_ITEMS = ['✦ 只接当前灯偏爱的两种颜色，每只 +1；其他颜色不加分也不扣分', '🕯 每集满 4 点，轻点任一未亮星灯或上方编号；点亮三盏就完成', '当前灯是编号最小的未亮灯；任务卡写明偏爱色，灯旁色点也可对照', '🌷 种花 · 🏮 许愿 · ✨ 唤萤 · 📖 星萤', '👆 双指旋转 / 缩放视角 · 没有时间限制'];
   var CARDS = {
     5: { p: '月色落在一湾静水里，六朵莲花在等光。<br>找回月露、倒影和光路，陪一叶小舟归航。<br>不用赶路，也不用担心做错。', items: ['☾ 六朵月莲，各有一种温柔的小目标', '接月露、转月镜、引光与合奏；没有限时', '📖 六朵月莲会收入收藏手账', '完成后可留下来，听听月色'] },
     4: { p: '星灯歇下，晨风带来了六枚风铃。<br>听一遍，再按编号奏回三段旋律，<br>把早安送给醒来的小岛。', items: ['♪ 先听旋律，再点风铃或底部编号', '📖 可查看乐谱，静音也有编号提示', '✧ 三段旋律与六枚音符可存档续玩', '没有限时，错音可以慢慢重来'] },
     2: { p: '小猫们在花丛里等你，<br>丢个毛线球，再轻轻抱抱它们，<br>收集 20 点，就能去往星灯湾。',
       items: ['🐱 轻点小猫丢毛线球，再点一下抱抱它', '✨ 稀有的小猫值更多点数', '🌷 种花 · 🏮 放灯 · 📖 猫谱', '👆 双指旋转 / 缩放视角'] },
-    3: { p: '夜色落在云海上，三座星灯还在沉睡。<br>彩色的星萤绕着小岛飞舞，<br>把它们的光送到灯里吧。', items: LV3_ITEMS },
+    3: { p: '夜色落在云海上，三座星灯还在沉睡。<br>先按当前灯的偏爱色收集 4 点星光，<br>再轻点发亮的灯，把三盏依次点亮。', items: LV3_ITEMS },
     done: { p: '三座星灯都亮着，云海有了归途。<br>星萤还在岛上慢慢飞，<br>留下来，陪它们看一会儿夜色吧。',
-      items: ['✦ 轻点或划过星萤，把它们记进图鉴', LV3_ITEMS[2], LV3_ITEMS[3]] }
+      items: ['✦ 轻点或划过星萤，把它们记进图鉴', LV3_ITEMS[3], LV3_ITEMS[4]] }
   };
   function startCard(level) {
     var card = document.querySelector('#start .card'), p = card && card.querySelector('p'), ul = card && card.querySelector('ul');
@@ -55,6 +55,7 @@
     if (!originalCard) originalCard = { p: p.innerHTML, ul: ul.innerHTML };
     var copy = level === 3 && J.allLit() ? CARDS.done : CARDS[level];
     p.innerHTML = copy ? copy.p : originalCard.p;
+    if (level === 3 && !J.allLit() && window.__voyage.wishHint) p.innerHTML += '<br>' + window.__voyage.wishHint();
     ul.innerHTML = copy ? '<li>' + copy.items.join('</li><li>') + '</li>' : originalCard.ul;
   }
   // 放灯 and 萤火 name other things in level 3, where the lamps and 星萤 are the story
@@ -79,7 +80,7 @@
     return { x: scr.x, y: scr.y };
   }
   function wispAt(x, y) {
-    var best = null, distance = HIT_PX;
+    var best = null, distance = WISP_HIT_PX;
     J.wisps.forEach(function (w) {
       if (!w.g.visible || w.cooldown > 0 || w.fade < CATCHABLE_FADE) return;
       w.g.getWorldPosition(temp);
@@ -91,12 +92,13 @@
   }
   // Distance to the on-screen line from pedestal foot to number label, so the whole lamp answers at any zoom or angle
   function lampAt(x, y) {
-    var best = -1, distance = HIT_PX;
+    var best = -1, distance = LAMP_HIT_PX;
     J.lamps.forEach(function (l, i) {
       l.g.getWorldPosition(temp);
       if (!toScreen(temp)) return;
       var ax = scr.x, ay = scr.y;
-      temp.set(0, LABEL_Y, 0); l.g.localToWorld(temp);
+      var ready = !J.lit(i) && J.charge() >= STAGES;
+      temp.set(0, ready ? READY_Y : LABEL_Y, 0); l.g.localToWorld(temp);
       if (!toScreen(temp)) return;
       var bx = scr.x - ax, by = scr.y - ay, len = bx * bx + by * by;
       var u = len ? Math.max(0, Math.min(1, ((x - ax) * bx + (y - ay) * by) / len)) : 0;
@@ -189,13 +191,24 @@
     g.fillStyle = INK[i]; g.font = '600 36px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
     g.fillText(String(i + 1), 32, 34);
     var label = new T.Sprite(new T.SpriteMaterial({ map: new T.CanvasTexture(c), transparent: true, depthTest: false, depthWrite: false, fog: false }));
-    label.position.y = LABEL_Y; label.scale.set(0.5, 0.5, 1); label.renderOrder = 5;
+    label.position.y = LABEL_Y; label.scale.set(0.64, 0.64, 1); label.renderOrder = 5;
+    return label;
+  }
+  function makeReadyLabel() {
+    var c = document.createElement('canvas'); c.width = 192; c.height = 64;
+    var g = c.getContext('2d');
+    g.fillStyle = 'rgba(51,38,34,.94)'; g.fillRect(2, 2, 188, 60);
+    g.strokeStyle = '#ffe6aa'; g.lineWidth = 3; g.strokeRect(3, 3, 186, 58);
+    g.fillStyle = '#fff5d8'; g.font = '600 32px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText('点我点亮', 96, 33);
+    var label = new T.Sprite(new T.SpriteMaterial({ map: new T.CanvasTexture(c), transparent: true, depthTest: false, depthWrite: false, fog: false }));
+    label.position.y = READY_Y; label.scale.set(2.1, 0.7, 1); label.renderOrder = 6; label.visible = false;
     return label;
   }
   function buildLamps() {
     J.lamps.forEach(function (l, i) {
-      var fx = { on: 0, fill: 0, breath: 0, pulse: 0, pips: [], label: makeLabel(i) };
-      l.g.add(fx.label);
+      var fx = { on: 0, fill: 0, breath: 0, pulse: 0, pips: [], label: makeLabel(i), readyLabel: makeReadyLabel() };
+      l.g.add(fx.label); l.g.add(fx.readyLabel);
       for (var k = 0; k < STAGES; k++) {
         var pip = new T.Sprite(new T.SpriteMaterial({ map: H.glowTex, color: new T.Color(INK[i]), transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, fog: false }));
         var a = Math.PI / 2 - k / STAGES * Math.PI * 2; // clockwise from the top of the ring
@@ -215,20 +228,24 @@
   function updateLamps(dt, t) {
     var next = nextLamp(), allLit = next < 0;
     lampFx.forEach(function (fx, i) {
-      var l = J.lamps[i], lit = J.lit(i), goal = fillGoal(i, next);
+      var l = J.lamps[i], lit = J.lit(i), goal = fillGoal(i, next), ready = !lit && J.charge() >= STAGES;
       fx.on += ((lit ? 1 : 0) - fx.on) * Math.min(1, dt * 2.2);
       fx.fill += (goal - fx.fill) * Math.min(1, dt * 5);
-      fx.breath += ((goal === 1 ? 1 : 0) - fx.breath) * Math.min(1, dt * 2);
+      fx.breath += ((ready ? 1 : 0) - fx.breath) * Math.min(1, dt * 3);
       fx.pulse = Math.max(0, fx.pulse - dt * 1.8);
-      var wave = fx.breath * (0.5 + 0.5 * Math.sin(t * 2.1)), mix = Math.max(fx.on, fx.fill * 0.8 + wave * 0.2);
+      var wave = fx.breath * (0.5 + 0.5 * Math.sin(t * 1.8)), mix = ready ? 1 : Math.max(fx.on, fx.fill * 0.8 + wave * 0.2);
       l.core.material.color.copy(dimCol).lerp(warmCol, mix);
-      var opacity = 0.1 + fx.fill * 0.4 + wave * 0.28;
+      var coreSize = ready ? 1.65 + wave * 0.25 : 1;
+      l.core.scale.set(coreSize, coreSize, coreSize);
+      var opacity = ready ? 0.78 + wave * 0.22 : 0.1 + fx.fill * 0.4;
       l.halo.material.opacity = Math.min(1, opacity + (0.8 - opacity) * fx.on + fx.pulse * 0.25);
       // Once every lamp is lit level3plus.js sets the halo's size each frame, so only scale on top of it
-      if (!allLit) { var size = 2 + fx.fill * 0.3 + wave * 0.55; l.halo.scale.set(size, size, 1); }
+      if (!allLit) { var size = ready ? 3.3 + wave * 0.7 : 2 + fx.fill * 0.3; l.halo.scale.set(size, size, 1); }
       l.halo.scale.multiplyScalar(1 + fx.pulse * 0.22);
       fx.pips.forEach(function (pip, k) { pip.material.opacity = Math.max(0, Math.min(1, fx.fill * STAGES - k)) * (1 - fx.on) * 0.95; });
       fx.label.material.opacity = 0.95 - fx.on * 0.35;
+      fx.readyLabel.visible = ready;
+      fx.readyLabel.material.opacity = 0.9 + wave * 0.1;
     });
   }
 
@@ -238,14 +255,17 @@
       w.fade = 1;
       w.wings[0].material.transparent = true; // gem and wings share this material
       w.wings[0].material.needsUpdate = true;
+      // Enlarge the visible glow independently; solid wings keep their existing collision clearance.
+      w.glow.scale.set(2.23, 2.23, 1);
     });
   }
   function moveWisp(w, dt, t) {
     var dir = w.slot % 2 ? -1 : 1; // slot, not type: voyage.js may change a wisp's species mid-flight
     // A full orbit whose radius breathes, plus a small loop on top so no two paths look alike
-    var a = w.phase + dir * t * (0.2 + w.slot * 0.018) + Math.sin(t * 0.43 + w.phase) * 0.35;
-    var r = 2.35 + Math.sin(t * 0.31 + w.phase * 2) * 0.85;
-    w.g.position.set(Math.cos(a) * r + Math.cos(t * 1.2 + w.phase) * 0.22, H.TOP_Y + 1.55 + Math.sin(t * 0.9 + w.phase) * 0.38, Math.sin(a) * r + Math.sin(t * 1.05 + w.phase) * 0.22);
+    var flight = t * 0.55;
+    var a = w.phase + dir * flight * (0.2 + w.slot * 0.018) + Math.sin(flight * 0.43 + w.phase) * 0.35;
+    var r = 2.35 + Math.sin(flight * 0.31 + w.phase * 2) * 0.85;
+    w.g.position.set(Math.cos(a) * r + Math.cos(flight * 1.2 + w.phase) * 0.22, H.TOP_Y + 1.55 + Math.sin(flight * 0.9 + w.phase) * 0.38, Math.sin(a) * r + Math.sin(flight * 1.05 + w.phase) * 0.22);
     window.GardenClip.settleWisp(w, J.wisps);
     w.g.rotation.y = t * 0.7;
     w.wings[0].rotation.z = Math.sin(t * 8) * 0.4; w.wings[1].rotation.z = -w.wings[0].rotation.z;
@@ -254,7 +274,7 @@
     var e = w.fade * w.fade * (3 - 2 * w.fade), size = 0.35 + 0.65 * e;
     w.g.scale.set(size, size, size);
     w.wings[0].material.opacity = e;
-    w.glow.material.opacity = (0.6 + Math.sin(t * 2 + w.phase) * 0.2) * e;
+    w.glow.material.opacity = (0.82 + Math.sin(t * 1.8 + w.phase) * 0.13) * e;
   }
 
   /* ---------------------------- Swipes ----------------------------- */
@@ -271,7 +291,7 @@
       if (e.button !== 0) return;
       downs[e.pointerId] = true;
       if (Object.keys(downs).length > 1) { stroke = null; return; } // pinch / two-finger rotate
-      if (J.canPlay()) stroke = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: false, steps: 0 };
+      if (J.canPlay()) stroke = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: false, steps: 0, caught: false };
     });
     cvs.addEventListener('pointermove', function (e) {
       if (!stroke || stroke.id !== e.pointerId || e.buttons === 2 || !J.canPlay()) return;
@@ -281,13 +301,14 @@
       var steps = Math.min(80, Math.max(1, Math.ceil(len / STEP_PX)));
       for (var i = 1; i <= steps; i++) {
         var x = stroke.x + dx * i / steps, y = stroke.y + dy * i / steps, w = wispAt(x, y);
-        if (w) J.collect(w);
+        if (w && J.collect(w)) stroke.caught = true;
         if (++stroke.steps % 2 === 0) dust(x, y);
       }
       stroke.x = e.clientX; stroke.y = e.clientY;
     });
     function up(e) {
       delete downs[e.pointerId];
+      if (e.type === 'pointerup' && stroke && stroke.id === e.pointerId && stroke.moved && !stroke.caught && J.canPlay() && J.miss) J.miss();
       if (stroke && stroke.id === e.pointerId) stroke = null;
     }
     cvs.addEventListener('pointerup', up);

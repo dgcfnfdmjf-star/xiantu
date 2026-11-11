@@ -12,6 +12,7 @@
   // Radii measured from the meshes: canopy blobs reach 1.4 from their shared centre, bushes .56, lamp rings/bases .48
   var CANOPY_Y = 1.95, CANOPY_R = 1.4, LAMP_R = .48, BUSH_R = .56, CAT_R = .55, FLOWER_R = .3;
   var chime = { x: 3.3, z: -2.1, on: false };
+  var butterflyForward = null;
 
   // Moves (x, z) on p out of a circle. Continuous at the rim, so nothing visibly pops.
   function pushCircle(p, cx, cz, r, share) {
@@ -67,17 +68,17 @@
       return true;
     },
     settleKitten: function (k, kittens, flowers) {
-      var i, p, pinned = k.state === 'play' || k.state === 'sleep'; // a kitten busy with its yarn or asleep stays put; others walk round it
+      var i, p, radius = k.catFootprint || .31, pinned = k.state === 'play' || k.state === 'sleep'; // a kitten busy with its yarn or asleep stays put; others walk round it
       for (i = 0; i < kittens.length; i++) {
         p = kittens[i];
         if (p === k || p.dead) continue;
-        if (p.yarn && !pinned) pushCircle(k, p.yarn.position.x, p.yarn.position.z, .45);
-        if (!pinned && p.state !== 'hug') pushCircle(k, p.x, p.z, .62, p.state === 'play' || p.state === 'sleep' ? 1 : .5);
+        if (p.yarn && !pinned) pushCircle(k, p.yarn.position.x, p.yarn.position.z, k.catFootprint ? radius + .14 : .45);
+        if (!pinned && p.state !== 'hug') pushCircle(k, p.x, p.z, radius + (p.catFootprint || .31), p.state === 'play' || p.state === 'sleep' ? 1 : .5);
       }
-      for (i = 0; i < flowers.length; i++) { p = flowers[i].root.position; pushCircle(k, p.x, p.z, FLOWER_R + .2); }
-      if (chime.on) pushCircle(k, chime.x, chime.z, .35);
-      pushCircle(k, CAT.x, CAT.z, CAT_R + .25);
-      for (i = 0; i < BUSHES.length; i++) pushCircle(k, BUSHES[i][0], BUSHES[i][1], BUSH_R + .3);
+      for (i = 0; i < flowers.length; i++) { p = flowers[i].root.position; pushCircle(k, p.x, p.z, FLOWER_R + (k.catFootprint || .2)); }
+      if (chime.on) pushCircle(k, chime.x, chime.z, k.catFootprint ? radius + .05 : .35);
+      pushCircle(k, CAT.x, CAT.z, CAT_R + (k.catFootprint || .25));
+      for (i = 0; i < BUSHES.length; i++) pushCircle(k, BUSHES[i][0], BUSHES[i][1], BUSH_R + (k.catFootprint || .3));
     },
     // World space: butterflies live in the scene, so island-local props are shifted by the island's bob
     settleButterfly: function (p, list, self, iy, flowers) {
@@ -114,7 +115,28 @@
       }
       if (p.y < TOP_Y + 3.6) pushCircle(p, TREE.x, TREE.z, CANOPY_R + .2);
     },
-    // Keeps a world position outside a sphere around the camera, so it never reaches the near plane
+    // Butterflies retain their collision-safe flight position. Near the camera
+    // they taper away instead of being pushed through the tree or other props.
+    // A sphere alone cannot protect a near plane while orbiting: use view depth.
+    keepButterflyFromCamera: function (g, camera) {
+      var p = g.position, c = camera.position;
+      if (!butterflyForward) butterflyForward = p.clone();
+      camera.getWorldDirection(butterflyForward);
+      var dx = p.x - c.x, dy = p.y - c.y, dz = p.z - c.z;
+      var depth = dx * butterflyForward.x + dy * butterflyForward.y + dz * butterflyForward.z;
+      g.visible = depth > 3.2;
+      if (!g.visible) { g.scale.set(0, 0, 0); return; }
+      // .70 encloses the .62 x .62 hinged wing, including every flap/bank.
+      // Bound its perspective size even off axis and at portrait aspect ratios.
+      var tangent = Math.tan(camera.fov * Math.PI / 360) / (camera.zoom || 1) * Math.min(1, camera.aspect);
+      var side = Math.sqrt(Math.max(0, dx * dx + dy * dy + dz * dz - depth * depth));
+      var limit = .28 * tangent;
+      var maxScale = depth * limit / (1 + side / depth + limit) / .70;
+      var fade = Math.min(1, (depth - 3.2) / 1.3);
+      var scale = Math.min(g.scale.x, maxScale) * fade;
+      g.scale.set(scale, scale, scale);
+    },
+    // World-position sphere clearance remains useful for the distant clouds.
     keepFromCamera: function (p, cam, r) { pushSphere(p, cam.x, cam.y, cam.z, r); }
   };
 })(window);

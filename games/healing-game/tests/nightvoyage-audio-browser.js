@@ -13,7 +13,7 @@ async root => {
   await p.addInitScript(()=>{
    localStorage.setItem('hg_level2_unlocked','1');
    localStorage.setItem('healingGarden.kittens.v1',JSON.stringify({total:20,ended:true,level:3}));
-   localStorage.setItem('healingGarden.journey.v1',JSON.stringify({lamps:[true,true,true],completed:[1,2,3]}));
+   localStorage.setItem('healingGarden.journey.v1',JSON.stringify({lamps:[true,true,true],completed:[1,2,3],chimes:{round:3}}));
    window.requestAnimationFrame=()=>0;
    window.audioProbe={sources:[],pads:0};
    const proto=AudioContext.prototype, orig=proto.createBufferSource;
@@ -45,8 +45,9 @@ async root => {
    await p.locator('#btnMusic').click();assert(await p.evaluate(()=>audioProbe.sources[0].probeStopped),'toggle stops recording');
    await p.waitForTimeout(1100); await p.locator('#btnMusic').click();
    await p.waitForFunction(()=>audioProbe.sources.length===2,null,{polling:50});
-   for(const n of [1,2,4]){
+   for(const n of [1,2,4,5]){
     await p.evaluate(n=>__kittens.setLevel(n,false),n);
+    assert(await p.evaluate(n=>__kittens.state().level===n,n),'entered exit-test level '+n);
     assert(await p.evaluate(()=>audioProbe.sources.every(s=>s.probeStopped)),'leaving stops MP3 for level '+n);
     const prior=await p.evaluate(()=>audioProbe.sources.length);
     await p.evaluate(()=>GardenAudio.setTrack(__music2.tracks.find(t=>t.id==='nightvoyage').index));

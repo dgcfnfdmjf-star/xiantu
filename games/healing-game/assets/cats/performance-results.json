@@ -1,0 +1,4461 @@
+{
+  "conditions": {
+    "samples": 3,
+    "device": "390 × 844 CSS pixels, DPR 2, touch/mobile emulation",
+    "browserMode": "Headless system Chromium",
+    "cache": "Fresh browser context per sample; browser cache disabled by CDP; each GLB served with Cache-Control: no-store",
+    "clock": "performance.now(): chapter-two entry to all live requested models plus ambient attached",
+    "decode": "Attach time minus GLB responseEnd includes parse, image decode, normalization and JavaScript scheduling. The two-RAF checkpoint includes subsequent browser scheduling/rendering; it does not isolate GPU upload time.",
+    "limitation": "Cloud SwiftShader/software rendering and emulated network; these are not physical iPhone timings or physical mobile FPS.",
+    "frameScene": "Seeded scenery, fixed coat sequence and size1.3; cats held idle by synthetic fixture. Final-model settled positions reused by baseline (asserted within0.005 island units). Five-second frame sample after1.8-second warmup. Unrelated world motion remains active.",
+    "referenceLayout": "Actor positions copied from output/playwright/cat-models/performance-high-detail.json for both final and baseline scenes; matching asserted within 0.005 island units.",
+    "coldDefinition": "Browser HTTP cache cold; local server and operating-system file cache may already be warm.",
+    "poseLimit": "Actor positions, sizes and coat order match; yaw and exact animation time are not reproduced. Chromium process/GPU caches may be warm."
+  },
+  "profiles": [
+    {
+      "name": "local-unthrottled",
+      "latency": 0,
+      "downloadThroughput": -1,
+      "uploadThroughput": -1,
+      "description": "Cold local HTTP, CDP throttling disabled"
+    },
+    {
+      "name": "fast-4g",
+      "latency": 60,
+      "downloadThroughput": 1125000,
+      "uploadThroughput": 187500,
+      "description": "CDP emulation: 9 Mbps down, 1.5 Mbps up, 60 ms request latency"
+    },
+    {
+      "name": "slow-4g",
+      "latency": 150,
+      "downloadThroughput": 200000,
+      "uploadThroughput": 93750,
+      "description": "CDP emulation: 1.6 Mbps down, 750 kbps up, 150 ms request latency"
+    }
+  ],
+  "loads": [
+    {
+      "variant": "high-detail-current",
+      "profile": "local-unthrottled",
+      "sample": 1,
+      "allAttachedMs": 771.5,
+      "assets": [
+        {
+          "kind": "orange",
+          "encodedBytes": 948728,
+          "transferredBytes": 949028,
+          "startAfterEntryMs": 2.199999999254942,
+          "responseEndAfterEntryMs": 15.799999997019768,
+          "downloadMs": 13.599999997764826,
+          "attachAfterEntryMs": 369.5,
+          "responseEndToAttachMs": 353.70000000298023
+        },
+        {
+          "kind": "calico",
+          "encodedBytes": 975672,
+          "transferredBytes": 975972,
+          "startAfterEntryMs": 3.7999999970197678,
+          "responseEndAfterEntryMs": 17.599999997764826,
+          "downloadMs": 13.800000000745058,
+          "attachAfterEntryMs": 624.3999999985099,
+          "responseEndToAttachMs": 606.8000000007451
+        },
+        {
+          "kind": "black",
+          "encodedBytes": 937696,
+          "transferredBytes": 937996,
+          "startAfterEntryMs": 4.099999997764826,
+          "responseEndAfterEntryMs": 17.799999997019768,
+          "downloadMs": 13.699999999254942,
+          "attachAfterEntryMs": 619.6999999992549,
+          "responseEndToAttachMs": 601.9000000022352
+        },
+        {
+          "kind": "tabby",
+          "encodedBytes": 961940,
+          "transferredBytes": 962240,
+          "startAfterEntryMs": 4.399999998509884,
+          "responseEndAfterEntryMs": 18.399999998509884,
+          "downloadMs": 14,
+          "attachAfterEntryMs": 771.5,
+          "responseEndToAttachMs": 753.1000000014901
+        }
+      ],
+      "ambientAttachedMs": 368.79999999701977,
+      "liveCats": 6,
+      "twoAnimationFramesAfterReadyMs": 1173.2999999970198
+    },
+    {
+      "variant": "models",
+      "profile": "local-unthrottled",
+      "sample": 1,
+      "allAttachedMs": 610.6000000014901,
+      "assets": [
+        {
+          "kind": "orange",
+          "encodedBytes": 284156,
+          "transferredBytes": 284456,
+          "startAfterEntryMs": 2.100000001490116,
+          "responseEndAfterEntryMs": 12.900000002235174,
+          "downloadMs": 10.800000000745058,
+          "attachAfterEntryMs": 419.9000000022352,
+          "responseEndToAttachMs": 407
+        },
+        {
+          "kind": "calico",
+          "encodedBytes": 306212,
+          "transferredBytes": 306512,
+          "startAfterEntryMs": 3.900000002235174,
+          "responseEndAfterEntryMs": 16.900000002235174,
+          "downloadMs": 13,
+          "attachAfterEntryMs": 610.6000000014901,
+          "responseEndToAttachMs": 593.6999999992549
+        },
+        {
+          "kind": "black",
+          "encodedBytes": 265032,
+          "transferredBytes": 265332,
+          "startAfterEntryMs": 4.199999999254942,
+          "responseEndAfterEntryMs": 15.100000001490116,
+          "downloadMs": 10.900000002235174,
+          "attachAfterEntryMs": 417.6000000014901,
+          "responseEndToAttachMs": 402.5
+        },
+        {
+          "kind": "tabby",
+          "encodedBytes": 294004,
+          "transferredBytes": 294304,
+          "startAfterEntryMs": 4.699999999254942,
+          "responseEndAfterEntryMs": 16,
+          "downloadMs": 11.300000000745058,
+          "attachAfterEntryMs": 608.5,
+          "responseEndToAttachMs": 592.5
+        }
+      ],
+      "ambientAttachedMs": 419.80000000074506,
+      "liveCats": 6,
+      "twoAnimationFramesAfterReadyMs": 845.1000000014901
+    },
+    {
+      "variant": "high-detail-current",
+      "profile": "local-unthrottled",
+      "sample": 2,
+      "allAttachedMs": 298.5,
+      "assets": [
+        {
+          "kind": "orange",
+          "encodedBytes": 948728,
+          "transferredBytes": 949028,
+          "startAfterEntryMs": 2.099999997764826,
+          "responseEndAfterEntryMs": 13.5,
+          "downloadMs": 11.400000002235174,
+          "attachAfterEntryMs": 291.0999999977648,
+          "responseEndToAttachMs": 277.5999999977648
+        },
+        {
+          "kind": "calico",
+          "encodedBytes": 975672,
+          "transferredBytes": 975972,
+          "startAfterEntryMs": 3.699999999254942,
+          "responseEndAfterEntryMs": 14.199999999254942,
+          "downloadMs": 10.5,
+          "attachAfterEntryMs": 298.5,
+          "responseEndToAttachMs": 284.30000000074506
+        },
+        {
+          "kind": "black",
+          "encodedBytes": 937696,
+          "transferredBytes": 937996,
+          "startAfterEntryMs": 3.899999998509884,
+          "responseEndAfterEntryMs": 22.399999998509884,
+          "downloadMs": 18.5,
+          "attachAfterEntryMs": 296,
+          "responseEndToAttachMs": 273.6000000014901
+        },
+        {
+          "kind": "tabby",
+          "encodedBytes": 961940,
+          "transferredBytes": 962240,
+          "startAfterEntryMs": 4.099999997764826,
+          "responseEndAfterEntryMs": 22.5,
+          "downloadMs": 18.400000002235174,
+          "attachAfterEntryMs": 293.79999999701977,
+          "responseEndToAttachMs": 271.29999999701977
+        }
+      ],
+      "ambientAttachedMs": 290,
+      "liveCats": 6,
+      "twoAnimationFramesAfterReadyMs": 885
+    },
+    {
+      "variant": "models",
+      "profile": "local-unthrottled",
+      "sample": 2,
+      "allAttachedMs": 677,
+      "assets": [
+        {
+          "kind": "orange",
+          "encodedBytes": 284156,
+          "transferredBytes": 284456,
+          "startAfterEntryMs": 2.100000001490116,
+          "responseEndAfterEntryMs": 21.5,
+          "downloadMs": 19.399999998509884,
+          "attachAfterEntryMs": 399,
+          "responseEndToAttachMs": 377.5
+        },
+        {
+          "kind": "calico",
+          "encodedBytes": 306212,
+          "transferredBytes": 306512,
+          "startAfterEntryMs": 4.399999998509884,
+          "responseEndAfterEntryMs": 21.800000000745058,
+          "downloadMs": 17.400000002235174,
+          "attachAfterEntryMs": 575.8000000007451,
+          "responseEndToAttachMs": 554
+        },
+        {
+          "kind": "black",
+          "encodedBytes": 265032,
+          "transferredBytes": 265332,
+          "startAfterEntryMs": 5,
+          "responseEndAfterEntryMs": 21.699999999254942,
+          "downloadMs": 16.699999999254942,
+          "attachAfterEntryMs": 573.8000000007451,
+          "responseEndToAttachMs": 552.1000000014901
+        },
+        {
+          "kind": "tabby",
+          "encodedBytes": 294004,
+          "transferredBytes": 294304,
+          "startAfterEntryMs": 5.600000001490116,
+          "responseEndAfterEntryMs": 21.800000000745058,
+          "downloadMs": 16.199999999254942,
+          "attachAfterEntryMs": 677,
+          "responseEndToAttachMs": 655.1999999992549
+        }
+      ],
+      "ambientAttachedMs": 398.80000000074506,
+      "liveCats": 6,
+      "twoAnimationFramesAfterReadyMs": 870.8000000007451
+    },
+    {
+      "variant": "high-detail-current",
+      "profile": "local-unthrottled",
+      "sample": 3,
+      "allAttachedMs": 512.9000000022352,
+      "assets": [
+        {
+          "kind": "orange",
+          "encodedBytes": 948728,
+          "transferredBytes": 949028,
+          "startAfterEntryMs": 2,
+          "responseEndAfterEntryMs": 13.800000000745058,
+          "downloadMs": 11.800000000745058,
+          "attachAfterEntryMs": 510.19999999925494,
+          "responseEndToAttachMs": 496.3999999985099
+        },
+        {
+          "kind": "calico",
+          "encodedBytes": 975672,
+          "transferredBytes": 975972,
+          "startAfterEntryMs": 3.600000001490116,
+          "responseEndAfterEntryMs": 14.400000002235174,
+          "downloadMs": 10.800000000745058,
+          "attachAfterEntryMs": 310.19999999925494,
+          "responseEndToAttachMs": 295.79999999701977
+        },
+        {
+          "kind": "black",
+          "encodedBytes": 937696,
+          "transferredBytes": 937996,
+          "startAfterEntryMs": 3.900000002235174,
+          "responseEndAfterEntryMs": 17.5,
+          "downloadMs": 13.599999997764826,
+          "attachAfterEntryMs": 512.9000000022352,
+          "responseEndToAttachMs": 495.4000000022352
+        },
+        {
+          "kind": "tabby",
+          "encodedBytes": 961940,
+          "transferredBytes": 962240,
+          "startAfterEntryMs": 4.199999999254942,
+          "responseEndAfterEntryMs": 17.600000001490116,
+          "downloadMs": 13.400000002235174,
+          "attachAfterEntryMs": 307.80000000074506,
+          "responseEndToAttachMs": 290.19999999925494
+        }
+      ],
+      "ambientAttachedMs": 510.1000000014901,
+      "liveCats": 6,
+      "twoAnimationFramesAfterReadyMs": 970.6999999992549
+    },
+    {
+      "variant": "models",
+      "profile": "local-unthrottled",
+      "sample": 3,
+      "allAttachedMs": 517.6999999992549,
+      "assets": [
+        {
+          "kind": "orange",
+          "encodedBytes": 284156,
+          "transferredBytes": 284456,
+          "startAfterEntryMs": 2.599999997764826,
+          "responseEndAfterEntryMs": 17.099999997764826,
+          "downloadMs": 14.5,
+          "attachAfterEntryMs": 294.3999999985099,
+          "responseEndToAttachMs": 277.30000000074506
+        },
+        {
+          "kind": "calico",
+          "encodedBytes": 306212,
+          "transferredBytes": 306512,
+          "startAfterEntryMs": 4.399999998509884,
+          "responseEndAfterEntryMs": 19.300000000745058,
+          "downloadMs": 14.900000002235174,
+          "attachAfterEntryMs": 299.3999999985099,
+          "responseEndToAttachMs": 280.0999999977648
+        },
+        {
+          "kind": "black",
+          "encodedBytes": 265032,
+          "transferredBytes": 265332,
+          "startAfterEntryMs": 4.699999999254942,
+          "responseEndAfterEntryMs": 19.199999999254942,
+          "downloadMs": 14.5,
+          "attachAfterEntryMs": 517.6999999992549,
+          "responseEndToAttachMs": 498.5
+        },
+        {
+          "kind": "tabby",
+          "encodedBytes": 294004,
+          "transferredBytes": 294304,
+          "startAfterEntryMs": 4.899999998509884,
+          "responseEndAfterEntryMs": 19.399999998509884,
+          "downloadMs": 14.5,
+          "attachAfterEntryMs": 297.3999999985099,
+          "responseEndToAttachMs": 278
+        }
+      ],
+      "ambientAttachedMs": 294,
+      "liveCats": 6,
+      "twoAnimationFramesAfterReadyMs": 712.5
+    },
+    {
+      "variant": "high-detail-current",
+      "profile": "fast-4g",
+      "sample": 1,
+      "allAttachedMs": 3954.5,
+      "assets": [
+        {
+          "kind": "orange",
+          "encodedBytes": 948728,
+          "transferredBytes": 949028,
+          "startAfterEntryMs": 2,
+          "responseEndAfterEntryMs": 3435.400000002235,
+          "downloadMs": 3433.400000002235,
+          "attachAfterEntryMs": 3846.400000002235,
+          "responseEndToAttachMs": 411
+        },
+        {
+          "kind": "calico",
+          "encodedBytes": 975672,
+          "transferredBytes": 975972,
+          "startAfterEntryMs": 3.900000002235174,
+          "responseEndAfterEntryMs": 3477.60000000149,
+          "downloadMs": 3473.699999999255,
+          "attachAfterEntryMs": 3949.300000000745,
+          "responseEndToAttachMs": 471.69999999925494
+        },
+        {
+          "kind": "black",
+          "encodedBytes": 937696,
+          "transferredBytes": 937996,
+          "startAfterEntryMs": 4.400000002235174,
+          "responseEndAfterEntryMs": 3388.5,
+          "downloadMs": 3384.099999997765,
+          "attachAfterEntryMs": 3693.2000000029802,
+          "responseEndToAttachMs": 304.70000000298023
+        },
+        {
+          "kind": "tabby",
+          "encodedBytes": 961940,
+          "transferredBytes": 962240,
+          "startAfterEntryMs": 4.800000000745058,
+          "responseEndAfterEntryMs": 3469,
+          "downloadMs": 3464.199999999255,
+          "attachAfterEntryMs": 3954.5,
+          "responseEndToAttachMs": 485.5
+        }
+      ],
+      "ambientAttachedMs": 3846.300000000745,
+      "liveCats": 6,
+      "twoAnimationFramesAfterReadyMs": 4385.300000000745
+    },
+    {
+      "variant": "models",
+      "profile": "fast-4g",
+      "sample": 1,
+      "allAttachedMs": 1553.699999999255,
+      "assets": [
+        {
+          "kind": "orange",
+          "encodedBytes": 284156,
+          "transferredBytes": 284456,
+          "startAfterEntryMs": 2,
+          "responseEndAfterEntryMs": 1064.1000000014901,
+          "downloadMs": 1062.1000000014901,
+          "attachAfterEntryMs": 1454.8999999985099,
+          "responseEndToAttachMs": 390.79999999701977
+        },
+        {
+          "kind": "calico",
+          "encodedBytes": 306212,
+          "transferredBytes": 306512,
+          "startAfterEntryMs": 3.600000001490116,
+          "responseEndAfterEntryMs": 1096.3999999985099,
+          "downloadMs": 1092.7999999970198,
+          "attachAfterEntryMs": 1553.699999999255,
+          "responseEndToAttachMs": 457.30000000074506
+        },
+        {
+          "kind": "black",
+          "encodedBytes": 265032,
+          "transferredBytes": 265332,
+          "startAfterEntryMs": 3.800000000745058,
+          "responseEndAfterEntryMs": 1015.6999999992549,
+          "downloadMs": 1011.8999999985099,
+          "attachAfterEntryMs": 1308.6000000014901,
+          "responseEndToAttachMs": 292.9000000022352
+        },
+        {
+          "kind": "tabby",
+          "encodedBytes": 294004,
+          "transferredBytes": 294304,
+          "startAfterEntryMs": 4.100000001490116,
+          "responseEndAfterEntryMs": 1085.6000000014901,
+          "downloadMs": 1081.5,
+          "attachAfterEntryMs": 1458,
+          "responseEndToAttachMs": 372.3999999985099
+        }
+      ],
+      "ambientAttachedMs": 1454.8999999985099,
+      "liveCats": 6,
+      "twoAnimationFramesAfterReadyMs": 1799.5
+    },
+    {
+      "variant": "high-detail-current",
+      "profile": "fast-4g",
+      "sample": 2,
+      "allAttachedMs": 4004.2000000029802,
+      "assets": [
+        {
+          "kind": "orange",
+          "encodedBytes": 948728,
+          "transferredBytes": 949028,
+          "startAfterEntryMs": 2.2000000029802322,
+          "responseEndAfterEntryMs": 3452,
+          "downloadMs": 3449.7999999970198,
+          "attachAfterEntryMs": 3879.300000000745,
+          "responseEndToAttachMs": 427.30000000074506
+        },
+        {
+          "kind": "calico",
+          "encodedBytes": 975672,
+          "transferredBytes": 975972,
+          "startAfterEntryMs": 4,
+          "responseEndAfterEntryMs": 3489,
+          "downloadMs": 3485,
+          "attachAfterEntryMs": 4004.2000000029802,
+          "responseEndToAttachMs": 515.2000000029802
+        },
+        {
+          "kind": "black",
+          "encodedBytes": 937696,
+          "transferredBytes": 937996,
+          "startAfterEntryMs": 4.400000002235174,
+          "responseEndAfterEntryMs": 3424,
+          "downloadMs": 3419.599999997765,
+          "attachAfterEntryMs": 3699.900000002235,
+          "responseEndToAttachMs": 275.9000000022352
+        },
+        {
+          "kind": "tabby",
+          "encodedBytes": 961940,
+          "transferredBytes": 962240,
+          "startAfterEntryMs": 4.800000000745058,
+          "responseEndAfterEntryMs": 3472.300000000745,
+          "downloadMs": 3467.5,
+          "attachAfterEntryMs": 3872,
+          "responseEndToAttachMs": 399.69999999925494
+        }
+      ],
+      "ambientAttachedMs": 3879.10000000149,
+      "liveCats": 6,
+      "twoAnimationFramesAfterReadyMs": 4388.900000002235
+    },
+    {
+      "variant": "models",
+      "profile": "fast-4g",
+      "sample": 2,
+      "allAttachedMs": 1484.2999999970198,
+      "assets": [
+        {
+          "kind": "orange",
+          "encodedBytes": 284156,
+          "transferredBytes": 284456,
+          "startAfterEntryMs": 2.2999999970197678,
+          "responseEndAfterEntryMs": 1071,
+          "downloadMs": 1068.7000000029802,
+          "attachAfterEntryMs": 1421.2999999970198,
+          "responseEndToAttachMs": 350.29999999701977
+        },
+        {
+          "kind": "calico",
+          "encodedBytes": 306212,
+          "transferredBytes": 306512,
+          "startAfterEntryMs": 3.899999998509884,
+          "responseEndAfterEntryMs": 1101.699999999255,
+          "downloadMs": 1097.800000000745,
+          "attachAfterEntryMs": 1484.2999999970198,
+          "responseEndToAttachMs": 382.5999999977648
+        },
+        {
+          "kind": "black",
+          "encodedBytes": 265032,
+          "transferredBytes": 265332,
+          "startAfterEntryMs": 4.199999999254942,
+          "responseEndAfterEntryMs": 1013,
+          "downloadMs": 1008.8000000007451,
+          "attachAfterEntryMs": 1293.199999999255,
+          "responseEndToAttachMs": 280.19999999925494
+        },
+        {
+          "kind": "tabby",
+          "encodedBytes": 294004,
+          "transferredBytes": 294304,
+          "startAfterEntryMs": 4.5,
+          "responseEndAfterEntryMs": 1094.2999999970198,
+          "downloadMs": 1089.7999999970198,
+          "attachAfterEntryMs": 1482.3999999985099,
+          "responseEndToAttachMs": 388.1000000014901
+        }
+      ],
+      "ambientAttachedMs": 1421.2999999970198,
+      "liveCats": 6,
+      "twoAnimationFramesAfterReadyMs": 1713.7999999970198
+    },
+    {
+      "variant": "high-detail-current",
+      "profile": "fast-4g",
+      "sample": 3,
+      "allAttachedMs": 3959.39999999851,
+      "assets": [
+        {
+          "kind": "orange",
+          "encodedBytes": 948728,
+          "transferredBytes": 949028,
+          "startAfterEntryMs": 2.100000001490116,
+          "responseEndAfterEntryMs": 3435.5,
+          "downloadMs": 3433.39999999851,
+          "attachAfterEntryMs": 3724.300000000745,
+          "responseEndToAttachMs": 288.80000000074506
+        },
+        {
+          "kind": "calico",
+          "encodedBytes": 975672,
+          "transferredBytes": 975972,
+          "startAfterEntryMs": 3.600000001490116,
+          "responseEndAfterEntryMs": 3479.800000000745,
+          "downloadMs": 3476.199999999255,
+          "attachAfterEntryMs": 3959.39999999851,
+          "responseEndToAttachMs": 479.5999999977648
+        },
+        {
+          "kind": "black",
+          "encodedBytes": 937696,
+          "transferredBytes": 937996,
+          "startAfterEntryMs": 3.899999998509884,
+          "responseEndAfterEntryMs": 3403.699999999255,
+          "downloadMs": 3399.800000000745,
+          "attachAfterEntryMs": 3727.5,
+          "responseEndToAttachMs": 323.80000000074506
+        },
+        {
+          "kind": "tabby",
+          "encodedBytes": 961940,
+          "transferredBytes": 962240,
+          "startAfterEntryMs": 4.199999999254942,
+          "responseEndAfterEntryMs": 3463.10000000149,
+          "downloadMs": 3458.900000002235,
+          "attachAfterEntryMs": 3721.699999999255,
+          "responseEndToAttachMs": 258.5999999977648
+        }
+      ],
+      "ambientAttachedMs": 3724.199999999255,
+      "liveCats": 6,
+      "twoAnimationFramesAfterReadyMs": 4394.39999999851
+    },
+    {
+      "variant": "models",
+      "profile": "fast-4g",
+      "sample": 3,
+      "allAttachedMs": 1547.800000000745,
+      "assets": [
+        {
+          "kind": "orange",
+          "encodedBytes": 284156,
+          "transferredBytes": 284456,
+          "startAfterEntryMs": 2.100000001490116,
+          "responseEndAfterEntryMs": 1060.9000000022352,
+          "downloadMs": 1058.800000000745,
+          "attachAfterEntryMs": 1415.300000000745,
+          "responseEndToAttachMs": 354.3999999985099
+        },
+        {
+          "kind": "calico",
+          "encodedBytes": 306212,
+          "transferredBytes": 306512,
+          "startAfterEntryMs": 3.600000001490116,
+          "responseEndAfterEntryMs": 1096.800000000745,
+          "downloadMs": 1093.199999999255,
+          "attachAfterEntryMs": 1547.800000000745,
+          "responseEndToAttachMs": 451
+        },
+        {
+          "kind": "black",
+          "encodedBytes": 265032,
+          "transferredBytes": 265332,
+          "startAfterEntryMs": 3.900000002235174,
+          "responseEndAfterEntryMs": 1016.6000000014901,
+          "downloadMs": 1012.6999999992549,
+          "attachAfterEntryMs": 1229.4000000022352,
+          "responseEndToAttachMs": 212.80000000074506
+        },
+        {
+          "kind": "tabby",
+          "encodedBytes": 294004,
+          "transferredBytes": 294304,
+          "startAfterEntryMs": 4.199999999254942,
+          "responseEndAfterEntryMs": 1086,
+          "downloadMs": 1081.800000000745,
+          "attachAfterEntryMs": 1481.699999999255,
+          "responseEndToAttachMs": 395.69999999925494
+        }
+      ],
+      "ambientAttachedMs": 1415.1000000014901,
+      "liveCats": 6,
+      "twoAnimationFramesAfterReadyMs": 1714.5
+    },
+    {
+      "variant": "high-detail-current",
+      "profile": "slow-4g",
+      "sample": 1,
+      "allAttachedMs": 19683,
+      "assets": [
+        {
+          "kind": "orange",
+          "encodedBytes": 948728,
+          "transferredBytes": 949028,
+          "startAfterEntryMs": 2.199999999254942,
+          "responseEndAfterEntryMs": 19084.800000000745,
+          "downloadMs": 19082.60000000149,
+          "attachAfterEntryMs": 19497.89999999851,
+          "responseEndToAttachMs": 413.0999999977648
+        },
+        {
+          "kind": "calico",
+          "encodedBytes": 975672,
+          "transferredBytes": 975972,
+          "startAfterEntryMs": 3.699999999254942,
+          "responseEndAfterEntryMs": 19297.60000000149,
+          "downloadMs": 19293.900000002235,
+          "attachAfterEntryMs": 19683,
+          "responseEndToAttachMs": 385.3999999985099
+        },
+        {
+          "kind": "black",
+          "encodedBytes": 937696,
+          "transferredBytes": 937996,
+          "startAfterEntryMs": 3.899999998509884,
+          "responseEndAfterEntryMs": 18929.800000000745,
+          "downloadMs": 18925.900000002235,
+          "attachAfterEntryMs": 19173.300000000745,
+          "responseEndToAttachMs": 243.5
+        },
+        {
+          "kind": "tabby",
+          "encodedBytes": 961940,
+          "transferredBytes": 962240,
+          "startAfterEntryMs": 4.300000000745058,
+          "responseEndAfterEntryMs": 19230.199999999255,
+          "downloadMs": 19225.89999999851,
+          "attachAfterEntryMs": 19681,
+          "responseEndToAttachMs": 450.80000000074506
+        }
+      ],
+      "ambientAttachedMs": 19497.60000000149,
+      "liveCats": 6,
+      "twoAnimationFramesAfterReadyMs": 20064.800000000745
+    },
+    {
+      "variant": "models",
+      "profile": "slow-4g",
+      "sample": 1,
+      "allAttachedMs": 6179.39999999851,
+      "assets": [
+        {
+          "kind": "orange",
+          "encodedBytes": 284156,
+          "transferredBytes": 284456,
+          "startAfterEntryMs": 2.199999999254942,
+          "responseEndAfterEntryMs": 5728.699999999255,
+          "downloadMs": 5726.5,
+          "attachAfterEntryMs": 6108.599999997765,
+          "responseEndToAttachMs": 379.8999999985099
+        },
+        {
+          "kind": "calico",
+          "encodedBytes": 306212,
+          "transferredBytes": 306512,
+          "startAfterEntryMs": 4.899999998509884,
+          "responseEndAfterEntryMs": 5924.199999999255,
+          "downloadMs": 5919.300000000745,
+          "attachAfterEntryMs": 6179.39999999851,
+          "responseEndToAttachMs": 255.19999999925494
+        },
+        {
+          "kind": "black",
+          "encodedBytes": 265032,
+          "transferredBytes": 265332,
+          "startAfterEntryMs": 5.599999997764826,
+          "responseEndAfterEntryMs": 5466.699999999255,
+          "downloadMs": 5461.10000000149,
+          "attachAfterEntryMs": 5732.199999999255,
+          "responseEndToAttachMs": 265.5
+        },
+        {
+          "kind": "tabby",
+          "encodedBytes": 294004,
+          "transferredBytes": 294304,
+          "startAfterEntryMs": 6.300000000745058,
+          "responseEndAfterEntryMs": 5864.300000000745,
+          "downloadMs": 5858,
+          "attachAfterEntryMs": 6176.699999999255,
+          "responseEndToAttachMs": 312.3999999985099
+        }
+      ],
+      "ambientAttachedMs": 6108.199999999255,
+      "liveCats": 6,
+      "twoAnimationFramesAfterReadyMs": 6383.199999999255
+    },
+    {
+      "variant": "high-detail-current",
+      "profile": "slow-4g",
+      "sample": 2,
+      "allAttachedMs": 19837,
+      "assets": [
+        {
+          "kind": "orange",
+          "encodedBytes": 948728,
+          "transferredBytes": 949028,
+          "startAfterEntryMs": 2.599999997764826,
+          "responseEndAfterEntryMs": 19080.699999999255,
+          "downloadMs": 19078.10000000149,
+          "attachAfterEntryMs": 19540.29999999702,
+          "responseEndToAttachMs": 459.5999999977648
+        },
+        {
+          "kind": "calico",
+          "encodedBytes": 975672,
+          "transferredBytes": 975972,
+          "startAfterEntryMs": 4.099999997764826,
+          "responseEndAfterEntryMs": 19298.5,
+          "downloadMs": 19294.400000002235,
+          "attachAfterEntryMs": 19837,
+          "responseEndToAttachMs": 538.5
+        },
+        {
+          "kind": "black",
+          "encodedBytes": 937696,
+          "transferredBytes": 937996,
+          "startAfterEntryMs": 4.399999998509884,
+          "responseEndAfterEntryMs": 18930.89999999851,
+          "downloadMs": 18926.5,
+          "attachAfterEntryMs": 19154.699999999255,
+          "responseEndToAttachMs": 223.80000000074506
+        },
+        {
+          "kind": "tabby",
+          "encodedBytes": 961940,
+          "transferredBytes": 962240,
+          "startAfterEntryMs": 4.699999999254942,
+          "responseEndAfterEntryMs": 19231.5,
+          "downloadMs": 19226.800000000745,
+          "attachAfterEntryMs": 19710.39999999851,
+          "responseEndToAttachMs": 478.8999999985099
+        }
+      ],
+      "ambientAttachedMs": 19540.099999997765,
+      "liveCats": 6,
+      "twoAnimationFramesAfterReadyMs": 20198.199999999255
+    },
+    {
+      "variant": "models",
+      "profile": "slow-4g",
+      "sample": 2,
+      "allAttachedMs": 6231.10000000149,
+      "assets": [
+        {
+          "kind": "orange",
+          "encodedBytes": 284156,
+          "transferredBytes": 284456,
+          "startAfterEntryMs": 2.300000000745058,
+          "responseEndAfterEntryMs": 5749,
+          "downloadMs": 5746.699999999255,
+          "attachAfterEntryMs": 6144.70000000298,
+          "responseEndToAttachMs": 395.70000000298023
+        },
+        {
+          "kind": "calico",
+          "encodedBytes": 306212,
+          "transferredBytes": 306512,
+          "startAfterEntryMs": 4.300000000745058,
+          "responseEndAfterEntryMs": 5928.20000000298,
+          "downloadMs": 5923.900000002235,
+          "attachAfterEntryMs": 6231.10000000149,
+          "responseEndToAttachMs": 302.8999999985099
+        },
+        {
+          "kind": "black",
+          "encodedBytes": 265032,
+          "transferredBytes": 265332,
+          "startAfterEntryMs": 4.600000001490116,
+          "responseEndAfterEntryMs": 5463.60000000149,
+          "downloadMs": 5459,
+          "attachAfterEntryMs": 5726.5,
+          "responseEndToAttachMs": 262.8999999985099
+        },
+        {
+          "kind": "tabby",
+          "encodedBytes": 294004,
+          "transferredBytes": 294304,
+          "startAfterEntryMs": 4.900000002235174,
+          "responseEndAfterEntryMs": 5868.20000000298,
+          "downloadMs": 5863.300000000745,
+          "attachAfterEntryMs": 6146.70000000298,
+          "responseEndToAttachMs": 278.5
+        }
+      ],
+      "ambientAttachedMs": 6144.5,
+      "liveCats": 6,
+      "twoAnimationFramesAfterReadyMs": 6423.300000000745
+    },
+    {
+      "variant": "high-detail-current",
+      "profile": "slow-4g",
+      "sample": 3,
+      "allAttachedMs": 19899.60000000149,
+      "assets": [
+        {
+          "kind": "orange",
+          "encodedBytes": 948728,
+          "transferredBytes": 949028,
+          "startAfterEntryMs": 2.5,
+          "responseEndAfterEntryMs": 19080.10000000149,
+          "downloadMs": 19077.60000000149,
+          "attachAfterEntryMs": 19494.10000000149,
+          "responseEndToAttachMs": 414
+        },
+        {
+          "kind": "calico",
+          "encodedBytes": 975672,
+          "transferredBytes": 975972,
+          "startAfterEntryMs": 4,
+          "responseEndAfterEntryMs": 19297.5,
+          "downloadMs": 19293.5,
+          "attachAfterEntryMs": 19752.70000000298,
+          "responseEndToAttachMs": 455.20000000298023
+        },
+        {
+          "kind": "black",
+          "encodedBytes": 937696,
+          "transferredBytes": 937996,
+          "startAfterEntryMs": 4.5,
+          "responseEndAfterEntryMs": 18931.300000000745,
+          "downloadMs": 18926.800000000745,
+          "attachAfterEntryMs": 19170.10000000149,
+          "responseEndToAttachMs": 238.80000000074506
+        },
+        {
+          "kind": "tabby",
+          "encodedBytes": 961940,
+          "transferredBytes": 962240,
+          "startAfterEntryMs": 4.700000002980232,
+          "responseEndAfterEntryMs": 19229.60000000149,
+          "downloadMs": 19224.89999999851,
+          "attachAfterEntryMs": 19899.60000000149,
+          "responseEndToAttachMs": 670
+        }
+      ],
+      "ambientAttachedMs": 19493.900000002235,
+      "liveCats": 6,
+      "twoAnimationFramesAfterReadyMs": 20250.60000000149
+    },
+    {
+      "variant": "models",
+      "profile": "slow-4g",
+      "sample": 3,
+      "allAttachedMs": 6288.89999999851,
+      "assets": [
+        {
+          "kind": "orange",
+          "encodedBytes": 284156,
+          "transferredBytes": 284456,
+          "startAfterEntryMs": 2.399999998509884,
+          "responseEndAfterEntryMs": 5745.300000000745,
+          "downloadMs": 5742.900000002235,
+          "attachAfterEntryMs": 6083.800000000745,
+          "responseEndToAttachMs": 338.5
+        },
+        {
+          "kind": "calico",
+          "encodedBytes": 306212,
+          "transferredBytes": 306512,
+          "startAfterEntryMs": 4.399999998509884,
+          "responseEndAfterEntryMs": 5925.699999999255,
+          "downloadMs": 5921.300000000745,
+          "attachAfterEntryMs": 6288.89999999851,
+          "responseEndToAttachMs": 363.19999999925494
+        },
+        {
+          "kind": "black",
+          "encodedBytes": 265032,
+          "transferredBytes": 265332,
+          "startAfterEntryMs": 5,
+          "responseEndAfterEntryMs": 5461.800000000745,
+          "downloadMs": 5456.800000000745,
+          "attachAfterEntryMs": 5656.199999999255,
+          "responseEndToAttachMs": 194.39999999850988
+        },
+        {
+          "kind": "tabby",
+          "encodedBytes": 294004,
+          "transferredBytes": 294304,
+          "startAfterEntryMs": 5.699999999254942,
+          "responseEndAfterEntryMs": 5864.699999999255,
+          "downloadMs": 5859,
+          "attachAfterEntryMs": 6206.699999999255,
+          "responseEndToAttachMs": 342
+        }
+      ],
+      "ambientAttachedMs": 6083.699999999255,
+      "liveCats": 6,
+      "twoAnimationFramesAfterReadyMs": 6459.89999999851
+    }
+  ],
+  "scenes": [
+    {
+      "label": "high-detail-current",
+      "mobile": false,
+      "image": "/workspace/xiantu/output/playwright/cat-models/high-detail-current-desktop-measured.png",
+      "viewport": {
+        "width": 1200,
+        "height": 900,
+        "dpr": 1
+      },
+      "backing": {
+        "width": 1200,
+        "height": 900
+      },
+      "count": 8,
+      "states": [
+        {
+          "kind": "orange",
+          "state": "idle"
+        },
+        {
+          "kind": "calico",
+          "state": "idle"
+        },
+        {
+          "kind": "black",
+          "state": "idle"
+        },
+        {
+          "kind": "tabby",
+          "state": "idle"
+        },
+        {
+          "kind": "white",
+          "state": "idle"
+        },
+        {
+          "kind": "glow",
+          "state": "idle"
+        },
+        {
+          "kind": "orange",
+          "state": "idle"
+        },
+        {
+          "kind": "calico",
+          "state": "idle"
+        }
+      ],
+      "render": {
+        "frame": 56,
+        "calls": 156,
+        "triangles": 253623,
+        "points": 680,
+        "lines": 0
+      },
+      "memory": {
+        "geometries": 75,
+        "textures": 6
+      },
+      "heap": {
+        "used": 22193830,
+        "total": 30811162
+      },
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "frames": [
+        {
+          "at": 5786.800000000745,
+          "interval": 170.5,
+          "draw": 1.6000000014901161
+        },
+        {
+          "at": 5979.10000000149,
+          "interval": 192.30000000074506,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 6130.400000002235,
+          "interval": 151.30000000074506,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 6301.5,
+          "interval": 171.09999999776483,
+          "draw": 2.5
+        },
+        {
+          "at": 6499.400000002235,
+          "interval": 197.90000000223517,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 6674.10000000149,
+          "interval": 174.69999999925494,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 6879.60000000149,
+          "interval": 205.5,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 7033.800000000745,
+          "interval": 154.19999999925494,
+          "draw": 1.6000000014901161
+        },
+        {
+          "at": 7217.800000000745,
+          "interval": 184,
+          "draw": 1.6000000014901161
+        },
+        {
+          "at": 7404.199999999255,
+          "interval": 186.39999999850988,
+          "draw": 1.4000000022351742
+        },
+        {
+          "at": 7593.900000002235,
+          "interval": 189.70000000298023,
+          "draw": 2.2999999970197678
+        },
+        {
+          "at": 7769.400000002235,
+          "interval": 175.5,
+          "draw": 2.2999999970197678
+        },
+        {
+          "at": 7923.5,
+          "interval": 154.09999999776483,
+          "draw": 1.9000000022351742
+        },
+        {
+          "at": 8098.900000002235,
+          "interval": 175.40000000223517,
+          "draw": 1.699999999254942
+        },
+        {
+          "at": 8291.900000002235,
+          "interval": 193,
+          "draw": 1.5999999977648258
+        },
+        {
+          "at": 8478.800000000745,
+          "interval": 186.89999999850988,
+          "draw": 2.399999998509884
+        },
+        {
+          "at": 8627.60000000149,
+          "interval": 148.80000000074506,
+          "draw": 1.5
+        },
+        {
+          "at": 8806.400000002235,
+          "interval": 178.80000000074506,
+          "draw": 1.8999999985098839
+        },
+        {
+          "at": 8978.400000002235,
+          "interval": 172,
+          "draw": 1.8999999985098839
+        },
+        {
+          "at": 9165.5,
+          "interval": 187.09999999776483,
+          "draw": 1.5
+        },
+        {
+          "at": 9327,
+          "interval": 161.5,
+          "draw": 1.699999999254942
+        },
+        {
+          "at": 9515.800000000745,
+          "interval": 188.80000000074506,
+          "draw": 2.100000001490116
+        },
+        {
+          "at": 9693.300000000745,
+          "interval": 177.5,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 9881,
+          "interval": 187.69999999925494,
+          "draw": 2.900000002235174
+        },
+        {
+          "at": 10034.5,
+          "interval": 153.5,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 10210.900000002235,
+          "interval": 176.40000000223517,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 10393.400000002235,
+          "interval": 182.5,
+          "draw": 1
+        },
+        {
+          "at": 10569.199999999255,
+          "interval": 175.79999999701977,
+          "draw": 1.6000000014901161
+        }
+      ],
+      "modelReady": 6,
+      "resources": [
+        {
+          "name": "http://127.0.0.1:38107/cats/orange-cat.glb",
+          "duration": 216.29999999701977,
+          "startTime": 244.40000000223517,
+          "responseEnd": 460.69999999925494,
+          "transferSize": 949028,
+          "encodedBodySize": 948728
+        },
+        {
+          "name": "http://127.0.0.1:38107/cats/calico-cat.glb",
+          "duration": 216.10000000149012,
+          "startTime": 247.30000000074506,
+          "responseEnd": 463.4000000022352,
+          "transferSize": 975972,
+          "encodedBodySize": 975672
+        },
+        {
+          "name": "http://127.0.0.1:38107/cats/black-cat.glb",
+          "duration": 215.5,
+          "startTime": 247.80000000074506,
+          "responseEnd": 463.30000000074506,
+          "transferSize": 937996,
+          "encodedBodySize": 937696
+        },
+        {
+          "name": "http://127.0.0.1:38107/cats/tabby-cat.glb",
+          "duration": 215.10000000149012,
+          "startTime": 248.5,
+          "responseEnd": 463.6000000014901,
+          "transferSize": 962240,
+          "encodedBodySize": 961940
+        }
+      ],
+      "actorLayout": [
+        {
+          "kind": "orange",
+          "x": -0.9715563647187262,
+          "z": 3.6822819787332954,
+          "size": 1.3,
+          "phase": 0,
+          "state": "idle"
+        },
+        {
+          "kind": "calico",
+          "x": -0.3862817997375444,
+          "z": -1.6595033588934054,
+          "size": 1.3,
+          "phase": 0.5,
+          "state": "idle"
+        },
+        {
+          "kind": "black",
+          "x": 0.8793864780028678,
+          "z": -1.1241347058004536,
+          "size": 1.3,
+          "phase": 1,
+          "state": "idle"
+        },
+        {
+          "kind": "tabby",
+          "x": -0.2508073188649744,
+          "z": 1.9116108072474165,
+          "size": 1.3,
+          "phase": 1.5,
+          "state": "idle"
+        },
+        {
+          "kind": "white",
+          "x": 1.1120009377533542,
+          "z": -0.3243155840617865,
+          "size": 1.3,
+          "phase": 2,
+          "state": "idle"
+        },
+        {
+          "kind": "glow",
+          "x": 0.4558357536293474,
+          "z": 1.8955643804977331,
+          "size": 1.3,
+          "phase": 2.5,
+          "state": "idle"
+        },
+        {
+          "kind": "orange",
+          "x": -2.4736953970126727,
+          "z": 2.6066140599238667,
+          "size": 1.3,
+          "phase": 3,
+          "state": "idle"
+        },
+        {
+          "kind": "calico",
+          "x": -0.9574115858654584,
+          "z": 0.7937946997075892,
+          "size": 1.3,
+          "phase": 3.5,
+          "state": "idle"
+        }
+      ],
+      "frameIntervalsMs": {
+        "n": 28,
+        "median": 177.5,
+        "p95": 197.90000000223517
+      },
+      "renderSubmitMs": {
+        "n": 28,
+        "median": 1.6000000014901161,
+        "p95": 2.5
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "label": "models",
+      "mobile": false,
+      "image": "/workspace/xiantu/output/playwright/cat-models/models-desktop-measured.png",
+      "viewport": {
+        "width": 1200,
+        "height": 900,
+        "dpr": 1
+      },
+      "backing": {
+        "width": 1200,
+        "height": 900
+      },
+      "count": 8,
+      "states": [
+        {
+          "kind": "orange",
+          "state": "idle"
+        },
+        {
+          "kind": "calico",
+          "state": "idle"
+        },
+        {
+          "kind": "black",
+          "state": "idle"
+        },
+        {
+          "kind": "tabby",
+          "state": "idle"
+        },
+        {
+          "kind": "white",
+          "state": "idle"
+        },
+        {
+          "kind": "glow",
+          "state": "idle"
+        },
+        {
+          "kind": "orange",
+          "state": "idle"
+        },
+        {
+          "kind": "calico",
+          "state": "idle"
+        }
+      ],
+      "render": {
+        "frame": 112,
+        "calls": 158,
+        "triangles": 55029,
+        "points": 680,
+        "lines": 0
+      },
+      "memory": {
+        "geometries": 75,
+        "textures": 6
+      },
+      "heap": {
+        "used": 22447182,
+        "total": 29703562
+      },
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "frames": [
+        {
+          "at": 4349.39999999851,
+          "interval": 59.599999997764826,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 4418.199999999255,
+          "interval": 68.80000000074506,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 4490.199999999255,
+          "interval": 72,
+          "draw": 1.5
+        },
+        {
+          "at": 4555.800000000745,
+          "interval": 65.60000000149012,
+          "draw": 1.5
+        },
+        {
+          "at": 4625.800000000745,
+          "interval": 70,
+          "draw": 1.2999999970197678
+        },
+        {
+          "at": 4697.89999999851,
+          "interval": 72.09999999776483,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 4762.5,
+          "interval": 64.60000000149012,
+          "draw": 2.399999998509884
+        },
+        {
+          "at": 4837.39999999851,
+          "interval": 74.89999999850988,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 4921.89999999851,
+          "interval": 84.5,
+          "draw": 1.6000000014901161
+        },
+        {
+          "at": 4996.89999999851,
+          "interval": 75,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 5067.5,
+          "interval": 70.60000000149012,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 5139.39999999851,
+          "interval": 71.89999999850988,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 5231.099999997765,
+          "interval": 91.69999999925494,
+          "draw": 1.2000000029802322
+        },
+        {
+          "at": 5306.099999997765,
+          "interval": 75,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 5362.800000000745,
+          "interval": 56.70000000298023,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 5430.199999999255,
+          "interval": 67.39999999850988,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 5504,
+          "interval": 73.80000000074506,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 5577.199999999255,
+          "interval": 73.19999999925494,
+          "draw": 1.6000000014901161
+        },
+        {
+          "at": 5646,
+          "interval": 68.80000000074506,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 5719.800000000745,
+          "interval": 73.80000000074506,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 5791.89999999851,
+          "interval": 72.09999999776483,
+          "draw": 1.6000000014901161
+        },
+        {
+          "at": 5856.89999999851,
+          "interval": 65,
+          "draw": 1.9000000022351742
+        },
+        {
+          "at": 5925.5,
+          "interval": 68.60000000149012,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 6008.699999999255,
+          "interval": 83.19999999925494,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 6096.300000000745,
+          "interval": 87.60000000149012,
+          "draw": 1
+        },
+        {
+          "at": 6163,
+          "interval": 66.69999999925494,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 6240.300000000745,
+          "interval": 77.30000000074506,
+          "draw": 1
+        },
+        {
+          "at": 6326.300000000745,
+          "interval": 86,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 6411.199999999255,
+          "interval": 84.89999999850988,
+          "draw": 1
+        },
+        {
+          "at": 6487.39999999851,
+          "interval": 76.19999999925494,
+          "draw": 1.5
+        },
+        {
+          "at": 6544.699999999255,
+          "interval": 57.30000000074506,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 6612,
+          "interval": 67.30000000074506,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 6668.199999999255,
+          "interval": 56.19999999925494,
+          "draw": 1
+        },
+        {
+          "at": 6737.300000000745,
+          "interval": 69.10000000149012,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 6811.599999997765,
+          "interval": 74.29999999701977,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 6876.300000000745,
+          "interval": 64.70000000298023,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 6938.89999999851,
+          "interval": 62.599999997764826,
+          "draw": 1
+        },
+        {
+          "at": 7012.099999997765,
+          "interval": 73.19999999925494,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 7103.300000000745,
+          "interval": 91.20000000298023,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 7194.699999999255,
+          "interval": 91.39999999850988,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 7260.800000000745,
+          "interval": 66.10000000149012,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 7327.39999999851,
+          "interval": 66.59999999776483,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 7399.699999999255,
+          "interval": 72.30000000074506,
+          "draw": 2.300000000745058
+        },
+        {
+          "at": 7461,
+          "interval": 61.30000000074506,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 7530.099999997765,
+          "interval": 69.09999999776483,
+          "draw": 1.4000000022351742
+        },
+        {
+          "at": 7606.39999999851,
+          "interval": 76.30000000074506,
+          "draw": 1.699999999254942
+        },
+        {
+          "at": 7662.89999999851,
+          "interval": 56.5,
+          "draw": 1.4000000022351742
+        },
+        {
+          "at": 7729.89999999851,
+          "interval": 67,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 7803.89999999851,
+          "interval": 74,
+          "draw": 1.6000000014901161
+        },
+        {
+          "at": 7865.89999999851,
+          "interval": 62,
+          "draw": 2.900000002235174
+        },
+        {
+          "at": 7931.39999999851,
+          "interval": 65.5,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 8006.300000000745,
+          "interval": 74.90000000223517,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 8091.199999999255,
+          "interval": 84.89999999850988,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 8152.39999999851,
+          "interval": 61.19999999925494,
+          "draw": 1
+        },
+        {
+          "at": 8220.89999999851,
+          "interval": 68.5,
+          "draw": 1.9000000022351742
+        },
+        {
+          "at": 8291.89999999851,
+          "interval": 71,
+          "draw": 1
+        },
+        {
+          "at": 8347.89999999851,
+          "interval": 56,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 8424.300000000745,
+          "interval": 76.40000000223517,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 8505.599999997765,
+          "interval": 81.29999999701977,
+          "draw": 1.2000000029802322
+        },
+        {
+          "at": 8566.5,
+          "interval": 60.900000002235174,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 8631.800000000745,
+          "interval": 65.30000000074506,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 8714.599999997765,
+          "interval": 82.79999999701977,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 8800.300000000745,
+          "interval": 85.70000000298023,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 8859.699999999255,
+          "interval": 59.399999998509884,
+          "draw": 2.199999999254942
+        },
+        {
+          "at": 8925.699999999255,
+          "interval": 66,
+          "draw": 1.5
+        },
+        {
+          "at": 9000.099999997765,
+          "interval": 74.39999999850988,
+          "draw": 1.5
+        },
+        {
+          "at": 9067.5,
+          "interval": 67.40000000223517,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 9142.199999999255,
+          "interval": 74.69999999925494,
+          "draw": 3.699999999254942
+        },
+        {
+          "at": 9227.699999999255,
+          "interval": 85.5,
+          "draw": 1.1000000014901161
+        }
+      ],
+      "modelReady": 6,
+      "resources": [
+        {
+          "name": "http://127.0.0.1:36021/cats/orange-cat.glb",
+          "duration": 133.69999999925494,
+          "startTime": 221.39999999850988,
+          "responseEnd": 355.0999999977648,
+          "transferSize": 284456,
+          "encodedBodySize": 284156
+        },
+        {
+          "name": "http://127.0.0.1:36021/cats/calico-cat.glb",
+          "duration": 131.30000000074506,
+          "startTime": 224.09999999776483,
+          "responseEnd": 355.3999999985099,
+          "transferSize": 306512,
+          "encodedBodySize": 306212
+        },
+        {
+          "name": "http://127.0.0.1:36021/cats/black-cat.glb",
+          "duration": 130.90000000223517,
+          "startTime": 224.39999999850988,
+          "responseEnd": 355.30000000074506,
+          "transferSize": 265332,
+          "encodedBodySize": 265032
+        },
+        {
+          "name": "http://127.0.0.1:36021/cats/tabby-cat.glb",
+          "duration": 136.80000000074506,
+          "startTime": 224.59999999776483,
+          "responseEnd": 361.3999999985099,
+          "transferSize": 294304,
+          "encodedBodySize": 294004
+        }
+      ],
+      "actorLayout": [
+        {
+          "kind": "orange",
+          "x": -0.9715563647187262,
+          "z": 3.6822819787332954,
+          "size": 1.3,
+          "phase": 0,
+          "state": "idle"
+        },
+        {
+          "kind": "calico",
+          "x": -0.3862817997375444,
+          "z": -1.6595033588934054,
+          "size": 1.3,
+          "phase": 0.5,
+          "state": "idle"
+        },
+        {
+          "kind": "black",
+          "x": 0.8793864780028678,
+          "z": -1.1241347058004536,
+          "size": 1.3,
+          "phase": 1,
+          "state": "idle"
+        },
+        {
+          "kind": "tabby",
+          "x": -0.2508073188649744,
+          "z": 1.9116108072474165,
+          "size": 1.3,
+          "phase": 1.5,
+          "state": "idle"
+        },
+        {
+          "kind": "white",
+          "x": 1.1120009377533542,
+          "z": -0.3243155840617865,
+          "size": 1.3,
+          "phase": 2,
+          "state": "idle"
+        },
+        {
+          "kind": "glow",
+          "x": 0.4558357536293474,
+          "z": 1.8955643804977331,
+          "size": 1.3,
+          "phase": 2.5,
+          "state": "idle"
+        },
+        {
+          "kind": "orange",
+          "x": -2.4736953970126727,
+          "z": 2.6066140599238667,
+          "size": 1.3,
+          "phase": 3,
+          "state": "idle"
+        },
+        {
+          "kind": "calico",
+          "x": -0.9574115858654584,
+          "z": 0.7937946997075892,
+          "size": 1.3,
+          "phase": 3.5,
+          "state": "idle"
+        }
+      ],
+      "frameIntervalsMs": {
+        "n": 69,
+        "median": 71,
+        "p95": 87.60000000149012
+      },
+      "renderSubmitMs": {
+        "n": 69,
+        "median": 1.2999999970197678,
+        "p95": 2.300000000745058
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "label": "baseline",
+      "mobile": false,
+      "image": "/workspace/xiantu/output/playwright/cat-models/baseline-desktop-measured.png",
+      "viewport": {
+        "width": 1200,
+        "height": 900,
+        "dpr": 1
+      },
+      "backing": {
+        "width": 1200,
+        "height": 900
+      },
+      "count": 8,
+      "states": [
+        {
+          "kind": "orange",
+          "state": "idle"
+        },
+        {
+          "kind": "calico",
+          "state": "idle"
+        },
+        {
+          "kind": "black",
+          "state": "idle"
+        },
+        {
+          "kind": "tabby",
+          "state": "idle"
+        },
+        {
+          "kind": "white",
+          "state": "idle"
+        },
+        {
+          "kind": "glow",
+          "state": "idle"
+        },
+        {
+          "kind": "orange",
+          "state": "idle"
+        },
+        {
+          "kind": "calico",
+          "state": "idle"
+        }
+      ],
+      "render": {
+        "frame": 188,
+        "calls": 232,
+        "triangles": 10837,
+        "points": 680,
+        "lines": 0
+      },
+      "memory": {
+        "geometries": 51,
+        "textures": 2
+      },
+      "heap": {
+        "used": 19465204,
+        "total": 26199424
+      },
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "frames": [
+        {
+          "at": 3459,
+          "interval": 40,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 3497.099999997765,
+          "interval": 38.099999997764826,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 3547.89999999851,
+          "interval": 50.80000000074506,
+          "draw": 1.4000000022351742
+        },
+        {
+          "at": 3585.099999997765,
+          "interval": 37.19999999925494,
+          "draw": 1.2000000029802322
+        },
+        {
+          "at": 3632.5,
+          "interval": 47.400000002235174,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 3669,
+          "interval": 36.5,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 3703.5,
+          "interval": 34.5,
+          "draw": 1
+        },
+        {
+          "at": 3743.599999997765,
+          "interval": 40.099999997764826,
+          "draw": 1.4000000022351742
+        },
+        {
+          "at": 3788.099999997765,
+          "interval": 44.5,
+          "draw": 1.2000000029802322
+        },
+        {
+          "at": 3829,
+          "interval": 40.900000002235174,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 3865.800000000745,
+          "interval": 36.80000000074506,
+          "draw": 1.2999999970197678
+        },
+        {
+          "at": 3907.89999999851,
+          "interval": 42.099999997764826,
+          "draw": 1
+        },
+        {
+          "at": 3955.5,
+          "interval": 47.600000001490116,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 3997.300000000745,
+          "interval": 41.80000000074506,
+          "draw": 1
+        },
+        {
+          "at": 4047.300000000745,
+          "interval": 50,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 4083.89999999851,
+          "interval": 36.599999997764826,
+          "draw": 1.4000000022351742
+        },
+        {
+          "at": 4119.89999999851,
+          "interval": 36,
+          "draw": 1
+        },
+        {
+          "at": 4160.199999999255,
+          "interval": 40.30000000074506,
+          "draw": 5
+        },
+        {
+          "at": 4199.39999999851,
+          "interval": 39.19999999925494,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 4245,
+          "interval": 45.600000001490116,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 4279,
+          "interval": 34,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 4322,
+          "interval": 43,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 4363.699999999255,
+          "interval": 41.69999999925494,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 4400.199999999255,
+          "interval": 36.5,
+          "draw": 1
+        },
+        {
+          "at": 4449.199999999255,
+          "interval": 49,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 4486.300000000745,
+          "interval": 37.100000001490116,
+          "draw": 1
+        },
+        {
+          "at": 4534,
+          "interval": 47.69999999925494,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 4572.5,
+          "interval": 38.5,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 4609.699999999255,
+          "interval": 37.19999999925494,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 4646.89999999851,
+          "interval": 37.19999999925494,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 4677.800000000745,
+          "interval": 30.900000002235174,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 4714.39999999851,
+          "interval": 36.599999997764826,
+          "draw": 1
+        },
+        {
+          "at": 4757.89999999851,
+          "interval": 43.5,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 4793.699999999255,
+          "interval": 35.80000000074506,
+          "draw": 1
+        },
+        {
+          "at": 4844.5,
+          "interval": 50.80000000074506,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 4881.099999997765,
+          "interval": 36.599999997764826,
+          "draw": 1.5
+        },
+        {
+          "at": 4917.300000000745,
+          "interval": 36.20000000298023,
+          "draw": 1
+        },
+        {
+          "at": 4956.89999999851,
+          "interval": 39.599999997764826,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 4994.699999999255,
+          "interval": 37.80000000074506,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 5045.89999999851,
+          "interval": 51.19999999925494,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 5081,
+          "interval": 35.100000001490116,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 5113.099999997765,
+          "interval": 32.099999997764826,
+          "draw": 1
+        },
+        {
+          "at": 5152,
+          "interval": 38.900000002235174,
+          "draw": 1
+        },
+        {
+          "at": 5185.89999999851,
+          "interval": 33.899999998509884,
+          "draw": 1
+        },
+        {
+          "at": 5220.699999999255,
+          "interval": 34.80000000074506,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 5262.099999997765,
+          "interval": 41.399999998509884,
+          "draw": 1
+        },
+        {
+          "at": 5292.300000000745,
+          "interval": 30.200000002980232,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 5337,
+          "interval": 44.69999999925494,
+          "draw": 1
+        },
+        {
+          "at": 5367,
+          "interval": 30,
+          "draw": 1
+        },
+        {
+          "at": 5397,
+          "interval": 30,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 5435.5,
+          "interval": 38.5,
+          "draw": 1
+        },
+        {
+          "at": 5466.800000000745,
+          "interval": 31.300000000745058,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 5496.5,
+          "interval": 29.699999999254942,
+          "draw": 1
+        },
+        {
+          "at": 5535.5,
+          "interval": 39,
+          "draw": 1
+        },
+        {
+          "at": 5565.5,
+          "interval": 30,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 5595.5,
+          "interval": 30,
+          "draw": 1.5
+        },
+        {
+          "at": 5633.800000000745,
+          "interval": 38.30000000074506,
+          "draw": 1
+        },
+        {
+          "at": 5673.599999997765,
+          "interval": 39.79999999701977,
+          "draw": 1
+        },
+        {
+          "at": 5711,
+          "interval": 37.400000002235174,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 5746.89999999851,
+          "interval": 35.899999998509884,
+          "draw": 1
+        },
+        {
+          "at": 5779.300000000745,
+          "interval": 32.400000002235174,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 5811.699999999255,
+          "interval": 32.399999998509884,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 5851.699999999255,
+          "interval": 40,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 5891.800000000745,
+          "interval": 40.100000001490116,
+          "draw": 1
+        },
+        {
+          "at": 5946.099999997765,
+          "interval": 54.29999999701977,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 5984.39999999851,
+          "interval": 38.30000000074506,
+          "draw": 1.4000000022351742
+        },
+        {
+          "at": 6017.39999999851,
+          "interval": 33,
+          "draw": 1
+        },
+        {
+          "at": 6052.5,
+          "interval": 35.100000001490116,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 6085.599999997765,
+          "interval": 33.099999997764826,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 6117.199999999255,
+          "interval": 31.600000001490116,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 6155.099999997765,
+          "interval": 37.899999998509884,
+          "draw": 1
+        },
+        {
+          "at": 6186.699999999255,
+          "interval": 31.600000001490116,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 6217.39999999851,
+          "interval": 30.699999999254942,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 6262.5,
+          "interval": 45.100000001490116,
+          "draw": 1
+        },
+        {
+          "at": 6298.5,
+          "interval": 36,
+          "draw": 1
+        },
+        {
+          "at": 6347.699999999255,
+          "interval": 49.19999999925494,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 6383.699999999255,
+          "interval": 36,
+          "draw": 1
+        },
+        {
+          "at": 6414.89999999851,
+          "interval": 31.199999999254942,
+          "draw": 1.800000000745058
+        },
+        {
+          "at": 6456.800000000745,
+          "interval": 41.900000002235174,
+          "draw": 1.2999999970197678
+        },
+        {
+          "at": 6493.39999999851,
+          "interval": 36.599999997764826,
+          "draw": 1.5
+        },
+        {
+          "at": 6541.099999997765,
+          "interval": 47.69999999925494,
+          "draw": 1.4000000022351742
+        },
+        {
+          "at": 6575.300000000745,
+          "interval": 34.20000000298023,
+          "draw": 1.699999999254942
+        },
+        {
+          "at": 6607.699999999255,
+          "interval": 32.399999998509884,
+          "draw": 1
+        },
+        {
+          "at": 6644.89999999851,
+          "interval": 37.19999999925494,
+          "draw": 1.4000000022351742
+        },
+        {
+          "at": 6675.5,
+          "interval": 30.600000001490116,
+          "draw": 2.099999997764826
+        },
+        {
+          "at": 6705.800000000745,
+          "interval": 30.300000000745058,
+          "draw": 1.699999999254942
+        },
+        {
+          "at": 6744.800000000745,
+          "interval": 39,
+          "draw": 1.5
+        },
+        {
+          "at": 6782.800000000745,
+          "interval": 38,
+          "draw": 3.399999998509884
+        },
+        {
+          "at": 6820.300000000745,
+          "interval": 37.5,
+          "draw": 1.5
+        },
+        {
+          "at": 6865.89999999851,
+          "interval": 45.599999997764826,
+          "draw": 3.699999999254942
+        },
+        {
+          "at": 6914.300000000745,
+          "interval": 48.400000002235174,
+          "draw": 2.2999999970197678
+        },
+        {
+          "at": 6956,
+          "interval": 41.69999999925494,
+          "draw": 2.899999998509884
+        },
+        {
+          "at": 6992.89999999851,
+          "interval": 36.899999998509884,
+          "draw": 1.5
+        },
+        {
+          "at": 7037.5,
+          "interval": 44.600000001490116,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 7067,
+          "interval": 29.5,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 7096.699999999255,
+          "interval": 29.699999999254942,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 7135.699999999255,
+          "interval": 39,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 7165.199999999255,
+          "interval": 29.5,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 7195.599999997765,
+          "interval": 30.399999998509884,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 7236.89999999851,
+          "interval": 41.30000000074506,
+          "draw": 1
+        },
+        {
+          "at": 7266.300000000745,
+          "interval": 29.400000002235174,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 7302.099999997765,
+          "interval": 35.79999999701977,
+          "draw": 1.2000000029802322
+        },
+        {
+          "at": 7346.5,
+          "interval": 44.400000002235174,
+          "draw": 1.8999999985098839
+        },
+        {
+          "at": 7383,
+          "interval": 36.5,
+          "draw": 1
+        },
+        {
+          "at": 7417.099999997765,
+          "interval": 34.099999997764826,
+          "draw": 1.2000000029802322
+        },
+        {
+          "at": 7461.699999999255,
+          "interval": 44.600000001490116,
+          "draw": 1
+        },
+        {
+          "at": 7496.699999999255,
+          "interval": 35,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 7540.5,
+          "interval": 43.80000000074506,
+          "draw": 1
+        },
+        {
+          "at": 7571.39999999851,
+          "interval": 30.899999998509884,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 7602.599999997765,
+          "interval": 31.199999999254942,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 7641.599999997765,
+          "interval": 39,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 7672.599999997765,
+          "interval": 31,
+          "draw": 1.2000000029802322
+        },
+        {
+          "at": 7705.699999999255,
+          "interval": 33.100000001490116,
+          "draw": 1
+        },
+        {
+          "at": 7749.300000000745,
+          "interval": 43.600000001490116,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 7784.39999999851,
+          "interval": 35.099999997764826,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 7824.199999999255,
+          "interval": 39.80000000074506,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 7865.5,
+          "interval": 41.30000000074506,
+          "draw": 1.5999999977648258
+        },
+        {
+          "at": 7901.89999999851,
+          "interval": 36.399999998509884,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 7946.199999999255,
+          "interval": 44.30000000074506,
+          "draw": 1
+        },
+        {
+          "at": 7983,
+          "interval": 36.80000000074506,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 8018.199999999255,
+          "interval": 35.19999999925494,
+          "draw": 1
+        },
+        {
+          "at": 8054.199999999255,
+          "interval": 36,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 8086.300000000745,
+          "interval": 32.100000001490116,
+          "draw": 1
+        },
+        {
+          "at": 8118.5,
+          "interval": 32.19999999925494,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 8158.199999999255,
+          "interval": 39.69999999925494,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 8189.5,
+          "interval": 31.300000000745058,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 8220.800000000745,
+          "interval": 31.300000000745058,
+          "draw": 1
+        },
+        {
+          "at": 8255.89999999851,
+          "interval": 35.099999997764826,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 8286.599999997765,
+          "interval": 30.699999999254942,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 8318.099999997765,
+          "interval": 31.5,
+          "draw": 1
+        },
+        {
+          "at": 8356.599999997765,
+          "interval": 38.5,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 8387.099999997765,
+          "interval": 30.5,
+          "draw": 0.9000000022351742
+        }
+      ],
+      "modelReady": 0,
+      "resources": [],
+      "actorLayout": [
+        {
+          "kind": "orange",
+          "x": -0.9715563647187262,
+          "z": 3.6822819787332954,
+          "size": 1.3,
+          "phase": 0,
+          "state": "idle"
+        },
+        {
+          "kind": "calico",
+          "x": -0.3862817997375444,
+          "z": -1.6595033588934054,
+          "size": 1.3,
+          "phase": 0.5,
+          "state": "idle"
+        },
+        {
+          "kind": "black",
+          "x": 0.8793864780028678,
+          "z": -1.1241347058004536,
+          "size": 1.3,
+          "phase": 1,
+          "state": "idle"
+        },
+        {
+          "kind": "tabby",
+          "x": -0.2508073188649744,
+          "z": 1.9116108072474165,
+          "size": 1.3,
+          "phase": 1.5,
+          "state": "idle"
+        },
+        {
+          "kind": "white",
+          "x": 1.1120009377533542,
+          "z": -0.3243155840617865,
+          "size": 1.3,
+          "phase": 2,
+          "state": "idle"
+        },
+        {
+          "kind": "glow",
+          "x": 0.4558357536293474,
+          "z": 1.8955643804977331,
+          "size": 1.3,
+          "phase": 2.5,
+          "state": "idle"
+        },
+        {
+          "kind": "orange",
+          "x": -2.4736953970126727,
+          "z": 2.6066140599238667,
+          "size": 1.3,
+          "phase": 3,
+          "state": "idle"
+        },
+        {
+          "kind": "calico",
+          "x": -0.9574115858654584,
+          "z": 0.7937946997075892,
+          "size": 1.3,
+          "phase": 3.5,
+          "state": "idle"
+        }
+      ],
+      "frameIntervalsMs": {
+        "n": 132,
+        "median": 36.899999998509884,
+        "p95": 49
+      },
+      "renderSubmitMs": {
+        "n": 132,
+        "median": 1.1000000014901161,
+        "p95": 1.8999999985098839
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "label": "high-detail-current",
+      "mobile": true,
+      "image": "/workspace/xiantu/output/playwright/cat-models/high-detail-current-phone-measured.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "backing": {
+        "width": 780,
+        "height": 1688
+      },
+      "count": 6,
+      "states": [
+        {
+          "kind": "orange",
+          "state": "idle"
+        },
+        {
+          "kind": "calico",
+          "state": "idle"
+        },
+        {
+          "kind": "black",
+          "state": "idle"
+        },
+        {
+          "kind": "tabby",
+          "state": "idle"
+        },
+        {
+          "kind": "white",
+          "state": "idle"
+        },
+        {
+          "kind": "glow",
+          "state": "idle"
+        }
+      ],
+      "render": {
+        "frame": 71,
+        "calls": 137,
+        "triangles": 182695,
+        "points": 370,
+        "lines": 0
+      },
+      "memory": {
+        "geometries": 71,
+        "textures": 6
+      },
+      "heap": {
+        "used": 33142564,
+        "total": 39920792
+      },
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "frames": [
+        {
+          "at": 5420.39999999851,
+          "interval": 158.30000000074506,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 5551.599999997765,
+          "interval": 131.19999999925494,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 5699.39999999851,
+          "interval": 147.80000000074506,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 5841.199999999255,
+          "interval": 141.80000000074506,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 5989.199999999255,
+          "interval": 148,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 6116.099999997765,
+          "interval": 126.89999999850988,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 6235.199999999255,
+          "interval": 119.10000000149012,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 6350,
+          "interval": 114.80000000074506,
+          "draw": 3.399999998509884
+        },
+        {
+          "at": 6491.699999999255,
+          "interval": 141.69999999925494,
+          "draw": 1.5999999977648258
+        },
+        {
+          "at": 6621.699999999255,
+          "interval": 130,
+          "draw": 1
+        },
+        {
+          "at": 6745.699999999255,
+          "interval": 124,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 6891.79999999702,
+          "interval": 146.09999999776483,
+          "draw": 1
+        },
+        {
+          "at": 7014.199999999255,
+          "interval": 122.40000000223517,
+          "draw": 1
+        },
+        {
+          "at": 7134.599999997765,
+          "interval": 120.39999999850988,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 7254.39999999851,
+          "interval": 119.80000000074506,
+          "draw": 1
+        },
+        {
+          "at": 7390.699999999255,
+          "interval": 136.30000000074506,
+          "draw": 2.5
+        },
+        {
+          "at": 7509.699999999255,
+          "interval": 119,
+          "draw": 1.5999999977648258
+        },
+        {
+          "at": 7629.699999999255,
+          "interval": 120,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 7751.79999999702,
+          "interval": 122.09999999776483,
+          "draw": 1.800000000745058
+        },
+        {
+          "at": 7890.599999997765,
+          "interval": 138.80000000074506,
+          "draw": 1
+        },
+        {
+          "at": 8038.79999999702,
+          "interval": 148.19999999925494,
+          "draw": 1
+        },
+        {
+          "at": 8162.599999997765,
+          "interval": 123.80000000074506,
+          "draw": 1.699999999254942
+        },
+        {
+          "at": 8300.199999999255,
+          "interval": 137.60000000149012,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 8426.599999997765,
+          "interval": 126.39999999850988,
+          "draw": 1.4000000022351742
+        },
+        {
+          "at": 8541.39999999851,
+          "interval": 114.80000000074506,
+          "draw": 5.100000001490116
+        },
+        {
+          "at": 8656.199999999255,
+          "interval": 114.80000000074506,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 8800.599999997765,
+          "interval": 144.39999999850988,
+          "draw": 1.9000000022351742
+        },
+        {
+          "at": 8950.5,
+          "interval": 149.90000000223517,
+          "draw": 1.2999999970197678
+        },
+        {
+          "at": 9118.099999997765,
+          "interval": 167.59999999776483,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 9289.5,
+          "interval": 171.40000000223517,
+          "draw": 1.5
+        },
+        {
+          "at": 9419.099999997765,
+          "interval": 129.59999999776483,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 9549.599999997765,
+          "interval": 130.5,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 9702.39999999851,
+          "interval": 152.80000000074506,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 9822.29999999702,
+          "interval": 119.89999999850988,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 9956.89999999851,
+          "interval": 134.60000000149012,
+          "draw": 1.6000000014901161
+        },
+        {
+          "at": 10098.599999997765,
+          "interval": 141.69999999925494,
+          "draw": 1
+        },
+        {
+          "at": 10226.39999999851,
+          "interval": 127.80000000074506,
+          "draw": 1
+        }
+      ],
+      "modelReady": 4,
+      "resources": [
+        {
+          "name": "http://127.0.0.1:38107/cats/orange-cat.glb",
+          "duration": 124.39999999850988,
+          "startTime": 223.39999999850988,
+          "responseEnd": 347.79999999701977,
+          "transferSize": 949028,
+          "encodedBodySize": 948728
+        },
+        {
+          "name": "http://127.0.0.1:38107/cats/calico-cat.glb",
+          "duration": 128.19999999925494,
+          "startTime": 225,
+          "responseEnd": 353.19999999925494,
+          "transferSize": 975972,
+          "encodedBodySize": 975672
+        },
+        {
+          "name": "http://127.0.0.1:38107/cats/black-cat.glb",
+          "duration": 127.80000000074506,
+          "startTime": 225.29999999701977,
+          "responseEnd": 353.0999999977648,
+          "transferSize": 937996,
+          "encodedBodySize": 937696
+        },
+        {
+          "name": "http://127.0.0.1:38107/cats/tabby-cat.glb",
+          "duration": 127.80000000074506,
+          "startTime": 225.59999999776483,
+          "responseEnd": 353.3999999985099,
+          "transferSize": 962240,
+          "encodedBodySize": 961940
+        }
+      ],
+      "actorLayout": [
+        {
+          "kind": "orange",
+          "x": 0.607946692512125,
+          "z": 0.9158663560513615,
+          "size": 1.3,
+          "phase": 0,
+          "state": "idle"
+        },
+        {
+          "kind": "calico",
+          "x": -1.9525039517657858,
+          "z": -2.8825245272444784,
+          "size": 1.3,
+          "phase": 0.5,
+          "state": "idle"
+        },
+        {
+          "kind": "black",
+          "x": 4.002049982648305,
+          "z": -0.8138721344460219,
+          "size": 1.3,
+          "phase": 1,
+          "state": "idle"
+        },
+        {
+          "kind": "tabby",
+          "x": 0.41367034915475964,
+          "z": 1.6635580902085483,
+          "size": 1.3,
+          "phase": 1.5,
+          "state": "idle"
+        },
+        {
+          "kind": "white",
+          "x": -3.295121599831359,
+          "z": -2.3162899773274286,
+          "size": 1.3,
+          "phase": 2,
+          "state": "idle"
+        },
+        {
+          "kind": "glow",
+          "x": -1.4807620597672992,
+          "z": -1.924882734927334,
+          "size": 1.3,
+          "phase": 2.5,
+          "state": "idle"
+        }
+      ],
+      "frameIntervalsMs": {
+        "n": 37,
+        "median": 130.5,
+        "p95": 167.59999999776483
+      },
+      "renderSubmitMs": {
+        "n": 37,
+        "median": 1.2999999970197678,
+        "p95": 3.399999998509884
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "label": "models",
+      "mobile": true,
+      "image": "/workspace/xiantu/output/playwright/cat-models/models-phone-measured.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "backing": {
+        "width": 780,
+        "height": 1688
+      },
+      "count": 6,
+      "states": [
+        {
+          "kind": "orange",
+          "state": "idle"
+        },
+        {
+          "kind": "calico",
+          "state": "idle"
+        },
+        {
+          "kind": "black",
+          "state": "idle"
+        },
+        {
+          "kind": "tabby",
+          "state": "idle"
+        },
+        {
+          "kind": "white",
+          "state": "idle"
+        },
+        {
+          "kind": "glow",
+          "state": "idle"
+        }
+      ],
+      "render": {
+        "frame": 134,
+        "calls": 137,
+        "triangles": 40727,
+        "points": 370,
+        "lines": 0
+      },
+      "memory": {
+        "geometries": 71,
+        "textures": 6
+      },
+      "heap": {
+        "used": 18190000,
+        "total": 27070076
+      },
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "frames": [
+        {
+          "at": 4341.699999999255,
+          "interval": 49.599999997764826,
+          "draw": 1
+        },
+        {
+          "at": 4405.199999999255,
+          "interval": 63.5,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 4454.60000000149,
+          "interval": 49.400000002235174,
+          "draw": 1
+        },
+        {
+          "at": 4511.89999999851,
+          "interval": 57.29999999701977,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 4576.199999999255,
+          "interval": 64.30000000074506,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 4631.300000000745,
+          "interval": 55.100000001490116,
+          "draw": 1.800000000745058
+        },
+        {
+          "at": 4687.39999999851,
+          "interval": 56.099999997764826,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 4742.10000000149,
+          "interval": 54.70000000298023,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 4799.39999999851,
+          "interval": 57.29999999701977,
+          "draw": 1.2000000029802322
+        },
+        {
+          "at": 4847.60000000149,
+          "interval": 48.20000000298023,
+          "draw": 1.2999999970197678
+        },
+        {
+          "at": 4902.60000000149,
+          "interval": 55,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 4951.89999999851,
+          "interval": 49.29999999701977,
+          "draw": 1
+        },
+        {
+          "at": 5011.699999999255,
+          "interval": 59.80000000074506,
+          "draw": 1.699999999254942
+        },
+        {
+          "at": 5086.800000000745,
+          "interval": 75.10000000149012,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 5143.800000000745,
+          "interval": 57,
+          "draw": 1
+        },
+        {
+          "at": 5200,
+          "interval": 56.19999999925494,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 5249.10000000149,
+          "interval": 49.100000001490116,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 5306.300000000745,
+          "interval": 57.19999999925494,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 5357,
+          "interval": 50.69999999925494,
+          "draw": 13.899999998509884
+        },
+        {
+          "at": 5419.60000000149,
+          "interval": 62.600000001490116,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 5482.10000000149,
+          "interval": 62.5,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 5533.5,
+          "interval": 51.399999998509884,
+          "draw": 1
+        },
+        {
+          "at": 5593.199999999255,
+          "interval": 59.69999999925494,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 5642.39999999851,
+          "interval": 49.19999999925494,
+          "draw": 1.4000000022351742
+        },
+        {
+          "at": 5701.199999999255,
+          "interval": 58.80000000074506,
+          "draw": 1
+        },
+        {
+          "at": 5752.300000000745,
+          "interval": 51.100000001490116,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 5808.800000000745,
+          "interval": 56.5,
+          "draw": 3.899999998509884
+        },
+        {
+          "at": 5884.199999999255,
+          "interval": 75.39999999850988,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 5937.300000000745,
+          "interval": 53.100000001490116,
+          "draw": 1
+        },
+        {
+          "at": 5992.5,
+          "interval": 55.19999999925494,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 6051.800000000745,
+          "interval": 59.30000000074506,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 6117.10000000149,
+          "interval": 65.30000000074506,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 6187.89999999851,
+          "interval": 70.79999999701977,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 6251.89999999851,
+          "interval": 64,
+          "draw": 1
+        },
+        {
+          "at": 6304.699999999255,
+          "interval": 52.80000000074506,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 6356.800000000745,
+          "interval": 52.100000001490116,
+          "draw": 1
+        },
+        {
+          "at": 6424.89999999851,
+          "interval": 68.09999999776483,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 6492.39999999851,
+          "interval": 67.5,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 6544.800000000745,
+          "interval": 52.400000002235174,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 6603.199999999255,
+          "interval": 58.399999998509884,
+          "draw": 1
+        },
+        {
+          "at": 6659.699999999255,
+          "interval": 56.5,
+          "draw": 1.699999999254942
+        },
+        {
+          "at": 6716.300000000745,
+          "interval": 56.600000001490116,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 6780.5,
+          "interval": 64.19999999925494,
+          "draw": 4.199999999254942
+        },
+        {
+          "at": 6836.699999999255,
+          "interval": 56.19999999925494,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 6895.800000000745,
+          "interval": 59.100000001490116,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 6946.5,
+          "interval": 50.69999999925494,
+          "draw": 1
+        },
+        {
+          "at": 7002.199999999255,
+          "interval": 55.69999999925494,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 7052.60000000149,
+          "interval": 50.400000002235174,
+          "draw": 1.2999999970197678
+        },
+        {
+          "at": 7109.699999999255,
+          "interval": 57.099999997764826,
+          "draw": 1.4000000022351742
+        },
+        {
+          "at": 7177.199999999255,
+          "interval": 67.5,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 7234.10000000149,
+          "interval": 56.900000002235174,
+          "draw": 1.5
+        },
+        {
+          "at": 7309,
+          "interval": 74.89999999850988,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 7380.800000000745,
+          "interval": 71.80000000074506,
+          "draw": 1.5
+        },
+        {
+          "at": 7430.89999999851,
+          "interval": 50.099999997764826,
+          "draw": 1.4000000022351742
+        },
+        {
+          "at": 7490.10000000149,
+          "interval": 59.20000000298023,
+          "draw": 1.5
+        },
+        {
+          "at": 7539.39999999851,
+          "interval": 49.29999999701977,
+          "draw": 1.6000000014901161
+        },
+        {
+          "at": 7598.10000000149,
+          "interval": 58.70000000298023,
+          "draw": 1.699999999254942
+        },
+        {
+          "at": 7650.199999999255,
+          "interval": 52.099999997764826,
+          "draw": 1.4000000022351742
+        },
+        {
+          "at": 7717.10000000149,
+          "interval": 66.90000000223517,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 7790.199999999255,
+          "interval": 73.09999999776483,
+          "draw": 1
+        },
+        {
+          "at": 7838,
+          "interval": 47.80000000074506,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 7896.39999999851,
+          "interval": 58.399999998509884,
+          "draw": 1
+        },
+        {
+          "at": 7946.5,
+          "interval": 50.100000001490116,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 8005.60000000149,
+          "interval": 59.100000001490116,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 8079.699999999255,
+          "interval": 74.09999999776483,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 8138.300000000745,
+          "interval": 58.600000001490116,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 8205.89999999851,
+          "interval": 67.59999999776483,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 8275.60000000149,
+          "interval": 69.70000000298023,
+          "draw": 4.5
+        },
+        {
+          "at": 8332.699999999255,
+          "interval": 57.099999997764826,
+          "draw": 1
+        },
+        {
+          "at": 8397.199999999255,
+          "interval": 64.5,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 8451.699999999255,
+          "interval": 54.5,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 8513.800000000745,
+          "interval": 62.100000001490116,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 8586.89999999851,
+          "interval": 73.09999999776483,
+          "draw": 1.2000000029802322
+        },
+        {
+          "at": 8637.60000000149,
+          "interval": 50.70000000298023,
+          "draw": 1
+        },
+        {
+          "at": 8704.60000000149,
+          "interval": 67,
+          "draw": 1
+        },
+        {
+          "at": 8756.199999999255,
+          "interval": 51.599999997764826,
+          "draw": 1
+        },
+        {
+          "at": 8814.5,
+          "interval": 58.30000000074506,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 8879.300000000745,
+          "interval": 64.80000000074506,
+          "draw": 1
+        },
+        {
+          "at": 8929.699999999255,
+          "interval": 50.399999998509884,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 8989,
+          "interval": 59.30000000074506,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 9049.199999999255,
+          "interval": 60.19999999925494,
+          "draw": 1.6000000014901161
+        },
+        {
+          "at": 9126.699999999255,
+          "interval": 77.5,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 9198,
+          "interval": 71.30000000074506,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 9249.699999999255,
+          "interval": 51.69999999925494,
+          "draw": 1.1000000014901161
+        }
+      ],
+      "modelReady": 4,
+      "resources": [
+        {
+          "name": "http://127.0.0.1:36021/cats/orange-cat.glb",
+          "duration": 98,
+          "startTime": 267.30000000074506,
+          "responseEnd": 365.30000000074506,
+          "transferSize": 284456,
+          "encodedBodySize": 284156
+        },
+        {
+          "name": "http://127.0.0.1:36021/cats/calico-cat.glb",
+          "duration": 101.60000000149012,
+          "startTime": 269.69999999925494,
+          "responseEnd": 371.30000000074506,
+          "transferSize": 306512,
+          "encodedBodySize": 306212
+        },
+        {
+          "name": "http://127.0.0.1:36021/cats/black-cat.glb",
+          "duration": 101,
+          "startTime": 270.1000000014901,
+          "responseEnd": 371.1000000014901,
+          "transferSize": 265332,
+          "encodedBodySize": 265032
+        },
+        {
+          "name": "http://127.0.0.1:36021/cats/tabby-cat.glb",
+          "duration": 100.69999999925494,
+          "startTime": 270.6000000014901,
+          "responseEnd": 371.30000000074506,
+          "transferSize": 294304,
+          "encodedBodySize": 294004
+        }
+      ],
+      "actorLayout": [
+        {
+          "kind": "orange",
+          "x": 0.6079783272933486,
+          "z": 0.9157446064650555,
+          "size": 1.3,
+          "phase": 0,
+          "state": "idle"
+        },
+        {
+          "kind": "calico",
+          "x": -1.9525039517657858,
+          "z": -2.8825245272444784,
+          "size": 1.3,
+          "phase": 0.5,
+          "state": "idle"
+        },
+        {
+          "kind": "black",
+          "x": 4.002049982648305,
+          "z": -0.8138721344460219,
+          "size": 1.3,
+          "phase": 1,
+          "state": "idle"
+        },
+        {
+          "kind": "tabby",
+          "x": 0.41365453176414774,
+          "z": 1.663618965001702,
+          "size": 1.3,
+          "phase": 1.5,
+          "state": "idle"
+        },
+        {
+          "kind": "white",
+          "x": -3.295121599831359,
+          "z": -2.3162899773274286,
+          "size": 1.3,
+          "phase": 2,
+          "state": "idle"
+        },
+        {
+          "kind": "glow",
+          "x": -1.4807620597672992,
+          "z": -1.924882734927334,
+          "size": 1.3,
+          "phase": 2.5,
+          "state": "idle"
+        }
+      ],
+      "frameIntervalsMs": {
+        "n": 84,
+        "median": 57.29999999701977,
+        "p95": 74.09999999776483
+      },
+      "renderSubmitMs": {
+        "n": 84,
+        "median": 1.1000000014901161,
+        "p95": 1.800000000745058
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "label": "baseline",
+      "mobile": true,
+      "image": "/workspace/xiantu/output/playwright/cat-models/baseline-phone-measured.png",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "backing": {
+        "width": 780,
+        "height": 1688
+      },
+      "count": 6,
+      "states": [
+        {
+          "kind": "orange",
+          "state": "idle"
+        },
+        {
+          "kind": "calico",
+          "state": "idle"
+        },
+        {
+          "kind": "black",
+          "state": "idle"
+        },
+        {
+          "kind": "tabby",
+          "state": "idle"
+        },
+        {
+          "kind": "white",
+          "state": "idle"
+        },
+        {
+          "kind": "glow",
+          "state": "idle"
+        }
+      ],
+      "render": {
+        "frame": 198,
+        "calls": 186,
+        "triangles": 9113,
+        "points": 370,
+        "lines": 0
+      },
+      "memory": {
+        "geometries": 47,
+        "textures": 2
+      },
+      "heap": {
+        "used": 21531486,
+        "total": 28546674
+      },
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "frames": [
+        {
+          "at": 3557.800000000745,
+          "interval": 37.100000001490116,
+          "draw": 1.699999999254942
+        },
+        {
+          "at": 3599.400000002235,
+          "interval": 41.600000001490116,
+          "draw": 1.2999999970197678
+        },
+        {
+          "at": 3632.60000000149,
+          "interval": 33.19999999925494,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 3664.60000000149,
+          "interval": 32,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 3701.5,
+          "interval": 36.899999998509884,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 3738.10000000149,
+          "interval": 36.600000001490116,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 3770.400000002235,
+          "interval": 32.30000000074506,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 3802.699999999255,
+          "interval": 32.29999999701977,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 3835.900000002235,
+          "interval": 33.20000000298023,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 3868.199999999255,
+          "interval": 32.29999999701977,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 3901.5,
+          "interval": 33.30000000074506,
+          "draw": 1
+        },
+        {
+          "at": 3940,
+          "interval": 38.5,
+          "draw": 0.8000000007450581
+        },
+        {
+          "at": 3989.10000000149,
+          "interval": 49.100000001490116,
+          "draw": 1
+        },
+        {
+          "at": 4026.10000000149,
+          "interval": 37,
+          "draw": 0.8000000007450581
+        },
+        {
+          "at": 4062.10000000149,
+          "interval": 36,
+          "draw": 1
+        },
+        {
+          "at": 4102.699999999255,
+          "interval": 40.599999997764826,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 4136.10000000149,
+          "interval": 33.400000002235174,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 4186.800000000745,
+          "interval": 50.69999999925494,
+          "draw": 1
+        },
+        {
+          "at": 4228.400000002235,
+          "interval": 41.600000001490116,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 4264.800000000745,
+          "interval": 36.399999998509884,
+          "draw": 1
+        },
+        {
+          "at": 4301.10000000149,
+          "interval": 36.30000000074506,
+          "draw": 1
+        },
+        {
+          "at": 4333.300000000745,
+          "interval": 32.19999999925494,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 4366.800000000745,
+          "interval": 33.5,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 4400.900000002235,
+          "interval": 34.100000001490116,
+          "draw": 1
+        },
+        {
+          "at": 4432.699999999255,
+          "interval": 31.799999997019768,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 4464.10000000149,
+          "interval": 31.400000002235174,
+          "draw": 1
+        },
+        {
+          "at": 4502.900000002235,
+          "interval": 38.80000000074506,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 4535,
+          "interval": 32.099999997764826,
+          "draw": 2.400000002235174
+        },
+        {
+          "at": 4586.10000000149,
+          "interval": 51.100000001490116,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 4627,
+          "interval": 40.899999998509884,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 4658.5,
+          "interval": 31.5,
+          "draw": 2.199999999254942
+        },
+        {
+          "at": 4691.199999999255,
+          "interval": 32.69999999925494,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 4727.199999999255,
+          "interval": 36,
+          "draw": 1.4000000022351742
+        },
+        {
+          "at": 4759.199999999255,
+          "interval": 32,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 4791.699999999255,
+          "interval": 32.5,
+          "draw": 1.5
+        },
+        {
+          "at": 4825.60000000149,
+          "interval": 33.900000002235174,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 4860.900000002235,
+          "interval": 35.30000000074506,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 4903.199999999255,
+          "interval": 42.29999999701977,
+          "draw": 0.8000000007450581
+        },
+        {
+          "at": 4938.400000002235,
+          "interval": 35.20000000298023,
+          "draw": 1
+        },
+        {
+          "at": 4984.800000000745,
+          "interval": 46.399999998509884,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 5017.400000002235,
+          "interval": 32.600000001490116,
+          "draw": 0.7999999970197678
+        },
+        {
+          "at": 5052.400000002235,
+          "interval": 35,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 5085.900000002235,
+          "interval": 33.5,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 5117.60000000149,
+          "interval": 31.699999999254942,
+          "draw": 2.099999997764826
+        },
+        {
+          "at": 5149.699999999255,
+          "interval": 32.099999997764826,
+          "draw": 1
+        },
+        {
+          "at": 5187.300000000745,
+          "interval": 37.600000001490116,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 5221.5,
+          "interval": 34.19999999925494,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 5254,
+          "interval": 32.5,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 5287.900000002235,
+          "interval": 33.900000002235174,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 5321.800000000745,
+          "interval": 33.899999998509884,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 5360.900000002235,
+          "interval": 39.100000001490116,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 5397,
+          "interval": 36.099999997764826,
+          "draw": 1
+        },
+        {
+          "at": 5436.400000002235,
+          "interval": 39.400000002235174,
+          "draw": 0.7999999970197678
+        },
+        {
+          "at": 5486,
+          "interval": 49.599999997764826,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 5517,
+          "interval": 31,
+          "draw": 2.300000000745058
+        },
+        {
+          "at": 5549.300000000745,
+          "interval": 32.30000000074506,
+          "draw": 1
+        },
+        {
+          "at": 5586.400000002235,
+          "interval": 37.100000001490116,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 5624.199999999255,
+          "interval": 37.79999999701977,
+          "draw": 1.4000000022351742
+        },
+        {
+          "at": 5658.10000000149,
+          "interval": 33.900000002235174,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 5696.800000000745,
+          "interval": 38.69999999925494,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 5732.5,
+          "interval": 35.69999999925494,
+          "draw": 1.800000000745058
+        },
+        {
+          "at": 5767,
+          "interval": 34.5,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 5801.300000000745,
+          "interval": 34.30000000074506,
+          "draw": 2.5
+        },
+        {
+          "at": 5842.800000000745,
+          "interval": 41.5,
+          "draw": 1
+        },
+        {
+          "at": 5887,
+          "interval": 44.19999999925494,
+          "draw": 0.8000000007450581
+        },
+        {
+          "at": 5922.699999999255,
+          "interval": 35.69999999925494,
+          "draw": 1
+        },
+        {
+          "at": 5956.199999999255,
+          "interval": 33.5,
+          "draw": 1.2000000029802322
+        },
+        {
+          "at": 5991.900000002235,
+          "interval": 35.70000000298023,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 6027.400000002235,
+          "interval": 35.5,
+          "draw": 1.699999999254942
+        },
+        {
+          "at": 6062.5,
+          "interval": 35.099999997764826,
+          "draw": 0.8000000007450581
+        },
+        {
+          "at": 6100.800000000745,
+          "interval": 38.30000000074506,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 6142.5,
+          "interval": 41.69999999925494,
+          "draw": 0.8000000007450581
+        },
+        {
+          "at": 6194.199999999255,
+          "interval": 51.69999999925494,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 6234.300000000745,
+          "interval": 40.100000001490116,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 6268.10000000149,
+          "interval": 33.80000000074506,
+          "draw": 4.5
+        },
+        {
+          "at": 6307,
+          "interval": 38.899999998509884,
+          "draw": 2.5
+        },
+        {
+          "at": 6339.199999999255,
+          "interval": 32.19999999925494,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 6381.300000000745,
+          "interval": 42.100000001490116,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 6427.10000000149,
+          "interval": 45.80000000074506,
+          "draw": 1
+        },
+        {
+          "at": 6468.400000002235,
+          "interval": 41.30000000074506,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 6503.199999999255,
+          "interval": 34.79999999701977,
+          "draw": 1
+        },
+        {
+          "at": 6534.900000002235,
+          "interval": 31.700000002980232,
+          "draw": 1
+        },
+        {
+          "at": 6581.800000000745,
+          "interval": 46.899999998509884,
+          "draw": 1
+        },
+        {
+          "at": 6630.199999999255,
+          "interval": 48.399999998509884,
+          "draw": 1
+        },
+        {
+          "at": 6664.60000000149,
+          "interval": 34.400000002235174,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 6701.300000000745,
+          "interval": 36.69999999925494,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 6737.5,
+          "interval": 36.19999999925494,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 6768.699999999255,
+          "interval": 31.199999999254942,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 6808.10000000149,
+          "interval": 39.400000002235174,
+          "draw": 1
+        },
+        {
+          "at": 6845.300000000745,
+          "interval": 37.19999999925494,
+          "draw": 1
+        },
+        {
+          "at": 6888.5,
+          "interval": 43.19999999925494,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 6919.400000002235,
+          "interval": 30.900000002235174,
+          "draw": 1
+        },
+        {
+          "at": 6950.300000000745,
+          "interval": 30.899999998509884,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 6989.10000000149,
+          "interval": 38.80000000074506,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 7026.400000002235,
+          "interval": 37.30000000074506,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 7065.10000000149,
+          "interval": 38.69999999925494,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 7105.60000000149,
+          "interval": 40.5,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 7143.10000000149,
+          "interval": 37.5,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 7190.800000000745,
+          "interval": 47.69999999925494,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 7228.900000002235,
+          "interval": 38.100000001490116,
+          "draw": 1
+        },
+        {
+          "at": 7265.699999999255,
+          "interval": 36.79999999701977,
+          "draw": 1
+        },
+        {
+          "at": 7304.199999999255,
+          "interval": 38.5,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 7340.400000002235,
+          "interval": 36.20000000298023,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 7381.5,
+          "interval": 41.099999997764826,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 7416,
+          "interval": 34.5,
+          "draw": 3.100000001490116
+        },
+        {
+          "at": 7449.5,
+          "interval": 33.5,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 7481.300000000745,
+          "interval": 31.800000000745058,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 7512.800000000745,
+          "interval": 31.5,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 7544.60000000149,
+          "interval": 31.800000000745058,
+          "draw": 1
+        },
+        {
+          "at": 7584.800000000745,
+          "interval": 40.19999999925494,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 7626,
+          "interval": 41.19999999925494,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 7658.699999999255,
+          "interval": 32.69999999925494,
+          "draw": 1.4000000022351742
+        },
+        {
+          "at": 7705.10000000149,
+          "interval": 46.400000002235174,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 7744.199999999255,
+          "interval": 39.099999997764826,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 7790.800000000745,
+          "interval": 46.600000001490116,
+          "draw": 1
+        },
+        {
+          "at": 7828.400000002235,
+          "interval": 37.600000001490116,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 7886,
+          "interval": 57.599999997764826,
+          "draw": 1
+        },
+        {
+          "at": 7929,
+          "interval": 43,
+          "draw": 1
+        },
+        {
+          "at": 7966.900000002235,
+          "interval": 37.900000002235174,
+          "draw": 1.5999999977648258
+        },
+        {
+          "at": 8006,
+          "interval": 39.099999997764826,
+          "draw": 0.8000000007450581
+        },
+        {
+          "at": 8045.300000000745,
+          "interval": 39.30000000074506,
+          "draw": 1
+        },
+        {
+          "at": 8090.199999999255,
+          "interval": 44.899999998509884,
+          "draw": 1
+        },
+        {
+          "at": 8121.10000000149,
+          "interval": 30.900000002235174,
+          "draw": 1.0999999977648258
+        },
+        {
+          "at": 8151.199999999255,
+          "interval": 30.099999997764826,
+          "draw": 1.2000000029802322
+        },
+        {
+          "at": 8189.199999999255,
+          "interval": 38,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 8221.400000002235,
+          "interval": 32.20000000298023,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 8251.300000000745,
+          "interval": 29.899999998509884,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 8290.5,
+          "interval": 39.19999999925494,
+          "draw": 1
+        },
+        {
+          "at": 8326.199999999255,
+          "interval": 35.69999999925494,
+          "draw": 1
+        },
+        {
+          "at": 8358.199999999255,
+          "interval": 32,
+          "draw": 1
+        },
+        {
+          "at": 8389.300000000745,
+          "interval": 31.100000001490116,
+          "draw": 0.8000000007450581
+        },
+        {
+          "at": 8419.300000000745,
+          "interval": 30,
+          "draw": 0.8999999985098839
+        },
+        {
+          "at": 8449.199999999255,
+          "interval": 29.899999998509884,
+          "draw": 0.9000000022351742
+        },
+        {
+          "at": 8488.400000002235,
+          "interval": 39.20000000298023,
+          "draw": 0.7999999970197678
+        },
+        {
+          "at": 8519.199999999255,
+          "interval": 30.799999997019768,
+          "draw": 1.1000000014901161
+        }
+      ],
+      "modelReady": 0,
+      "resources": [],
+      "actorLayout": [
+        {
+          "kind": "orange",
+          "x": 0.6079783272933486,
+          "z": 0.9157446064650555,
+          "size": 1.3,
+          "phase": 0,
+          "state": "idle"
+        },
+        {
+          "kind": "calico",
+          "x": -1.9525039517657858,
+          "z": -2.8825245272444784,
+          "size": 1.3,
+          "phase": 0.5,
+          "state": "idle"
+        },
+        {
+          "kind": "black",
+          "x": 4.002049982648305,
+          "z": -0.8138721344460219,
+          "size": 1.3,
+          "phase": 1,
+          "state": "idle"
+        },
+        {
+          "kind": "tabby",
+          "x": 0.41365453176414774,
+          "z": 1.663618965001702,
+          "size": 1.3,
+          "phase": 1.5,
+          "state": "idle"
+        },
+        {
+          "kind": "white",
+          "x": -3.295121599831359,
+          "z": -2.3162899773274286,
+          "size": 1.3,
+          "phase": 2,
+          "state": "idle"
+        },
+        {
+          "kind": "glow",
+          "x": -1.4807620597672992,
+          "z": -1.924882734927334,
+          "size": 1.3,
+          "phase": 2.5,
+          "state": "idle"
+        }
+      ],
+      "frameIntervalsMs": {
+        "n": 135,
+        "median": 36.099999997764826,
+        "p95": 48.399999998509884
+      },
+      "renderSubmitMs": {
+        "n": 135,
+        "median": 1,
+        "p95": 2.199999999254942
+      },
+      "errors": [],
+      "external": []
+    }
+  ],
+  "assetSets": {
+    "models": [
+      {
+        "kind": "orange",
+        "bytes": 284156,
+        "sha256": "d095ab0afa675dc6fd617026e82072c3a3ca754319cad6a65b400d04d7d15d32"
+      },
+      {
+        "kind": "calico",
+        "bytes": 306212,
+        "sha256": "ba817c93a9af52fe301b315ee650815574ec9aa17be8358660b572cb79cdc786"
+      },
+      {
+        "kind": "black",
+        "bytes": 265032,
+        "sha256": "c58a2f66ca0499f8c65aebf21136ae2ada36eee2ab9910b70bbb7af4fa1da8c5"
+      },
+      {
+        "kind": "tabby",
+        "bytes": 294004,
+        "sha256": "e15a033acb9746fa9405274807b4453874df7f947eaa0ea72a36858abf10c157"
+      }
+    ],
+    "high-detail-current": [
+      {
+        "kind": "orange",
+        "bytes": 948728,
+        "sha256": "008de33f18af299ca07bf4ff053e0d87c999c2eb952a785dc19e8a2fc5ebe2b2"
+      },
+      {
+        "kind": "calico",
+        "bytes": 975672,
+        "sha256": "e80b38081023c94d0d2d77441bc7fbe0808bc4cf28ac6b287d84ccb65edbaf10"
+      },
+      {
+        "kind": "black",
+        "bytes": 937696,
+        "sha256": "18e71218eb82662f8101ec15b8fd9c43ce99a8f5848abf5476465093d5b56fb2"
+      },
+      {
+        "kind": "tabby",
+        "bytes": 961940,
+        "sha256": "b4b726df6bdf32dacf9982683fe6528e49b26b3e69c9758f0992761b471af0cb"
+      }
+    ]
+  },
+  "runtimeSha256": "b1b183935ee93412ba4b09587de1a892e629e16e203eb2139bc5ecc00436a976",
+  "browser": "151.0.7922.173",
+  "summary": [
+    {
+      "variant": "models",
+      "profile": "local-unthrottled",
+      "modelReadyMs": {
+        "n": 3,
+        "median": 610.6000000014901,
+        "p95": 677
+      },
+      "twoAnimationFramesAfterReadyMs": {
+        "n": 3,
+        "median": 845.1000000014901,
+        "p95": 870.8000000007451
+      }
+    },
+    {
+      "variant": "models",
+      "profile": "fast-4g",
+      "modelReadyMs": {
+        "n": 3,
+        "median": 1547.800000000745,
+        "p95": 1553.699999999255
+      },
+      "twoAnimationFramesAfterReadyMs": {
+        "n": 3,
+        "median": 1714.5,
+        "p95": 1799.5
+      }
+    },
+    {
+      "variant": "models",
+      "profile": "slow-4g",
+      "modelReadyMs": {
+        "n": 3,
+        "median": 6231.10000000149,
+        "p95": 6288.89999999851
+      },
+      "twoAnimationFramesAfterReadyMs": {
+        "n": 3,
+        "median": 6423.300000000745,
+        "p95": 6459.89999999851
+      }
+    },
+    {
+      "variant": "high-detail-current",
+      "profile": "local-unthrottled",
+      "modelReadyMs": {
+        "n": 3,
+        "median": 512.9000000022352,
+        "p95": 771.5
+      },
+      "twoAnimationFramesAfterReadyMs": {
+        "n": 3,
+        "median": 970.6999999992549,
+        "p95": 1173.2999999970198
+      }
+    },
+    {
+      "variant": "high-detail-current",
+      "profile": "fast-4g",
+      "modelReadyMs": {
+        "n": 3,
+        "median": 3959.39999999851,
+        "p95": 4004.2000000029802
+      },
+      "twoAnimationFramesAfterReadyMs": {
+        "n": 3,
+        "median": 4388.900000002235,
+        "p95": 4394.39999999851
+      }
+    },
+    {
+      "variant": "high-detail-current",
+      "profile": "slow-4g",
+      "modelReadyMs": {
+        "n": 3,
+        "median": 19837,
+        "p95": 19899.60000000149
+      },
+      "twoAnimationFramesAfterReadyMs": {
+        "n": 3,
+        "median": 20198.199999999255,
+        "p95": 20250.60000000149
+      }
+    }
+  ]
+}
