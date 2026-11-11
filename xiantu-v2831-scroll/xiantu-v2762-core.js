@@ -7740,7 +7740,7 @@
         const tournamentFightV2764 = !!currentEnemy?.tournamentFight;
         const tournamentEnemyV2779=currentEnemy;
         let shouldBreakthroughV2764 = false;
-        const rewardOwnerV2838=player,rewardBeforeV2838={gold:player.gold,exp:player.exp};
+        const rewardOwnerV2838=player,rewardBeforeV2838={gold:player.gold,exp:player.exp,lootV2868118:typeof lootSnapshotV2868118==='function'?lootSnapshotV2868118():null};
         beginCombatFinishV2764('victory', {disabled:true, watchdogDelay:3200});
         (() => {
           try {
@@ -7758,7 +7758,8 @@
           
           player.gold += goldGain;
           player.exp += expGain;
-          addCombatLog(`获得 ${goldGain} 灵石，${expGain} 修为${earlyGoldBonus?`（含历练补贴 ${earlyGoldBonus} 灵石）`:''}`, 'gold');
+          // V28.68.118 (audit G3): the training puppet grants nothing here; its real reward comes from the tutorial, so skip the "获得 0 灵石，0 修为" line.
+          if(!(currentEnemy?._isTutorial&&!goldGain&&!expGain))addCombatLog(`获得 ${goldGain} 灵石，${expGain} 修为${earlyGoldBonus?`（含历练补贴 ${earlyGoldBonus} 灵石）`:''}`, 'gold');
           // 越级击杀：仅普通非大比敌人追加奖励
           const enemyRealmValue=(currentEnemy._realmLevel||0)+((currentEnemy._realmPhase||0)/4);
           const playerRealmValue=(player.level||0)+((player.phase||0)/4);
@@ -7771,6 +7772,7 @@
               const drop=rare[Math.floor(Math.random()*rare.length)];
               if(drop==='天元丹')player.inventory.push(drop);else player.materials[drop]=(player.materials[drop]||0)+1;
               addCombatLog(`🎁 越级奖励：获得 ${drop}！`,'gold');
+              rewardBeforeV2838.underdogV2868118=drop;
             }
           }
           // Boss战胜利处理
@@ -16280,7 +16282,7 @@ function villageEnhanceV286897(){
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.117";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.118";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
