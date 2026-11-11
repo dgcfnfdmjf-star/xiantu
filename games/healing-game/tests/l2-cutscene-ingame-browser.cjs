@@ -99,7 +99,10 @@ const KEY = 'healingGarden.kittens.v1';
     assert(elapsed >= 7 && score.t < 60 && report.seekTiming.drift < 0.15,
       'seek keeps real time: ' + JSON.stringify(report.seekTiming));
     assert(Math.abs(score.s.position - score.t) < 0.45 && score.s.lastStep >= 105, 'score jumped with seek: ' + JSON.stringify(score));
-    assert(peakLive > 4 && peakLive <= 34, 'voice count in the busiest strain: ' + peakLive);
+    // music-lush stops adding felt/harp at 34 live sources, but padTone is not
+    // subject to that cutoff. A string chord adds four sustained voices
+    // (three chord tones plus bass), so the combined counter can reach 38.
+    assert(peakLive > 4 && peakLive <= 34 + 4, 'voice count including the string chord: ' + peakLive);
     report.peakLive = peakLive;
 
     // Skip lands on the end title; the card still needs its own tap.
