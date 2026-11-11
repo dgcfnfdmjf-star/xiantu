@@ -179,6 +179,19 @@ check('storyboard beats at the 5 / 20 / 40 / 58 s marks', () => {
   // 58 s: sleep pile, title up, book gone.
   assert(last.cats.every(c => c.state === 'sleep' && c.curl === 1 && !c.moving && c.y === 0));
   assert(last.book === 0 && last.zs && last.title === 1 && last.canContinue === false);
+  // Painterly look: golden hour -> dusk -> soft blue night; wind, seeds and the chime are part of every frame.
+  assert.strictEqual(five.look, 'painterly');
+  assert(five.sky.gold === 1 && twenty.sky.gold > 0.7 && forty.sky.dusk === 1 && last.sky.night === 1, 'sky palette follows the beats');
+  for (const f of [five, twenty, forty, last]) assert(Math.abs(f.sky.gold + f.sky.dusk + f.sky.night - 1) < 1e-9 && Math.abs(f.wind) <= 1 && f.seeds >= 20);
+  assert(five.stars === 0 && last.stars === 1, 'stars belong to the night');
+  const gusts = []; for (let t = 0; t < 60; t += 0.25) gusts.push(cs.frame(t).wind);
+  assert(Math.max(...gusts) > 0.5 && Math.min(...gusts) < -0.3, 'wind sweeps in waves');
+  assert(gusts.some((w, i) => cs.frame(i * 0.25).chime.ring > 0.5), 'the chime rings on a gust');
+  // One kitten chases a drifting seed during play and is back in the ring before the book opens.
+  const chase = at(27.5), chaser = chase.cats.find(c => c.chase > 0.99);
+  assert(chaser && chase.seed.alpha === 1 && Math.hypot(chaser.x - chase.seed.x, chaser.z - chase.seed.z) < 1.2, 'kitten close behind the seed');
+  assert(at(22).chase === 0 && at(33).chase === 0 && forty.seed.alpha === 0);
+  assert(twenty.cats.some(c => c.ear > 0) || at(21).cats.some(c => c.ear > 0), 'ears twitch');
   const spread = last.cats.map(c => Math.hypot(c.x - last.cats[6].x, c.z - last.cats[6].z));
   assert(Math.max(...spread) < 1.5, 'pile is tight');
 });

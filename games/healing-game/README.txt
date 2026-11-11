@@ -72,7 +72,7 @@ assets/cats/preview-cat-orange.html 保留原文件名，新增四毛色切换�
 按顺序更新与校验三层清单：python3 scripts/checksums.py --write，随后
 python3 scripts/checksums.py；不改仙途/Jev 代码，不部署任何游戏或云函数。
 
-V9.6 工作版备注：第二关通关过场（场景动画已完成，未发布，暂无配乐）
+V9.6 工作版备注：第二关通关过场（场景动画已完成，已改为手绘水彩风：卡通渐变、描边、风吹草浪、蒲公英、风铃、纸纹；未发布，暂无配乐）
 build.py 先冻结 V9.5 发布 HTML 并照旧生成 releases/healing-game-v9.5-tencent.zip（字节不变），
 再由 scripts/l2-cutscene-v96.py 把 src/l2-cutscene.js 挂入工作站点 site/healing-game/；
 site/healing-game-v9.5-baseline/ 为与 ZIP 一致的对照页。目前只有 60 秒时间轴、跳过、

@@ -76,6 +76,13 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.mp3': 'audio/mpeg', '.glb'
       assert(shots[20].lanterns === 5 && shots[20].halo === 1 && shots[20].zs === 0, 'rare cat with halo at 20s');
       assert(shots[58].zs > 0 && shots[58].hearts === 0 && shots[58].cats.every(c => c[3] === 1), 'sleep pile at 58s');
       assert.notDeepEqual(shots[5].camera, shots[58].camera, 'camera moves');
+      // Painterly look: own sky dome, wind-driven grass on the cutscene clock, drifting seeds, chime, toon swap + outlines.
+      for (const t of [5, 20, 40, 58]) assert(shots[t].look[0] && shots[t].look[2] === t && shots[t].look[3] && shots[t].look[4] && shots[t].look[5] >= 20 && shots[t].look[6], 'painterly stage at ' + t);
+      assert(shots[5].look[1] === 0 && shots[58].look[1] === 1, 'golden hour to blue night');
+      assert.equal(await page.locator('#l2csPaper').isVisible(), true, 'paper overlay up');
+      const look = await page.evaluate(() => window.__l2Cutscene.stage());
+      assert(look.toon > 50 && look.outlines >= 20, 'toon materials and outlines applied');
+      assert.equal((await shoot(27.5)).hero, true, 'seed being chased at 27.5s');
       // Seeking is idempotent: any route to a mark gives the same picture, with nothing left over.
       assert.deepEqual(await shoot(30).then(s => [s.teaser, s.flies, s.hearts > 0]), [true, 3, true]);
       for (const t of [58, 20, 5, 40]) {
@@ -104,6 +111,8 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.mp3': 'audio/mpeg', '.glb'
       assert.equal(await page.locator('#l2cs').isVisible(), false);
       assert.equal(await page.evaluate(() => window.__l2Cutscene.staged()), false);
       assert.equal(await page.locator('#start').isVisible(), true, 'game UI returns');
+      assert.equal(await page.locator('#l2csPaper').isVisible(), false, 'paper overlay leaves with the cutscene');
+      assert.equal(await page.evaluate(() => window.__l2Cutscene.stage().toon), 0, 'island materials handed back');
       assert.equal(await saves(), before, 'cutscene writes no save');
 
       // Unmuted preview waits for the first gesture.

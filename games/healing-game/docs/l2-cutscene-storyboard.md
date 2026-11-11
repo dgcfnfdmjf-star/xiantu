@@ -1,6 +1,6 @@
 # 第二关通关过场 · Level-2 clear cutscene storyboard
 
-Status: **scenes animated** (item 2). The 60 s clock drives a cinematic in the live three.js
+Status: **scenes animated (item 2), painterly restyle (item 3)**. The 60 s clock drives a cinematic in the live three.js
 island: camera rig, display-only kitten cast (Blender coats when loaded, code-built otherwise,
 one 星光猫 always), bush rustle, lanterns, extra stars, cat teaser, three butterflies, hearts,
 z's, the 图鉴 panel and the end title. Music is still silent. In-game hook still behind the flag.
@@ -8,6 +8,41 @@ z's, the 图鉴 panel and the end title. Music is still silent. In-game hook sti
 - Module: `src/l2-cutscene.js` (ES5, no dependencies, no save access) → `window.__l2Cutscene`
 - Build hook: `scripts/l2-cutscene-v96.py`, run by `scripts/build.py` after the V9.5 HTML is frozen
 - Total length: **60 s** (`duration()`; allowed range 55–65 s). Beats are contiguous.
+
+## Painterly restyle (item 3)
+
+The cutscene (only the cutscene) now has an original hand-painted, Ghibli-inspired look; nothing is
+copied from any film. Beats and the 60 s length are unchanged; the palette runs golden hour (0–16 s)
+→ warm dusk (16–40 s) → soft blue night (40–52 s onward). Everything is still a function of `t`.
+
+- **Sky**: a cutscene-owned dome with a gouache wash, crisp-edged two-tone cumulus lit from the sun
+  side, a low sun, a moon; the game's own sky is hidden while staged, so `seek()` no longer lags.
+- **Toon ramp**: island Lambert materials are swapped for `MeshToonMaterial` + a 4-step `gradientMap`;
+  Blender coats keep a cloned material with the same banding injected after the light sum; a warm
+  (then blue) rim term is added on up-facing silhouettes. All swaps are undone on close.
+- **Outlines**: inverted-hull meshes (view-space normal push, depth-capped width) on kittens, bushes
+  and the chime bell.
+- **Wind**: one travelling-wave field (`windAt`, mirrored in GLSL) bends ~2 400 instanced grass
+  blades (1 500 on mobile) and ~150 wildflowers, sways bushes and flowers, carries 12 dandelion
+  seeds and 14 petals, and swings the wind chime (glass bell + paper strip on a bamboo pole).
+- **Small life**: ear flicks and tail sway (real on the code-built cats; a head shiver and lean on
+  the single-mesh Blender coats); the black-slot kitten chases one seed at 24.5–32 s and returns.
+- **Paper**: a procedural paper-grain layer (`multiply`) and a bleached edge (`soft-light`) sit over
+  the canvas only while the cutscene is open.
+- **Camera**: fewer, slower keys; opens on a far establishing shot (island small under the sky),
+  glides in over 15 s, one gentle arc during play, crane up and widen for the title.
+- Frame fields added: `look`, `sky {gold,dusk,night}`, `wind`, `seeds`, `seed`, `chase`, `chime`;
+  `stage()` adds `toon`, `outlines`, `shot.look`, `shot.hero`.
+
+GitHub projects compared for this item (ideas only, no code or assets copied, no dependency added):
+`mayacoda/toon-shader` (custom stepped-light toon ShaderMaterial), `James-Smyth/three-grass-demo`
+(instanced blades bent in the vertex shader by a scrolling wave), `Steve245270533/three-stylized`
+(instanced meadow + wildflowers with wind), `leoawen/fluffytree-threejs` (anime foliage + wind), and
+Kuwahara post-process demos (`AlbertKovtoun/Threejs-Kuwahara`, `charlotte901/susurrus-village`).
+Chosen: three's built-in `MeshToonMaterial` ramp instead of a custom toon shader (keeps maps, fog and
+the game's lights); the instanced vertex-shader wave for grass; inverted hulls for outlines. The
+Kuwahara pass was rejected: the game exposes no renderer/composer hook and a full-screen pass is too
+heavy for phones, so paper and brush texture are a CSS blend layer and the sky is painted in its shader.
 
 ## Beat sheet
 
