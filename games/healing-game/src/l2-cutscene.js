@@ -69,32 +69,71 @@
 
   /* ------------------------------ Model ------------------------------
    * Island-local metres; y is height above the grass. Nothing here keeps state between calls. */
-  // Half a metre off the gameplay pile (-0.6, 1.4) so the nearest bush never covers the outer ring.
-  var PILE = { x: -0.2, z: 1.1 }, TAU = 6.28318530718;
+  /* Personal space (measured with __l2Cutscene.bounds(), tail excluded, at stage scale): a Blender coat is 0.30 m
+   * around its centre seated, up to 0.44 with a paw or a stretch out, 0.40 curled, 0.48 mid-Walk; the procedural
+   * white cat is 0.47 and the glow cat 0.53 after PROC. Every seat and path below is laid out for the largest of
+   * those (BODY / BODY_GLOW) with a 5% comfort margin, so no two bodies share a volume in any beat. */
+  var BODY = 0.5, BODY_GLOW = 0.54, COMFORT = 1.05, PROC = 0.8, BUSH_R = 0.56, RIM = 4.55;
+  // The pile sits in the widest clearing between three bushes; the play ring and the sleep hexagon both fit inside it.
+  var PILE = { x: 0.55, z: 1.1 }, TAU = 6.28318530718, DEG = TAU / 360;
   var BUSH = [[-1.2, 2.7], [3.3, 1.5], [-3.6, 0.9], [0.7, -3.3], [1.9, 3.3], [-1.5, -0.1]];
+  // Wind chime on a bamboo pole beside the pile (outside the ring, clear of the pond).
+  var CHIME = { x: 2.2, z: 0.2 };
+  // Things a path walks around: [x, z, radius]. The tree and pond are the island's own (H.TREE / H.POND).
+  var SOLID = [[-2.5, -1.7, 0.75], [2.3, -1.3, 1.3], [CHIME.x, CHIME.z, 0.08]];
   var COMMON = ['orange', 'calico', 'black', 'white', 'tabby'];
-  // ring 0 = three in the middle (the glowing cat in front), ring 1 = four around them.
+  /* Play: seven seats on one ring around the teaser, each facing the bush its cat walks out of (nobody crosses the
+   * circle). Neighbours are 46.6 deg apart (chord 1.05 m); the glow cat has 63 deg each side so it can later walk
+   * straight in. Sleep: the glow cat in the middle and the other six in a hexagon RING_SLEEP around it.
+   * a = seat angle, to = angle after the stroll (deg, counter-clockwise from +x; the stroll turns clockwise, away from the pond). */
+  var RING = 1.33, RING_SLEEP = 1.1;
   var CAST = [
-    { kind: 'orange', bush: 0, enter: 8.6, ring: 0, slot: 1 },
-    { kind: 'calico', bush: 4, enter: 10.0, ring: 1, slot: 0 },
-    { kind: 'black', bush: 5, enter: 11.4, ring: 1, slot: 1 },
-    { kind: 'white', bush: 2, enter: 12.6, ring: 0, slot: 2 },
-    { kind: 'tabby', bush: 3, enter: 13.6, ring: 1, slot: 2 },
-    { kind: 'orange', bush: 0, enter: 15.2, ring: 1, slot: 3 },
-    { kind: 'glow', bush: 1, enter: 16.4, ring: 0, slot: 0 }
+    { kind: 'orange', bush: 0, enter: 8.6, a: 144.7, to: 49 },
+    { kind: 'calico', bush: 4, enter: 10.0, a: 51.5, to: -71 },
+    { kind: 'black', bush: 0, enter: 11.4, a: 98.1, to: -11 },
+    { kind: 'white', bush: 2, enter: 12.6, a: 191.3, to: 109 },
+    { kind: 'tabby', bush: 3, enter: 13.6, a: -75.5, to: -131 },
+    { kind: 'orange', bush: 5, enter: 15.5, a: 237.9, to: 169 },
+    { kind: 'glow', bush: 1, enter: 16.4, a: -11.5, to: -11.5 }
   ];
   var soft = 1; // 0.3 under prefers-reduced-motion: same story, smaller and slower movement
+  function bodyOf(c) { return c.kind === 'glow' ? BODY_GLOW : BODY; }
+  function gap(ax, az, bx, bz) { return Math.sqrt((ax - bx) * (ax - bx) + (az - bz) * (az - bz)); }
+  /* Gather paths: a quadratic bezier from the bush to the seat. The control point is offset sideways (the classic
+   * offset-waypoint detour, as in steering libraries' obstacle avoidance, but solved once up front so the path stays
+   * a pure function of t): the smallest bow whose whole walk keeps the comfort distance from every cat already out,
+   * from the other bushes, the tree, the pond, the chime pole and the island rim. */
+  function pathSlack(c, upto) {
+    var worst = 9, own = BUSH[c.bush], j, k;
+    for (k = 1; k <= 48; k++) {
+      var t = c.enter + c.walk * k / 48, p = placeAt(c, t), out = gap(p.x, p.z, own[0], own[1]) > BUSH_R;
+      for (j = 0; j < BUSH.length; j++) if (j !== c.bush) worst = Math.min(worst, gap(p.x, p.z, BUSH[j][0], BUSH[j][1]) - BODY - BUSH_R);
+      for (j = 0; j < SOLID.length; j++) worst = Math.min(worst, gap(p.x, p.z, SOLID[j][0], SOLID[j][1]) - BODY - SOLID[j][2]);
+      worst = Math.min(worst, RIM - 0.3 - Math.sqrt(p.x * p.x + p.z * p.z));
+      for (j = 0; out && j < upto; j++) {
+        var o = CAST[j], q = placeAt(o, t), b = BUSH[o.bush];
+        if (t > o.enter && gap(q.x, q.z, b[0], b[1]) > BUSH_R) worst = Math.min(worst, gap(p.x, p.z, q.x, q.z) - COMFORT * (bodyOf(c) + bodyOf(o)));
+      }
+    }
+    return worst;
+  }
   (function () {
+    var bows = [0], q; for (q = 1; q <= 24; q++) bows.push(0.075 * q, -0.075 * q);
     for (var i = 0; i < CAST.length; i++) {
-      var c = CAST[i], b = BUSH[c.bush];
-      c.i = i;
-      c.a = c.ring ? 0.4 + c.slot * TAU / 4 : TAU / 4 + c.slot * TAU / 3;
-      c.r = c.ring ? 1.08 : 0.5; c.rs = c.ring ? 0.95 : 0.42;
+      var c = CAST[i], b = BUSH[c.bush], glow = c.kind === 'glow';
+      c.i = i; c.a *= DEG; c.to *= DEG;
+      c.r = RING; c.rs = glow ? 0 : RING_SLEEP;
       c.sx = PILE.x + Math.cos(c.a) * c.r; c.sz = PILE.z + Math.sin(c.a) * c.r;
-      var dx = c.sx - b[0], dz = c.sz - b[1], d = Math.sqrt(dx * dx + dz * dz), bow = (i % 2 ? 0.45 : -0.45);
-      c.walk = 1.6 + d / 1.05; // a trot, never a dash
-      c.mx = (b[0] + c.sx) / 2 - dz / d * bow; c.mz = (b[1] + c.sz) / 2 + dx / d * bow;
-      c.size = c.kind === 'glow' ? 1.43 : 1.26 + 0.03 * (i % 3);
+      var dx = c.sx - b[0], dz = c.sz - b[1], d = Math.sqrt(dx * dx + dz * dz), best = -9, pick = 0;
+      c.walk = 1.6 + d / (glow ? 0.6 : 1.05); // a trot, never a dash; the rare cat takes its time
+      for (var n = 0; n < bows.length && best < 0; n++) {
+        c.mx = (b[0] + c.sx) / 2 - dz / d * bows[n]; c.mz = (b[1] + c.sz) / 2 + dx / d * bows[n];
+        var slack = pathSlack(c, i);
+        if (slack > best) { best = slack; pick = bows[n]; }
+      }
+      c.bow = pick; c.slack = best;
+      c.mx = (b[0] + c.sx) / 2 - dz / d * pick; c.mz = (b[1] + c.sz) / 2 + dx / d * pick;
+      c.size = glow ? 1.43 : 1.26 + 0.03 * (i % 3);
       c.phase = i * 1.37;
     }
   })();
@@ -121,22 +160,24 @@
       alpha: Math.sin(Math.PI * u), spin: (kind ? 1.6 : 0.4) * t * (r3 - 0.5) + j
     };
   }
-  // One kitten leaves the ring to chase a single seed across the front of the pile, then trots back.
-  var CHASER = 2;
+  // One kitten leaves its seat (straight out, away from the ring) to chase a single seed round a loop in the clearing
+  // in front of the group, between the two front bushes, then trots back in the way it left. It never enters the ring.
+  var CHASER = 2, CHASE = { r: 2.62, dr: 0.2, da: 0.22, w: 1.1 };
   function chaseEnv(t) { return ease(ramp(t, 24.5, 26.5)) * (1 - ease(ramp(t, 29.5, 32))); }
-  function chasePath(t) {
-    var u = t - 24.5, a = 1.0 + 0.62 * soft * Math.sin(0.85 * u), r = 1.72 + 0.2 * soft * Math.sin(1.6 * u);
-    return { x: PILE.x + Math.cos(a) * r, z: PILE.z + Math.sin(a) * r };
+  function chasePolar(t) {
+    var u = CHASE.w * (t - 24.5);
+    return { a: CAST[CHASER].a + CHASE.da * soft * Math.sin(u), r: CHASE.r - CHASE.dr * soft * Math.cos(u) };
   }
+  function chasePath(t) { var q = chasePolar(t); return { x: PILE.x + Math.cos(q.a) * q.r, z: PILE.z + Math.sin(q.a) * q.r }; }
   function heroSeedAt(t) {
-    var p = chasePath(t + 0.5), far = 1 - ease(ramp(t, 23, 25)), out = ease(ramp(t, 29.6, 31.5));
+    // The seed stays a good body length ahead of the chaser's nose.
+    var p = chasePath(t + 0.9), far = 1 - ease(ramp(t, 23, 25)), out = ease(ramp(t, 29.6, 31.5));
     return {
       x: p.x + (out * 3.5 - far * 4) * WIND.x, z: p.z + (out * 3.5 - far * 4) * WIND.z,
       y: 0.62 + 0.12 * Math.sin(2.3 * t) + far * 0.8 + out * 1.6, alpha: ease(ramp(t, 23, 23.8)) * (1 - ease(ramp(t, 30.6, 31.5)))
     };
   }
-  // Wind chime on a bamboo pole beside the pile: swing angle, paper-strip spin and a glint on gusts.
-  var CHIME = { x: 1.6, z: 0.15 };
+  // Wind chime: swing angle, paper-strip spin and a glint on gusts.
   function chimeAt(t) {
     var w = windAt(CHIME.x, CHIME.z, t);
     return { swing: (0.05 + 0.16 * w) * (0.3 + 0.7 * soft), spin: 0.9 * Math.sin(t * 1.3) + 1.4 * w * soft, ring: clamp((w - 0.35) * 2.2, 0, 1) };
@@ -151,13 +192,14 @@
       y: 1.02 + 0.2 * Math.sin(1.5 * w) * soft + 1.6 * (1 - ease(ramp(t, 21.4, 23.4))) + 1.8 * out, sway: 0.3 * Math.cos(w)
     };
   }
+  /* Seats do not slide: a seated cat stays on its spot through idle and play. The stroll (38.6-46 s): the glow cat
+   * walks straight in to the middle first, then the six walk the ring round to their hexagon slots while it closes
+   * from RING to RING_SLEEP. Angle and radius share one ramp, so neighbours keep at least their seated spacing. */
   function ringAt(c, t) {
-    var env = playEnv(t), turn = ease(ramp(t, 39, 45.5));
-    var a = c.a + TAU * turn + env * 0.3 * soft * Math.sin(0.55 * (t - 22) + c.i * 1.9);
-    var r = lerp(c.r, c.rs, ease(ramp(t, 39, 46))) * (1 + env * 0.1 * soft * Math.sin(0.8 * t + c.i * 2.3));
-    var p = { x: PILE.x + Math.cos(a) * r, z: PILE.z + Math.sin(a) * r, a: a };
-    if (c.i === CHASER) { var e = chaseEnv(t), q = chasePath(t); p.x = lerp(p.x, q.x, e); p.z = lerp(p.z, q.z, e); }
-    return p;
+    var glow = c.kind === 'glow', u = glow ? ease(ramp(t, 38.6, 41.0)) : ease(ramp(t, 39.3, 44.6));
+    var a = lerp(c.a, c.to, u), r = lerp(c.r, c.rs, u);
+    if (c.i === CHASER) { var e = chaseEnv(t), q = chasePolar(t); a = lerp(a, q.a, e); r = lerp(r, q.r, e); }
+    return { x: PILE.x + Math.cos(a) * r, z: PILE.z + Math.sin(a) * r, a: a };
   }
   function placeAt(c, t) {
     if (t >= c.enter + c.walk) return ringAt(c, t);
@@ -196,22 +238,24 @@
     var te = teaserAt(t), look = ease(ramp(t, 21.5, 23.5)) * (1 - ease(ramp(t, 37, 38.5)));
     // Faces the viewer, then the teaser; curls along the ring; turns into its own path while walking.
     var yaw = Math.atan2(lerp(PILE.x * 0.4, te.x, look) - p.x, lerp(PILE.z + 8, te.z, look) - p.z);
-    yaw = turnTo(yaw, Math.atan2(-Math.sin(p.a), Math.cos(p.a)), ease(ramp(t, 38.5, 40)));
-    if (speed > 0.001) yaw = turnTo(yaw, Math.atan2(vx, vz), ease(ramp(speed, 0.08, 0.4)));
+    yaw = turnTo(yaw, Math.atan2(Math.sin(p.a), -Math.cos(p.a)), ease(ramp(t, 38.5, 40))); // clockwise, the way the stroll goes
+    if (speed > 0.001) yaw = turnTo(yaw, Math.atan2(vx, vz), ease(ramp(speed, 0.03, 0.12))); // no side-sliding: a moving cat faces where it goes
     var env = playEnv(t), hop = Math.max(0, Math.sin(t * 2.1 + i * 1.7));
-    var roll = soft < 1 ? 0 : i === 1 ? ease(ramp(t, 27, 28.5)) : i === 4 ? ease(ramp(t, 31, 32.5)) : 0;
+    // A playful wriggle (lean one way, then the other) instead of a full barrel roll: the body stays above the grass.
+    var roll = soft < 1 ? 0 : i === 1 ? ramp(t, 27, 28.5) : i === 4 ? ramp(t, 31, 32.5) : 0;
     var curl = ease(ramp(t, 45.6 + 0.25 * i, 48.4 + 0.2 * i)), chase = i === CHASER ? chaseEnv(t) : 0;
     // Ear flick: a short pulse every few seconds, out of phase per cat; stops once asleep.
     var eu = frac((t + c.phase * 1.3) / (3.1 + 0.4 * (i % 3))) * (3.1 + 0.4 * (i % 3)), ear = eu < 0.32 ? Math.sin(Math.PI * eu / 0.32) * (1 - 0.8 * curl) : 0;
     return {
-      kind: c.kind, x: p.x, z: p.z, yaw: yaw, roll: roll * TAU,
-      y: env * 0.15 * soft * hop * hop * hop * (1 - chase) + roll * (1 - roll) * 0.8 + chase * 0.11 * soft * Math.abs(Math.sin(t * 5)),
+      kind: c.kind, x: p.x, z: p.z, yaw: yaw, roll: 0.22 * Math.sin(TAU * roll) * Math.sin(Math.PI * roll),
+      // Hops are for seated pounces only; a walking cat keeps its paws on the grass (the Walk clip carries the bounce).
+      y: env * 0.1 * soft * hop * hop * hop * (1 - ramp(chase, 0, 0.1)),
       ear: ear, tail: Math.sin(t * (1.1 + 0.8 * env) + c.phase) * (1 - 0.7 * curl), chase: chase,
       fade: ease(ramp(t, c.enter - 1.4, c.enter - 0.4)), crouch: 1 - ease(ramp(t, c.enter - 0.2, c.enter + 0.7)),
       curl: curl, moving: speed > 0.12, bat: Math.max(env * (1 - chase) * Math.max(0, Math.sin(t * 1.9 + i * 2.6)), chase * Math.abs(Math.sin(t * 4))),
       state: t < c.enter ? 'hide' : t < c.enter + c.walk ? 'gather' : t < 22 ? 'idle' : t < 38 ? 'play' : curl > 0.5 ? 'sleep' : t < 45.5 ? 'gather' : 'idle',
       // Rig layer: Walk blend + distance walked, then seated beats (stretch on arrival, a paw lick, eyes on the toy).
-      walk: walkGate(c, t) * ease(ramp(speed, 0.05, 0.25)), dist: distAt(i, t),
+      walk: walkGate(c, t) * ease(ramp(speed, 0.04, 0.11)), dist: distAt(i, t),
       stretch: bump(t, c.enter + c.walk + 0.2, c.enter + c.walk + 2.6) * (1 - curl),
       groom: Math.max(bump(t, c.enter + c.walk + 2.9, Math.min(c.enter + c.walk + 6.1, 22.4)), i % 3 === 0 ? bump(t, 33.2 + 0.3 * i, 36.6 + 0.3 * i) : 0, i % 3 === 1 ? bump(t, 46.2, 48.6) : 0) * (1 - curl),
       look: look * (1 - curl),
@@ -251,16 +295,16 @@
   // Slow and wide: a far establishing shot under the big sky, a long glide in, one gentle arc, a crane up.
   var CAM = [
     { t: 0, x: 0, y: 1.3, z: 0, th: 1.36, phi: 1.43, w: 8.4, lift: 0.22 },
-    { t: 8, x: -0.2, y: 0.9, z: 0.4, th: 1.6, phi: 1.32, w: 6.0, lift: 0.1 },
-    { t: 15, x: -0.4, y: 0.5, z: 1.4, th: 1.76, phi: 1.3, w: 3.6, lift: 0.05 },
-    { t: 22, x: 0.2, y: 0.5, z: 1.2, th: 1.3, phi: 1.3, w: 3.0, lift: 0.05 },
-    // Around the pile the azimuth stays inside 0.9-1.5: a bush stands in front of it at ~2.0.
-    { t: 31, x: PILE.x + 0.15, y: 0.5, z: PILE.z + 0.2, th: 1.08, phi: 1.28, w: 2.6, lift: 0.05 },
-    { t: 35, x: PILE.x - 0.1, y: 0.55, z: PILE.z, th: 1.34, phi: 1.3, w: 2.0, lift: 0.05 },
-    { t: 38, x: PILE.x, y: 0.5, z: PILE.z, th: 1.45, phi: 1.28, w: 2.3, lift: 0 },
-    { t: 44, x: PILE.x, y: 0.3, z: PILE.z, th: 1.38, phi: 1.1, w: 2.3, lift: -0.38 },
-    { t: 50, x: PILE.x, y: 0.3, z: PILE.z, th: 1.3, phi: 1.12, w: 2.4, lift: -0.15 },
-    { t: 60, x: PILE.x, y: 0.3, z: PILE.z, th: 1.2, phi: 1.3, w: 3.4, lift: 0.46 }
+    { t: 8, x: 0.1, y: 0.9, z: 0.4, th: 1.6, phi: 1.32, w: 6.0, lift: 0.1 },
+    { t: 15, x: PILE.x - 0.2, y: 0.5, z: PILE.z + 0.3, th: 1.76, phi: 1.3, w: 3.6, lift: 0.05 },
+    { t: 22, x: PILE.x + 0.2, y: 0.5, z: PILE.z + 0.3, th: 1.52, phi: 1.3, w: 3.2, lift: 0.05 },
+    // Around the pile the azimuth stays inside 1.35-1.7, the gap between the two front bushes (at ~1.0 and ~2.4).
+    { t: 31, x: PILE.x + 0.15, y: 0.5, z: PILE.z + 0.5, th: 1.38, phi: 1.28, w: 3.0, lift: 0.05 },
+    { t: 35, x: PILE.x - 0.1, y: 0.55, z: PILE.z, th: 1.56, phi: 1.3, w: 2.4, lift: 0.05 },
+    { t: 38, x: PILE.x, y: 0.5, z: PILE.z, th: 1.66, phi: 1.28, w: 2.5, lift: 0 },
+    { t: 44, x: PILE.x, y: 0.3, z: PILE.z, th: 1.6, phi: 1.1, w: 2.4, lift: -0.38 },
+    { t: 50, x: PILE.x, y: 0.3, z: PILE.z, th: 1.55, phi: 1.12, w: 2.4, lift: -0.15 },
+    { t: 60, x: PILE.x, y: 0.3, z: PILE.z, th: 1.48, phi: 1.3, w: 3.4, lift: 0.46 }
   ];
   function cameraAt(t) {
     var i = 0;
@@ -674,7 +718,9 @@
   function poseRig(k, m, t) {
     var rig = rigOf(k), geo = root.GardenCatGeometry;
     if (!rig) return;
-    var act = k.catWalkAction, w = m.walk || 0, ph = k.phase, side = k.phase % 2.74 > 1.37 ? 'R' : 'L', sgn = side === 'R' ? 1 : -1;
+    // The seated and walking surfaces are different meshes, and a half-blended skeleton under either one sinks
+    // into the grass, so the rig switches whole (the weight ramp is ~0.1 s anyway) instead of morphing through it.
+    var act = k.catWalkAction, w = (m.walk || 0) > 0.5 ? 1 : 0, ph = k.phase, side = k.phase % 2.74 > 1.37 ? 'R' : 'L', sgn = side === 'R' ? 1 : -1;
     // 1. Walk clip, blended against the seated rest by its weight; cadence follows the ground covered.
     if (w > 0.002) {
       if (!rig.walking) { rigRest(rig); act.reset(); act.play(); rig.walking = true; } // the mixer saves this rest as its original state
@@ -698,7 +744,7 @@
     var B = rig.by.Body.bone;
     B.scale.set(B.scale.x * (1 + breath * amp), B.scale.y * (1 + breath * amp * 1.3), B.scale.z * (1 + breath * amp));
     rigTurn(rig, 'Body', 0.3 * str + 0.06 * gr, 0.05 * m.tail * s * soft, 0);
-    rigMove(rig, 'Body', 0, -0.05 * str - 0.012 * c, 0.02 * str);
+    rigMove(rig, 'Body', 0, -0.02 * str - 0.012 * c, 0.02 * str);
     // Head: follow the toy / seed, a slow idle glance, the ear-flick shiver, then the tuck into the pile.
     var hy = Math.sin(t * 0.7 + ph) * 0.22 * (1 - m.look) * (1 - c) * (1 - gr) * (0.3 + 0.7 * soft), hp = 0, hr = 0;
     if (m.look > 0.01 && st) {
@@ -723,25 +769,28 @@
     var swipe = Math.sin(t * 9 + ph), lick = Math.sin(t * 7 + ph);
     var near = -bat * (1.05 + 0.22 * swipe) - gr * (1.2 + 0.1 * lick) - 0.85 * str - 0.3 * c * s;
     var bend = -bat * (0.35 - 0.3 * swipe) - gr * (0.95 + 0.12 * lick) + 0.5 * str + 0.25 * c * s;
-    var drop = 0.12 * str + 0.03 * c * s;
+    var drop = 0.05 * str + 0.03 * c * s; // shoulders dip, paws stay on the grass
     rigLeg(rig, side, near, bend, -sgn * (0.1 * bat + 0.16 * gr), drop);
     rigLeg(rig, side === 'R' ? 'L' : 'R', -0.85 * str - 0.3 * c * s, 0.5 * str + 0.25 * c * s, 0, drop);
   }
   // Same derived pose as kittens.js updateOne, driven by the model instead of a state machine.
   function poseCat(k, m, t) {
     var c = m.curl, wob = t * 9 + k.phase, stride = m.moving ? 1 : 0, breathe = Math.sin(t * (1.5 - c * 0.6) + k.phase), i;
-    var sc = k.size * Math.max(0.01, m.fade);
+    // Procedural actors (white, glow, or any coat whose GLB failed) are a standing shape: PROC brings their length
+    // into the same family as a walking Blender cat.
+    var sc = k.size * (k.catVisual ? 1 : PROC) * Math.max(0.01, m.fade);
     k.state = m.state; k.crouch = m.crouch; k.curl = c; k.moving = m.moving;
     k.root.visible = m.fade > 0.01;
-    k.root.position.set(m.x, H.TOP_Y + m.y, m.z);
+    // Curling tilts and squashes the mesh about its feet; `lift` (stage only, not in the model) keeps the low side on the grass.
+    k.root.position.set(m.x, H.TOP_Y + m.y + c * (k.catVisual ? 0.028 : 0.037 * k.size) + 0.13 * Math.abs(m.roll), m.z);
     k.root.rotation.set(0, m.yaw, m.roll);
     k.root.scale.set(sc, sc, sc);
     if (k.catVisual) {
       // Blender coat: settle into a low loaf and lean on a neighbour; the rig layer below moves the cat itself.
-      var seated = 1 - (m.walk || 0);
+      var seated = (m.walk || 0) > 0.5 ? 0 : 1;
       k.root.scale.set(sc * (1 + c * 0.05), sc * (1 - c * 0.2 - m.crouch * 0.18 * seated), sc * (1 + c * 0.05));
       k.catVisual.scale.y = 1; k.catVisual.position.y = 0;
-      k.catVisual.rotation.z = c * 0.16 * (k.phase % 2 > 1 ? 1 : -1) + m.bat * 0.04 * Math.sin(t * 5 + k.phase) * seated;
+      k.catVisual.rotation.z = c * 0.07 * (k.phase % 2 > 1 ? 1 : -1) + m.bat * 0.04 * Math.sin(t * 5 + k.phase) * seated;
       k.catVisual.rotation.x = -m.bat * 0.08 * seated;
       k.catVisual.rotation.y = 0;
       poseRig(k, m, t);
@@ -762,7 +811,7 @@
       var ey = c > 0.5 ? 0.14 : ((t + k.phase) % 4.2 < 0.12 ? 0.2 : 1);
       k.eyes[0].scale.set(1, ey, 0.6); k.eyes[1].scale.set(1, ey, 0.6);
     }
-    if (k.halo) { var hs = 1.5 + Math.sin(t * 2 + k.phase) * 0.2; k.halo.scale.set(hs, hs, hs); }
+    if (k.halo) { var hs = 1.3 + Math.sin(t * 2 + k.phase) * 0.12; k.halo.scale.set(hs, hs, hs); }
   }
   function drift(list, t, from, to, period, life, rise, size, cats, pick) {
     for (var j = 0; j < list.length; j++) {
@@ -1088,6 +1137,40 @@
           look: [st.sky.visible, +st.skyU.uNight.value.toFixed(3), +st.grassU.uTime.value.toFixed(3), st.blades > 500, st.blooms > 20, st.drift[0].length + st.drift[1].length, st.chime.g.visible], halo: st.cats.filter(function (k) { return k.halo && k.root.visible; }).length
         } : null };
     },
+    // Footprint probe for tests: per actor, the posed (skinned) mesh measured in island space around its root.
+    // r = bounding-circle radius of the body on the ground plane (tail excluded), len/wid = half extents along and
+    // across the facing, lo/hi = lowest and highest vertex above the grass. Halos, outlines and sprites do not count.
+    bounds: function () {
+      if (!st || !staged) return [];
+      var inv = new T.Matrix4().getInverse(H.island.matrixWorld), v = new T.Vector3();
+      H.island.updateMatrixWorld(true);
+      inv.getInverse(H.island.matrixWorld);
+      return st.cats.map(function (k) {
+        var o = { r: 0, len: 0, wid: 0, tail: 0, lo: 9, hi: -9, n: 0, blender: !!k.catVisual, visible: k.root.visible };
+        var px = k.root.position.x, pz = k.root.position.z, sy = Math.sin(k.root.rotation.y), cy = Math.cos(k.root.rotation.y);
+        k.root.traverse(function (m) {
+          if (!m.isMesh || m.material === hullMat || !m.geometry.attributes.position) return;
+          var q = m; while (q && q !== k.root) { if (!q.visible) return; q = q.parent; }
+          var pos = m.geometry.attributes.position, si = m.isSkinnedMesh ? m.geometry.attributes.skinIndex : null, step = Math.max(1, Math.floor(pos.count / 1500));
+          var isTail = !m.isSkinnedMesh && m === k.tail;
+          for (var j = 0; j < pos.count; j += step) {
+            if (m.isSkinnedMesh) { m.boneTransform(j, v); } else v.fromBufferAttribute(pos, j);
+            v.applyMatrix4(m.matrixWorld).applyMatrix4(inv);
+            var dx = v.x - px, dz = v.z - pz, d = Math.sqrt(dx * dx + dz * dz), y = v.y - H.TOP_Y;
+            var tailV = isTail || (si && /^Tail/.test(m.skeleton.bones[si.getX(j)].name));
+            o.n++; if (y < o.lo) o.lo = y; if (y > o.hi) o.hi = y;
+            if (tailV) { if (d > o.tail) o.tail = d; continue; }
+            if (d > o.r) o.r = d;
+            o.len = Math.max(o.len, Math.abs(dx * sy + dz * cy)); o.wid = Math.max(o.wid, Math.abs(dx * cy - dz * sy));
+          }
+        });
+        for (var key in o) if (typeof o[key] === 'number') o[key] = +o[key].toFixed(3);
+        return o;
+      });
+    },
+    // Layout numbers the clearance tests use (design radii in metres, comfort margin, obstacles).
+    space: function () { return { body: BODY, glow: BODY_GLOW, comfort: COMFORT, proc: PROC, bushR: BUSH_R, rim: RIM, pile: [PILE.x, PILE.z], bush: BUSH, solid: SOLID, ring: RING, sleep: RING_SLEEP,
+      cast: CAST.map(function (c) { return { bush: c.bush, enter: c.enter, walk: c.walk, bow: c.bow, slack: c.slack, body: bodyOf(c) }; }) }; },
     pause: pause, resume: resume, close: close, proceed: proceed,
     state: function () { time(); return state; },
     beat: function () { return beatAt(time()).id; },
