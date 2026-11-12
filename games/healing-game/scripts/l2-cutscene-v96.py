@@ -17,9 +17,10 @@ replace('  window.__kittens = api;',
 # Gameplay kittens hold still (and stay hidden) while the stage is up.
 replace('      if (level !== 2) return;\n      for (var i = kittens.length - 1;',
         '      if (level !== 2) return;\n      if (window.__l2Cutscene && window.__l2Cutscene.staged()) return;\n      for (var i = kittens.length - 1;')
-# Blender coats for stage actors on any level; they never join the gameplay list.
+# Blender coats for stage actors on any level; they never join the gameplay list. Each gets its own mixer + Walk action
+# (animate=true); l2-cutscene.js drives it from the timeline, never through pose()/poseWalk and the gameplay `active` flag.
 replace('  function attach(k) {\n',
-        '  function attachStage(k) { if (k.catVisual || !COATS[k.kind.id]) return; load(k.kind.id).then(function (template) { if (!template || k.dead || !k.root.parent || k.catVisual) return; createVisual(k, template, KITTEN_HEIGHT); k.inner.visible = false; }); } // __l2Stage\n'
+        '  function attachStage(k) { if (k.catVisual || !COATS[k.kind.id]) return; load(k.kind.id).then(function (template) { if (!template || k.dead || !k.root.parent || k.catVisual) return; try { createVisual(k, template, KITTEN_HEIGHT, true); k.inner.visible = false; } catch (e) { /* keep the procedural actor */ } }); } // __l2Stage\n'
         '  function attach(k) {\n')
 replace('    attach: attach,\n', '    attach: attach,\n    attachStage: attachStage, // __l2Stage\n')
 # The score needs the music-lush voices, so it loads right after them (before the main game script).

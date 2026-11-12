@@ -190,3 +190,11 @@ the time-keyed-table idea, so no second clock or dependency was added.
 **Hook.** `startEnding` (20th point, `!S.ended`) plays the cutscene; `S.ended` is saved before it starts, so a reload of an
 ended save goes straight to free play. Tap-to-continue shows the unchanged `#kitEnding` card; `kitStay` / `kitAgain` behave
 as before. No save field was added. Test hook: `window.__l2Score.state()`.
+
+## Cat motion (Walk rig + bone layer)
+
+Stage cats with a Blender coat own an `AnimationMixer` and the exported `Walk` action (`attachStage` passes `animate=true`); they never go through the gameplay `pose()`/`poseWalk` path or its level-2 `active` flag, so the standalone `?cutscene=1` preview moves the same way as the in-game run.
+
+- **Walk** plays wherever a cat really travels: leaving its bush (gather), the seed chase (a quicker trot: 1.6x cycles per metre plus the existing hop) and the stroll round the ring at 38.6-46s. `action.time` is set from the distance walked (`frame().cats[i].dist`, a table built once from `placeAt`) divided by the exported stride, then `mixer.update(0)`; the weight `walk` is a function of ground speed, so it blends in and out with the path's own ease instead of snapping. `GardenCatGeometry.setWalk` switches the surface at half weight; `action.stop()` hands back the seated bind pose.
+- **Seated beats** are additive bone offsets composed after the mixer on the flat rig (Body, Head, TailRoot, FrontUpper/Lower/Paw.L/R, Haunch.L/R), always starting from the stored rest (or the mixer's last output), never from the previous frame: tail sway and sleep wrap, head following the teaser or the chased seed, the ear-flick head shiver, a paw batting at the teaser, a stretch on arrival, a paw lick (`groom`), and slow breathing with the head tucked in the pile. Each cat keeps its own phase and leading paw.
+- Everything is a pure function of the timeline second, so `seek()`, skip and screenshots reproduce the same bones. Cats without a GLB (white, glow, or a failed download) keep the procedural pose. Regression: `tests/l2-cutscene-motion-browser.cjs`.
