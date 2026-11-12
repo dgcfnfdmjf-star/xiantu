@@ -108,6 +108,49 @@ const span = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
       assert(span(sleepA.rig[i].frontPawL, sleepB.rig[i].frontPawL) < 0.02, 'paws rest in sleep');
       assert(angle(sleepA.rig[i].head, [0, 0, 0, 1]) > 0.2, 'head tucked in sleep');
     }
+    /* Personal space (穿模). Radii come from the posed meshes themselves: bounds() measures every actor's skinned
+     * vertices around its root (tail excluded). Measured at stage scale: Blender coat 0.30 m seated, <= 0.45 with a
+     * paw/stretch out, 0.36 curled, 0.46-0.50 mid-Walk; procedural white 0.47, glow 0.53. Threshold: centre distance
+     * >= 1.05 * (r_i + r_j) with the live radii, and >= 1.05 * the design radii the layout was solved for. */
+    const space = await page.evaluate(() => window.__l2Cutscene.space());
+    assert(space.comfort >= 1.05 && space.body >= 0.49 && space.glow >= 0.53 && space.proc < 1, 'documented radii');
+    const gaps = {};
+    for (const t of [20, 26, 27.5, 28, 34, 40.2, 42, 44, 56]) {
+      const s = await at(t), b = await page.evaluate(() => window.__l2Cutscene.bounds());
+      let min = 9;
+      b.forEach((o, i) => {
+        assert(o.visible && o.n > 500, 'cat ' + i + ' measured @' + t);
+        assert(o.r <= space.cast[i].body + 0.005, 'cat ' + i + ' fits its design radius @' + t + ': ' + o.r);
+        assert(o.lo > -0.02, 'cat ' + i + ' does not sink into the grass @' + t + ': ' + o.lo);
+        assert(o.lo < (s.frame[i].y > 0.001 ? 0.2 : 0.03), 'cat ' + i + ' does not hover @' + t + ': ' + o.lo);
+        if (s.frame[i].walk > 0.9) assert(o.lo > -0.01 && o.lo < 0.02, 'walking paws on the grass, cat ' + i + ' @' + t + ': ' + o.lo);
+      });
+      for (let i = 0; i < 7; i++) for (let j = i + 1; j < 7; j++) {
+        const d = Math.hypot(s.frame[i].x - s.frame[j].x, s.frame[i].z - s.frame[j].z);
+        min = Math.min(min, d);
+        assert(d >= space.comfort * (b[i].r + b[j].r), 'cats ' + i + '/' + j + ' share a volume @' + t + ': ' + d.toFixed(3) + ' < 1.05 * (' + b[i].r + ' + ' + b[j].r + ')');
+        assert(d >= space.comfort * (space.cast[i].body + space.cast[j].body) - 1e-6, 'cats ' + i + '/' + j + ' inside the design spacing @' + t + ': ' + d.toFixed(3));
+      }
+      // Nobody stands in a bush (other than the one it is walking out of), the pond, the tree or the chime pole.
+      s.frame.forEach((c, i) => {
+        space.bush.forEach((p, n) => assert(Math.hypot(c.x - p[0], c.z - p[1]) >= b[i].r + space.bushR, 'cat ' + i + ' in bush ' + n + ' @' + t));
+        space.solid.forEach((p, n) => assert(Math.hypot(c.x - p[0], c.z - p[1]) >= b[i].r + p[2], 'cat ' + i + ' in obstacle ' + n + ' @' + t));
+      });
+      gaps[t] = +min.toFixed(3);
+    }
+    // The chaser loops outside the ring: never closer to the pile than the seats, and facing where it runs.
+    for (const t of [26, 27, 28, 29]) {
+      const c = (await at(t)).frame[2], p = (await at(t + 0.1)).frame[2];
+      assert(Math.hypot(c.x - space.pile[0], c.z - space.pile[1]) > space.ring + 0.5, 'chaser stays outside the ring @' + t);
+      const dir = Math.atan2(p.x - c.x, p.z - c.z), off = Math.abs(((c.yaw - dir + 9.42477796) % 6.28318531) - 3.14159265);
+      assert(off < 0.5, 'chaser faces its travel direction @' + t + ': ' + off.toFixed(2));
+    }
+    for (const t of [41.5, 43]) {
+      const a = (await at(t)).frame, b = (await at(t + 0.1)).frame;
+      a.forEach((c, i) => { if (c.walk < 0.9) return; const dir = Math.atan2(b[i].x - c.x, b[i].z - c.z), off = Math.abs(((c.yaw - dir + 9.42477796) % 6.28318531) - 3.14159265); assert(off < 0.5, 'cat ' + i + ' side-slides @' + t + ': ' + off.toFixed(2)); });
+    }
+    await at(56);
+
     // Stopping the Walk hands back the exact seated bind pose (checked through the mixer, with the layer off).
     const restored = await page.evaluate(() => {
       const cs = window.__l2Cutscene; cs.seek(9.8);
@@ -146,7 +189,7 @@ const span = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
     await ctx2.close();
 
     assert.deepEqual(errors, []);
-    console.log(JSON.stringify({ pass: true, rigged, screenshots: OUT }));
+    console.log(JSON.stringify({ pass: true, rigged, minPairDistance: gaps, screenshots: OUT }));
   } finally {
     await browser.close();
     server.close();
