@@ -13421,6 +13421,7 @@ function villageEnhanceV286897(){
       if(player) player.worldMapId=regionId;
       FLAT_WORLD.width=cfg.width; FLAT_WORLD.height=cfg.height;
       FLAT_WORLD.pois=buildWorldMapPois(regionId);
+      resetMapNpcWalkV1();
       FLAT_WORLD.player.x=cfg.spawn.x; FLAT_WORLD.player.y=cfg.spawn.y;
       FLAT_WORLD.camera.x=0; FLAT_WORLD.camera.y=0;
       FLAT_WORLD.target=null; FLAT_WORLD.keys={}; FLAT_WORLD.nearby=null;
@@ -14297,6 +14298,64 @@ function villageEnhanceV286897(){
       const length=Math.hypot(x,y)||1;return {x:x/length,y:y/length};
     }
 
+    // Runtime POIs are rebuilt on entry/load. Never put movement state on player.mapNpc.
+    // Bounds are small home-relative patches on the painted forecourts/banks (world pixels),
+    // in addition to the shared colliders: the scenery also contains uncollided water/cliffs.
+    const MAP_NPC_WALK_V1={
+      south:{id:'mentor_npc',radius:75,speed:12,seed:41833,bounds:[-65,-30,5,10]},
+      east:{id:'beast_npc',radius:80,speed:15,seed:92717,bounds:[0,0,40,70],bankSlope:.5},
+      north:{id:'elder_npc',radius:80,speed:9,seed:16381,bounds:[0,-15,75,5]},
+      west:{id:'trader_npc',radius:85,speed:13,seed:63853,bounds:[0,-55,75,0]}
+    };
+    let mapNpcWalkV1=null;
+    function mapNpcWalkRandomV1(s){s.seed=(Math.imul(s.seed,1664525)+1013904223)>>>0;return s.seed/4294967296;}
+    function resetMapNpcWalkV1(){
+      const old=mapNpcWalkV1;
+      if(old&&FLAT_WORLD.pois.includes(old.poi)){old.poi.x=old.homeX;old.poi.y=old.homeY;}
+      mapNpcWalkV1=null;
+      const profile=MAP_NPC_WALK_V1[currentRegion];if(!profile||!player)return;
+      const poi=FLAT_WORLD.pois.find(o=>o.id===profile.id&&o.region===currentRegion);if(!poi)return;
+      const s=mapNpcWalkV1={owner:player,region:currentRegion,poi,profile,homeX:poi.x,homeY:poi.y,
+        target:{x:poi.x,y:poi.y},probe:{x:poi.x,y:poi.y},seed:profile.seed,pause:0,walking:false,phase:0};
+      s.pause=2+mapNpcWalkRandomV1(s)*4;
+    }
+    function mapNpcWalkClearV1(s,x,y){
+      const dx=x-s.homeX,dy=y-s.homeY,b=s.profile.bounds;
+      if(x<30||y<30||x>FLAT_WORLD.width-30||y>FLAT_WORLD.height-30||
+        dx<b[0]||dx>b[2]||dy<b[1]||dy>b[3]||Math.hypot(dx,dy)>s.profile.radius||
+        (s.profile.bankSlope&&dx<dy*s.profile.bankSlope))return false;
+      const to=s.probe;to.x=x;to.y=y;
+      // Sweep the entire step/route, so narrow obstacles cannot be skipped between frames.
+      for(const c of FLAT_WORLD.colliders)if(worldDistanceSegmentV2827(c.x,c.y,s.poi,to)<c.radius+16)return false;
+      for(const p of FLAT_WORLD.pois)if(p!==s.poi&&worldDistanceSegmentV2827(p.x,p.y,s.poi,to)<(p.r||0)+28)return false;
+      return true;
+    }
+    function updateMapNpcWalkV1(dt){
+      if(mapNpcWalkV1&&(mapNpcWalkV1.owner!==player||mapNpcWalkV1.region!==currentRegion))resetMapNpcWalkV1();
+      const s=mapNpcWalkV1;
+      if(!s||!canMapNpcActV2864()||document.hidden||isWorldOverlayOpen()||
+        (typeof interiorV286886!=='undefined'&&interiorV286886)||!Number.isFinite(dt)||dt<=0)return;
+      // Keep the clicked destination still while the player follows its existing route to talk.
+      if(autoNavigationV2830?.poi===s.poi||autoNavigationV2830?.goal===s.poi.id)return;
+      dt=Math.min(dt,.1);
+      if(!s.walking){
+        s.pause-=dt;if(s.pause>0)return;
+        const b=s.profile.bounds;
+        for(let attempt=0;attempt<12;attempt++){
+          const x=s.homeX+b[0]+mapNpcWalkRandomV1(s)*(b[2]-b[0]),y=s.homeY+b[1]+mapNpcWalkRandomV1(s)*(b[3]-b[1]);
+          if(Math.hypot(x-s.poi.x,y-s.poi.y)<18||!mapNpcWalkClearV1(s,x,y))continue;
+          s.target.x=x;s.target.y=y;s.walking=true;break;
+        }
+        if(!s.walking)s.pause=2+mapNpcWalkRandomV1(s)*4;
+        return;
+      }
+      const dx=s.target.x-s.poi.x,dy=s.target.y-s.poi.y,d=Math.hypot(dx,dy),step=Math.min(d,s.profile.speed*dt);
+      const x=d?s.poi.x+dx/d*step:s.poi.x,y=d?s.poi.y+dy/d*step:s.poi.y;
+      if(!mapNpcWalkClearV1(s,x,y)){s.walking=false;s.phase=0;s.pause=2+mapNpcWalkRandomV1(s)*4;return;}
+      s.poi.x=x;s.poi.y=y;s.phase=(s.phase+step*.14)%(Math.PI*2);
+      if(d<=step){s.walking=false;s.phase=0;s.pause=2+mapNpcWalkRandomV1(s)*4;}
+    }
+
     function updateFlatWorld(dt) {
       if(typeof updateInteriorV286886==='function'&&updateInteriorV286886(dt))return;
       if(typeof syncWarMapV2840==='function')syncWarMapV2840();
@@ -14325,6 +14384,7 @@ function villageEnhanceV286897(){
 
       // 地图怪物随机游走、碰撞触发战斗与自动补充
       updateWorldMonsters(dt);
+      updateMapNpcWalkV1(dt);
 
       let near=null, nd=1e9;
       for(const p of FLAT_WORLD.pois){ const d=Math.hypot(FLAT_WORLD.player.x-p.x,FLAT_WORLD.player.y-p.y); if(d<p.r+62 && d<nd){near=p;nd=d;} }
@@ -14762,6 +14822,9 @@ function villageEnhanceV286897(){
       return {left:a.x,right:b.x,top:a.y,bottom:b.y};
     }
     function tappedPoiV2904(x,y){
+      // The four walking actors remain selectable over broad panorama landmark bounds.
+      const walk=mapNpcWalkV1;
+      if(walk&&walk.owner===player&&walk.region===currentRegion){const b=mapPoiBoundsV286889(walk.poi);if(b&&x>=b.left&&x<=b.right&&y>=b.top&&y<=b.bottom)return walk.poi;}
       // Last painted (largest y) wins when roofs overlap, rather than choosing a hidden building centre.
       return [...FLAT_WORLD.pois].reverse().sort((a,b)=>b.y-a.y).find(o=>{const b=poiTapBoxV2904(o);return b&&x>=b.left&&x<=b.right&&y>=b.top&&y<=b.bottom;})||null;
     }
@@ -15673,6 +15736,7 @@ function villageEnhanceV286897(){
     }
     function drawMapNpcPresenceV286889(ctx,o,status){
       ctx.save();if(mapAliveQualityV2893()!=='off'){ctx.strokeStyle=o.action==='yewuji_v2810'?'rgba(180,120,210,.45)':'rgba(100,160,140,.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(0,24,36,11,0,0,Math.PI*2);ctx.stroke();}
+      const walk=mapNpcWalkV1;if(walk?.poi===o&&walk.walking)ctx.translate(Math.sin(walk.phase)*.35,-Math.abs(Math.sin(walk.phase))*.9);
       ctx.translate(0,24);ctx.scale(1.35,1.35);ctx.translate(0,-24);drawMapNpcV2863(ctx,o);if(status)drawMapNpcStatusV2864(ctx,o);ctx.restore();
     }
     function mapPoiBoundsV286889(o){
