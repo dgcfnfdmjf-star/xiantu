@@ -22,7 +22,7 @@ function activate(region){
  a(run('wildSceneReadyV286898()'));return im;
 }
 run('player=createDefaultPlayer();player.level=10;gameState="exploring";applyWorldMapLayout("south",true);loadScrollArtV2831()');
-a.equal(images.filter(im=>/-(peaks|valleys|domain)-panorama-v2868123/.test(im.src)).length,0,'faction art is not requested from another region');
+a.equal(images.filter(im=>/-(peaks|valleys|domain)-panorama-v2868124/.test(im.src)).length,0,'faction art is not requested from another region');
 let routes=0,spawned=0;
 for(const [index,region] of regions.entries()){
  run(`applyWorldMapLayout('${region}',true);loadScrollArtV2831()`);
