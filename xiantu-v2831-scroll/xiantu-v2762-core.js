@@ -13804,6 +13804,7 @@ function villageEnhanceV286897(){
     }
 
     function updateWorldMonsters(dt) {
+      clearMonsterWalkFramesV1();
       const introduction=typeof firstJourneyV28687==='function'?firstJourneyV28687():null;
       if(introduction&&!introduction.paused&&introduction.step<4)return;
       const warSceneV2840=typeof WAR_MAP_V2840!=='undefined'?WAR_MAP_V2840.scene:null;
@@ -13811,22 +13812,17 @@ function villageEnhanceV286897(){
       for (const monster of FLAT_WORLD.monsters) {
         if (!monster.alive || monster.inCombat) continue;
         if (monster.battleCooldown > 0) monster.battleCooldown = Math.max(0, monster.battleCooldown - dt);
-        monster.dirTimer -= dt;
-        if (monster.dirTimer <= 0) {
-          const dx = Math.random() - 0.5, dy = Math.random() - 0.5;
-          const len = Math.hypot(dx, dy) || 1;
-          monster.dir.x = dx / len;
-          monster.dir.y = dy / len;
-          monster.dirTimer = 2 + Math.random() * 4;
-        }
-
-        const nextX = monster.x + monster.dir.x * monster.speed * dt;
-        const nextY = monster.y + monster.dir.y * monster.speed * dt;
+        const walk=monsterWalkStateV1(monster);
+        // The cooldown clock/contact rules remain below; the actor waits instead of closing in.
+        if(monster.battleCooldown>0||!advanceMonsterRoamV1(monster,walk,dt))continue;
+        walk.from.x=monster.x;walk.from.y=monster.y;
+        const nextX = monster.x + monster.dir.x * monster.speed * walk.profile.speed * dt;
+        const nextY = monster.y + monster.dir.y * monster.speed * walk.profile.speed * dt;
         const rb = getRegionInfo(monster.regionId || currentRegion || getPlayerRegion()).bounds;
         const minX=rb.xMin+30,maxX=rb.xMax-30,minY=rb.yMin+30,maxY=rb.yMax-30;
         let candidateX = Math.max(minX, Math.min(maxX, nextX));
         let candidateY = Math.max(minY, Math.min(maxY, nextY));
-        const resolvedMonsterPos = resolveWorldCollisionForActor(monster.x, monster.y, candidateX, candidateY, monster.radius || 18, c => c.type !== 'tree' || Math.random() > 0.03);
+        const resolvedMonsterPos = resolveWorldCollisionForActor(monster.x, monster.y, candidateX, candidateY, monster.radius || 18);
         if (Math.abs(resolvedMonsterPos.x - candidateX) > 0.6) monster.dir.x *= -1;
         if (Math.abs(resolvedMonsterPos.y - candidateY) > 0.6) monster.dir.y *= -1;
         monster.x = Math.max(minX, Math.min(maxX, resolvedMonsterPos.x));
@@ -13843,6 +13839,13 @@ function villageEnhanceV286897(){
           monster.x += monster.dir.x * 28 * dt;
           monster.y += monster.dir.y * 28 * dt;
         }
+        // Validate the complete step including POI repulsion, so it cannot push through a wall.
+        if(!monsterWalkStepClearV1(monster,walk,minX,maxX,minY,maxY)){
+          monster.x=walk.from.x;monster.y=walk.from.y;
+          turnMonsterHomeV1(monster,walk);
+          walk.pause=2+monsterWalkRandomV1(walk)*4;walk.alertAt=0;
+        }
+        recordMonsterStepV1(monster,walk);
       }
 
       if (!isWorldOverlayOpen() && gameState !== 'combat') {
