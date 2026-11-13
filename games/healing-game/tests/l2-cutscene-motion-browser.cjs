@@ -181,6 +181,43 @@ const span = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
     assert(w2.length === 7 && w3.length === 7);
     await at(56);
 
+    /* Eyes (像戴了眼镜). eyes() lists, per actor, every drawn eye / catchlight / iris mesh with the material on it,
+     * whether a cutscene outline hull hangs on it, sprites parented to it, additive sprites within 0.3 m of the face
+     * and the game's fireflies still lit inside the face cone. Before the fix every Blender coat had hull=true on
+     * "Cat_eyes" and "Soft_eye_catchlight" (and on the nose and whiskers): 0.02 m of dark outline round 0.04 m eyes,
+     * i.e. goggles; and a firefly drifting over a face read as a glowing eye. Now: one unlit stage iris material per
+     * actor (no emissive, not additive, opaque), no hull, no sprite on the eye, no spark or firefly on a face. */
+    const checkEyes = (list, t, label) => list.forEach((o, i) => {
+      const id = label + ' cat ' + i + ' (' + o.kind + ') @' + t + ': ' + JSON.stringify(o);
+      assert(o.visible && o.meshes.length >= 1, 'eyes drawn, ' + id);
+      for (const m of o.meshes) {
+        assert(m.emissive === null || m.emissive === '#000000' || m.emissiveIntensity === 0, 'eye material is not emissive, ' + id);
+        assert(!m.additive && m.opacity === 1 && m.sprites.length === 0, 'eye is not a lamp, ' + id);
+        assert(!m.hull, 'no outline hull on an eye part, ' + id);
+        assert(m.role !== 'catchlight', 'the sculpted catchlight blob is not drawn on stage, ' + id);
+      }
+      assert(o.meshes.some(m => m.role === 'iris' && m.type === 'ShaderMaterial' && !m.lit), 'stage iris (slit pupil) material in place, ' + id);
+      assert(o.w < 0.3 && o.meshes.every(m => Math.min(...m.size) < 0.1), 'eyes stay small, ' + id);
+      assert(o.near.every(n => n.what !== 'spark' || n.opacity < 0.25), 'no bright spark by the face, ' + id);
+      assert.equal(o.motes, 0, 'no firefly lit on the face, ' + id);
+    });
+    for (const t of [20, 26, 28, 34, 42, 56]) {
+      await at(t);
+      const eyes = await page.evaluate(() => window.__l2Cutscene.eyes());
+      assert.equal(eyes.length, 7);
+      checkEyes(eyes, t, 'stage');
+      assert.equal(eyes.filter(o => o.blender).length, rigged.length, 'every Blender coat measured @' + t);
+    }
+    // Outlines: none left anywhere on a Blender coat (its unskinned parts are all face details).
+    assert.equal(await page.evaluate(() => window.__l2Cutscene.eyes().filter(o => o.blender && o.coatHulls > 0).length), 0, 'no hull on a coat face part');
+    // Blink and sleep are a function of t: shut in the pile, open while playing, and the same on a repeat seek.
+    const lids = async t => { await at(t); return page.evaluate(() => window.__l2Cutscene.eyes().map(o => o.lid)); };
+    const lidSleep = await lids(56), lidPlay = await lids(26.05), lidAgain = await lids(56);
+    assert(lidSleep.every(v => v > 0.9), 'eyes shut asleep: ' + lidSleep);
+    assert(lidPlay.filter(v => v < 0.5).length >= 5, 'eyes open in play: ' + lidPlay);
+    assert.deepEqual(lidAgain, lidSleep, 'seek(56) repeats the lids');
+    await at(56);
+
     // Stopping the Walk hands back the exact seated bind pose (checked through the mixer, with the layer off).
     const restored = await page.evaluate(() => {
       const cs = window.__l2Cutscene; cs.seek(9.8);
@@ -222,6 +259,9 @@ const span = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
       const tails = await p2.evaluate(() => window.__l2Cutscene.tails());
       assert(tails.length === 7 && tails.every(o => !o.blender), 'fallback tails are procedural @' + t);
       checkTails(tails, t, 'fallback');
+      const eyes = await p2.evaluate(() => window.__l2Cutscene.eyes());
+      assert(eyes.length === 7 && eyes.every(o => !o.blender), 'fallback eyes are procedural @' + t);
+      checkEyes(eyes, t, 'fallback');
     }
     await ctx2.close();
 

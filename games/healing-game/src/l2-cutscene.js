@@ -375,14 +375,16 @@
     var kit = stageKit(), bushes = kit.group();
     H.island.traverse(function (o) {
       if (!o.isMesh || o.isSkinnedMesh || o.l2cs || !o.material || o.material.length !== undefined) return;
-      var m = o.material, cat = false, bush = false, q = o;
+      var m = o.material, cat = false, bush = false, coat = false, q = o;
       if (!m.isMeshLambertMaterial && !m.isMeshStandardMaterial) return;
-      while (q && q !== H.island) { if (q.name === 'BlenderCatModel' || q.l2cat) cat = true; if (q === bushes) bush = true; q = q.parent; }
+      while (q && q !== H.island) { if (q.name === 'BlenderCatModel' || q.l2cat) cat = true; if (q.name === 'BlenderCatVisual') coat = true; if (q === bushes) bush = true; q = q.parent; }
       if (m.isMeshStandardMaterial && !cat) return;
       o.l2cs = true;
       painted.push([o, m]);
       o.material = toonFor(m, o !== H.grassTop);
-      if ((cat || bush) && o.geometry.attributes.normal) {
+      // A Blender coat's unskinned parts are its eyes, catchlights, nose and whiskers: a hull as wide as an eye is tall
+      // turned them into dark goggles round the muzzle, so those keep no outline (the fur is skinned and never had one).
+      if (((cat && !coat) || bush) && o.geometry.attributes.normal) {
         var hull = new T.Mesh(o.geometry, hullMat);
         hull.l2cs = true; hull.frustumCulled = false; o.add(hull); hulls.push(hull);
       }
@@ -671,6 +673,144 @@
     if (doc.body) doc.body.classList.remove('l2cs-on');
     staged = false; kept = null;
   }
+  /* ---- Eyes (stage actors only; gameplay kittens keep the approved look) ----
+   * One small unlit ShaderMaterial per actor, drawn on the eye geometry that is already there (the coat's "Cat eyes"
+   * almonds, or the procedural eye spheres): object-space position -> eye-plane coordinates q in [-1, 1]^2, then an
+   * almond mask (smaller than the sculpted patch), a banded iris with a darker limbal ring, a vertical slit pupil
+   * that widens with nightfall, a thin lid line and one small highlight. Nothing is emissive or additive; the colour
+   * is scaled down with the night so eyes never read as lamps. uLid closes the eye (blink / sleep), a pure function of t. */
+  var IRIS = { orange: [0xe6a23a, 0x9c5c1e], calico: [0xb9ae4c, 0x6c7430], black: [0xf0c548, 0xb07f1e], tabby: [0x93c05c, 0x4f7a3a] };
+  var EYE_SHRINK = 0.86, FACE_R = 0.34, eyeLight = 1, eyeSlit = 0.22, eyeFrameCache = {};
+  var EYE_FS = 'varying vec3 vP; uniform vec3 uC0; uniform vec3 uC1; uniform vec3 uU0; uniform vec3 uU1; uniform vec3 uV0; uniform vec3 uV1; uniform vec2 uH0; uniform vec2 uH1;' +
+    'uniform vec3 uIris; uniform vec3 uRing; uniform vec3 uPupil; uniform vec3 uRim; uniform float uLid; uniform float uSlit; uniform float uLight; uniform float uArc;' +
+    'void main(){ float s = step(0.0, vP.x); vec3 d = vP - mix(uC0, uC1, s); vec2 q = vec2(dot(d, mix(uU0, uU1, s)), dot(d, mix(uV0, uV1, s))) / mix(uH0, uH1, s);' +
+    ' float lens = 1.0 - q.x * q.x; if (lens <= 0.0) discard; float e = abs(q.y) / lens; vec3 col;' +
+    ' if (uLid > 0.6) { if (uArc > 0.5 && abs(q.y + 0.25 * lens) > 0.22) discard; if (e > 1.0) discard; col = uRim; }' +
+    ' else { if (e > 1.0 - uLid) discard; col = mix(uIris, uRing, smoothstep(0.45, 0.95, length(q)));' +
+    '  col = mix(uPupil, col, smoothstep(0.8, 1.0, length(vec2(q.x / uSlit, q.y / 0.92))));' +
+    '  col = mix(col, uRim, smoothstep(0.76, 0.96, e / (1.0 - uLid)));' +
+    '  col = mix(vec3(1.0, 0.98, 0.94), col, smoothstep(0.13, 0.2, length(q - vec2(0.3, 0.36)))); }' +
+    ' gl_FragColor = vec4(col * uLight, 1.0); }';
+  function eyeMat(kind, fr, arc, shrink) {
+    var pal = IRIS[kind.id], iris = new T.Color(pal ? pal[0] : kind.eye), ring = new T.Color(pal ? pal[1] : kind.eye);
+    if (!pal) iris.lerp(new T.Color(0xffffff), 0.38);
+    var m = new T.ShaderMaterial({ side: T.DoubleSide, uniforms: {
+      uC0: { value: fr[0].c }, uC1: { value: fr[1].c }, uU0: { value: fr[0].u }, uU1: { value: fr[1].u }, uV0: { value: fr[0].v }, uV1: { value: fr[1].v },
+      uH0: { value: fr[0].h.clone().multiplyScalar(shrink) }, uH1: { value: fr[1].h.clone().multiplyScalar(shrink) },
+      uIris: { value: iris }, uRing: { value: ring }, uPupil: { value: new T.Color(0x1a1014) }, uRim: { value: new T.Color(0x3c2a2c) },
+      uLid: { value: 0 }, uSlit: { value: 0.22 }, uLight: { value: 1 }, uArc: { value: arc } },
+      vertexShader: 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }', fragmentShader: EYE_FS });
+    m.l2mid = fr[0].c.clone().add(fr[1].c).multiplyScalar(0.5);
+    return m;
+  }
+  // Eye planes of a coat's "Cat eyes" mesh (both almonds in one geometry, mirrored in x): per side the long axis
+  // (corner to corner), the up axis in the face plane, the centre and the half extents along both.
+  function eyeFrames(geo) {
+    if (eyeFrameCache[geo.uuid] !== undefined) return eyeFrameCache[geo.uuid];
+    var pos = geo.attributes.position, out = [], v = new T.Vector3(), s, i;
+    eyeFrameCache[geo.uuid] = null;
+    if (!pos || pos.normalized || pos.count < 8) return null;
+    for (s = 0; s < 2; s++) {
+      var c = new T.Vector3(), n = 0, a = new T.Vector3(), b = new T.Vector3(), best = -1, d;
+      for (i = 0; i < pos.count; i++) if ((pos.getX(i) > 0) === (s === 1)) { c.add(v.fromBufferAttribute(pos, i)); n++; }
+      if (n < 4) return null;
+      c.multiplyScalar(1 / n);
+      for (i = 0; i < pos.count; i++) if ((pos.getX(i) > 0) === (s === 1)) { d = v.fromBufferAttribute(pos, i).distanceToSquared(c); if (d > best) { best = d; a.copy(v); } }
+      for (best = -1, i = 0; i < pos.count; i++) if ((pos.getX(i) > 0) === (s === 1)) { d = v.fromBufferAttribute(pos, i).distanceToSquared(a); if (d > best) { best = d; b.copy(v); } }
+      var u = b.clone().sub(a).normalize(); if (u.x < 0) u.negate();
+      var up = new T.Vector3(0, 1, 0); up.addScaledVector(u, -up.dot(u));
+      if (up.lengthSq() < 1e-6) return null;
+      up.normalize();
+      var lo = new T.Vector2(9, 9), hi = new T.Vector2(-9, -9);
+      for (i = 0; i < pos.count; i++) if ((pos.getX(i) > 0) === (s === 1)) {
+        v.fromBufferAttribute(pos, i).sub(c); var x = v.dot(u), y = v.dot(up);
+        lo.x = Math.min(lo.x, x); lo.y = Math.min(lo.y, y); hi.x = Math.max(hi.x, x); hi.y = Math.max(hi.y, y);
+      }
+      c.addScaledVector(u, (lo.x + hi.x) / 2).addScaledVector(up, (lo.y + hi.y) / 2);
+      out.push({ c: c, u: u, v: up, h: new T.Vector2((hi.x - lo.x) / 2, (hi.y - lo.y) / 2) });
+    }
+    return (eyeFrameCache[geo.uuid] = out);
+  }
+  // Takes a mesh out of the toon pass for good (the stage actor owns it): no repaint, no hull, nothing to hand back.
+  function ownMesh(o) {
+    var i;
+    for (i = painted.length - 1; i >= 0; i--) if (painted[i][0] === o) painted.splice(i, 1);
+    for (i = o.children.length - 1; i >= 0; i--) if (o.children[i].material === hullMat) o.remove(o.children[i]);
+    o.l2cs = true;
+  }
+  function dressEyes(k) {
+    var i;
+    if (!k.l2eyeP && k.eyes && k.eyes.length === 2) {
+      var g = k.eyes[0].geometry; if (!g.boundingBox) g.computeBoundingBox();
+      var bb = g.boundingBox, f = { c: bb.getCenter(new T.Vector3()), u: new T.Vector3(1, 0, 0), v: new T.Vector3(0, 1, 0), h: new T.Vector2((bb.max.x - bb.min.x) / 2, (bb.max.y - bb.min.y) / 2) };
+      k.l2eyeP = eyeMat(k.kind, [f, f], 0, 1);
+      for (i = 0; i < 2; i++) { ownMesh(k.eyes[i]); k.eyes[i].material = k.l2eyeP; k.eyes[i].l2eye = 'iris'; }
+    }
+    if (k.catModel && k.l2eyeFor !== k.catModel) {
+      k.l2eyeFor = k.catModel; k.l2eyeB = null; k.l2eyeMesh = null;
+      var eye = null, lights = [];
+      k.catModel.traverse(function (o) {
+        if (!o.isMesh || o.isSkinnedMesh || o.material === hullMat) return;
+        if (/catchlight/i.test(o.name)) lights.push(o); else if (!eye && /eye/i.test(o.name)) eye = o;
+      });
+      var fr = eye ? eyeFrames(eye.geometry) : null;
+      if (!fr) return; // unknown sculpt: keep its own eyes (still no hull, never emissive)
+      ownMesh(eye); eye.material = k.l2eyeB = eyeMat(k.kind, fr, 1, EYE_SHRINK); eye.l2eye = 'iris'; k.l2eyeMesh = eye;
+      for (i = 0; i < lights.length; i++) lights[i].visible = false; // the highlight is drawn in the iris instead
+    }
+  }
+  function poseEyes(k, m, t) {
+    dressEyes(k);
+    var u = ((t + k.phase) % 4.2) / 0.14, blink = u < 1 ? Math.sin(Math.PI * u) : 0, lid = Math.max(ease(ramp(m.curl, 0.25, 0.55)), blink);
+    var mats = [k.l2eyeP, k.l2eyeB];
+    for (var i = 0; i < 2; i++) if (mats[i]) {
+      // The procedural sphere shuts by squashing (as in the game) and turns into a lid line; the sculpt's almond narrows.
+      mats[i].uniforms.uLid.value = i ? lid : (lid > 0.6 ? 1 : 0);
+      mats[i].uniforms.uLight.value = eyeLight; mats[i].uniforms.uSlit.value = eyeSlit;
+    }
+    return lid;
+  }
+  // World position between an actor's eyes.
+  function faceAt(k, out) {
+    var o = k.catVisual && k.l2eyeMesh ? k.l2eyeMesh : k.head;
+    o.updateWorldMatrix(true, false);
+    if (o === k.head) out.set(0, 0.015, 0.175); else out.copy(k.l2eyeB.l2mid);
+    return out.applyMatrix4(o.matrixWorld);
+  }
+  // 0 when p lies on a cat's face as the camera sees it (inside a FACE_R cone round the eyes), 1 when clear of all.
+  function faceVeil(p) {
+    var cam = H.camera.position, dx = p.x - cam.x, dy = p.y - cam.y, dz = p.z - cam.z, len = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1, best = 1;
+    for (var j = 0; j < st.faceN; j++) {
+      var f = st.faces[j], ex = f.x - cam.x, ey = f.y - cam.y, ez = f.z - cam.z, along = (ex * dx + ey * dy + ez * dz) / len;
+      if (along <= 0) continue;
+      var perp = Math.sqrt(Math.max(0, ex * ex + ey * ey + ez * ez - along * along));
+      best = Math.min(best, ease(ramp(perp, FACE_R * 0.7, FACE_R)));
+    }
+    return best;
+  }
+  /* Glow that is not the eye must not sit on the eye. The island's fireflies and sparkles (additive point clouds on
+   * the wall clock, not ours) drift through the cast at head height - one over an eye read as a glowing yellow eye -
+   * and the glow cat's spark trail can cross a neighbour. Both are faded out inside the face cones, every frame,
+   * after the game has written its own alphas; the game rewrites them next frame, so nothing needs handing back. */
+  function clearFaces() {
+    var i, j, v = st.v;
+    if (!st.faces) { st.faces = []; for (i = 0; i < 12; i++) st.faces.push(new T.Vector3()); }
+    st.faceN = 0;
+    for (i = 0; i < st.cats.length && i < st.faces.length; i++) if (st.cats[i].root.visible) faceAt(st.cats[i], st.faces[st.faceN++]);
+    if (!st.motes) { st.motes = []; H.scene.traverse(function (o) { if (o.isPoints && o.geometry.attributes.aAlpha) st.motes.push(o); }); }
+    for (i = 0; i < st.motes.length; i++) {
+      var P = st.motes[i].geometry.attributes.position, A = st.motes[i].geometry.attributes.aAlpha, hit = false;
+      for (j = 0; j < P.count; j++) {
+        if (A.getX(j) < 0.004) continue;
+        var kf = faceVeil(v.fromBufferAttribute(P, j).applyMatrix4(st.motes[i].matrixWorld));
+        if (kf < 1) { A.setX(j, A.getX(j) * kf); hit = true; }
+      }
+      if (hit) A.needsUpdate = true;
+    }
+    for (i = 0; i < st.sparks.length; i++) if (st.sparks[i].material.opacity > 0.004) st.sparks[i].material.opacity *= faceVeil(st.sparks[i].getWorldPosition(v));
+    // A butterfly may land on a nose; its soft additive glow may not light the face up.
+    for (i = 0; i < st.flies.length; i++) if (st.flies[i].g.visible) st.flies[i].glow.material.opacity *= faceVeil(st.flies[i].glow.getWorldPosition(v));
+  }
   /* ---- Rig layer (Blender coats) ----
    * The exported rig is flat: every bone is a child of Root with an identity rest orientation, and the rest pose is
    * the approved seated cat. Each frame goes rest -> Walk clip (time set from distance walked, mixer.update(0)) ->
@@ -869,6 +1009,7 @@
     k.root.position.set(m.x, H.TOP_Y + m.y + c * (k.catVisual ? 0.028 : 0.037 * k.size) + 0.13 * Math.abs(m.roll), m.z);
     k.root.rotation.set(0, m.yaw, m.roll);
     k.root.scale.set(sc, sc, sc);
+    var lid = poseEyes(k, m, t);
     if (k.catVisual) {
       // Blender coat: settle into a low loaf and lean on a neighbour; the rig layer below moves the cat itself.
       var seated = (m.walk || 0) > 0.5 ? 0 : 1;
@@ -892,7 +1033,7 @@
       if (k.l2tail) poseTail(k, m, t);
       else { k.tail.rotation.x = -0.75 - c * 0.85; k.tail.rotation.z = c * 0.9 + (1 - c) * Math.sin(t * (m.state === 'play' ? 4 : 2.4) + k.phase) * 0.4 + m.tail * 0.25; }
       for (i = 0; i < k.ears.length; i++) k.ears[i].rotation.z = (i ? -1 : 1) * m.ear * 0.5 * Math.abs(Math.sin(t * 22));
-      var ey = c > 0.5 ? 0.14 : ((t + k.phase) % 4.2 < 0.12 ? 0.2 : 1);
+      var ey = lid > 0.6 ? (c > 0.5 ? 0.14 : 0.2) : 1;
       k.eyes[0].scale.set(1, ey, 0.6); k.eyes[1].scale.set(1, ey, 0.6);
     }
     if (k.halo) { var hs = 1.3 + Math.sin(t * 2 + k.phase) * 0.12; k.halo.scale.set(hs, hs, hs); }
@@ -914,6 +1055,7 @@
     // The catchable butterflies keep their own state; they are only kept out of the picture.
     var wild = root.__bf && root.__bf.butterflies ? root.__bf.butterflies : [];
     for (i = 0; i < wild.length; i++) if (wild[i].g && wild[i].g.visible) { wild[i].g.visible = false; kept.flies.push(wild[i].g); }
+    eyeLight = 1 - 0.35 * f.night; eyeSlit = 0.2 + 0.2 * f.night; // pupils open up as the light goes
     for (i = 0; i < st.cats.length; i++) poseCat(st.cats[i], cats[i], t);
     var bushes = kit.group().children;
     for (i = 0; i < BUSH.length && i < bushes.length; i++) bushes[i].rotation.z = 0;
@@ -958,6 +1100,7 @@
     v3.set(c.x, H.TOP_Y + c.y + c.lift * r * halfH, c.z); H.island.localToWorld(v3);
     cam.position.set(v3.x + r * Math.sin(c.phi) * Math.cos(c.th), v3.y + r * Math.cos(c.phi), v3.z + r * Math.sin(c.phi) * Math.sin(c.th));
     cam.lookAt(v3);
+    clearFaces();
     applyLook(f, t);
   }
   function stageTick() {
@@ -1297,6 +1440,65 @@
         o.unit = r3(sc.z); ax.normalize();
         o.root = arr(a); o.rump = arr(b); o.dist = r3(a.distanceTo(b)); o.lat = r3(v.copy(a).sub(b).dot(ax)); o.surf = r3(surf);
         v.copy(a).project(H.camera);
+        o.px = [Math.round((v.x * 0.5 + 0.5) * root.innerWidth), Math.round((0.5 - v.y * 0.5) * root.innerHeight)];
+        return o;
+      });
+    },
+    /* Eye probe for tests (seek-pure, read-only): per actor, every eye-related mesh that is drawn right now - the
+     * Blender coat's "Cat eyes" / "Soft eye catchlight" parts, the procedural eye spheres, and the stage-owned iris
+     * overlays (l2eye) - with the material actually on the object: type, colour, map, emissive, opacity, blending,
+     * whether a cutscene outline hull hangs on it, and any sprite parented to it. `near` lists additive sprites
+     * (halo, sparks, lantern / toy glows) within 0.3 m of the face; px = screen position of the eyes, w/h = their
+     * world extent in metres. */
+    eyes: function (radius) {
+      if (!st || !staged) return [];
+      radius = radius || 0.3;
+      var v = new T.Vector3(), c = new T.Vector3(), box = new T.Box3(), sprites = [];
+      H.island.updateMatrixWorld(true);
+      H.scene.traverse(function (o) {
+        if (!o.isSprite || !o.material || o.material.blending !== T.AdditiveBlending || o.material.opacity < 0.02) return;
+        for (var q = o; q; q = q.parent) if (!q.visible) return;
+        sprites.push(o);
+      });
+      function hex(col) { return col ? '#' + col.getHexString() : null; }
+      function shown(o, top) { for (var q = o; q && q !== top; q = q.parent) if (!q.visible) return false; return true; }
+      return st.cats.map(function (k, i) {
+        var o = { kind: CAST[i].kind, blender: !!k.catVisual, visible: k.root.visible, glow: !!k.halo, meshes: [], near: [] }, all = new T.Box3().makeEmpty();
+        var em = k.catVisual ? k.l2eyeB : k.l2eyeP; o.lid = em ? +em.uniforms.uLid.value.toFixed(3) : -1; o.coatHulls = 0;
+        if (k.catVisual) k.catVisual.traverse(function (m) { if (m.material === hullMat) o.coatHulls++; });
+        k.root.traverse(function (m) {
+          if (!m.isMesh || m.material === hullMat || !shown(m, k.root)) return;
+          var isEye = m.l2eye || k.eyes.indexOf(m) >= 0 || (k.catModel && /eye|catchlight/i.test(m.name));
+          if (!isEye) return;
+          var mat = m.material, hull = false, kids = [];
+          m.children.forEach(function (ch) { if (ch.material === hullMat && ch.visible) hull = true; else if (ch.isSprite) kids.push(hex(ch.material.color)); });
+          if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
+          box.copy(m.geometry.boundingBox).applyMatrix4(m.matrixWorld); if (!m.l2eye || m.l2eye === 'iris') all.union(box);
+          o.meshes.push({ name: m.name || (m.l2eye ? 'l2eye:' + m.l2eye : 'eye'), role: m.l2eye || (/catchlight/i.test(m.name) ? 'catchlight' : 'eye'), parent: m.parent ? m.parent.name || m.parent.type : null,
+            skinned: !!m.isSkinnedMesh, type: mat.type, color: hex(mat.color), map: !!mat.map, emissive: hex(mat.emissive), emissiveIntensity: mat.emissive ? mat.emissiveIntensity : 0,
+            opacity: mat.opacity, additive: mat.blending === T.AdditiveBlending, lit: !mat.isMeshBasicMaterial && !mat.isShaderMaterial, hull: hull, sprites: kids, stage: !!m.l2eye,
+            size: box.getSize(v).toArray().map(function (n) { return +n.toFixed(4); }) });
+        });
+        if (all.isEmpty()) return o;
+        all.getCenter(c); all.getSize(v);
+        o.w = +Math.max(v.x, v.z).toFixed(3); o.h = +v.y.toFixed(3);
+        sprites.forEach(function (sp) {
+          var d = sp.getWorldPosition(v).distanceTo(c);
+          if (d < radius) o.near.push({ what: st.sparks.indexOf(sp) >= 0 ? 'spark' : sp === st.heroGlow ? 'seed' : sp === st.teaserGlow ? 'toy' : sp.parent && sp.parent.l2cat ? 'halo' : sp.l2cs || (sp.parent && sp.parent.l2cs) ? 'stage' : 'island',
+            color: hex(sp.material.color), opacity: +sp.material.opacity.toFixed(2), scale: +sp.scale.x.toFixed(2), dist: +d.toFixed(3), own: sp === k.halo });
+        });
+        // Fireflies / sparkles (the game's additive point clouds) still lit inside this face's cone, as the camera sees it.
+        o.motes = 0;
+        var keepN = st.faceN, keep0 = st.faces ? st.faces[0].clone() : null;
+        if (st.faces) {
+          st.faces[0].copy(c); st.faceN = 1;
+          (st.motes || []).forEach(function (cloud) {
+            var P = cloud.geometry.attributes.position, A = cloud.geometry.attributes.aAlpha;
+            for (var j = 0; j < P.count; j++) if (A.getX(j) > 0.02 && faceVeil(v.fromBufferAttribute(P, j).applyMatrix4(cloud.matrixWorld)) < 0.02) o.motes++;
+          });
+          st.faces[0].copy(keep0); st.faceN = keepN;
+        }
+        v.copy(c).project(H.camera);
         o.px = [Math.round((v.x * 0.5 + 0.5) * root.innerWidth), Math.round((0.5 - v.y * 0.5) * root.innerHeight)];
         return o;
       });
