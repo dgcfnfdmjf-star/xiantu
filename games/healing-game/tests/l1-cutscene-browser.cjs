@@ -122,7 +122,7 @@ const KEY = 'healingGarden.butterflies.v1';
     assert.equal(await cardHidden(page), true, 'card waits for the cutscene (old timer was 5.2 s)');
     // Painterly stage and seekable frames.
     const st = await page.evaluate(() => window.__l1Cutscene.stage());
-    assert(st.sky && st.gameSky === false && st.toon > 20 && st.blades > 1000 && st.blooms > 80 && st.cast === 14, JSON.stringify(st));
+    assert(st.sky && st.gameSky === false && st.toon > 20 && st.blades > 1000 && st.blooms > 80 && st.cast === 18 && st.look === 'game', JSON.stringify(st));
     const shoot = async t => {
       await page.evaluate(t => { window.__l1Cutscene.pause(); window.__l1Cutscene.seek(t); }, t);
       await page.waitForTimeout(250);
@@ -131,7 +131,7 @@ const KEY = 'healingGarden.butterflies.v1';
     };
     const shots = {};
     for (const t of [4, 13, 25, 39, 48]) shots[t] = await shoot(t);
-    assert.equal(shots[4].flies, 0); assert(shots[13].flies > 0 && shots[13].flies < 14); assert.equal(shots[25].flies, 14); assert.equal(shots[48].flies, 14);
+    assert.equal(shots[4].flies, 0); assert(shots[13].flies > 0 && shots[13].flies < 18); assert.equal(shots[25].flies, 18); assert.equal(shots[48].flies, 18);
     assert.notDeepEqual(shots[4].camera, shots[48].camera, 'camera moves');
     const again = await shoot(13);
     again.camera.forEach((v, i) => assert(Math.abs(v - shots[13].camera[i]) < 0.35, 'seek repeats the camera'));
@@ -189,6 +189,18 @@ const KEY = 'healingGarden.butterflies.v1';
     await page.waitForTimeout(1000);
     const dt = (await page.evaluate(() => window.__l1Cutscene.time())) - t0;
     assert(dt > 0.8 && dt < 1.6, 'real-time clock: ' + dt);
+    // Butterflies: the game's own look in the caught species, and seek(t) reproduces every mesh position.
+    await page.evaluate(() => window.__l1Cutscene.pause());
+    const castAt = async t => { await page.evaluate(t => window.__l1Cutscene.seek(t), t); await page.waitForTimeout(350); return page.evaluate(() => window.__l1Cutscene.stage()); };
+    const c25 = await castAt(25), c40 = await castAt(40), c12 = await castAt(12), back25 = await castAt(25);
+    assert.equal(c25.look, 'game'); assert.equal(c25.kinds, 'pieris,colias,monarch'); assert.equal(c25.cast, 18); assert.equal(c25.flies, 18);
+    assert(c12.flies > 0 && c12.flies < 18, 'released one by one: ' + c12.flies);
+    assert.deepEqual(back25.cast3, c25.cast3, 'seek reproduces the butterflies');
+    assert.notDeepEqual(c40.cast3, c25.cast3);
+    for (const c of [c12, c25, c40]) for (const p of c.cast3) assert(p[1] >= 0.5 && Math.hypot(p[0], p[2]) < 14, 'butterfly in the air: ' + p);
+    const model = await page.evaluate(() => window.__l1Cutscene.frame(25).flies.map(f => [+f.x.toFixed(3), +f.y.toFixed(3), +f.z.toFixed(3)]));
+    assert.deepEqual(c25.cast3, model, 'meshes sit exactly where the model says');
+    assert.equal(await page.evaluate(() => window.__bf.butterflies.every(b => !b.g.visible)), true, 'catchable butterflies stay hidden');
     await page.evaluate(() => { window.__l1Cutscene.skip(); window.__l1Cutscene.proceed(true); });
     assert.equal(await page.evaluate(() => window.__l1Cutscene.state()), 'closed');
     assert.equal(await page.locator('#start').isVisible(), true, 'game UI returns');

@@ -62,39 +62,107 @@
   function skyAt(t) { var rose = ease(ramp(t, 16, 44)); return { gold: 1 - rose, rose: rose }; }
   function sunAt(t) { return { x: -0.34, y: 0.21 - 0.15 * ease(ramp(t, 0, 46)), z: -1 }; }
   // Where the net opens (front of the island, clear of the pond and the tree), and the blossoms the butterflies visit.
-  var NET = { x: 0.5, z: 2.6 }, N = 14, REL = 10, REL_STEP = 0.5, RISE = 32;
+  var NET = { x: 0.5, z: 2.6 }, N = 18, REL = 10, REL_STEP = 0.42, RISE = 32, FLY_SCALE = 0.6, FLOOR_Y = 0.5;
   var FLOWERS = [[-1.6, 1.5], [-0.4, 2.2], [1.4, 1.8], [2.7, 0.8], [-3.0, 0.4], [0.3, 0.6], [-1.2, -0.5], [1.0, -0.1]];
-  var HEAD_Y = 0.58;
+  var HEAD_Y = 0.58, TRAIL = 5, FLECK = 3, PER = TRAIL + FLECK;
   function netAt(t) { return ease(ramp(t, 8.6, 10.2)) * (1 - ease(ramp(t, 17.5, 20))); }
-  function orbitAt(j, t) {
-    var F = FLOWERS[j % FLOWERS.length], dir = j % 2 ? -1 : 1, a = dir * (0.55 + 0.05 * (j % 5)) * t * (0.5 + 0.5 * soft) + j * 2.4, r = 0.55 + 0.2 * Math.sin(0.6 * t + j * 1.7);
-    return { x: F[0] + Math.cos(a) * r, z: F[1] + Math.sin(a) * r * 0.85, y: 1.0 + 0.28 * Math.sin(0.8 * t + j * 1.9) + 0.1 * (j % 3) };
+  /* Butterflies (item 2). Everything is closed-form in t (no integration, no stored velocity), so seek(t) lands every
+   * butterfly exactly where straight playback would. Per-butterfly character comes from a fixed hash table. */
+  function hsh(j, k) { var s = Math.sin(j * 12.9898 + k * 78.233) * 43758.5453; return s - Math.floor(s); }
+  var HK = 12, HS = [], sA = { x: 0, y: 0, z: 0 }, sB = { x: 0, y: 0, z: 0 }, sH = { x: 0, y: 0, z: 0, lean: 0 };
+  (function () { for (var j = 0; j < N; j++) for (var k = 0; k < HK; k++) HS.push(hsh(j + 1, k + 1)); })();
+  function hv(j, k) { return HS[j * HK + k]; }
+  // A visited blossom's head: the stem leans with the wind, and a perched butterfly rides it.
+  function headAt(i, t, out) {
+    var F = FLOWERS[i], lean = 0.06 + 0.2 * soft * windAt(F[0], F[1], t);
+    out.x = F[0] + HEAD_Y * Math.sin(lean); out.y = HEAD_Y * Math.cos(lean); out.z = F[1]; out.lean = lean;
+    return out;
   }
-  function perchAt(j, t) { var p0 = 21 + (j * 1.9) % 7; return ease(ramp(t, p0, p0 + 1.1)) * (1 - ease(ramp(t, p0 + 2.4, p0 + 3.3))); }
-  // The ribbon: one rising spiral that drifts towards the sun; butterfly j rides it a little behind butterfly j-1.
-  function ribbonAt(j, t) {
-    var s = Math.max(0, (t - RISE - 0.5) * 0.085 - j * 0.022), a = 2.4 - s * 4.2, r = 2.3 * (1 - 0.6 * Math.min(s, 1)) + 0.12 * Math.sin(j * 1.3);
-    return { x: -1.6 * s * s + Math.cos(a) * r, z: -5.5 * s * s + Math.sin(a) * r,
-      y: 1.1 + 2.2 * s + 2.6 * s * s + 0.22 * soft * Math.sin(7 * s - 1.2 * t + j * 0.5) };
+  // Landings come in three waves, so a blossom only ever holds one butterfly.
+  function perchT(j) { return 20.4 + (j % FLOWERS.length) * 0.5 + Math.floor(j / FLOWERS.length) * 4.1; }
+  function perchAt(j, t) { var p0 = perchT(j); return ease(ramp(t, p0, p0 + 1.2)) * (1 - ease(ramp(t, p0 + 3, p0 + 4))); }
+  function riseAt(j, t) { return ease(ramp(t, RISE + j * 0.12, RISE + 4 + j * 0.12)); }
+  /* Wing beat with a natural rhythm: bursts of fast beats, then a short glide with the wings held in a shallow V.
+   * The phase is piecewise linear in t (it simply stops during a glide), so it needs no stored state. */
+  function beatAtJ(j, t, out) {
+    var P = 2.4 + 1.8 * hv(j, 7), g = 0.3 + 0.3 * hv(j, 8), tt = t + 7 * hv(j, 9), n = Math.floor(tt / P), u = tt - n * P;
+    out.x = (11 + 3 * hv(j, 6)) * (0.4 + 0.6 * soft) * (n * (P - g) + Math.min(u, P - g)) + j * 1.7; // phase
+    out.y = ease(ramp(u, P - g, P - g + 0.1)) * (1 - ease(ramp(u, P - 0.1, P)));                      // glide 0..1
+    return out;
   }
-  function flyPos(j, t) {
-    var rel = REL + j * REL_STEP, out = ease(ramp(t, rel, rel + 3.2)), o = orbitAt(j, t), F = FLOWERS[j % FLOWERS.length];
-    var swirl = Math.sin(Math.PI * out) * 0.6, sa = t * 2.2 + j;
-    var p = { x: lerp(NET.x, o.x, out) + swirl * Math.cos(sa), y: lerp(0.5, o.y, out) + swirl * 0.5, z: lerp(NET.z, o.z, out) + swirl * Math.sin(sa) };
-    var L = perchAt(j, t), pa = (j < FLOWERS.length ? 0 : Math.PI) + j;
-    p.x = lerp(p.x, F[0] + 0.08 * Math.cos(pa), L); p.z = lerp(p.z, F[1] + 0.08 * Math.sin(pa), L); p.y = lerp(p.y, HEAD_Y + 0.05, L);
-    var up = ease(ramp(t, RISE + j * 0.15, RISE + 4 + j * 0.15)), rb = ribbonAt(j, t);
-    p.x = lerp(p.x, rb.x, up); p.y = lerp(p.y, rb.y, up); p.z = lerp(p.z, rb.z, up);
-    return p;
+  // The ribbon: one rising spiral that drifts towards the sun; three lanes wide, each butterfly a little behind the last,
+  // so the line reaches from the meadow up to the clouds.
+  function ribbonAt(j, t, out) {
+    // Before its turn to climb (s < 0) a butterfly circles low over the island; the line peels upward from the front.
+    var q = (t - RISE - 0.5) * 0.085 - j * 0.042, s = Math.max(0, q), lane = (j % 3 - 1) * 0.17, a = 2.4 - q * 4.2;
+    var r = 2.3 * (1 - 0.6 * Math.min(s, 1)) + lane + 0.1 * Math.sin(j * 1.3);
+    out.x = -1.6 * s * s + Math.cos(a) * r; out.z = -5.5 * s * s + Math.sin(a) * r;
+    out.y = 1.15 + 2.2 * s + 2.6 * s * s + 0.3 * lane + 0.24 * soft * Math.sin(7 * s - 1.2 * t + j * 0.5);
+    return out;
   }
-  // Item 1 placeholder motion: simple blended paths (net -> flower orbit -> perch -> ribbon).
-  function flyAt(j, t) {
-    var rel = REL + j * REL_STEP, p = flyPos(j, t), q = flyPos(j, t + 0.1), L = perchAt(j, t);
-    return { x: p.x, y: p.y, z: p.z, alpha: ease(ramp(t, rel - 0.1, rel + 0.7)), yaw: Math.atan2(q.x - p.x, q.z - p.z), perch: L,
-      flap: Math.sin(t * (13 - 9 * L) * (0.4 + 0.6 * soft) + j * 1.7) * (0.95 - 0.5 * L), flower: j % FLOWERS.length,
-      scale: 1 + 0.7 * ease(ramp(t, RISE + 2, 46)) };
+  /* Position of butterfly j at t, written into out (no allocation: the trail samples this many times a frame).
+   * Free flight is a loose flock: everyone circles a shared, wandering centre on its own tilted orbit (cohesion and
+   * a common swirl, as in boids, but solved rather than simulated), with a small divergence-free flutter on top
+   * (sines in quadrature per axis, i.e. the curl of a sine potential). Each butterfly peels off towards its blossom
+   * before its landing, sits on the swaying head, lifts off, and finally joins the ribbon. */
+  function flyPos(j, t, out) {
+    var rel = REL + j * REL_STEP, k = 0.5 + 0.5 * soft, dir = j % 2 ? -1 : 1, fi = j % FLOWERS.length, F = FLOWERS[fi];
+    // flock
+    var a = dir * (0.5 + 0.35 * hv(j, 0)) * t * k + hv(j, 1) * TAU, r = 0.7 + 0.9 * hv(j, 2) + 0.3 * Math.sin(0.5 * t + j);
+    var x = 0.2 + 1.3 * Math.sin(0.23 * t + 0.6) + Math.cos(a) * r, z = 1.3 + 0.8 * Math.sin(0.17 * t + 2) + Math.sin(a) * r * 0.8;
+    var y = 1.55 + 0.2 * Math.sin(0.31 * t) + 0.8 * (hv(j, 3) - 0.5) + 0.28 * Math.sin(0.7 * t + j * 1.9) + 0.25 * Math.sin(a + hv(j, 4) * TAU);
+    // its own blossom: a breathing orbit just above the flower head
+    var p0 = perchT(j), near = ease(ramp(t, p0 - 2.6, p0 - 0.4)) * (1 - ease(ramp(t, p0 + 4, p0 + 6.2)));
+    if (near > 0) {
+      var oa = dir * (0.9 + 0.1 * (j % 5)) * t * k + j * 2.4, or = 0.5 + 0.18 * Math.sin(0.6 * t + j * 1.7);
+      x = lerp(x, F[0] + Math.cos(oa) * or, near); z = lerp(z, F[1] + Math.sin(oa) * or * 0.85, near);
+      y = lerp(y, 1.0 + 0.2 * Math.sin(0.8 * t + j * 1.9), near);
+    }
+    // out of the net: a widening corkscrew
+    var out01 = ease(ramp(t, rel, rel + 3.2));
+    if (out01 < 1) {
+      var sw = Math.sin(Math.PI * out01) * 0.6, sa = t * 2.2 + j;
+      x = lerp(NET.x, x, out01) + sw * Math.cos(sa); y = lerp(0.75, y, out01) + sw * 0.5; z = lerp(NET.z, z, out01) + sw * Math.sin(sa);
+    }
+    // settle on the flower head
+    var L = perchAt(j, t);
+    if (L > 0) { headAt(fi, t, sH); x = lerp(x, sH.x, L); y = lerp(y, sH.y + 0.06, L); z = lerp(z, sH.z, L); }
+    // the ribbon
+    var up = riseAt(j, t);
+    if (up > 0) { ribbonAt(j, t, sH); x = lerp(x, sH.x, up); y = lerp(y, sH.y, up); z = lerp(z, sH.z, up); }
+    // flutter: never while perched, gentler in formation; the body also bobs with each wing beat
+    var f1 = 1.9 + 1.2 * hv(j, 5), w = soft * (1 - L) * (1 - 0.55 * up);
+    beatAtJ(j, t, sH);
+    x += w * (0.14 * Math.sin(f1 * t + j * 2.1) + 0.06 * Math.sin(2.7 * f1 * t + j));
+    y += w * (0.11 * Math.cos(f1 * t + j * 2.1) + 0.035 * Math.sin(sH.x) * (1 - sH.y));
+    z += w * (0.14 * Math.cos(0.9 * f1 * t + j * 1.3) - 0.06 * Math.cos(2.7 * f1 * t + j));
+    out.x = x; out.y = y < FLOOR_Y ? FLOOR_Y : y; out.z = z;
+    return out;
   }
-  function fliesAt(t) { var out = []; for (var j = 0; j < N; j++) out.push(flyAt(j, t)); return out; }
+  function turn(a, b, u) { var d = b - a; d -= TAU * Math.floor(d / TAU + 0.5); return a + d * u; }
+  // Full pose of butterfly j at t, written into out.
+  function flyAt(j, t, out) {
+    var rel = REL + j * REL_STEP, L = perchAt(j, t), up = riseAt(j, t), dt = 0.08;
+    flyPos(j, t, sA); flyPos(j, t + dt, sB);
+    var vx = (sB.x - sA.x) / dt, vy = (sB.y - sA.y) / dt, vz = (sB.z - sA.z) / dt, vh = Math.sqrt(vx * vx + vz * vz);
+    beatAtJ(j, t, sB);
+    var beat = (Math.sin(sB.x) * 1.05 + 0.2) * (1 - sB.y) + 0.45 * sB.y;
+    // At rest the wings open and close slowly, from folded upright to almost flat.
+    var wing = lerp(beat, 0.74 + 0.56 * Math.sin(1.5 * t + j * 2.3), L);
+    out = out || {};
+    out.x = sA.x; out.y = sA.y; out.z = sA.z;
+    out.alpha = ease(ramp(t, rel - 0.1, rel + 0.7));
+    out.yaw = turn(Math.atan2(vx, vz), hv(j, 10) * TAU, L);
+    out.pitch = clamp(Math.atan2(vy, vh + 0.4), -0.7, 0.7) * 0.7 * (1 - L);
+    out.perch = L; out.rise = up; out.flower = j % FLOWERS.length;
+    out.wing = wing; out.flap = clamp((wing - 0.2) / 1.05, -1, 1); out.glide = sB.y * (1 - L);
+    out.scale = FLY_SCALE * (0.88 + 0.26 * hv(j, 11)) * (1 + 1.1 * ease(ramp(t, RISE + 2, 46)));
+    // How strongly it sheds its soft trail: a little in the dance, most in the ribbon, none at rest.
+    out.trail = out.alpha * (1 - L) * (0.4 + 0.6 * up);
+    return out;
+  }
+  function fliesAt(t) { var out = []; for (var j = 0; j < N; j++) out.push(flyAt(j, t, {})); return out; }
+  function headsAt(t) { var out = []; for (var i = 0; i < FLOWERS.length; i++) out.push(headAt(i, t, { x: 0, y: 0, z: 0, lean: 0 })); return out; }
   /* Camera keys: look-at point, azimuth th (PI/2 = the gameplay side), polar phi, half-width w that
    * must stay in frame, and lift = how far above the look-at the frame centre sits (in half-screens). */
   // Slow and wide: a far establishing shot under the big sky, a glide down to the net, a drift across the flowers, a crane up.
@@ -118,7 +186,7 @@
     return out;
   }
   // Everything the renderer needs, derived from t alone.
-  function frame(t) {
+  function frame(t, lite) {
     var b = beatAt(t), local = t - b.t0, len = b.t1 - b.t0, sk = skyAt(t);
     return {
       t: t, beat: b.id, caption: b.caption,
@@ -129,7 +197,7 @@
       bars: ease(ramp(t, 0, 2.5)),
       title: ease(ramp(t, TITLE_AT, TITLE_AT + TITLE_FADE)),
       canContinue: t >= DURATION,
-      net: netAt(t), flies: fliesAt(t), camera: cameraAt(t)
+      net: netAt(t), flies: lite ? null : fliesAt(t), flowers: lite ? null : headsAt(t), camera: cameraAt(t)
     };
   }
 
@@ -252,8 +320,28 @@
       part(core, gold, head);
       f.position.set(FLOWERS[i][0], H.TOP_Y, FLOWERS[i][1]); g.add(f); st.flowers.push(f);
     }
-    // The open net: for now a soft glow where the butterflies come out (item 2 gives it a shape).
-    st.net = sprite(H.glowTex, 0xfff0c8, true); st.net.scale.set(1.5, 1.5, 1); st.net.position.set(NET.x, H.TOP_Y + 0.5, NET.z); g.add(st.net);
+    // The open net, lying in the grass with its mouth turned up to the sky, and a warm glow where the butterflies come out.
+    var hoop = new T.TorusGeometry(0.34, 0.017, 5, 18), bag = new T.ConeGeometry(0.34, 0.62, 10, 3, true), pole = new T.CylinderGeometry(0.02, 0.02, 1, 5);
+    hoop.rotateX(Math.PI / 2); bag.rotateX(Math.PI); bag.translate(0, -0.31, 0); pole.rotateZ(Math.PI / 2); pole.translate(0.84, 0, 0);
+    st.netWood = new T.MeshBasicMaterial({ color: 0xb48a5c, transparent: true, opacity: 0 });
+    st.netMesh = new T.MeshBasicMaterial({ color: 0xfff7e4, wireframe: true, transparent: true, opacity: 0, depthWrite: false });
+    st.netG = new T.Group(); part(hoop, st.netWood, st.netG); part(pole, st.netWood, st.netG); part(bag, st.netMesh, st.netG);
+    st.netG.position.set(NET.x, H.TOP_Y + 0.42, NET.z); st.netG.rotation.set(0.9, 0, -0.25); g.add(st.netG);
+    st.net = sprite(H.glowTex, 0xfff0c8, true); st.net.scale.set(1.5, 1.5, 1); st.net.position.set(NET.x, H.TOP_Y + 0.7, NET.z + 0.2); g.add(st.net);
+    /* Trails: one small Points cloud. Per butterfly, TRAIL soft dabs along the path it has just flown and FLECK
+     * slow-falling flecks of light; all positions come from flyPos at earlier times, so the trail is seekable too.
+     * Normal blending in pale, warm pigment (white gouache over the wash), not additive neon. */
+    var np = N * PER;
+    st.tPos = new Float32Array(np * 3); st.tA = new Float32Array(np * 2); st.tCol = new Float32Array(np * 3);
+    var tg = new T.BufferGeometry();
+    tg.setAttribute('position', new T.BufferAttribute(st.tPos, 3)); tg.setAttribute('aA', new T.BufferAttribute(st.tA, 2)); tg.setAttribute('aCol', new T.BufferAttribute(st.tCol, 3));
+    st.trailU = { uPx: { value: 800 } };
+    st.trail = new T.Points(tg, new T.ShaderMaterial({ uniforms: st.trailU, transparent: true, depthWrite: false,
+      vertexShader: 'attribute vec2 aA; attribute vec3 aCol; uniform float uPx; varying float vA; varying vec3 vCol;' +
+        'void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); vA = aA.x; vCol = aCol; gl_PointSize = clamp(aA.y * uPx / max(-mv.z, 0.1), 1.0, 64.0); gl_Position = projectionMatrix * mv; }',
+      fragmentShader: 'varying float vA; varying vec3 vCol; void main(){ float d = length(gl_PointCoord - 0.5) * 2.0; float a = 1.0 - smoothstep(0.15, 1.0, d); gl_FragColor = vec4(vCol, a * a * vA); }' }));
+    st.trail.frustumCulled = false; st.trail.renderOrder = 3; g.add(st.trail);
+    st.pose = {}; st.canvas = doc.querySelector('canvas');
     // The game's own sky and lights: borrowed while staged, handed back untouched.
     for (i = 0; i < H.scene.children.length; i++) {
       var ch = H.scene.children[i];
@@ -262,27 +350,72 @@
     }
     return true;
   }
-  // Placeholder butterflies in the colours of the species the player has met (every species on an empty preview save).
+  /* The cast: display-only copies of the game's own butterflies (same wing textures, wing and body meshes, shared
+   * through the read-only __bf.look hook), in the species the player has caught (every species on an empty preview
+   * save). Without the hook they fall back to flat wings in the species colour. */
   function buildFlies() {
-    var bf = root.__bf, species = bf && bf.species ? bf.species : [], caught = bf && bf.state ? bf.state().caught || {} : {}, own = [], i;
+    var bf = root.__bf, species = bf && bf.species ? bf.species : [], caught = bf && bf.state ? bf.state().caught || {} : {}, own = [], i, k;
     for (i = 0; i < species.length; i++) if (caught[species[i].id] > 0) own.push(species[i]);
-    if (!own.length) own = species.length ? species : [{ id: 'a', c1: 0xffb3d1 }, { id: 'b', c1: 0xa8d8ff }, { id: 'c', c1: 0xfff0a0 }];
+    if (!own.length) own = species.length ? species : [{ id: 'a', c1: 0xffb3d1, c2: 0xffd3e0 }, { id: 'b', c1: 0xa8d8ff, c2: 0xd8ecff }, { id: 'c', c1: 0xfff0a0, c2: 0xfff6cf }];
     var key = own.map(function (s) { return s.id; }).join(',');
     if (st.kinds === key) return;
     for (i = 0; i < st.flies.length; i++) st.g.remove(st.flies[i].g);
-    st.flies = []; st.kinds = key;
-    if (!st.wingGeo) {
-      st.wingGeo = new T.PlaneGeometry(0.2, 0.17); st.wingGeo.translate(0.1, 0, 0); st.wingGeo.rotateX(-Math.PI / 2);
-      st.bodyGeo = new T.CylinderGeometry(0.012, 0.012, 0.15, 4); st.bodyGeo.rotateX(Math.PI / 2);
-      st.bodyMat = new T.MeshBasicMaterial({ color: 0x4a3a5a });
-    }
+    st.flies = []; st.kinds = key; st.look = 'game';
+    var cream = new T.Color(0xfff4d6);
     for (i = 0; i < N; i++) {
-      var sp = own[i % own.length], bg = new T.Group(), wm = new T.MeshBasicMaterial({ color: sp.c1, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false });
-      var wl = new T.Group(), wr = new T.Group();
-      wl.add(new T.Mesh(st.wingGeo, wm)); wl.scale.x = -1; wr.add(new T.Mesh(st.wingGeo, wm));
-      bg.add(wl); bg.add(wr); part(st.bodyGeo, st.bodyMat, bg);
-      st.g.add(bg); st.flies.push({ g: bg, wl: wl, wr: wr, mat: wm });
+      var sp = own[i % own.length], look = null, bg = new T.Group(), wl = new T.Group(), wr = new T.Group();
+      try { look = bf && bf.look ? bf.look(sp) : null; } catch (e) { look = null; }
+      if (!look) {
+        st.look = 'flat';
+        if (!st.wingGeo) {
+          st.wingGeo = new T.PlaneGeometry(0.62, 0.62); st.wingGeo.translate(0.31, 0, 0); st.wingGeo.rotateX(Math.PI / 2);
+          st.bodyGeo = new T.CylinderGeometry(0.018, 0.012, 0.24, 6); st.bodyGeo.rotateX(Math.PI / 2);
+          st.bodyMat = new T.MeshBasicMaterial({ color: 0x3b2f3f });
+        }
+        look = { wingGeo: st.wingGeo, bodyGeo: st.bodyGeo, headGeo: null, bodyMat: st.bodyMat, glowWing: null,
+          wing: new T.MeshBasicMaterial({ color: sp.c1, side: T.DoubleSide }) };
+      }
+      bg.rotation.order = 'YXZ';
+      part(look.bodyGeo, look.bodyMat, bg);
+      if (look.headGeo) part(look.headGeo, look.bodyMat, bg, 0, 0, 0.13);
+      wl.add(new T.Mesh(look.wingGeo, look.wing)); wr.add(new T.Mesh(look.wingGeo, look.wing));
+      if (look.glowWing) { for (k = 0; k < 2; k++) { var gw = new T.Mesh(look.wingGeo, look.glowWing); gw.renderOrder = 2; (k ? wr : wl).add(gw); } }
+      wl.scale.x = -1; bg.add(wl); bg.add(wr); bg.visible = false;
+      st.g.add(bg); st.flies.push({ g: bg, wl: wl, wr: wr, sp: sp.id });
+      // Trail pigment: the species' lighter tone washed out with warm cream; the flecks are almost pure cream.
+      tmpB.setHex(sp.c2 !== undefined ? sp.c2 : sp.c1).lerp(cream, 0.45);
+      for (k = 0; k < PER; k++) {
+        var o = (i * PER + k) * 3, m = k < TRAIL ? 1 : 0.25;
+        st.tCol[o] = lerp(cream.r, tmpB.r, m); st.tCol[o + 1] = lerp(cream.g, tmpB.g, m); st.tCol[o + 2] = lerp(cream.b, tmpB.b, m);
+      }
     }
+    st.trail.geometry.attributes.aCol.needsUpdate = true;
+  }
+  function shed(j, ts) { var rel = REL + j * REL_STEP; return ease(ramp(ts, rel - 0.1, rel + 0.7)) * (1 - perchAt(j, ts)) * (0.4 + 0.6 * riseAt(j, ts)); }
+  function poseFlies(t) {
+    var i, k, b = st.pose, P = st.tPos, A = st.tA, top = H.TOP_Y, big = 1 + 1.1 * ease(ramp(t, RISE + 2, 46));
+    for (i = 0; i < st.flies.length; i++) {
+      var fl = st.flies[i]; flyAt(i, t, b);
+      var s = b.scale * b.alpha;
+      fl.g.visible = b.alpha > 0.01;
+      fl.g.position.set(b.x, top + b.y, b.z); fl.g.rotation.set(-b.pitch, b.yaw, 0); fl.g.scale.set(s, s, s);
+      fl.wr.rotation.z = b.wing; fl.wl.rotation.z = -b.wing;
+      var gap = 0.07 + 0.11 * b.rise, o = i * PER, q, age, ts;
+      for (k = 0; k < TRAIL; k++) {
+        ts = t - (k + 1) * gap; flyPos(i, ts, sA); q = o + k;
+        P[q * 3] = sA.x; P[q * 3 + 1] = top + sA.y; P[q * 3 + 2] = sA.z;
+        A[q * 2] = shed(i, ts) * 0.85 * (1 - k / (TRAIL + 1)); A[q * 2 + 1] = FLY_SCALE * big * (0.62 - 0.07 * k);
+      }
+      for (k = 0; k < FLECK; k++) {
+        var ph = hv(i, 2), nb = Math.floor(t / 0.4 + ph) - k; ts = (nb - ph) * 0.4; age = t - ts; q = o + TRAIL + k;
+        flyPos(i, ts, sA);
+        P[q * 3] = sA.x + 0.1 * Math.sin(nb * 12.3 + i); P[q * 3 + 1] = Math.max(top + 0.2, top + sA.y - 0.14 * age); P[q * 3 + 2] = sA.z + 0.1 * Math.cos(nb * 7.1 + i);
+        A[q * 2] = shed(i, ts) * Math.min(1, age / 0.15) * Math.max(0, 1 - age / (0.4 * FLECK)) * (0.62 + 0.38 * Math.sin(t * 9 + nb * 5 + i));
+        A[q * 2 + 1] = FLY_SCALE * big * 0.24;
+      }
+    }
+    st.trail.geometry.attributes.position.needsUpdate = true; st.trail.geometry.attributes.aA.needsUpdate = true;
+    if (st.canvas) st.trailU.uPx.value = st.canvas.height / (2 * Math.tan(H.camera.fov * Math.PI / 360));
   }
   function mix2(key, sk, out) { out.setHex(PAL.gold[key]).multiplyScalar(sk.gold); tmpB.setHex(PAL.rose[key]).multiplyScalar(sk.rose); return out.add(tmpB); }
   function mixS(a, b, sk) { return a * sk.gold + b * sk.rose; }
@@ -310,20 +443,15 @@
     try { if (H.refresh) H.refresh(); } catch (e) { /* keep closing */ }
   }
   function applyStage(t) {
-    var f = frame(t), sk = f.sky, u = st.skyU, i, cam = H.camera;
+    var f = frame(t, true), sk = f.sky, u = st.skyU, i, cam = H.camera;
     if (H.setNightTarget) H.setNightTarget(f.night);
     // The catchable butterflies keep their own state; they are only kept out of the picture.
     var wild = root.__bf && root.__bf.butterflies ? root.__bf.butterflies : [];
     for (i = 0; i < wild.length; i++) if (wild[i].g && wild[i].g.visible) { wild[i].g.visible = false; kept.flies.push(wild[i].g); }
-    for (i = 0; i < st.flies.length; i++) {
-      var b = f.flies[i], fl = st.flies[i], s = 1.5 * b.scale;
-      fl.g.visible = b.alpha > 0.01;
-      fl.g.position.set(b.x, H.TOP_Y + b.y, b.z); fl.g.rotation.y = b.yaw; fl.g.scale.set(s, s, s);
-      fl.wr.rotation.z = 0.25 + b.flap * 0.75; fl.wl.rotation.z = -fl.wr.rotation.z;
-      fl.mat.opacity = b.alpha * 0.96;
-    }
-    for (i = 0; i < st.flowers.length; i++) { var fw = st.flowers[i]; fw.rotation.z = -(0.06 + 0.2 * soft * windAt(fw.position.x, fw.position.z, t)); }
+    poseFlies(t);
+    for (i = 0; i < st.flowers.length; i++) st.flowers[i].rotation.z = -headAt(i, t, sH).lean;
     st.net.material.opacity = f.net * (0.5 + 0.12 * Math.sin(t * 2.1));
+    st.netG.visible = f.net > 0.01; st.netWood.opacity = f.net; st.netMesh.opacity = f.net * 0.7;
     // Camera: overrides the gameplay orbit for this frame only; the game takes it back when we stop.
     var c = f.camera, halfH = Math.tan(cam.fov * Math.PI / 360), halfW = halfH * cam.aspect;
     var r = Math.max(c.w / halfW, c.w * 0.9 / halfH), v3 = st.v;
@@ -457,7 +585,7 @@
     el.box.className = open ? '' : 'hidden';
     el.Paper.className = el.Edge.className = open ? 'l1cs-paint' : 'l1cs-paint hidden';
     if (!open) return;
-    var f = frame(t);
+    var f = frame(t, true);
     el.Veil.style.opacity = f.veil.toFixed(3);
     el.Top.style.transform = el.Bottom.style.transform = 'scaleY(' + f.bars.toFixed(3) + ')';
     if (el.Caption.textContent !== f.caption) el.Caption.textContent = f.caption;
@@ -545,7 +673,9 @@
     staged: function () { return staged; },
     stage: function () {
       return { staged: staged, reduced: soft < 1, toon: painted.length, blades: st ? st.blades : 0, blooms: st ? st.blooms : 0,
-        flies: st ? st.flies.filter(function (f) { return f.g.visible; }).length : 0, cast: st ? st.flies.length : 0,
+        flies: st ? st.flies.filter(function (f) { return f.g.visible; }).length : 0, cast: st ? st.flies.length : 0, look: st ? st.look : null, kinds: st ? st.kinds : '', trail: st ? N * PER : 0,
+        // Island-local [x, height above the grass, z] of every visible butterfly mesh, as posed this frame.
+        cast3: st ? st.flies.filter(function (f) { return f.g.visible; }).map(function (f) { return [+f.g.position.x.toFixed(3), +(f.g.position.y - H.TOP_Y).toFixed(3), +f.g.position.z.toFixed(3)]; }) : [],
         sky: !!(st && st.sky.visible), gameSky: sky ? sky.visible : null,
         camera: H ? H.camera.position.toArray().map(function (v) { return +v.toFixed(3); }) : null };
     },
@@ -555,7 +685,9 @@
     beats: function () { return BEATS.map(function (b) { return { id: b.id, t0: b.t0, t1: b.t1, caption: b.caption }; }); },
     frame: function (t) { return frame(t === undefined ? time() : clamp(+t || 0, 0, DURATION)); },
     text: function () { return { title: TITLE, subtitle: SUBTITLE, cont: CONTINUE, skip: SKIP }; },
-    layout: function () { return { net: [NET.x, NET.z], flowers: FLOWERS, count: N }; },
+    layout: function () { return { net: [NET.x, NET.z], flowers: FLOWERS, count: N, floor: FLOOR_Y, headY: HEAD_Y }; },
+    // Pose of one butterfly at t (the stage uses exactly this).
+    fly: function (j, t) { return flyAt(clamp(j | 0, 0, N - 1), +t || 0, {}); },
     muted: function () { return muted; },
     scored: function () { return scored; },
     // In-game hook switch; session-only, never saved. On by default, ?l1cutscene=0 keeps the old 5.2s card.

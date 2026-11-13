@@ -45,7 +45,8 @@ for (let t = 0; t < D; t += 1 / 30) {
   a.flies.forEach((f, j) => {
     const g = b.flies[j], d = Math.hypot(f.x - g.x, f.y - g.y, f.z - g.z);
     assert(d < 0.2, 'butterfly ' + j + ' moves ' + d.toFixed(3) + ' at ' + t.toFixed(2));
-    assert(f.y > 0.3, 'butterfly ' + j + ' above the grass at ' + t.toFixed(2));
+    assert(f.y >= lay.floor, 'butterfly ' + j + ' never dips into the ground at ' + t.toFixed(2));
+    assert(f.wing > -1 && f.wing < 1.4 && f.scale > 0.4 && Math.abs(f.pitch) < 0.6 && f.trail >= 0 && f.trail <= 1);
     assert(f.alpha >= 0 && f.alpha <= 1 && Math.abs(f.flap) <= 1);
   });
 }
@@ -69,6 +70,41 @@ assert(cs.frame(0).camera.w > 8 && f12.camera.w < f5.camera.w && f49.camera.w > 
 assert(f49.title === 1 && cs.frame(43).title === 0 && f5.bars > 0.9 && cs.frame(0).bars === 0);
 assert(marks.every(t => cs.frame(t).canContinue === (t >= D)));
 assert(Math.abs(f5.wind) <= 1.01 && marks.some(t => cs.frame(t).wind > 0.3) && marks.some(t => cs.frame(t).wind < -0.3), 'wind gusts both ways');
+
+// Butterflies (item 2). Deterministic: fly(j, t) is the pose inside frame(t), whatever was asked before.
+for (const t of [49.9, 12.3, 33.3, 25, 12.3, 41.7, 0, 25]) for (let j = 0; j < lay.count; j++) {
+  cs.fly((j * 7) % lay.count, 50 - t);
+  assert.equal(JSON.stringify(cs.fly(j, t)), JSON.stringify(cs.frame(t).flies[j]), 'fly(' + j + ', ' + t + ')');
+}
+// Wing rhythm: bursts of fast beats (several full strokes a second) broken by short glides with the wings held still.
+for (let j = 0; j < lay.count; j++) {
+  let strokes = 0, glide = 0, prev = cs.fly(j, 13).wing, dir = 0;
+  for (let t = 13; t < 19; t += 1 / 60) {
+    const f = cs.fly(j, t), d = Math.sign(f.wing - prev);
+    if (d && d !== dir) { strokes++; dir = d; }
+    if (f.glide > 0.95) { glide++; assert(Math.abs(f.wing - 0.45) < 0.12, 'glide holds a shallow V'); }
+    prev = f.wing;
+  }
+  assert(strokes > 6 * 2 && glide >= 6 && glide < 150, 'butterfly ' + j + ': ' + strokes + ' strokes, ' + glide + ' glide frames in 6 s');
+}
+// Landing: one butterfly per blossom at a time, sitting on the swaying head, wings opening and closing slowly.
+const sat = new Set();
+for (let t = 19; t < 34; t += 0.1) {
+  const f = cs.frame(t), busy = {};
+  f.flies.forEach((b, j) => {
+    if (b.perch < 0.99) return;
+    assert(!busy[b.flower], 'two butterflies on blossom ' + b.flower + ' at ' + t.toFixed(1)); busy[b.flower] = true; sat.add(j);
+    const h = f.flowers[b.flower], n = cs.fly(j, t + 0.1);
+    assert(Math.hypot(b.x - h.x, b.z - h.z) < 0.03 && b.y > h.y && b.y < h.y + 0.12, 'on the flower head');
+    assert(b.trail < 0.02 && b.glide < 0.02 && b.wing > 0.1 && b.wing < 1.35 && Math.abs(n.wing - b.wing) < 0.15, 'slow wings at rest');
+  });
+}
+assert.equal(sat.size, lay.count, 'every butterfly lands once');
+// The ribbon: a long line from the meadow to the clouds, in order, everyone trailing light.
+const r42 = cs.frame(42).flies, ys = r42.map(f => f.y);
+assert(Math.max(...ys) - Math.min(...ys) > 2.5 && ys[0] > ys[lay.count - 1] + 2.5, 'ribbon is a line, leader highest');
+assert(r42.every(f => f.rise === 1 && f.trail === 1) && cs.frame(25).flies.every(f => f.trail <= 0.4), 'trails are for the ribbon');
+for (let j = 1; j < lay.count; j++) { const a = r42[j - 1], b = r42[j]; assert(Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z) < 2.2, 'ribbon has no gap at ' + j); }
 
 // State machine on a fake clock: play -> skip -> guarded continue -> onContinue exactly once -> closed.
 assert.equal(cs.state(), 'idle'); assert.equal(cs.enabled(), true); assert.equal(cs.staged(), false);
