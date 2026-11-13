@@ -8,7 +8,7 @@ const MAPS={
  immortal_domain:['yinyue','huanyu','taisui','fengqi','taixu']
 };
 const POINTS=[[350,230],[700,200],[1050,230],[1320,440],[1320,790],[1050,980],[700,980],[350,850]];
-const imageFile=region=>`${region.replace('_','-')}-panorama-v2868123.webp`;
+const imageFile=region=>`${region.replace('_','-')}-panorama-v2868124.webp`;
 
 async function boot(page){
  await page.setViewportSize({width:390,height:844});
