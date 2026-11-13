@@ -223,6 +223,7 @@ replace("<script>\n(function () {\n  'use strict';\n\n  /* ---------------------
 # The V9.5 package is frozen here: later hooks reach only the working site, never the released ZIP.
 release_html = html
 exec((ROOT / 'scripts/l2-cutscene-v96.py').read_text())
+exec((ROOT / 'scripts/l1-cutscene-v96.py').read_text())
 baseline = ROOT / 'site/healing-game-v9.5-baseline/index.html'
 baseline.parent.mkdir(parents=True, exist_ok=True)
 baseline.write_text(release_html)
