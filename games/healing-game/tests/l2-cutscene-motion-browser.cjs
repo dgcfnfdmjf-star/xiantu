@@ -218,6 +218,72 @@ const span = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
     assert.deepEqual(lidAgain, lidSleep, 'seek(56) repeats the lids');
     await at(56);
 
+    /* Walk <-> sit (走到坐很生硬). Before: the walking mesh and the seated sculpt were swapped in one frame when the walk
+     * weight crossed 0.5 (mesh top 0.827 -> 0.892 between two 0.1 s samples, tail and head jumping with it), and a
+     * procedural cat's leg swing was cut off the instant its speed fell under 0.12. Now frame().cats[i].stand eases
+     * 1 <-> 0 over 0.8 s (0.5 s under reduced motion) and sit() reports what is drawn: on a Blender coat the walking
+     * twin and the sculpt cross-fade by dither with coverage walk + seat = 1; on a procedural coat the stride
+     * amplitude and haunch tilt follow the same ramp. Sampled every 0.05 s through each window. Thresholds per
+     * sample: stand / coverage step <= 0.15 (ease slope at 0.8 s is 0.094; at 0.5 s 0.15, limit 0.2), root x/z step
+     * <= 0.1 m, hop height step <= 0.03, heading step <= 0.3 rad (0.45 in the shorter reduced-motion blend), drawn height step <= 0.06 m (single-mesh coats), paws never more
+     * than 0.02 under the grass; blend length 0.5-1.0 s (reduced motion 0.3-0.6 s). */
+    const sitScan = async (pg, label, cats, from, to, dir, reduced) => {
+      const rows = [];
+      for (let t = from; t <= to + 1e-9; t = +(t + 0.05).toFixed(2)) {
+        await pg.evaluate(t => { window.__l2Cutscene.pause(); window.__l2Cutscene.seek(t); }, t);
+        await pg.waitForTimeout(70);
+        rows.push(await pg.evaluate(() => { const cs = window.__l2Cutscene; return { f: cs.frame().cats, s: cs.sit(), b: cs.bounds() }; }));
+      }
+      const out = {};
+      for (const i of cats) {
+        const id = label + ' cat ' + i, st = rows.map(r => r.f[i].stand), step = reduced ? 0.2 : 0.15;
+        assert(dir > 0 ? st[0] < 0.01 && st[st.length - 1] > 0.99 : st[0] > 0.99 && st[st.length - 1] < 0.01, id + ' crosses the whole transition: ' + st[0] + ' -> ' + st[st.length - 1]);
+        const len = st.filter(v => v > 0.01 && v < 0.99).length * 0.05;
+        assert(reduced ? len >= 0.3 && len <= 0.6 : len >= 0.5 && len <= 1.0, id + ' blends for ' + len.toFixed(2) + ' s, not one frame');
+        let worst = 0;
+        for (let n = 0; n < rows.length; n++) {
+          const c = rows[n].f[i], s = rows[n].s[i], b = rows[n].b[i], at = id + ' @' + (from + n * 0.05).toFixed(2) + ': ' + JSON.stringify(s);
+          assert(b.lo > -0.02, 'paws stay on the grass through the blend, ' + at + ' lo=' + b.lo);
+          if (s.blender) {
+            assert(Math.abs(s.stand - c.stand) < 3e-3 && Math.abs(s.opacity.walk - c.stand) < 3e-3, 'stage shows the model stand amount, ' + at);
+            assert(Math.abs(s.opacity.walk + s.opacity.seat - 1) < 1e-3, 'every pixel draws exactly one of the two meshes, ' + at);
+            assert(s.twins >= 1, 'walking twin in place, ' + at);
+          } else assert(s.legs <= 0.65 * c.stand + 0.3 * c.bat + 1e-3 || c.bat > 0.5, 'procedural stride follows the stand ramp, ' + at);
+          if (!n) continue;
+          const p = rows[n - 1].f[i], q = rows[n - 1].s[i], a = rows[n - 1].b[i];
+          let dy = Math.abs(c.yaw - p.yaw) % 6.28318531; if (dy > 3.14159265) dy = 6.28318531 - dy;
+          assert(Math.abs(c.stand - p.stand) <= step, 'stand does not jump, ' + at);
+          assert(Math.hypot(c.x - p.x, c.z - p.z) <= 0.1 && Math.hypot(s.x - q.x, s.z - q.z) <= 0.1, 'root position continuous, ' + at);
+          assert(Math.abs(c.y - p.y) <= 0.03 && Math.abs(s.y - q.y) <= 0.03, 'root height continuous, ' + at);
+          assert(dy <= (reduced ? 0.45 : 0.3), 'heading continuous, ' + at + ' dyaw=' + dy.toFixed(3));
+          // (a Blender coat draws two meshes in the blend; their union's top steps when the second appears at <1% coverage, so coverage is the measure there)
+          if (!s.blender) assert(Math.abs(b.hi - a.hi) <= 0.06, 'drawn height continuous, ' + at + ' ' + a.hi + ' -> ' + b.hi);
+          worst = Math.max(worst, Math.abs(c.stand - p.stand));
+          if (s.blender) {
+            assert(Math.abs(s.opacity.walk - q.opacity.walk) <= step && Math.abs(s.opacity.seat - q.opacity.seat) <= step, 'mesh coverage does not jump, ' + at);
+            assert(!(q.opacity.walk >= 0.99 && s.opacity.walk <= 0.01) && !(q.opacity.seat >= 0.99 && s.opacity.seat <= 0.01), 'no mesh swaps in a single sample, ' + at);
+          } else assert(Math.abs(s.tilt - q.tilt) <= 0.03 && Math.abs(s.bodyY - q.bodyY) <= 0.03, 'procedural settle is gradual, ' + at);
+        }
+        out[i] = { blend: +len.toFixed(2), step: +worst.toFixed(3) };
+      }
+      return out;
+    };
+    const sits = {};
+    sits.gatherSit = await sitScan(page, 'gather sit-down', [0], 10.7, 12.2, -1);
+    sits.gatherSitWhite = await sitScan(page, 'gather sit-down', [3], 16.4, 17.9, -1);
+    sits.chaseUp = await sitScan(page, 'chase stand-up', [2], 24.2, 25.7, 1);
+    sits.chaseSit = await sitScan(page, 'chase sit-down', [2], 30.9, 32.4, -1);
+    sits.strollUp = await sitScan(page, 'stroll stand-up', [0, 1, 2, 3, 4, 5], 38.6, 40.1, 1);
+    sits.glowSit = await sitScan(page, 'stroll sit-down', [6], 40.5, 42.0, -1);
+    sits.strollSit = await sitScan(page, 'stroll sit-down', [0, 1, 2, 3, 4, 5], 43.8, 45.6, -1);
+    // Seek lands on the same in-between pose, and the curl only starts once the cat is down (one settle).
+    const mid = async t => { await at(t); return page.evaluate(() => ({ sit: window.__l2Cutscene.sit(), cats: window.__l2Cutscene.frame().cats.map(c => [c.stand, c.curl]) })); };
+    const midA = await mid(44.6), midB = (await mid(20), await mid(44.6));
+    assert.deepEqual(midB, midA, 'seek(44.6) repeats the half-seated pose');
+    assert(midA.sit[0].opacity.walk > 0.05 && midA.sit[0].opacity.walk < 0.95, 'both meshes drawn mid sit-down: ' + JSON.stringify(midA.sit[0]));
+    midA.cats.forEach((c, i) => assert(c[1] <= 1 - c[0] + 1e-9, 'cat ' + i + ' sits before it curls'));
+    await at(56);
+
     // Stopping the Walk hands back the exact seated bind pose (checked through the mixer, with the layer off).
     const restored = await page.evaluate(() => {
       const cs = window.__l2Cutscene; cs.seek(9.8);
@@ -263,10 +329,23 @@ const span = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
       assert(eyes.length === 7 && eyes.every(o => !o.blender), 'fallback eyes are procedural @' + t);
       checkEyes(eyes, t, 'fallback');
     }
+    const fbSits = { gatherSit: await sitScan(p2, 'fallback gather sit-down', [0], 10.7, 12.2, -1), strollUp: await sitScan(p2, 'fallback stroll stand-up', [0, 3, 5], 38.6, 40.1, 1), strollSit: await sitScan(p2, 'fallback stroll sit-down', [0, 3, 5], 43.8, 45.6, -1) };
     await ctx2.close();
 
+    // Reduced motion: a shorter blend (0.5 s), still not a snap, and the film is the same length.
+    failGlb = false;
+    const ctx3 = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true, reducedMotion: 'reduce' });
+    const p3 = await ctx3.newPage();
+    p3.on('pageerror', e => errors.push('reduced: ' + e.message));
+    await p3.route('**/*', r => new URL(r.request().url()).hostname === '127.0.0.1' ? r.continue() : r.abort());
+    await p3.goto(url + '?cutscene=1&mute=1');
+    await p3.waitForFunction(() => window.__l2Cutscene && window.__l2Cutscene.stage().staged && window.__l2Cutscene.stage().blender >= 4);
+    assert(await p3.evaluate(() => window.__l2Cutscene.stage().reduced), 'reduced-motion context');
+    const rdSits = { gatherSit: await sitScan(p3, 'reduced gather sit-down', [0], 10.7, 12.2, -1, true), strollUp: await sitScan(p3, 'reduced stroll stand-up', [0, 3], 38.6, 40.1, 1, true) };
+    await ctx3.close();
+
     assert.deepEqual(errors, []);
-    console.log(JSON.stringify({ pass: true, rigged, minPairDistance: gaps, maxTailRootToRump: tailGaps, screenshots: OUT }));
+    console.log(JSON.stringify({ pass: true, rigged, minPairDistance: gaps, maxTailRootToRump: tailGaps, sits, fbSits, rdSits, screenshots: OUT }));
   } finally {
     await browser.close();
     server.close();
