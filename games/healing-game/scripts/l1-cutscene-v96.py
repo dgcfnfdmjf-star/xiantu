@@ -18,3 +18,6 @@ replace("    species: SPECIES\n  };\n})(window, document);",
         "})(window, document);")
 # Loads after the level-2 cutscene and before kittens.js; it chains onto GardenPlay like the other modules.
 replace('<script>/* kittens.js', '<script>\n' + (ROOT / 'src/l1-cutscene.js').read_text() + '\n</script>\n<script>/* kittens.js')
+# The score needs the music-lush voices: it loads after them and after the level-2 score, before the main game script.
+MAIN = "<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps"
+replace(MAIN, '<script>\n' + (ROOT / 'src/l1-cutscene-music.js').read_text() + '\n</script>\n' + MAIN)

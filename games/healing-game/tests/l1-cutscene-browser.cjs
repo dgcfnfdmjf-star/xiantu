@@ -44,9 +44,8 @@ const KEY = 'healingGarden.butterflies.v1';
     return { context, page };
   };
   // One real catch through the game's own catchAt (the same call a tap makes): 29 -> 30+ points.
-  const clear = async page => {
-    await page.locator('#start').click();
-    await page.waitForTimeout(1500);
+  const clear = async (page, started) => {
+    if (!started) { await page.locator('#start').click(); await page.waitForTimeout(1500); }
     for (let tries = 0; tries < 60; tries++) {
       const ended = await page.evaluate(() => {
         for (const b of window.__bf.butterflies) {
@@ -97,9 +96,20 @@ const KEY = 'healingGarden.butterflies.v1';
       window.__cardShows = 0; const en = document.getElementById('bfEnding');
       new MutationObserver(() => { const up = !en.classList.contains('hidden'); if (up && !window.__cardUp) window.__cardShows++; window.__cardUp = up; }).observe(en, { attributes: true, attributeFilter: ['class'] });
     });
-    await clear(page);
+    await page.locator('#start').click(); await page.waitForTimeout(1500);
+    const themeBefore = await page.evaluate(() => GardenAudio.currentTrackName());
+    assert.equal(await page.evaluate(() => __l1Score.state().active), false, 'score idle before the clear');
+    await clear(page, true);
     await page.waitForFunction(() => window.__l1Cutscene.playing() && window.__l1Cutscene.staged());
     assert.deepEqual(await save(page), oldSave, 'same save at clear');
+    // The score starts with the film, owns the music bus and follows the film clock.
+    assert.equal(await page.evaluate(() => window.__l1Cutscene.scored()), true, 'score started with the cutscene');
+    await page.waitForFunction(() => __l1Score.state().steps >= 6, null, { timeout: 8000 });
+    let music = await page.evaluate(() => ({ s: __l1Score.state(), t: __l1Cutscene.time(), audio: GardenAudio.context().state, l2: __l2Score.state().active }));
+    assert.equal(music.audio, 'running');
+    assert(music.s.active && music.s.current && music.s.musicOn && music.s.track === '蝶归晚风' && themeBefore !== '蝶归晚风', 'waltz owns the music bus: ' + JSON.stringify(music.s));
+    assert(Math.abs(music.s.position - music.t) < 0.45, 'score follows the film clock: ' + JSON.stringify(music));
+    assert.equal(music.l2, false, 'level-2 score untouched');
     const rawAtClear = await rawSave(page);
     assert.equal(await page.evaluate(() => window.__l2Cutscene.state()), 'idle', 'level-2 cutscene untouched');
     assert.equal(await page.locator('#l1cs').isVisible(), true);
@@ -131,6 +141,10 @@ const KEY = 'healingGarden.butterflies.v1';
     };
     const shots = {};
     for (const t of [4, 13, 25, 39, 48]) shots[t] = await shoot(t);
+    // Paused film = silent score: no step is scheduled while the stills are taken.
+    const held = await page.evaluate(() => __l1Score.state().steps);
+    await page.waitForTimeout(1200);
+    assert.equal(await page.evaluate(() => __l1Score.state().steps), held, 'score holds while the film is paused');
     assert.equal(shots[4].flies, 0); assert(shots[13].flies > 0 && shots[13].flies < 18); assert.equal(shots[25].flies, 18); assert.equal(shots[48].flies, 18);
     assert.notDeepEqual(shots[4].camera, shots[48].camera, 'camera moves');
     const again = await shoot(13);
@@ -141,8 +155,23 @@ const KEY = 'healingGarden.butterflies.v1';
     assert.equal(await page.locator('#l1csEnd').evaluate(e => getComputedStyle(e).opacity), '1', 'title visible');
     assert.equal(await page.locator('#l1csGo').isVisible(), false);
     // Skip lands on the end card; the same tap must not dismiss it.
-    await page.evaluate(() => { window.__l1Cutscene.seek(12); window.__l1Cutscene.resume(); });
+    // seek() into the ribbon moves the score with the picture, inside the engine's voice budget.
+    await page.evaluate(() => { window.__l1Cutscene.seek(31); window.__l1Cutscene.resume(); });
+    let peakLive = 0;
+    await page.waitForTimeout(2500); // tails from before the seek ring out
+    for (let i = 0; i < 16; i++) { await page.waitForTimeout(250); peakLive = Math.max(peakLive, await page.evaluate(() => __musicLush.live())); }
+    music = await page.evaluate(() => ({ s: __l1Score.state(), t: __l1Cutscene.time() }));
+    assert(music.t > 36 && music.t < 43 && Math.abs(music.s.position - music.t) < 0.45 && music.s.lastStep >= 96, 'score jumped with seek: ' + JSON.stringify(music));
+    // felt/harp stop at 34 live sources; a string chord adds four sustained voices on top (same bound as level 2).
+    assert(peakLive > 4 && peakLive <= 34 + 4, 'voice count in the swell: ' + peakLive);
+    report.peakLive = peakLive;
+    await page.evaluate(() => { window.__l1Cutscene.seek(12); });
+    await page.waitForTimeout(900);
+    music = await page.evaluate(() => ({ s: __l1Score.state(), t: __l1Cutscene.time() }));
+    assert(Math.abs(music.s.position - music.t) < 0.45 && music.t < 14, 'score follows a backward seek: ' + JSON.stringify(music));
     await page.locator('#l1csSkip').tap();
+    music = await page.evaluate(() => __l1Score.state());
+    assert(music.active && music.free, 'score settles into its cadence after skip');
     assert.equal(await page.evaluate(() => window.__l1Cutscene.finished() && window.__l1Cutscene.time() === 50 && window.__l1Cutscene.state() === 'ended'), true);
     assert.equal(await page.locator('#l1csSkip').isVisible(), false);
     assert.equal(await page.locator('#l1csTitle').innerText(), '第一关 · 完成');
@@ -150,9 +179,12 @@ const KEY = 'healingGarden.butterflies.v1';
     assert.equal(await page.locator('#l1csGo').innerText(), '轻触继续');
     await page.screenshot({ path: path.join(OUT, 'end.png') });
     assert.equal(await cardHidden(page), true);
-    await page.waitForTimeout(700);
+    await page.waitForTimeout(1500);
+    assert(await page.evaluate(() => __l1Score.state().lastStep) >= 132, 'closing bars play after skip');
     await page.locator('#l1csGo').tap();
     assert.equal(await page.evaluate(() => window.__l1Cutscene.state()), 'closed');
+    music = await page.evaluate(() => ({ s: __l1Score.state(), scored: __l1Cutscene.scored() }));
+    assert(!music.s.active && !music.scored && music.s.musicOn && music.s.track === themeBefore, 'level music returns: ' + JSON.stringify(music.s));
     assert.equal(await cardHidden(page), false, 'the original card follows the cutscene');
     assert.equal(await page.locator('#l1cs').isVisible(), false);
     assert.equal(await page.locator('#l1csPaper').isVisible(), false);
@@ -163,6 +195,7 @@ const KEY = 'healingGarden.butterflies.v1';
     assert.notEqual(await wild(), w0, 'gameplay butterflies move again');
     assert.equal(await rawSave(page), rawAtClear, 'cutscene changed no save');
     await toLevel2(page);
+    assert.equal(await page.evaluate(() => __l1Score.state().active), false, 'score stays off on level 2');
     assert.equal(await page.evaluate(() => window.__cardShows), 1, 'continuation ran exactly once');
     assert.equal(await page.evaluate(() => JSON.stringify([localStorage.getItem('hg_level2_unlocked'), window.__kittens.state().level, window.__bf.state().ended])), oldAfter, 'same state as the old flow');
     // The camera is the game's again: wheel zoom moves it.
@@ -178,6 +211,25 @@ const KEY = 'healingGarden.butterflies.v1';
     assert.equal(await page.evaluate(() => window.__l1Cutscene.state()), 'idle');
     await context.close();
 
+    /* ---- D: music switch off -> the film runs silent, the switch and the track are left as they were;
+            the card's own button (closeEnding) closes film and score together ---- */
+    ({ context, page } = await fresh());
+    await page.goto(url);
+    await page.locator('#start').click(); await page.waitForTimeout(1500);
+    const quietTheme = await page.evaluate(() => { GardenAudio.setMusic(false); return GardenAudio.currentTrackName(); });
+    await clear(page, true);
+    await page.waitForFunction(() => window.__l1Cutscene.playing() && window.__l1Cutscene.staged());
+    await page.waitForTimeout(2500);
+    let quiet = await page.evaluate(() => ({ s: __l1Score.state(), live: __musicLush.live() }));
+    assert(quiet.s.active && quiet.s.musicOn === false && quiet.s.steps === 0, 'music switch off: nothing is played: ' + JSON.stringify(quiet));
+    await page.evaluate(() => document.getElementById('bfStay').click()); // the game closing the ending mid-film
+    quiet = await page.evaluate(() => ({ s: __l1Score.state(), cs: __l1Cutscene.state() }));
+    assert(quiet.cs === 'closed' && !quiet.s.active && quiet.s.musicOn === false && quiet.s.track === quietTheme, 'closed with the film, switch still off: ' + JSON.stringify(quiet));
+    await page.evaluate(() => GardenAudio.setMusic(true));
+    await page.waitForTimeout(1200);
+    assert.equal(await page.evaluate(() => GardenAudio.currentTrackName()), quietTheme, 'switching music back on plays the level theme');
+    await context.close();
+
     /* ---- C: preview ---- */
     ({ context, page } = await fresh());
     const saves = () => page.evaluate(() => JSON.stringify(Object.keys(localStorage).sort().map(k => [k, localStorage.getItem(k)])));
@@ -185,6 +237,7 @@ const KEY = 'healingGarden.butterflies.v1';
     await page.waitForFunction(() => window.__l1Cutscene.ready() && window.__l1Cutscene.playing() && window.__l1Cutscene.staged());
     const before = await saves();
     assert.equal(await page.evaluate(() => window.__l2Cutscene.state()), 'idle', '?cutscene=l1 does not start the level-2 preview');
+    assert.deepEqual(await page.evaluate(() => [__l1Cutscene.scored(), __l1Score.state().active]), [false, false], '&mute=1 never starts the score');
     const t0 = await page.evaluate(() => window.__l1Cutscene.time());
     await page.waitForTimeout(1000);
     const dt = (await page.evaluate(() => window.__l1Cutscene.time())) - t0;
@@ -211,6 +264,7 @@ const KEY = 'healingGarden.butterflies.v1';
     assert.equal(await page.evaluate(() => window.__l1Cutscene.playing()), false, 'unmuted preview waits for a gesture');
     await page.touchscreen.tap(195, 760);
     await page.waitForFunction(() => window.__l1Cutscene.playing());
+    assert.equal(await page.evaluate(() => __l1Cutscene.scored() && __l1Score.state().active), true, 'unmuted preview has its score');
     await page.goto(url + '?cutscene=1&mute=1');
     await page.waitForFunction(() => window.__l2Cutscene.playing());
     assert.equal(await page.evaluate(() => window.__l1Cutscene.state()), 'idle', '?cutscene=1 is still the level-2 preview only');

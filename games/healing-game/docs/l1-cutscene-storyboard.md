@@ -1,10 +1,9 @@
 # 第一关通关过场 · Level-1 clear cutscene storyboard
 
-Status: **item 2: the butterflies**. Timeline, camera, sky, clouds, grass wind, light, paper, captions,
+Status: **item 3: the score**. Timeline, camera, sky, clouds, grass wind, light, paper, captions,
 skip / continue and the build hook came with item 1; item 2 replaced the placeholder butterflies with
 the game's own butterflies on deterministic flight paths (see "Butterflies" below) and gave the net a
-shape. Item 3 adds the score (`src/l1-cutscene-music.js` → `window.__l1Score`, already looked up by
-`play()`; silent until it exists).
+shape; item 3 added the score (see "Score" below).
 
 - Module: `src/l1-cutscene.js` (ES5, no dependencies, no save access) → `window.__l1Cutscene`
 - Build hook: `scripts/l1-cutscene-v96.py`, run by `scripts/build.py` after `l2-cutscene-v96.py`
@@ -92,7 +91,33 @@ Same shape as `__l2Cutscene`: `enabled() / setEnabled(v)`, `play({source, onCont
 `state()` (`idle → playing ⇄ paused → ended → closed`), `playing()`, `finished()`, `ready()`,
 `staged()`, `stage()`, `beat()`, `beats()`, `frame(t)`, `text()`, `layout()`, `muted()`, `scored()`.
 
+## Score
+
+`src/l1-cutscene-music.js` → `window.__l1Score`, 「蝶归晚风」: an original D-major waltz, 3/4, one bar = 2 s,
+25 bars = 50 s. No samples, no quoted melody.
+
+| Bars | Time | Picture | Music |
+|---|---|---|---|
+| 1–5 | 0–10 s | meadow | harp ripples over a slow string swell, a few single piano notes |
+| 6–10 | 10–20 s | release | the tune on solo felt piano over an oom-pah-pah left hand (IV–V–iii–vi); strings from bar 8 |
+| 11–16 | 20–32 s | dance | home key, harp eighths, flute holding a line below; six harp glints on the first landings |
+| 17–22 | 32–44 s | ribbon | the tune returns with the harp an octave above, fullest strings, top note at 40 s, then the dominant |
+| 23–25 | 44–50 s | title | cadence on D as the title fades in, harp roll, last low chord at about half level |
+
+Voices are the game's own (music-lush `felt`, `harp`, `padTone('warm')`, music2 `flute`) through a track
+registered on GardenAudio, the same way as the level-2 score (separate file, so that one stays
+byte-identical). So the music switch, the volume slider and the bus/reverb apply unchanged. `start()`
+remembers the level's track and crossfades to the waltz (1.2 s); `stop()` (continue, close, the card's
+own close) crossfades back (3 s) unless the player picked another track meanwhile. Each step is placed
+on the cutscene clock: `seek()` or a stalled tab re-anchors with a short fade of what was ringing, a
+paused film is silent, `skip()` fades and plays only the three closing bars. A muted run (`&mute=1`)
+never touches the score; with the player's music switch off nothing sounds and the switch is left off.
+
 ## Tests
+
+- `tests/l1-cutscene-music.cjs`: the score on a fake engine: length and sync marks against `beats()`,
+  dynamic arc, cadence, voice budget compared with the level-2 score, start / seek / stall / pause /
+  skip / stop with the level track handed back, cutscene wiring, no storage access.
 
 - `tests/l1-cutscene.cjs`: pure model (duration, contiguous beats, `frame(t)` determinism and
   continuity, butterfly determinism, wing rhythm, one butterfly per blossom, floor height, ribbon shape, story marks, state machine on a fake clock, no storage access, distinct preview gate).
@@ -113,4 +138,9 @@ their ingredients (cohesion around a moving centre, a shared swirl, divergence-f
 closed form. Alternatives rejected: a
 full-screen post-process watercolour pass (Kuwahara filter: too heavy for a low-end phone GPU and it
 would need a render target the game does not have) and volumetric ray-marched clouds (same cost
-problem); a single analytic sky-dome shader with 4-octave value noise costs one cheap pass.
+problem); a single analytic sky-dome shader with 4-octave value noise costs one cheap pass. For the
+score's timing: `cwilso/metronome` (lookahead scheduling on the audio clock — what the game's engine
+already does), `sebpiq/WAAClock` and Tone.js `Transport` (a seekable transport with its own clock),
+`generativefm/generators` (sample-based generative pieces). A second transport or a library would
+duplicate the engine's clock and add weight, and samples would add download size, so the score stays a
+registered track whose steps are re-anchored to the cutscene clock.

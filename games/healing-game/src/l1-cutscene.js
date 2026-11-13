@@ -614,7 +614,7 @@
   }
 
   /* ------------------------------- API ------------------------------- */
-  // The score (item 3) will live in l1-cutscene-music.js as __l1Score; muted runs (headless capture) never start it.
+  // The score lives in l1-cutscene-music.js; muted runs (headless capture) never start it.
   function score() { return root.__l1Score || null; }
   function play(o) {
     opts = o || {};
