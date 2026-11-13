@@ -616,6 +616,7 @@
       k.state = 'hide'; k.crouch = 0; k.curl = 0; k.moving = false; k.root.l2cat = true;
       k.ears = k.head.children.filter(function (o) { return o.geometry && o.geometry.type === 'ConeGeometry'; });
       if (k.halo) { k.halo.material = k.halo.material.clone(); k.halo.material.opacity = 0.2; }
+      buildTail(k);
       st.g.add(k.root); st.cats.push(k);
       if (root.GardenCatModels && root.GardenCatModels.attachStage) root.GardenCatModels.attachStage(k);
     }
@@ -674,6 +675,82 @@
    * The exported rig is flat: every bone is a child of Root with an identity rest orientation, and the rest pose is
    * the approved seated cat. Each frame goes rest -> Walk clip (time set from distance walked, mixer.update(0)) ->
    * procedural offsets composed on top. Nothing is integrated, so a seek lands on the same pose as playback. */
+  // Rear end of the spine, in Body-bone space (glTF axes: +Y up the seated back, +Z towards the chest). Blender rest
+  // (0, 0.16, 0.10) minus the Body centre (0, 0.047, 0.235); the walking pelvis carries it to the top of the rump.
+  var RUMP = null, PROC_RUMP = null, TAIL_Q = null;
+  /* Tail (Blender coats). The whole tail is skinned to the single TailRoot bone, whose rest sits where the seated
+   * sculpt's tail leaves the right haunch: 0.155 model units off the midline. Seated that is right (the tail lies along
+   * the flank and round the paws, and the seated surface is drawn unskinned), but the Walk clip carries the same
+   * offset onto the standing cat, so the tail stuck out of the side of the hip. While the walking surface is up the
+   * bone is therefore re-seated every frame: root on the rump midline at the end of the spine (carried by the Body
+   * bone), and the rigid curl turned into the sagittal plane so it leaves the rump backwards, rises and hooks at the
+   * tip. TAIL_Q maps the rest curl (chord base->tip, bulge) onto chord = up, bulge = back; lean/sway/twist then
+   * rotate it about the root only - nothing translates the root off the body. */
+  function tailInit() {
+    if (RUMP) return;
+    RUMP = new T.Vector3(0, -0.135, -0.113); PROC_RUMP = new T.Vector3(0, 0.05, -0.272);
+    // Rest tail polyline from scripts/cat-walk/rig.py in glTF axes (x, z, -y): base, middle knot, tip.
+    var base = new T.Vector3(0.155, 0.137, -0.113), mid = new T.Vector3(0.292, 0.044, 0.092), tip = new T.Vector3(0.111, 0.056, 0.239);
+    var c = tip.clone().sub(base).normalize(), b = mid.clone().sub(base); b.addScaledVector(c, -b.dot(c)).normalize();
+    var from = new T.Matrix4().makeBasis(c, b, c.clone().cross(b)), to = new T.Matrix4().makeBasis(new T.Vector3(0, 1, 0), new T.Vector3(0, 0, -1), new T.Vector3(-1, 0, 0));
+    TAIL_Q = new T.Quaternion().setFromRotationMatrix(to.multiply(from.transpose()));
+  }
+  // lean > 0 tips the raised tail back and down (a chase), yaw is the slow side-to-side sway, twist rolls the hook.
+  function rigTail(rig, lean, yaw, twist) {
+    var B = rig.by.Body.bone, Tr = rig.by.TailRoot;
+    rv.copy(RUMP).multiply(B.scale).applyQuaternion(B.quaternion).add(B.position);
+    Tr.bone.position.copy(rv);
+    Tr.bone.quaternion.setFromEuler(re.set(-lean, yaw, twist, 'YXZ')).multiply(TAIL_Q).multiply(Tr.q);
+  }
+  /* Tail (procedural white / glow, and any coat whose GLB failed): the game's tail is one straight cylinder, so the
+   * stage actor gets its own short chain instead - TAIL_N tapered links between joints that are placed each frame
+   * along a curve in body space (so it follows the squash, the curl tilt and PROC with the body), link lengths kept
+   * fixed outward from the root. Root joint = the rear pole of the torso ellipsoid, on the midline. */
+  var TAIL_LEAN = 0.1;
+  var TAIL_N = 6, TAIL_LEN = 0.075, tailGeo = null;
+  function buildTail(k) {
+    if (!k.tail || !k.body || k.l2tail) return;
+    if (!tailGeo) {
+      tailGeo = { link: new T.CylinderGeometry(0.8, 1, 1, 6, 1, true), ball: new T.SphereGeometry(1, 6, 4) };
+      tailGeo.link.translate(0, 0.5, 0);
+    }
+    var joints = [], links = [], i, r;
+    for (i = 0; i <= TAIL_N; i++) {
+      r = 0.046 - 0.022 * i / TAIL_N;
+      var j = part(tailGeo.ball, k.tail.material, k.body); j.scale.set(r, r, r); j.l2tailPart = true; joints.push(j);
+      if (i < TAIL_N) { var l = part(tailGeo.link, k.tail.material, k.body); l.scale.set(r, TAIL_LEN, r); l.l2tailPart = true; links.push(l); }
+    }
+    k.tail.visible = false;
+    k.l2tail = { joints: joints, links: links, pts: joints.map(function () { return new T.Vector3(); }) };
+  }
+  function poseTail(k, m, t) {
+    var tl = k.l2tail, c = m.curl, i, p = tl.pts, sgn = k.phase % 2 > 1 ? 1 : -1;
+    tailInit();
+    if (!rv) { rq = new T.Quaternion(); rq2 = new T.Quaternion(); re = new T.Euler(); rv = new T.Vector3(); rv2 = new T.Vector3(); }
+    // up = carried high (walking, or half-raised and twitching in play); 0 = laid on the grass round the flank.
+    var up = clamp(Math.max(m.walk || 0, 0.55 * (m.look || 0)), 0, 1) * (1 - c), quick = m.state === 'play' ? 4 : 2.2;
+    var ground = 0.035 - k.body.position.y; // grass level in body space (the body hangs from `inner` at the feet)
+    var el = -0.15, y = PROC_RUMP.y, z = PROC_RUMP.z;
+    p[0].copy(PROC_RUMP);
+    for (i = 1; i <= TAIL_N; i++) {
+      var f = i / TAIL_N;
+      // Raised: leaves the rump backwards and a little up, climbs, and the tip tips back over - a soft S.
+      el += [0.75, 0.5, 0.3, 0.1, -0.25, -0.4][i - 1] * (1 - 0.35 * m.chase);
+      y += Math.sin(el) * TAIL_LEN; z -= Math.cos(el) * TAIL_LEN;
+      var ux = Math.sin(t * quick + k.phase - f * 1.4) * 0.11 * f * f * (0.4 + 0.6 * soft) + m.tail * 0.03 * f;
+      // Wrapped: down off the rump, then forwards along one flank just outside the legs, tip towards the paws.
+      var a = f * 1.9, wx = sgn * (0.245 + 0.03 * c) * Math.sin(Math.min(a, 1.45)), wz = -0.05 - 0.26 * Math.cos(a);
+      var wy = Math.max(ground, PROC_RUMP.y - 0.34 * f) + (i === TAIL_N ? 0.012 * (1 + Math.sin(t * 1.3 + k.phase)) * (1 - c) : 0);
+      p[i].set(ux * up + wx * (1 - up), y * up + wy * (1 - up), z * up + wz * (1 - up));
+    }
+    for (i = 1; i <= TAIL_N; i++) { // keep every link its own length, outward from the root
+      rv.copy(p[i]).sub(p[i - 1]).normalize();
+      p[i].copy(p[i - 1]).addScaledVector(rv, TAIL_LEN);
+      tl.links[i - 1].position.copy(p[i - 1]);
+      tl.links[i - 1].quaternion.setFromUnitVectors(rv2.set(0, 1, 0), rv);
+    }
+    for (i = 0; i <= TAIL_N; i++) tl.joints[i].position.copy(p[i]);
+  }
   var RIG_BONES = ['Body', 'Head', 'TailRoot', 'FrontUpper.L', 'FrontLower.L', 'FrontPaw.L', 'FrontUpper.R', 'FrontLower.R', 'FrontPaw.R', 'Haunch.L', 'Haunch.R'];
   var rq = null, rq2 = null, re = null, rv = null, rv2 = null;
   function boneKey(name) { return String(name).replace(/[^A-Za-z]/g, ''); } // three sanitizes "FrontUpper.L" to "FrontUpperL"
@@ -688,6 +765,7 @@
       by[boneKey(o.name)] = all[all.length - 1];
     });
     for (i = 0; i < RIG_BONES.length; i++) if (!by[boneKey(RIG_BONES[i])]) return null; // unknown rig: stay seated
+    tailInit();
     if (!rq) { rq = new T.Quaternion(); rq2 = new T.Quaternion(); re = new T.Euler(); rv = new T.Vector3(); rv2 = new T.Vector3(); }
     k.l2rig = { all: all, by: by, walking: false, surface: false, weight: 0 };
     return k.l2rig;
@@ -761,8 +839,14 @@
     rigMove(rig, 'Head', sgn * 0.035 * c, (-0.11 * c - 0.09 * str - 0.03 * gr) * hs, (0.05 * str + 0.03 * gr + 0.02 * c) * hs);
     // Tail: sway (quicker while playing), a lift in the stretch, wrapped close in sleep.
     var sway = Math.sin(t * (play ? 3.6 : 1.7) + ph) * (1 - 0.75 * c) * (0.4 + 0.6 * soft);
-    rigTurn(rig, 'TailRoot', (-0.22 * str - 0.07 * play * Math.abs(sway)) * hs, (0.3 * sway + 0.1 * m.tail - 0.22 * c) * hs, 0.06 * sway * hs);
-    rigMove(rig, 'TailRoot', 0, 0.02 * str, 0);
+    if (surface) {
+      // Walking surface (skinned): tail up on the rump midline, a slow sway from the root, lower and streaming in the chase.
+      var slow = Math.sin(t * 1.9 + ph) * (0.4 + 0.6 * soft);
+      rigTail(rig, TAIL_LEAN + 0.5 * m.chase + 0.05 * Math.sin(t * 1.3 + ph * 2), 0.2 * slow + 0.06 * m.tail, 0.1 * Math.sin(t * 1.9 + ph - 0.9));
+    } else {
+      // Seated sculpt: the tail already lies along the flank and round the paws, rooted in the haunch; only turn it there.
+      rigTurn(rig, 'TailRoot', (-0.22 * str - 0.07 * play * Math.abs(sway)) * hs, (0.3 * sway + 0.1 * m.tail - 0.22 * c) * hs, 0.06 * sway * hs);
+    }
     // Haunches settle with the breath and spread a touch in the loaf.
     rigTurn(rig, 'HaunchL', 0, 0, (-0.05 * c - 0.02 * breath * c) * s); rigTurn(rig, 'HaunchR', 0, 0, (0.05 * c + 0.02 * breath * c) * s);
     // Front legs: bat at the toy, lick a paw, stretch out long, fold under in sleep.
@@ -805,8 +889,8 @@
       if (m.bat > 0) k.legs[0].rotation.x = -m.bat * (1.1 + 0.3 * Math.sin(t * 5 + k.phase));
       k.head.position.set(c * 0.17, 0.2 - c * 0.2 - m.crouch * 0.09, 0.25 - c * 0.03);
       k.head.rotation.set(c * 0.45 - m.bat * 0.35, c + (1 - c) * Math.sin(t * 0.7 + k.phase) * 0.25, c * 0.3);
-      k.tail.rotation.x = -0.75 - c * 0.85;
-      k.tail.rotation.z = c * 0.9 + (1 - c) * Math.sin(t * (m.state === 'play' ? 4 : 2.4) + k.phase) * 0.4 + m.tail * 0.25;
+      if (k.l2tail) poseTail(k, m, t);
+      else { k.tail.rotation.x = -0.75 - c * 0.85; k.tail.rotation.z = c * 0.9 + (1 - c) * Math.sin(t * (m.state === 'play' ? 4 : 2.4) + k.phase) * 0.4 + m.tail * 0.25; }
       for (i = 0; i < k.ears.length; i++) k.ears[i].rotation.z = (i ? -1 : 1) * m.ear * 0.5 * Math.abs(Math.sin(t * 22));
       var ey = c > 0.5 ? 0.14 : ((t + k.phase) % 4.2 < 0.12 ? 0.2 : 1);
       k.eyes[0].scale.set(1, ey, 0.6); k.eyes[1].scale.set(1, ey, 0.6);
@@ -1152,7 +1236,7 @@
           if (!m.isMesh || m.material === hullMat || !m.geometry.attributes.position) return;
           var q = m; while (q && q !== k.root) { if (!q.visible) return; q = q.parent; }
           var pos = m.geometry.attributes.position, si = m.isSkinnedMesh ? m.geometry.attributes.skinIndex : null, step = Math.max(1, Math.floor(pos.count / 1500));
-          var isTail = !m.isSkinnedMesh && m === k.tail;
+          var isTail = !m.isSkinnedMesh && (m === k.tail || m.l2tailPart);
           for (var j = 0; j < pos.count; j += step) {
             if (m.isSkinnedMesh) { m.boneTransform(j, v); } else v.fromBufferAttribute(pos, j);
             v.applyMatrix4(m.matrixWorld).applyMatrix4(inv);
@@ -1165,6 +1249,55 @@
           }
         });
         for (var key in o) if (typeof o[key] === 'number') o[key] = +o[key].toFixed(3);
+        return o;
+      });
+    },
+    /* Tail probe for tests (seek-pure, read-only): per actor, in world metres at stage scale,
+     * root = where the tail starts (TailRoot bone / first joint of the procedural chain), rump = the rear end of the
+     * spine on the body midline (Body bone carried to the tail base / rear pole of the torso ellipsoid),
+     * dist = |root - rump|, lat = sideways offset of the root from the body's midline plane, surf = distance from the
+     * root to the nearest rendered body vertex (0 = on the skin), unit = metres per model unit, px = screen position. */
+    tails: function () {
+      if (!st || !staged) return [];
+      var a = new T.Vector3(), b = new T.Vector3(), v = new T.Vector3(), ax = new T.Vector3(), sc = new T.Vector3();
+      tailInit();
+      H.island.updateMatrixWorld(true);
+      function r3(n) { return +n.toFixed(4); }
+      function arr(p) { return [r3(p.x), r3(p.y), r3(p.z)]; }
+      return st.cats.map(function (k) {
+        var o = { blender: !!(k.catVisual && k.l2rig), visible: k.root.visible, walking: false }, rig = k.l2rig, frame, surf = 9;
+        if (o.blender) {
+          var B = rig.by.Body.bone, Tb = rig.by.TailRoot.bone;
+          a.setFromMatrixPosition(Tb.matrixWorld); b.copy(RUMP).applyMatrix4(B.matrixWorld); frame = B;
+          o.walking = rig.surface;
+          k.catModel.traverse(function (m) {
+            if (!m.isSkinnedMesh || !m.visible) return;
+            var pos = m.geometry.attributes.position, si = m.geometry.attributes.skinIndex, sw = m.geometry.attributes.skinWeight, ti = m.skeleton.bones.indexOf(Tb);
+            var skinned = !!m.material.skinning, step = Math.max(1, Math.floor(pos.count / 2500));
+            o.skinned = skinned;
+            for (var j = 0; j < pos.count; j += step) {
+              var tw = 0;
+              if (si.getX(j) === ti) tw += sw.getX(j); if (si.getY(j) === ti) tw += sw.getY(j); if (si.getZ(j) === ti) tw += sw.getZ(j); if (si.getW(j) === ti) tw += sw.getW(j);
+              if (tw > 0.02) continue;
+              if (skinned) m.boneTransform(j, v); else v.fromBufferAttribute(pos, j);
+              v.applyMatrix4(m.matrixWorld);
+              var d = v.distanceTo(a); if (d < surf) surf = d;
+            }
+          });
+        } else {
+          var tp = k.l2tail ? k.l2tail.joints[0] : k.tail;
+          a.setFromMatrixPosition(tp.matrixWorld); b.copy(PROC_RUMP).applyMatrix4(k.body.matrixWorld); frame = k.body;
+          // Torso ellipsoid (0.204, 0.192, 0.288 in body space): distance of the pivot from its surface.
+          v.copy(a).applyMatrix4(new T.Matrix4().getInverse(k.body.matrixWorld));
+          var rho = Math.sqrt(v.x * v.x / 0.0416 + v.y * v.y / 0.0369 + v.z * v.z / 0.0829);
+          sc.setFromMatrixScale(k.body.matrixWorld);
+          surf = Math.abs(rho - 1) * v.length() / Math.max(rho, 1e-6) * sc.z;
+        }
+        ax.setFromMatrixColumn(frame.matrixWorld, 0); sc.setFromMatrixScale(frame.matrixWorld);
+        o.unit = r3(sc.z); ax.normalize();
+        o.root = arr(a); o.rump = arr(b); o.dist = r3(a.distanceTo(b)); o.lat = r3(v.copy(a).sub(b).dot(ax)); o.surf = r3(surf);
+        v.copy(a).project(H.camera);
+        o.px = [Math.round((v.x * 0.5 + 0.5) * root.innerWidth), Math.round((0.5 - v.y * 0.5) * root.innerHeight)];
         return o;
       });
     },

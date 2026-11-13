@@ -149,6 +149,36 @@ const span = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
       const a = (await at(t)).frame, b = (await at(t + 0.1)).frame;
       a.forEach((c, i) => { if (c.walk < 0.9) return; const dir = Math.atan2(b[i].x - c.x, b[i].z - c.z), off = Math.abs(((c.yaw - dir + 9.42477796) % 6.28318531) - 3.14159265); assert(off < 0.5, 'cat ' + i + ' side-slides @' + t + ': ' + off.toFixed(2)); });
     }
+    /* Tails (尾巴偏离). tails() gives, per actor in world metres: root (TailRoot bone / first joint of the procedural
+     * chain), rump (rear end of the spine on the body midline), dist = |root - rump|, lat = sideways offset from the
+     * midline, surf = distance from the root to the nearest drawn body vertex.
+     * Before the fix a walking Blender coat measured dist 0.168-0.176, lat 0.156-0.164 (the tail left the side of the
+     * hip); now the walking root is re-seated on the rump: dist 0.000, lat 0.000, surf 0.011. Procedural: dist 0.000,
+     * surf 0.006. Thresholds: walking and procedural dist <= 0.03, |lat| <= 0.02, surf <= 0.03.
+     * The seated sculpt is drawn as authored (tail laid along the right flank, round the paws, rooted in the haunch):
+     * surf 0.038-0.042, dist 0.164-0.188; it must stay buried in the haunch (surf <= 0.05) and never drift (dist <= 0.2). */
+    const checkTails = (list, t, label) => list.forEach((o, i) => {
+      const id = label + ' cat ' + i + ' @' + t + ': ' + JSON.stringify(o);
+      assert(o.visible, 'tail measured, ' + id);
+      if (!o.blender || o.walking) assert(o.dist <= 0.03 && Math.abs(o.lat) <= 0.02 && o.surf <= 0.03, 'tail root on the rump midline, ' + id);
+      else assert(o.surf <= 0.05 && o.dist <= 0.2, 'seated tail rooted in the haunch, ' + id);
+    });
+    const tailGaps = {};
+    for (const t of [20, 26, 28, 34, 42, 56]) {
+      const s = await at(t), tails = await page.evaluate(() => window.__l2Cutscene.tails());
+      assert.equal(tails.length, 7);
+      checkTails(tails, t, 'stage');
+      tails.forEach((o, i) => assert.equal(o.blender && o.walking, !!(s.rig[i] && s.rig[i].surface), 'walking tails are the corrected ones, cat ' + i + ' @' + t));
+      tailGaps[t] = Math.max(...tails.filter(o => !o.blender || o.walking).map(o => o.dist));
+    }
+    assert((await page.evaluate(() => window.__l2Cutscene.tails())).filter(o => o.blender && o.walking).length === 0, 'everyone seated in sleep');
+    const tw = async t => { await at(t); return page.evaluate(() => window.__l2Cutscene.tails()); };
+    const w1 = await tw(42), w2 = await tw(42.6), w3 = await tw(26), w4 = await tw(42);
+    assert(w1.filter(o => o.blender && o.walking).length >= 3, 'stroll tails measured while walking');
+    const rel = list => list.map(o => [o.blender, o.walking, o.dist, o.lat, o.surf]); // world positions ride the island's idle bob
+    assert.deepEqual(rel(w4), rel(w1), 'seek(42) repeats the tails');
+    assert(angle((await at(42)).rig[0].tail, (await at(42.6)).rig[0].tail) > 0.02, 'walking tail sways');
+    assert(w2.length === 7 && w3.length === 7);
     await at(56);
 
     // Stopping the Walk hands back the exact seated bind pose (checked through the mixer, with the layer off).
@@ -186,10 +216,17 @@ const span = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
     await p2.waitForTimeout(400);
     const fb = await p2.evaluate(() => window.__l2Cutscene.stage());
     assert(fb.blender === 0 && fb.actors === 7 && fb.rig.every(r => r === null), 'procedural fallback cast');
+    for (const t of [20, 26, 28, 34, 42, 56]) {
+      await p2.evaluate(t => { window.__l2Cutscene.pause(); window.__l2Cutscene.seek(t); }, t);
+      await p2.waitForTimeout(160);
+      const tails = await p2.evaluate(() => window.__l2Cutscene.tails());
+      assert(tails.length === 7 && tails.every(o => !o.blender), 'fallback tails are procedural @' + t);
+      checkTails(tails, t, 'fallback');
+    }
     await ctx2.close();
 
     assert.deepEqual(errors, []);
-    console.log(JSON.stringify({ pass: true, rigged, minPairDistance: gaps, screenshots: OUT }));
+    console.log(JSON.stringify({ pass: true, rigged, minPairDistance: gaps, maxTailRootToRump: tailGaps, screenshots: OUT }));
   } finally {
     await browser.close();
     server.close();
