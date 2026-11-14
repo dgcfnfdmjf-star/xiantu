@@ -10,32 +10,7 @@
   },
   "assetSets": {
     "main": {
-      "html": "b1b183935ee93412ba4b09587de1a892e629e16e203eb2139bc5ecc00436a976",
-      "assets": [
-        {
-          "kind": "orange",
-          "bytes": 284156,
-          "sha256": "d095ab0afa675dc6fd617026e82072c3a3ca754319cad6a65b400d04d7d15d32"
-        },
-        {
-          "kind": "calico",
-          "bytes": 306212,
-          "sha256": "ba817c93a9af52fe301b315ee650815574ec9aa17be8358660b572cb79cdc786"
-        },
-        {
-          "kind": "black",
-          "bytes": 265032,
-          "sha256": "c58a2f66ca0499f8c65aebf21136ae2ada36eee2ab9910b70bbb7af4fa1da8c5"
-        },
-        {
-          "kind": "tabby",
-          "bytes": 294004,
-          "sha256": "e15a033acb9746fa9405274807b4453874df7f947eaa0ea72a36858abf10c157"
-        }
-      ]
-    },
-    "walk": {
-      "html": "db67e892fe84de5df2c97cf65fddff142a28dba8b1e07103c5cc7117014f5f8a",
+      "html": "be45a66a03e891c79bd0647d364650bbb7861a8147a2b64f5a416d7e3d829054",
       "assets": [
         {
           "kind": "orange",
@@ -58,73 +33,98 @@
           "sha256": "591426b32b4e0269b4b819d7c8472207ac6cbd29d49ff20c8443e8a72fe027c1"
         }
       ]
+    },
+    "walk": {
+      "html": "14e54f4b66570f7093990c20cc29b3a1a1698196ea7791b95dc5b555abae30f4",
+      "assets": [
+        {
+          "kind": "orange",
+          "bytes": 297388,
+          "sha256": "3ee54dced08b9ec3e588e214129d0d34950465e159bbf054f3b630c098e04454"
+        },
+        {
+          "kind": "calico",
+          "bytes": 319068,
+          "sha256": "e42b2fe13c323cdf8163145e41656c1d9cb06fd8087e9dd7bf1ce5d1c8ae9d96"
+        },
+        {
+          "kind": "black",
+          "bytes": 268164,
+          "sha256": "179e7f82c450fab149b38f273e8d5e9b73bf8f53e01ada98bceb8a67d34d6024"
+        },
+        {
+          "kind": "tabby",
+          "bytes": 303392,
+          "sha256": "6c7ac32a4a3f7a082c59adf781de1f3954d7f744e50501c28e21b0b3135de215"
+        }
+      ]
     }
   },
   "loads": [
     {
       "variant": "main",
       "sample": 1,
-      "readyMs": 1975.2000000029802,
+      "readyMs": 2130.5,
       "cats": 6,
       "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "models": [
         {
           "kind": "orange",
-          "animated": false
+          "animated": true
         },
         {
           "kind": "calico",
-          "animated": false
+          "animated": true
         },
         {
           "kind": "black",
-          "animated": false
+          "animated": true
         },
         {
           "kind": "tabby",
-          "animated": false
+          "animated": true
         }
       ],
       "resources": [
         {
           "kind": "orange",
-          "encodedBytes": 284156,
-          "transferredBytes": 284456,
-          "startedMs": 3.400000002235174,
-          "responseEndMs": 1075.2000000029802,
-          "downloadedMs": 1071.800000000745
+          "encodedBytes": 286140,
+          "transferredBytes": 286440,
+          "startedMs": 5.100000001490116,
+          "responseEndMs": 1078.2000000011176,
+          "downloadedMs": 1073.0999999996275
         },
         {
           "kind": "calico",
-          "encodedBytes": 306212,
-          "transferredBytes": 306512,
-          "startedMs": 5.900000002235174,
-          "responseEndMs": 1107.2000000029802,
-          "downloadedMs": 1101.300000000745
+          "encodedBytes": 307824,
+          "transferredBytes": 308124,
+          "startedMs": 8.900000000372529,
+          "responseEndMs": 1109.800000000745,
+          "downloadedMs": 1100.9000000003725
         },
         {
           "kind": "black",
-          "encodedBytes": 265032,
-          "transferredBytes": 265332,
-          "startedMs": 6.5,
-          "responseEndMs": 1025.1000000014901,
-          "downloadedMs": 1018.6000000014901
+          "encodedBytes": 256916,
+          "transferredBytes": 257216,
+          "startedMs": 9.700000001117587,
+          "responseEndMs": 1014.6000000014901,
+          "downloadedMs": 1004.9000000003725
         },
         {
           "kind": "tabby",
-          "encodedBytes": 294004,
-          "transferredBytes": 294304,
-          "startedMs": 7,
-          "responseEndMs": 1096.2000000029802,
-          "downloadedMs": 1089.2000000029802
+          "encodedBytes": 292172,
+          "transferredBytes": 292472,
+          "startedMs": 10.5,
+          "responseEndMs": 1097.7000000011176,
+          "downloadedMs": 1087.2000000011176
         }
       ],
-      "twoFramesMs": 2438.10000000149
+      "twoFramesMs": 2665.9000000003725
     },
     {
       "variant": "walk",
       "sample": 1,
-      "readyMs": 2332.900000002235,
+      "readyMs": 2167.7999999988824,
       "cats": 6,
       "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "models": [
@@ -148,43 +148,43 @@
       "resources": [
         {
           "kind": "orange",
-          "encodedBytes": 286140,
-          "transferredBytes": 286440,
-          "startedMs": 3.400000002235174,
-          "responseEndMs": 1074.5,
-          "downloadedMs": 1071.0999999977648
+          "encodedBytes": 297388,
+          "transferredBytes": 297688,
+          "startedMs": 4,
+          "responseEndMs": 1116.2999999988824,
+          "downloadedMs": 1112.2999999988824
         },
         {
           "kind": "calico",
-          "encodedBytes": 307824,
-          "transferredBytes": 308124,
-          "startedMs": 6.100000001490116,
-          "responseEndMs": 1105.699999999255,
-          "downloadedMs": 1099.5999999977648
+          "encodedBytes": 319068,
+          "transferredBytes": 319368,
+          "startedMs": 7.400000000372529,
+          "responseEndMs": 1146.4000000003725,
+          "downloadedMs": 1139
         },
         {
           "kind": "black",
-          "encodedBytes": 256916,
-          "transferredBytes": 257216,
-          "startedMs": 15.800000000745058,
-          "responseEndMs": 1004.1000000014901,
-          "downloadedMs": 988.3000000007451
+          "encodedBytes": 268164,
+          "transferredBytes": 268464,
+          "startedMs": 7.900000000372529,
+          "responseEndMs": 1039.9000000003725,
+          "downloadedMs": 1032
         },
         {
           "kind": "tabby",
-          "encodedBytes": 292172,
-          "transferredBytes": 292472,
-          "startedMs": 17.400000002235174,
-          "responseEndMs": 1094.199999999255,
-          "downloadedMs": 1076.7999999970198
+          "encodedBytes": 303392,
+          "transferredBytes": 303692,
+          "startedMs": 8.599999999627471,
+          "responseEndMs": 1133.0999999996275,
+          "downloadedMs": 1124.5
         }
       ],
-      "twoFramesMs": 2768.800000000745
+      "twoFramesMs": 2639.4000000003725
     },
     {
       "variant": "walk",
       "sample": 2,
-      "readyMs": 2234.400000002235,
+      "readyMs": 2271.2999999988824,
       "cats": 6,
       "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "models": [
@@ -208,163 +208,43 @@
       "resources": [
         {
           "kind": "orange",
-          "encodedBytes": 286140,
-          "transferredBytes": 286440,
-          "startedMs": 5.600000001490116,
-          "responseEndMs": 1079.4000000022352,
-          "downloadedMs": 1073.800000000745
+          "encodedBytes": 297388,
+          "transferredBytes": 297688,
+          "startedMs": 3.399999998509884,
+          "responseEndMs": 1110.5999999996275,
+          "downloadedMs": 1107.2000000011176
         },
         {
           "kind": "calico",
-          "encodedBytes": 307824,
-          "transferredBytes": 308124,
-          "startedMs": 10.100000001490116,
-          "responseEndMs": 1104.7000000029802,
-          "downloadedMs": 1094.6000000014901
+          "encodedBytes": 319068,
+          "transferredBytes": 319368,
+          "startedMs": 6.099999999627471,
+          "responseEndMs": 1142,
+          "downloadedMs": 1135.9000000003725
         },
         {
           "kind": "black",
-          "encodedBytes": 256916,
-          "transferredBytes": 257216,
-          "startedMs": 11.400000002235174,
-          "responseEndMs": 1006.5,
-          "downloadedMs": 995.0999999977648
+          "encodedBytes": 268164,
+          "transferredBytes": 268464,
+          "startedMs": 6.899999998509884,
+          "responseEndMs": 1033.3999999985099,
+          "downloadedMs": 1026.5
         },
         {
           "kind": "tabby",
-          "encodedBytes": 292172,
-          "transferredBytes": 292472,
-          "startedMs": 12.300000000745058,
-          "responseEndMs": 1090.6000000014901,
-          "downloadedMs": 1078.300000000745
+          "encodedBytes": 303392,
+          "transferredBytes": 303692,
+          "startedMs": 7.399999998509884,
+          "responseEndMs": 1127.8999999985099,
+          "downloadedMs": 1120.5
         }
       ],
-      "twoFramesMs": 2674.5
+      "twoFramesMs": 2661.699999999255
     },
     {
       "variant": "main",
       "sample": 2,
-      "readyMs": 1944,
-      "cats": 6,
-      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
-      "models": [
-        {
-          "kind": "orange",
-          "animated": false
-        },
-        {
-          "kind": "calico",
-          "animated": false
-        },
-        {
-          "kind": "black",
-          "animated": false
-        },
-        {
-          "kind": "tabby",
-          "animated": false
-        }
-      ],
-      "resources": [
-        {
-          "kind": "orange",
-          "encodedBytes": 284156,
-          "transferredBytes": 284456,
-          "startedMs": 3.300000000745058,
-          "responseEndMs": 977.4000000022352,
-          "downloadedMs": 974.1000000014901
-        },
-        {
-          "kind": "calico",
-          "encodedBytes": 306212,
-          "transferredBytes": 306512,
-          "startedMs": 42.400000002235174,
-          "responseEndMs": 1200.800000000745,
-          "downloadedMs": 1158.3999999985099
-        },
-        {
-          "kind": "black",
-          "encodedBytes": 265032,
-          "transferredBytes": 265332,
-          "startedMs": 43,
-          "responseEndMs": 1200.1000000014901,
-          "downloadedMs": 1157.1000000014901
-        },
-        {
-          "kind": "tabby",
-          "encodedBytes": 294004,
-          "transferredBytes": 294304,
-          "startedMs": 43.600000001490116,
-          "responseEndMs": 1153.1000000014901,
-          "downloadedMs": 1109.5
-        }
-      ],
-      "twoFramesMs": 2460.5
-    },
-    {
-      "variant": "main",
-      "sample": 3,
-      "readyMs": 1785.3999999985099,
-      "cats": 6,
-      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
-      "models": [
-        {
-          "kind": "orange",
-          "animated": false
-        },
-        {
-          "kind": "calico",
-          "animated": false
-        },
-        {
-          "kind": "black",
-          "animated": false
-        },
-        {
-          "kind": "tabby",
-          "animated": false
-        }
-      ],
-      "resources": [
-        {
-          "kind": "orange",
-          "encodedBytes": 284156,
-          "transferredBytes": 284456,
-          "startedMs": 3.600000001490116,
-          "responseEndMs": 1090.300000000745,
-          "downloadedMs": 1086.699999999255
-        },
-        {
-          "kind": "calico",
-          "encodedBytes": 306212,
-          "transferredBytes": 306512,
-          "startedMs": 6.800000000745058,
-          "responseEndMs": 1114,
-          "downloadedMs": 1107.199999999255
-        },
-        {
-          "kind": "black",
-          "encodedBytes": 265032,
-          "transferredBytes": 265332,
-          "startedMs": 7.300000000745058,
-          "responseEndMs": 1044.8999999985099,
-          "downloadedMs": 1037.5999999977648
-        },
-        {
-          "kind": "tabby",
-          "encodedBytes": 294004,
-          "transferredBytes": 294304,
-          "startedMs": 7.800000000745058,
-          "responseEndMs": 1094,
-          "downloadedMs": 1086.199999999255
-        }
-      ],
-      "twoFramesMs": 2303.89999999851
-    },
-    {
-      "variant": "walk",
-      "sample": 3,
-      "readyMs": 2139.300000000745,
+      "readyMs": 2314.7999999988824,
       "cats": 6,
       "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "models": [
@@ -390,36 +270,156 @@
           "kind": "orange",
           "encodedBytes": 286140,
           "transferredBytes": 286440,
-          "startedMs": 4.199999999254942,
-          "responseEndMs": 1123.0999999977648,
-          "downloadedMs": 1118.8999999985099
+          "startedMs": 10.299999998882413,
+          "responseEndMs": 1095.2999999988824,
+          "downloadedMs": 1085
         },
         {
           "kind": "calico",
           "encodedBytes": 307824,
           "transferredBytes": 308124,
-          "startedMs": 8.399999998509884,
-          "responseEndMs": 1145.8999999985099,
-          "downloadedMs": 1137.5
+          "startedMs": 14.199999999254942,
+          "responseEndMs": 1119.699999999255,
+          "downloadedMs": 1105.5
         },
         {
           "kind": "black",
           "encodedBytes": 256916,
           "transferredBytes": 257216,
-          "startedMs": 8.699999999254942,
-          "responseEndMs": 1046.5,
-          "downloadedMs": 1037.800000000745
+          "startedMs": 14.799999998882413,
+          "responseEndMs": 1025.8999999985099,
+          "downloadedMs": 1011.0999999996275
         },
         {
           "kind": "tabby",
           "encodedBytes": 292172,
           "transferredBytes": 292472,
-          "startedMs": 9.300000000745058,
-          "responseEndMs": 1120.699999999255,
-          "downloadedMs": 1111.3999999985099
+          "startedMs": 16.699999999254942,
+          "responseEndMs": 1105.8999999985099,
+          "downloadedMs": 1089.199999999255
         }
       ],
-      "twoFramesMs": 2649.39999999851
+      "twoFramesMs": 2876.89999999851
+    },
+    {
+      "variant": "main",
+      "sample": 3,
+      "readyMs": 2143,
+      "cats": 6,
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "models": [
+        {
+          "kind": "orange",
+          "animated": true
+        },
+        {
+          "kind": "calico",
+          "animated": true
+        },
+        {
+          "kind": "black",
+          "animated": true
+        },
+        {
+          "kind": "tabby",
+          "animated": true
+        }
+      ],
+      "resources": [
+        {
+          "kind": "orange",
+          "encodedBytes": 286140,
+          "transferredBytes": 286440,
+          "startedMs": 3.900000000372529,
+          "responseEndMs": 1081.4000000003725,
+          "downloadedMs": 1077.5
+        },
+        {
+          "kind": "calico",
+          "encodedBytes": 307824,
+          "transferredBytes": 308124,
+          "startedMs": 7,
+          "responseEndMs": 1109,
+          "downloadedMs": 1102
+        },
+        {
+          "kind": "black",
+          "encodedBytes": 256916,
+          "transferredBytes": 257216,
+          "startedMs": 7.5,
+          "responseEndMs": 1004.7000000011176,
+          "downloadedMs": 997.2000000011176
+        },
+        {
+          "kind": "tabby",
+          "encodedBytes": 292172,
+          "transferredBytes": 292472,
+          "startedMs": 8.100000001490116,
+          "responseEndMs": 1094.7000000011176,
+          "downloadedMs": 1086.5999999996275
+        }
+      ],
+      "twoFramesMs": 2745.9000000003725
+    },
+    {
+      "variant": "walk",
+      "sample": 3,
+      "readyMs": 2153,
+      "cats": 6,
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "models": [
+        {
+          "kind": "orange",
+          "animated": true
+        },
+        {
+          "kind": "calico",
+          "animated": true
+        },
+        {
+          "kind": "black",
+          "animated": true
+        },
+        {
+          "kind": "tabby",
+          "animated": true
+        }
+      ],
+      "resources": [
+        {
+          "kind": "orange",
+          "encodedBytes": 297388,
+          "transferredBytes": 297688,
+          "startedMs": 3.899999998509884,
+          "responseEndMs": 1106.0999999996275,
+          "downloadedMs": 1102.2000000011176
+        },
+        {
+          "kind": "calico",
+          "encodedBytes": 319068,
+          "transferredBytes": 319368,
+          "startedMs": 7.099999999627471,
+          "responseEndMs": 1141.8999999985099,
+          "downloadedMs": 1134.7999999988824
+        },
+        {
+          "kind": "black",
+          "encodedBytes": 268164,
+          "transferredBytes": 268464,
+          "startedMs": 7.599999999627471,
+          "responseEndMs": 1045.5,
+          "downloadedMs": 1037.9000000003725
+        },
+        {
+          "kind": "tabby",
+          "encodedBytes": 303392,
+          "transferredBytes": 303692,
+          "startedMs": 8.5,
+          "responseEndMs": 1128.7999999988824,
+          "downloadedMs": 1120.2999999988824
+        }
+      ],
+      "twoFramesMs": 2564
     }
   ],
   "scenes": [
@@ -429,8 +429,8 @@
       "actorLayout": [
         {
           "kind": "orange",
-          "x": -0.5456232514806476,
-          "z": -0.15326525081533715
+          "x": -0.545625490393348,
+          "z": -0.15326368626192333
         },
         {
           "kind": "calico",
@@ -454,8 +454,8 @@
         },
         {
           "kind": "glow",
-          "x": 0.025173670854916053,
-          "z": -0.5521384509027998
+          "x": 0.025174790311265918,
+          "z": -0.5521392331795067
         }
       ],
       "viewport": {
@@ -495,272 +495,272 @@
         }
       ],
       "render": {
-        "frame": 89,
+        "frame": 90,
         "calls": 133,
-        "triangles": 40405,
+        "triangles": 38795,
         "points": 370,
         "lines": 0
       },
       "memory": {
         "geometries": 71,
-        "textures": 6
+        "textures": 7
       },
       "heap": {
-        "used": 20472159,
-        "total": 27333783
+        "used": 24507443,
+        "total": 31612683
       },
       "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "frames": [
         {
-          "at": 8490.39999999851,
-          "interval": 128.89999999850988,
-          "draw": 1.1000000014901161
-        },
-        {
-          "at": 8597.699999999255,
-          "interval": 107.30000000074506,
-          "draw": 1.199999999254942
-        },
-        {
-          "at": 8717.60000000149,
-          "interval": 119.90000000223517,
-          "draw": 1.0999999977648258
-        },
-        {
-          "at": 8828.5,
-          "interval": 110.89999999850988,
+          "at": 8884.900000000373,
+          "interval": 103.20000000111759,
           "draw": 1.5
         },
         {
-          "at": 8940.39999999851,
-          "interval": 111.89999999850988,
-          "draw": 1.300000000745058
+          "at": 8999,
+          "interval": 114.09999999962747,
+          "draw": 6.099999999627471
         },
         {
-          "at": 9048.39999999851,
-          "interval": 108,
-          "draw": 1.1000000014901161
-        },
-        {
-          "at": 9179.199999999255,
-          "interval": 130.80000000074506,
-          "draw": 1.5
-        },
-        {
-          "at": 9302.699999999255,
-          "interval": 123.5,
-          "draw": 1.199999999254942
-        },
-        {
-          "at": 9407.800000000745,
-          "interval": 105.10000000149012,
-          "draw": 1.0999999977648258
-        },
-        {
-          "at": 9516.89999999851,
-          "interval": 109.09999999776483,
-          "draw": 1.300000000745058
-        },
-        {
-          "at": 9627.300000000745,
-          "interval": 110.40000000223517,
-          "draw": 1.5
-        },
-        {
-          "at": 9734.60000000149,
-          "interval": 107.30000000074506,
-          "draw": 1.199999999254942
-        },
-        {
-          "at": 9840.199999999255,
-          "interval": 105.59999999776483,
-          "draw": 1.300000000745058
-        },
-        {
-          "at": 9947.699999999255,
-          "interval": 107.5,
-          "draw": 1.199999999254942
-        },
-        {
-          "at": 10083.39999999851,
-          "interval": 135.69999999925494,
-          "draw": 1.2000000029802322
-        },
-        {
-          "at": 10200.10000000149,
-          "interval": 116.70000000298023,
-          "draw": 0.7999999970197678
-        },
-        {
-          "at": 10311.699999999255,
-          "interval": 111.59999999776483,
-          "draw": 1
-        },
-        {
-          "at": 10422.5,
-          "interval": 110.80000000074506,
-          "draw": 7.600000001490116
-        },
-        {
-          "at": 10538.60000000149,
-          "interval": 116.10000000149012,
-          "draw": 1
-        },
-        {
-          "at": 10644,
-          "interval": 105.39999999850988,
-          "draw": 1
-        },
-        {
-          "at": 10757,
-          "interval": 113,
-          "draw": 5.100000001490116
-        },
-        {
-          "at": 10895.5,
-          "interval": 138.5,
-          "draw": 1.199999999254942
-        },
-        {
-          "at": 11007.800000000745,
-          "interval": 112.30000000074506,
-          "draw": 1.699999999254942
-        },
-        {
-          "at": 11119.800000000745,
-          "interval": 112,
-          "draw": 1.300000000745058
-        },
-        {
-          "at": 11237.5,
-          "interval": 117.69999999925494,
-          "draw": 1.300000000745058
-        },
-        {
-          "at": 11349.89999999851,
-          "interval": 112.39999999850988,
-          "draw": 0.9000000022351742
-        },
-        {
-          "at": 11498.800000000745,
-          "interval": 148.90000000223517,
-          "draw": 2.300000000745058
-        },
-        {
-          "at": 11615.199999999255,
-          "interval": 116.39999999850988,
-          "draw": 0.8000000007450581
-        },
-        {
-          "at": 11743,
-          "interval": 127.80000000074506,
-          "draw": 1.1000000014901161
-        },
-        {
-          "at": 11857.300000000745,
-          "interval": 114.30000000074506,
-          "draw": 1.0999999977648258
-        },
-        {
-          "at": 12002.10000000149,
-          "interval": 144.80000000074506,
-          "draw": 0.7999999970197678
-        },
-        {
-          "at": 12121.10000000149,
-          "interval": 119,
-          "draw": 1
-        },
-        {
-          "at": 12260.60000000149,
-          "interval": 139.5,
-          "draw": 1.199999999254942
-        },
-        {
-          "at": 12397.89999999851,
-          "interval": 137.29999999701977,
-          "draw": 1.1000000014901161
-        },
-        {
-          "at": 12515.300000000745,
-          "interval": 117.40000000223517,
-          "draw": 1.0999999977648258
-        },
-        {
-          "at": 12630.699999999255,
-          "interval": 115.39999999850988,
-          "draw": 1.1000000014901161
-        },
-        {
-          "at": 12747.39999999851,
-          "interval": 116.69999999925494,
+          "at": 9204.400000000373,
+          "interval": 205.40000000037253,
           "draw": 2
         },
         {
-          "at": 12889.699999999255,
-          "interval": 142.30000000074506,
-          "draw": 1.1000000014901161
+          "at": 9315.400000000373,
+          "interval": 111,
+          "draw": 1.599999999627471
         },
         {
-          "at": 12998.800000000745,
-          "interval": 109.10000000149012,
+          "at": 9414.599999999627,
+          "interval": 99.19999999925494,
+          "draw": 1.699999999254942
+        },
+        {
+          "at": 9551.699999999255,
+          "interval": 137.09999999962747,
+          "draw": 1.400000000372529
+        },
+        {
+          "at": 9667.900000000373,
+          "interval": 116.20000000111759,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 9803,
+          "interval": 135.09999999962747,
+          "draw": 1.900000000372529
+        },
+        {
+          "at": 9910.299999998882,
+          "interval": 107.29999999888241,
+          "draw": 1.5
+        },
+        {
+          "at": 10068.5,
+          "interval": 158.2000000011176,
+          "draw": 2.400000000372529
+        },
+        {
+          "at": 10185.599999999627,
+          "interval": 117.09999999962747,
+          "draw": 2.199999999254942
+        },
+        {
+          "at": 10299.699999999255,
+          "interval": 114.09999999962747,
+          "draw": 3
+        },
+        {
+          "at": 10410.599999999627,
+          "interval": 110.90000000037253,
+          "draw": 2.599999999627471
+        },
+        {
+          "at": 10515.699999999255,
+          "interval": 105.09999999962747,
+          "draw": 4.099999999627471
+        },
+        {
+          "at": 10644.599999999627,
+          "interval": 128.90000000037253,
+          "draw": 2.300000000745058
+        },
+        {
+          "at": 10765.699999999255,
+          "interval": 121.09999999962747,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 10874.799999998882,
+          "interval": 109.09999999962747,
+          "draw": 1.400000000372529
+        },
+        {
+          "at": 10982.5,
+          "interval": 107.70000000111759,
+          "draw": 1.5
+        },
+        {
+          "at": 11116.799999998882,
+          "interval": 134.2999999988824,
+          "draw": 1.200000001117587
+        },
+        {
+          "at": 11258.799999998882,
+          "interval": 142,
+          "draw": 2.100000001490116
+        },
+        {
+          "at": 11364.400000000373,
+          "interval": 105.60000000149012,
+          "draw": 1.299999998882413
+        },
+        {
+          "at": 11483.5,
+          "interval": 119.09999999962747,
+          "draw": 1.799999998882413
+        },
+        {
+          "at": 11594.900000000373,
+          "interval": 111.40000000037253,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 11707,
+          "interval": 112.09999999962747,
+          "draw": 2.599999999627471
+        },
+        {
+          "at": 11843.099999999627,
+          "interval": 136.09999999962747,
+          "draw": 1.400000000372529
+        },
+        {
+          "at": 11970.400000000373,
+          "interval": 127.30000000074506,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 12093.799999998882,
+          "interval": 123.39999999850988,
           "draw": 1.800000000745058
         },
         {
-          "at": 13131.5,
-          "interval": 132.69999999925494,
-          "draw": 6.300000000745058
+          "at": 12213.199999999255,
+          "interval": 119.40000000037253,
+          "draw": 1.599999999627471
         },
         {
-          "at": 13251.60000000149,
-          "interval": 120.10000000149012,
-          "draw": 1.8999999985098839
+          "at": 12371.299999998882,
+          "interval": 158.09999999962747,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 12485.400000000373,
+          "interval": 114.10000000149012,
+          "draw": 1.5
+        },
+        {
+          "at": 12599.5,
+          "interval": 114.09999999962747,
+          "draw": 1.5
+        },
+        {
+          "at": 12730,
+          "interval": 130.5,
+          "draw": 3.299999998882413
+        },
+        {
+          "at": 12861.5,
+          "interval": 131.5,
+          "draw": 1.599999999627471
+        },
+        {
+          "at": 12977,
+          "interval": 115.5,
+          "draw": 1
+        },
+        {
+          "at": 13090.5,
+          "interval": 113.5,
+          "draw": 1.099999999627471
+        },
+        {
+          "at": 13207.199999999255,
+          "interval": 116.69999999925494,
+          "draw": 1.300000000745058
+        },
+        {
+          "at": 13314.099999999627,
+          "interval": 106.90000000037253,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 13418.400000000373,
+          "interval": 104.30000000074506,
+          "draw": 1.299999998882413
+        },
+        {
+          "at": 13553,
+          "interval": 134.59999999962747,
+          "draw": 2.199999999254942
+        },
+        {
+          "at": 13669.299999998882,
+          "interval": 116.29999999888241,
+          "draw": 1.900000000372529
+        },
+        {
+          "at": 13782.199999999255,
+          "interval": 112.90000000037253,
+          "draw": 1.5
         }
       ],
       "modelReady": 4,
       "resources": [
         {
-          "name": "http://127.0.0.1:43921/cats/orange-cat.glb",
-          "duration": 126,
-          "startTime": 417.3999999985099,
-          "responseEnd": 543.3999999985099,
-          "transferSize": 284456,
-          "encodedBodySize": 284156
+          "name": "http://127.0.0.1:45045/cats/orange-cat.glb",
+          "duration": 184.19999999925494,
+          "startTime": 437.59999999962747,
+          "responseEnd": 621.7999999988824,
+          "transferSize": 286440,
+          "encodedBodySize": 286140
         },
         {
-          "name": "http://127.0.0.1:43921/cats/calico-cat.glb",
-          "duration": 120.5,
-          "startTime": 420.69999999925494,
-          "responseEnd": 541.1999999992549,
-          "transferSize": 306512,
-          "encodedBodySize": 306212
+          "name": "http://127.0.0.1:45045/cats/calico-cat.glb",
+          "duration": 185,
+          "startTime": 440.2999999988824,
+          "responseEnd": 625.2999999988824,
+          "transferSize": 308124,
+          "encodedBodySize": 307824
         },
         {
-          "name": "http://127.0.0.1:43921/cats/black-cat.glb",
-          "duration": 122.40000000223517,
-          "startTime": 421.19999999925494,
-          "responseEnd": 543.6000000014901,
-          "transferSize": 265332,
-          "encodedBodySize": 265032
+          "name": "http://127.0.0.1:45045/cats/black-cat.glb",
+          "duration": 186.69999999925494,
+          "startTime": 441,
+          "responseEnd": 627.6999999992549,
+          "transferSize": 257216,
+          "encodedBodySize": 256916
         },
         {
-          "name": "http://127.0.0.1:43921/cats/tabby-cat.glb",
-          "duration": 124.30000000074506,
-          "startTime": 422,
-          "responseEnd": 546.3000000007451,
-          "transferSize": 294304,
-          "encodedBodySize": 294004
+          "name": "http://127.0.0.1:45045/cats/tabby-cat.glb",
+          "duration": 185.80000000074506,
+          "startTime": 442.2999999988824,
+          "responseEnd": 628.0999999996275,
+          "transferSize": 292472,
+          "encodedBodySize": 292172
         }
       ],
       "frameIntervalsMs": {
         "n": 41,
-        "median": 116.10000000149012,
-        "p95": 142.30000000074506
+        "median": 116.20000000111759,
+        "p95": 158.09999999962747
       },
       "renderSubmitMs": {
         "n": 41,
-        "median": 1.199999999254942,
-        "p95": 5.100000001490116
+        "median": 1.5,
+        "p95": 3.299999998882413
       }
     },
     {
@@ -769,8 +769,8 @@
       "actorLayout": [
         {
           "kind": "orange",
-          "x": -0.5456232514806476,
-          "z": -0.15326525081533715
+          "x": -0.545625490393348,
+          "z": -0.15326368626192333
         },
         {
           "kind": "calico",
@@ -794,8 +794,8 @@
         },
         {
           "kind": "glow",
-          "x": 0.025173670854916053,
-          "z": -0.5521384509027998
+          "x": 0.025174790311265918,
+          "z": -0.5521392331795067
         }
       ],
       "viewport": {
@@ -835,687 +835,7 @@
         }
       ],
       "render": {
-        "frame": 152,
-        "calls": 133,
-        "triangles": 40407,
-        "points": 370,
-        "lines": 0
-      },
-      "memory": {
-        "geometries": 71,
-        "textures": 6
-      },
-      "heap": {
-        "used": 17980969,
-        "total": 20780533
-      },
-      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
-      "frames": [
-        {
-          "at": 17306.39999999851,
-          "interval": 127.5,
-          "draw": 1.1000000014901161
-        },
-        {
-          "at": 17428.89999999851,
-          "interval": 122.5,
-          "draw": 1.300000000745058
-        },
-        {
-          "at": 17559.199999999255,
-          "interval": 130.30000000074506,
-          "draw": 0.9000000022351742
-        },
-        {
-          "at": 17691.699999999255,
-          "interval": 132.5,
-          "draw": 0.9000000022351742
-        },
-        {
-          "at": 17811.800000000745,
-          "interval": 120.10000000149012,
-          "draw": 1.0999999977648258
-        },
-        {
-          "at": 17933.199999999255,
-          "interval": 121.39999999850988,
-          "draw": 0.8000000007450581
-        },
-        {
-          "at": 18077.699999999255,
-          "interval": 144.5,
-          "draw": 1.4000000022351742
-        },
-        {
-          "at": 18197.89999999851,
-          "interval": 120.19999999925494,
-          "draw": 1.5
-        },
-        {
-          "at": 18364.699999999255,
-          "interval": 166.80000000074506,
-          "draw": 1.5
-        },
-        {
-          "at": 18497.89999999851,
-          "interval": 133.19999999925494,
-          "draw": 1.6000000014901161
-        },
-        {
-          "at": 18614.699999999255,
-          "interval": 116.80000000074506,
-          "draw": 1.300000000745058
-        },
-        {
-          "at": 18741,
-          "interval": 126.30000000074506,
-          "draw": 2
-        },
-        {
-          "at": 18888.199999999255,
-          "interval": 147.19999999925494,
-          "draw": 1.699999999254942
-        },
-        {
-          "at": 19008.800000000745,
-          "interval": 120.60000000149012,
-          "draw": 1.5
-        },
-        {
-          "at": 19126.60000000149,
-          "interval": 117.80000000074506,
-          "draw": 1.199999999254942
-        },
-        {
-          "at": 19245.89999999851,
-          "interval": 119.29999999701977,
-          "draw": 1.1000000014901161
-        },
-        {
-          "at": 19383.300000000745,
-          "interval": 137.40000000223517,
-          "draw": 1.0999999977648258
-        },
-        {
-          "at": 19496.5,
-          "interval": 113.19999999925494,
-          "draw": 0.8000000007450581
-        },
-        {
-          "at": 19608.300000000745,
-          "interval": 111.80000000074506,
-          "draw": 1.199999999254942
-        },
-        {
-          "at": 19737,
-          "interval": 128.69999999925494,
-          "draw": 1
-        },
-        {
-          "at": 19853,
-          "interval": 116,
-          "draw": 1.199999999254942
-        },
-        {
-          "at": 19990.199999999255,
-          "interval": 137.19999999925494,
-          "draw": 1.199999999254942
-        },
-        {
-          "at": 20105.199999999255,
-          "interval": 115,
-          "draw": 1.1000000014901161
-        },
-        {
-          "at": 20213.199999999255,
-          "interval": 108,
-          "draw": 1.300000000745058
-        },
-        {
-          "at": 20337,
-          "interval": 123.80000000074506,
-          "draw": 1
-        },
-        {
-          "at": 20459.800000000745,
-          "interval": 122.80000000074506,
-          "draw": 1.5
-        },
-        {
-          "at": 20596.199999999255,
-          "interval": 136.39999999850988,
-          "draw": 1.300000000745058
-        },
-        {
-          "at": 20705.5,
-          "interval": 109.30000000074506,
-          "draw": 1
-        },
-        {
-          "at": 20823.5,
-          "interval": 118,
-          "draw": 1.300000000745058
-        },
-        {
-          "at": 20946.39999999851,
-          "interval": 122.89999999850988,
-          "draw": 1
-        },
-        {
-          "at": 21059.5,
-          "interval": 113.10000000149012,
-          "draw": 0.8999999985098839
-        },
-        {
-          "at": 21196.300000000745,
-          "interval": 136.80000000074506,
-          "draw": 1
-        },
-        {
-          "at": 21316.800000000745,
-          "interval": 120.5,
-          "draw": 1.5
-        },
-        {
-          "at": 21431.5,
-          "interval": 114.69999999925494,
-          "draw": 1.199999999254942
-        },
-        {
-          "at": 21550.39999999851,
-          "interval": 118.89999999850988,
-          "draw": 1
-        },
-        {
-          "at": 21677.39999999851,
-          "interval": 127,
-          "draw": 1.1000000014901161
-        },
-        {
-          "at": 21803.800000000745,
-          "interval": 126.40000000223517,
-          "draw": 1.199999999254942
-        },
-        {
-          "at": 21921.300000000745,
-          "interval": 117.5,
-          "draw": 1.0999999977648258
-        },
-        {
-          "at": 22032.199999999255,
-          "interval": 110.89999999850988,
-          "draw": 1.1000000014901161
-        },
-        {
-          "at": 22153.699999999255,
-          "interval": 121.5,
-          "draw": 1.5
-        }
-      ],
-      "modelReady": 4,
-      "resources": [
-        {
-          "name": "http://127.0.0.1:43921/cats/orange-cat.glb",
-          "duration": 126,
-          "startTime": 417.3999999985099,
-          "responseEnd": 543.3999999985099,
-          "transferSize": 284456,
-          "encodedBodySize": 284156
-        },
-        {
-          "name": "http://127.0.0.1:43921/cats/calico-cat.glb",
-          "duration": 120.5,
-          "startTime": 420.69999999925494,
-          "responseEnd": 541.1999999992549,
-          "transferSize": 306512,
-          "encodedBodySize": 306212
-        },
-        {
-          "name": "http://127.0.0.1:43921/cats/black-cat.glb",
-          "duration": 122.40000000223517,
-          "startTime": 421.19999999925494,
-          "responseEnd": 543.6000000014901,
-          "transferSize": 265332,
-          "encodedBodySize": 265032
-        },
-        {
-          "name": "http://127.0.0.1:43921/cats/tabby-cat.glb",
-          "duration": 124.30000000074506,
-          "startTime": 422,
-          "responseEnd": 546.3000000007451,
-          "transferSize": 294304,
-          "encodedBodySize": 294004
-        }
-      ],
-      "frameIntervalsMs": {
-        "n": 40,
-        "median": 121.5,
-        "p95": 144.5
-      },
-      "renderSubmitMs": {
-        "n": 40,
-        "median": 1.199999999254942,
-        "p95": 1.6000000014901161
-      }
-    },
-    {
-      "variant": "walk",
-      "mode": "idle",
-      "actorLayout": [
-        {
-          "kind": "orange",
-          "x": -0.5456254905048552,
-          "z": -0.15326368618400207
-        },
-        {
-          "kind": "calico",
-          "x": 1.1159784894616356,
-          "z": 1.0958416893496286
-        },
-        {
-          "kind": "black",
-          "x": -2.006376367326655,
-          "z": -3.679635802427067
-        },
-        {
-          "kind": "tabby",
-          "x": 0.18973120503770982,
-          "z": 2.283622165499376
-        },
-        {
-          "kind": "white",
-          "x": -3.297213199931357,
-          "z": -0.890427429776146
-        },
-        {
-          "kind": "glow",
-          "x": 0.025174790367019726,
-          "z": -0.5521392332184674
-        }
-      ],
-      "viewport": {
-        "width": 390,
-        "height": 844,
-        "dpr": 2
-      },
-      "backing": {
-        "width": 780,
-        "height": 1688
-      },
-      "count": 6,
-      "states": [
-        {
-          "kind": "orange",
-          "state": "idle"
-        },
-        {
-          "kind": "calico",
-          "state": "idle"
-        },
-        {
-          "kind": "black",
-          "state": "idle"
-        },
-        {
-          "kind": "tabby",
-          "state": "idle"
-        },
-        {
-          "kind": "white",
-          "state": "idle"
-        },
-        {
-          "kind": "glow",
-          "state": "idle"
-        }
-      ],
-      "render": {
-        "frame": 96,
-        "calls": 133,
-        "triangles": 38795,
-        "points": 370,
-        "lines": 0
-      },
-      "memory": {
-        "geometries": 74,
-        "textures": 9
-      },
-      "heap": {
-        "used": 21785297,
-        "total": 30167969
-      },
-      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
-      "frames": [
-        {
-          "at": 9458.400000002235,
-          "interval": 110.5,
-          "draw": 1.8999999985098839
-        },
-        {
-          "at": 9571.699999999255,
-          "interval": 113.29999999701977,
-          "draw": 1
-        },
-        {
-          "at": 9715.900000002235,
-          "interval": 144.20000000298023,
-          "draw": 1.3999999985098839
-        },
-        {
-          "at": 9822.60000000149,
-          "interval": 106.69999999925494,
-          "draw": 1
-        },
-        {
-          "at": 9930.60000000149,
-          "interval": 108,
-          "draw": 1.0999999977648258
-        },
-        {
-          "at": 10041.300000000745,
-          "interval": 110.69999999925494,
-          "draw": 0.8999999985098839
-        },
-        {
-          "at": 10152.199999999255,
-          "interval": 110.89999999850988,
-          "draw": 1.300000000745058
-        },
-        {
-          "at": 10258,
-          "interval": 105.80000000074506,
-          "draw": 1.6000000014901161
-        },
-        {
-          "at": 10364,
-          "interval": 106,
-          "draw": 1.300000000745058
-        },
-        {
-          "at": 10471.400000002235,
-          "interval": 107.40000000223517,
-          "draw": 19.099999997764826
-        },
-        {
-          "at": 10605.199999999255,
-          "interval": 133.79999999701977,
-          "draw": 1.2000000029802322
-        },
-        {
-          "at": 10719.60000000149,
-          "interval": 114.40000000223517,
-          "draw": 1.699999999254942
-        },
-        {
-          "at": 10831,
-          "interval": 111.39999999850988,
-          "draw": 1.199999999254942
-        },
-        {
-          "at": 10945.400000002235,
-          "interval": 114.40000000223517,
-          "draw": 1.2999999970197678
-        },
-        {
-          "at": 11053.900000002235,
-          "interval": 108.5,
-          "draw": 1.8999999985098839
-        },
-        {
-          "at": 11167.10000000149,
-          "interval": 113.19999999925494,
-          "draw": 1.300000000745058
-        },
-        {
-          "at": 11297.900000002235,
-          "interval": 130.80000000074506,
-          "draw": 1
-        },
-        {
-          "at": 11407,
-          "interval": 109.09999999776483,
-          "draw": 1
-        },
-        {
-          "at": 11518.300000000745,
-          "interval": 111.30000000074506,
-          "draw": 1
-        },
-        {
-          "at": 11633,
-          "interval": 114.69999999925494,
-          "draw": 2.199999999254942
-        },
-        {
-          "at": 11784.400000002235,
-          "interval": 151.40000000223517,
-          "draw": 1.7999999970197678
-        },
-        {
-          "at": 11912.199999999255,
-          "interval": 127.79999999701977,
-          "draw": 1.1000000014901161
-        },
-        {
-          "at": 12034.10000000149,
-          "interval": 121.90000000223517,
-          "draw": 1.5
-        },
-        {
-          "at": 12155.900000002235,
-          "interval": 121.80000000074506,
-          "draw": 1.199999999254942
-        },
-        {
-          "at": 12276.10000000149,
-          "interval": 120.19999999925494,
-          "draw": 1.199999999254942
-        },
-        {
-          "at": 12407.10000000149,
-          "interval": 131,
-          "draw": 1.199999999254942
-        },
-        {
-          "at": 12515.199999999255,
-          "interval": 108.09999999776483,
-          "draw": 1.1000000014901161
-        },
-        {
-          "at": 12632.60000000149,
-          "interval": 117.40000000223517,
-          "draw": 6
-        },
-        {
-          "at": 12747.300000000745,
-          "interval": 114.69999999925494,
-          "draw": 1.800000000745058
-        },
-        {
-          "at": 12856.800000000745,
-          "interval": 109.5,
-          "draw": 1.300000000745058
-        },
-        {
-          "at": 12966.400000002235,
-          "interval": 109.60000000149012,
-          "draw": 1
-        },
-        {
-          "at": 13105.400000002235,
-          "interval": 139,
-          "draw": 1.699999999254942
-        },
-        {
-          "at": 13222.199999999255,
-          "interval": 116.79999999701977,
-          "draw": 1.1000000014901161
-        },
-        {
-          "at": 13335,
-          "interval": 112.80000000074506,
-          "draw": 2.400000002235174
-        },
-        {
-          "at": 13471.60000000149,
-          "interval": 136.60000000149012,
-          "draw": 1.699999999254942
-        },
-        {
-          "at": 13574.199999999255,
-          "interval": 102.59999999776483,
-          "draw": 1.300000000745058
-        },
-        {
-          "at": 13717.5,
-          "interval": 143.30000000074506,
-          "draw": 1.199999999254942
-        },
-        {
-          "at": 13831.800000000745,
-          "interval": 114.30000000074506,
-          "draw": 1.300000000745058
-        },
-        {
-          "at": 13942.699999999255,
-          "interval": 110.89999999850988,
-          "draw": 1.300000000745058
-        },
-        {
-          "at": 14059.60000000149,
-          "interval": 116.90000000223517,
-          "draw": 1.5999999977648258
-        },
-        {
-          "at": 14168.60000000149,
-          "interval": 109,
-          "draw": 1
-        },
-        {
-          "at": 14302.699999999255,
-          "interval": 134.09999999776483,
-          "draw": 1.5
-        }
-      ],
-      "modelReady": 4,
-      "resources": [
-        {
-          "name": "http://127.0.0.1:40737/cats/orange-cat.glb",
-          "duration": 170.90000000223517,
-          "startTime": 382.19999999925494,
-          "responseEnd": 553.1000000014901,
-          "transferSize": 286440,
-          "encodedBodySize": 286140
-        },
-        {
-          "name": "http://127.0.0.1:40737/cats/calico-cat.glb",
-          "duration": 169.80000000074506,
-          "startTime": 384.6000000014901,
-          "responseEnd": 554.4000000022352,
-          "transferSize": 308124,
-          "encodedBodySize": 307824
-        },
-        {
-          "name": "http://127.0.0.1:40737/cats/black-cat.glb",
-          "duration": 166.89999999850988,
-          "startTime": 387.1000000014901,
-          "responseEnd": 554,
-          "transferSize": 257216,
-          "encodedBodySize": 256916
-        },
-        {
-          "name": "http://127.0.0.1:40737/cats/tabby-cat.glb",
-          "duration": 166.90000000223517,
-          "startTime": 387.69999999925494,
-          "responseEnd": 554.6000000014901,
-          "transferSize": 292472,
-          "encodedBodySize": 292172
-        }
-      ],
-      "frameIntervalsMs": {
-        "n": 42,
-        "median": 114.30000000074506,
-        "p95": 143.30000000074506
-      },
-      "renderSubmitMs": {
-        "n": 42,
-        "median": 1.300000000745058,
-        "p95": 2.400000002235174
-      }
-    },
-    {
-      "variant": "walk",
-      "mode": "walk",
-      "actorLayout": [
-        {
-          "kind": "orange",
-          "x": -0.5456254905048552,
-          "z": -0.15326368618400207
-        },
-        {
-          "kind": "calico",
-          "x": 1.1159784894616356,
-          "z": 1.0958416893496286
-        },
-        {
-          "kind": "black",
-          "x": -2.006376367326655,
-          "z": -3.679635802427067
-        },
-        {
-          "kind": "tabby",
-          "x": 0.18973120503770982,
-          "z": 2.283622165499376
-        },
-        {
-          "kind": "white",
-          "x": -3.297213199931357,
-          "z": -0.890427429776146
-        },
-        {
-          "kind": "glow",
-          "x": 0.025174790367019726,
-          "z": -0.5521392332184674
-        }
-      ],
-      "viewport": {
-        "width": 390,
-        "height": 844,
-        "dpr": 2
-      },
-      "backing": {
-        "width": 780,
-        "height": 1688
-      },
-      "count": 6,
-      "states": [
-        {
-          "kind": "orange",
-          "state": "idle"
-        },
-        {
-          "kind": "calico",
-          "state": "idle"
-        },
-        {
-          "kind": "black",
-          "state": "idle"
-        },
-        {
-          "kind": "tabby",
-          "state": "idle"
-        },
-        {
-          "kind": "white",
-          "state": "idle"
-        },
-        {
-          "kind": "glow",
-          "state": "idle"
-        }
-      ],
-      "render": {
-        "frame": 156,
+        "frame": 148,
         "calls": 141,
         "triangles": 42261,
         "points": 370,
@@ -1526,241 +846,916 @@
         "textures": 15
       },
       "heap": {
-        "used": 19923391,
-        "total": 22053495
+        "used": 23939454,
+        "total": 32154166
       },
       "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "frames": [
         {
-          "at": 17647,
-          "interval": 123.39999999850988,
-          "draw": 1.5
-        },
-        {
-          "at": 17770.900000002235,
-          "interval": 123.90000000223517,
-          "draw": 1.5
-        },
-        {
-          "at": 17914.199999999255,
-          "interval": 143.29999999701977,
-          "draw": 1.2000000029802322
-        },
-        {
-          "at": 18033,
-          "interval": 118.80000000074506,
-          "draw": 1.699999999254942
-        },
-        {
-          "at": 18157.60000000149,
-          "interval": 124.60000000149012,
-          "draw": 1.3999999985098839
-        },
-        {
-          "at": 18274.400000002235,
-          "interval": 116.80000000074506,
-          "draw": 1.199999999254942
-        },
-        {
-          "at": 18418.699999999255,
-          "interval": 144.29999999701977,
-          "draw": 2.600000001490116
-        },
-        {
-          "at": 18554.800000000745,
-          "interval": 136.10000000149012,
-          "draw": 1.3999999985098839
-        },
-        {
-          "at": 18702.400000002235,
-          "interval": 147.60000000149012,
-          "draw": 1.5999999977648258
-        },
-        {
-          "at": 18827.900000002235,
-          "interval": 125.5,
-          "draw": 1.5999999977648258
-        },
-        {
-          "at": 18953.10000000149,
-          "interval": 125.19999999925494,
-          "draw": 1.5999999977648258
-        },
-        {
-          "at": 19074.699999999255,
-          "interval": 121.59999999776483,
-          "draw": 1.800000000745058
-        },
-        {
-          "at": 19220.800000000745,
-          "interval": 146.10000000149012,
-          "draw": 1.8999999985098839
-        },
-        {
-          "at": 19356.900000002235,
-          "interval": 136.10000000149012,
-          "draw": 1.5999999977648258
-        },
-        {
-          "at": 19490.60000000149,
-          "interval": 133.69999999925494,
-          "draw": 4.300000000745058
-        },
-        {
-          "at": 19622.300000000745,
+          "at": 17162.299999998882,
           "interval": 131.69999999925494,
+          "draw": 3.300000000745058
+        },
+        {
+          "at": 17312.299999998882,
+          "interval": 150,
+          "draw": 2.5
+        },
+        {
+          "at": 17450.599999999627,
+          "interval": 138.30000000074506,
+          "draw": 2.5
+        },
+        {
+          "at": 17578.699999999255,
+          "interval": 128.09999999962747,
+          "draw": 2.300000000745058
+        },
+        {
+          "at": 17713.699999999255,
+          "interval": 135,
+          "draw": 2.300000000745058
+        },
+        {
+          "at": 17858.799999998882,
+          "interval": 145.09999999962747,
+          "draw": 1.900000000372529
+        },
+        {
+          "at": 17979.699999999255,
+          "interval": 120.90000000037253,
+          "draw": 1.700000001117587
+        },
+        {
+          "at": 18101,
+          "interval": 121.30000000074506,
+          "draw": 2.299999998882413
+        },
+        {
+          "at": 18220,
+          "interval": 119,
+          "draw": 21
+        },
+        {
+          "at": 18365.599999999627,
+          "interval": 145.59999999962747,
+          "draw": 2.400000000372529
+        },
+        {
+          "at": 18492,
+          "interval": 126.40000000037253,
+          "draw": 2.099999999627471
+        },
+        {
+          "at": 18613.400000000373,
+          "interval": 121.40000000037253,
+          "draw": 1.5
+        },
+        {
+          "at": 18751.599999999627,
+          "interval": 138.19999999925494,
+          "draw": 2.199999999254942
+        },
+        {
+          "at": 18884.799999998882,
+          "interval": 133.19999999925494,
+          "draw": 1.900000000372529
+        },
+        {
+          "at": 19002.400000000373,
+          "interval": 117.60000000149012,
+          "draw": 2.099999999627471
+        },
+        {
+          "at": 19119.199999999255,
+          "interval": 116.79999999888241,
+          "draw": 1.599999999627471
+        },
+        {
+          "at": 19261.099999999627,
+          "interval": 141.90000000037253,
+          "draw": 2.300000000745058
+        },
+        {
+          "at": 19385.400000000373,
+          "interval": 124.30000000074506,
           "draw": 2
         },
         {
-          "at": 19746.900000002235,
-          "interval": 124.60000000149012,
-          "draw": 3.7999999970197678
-        },
-        {
-          "at": 19865.800000000745,
+          "at": 19504.299999998882,
           "interval": 118.89999999850988,
-          "draw": 3.699999999254942
+          "draw": 1.900000000372529
         },
         {
-          "at": 20010.800000000745,
-          "interval": 145,
+          "at": 19619,
+          "interval": 114.70000000111759,
+          "draw": 1.699999999254942
+        },
+        {
+          "at": 19764.400000000373,
+          "interval": 145.40000000037253,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 19883.400000000373,
+          "interval": 119,
+          "draw": 1.599999999627471
+        },
+        {
+          "at": 20003.400000000373,
+          "interval": 120,
+          "draw": 2.599999999627471
+        },
+        {
+          "at": 20153.799999998882,
+          "interval": 150.39999999850988,
+          "draw": 1.700000001117587
+        },
+        {
+          "at": 20275.400000000373,
+          "interval": 121.60000000149012,
+          "draw": 1.599999999627471
+        },
+        {
+          "at": 20393.799999998882,
+          "interval": 118.39999999850988,
+          "draw": 1.700000001117587
+        },
+        {
+          "at": 20509.599999999627,
+          "interval": 115.80000000074506,
+          "draw": 3
+        },
+        {
+          "at": 20646.400000000373,
+          "interval": 136.80000000074506,
+          "draw": 2.699999999254942
+        },
+        {
+          "at": 20776.699999999255,
+          "interval": 130.2999999988824,
+          "draw": 1.700000001117587
+        },
+        {
+          "at": 20894.900000000373,
+          "interval": 118.20000000111759,
+          "draw": 3.299999998882413
+        },
+        {
+          "at": 21013.5,
+          "interval": 118.59999999962747,
+          "draw": 1.799999998882413
+        },
+        {
+          "at": 21154.400000000373,
+          "interval": 140.90000000037253,
+          "draw": 2.099999999627471
+        },
+        {
+          "at": 21274.5,
+          "interval": 120.09999999962747,
+          "draw": 1.799999998882413
+        },
+        {
+          "at": 21409.400000000373,
+          "interval": 134.90000000037253,
+          "draw": 2
+        },
+        {
+          "at": 21555.799999998882,
+          "interval": 146.39999999850988,
           "draw": 1.6000000014901161
         },
         {
-          "at": 20129.800000000745,
-          "interval": 119,
-          "draw": 2.300000000745058
-        },
-        {
-          "at": 20249.199999999255,
-          "interval": 119.39999999850988,
-          "draw": 1.9000000022351742
-        },
-        {
-          "at": 20375.10000000149,
-          "interval": 125.90000000223517,
-          "draw": 1.5999999977648258
-        },
-        {
-          "at": 20536.300000000745,
-          "interval": 161.19999999925494,
-          "draw": 1.800000000745058
-        },
-        {
-          "at": 20658.5,
-          "interval": 122.19999999925494,
-          "draw": 4.600000001490116
-        },
-        {
-          "at": 20823.300000000745,
-          "interval": 164.80000000074506,
-          "draw": 2.600000001490116
-        },
-        {
-          "at": 20953.5,
-          "interval": 130.19999999925494,
-          "draw": 1.9000000022351742
-        },
-        {
-          "at": 21102.199999999255,
-          "interval": 148.69999999925494,
-          "draw": 3
-        },
-        {
-          "at": 21233.10000000149,
-          "interval": 130.90000000223517,
-          "draw": 2.300000000745058
-        },
-        {
-          "at": 21361.60000000149,
-          "interval": 128.5,
-          "draw": 2.300000000745058
-        },
-        {
-          "at": 21510.300000000745,
-          "interval": 148.69999999925494,
-          "draw": 1.8999999985098839
-        },
-        {
-          "at": 21635.60000000149,
-          "interval": 125.30000000074506,
-          "draw": 2.300000000745058
-        },
-        {
-          "at": 21762.699999999255,
-          "interval": 127.09999999776483,
-          "draw": 3
-        },
-        {
-          "at": 21909.10000000149,
-          "interval": 146.40000000223517,
+          "at": 21672,
+          "interval": 116.20000000111759,
           "draw": 1.699999999254942
         },
         {
-          "at": 22040.10000000149,
-          "interval": 131,
-          "draw": 2
+          "at": 21797.299999998882,
+          "interval": 125.29999999888241,
+          "draw": 1.800000000745058
         },
         {
-          "at": 22159.199999999255,
-          "interval": 119.09999999776483,
-          "draw": 2
-        },
-        {
-          "at": 22309.5,
-          "interval": 150.30000000074506,
-          "draw": 1.4000000022351742
-        },
-        {
-          "at": 22434.699999999255,
-          "interval": 125.19999999925494,
-          "draw": 2.800000000745058
+          "at": 21914.5,
+          "interval": 117.20000000111759,
+          "draw": 2.099999999627471
         }
       ],
       "modelReady": 4,
       "resources": [
         {
-          "name": "http://127.0.0.1:40737/cats/orange-cat.glb",
-          "duration": 170.90000000223517,
-          "startTime": 382.19999999925494,
-          "responseEnd": 553.1000000014901,
+          "name": "http://127.0.0.1:45045/cats/orange-cat.glb",
+          "duration": 184.19999999925494,
+          "startTime": 437.59999999962747,
+          "responseEnd": 621.7999999988824,
           "transferSize": 286440,
           "encodedBodySize": 286140
         },
         {
-          "name": "http://127.0.0.1:40737/cats/calico-cat.glb",
-          "duration": 169.80000000074506,
-          "startTime": 384.6000000014901,
-          "responseEnd": 554.4000000022352,
+          "name": "http://127.0.0.1:45045/cats/calico-cat.glb",
+          "duration": 185,
+          "startTime": 440.2999999988824,
+          "responseEnd": 625.2999999988824,
           "transferSize": 308124,
           "encodedBodySize": 307824
         },
         {
-          "name": "http://127.0.0.1:40737/cats/black-cat.glb",
-          "duration": 166.89999999850988,
-          "startTime": 387.1000000014901,
-          "responseEnd": 554,
+          "name": "http://127.0.0.1:45045/cats/black-cat.glb",
+          "duration": 186.69999999925494,
+          "startTime": 441,
+          "responseEnd": 627.6999999992549,
           "transferSize": 257216,
           "encodedBodySize": 256916
         },
         {
-          "name": "http://127.0.0.1:40737/cats/tabby-cat.glb",
-          "duration": 166.90000000223517,
-          "startTime": 387.69999999925494,
-          "responseEnd": 554.6000000014901,
+          "name": "http://127.0.0.1:45045/cats/tabby-cat.glb",
+          "duration": 185.80000000074506,
+          "startTime": 442.2999999988824,
+          "responseEnd": 628.0999999996275,
           "transferSize": 292472,
           "encodedBodySize": 292172
         }
       ],
       "frameIntervalsMs": {
-        "n": 37,
-        "median": 128.5,
-        "p95": 161.19999999925494
+        "n": 38,
+        "median": 125.29999999888241,
+        "p95": 150
       },
       "renderSubmitMs": {
-        "n": 37,
-        "median": 1.8999999985098839,
-        "p95": 4.300000000745058
+        "n": 38,
+        "median": 2,
+        "p95": 3.300000000745058
+      }
+    },
+    {
+      "variant": "walk",
+      "mode": "idle",
+      "actorLayout": [
+        {
+          "kind": "orange",
+          "x": -0.5456254905048574,
+          "z": -0.1532636861840006
+        },
+        {
+          "kind": "calico",
+          "x": 1.1159784894616356,
+          "z": 1.0958416893496286
+        },
+        {
+          "kind": "black",
+          "x": -2.006376367326655,
+          "z": -3.679635802427067
+        },
+        {
+          "kind": "tabby",
+          "x": 0.18973120503770982,
+          "z": 2.283622165499376
+        },
+        {
+          "kind": "white",
+          "x": -3.297213199931357,
+          "z": -0.890427429776146
+        },
+        {
+          "kind": "glow",
+          "x": 0.025174790367020635,
+          "z": -0.5521392332184681
+        }
+      ],
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "backing": {
+        "width": 780,
+        "height": 1688
+      },
+      "count": 6,
+      "states": [
+        {
+          "kind": "orange",
+          "state": "idle"
+        },
+        {
+          "kind": "calico",
+          "state": "idle"
+        },
+        {
+          "kind": "black",
+          "state": "idle"
+        },
+        {
+          "kind": "tabby",
+          "state": "idle"
+        },
+        {
+          "kind": "white",
+          "state": "idle"
+        },
+        {
+          "kind": "glow",
+          "state": "idle"
+        }
+      ],
+      "render": {
+        "frame": 98,
+        "calls": 133,
+        "triangles": 38795,
+        "points": 370,
+        "lines": 0
+      },
+      "memory": {
+        "geometries": 74,
+        "textures": 8
+      },
+      "heap": {
+        "used": 31241151,
+        "total": 38119683
+      },
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "frames": [
+        {
+          "at": 9957.099999999627,
+          "interval": 108,
+          "draw": 1.299999998882413
+        },
+        {
+          "at": 10091.299999998882,
+          "interval": 134.19999999925494,
+          "draw": 2.700000001117587
+        },
+        {
+          "at": 10201.89999999851,
+          "interval": 110.59999999962747,
+          "draw": 1.700000001117587
+        },
+        {
+          "at": 10309.599999999627,
+          "interval": 107.70000000111759,
+          "draw": 1.699999999254942
+        },
+        {
+          "at": 10413.299999998882,
+          "interval": 103.69999999925494,
+          "draw": 2
+        },
+        {
+          "at": 10530.299999998882,
+          "interval": 117,
+          "draw": 1.5
+        },
+        {
+          "at": 10640.699999999255,
+          "interval": 110.40000000037253,
+          "draw": 0.900000000372529
+        },
+        {
+          "at": 10742.299999998882,
+          "interval": 101.59999999962747,
+          "draw": 1.400000000372529
+        },
+        {
+          "at": 10857.599999999627,
+          "interval": 115.30000000074506,
+          "draw": 1.599999999627471
+        },
+        {
+          "at": 10983.89999999851,
+          "interval": 126.29999999888241,
+          "draw": 1.200000001117587
+        },
+        {
+          "at": 11099.799999998882,
+          "interval": 115.90000000037253,
+          "draw": 1.400000000372529
+        },
+        {
+          "at": 11217.5,
+          "interval": 117.70000000111759,
+          "draw": 1.099999999627471
+        },
+        {
+          "at": 11331.599999999627,
+          "interval": 114.09999999962747,
+          "draw": 1.099999999627471
+        },
+        {
+          "at": 11438.89999999851,
+          "interval": 107.29999999888241,
+          "draw": 1.200000001117587
+        },
+        {
+          "at": 11551.799999998882,
+          "interval": 112.90000000037253,
+          "draw": 1.099999999627471
+        },
+        {
+          "at": 11662,
+          "interval": 110.20000000111759,
+          "draw": 1
+        },
+        {
+          "at": 11791.799999998882,
+          "interval": 129.7999999988824,
+          "draw": 1.200000001117587
+        },
+        {
+          "at": 11898.89999999851,
+          "interval": 107.09999999962747,
+          "draw": 1
+        },
+        {
+          "at": 12003,
+          "interval": 104.10000000149012,
+          "draw": 1.699999999254942
+        },
+        {
+          "at": 12118.39999999851,
+          "interval": 115.39999999850988,
+          "draw": 1.5
+        },
+        {
+          "at": 12232.5,
+          "interval": 114.10000000149012,
+          "draw": 1.3999999985098839
+        },
+        {
+          "at": 12346.199999999255,
+          "interval": 113.69999999925494,
+          "draw": 1.800000000745058
+        },
+        {
+          "at": 12478.199999999255,
+          "interval": 132,
+          "draw": 1.599999999627471
+        },
+        {
+          "at": 12600.599999999627,
+          "interval": 122.40000000037253,
+          "draw": 1.299999998882413
+        },
+        {
+          "at": 12718.39999999851,
+          "interval": 117.79999999888241,
+          "draw": 1.1000000014901161
+        },
+        {
+          "at": 12839.599999999627,
+          "interval": 121.20000000111759,
+          "draw": 1.400000000372529
+        },
+        {
+          "at": 12950.89999999851,
+          "interval": 111.29999999888241,
+          "draw": 1.800000000745058
+        },
+        {
+          "at": 13093.599999999627,
+          "interval": 142.7000000011176,
+          "draw": 2
+        },
+        {
+          "at": 13232.799999998882,
+          "interval": 139.19999999925494,
+          "draw": 1.700000001117587
+        },
+        {
+          "at": 13347.299999998882,
+          "interval": 114.5,
+          "draw": 1.700000001117587
+        },
+        {
+          "at": 13483.89999999851,
+          "interval": 136.59999999962747,
+          "draw": 1.6000000014901161
+        },
+        {
+          "at": 13592.599999999627,
+          "interval": 108.70000000111759,
+          "draw": 2.099999999627471
+        },
+        {
+          "at": 13708.199999999255,
+          "interval": 115.59999999962747,
+          "draw": 1.900000000372529
+        },
+        {
+          "at": 13824.199999999255,
+          "interval": 116,
+          "draw": 1.599999999627471
+        },
+        {
+          "at": 13931.39999999851,
+          "interval": 107.19999999925494,
+          "draw": 1.800000000745058
+        },
+        {
+          "at": 14041,
+          "interval": 109.60000000149012,
+          "draw": 2.099999999627471
+        },
+        {
+          "at": 14148.799999998882,
+          "interval": 107.79999999888241,
+          "draw": 1.599999999627471
+        },
+        {
+          "at": 14252.39999999851,
+          "interval": 103.59999999962747,
+          "draw": 1.800000000745058
+        },
+        {
+          "at": 14409,
+          "interval": 156.60000000149012,
+          "draw": 1.599999999627471
+        },
+        {
+          "at": 14515.39999999851,
+          "interval": 106.39999999850988,
+          "draw": 1.800000000745058
+        },
+        {
+          "at": 14628.299999998882,
+          "interval": 112.90000000037253,
+          "draw": 1.5
+        },
+        {
+          "at": 14790.5,
+          "interval": 162.2000000011176,
+          "draw": 1.8999999985098839
+        }
+      ],
+      "modelReady": 4,
+      "resources": [
+        {
+          "name": "http://127.0.0.1:39067/cats/orange-cat.glb",
+          "duration": 159.30000000074506,
+          "startTime": 437.8999999985099,
+          "responseEnd": 597.1999999992549,
+          "transferSize": 297688,
+          "encodedBodySize": 297388
+        },
+        {
+          "name": "http://127.0.0.1:39067/cats/calico-cat.glb",
+          "duration": 157.59999999962747,
+          "startTime": 440.7999999988824,
+          "responseEnd": 598.3999999985099,
+          "transferSize": 319368,
+          "encodedBodySize": 319068
+        },
+        {
+          "name": "http://127.0.0.1:39067/cats/black-cat.glb",
+          "duration": 156.2999999988824,
+          "startTime": 441.5,
+          "responseEnd": 597.7999999988824,
+          "transferSize": 268464,
+          "encodedBodySize": 268164
+        },
+        {
+          "name": "http://127.0.0.1:39067/cats/tabby-cat.glb",
+          "duration": 157.39999999850988,
+          "startTime": 442,
+          "responseEnd": 599.3999999985099,
+          "transferSize": 303692,
+          "encodedBodySize": 303392
+        }
+      ],
+      "frameIntervalsMs": {
+        "n": 42,
+        "median": 114.10000000149012,
+        "p95": 142.7000000011176
+      },
+      "renderSubmitMs": {
+        "n": 42,
+        "median": 1.599999999627471,
+        "p95": 2.099999999627471
+      }
+    },
+    {
+      "variant": "walk",
+      "mode": "walk",
+      "actorLayout": [
+        {
+          "kind": "orange",
+          "x": -0.5456254905048574,
+          "z": -0.1532636861840006
+        },
+        {
+          "kind": "calico",
+          "x": 1.1159784894616356,
+          "z": 1.0958416893496286
+        },
+        {
+          "kind": "black",
+          "x": -2.006376367326655,
+          "z": -3.679635802427067
+        },
+        {
+          "kind": "tabby",
+          "x": 0.18973120503770982,
+          "z": 2.283622165499376
+        },
+        {
+          "kind": "white",
+          "x": -3.297213199931357,
+          "z": -0.890427429776146
+        },
+        {
+          "kind": "glow",
+          "x": 0.025174790367020635,
+          "z": -0.5521392332184681
+        }
+      ],
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      },
+      "backing": {
+        "width": 780,
+        "height": 1688
+      },
+      "count": 6,
+      "states": [
+        {
+          "kind": "orange",
+          "state": "idle"
+        },
+        {
+          "kind": "calico",
+          "state": "idle"
+        },
+        {
+          "kind": "black",
+          "state": "idle"
+        },
+        {
+          "kind": "tabby",
+          "state": "idle"
+        },
+        {
+          "kind": "white",
+          "state": "idle"
+        },
+        {
+          "kind": "glow",
+          "state": "idle"
+        }
+      ],
+      "render": {
+        "frame": 160,
+        "calls": 141,
+        "triangles": 42261,
+        "points": 370,
+        "lines": 0
+      },
+      "memory": {
+        "geometries": 83,
+        "textures": 14
+      },
+      "heap": {
+        "used": 20359205,
+        "total": 22238581
+      },
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "frames": [
+        {
+          "at": 18289.799999998882,
+          "interval": 145.69999999925494,
+          "draw": 3.300000000745058
+        },
+        {
+          "at": 18421.799999998882,
+          "interval": 132,
+          "draw": 3.400000000372529
+        },
+        {
+          "at": 18552,
+          "interval": 130.2000000011176,
+          "draw": 2.399999998509884
+        },
+        {
+          "at": 18697.699999999255,
+          "interval": 145.69999999925494,
+          "draw": 2.099999999627471
+        },
+        {
+          "at": 18812.599999999627,
+          "interval": 114.90000000037253,
+          "draw": 1.799999998882413
+        },
+        {
+          "at": 18934,
+          "interval": 121.40000000037253,
+          "draw": 2.299999998882413
+        },
+        {
+          "at": 19058.699999999255,
+          "interval": 124.69999999925494,
+          "draw": 3.699999999254942
+        },
+        {
+          "at": 19199.299999998882,
+          "interval": 140.59999999962747,
+          "draw": 2
+        },
+        {
+          "at": 19351.199999999255,
+          "interval": 151.90000000037253,
+          "draw": 2.800000000745058
+        },
+        {
+          "at": 19489.099999999627,
+          "interval": 137.90000000037253,
+          "draw": 1.5
+        },
+        {
+          "at": 19617.299999998882,
+          "interval": 128.19999999925494,
+          "draw": 1.700000001117587
+        },
+        {
+          "at": 19737.199999999255,
+          "interval": 119.90000000037253,
+          "draw": 1.900000000372529
+        },
+        {
+          "at": 19859.099999999627,
+          "interval": 121.90000000037253,
+          "draw": 2.599999999627471
+        },
+        {
+          "at": 19999.39999999851,
+          "interval": 140.2999999988824,
+          "draw": 9.200000001117587
+        },
+        {
+          "at": 20122.099999999627,
+          "interval": 122.70000000111759,
+          "draw": 1.199999999254942
+        },
+        {
+          "at": 20239.599999999627,
+          "interval": 117.5,
+          "draw": 1.299999998882413
+        },
+        {
+          "at": 20357.099999999627,
+          "interval": 117.5,
+          "draw": 1.299999998882413
+        },
+        {
+          "at": 20494.199999999255,
+          "interval": 137.09999999962747,
+          "draw": 2
+        },
+        {
+          "at": 20618.099999999627,
+          "interval": 123.90000000037253,
+          "draw": 1.5
+        },
+        {
+          "at": 20736.199999999255,
+          "interval": 118.09999999962747,
+          "draw": 1.599999999627471
+        },
+        {
+          "at": 20884.099999999627,
+          "interval": 147.90000000037253,
+          "draw": 2.299999998882413
+        },
+        {
+          "at": 21007.39999999851,
+          "interval": 123.29999999888241,
+          "draw": 1.5
+        },
+        {
+          "at": 21125.89999999851,
+          "interval": 118.5,
+          "draw": 3
+        },
+        {
+          "at": 21259.5,
+          "interval": 133.60000000149012,
+          "draw": 3
+        },
+        {
+          "at": 21406.39999999851,
+          "interval": 146.89999999850988,
+          "draw": 2
+        },
+        {
+          "at": 21526.599999999627,
+          "interval": 120.20000000111759,
+          "draw": 1.799999998882413
+        },
+        {
+          "at": 21646.799999998882,
+          "interval": 120.19999999925494,
+          "draw": 1.599999999627471
+        },
+        {
+          "at": 21787.89999999851,
+          "interval": 141.09999999962747,
+          "draw": 1.900000000372529
+        },
+        {
+          "at": 21914,
+          "interval": 126.10000000149012,
+          "draw": 1.599999999627471
+        },
+        {
+          "at": 22039.5,
+          "interval": 125.5,
+          "draw": 1.599999999627471
+        },
+        {
+          "at": 22152.199999999255,
+          "interval": 112.69999999925494,
+          "draw": 4
+        },
+        {
+          "at": 22324.599999999627,
+          "interval": 172.40000000037253,
+          "draw": 2
+        },
+        {
+          "at": 22441.89999999851,
+          "interval": 117.29999999888241,
+          "draw": 2.100000001490116
+        },
+        {
+          "at": 22556.599999999627,
+          "interval": 114.70000000111759,
+          "draw": 2.900000000372529
+        },
+        {
+          "at": 22712.199999999255,
+          "interval": 155.59999999962747,
+          "draw": 3.800000000745058
+        },
+        {
+          "at": 22835.299999998882,
+          "interval": 123.09999999962747,
+          "draw": 2.599999999627471
+        },
+        {
+          "at": 22950.5,
+          "interval": 115.20000000111759,
+          "draw": 2.099999999627471
+        },
+        {
+          "at": 23090.099999999627,
+          "interval": 139.59999999962747,
+          "draw": 2.699999999254942
+        }
+      ],
+      "modelReady": 4,
+      "resources": [
+        {
+          "name": "http://127.0.0.1:39067/cats/orange-cat.glb",
+          "duration": 159.30000000074506,
+          "startTime": 437.8999999985099,
+          "responseEnd": 597.1999999992549,
+          "transferSize": 297688,
+          "encodedBodySize": 297388
+        },
+        {
+          "name": "http://127.0.0.1:39067/cats/calico-cat.glb",
+          "duration": 157.59999999962747,
+          "startTime": 440.7999999988824,
+          "responseEnd": 598.3999999985099,
+          "transferSize": 319368,
+          "encodedBodySize": 319068
+        },
+        {
+          "name": "http://127.0.0.1:39067/cats/black-cat.glb",
+          "duration": 156.2999999988824,
+          "startTime": 441.5,
+          "responseEnd": 597.7999999988824,
+          "transferSize": 268464,
+          "encodedBodySize": 268164
+        },
+        {
+          "name": "http://127.0.0.1:39067/cats/tabby-cat.glb",
+          "duration": 157.39999999850988,
+          "startTime": 442,
+          "responseEnd": 599.3999999985099,
+          "transferSize": 303692,
+          "encodedBodySize": 303392
+        }
+      ],
+      "frameIntervalsMs": {
+        "n": 38,
+        "median": 125.5,
+        "p95": 155.59999999962747
+      },
+      "renderSubmitMs": {
+        "n": 38,
+        "median": 2.099999999627471,
+        "p95": 4
       }
     }
   ],
@@ -1768,44 +1763,44 @@
   "summary": [
     {
       "variant": "main",
-      "totalBytes": 1149404,
+      "totalBytes": 1143052,
       "readyMs": {
         "n": 3,
-        "median": 1944,
-        "p95": 1975.2000000029802
+        "median": 2143,
+        "p95": 2314.7999999988824
       },
       "readyRange": [
-        1785.3999999985099,
-        1975.2000000029802
+        2130.5,
+        2314.7999999988824
       ],
       "twoFramesMs": {
         "n": 3,
-        "median": 2438.10000000149,
-        "p95": 2460.5
+        "median": 2745.9000000003725,
+        "p95": 2876.89999999851
       }
     },
     {
       "variant": "walk",
-      "totalBytes": 1143052,
+      "totalBytes": 1188012,
       "readyMs": {
         "n": 3,
-        "median": 2234.400000002235,
-        "p95": 2332.900000002235
+        "median": 2167.7999999988824,
+        "p95": 2271.2999999988824
       },
       "readyRange": [
-        2139.300000000745,
-        2332.900000002235
+        2153,
+        2271.2999999988824
       ],
       "twoFramesMs": {
         "n": 3,
-        "median": 2674.5,
-        "p95": 2768.800000000745
+        "median": 2639.4000000003725,
+        "p95": 2661.699999999255
       }
     }
   ],
   "change": {
-    "bytes": -6352,
-    "readyMs": 290.4000000022352,
-    "readyRatio": 1.1493827160505325
+    "bytes": 44960,
+    "readyMs": 24.799999998882413,
+    "readyRatio": 1.01157256182869
   }
 }
