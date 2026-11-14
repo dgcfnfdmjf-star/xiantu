@@ -170,6 +170,24 @@ const SAVES = {
     // (The live island bobs a few millimetres under the camera, hence the tolerance; the model itself is exact, see l3-cutscene.cjs.)
     const c1 = JSON.parse(await camAt(26)), c2 = JSON.parse(await camAt(41)), c3 = JSON.parse(await camAt(26));
     assert(c1.every((v, i) => Math.abs(v - c3[i]) < 0.05) && c1.some((v, i) => Math.abs(v - c2[i]) > 0.5), 'seek is deterministic: ' + [c1, c2, c3].join(' | '));
+    // The actors on stage are exactly the model at that second, whichever way the frame is reached: fireflies (glow
+    // points and wisp bodies), the boat and its wake ribbon.
+    const probeAt = t => page.evaluate(async t => { const cs = window.__l3Cutscene; cs.seek(t); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const p = cs.probe(), n = cs.layout().count, model = []; for (let j = 0; j < n; j++) { const f = cs.fly(j, t); model.push([f.x, f.y, f.z, f.alpha * f.twinkle]); }
+      return { p, model, boat: cs.boat(t), wake: cs.wake(t, cs.layout().wakeAge / 2), st: cs.stage() }; }, t);
+    const near = (a, b, eps) => Math.abs(a - b) < (eps || 1e-3);
+    for (const t of [12.4, 24.6, 38.2]) {
+      const a = await probeAt(t); await probeAt(t === 38.2 ? 6 : 45); const b = await probeAt(t);
+      assert.equal(JSON.stringify(a.p), JSON.stringify(b.p), 'stage actors are a pure function of t at ' + t);
+      a.p.flies.forEach((f, j) => assert(f.every((v, k) => near(v, a.model[j][k])), 'firefly ' + j + ' is where the model puts it at ' + t));
+      assert(a.p.flies.every(f => f[1] > 0.5), 'no firefly in the ground at ' + t);
+      if (t > 31) {
+        assert(near(a.p.boat[0], a.boat.x) && near(a.p.boat[1], a.boat.y) && near(a.p.boat[2], a.boat.z) && near(a.p.boat[3], a.boat.yaw) && a.st.boat, 'boat pose at ' + t);
+        const mid = a.p.wake[(a.p.wake.length - 1) / 2]; assert(near(mid[0], a.wake.x, a.wake.half + 0.01) && near(mid[1], a.wake.z, a.wake.half + 0.01), 'wake lies on the path');
+      } else assert.equal(a.st.boat, false);
+    }
+    const bodies = (await probeAt(12.4)).p.bodies, stars = (await probeAt(44)).p;
+    assert(bodies.every(v => v > 0.5) && stars.bodies.every(v => v === 0) && stars.flies.every(f => f[1] > 20 && f[2] < -50), 'wisp bodies near the ground, pure starlight in the sky');
     assert.equal(await page.evaluate(() => window.__l3Cutscene.seek(50) && window.__l3Cutscene.state()), 'ended');
     await page.waitForTimeout(700);
     assert.equal(await page.locator('#l3csGo').isVisible(), true);

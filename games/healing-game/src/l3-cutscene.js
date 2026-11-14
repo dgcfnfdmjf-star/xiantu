@@ -66,25 +66,56 @@
   var LAMPS = [[-3.7, 0.7], [0, 3.8], [3.7, 0.7]], LAMP_Y = 0.91, LAMP_T = 10.6, LAMP_STEP = 2.7;
   function lampAt(i, t) {
     var on = ease(ramp(t, LAMP_T + i * LAMP_STEP, LAMP_T + i * LAMP_STEP + 2.6));
-    return (0.3 + 0.7 * on) * (0.93 + 0.07 * soft * Math.sin(t * 1.3 + i * 2.1));
+    // A slow breath with a small candle flicker on top (two incommensurate sines, so it never visibly loops).
+    return (0.3 + 0.7 * on) * (0.935 + soft * (0.045 * Math.sin(t * 1.3 + i * 2.1) + 0.02 * Math.sin(t * 6.7 + i * 4.3) * Math.sin(t * 2.9 + i)));
   }
-  /* Star fireflies (placeholder flight for item 1): each leaves its lamp in turn, spirals up and settles as a star.
-   * Closed-form in t, so seek(t) lands every one exactly where straight playback would. */
-  var N = 24, REL = 20.5, REL_STEP = 0.33, CLIMB = 9.5;
+  /* Star fireflies. Each one (1) comes out over the meadow at dusk and wanders on a curl-noise style drift, (2) is
+   * drawn to its lamp when that lamp warms up and circles it, (3) is let go in turn, climbs in a slow widening spiral
+   * and (4) recedes to a fixed place high in the night sky, where it shrinks to a twinkling point among the stars.
+   * Closed-form in t (no integration), so seek(t) lands every one exactly where straight playback would. */
+  var N = 24, REL = 20.6, REL_STEP = 0.3, CLIMB = 11, STAR_Z = -62;
   var KINDS = [['dew', 0xa9efd8], ['peach', 0xffb3cd], ['amber', 0xffd58a], ['moon', 0xe9f6ff], ['violet', 0xc5adff], ['tide', 0x89d7ff]];
   function hsh(j, k) { var s = Math.sin(j * 12.9898 + k * 78.233) * 43758.5453; return s - Math.floor(s); }
+  /* Drift: the curl of a smooth vector potential (sums of sines), sampled at the firefly's home. A curl field has no
+   * divergence, so neighbours swirl together instead of bunching up or scattering - the look of curl noise without a
+   * noise texture or a velocity integration. */
+  var cv = { x: 0, y: 0, z: 0 };
+  function curlAt(x, y, z, t) {
+    cv.x = 0.95 * Math.cos(1.9 * y - 0.4 * t) - 0.8 * Math.cos(0.8 * z + 0.5 * t + 4.1);
+    cv.y = 0.85 * Math.cos(1.7 * z - 0.43 * t) - Math.cos(x + 0.55 * t + 2.6);
+    cv.z = 0.75 * Math.cos(1.5 * x + 0.37 * t) - 0.9 * Math.cos(0.9 * y + 0.6 * t + 1.3);
+    return cv;
+  }
+  // Release order: lamp by lamp (the first lamp's fireflies go first), one every REL_STEP seconds.
+  function relAt(j) { return REL + ((j % 3) * (N / 3) + Math.floor(j / 3)) * REL_STEP; }
   function flyAt(j, t, out) {
-    var L = LAMPS[j % 3], rel = REL + j * REL_STEP, u = ramp(t, rel, rel + CLIMB), e = ease(u), k = 0.5 + 0.5 * soft;
-    var a = j * 2.4 + t * 0.9 * k, r = 0.2 + 1.7 * e * (1 - 0.45 * e) + 0.3 * hsh(j, 1);
+    var li = j % 3, L = LAMPS[li], k = 0.5 + 0.5 * soft, rel = relAt(j), u = ramp(t, rel, rel + CLIMB);
     out = out || {};
-    out.x = L[0] * (1 - 0.5 * e) + Math.cos(a) * r * Math.min(1, u * 6) + (hsh(j, 2) - 0.5) * 9 * e * e;
-    out.y = LAMP_Y + 0.6 * e + (7 + 4 * hsh(j, 3)) * e * e + 0.14 * soft * Math.sin(t * 1.7 + j) * (1 - e);
-    out.z = L[1] * (1 - 0.5 * e) + Math.sin(a) * r * Math.min(1, u * 6) - (4 + 5 * hsh(j, 4)) * e * e;
-    out.alpha = ease(ramp(t, rel - 0.2, rel + 0.9));
-    out.star = ease(ramp(u, 0.75, 1));
-    out.twinkle = 0.8 + 0.2 * Math.sin(t * (2 + 3 * hsh(j, 5)) + j * 1.9);
-    out.size = lerp(0.5, 0.26, e) * (0.85 + 0.3 * hsh(j, 6));
-    out.lamp = j % 3;
+    // (1) meadow drift
+    var ha = hsh(j, 7) * TAU, hr = 1.2 + 3.0 * Math.sqrt(hsh(j, 8)), hx = Math.cos(ha) * hr, hz = Math.sin(ha) * hr, hy = 0.85 + 1.0 * hsh(j, 9);
+    var c = curlAt(hx, hy, hz, t), x = hx + 0.34 * k * c.x, y = hy + 0.16 * k * c.y, z = hz + 0.34 * k * c.z;
+    // (2) gathered round the lamp
+    var g0 = LAMP_T + li * LAMP_STEP + 0.6 + 1.6 * hsh(j, 10), g = ease(ramp(t, g0, g0 + 4.5));
+    var dir = j % 2 ? -1 : 1, oa = j * 2.4 + dir * t * (0.45 + 0.3 * hsh(j, 11)) * k, or = 0.6 + 0.55 * hsh(j, 1);
+    var e1 = ease(ramp(u, 0, 0.62)), rr = or + 1.5 * e1, pull = 1 - 0.55 * e1;
+    var ox = L[0] * pull + Math.cos(oa) * rr + 0.1 * k * c.x, oz = L[1] * pull + Math.sin(oa) * rr + 0.1 * k * c.z;
+    var oy = LAMP_Y + 0.12 + 0.5 * hsh(j, 12) + 0.16 * soft * Math.sin(t * 0.8 + j * 1.7) + (5.5 + 2.5 * hsh(j, 3)) * e1;
+    x = lerp(x, ox, g); y = lerp(y, oy, g); z = lerp(z, oz, g);
+    // (3)+(4) up, and away to its place in the sky (kept clear of the moon's disc)
+    var e2 = ramp(u, 0.38, 1); e2 = e2 * e2 * (3 - 2 * e2);
+    var sx = -26 + 38 * hsh(j, 2), sy = 27 + 21 * hsh(j, 4), dm = Math.sqrt((sx + 11) * (sx + 11) + (sy - 31) * (sy - 31));
+    if (dm < 7) { sx += (sx + 11.01) / (dm + 0.01) * (7 - dm); sy += (sy - 31) / (dm + 0.01) * (7 - dm) + 2; }
+    out.x = lerp(x, sx, e2); out.y = lerp(y, sy, e2); out.z = lerp(z, STAR_Z + 8 * (hsh(j, 5) - 0.5), e2);
+    out.alpha = ease(ramp(t, 2.5 + 5 * hsh(j, 13), 5 + 5 * hsh(j, 13)));
+    // A firefly's slow blink; as a star it keeps only a faint twinkle.
+    var blink = 0.5 + 0.5 * Math.sin(t * (1.1 + 1.3 * hsh(j, 6)) + j * 1.9); blink = blink * blink * (3 - 2 * blink);
+    out.twinkle = lerp(0.55 + 0.45 * blink, 0.72 + 0.28 * Math.sin(t * (2 + 3 * hsh(j, 5)) + j * 1.9), e2);
+    out.star = e2;
+    out.size = lerp(0.72, 0.8, e2) * (0.85 + 0.3 * hsh(j, 6));
+    // The little winged body (the game's wisp) is shown near the ground and folds away into pure light on the climb.
+    out.body = 1 - ease(ramp(u, 0.2, 0.55));
+    out.yaw = t * 0.7 + j * 1.3; out.flap = 0.4 * Math.sin(t * 8 + j * 2.2);
+    out.lamp = li; out.rel = rel;
     return out;
   }
   function fliesAt(t) { var out = []; for (var j = 0; j < N; j++) out.push(flyAt(j, t, {})); return out; }
@@ -102,25 +133,41 @@
     for (j = 0; out.length < N; j++) { var o = own[j % own.length]; if (o[2] > 0) { o[2]--; out.push(KINDS[o[0]][0]); } }
     return out;
   }
-  // The paper boat (placeholder sail for item 1): off the front of the island, round its right side, out towards the moon.
-  var BOAT = [[2.2, 0.25, 4.9], [7.6, 0.2, 0.5], [-2.4, 1.9, -13]], BOAT_T0 = 30.5, WAKE = 10, WAKE_GAP = 0.016;
-  function boatPath(s, out) {
-    var m = 1 - s, a = m * m, b = 2 * m * s, c = s * s;
-    out.x = a * BOAT[0][0] + b * BOAT[1][0] + c * BOAT[2][0]; out.y = a * BOAT[0][1] + b * BOAT[1][1] + c * BOAT[2][1]; out.z = a * BOAT[0][2] + b * BOAT[1][2] + c * BOAT[2][2];
+  /* The paper boat: slips off the front of the island, rounds its right side and sails out over the cloud sea towards
+   * the moon. Position, heading, bob, roll and pitch are closed-form in t; the wake is the same path sampled at
+   * earlier times, so it lies exactly where the boat has been and fades with age. */
+  var BOAT_SCALE = 2.1, BOAT = [[-4.4, -0.35, 5.6], [3.5, -1.0, 12.5], [13.5, -0.9, 4.5], [1.5, 0.5, -19]], BOAT_T0 = 30.5, WAKE_AGE = 5.5, WAKE_SEG = 22, GLINTS = 8;
+  function boatPath(s, out) { // one cubic Bezier: round the front of the island, well clear of its rim, then away
+    var m = 1 - s, a = m * m * m, b = 3 * m * m * s, c = 3 * m * s * s, d = s * s * s, k;
+    out.x = a * BOAT[0][0] + b * BOAT[1][0] + c * BOAT[2][0] + d * BOAT[3][0]; out.y = a * BOAT[0][1] + b * BOAT[1][1] + c * BOAT[2][1] + d * BOAT[3][1]; out.z = a * BOAT[0][2] + b * BOAT[1][2] + c * BOAT[2][2] + d * BOAT[3][2];
+    // tangent (analytic), for the heading and for the width of the wake
+    a = 3 * m * m; b = 6 * m * s; c = 3 * s * s; k = 0;
+    out.tx = a * (BOAT[1][k] - BOAT[0][k]) + b * (BOAT[2][k] - BOAT[1][k]) + c * (BOAT[3][k] - BOAT[2][k]); k = 2;
+    out.tz = a * (BOAT[1][k] - BOAT[0][k]) + b * (BOAT[2][k] - BOAT[1][k]) + c * (BOAT[3][k] - BOAT[2][k]);
     return out;
   }
-  function boatS(t) { var u = ramp(t, BOAT_T0, DURATION + 4); return u * u * (1.6 - 0.6 * u); }
+  function boatS(t) { var u = ramp(t, BOAT_T0, DURATION + 1); return u * (0.55 + 0.4 * u); } // casts off gently, keeps a steady pace
   function boatAt(t, out) {
-    var s = boatS(t), s2 = Math.min(1, s + 0.01);
+    var s = boatS(t);
     out = out || {};
-    boatPath(s2, out); var nx = out.x, nz = out.z;
     boatPath(s, out);
-    out.yaw = Math.atan2(nx - out.x, nz - out.z);
-    out.y += 0.06 * soft * Math.sin(t * 1.3) + 0.03 * soft * Math.sin(t * 0.7);
+    out.yaw = Math.atan2(-out.tz, out.tx); // the hull's long axis is x, as in the game
+    out.y += 0.055 * soft * Math.sin(t * 1.3) + 0.03 * soft * Math.sin(t * 0.7);
     out.roll = 0.07 * soft * Math.sin(t * 1.1 + 0.6);
+    out.pitch = 0.05 * soft * Math.sin(t * 0.8 + 1);
     out.alpha = ease(ramp(t, BOAT_T0 - 0.5, BOAT_T0 + 1.8));
-    out.glow = out.alpha * (0.85 + 0.15 * Math.sin(t * 1.9));
+    out.glow = out.alpha * (0.86 + 0.1 * Math.sin(t * 1.9) + 0.04 * Math.sin(t * 6.3));
     out.s = s;
+    return out;
+  }
+  // A point of the wake `age` seconds behind the boat (flat on the sea: no bob), with its half-width and strength.
+  function wakeAt(t, age, out) {
+    out = out || {};
+    var a = clamp(age / WAKE_AGE, 0, 1), tt = t - age;
+    boatPath(boatS(tt), out);
+    out.y -= 0.1; out.age = a;
+    out.half = 0.14 + 1.0 * Math.sqrt(a);
+    out.alpha = tt > BOAT_T0 ? (1 - a) * (1 - a) * ramp(tt, BOAT_T0, BOAT_T0 + 1.5) : 0;
     return out;
   }
   /* Camera keys: look-at point, azimuth th (PI/2 = the gameplay side), polar phi, half-width w that
@@ -304,7 +351,8 @@
     st.heads = field(disc, di, hoff, hdim, true);
     st.blades = off.length / 3; st.blooms = hoff.length / 3;
     // The three star lamps (display-only copies of the game's pedestals): stone foot, gold ring, a warm core, a halo and a pool of light.
-    var stone = new T.MeshBasicMaterial({ color: 0x56648c }), gold = new T.MeshBasicMaterial({ color: 0xb89a6a });
+    var stone = new T.MeshLambertMaterial({ color: 0xa4b9bd }), gold = new T.MeshLambertMaterial({ color: 0xd5bb86, emissive: 0x6a4a1c, emissiveIntensity: 0 });
+    st.gold = gold;
     var baseGeo = new T.CylinderGeometry(0.38, 0.48, 0.16, 8), stemGeo = new T.CylinderGeometry(0.12, 0.2, 0.55, 8), ringGeo = new T.TorusGeometry(0.31, 0.04, 4, 16), gemGeo = new T.OctahedronGeometry(0.17), poolGeo = new T.PlaneGeometry(1, 1);
     poolGeo.rotateX(-Math.PI / 2);
     for (i = 0; i < 3; i++) {
@@ -312,36 +360,80 @@
       part(baseGeo, stone, lg, 0, 0.08, 0).l3cs = true; part(stemGeo, stone, lg, 0, 0.42, 0).l3cs = true; part(ringGeo, gold, lg, 0, LAMP_Y, 0).l3cs = true;
       var core = part(gemGeo, new T.MeshBasicMaterial({ color: 0x706b8b }), lg, 0, LAMP_Y, 0); core.l3cs = true;
       var halo = sprite(H.glowTex, WARM, true); halo.position.y = LAMP_Y; lg.add(halo);
+      var aura = sprite(H.glowTex, 0xffb870, true); aura.position.y = LAMP_Y + 0.1; lg.add(aura);
       var pool = part(poolGeo, new T.MeshBasicMaterial({ map: H.glowTex, color: 0xffb060, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, fog: false }), lg, 0, 0.05, 0);
       pool.l3cs = true; pool.scale.set(3.4, 1, 3.4);
-      g.add(lg); st.lamps.push({ g: lg, core: core, halo: halo, pool: pool });
+      g.add(lg); st.lamps.push({ g: lg, core: core, halo: halo, aura: aura, pool: pool });
     }
     st.dim = new T.Color(0x706b8b); st.warm = new T.Color(0xffdf9a);
-    // Fireflies: one small Points cloud (soft round dabs, additive), coloured like the player's catch.
-    st.fPos = new Float32Array(N * 3); st.fA = new Float32Array(N * 2); st.fCol = new Float32Array(N * 3);
+    /* Fireflies. Glow: one small Points cloud (soft round dabs, additive), coloured like the player's catch. Body: the
+     * game's wisp (a gem and two flapping wings) as one instanced draw; yaw, flap and scale ride in per-instance
+     * attributes, so a frame only rewrites two small typed arrays. */
+    st.fPos = new Float32Array(N * 3); st.fA = new Float32Array(N * 2); st.fCol = new Float32Array(N * 3); st.fRot = new Float32Array(N * 3);
+    var aPos = new T.InstancedBufferAttribute(st.fPos, 3), aCol = new T.InstancedBufferAttribute(st.fCol, 3);
     var fg = new T.BufferGeometry();
     fg.setAttribute('position', new T.BufferAttribute(st.fPos, 3)); fg.setAttribute('aA', new T.BufferAttribute(st.fA, 2)); fg.setAttribute('aCol', new T.BufferAttribute(st.fCol, 3));
     st.flyU = { uPx: { value: 800 } };
     st.flies = new T.Points(fg, new T.ShaderMaterial({ uniforms: st.flyU, transparent: true, depthWrite: false, blending: T.AdditiveBlending,
       vertexShader: 'attribute vec2 aA; attribute vec3 aCol; uniform float uPx; varying float vA; varying vec3 vCol;' +
         'void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); vA = aA.x; vCol = aCol; gl_PointSize = clamp(aA.y * uPx / max(-mv.z, 0.1), 2.0, 64.0); gl_Position = projectionMatrix * mv; }',
-      fragmentShader: 'varying float vA; varying vec3 vCol; void main(){ float d = length(gl_PointCoord - 0.5) * 2.0; float a = 1.0 - smoothstep(0.0, 1.0, d); gl_FragColor = vec4(mix(vCol, vec3(1.0), smoothstep(0.35, 0.0, d) * 0.7), a * a * vA); }' }));
+      fragmentShader: 'varying float vA; varying vec3 vCol; void main(){ float d = length(gl_PointCoord - 0.5) * 2.0; float a = 1.0 - smoothstep(0.0, 1.0, d); gl_FragColor = vec4(mix(vCol, vec3(1.0), smoothstep(0.4, 0.0, d) * 0.75), a * a * vA); }' }));
     st.flies.frustumCulled = false; st.flies.renderOrder = 3; g.add(st.flies);
-    // The paper boat: a folded hull and a peak, cream paper lit from inside, on a little cloud, with a glowing wake.
+    var bp = [], bpart = [];
+    function addPart(geo, sx, sy, sz, id) {
+      var src = geo.index ? geo.toNonIndexed() : geo, pa = src.attributes.position;
+      for (var q = 0; q < pa.count; q++) { bp.push(pa.getX(q) * sx, pa.getY(q) * sy, pa.getZ(q) * sz); bpart.push(id); }
+    }
+    var wingGeo = new T.SphereGeometry(0.13, 6, 4);
+    addPart(gemGeo, 1, 1, 1, 0); addPart(wingGeo, 1.5, 0.22, 1, -1); addPart(wingGeo, 1.5, 0.22, 1, 1);
+    var bg = new T.InstancedBufferGeometry();
+    bg.setAttribute('position', new T.Float32BufferAttribute(bp, 3)); bg.setAttribute('aPart', new T.Float32BufferAttribute(bpart, 1));
+    bg.setAttribute('aPos', aPos); bg.setAttribute('aCol', aCol); bg.setAttribute('aRot', new T.InstancedBufferAttribute(st.fRot, 3));
+    bg.instanceCount = N;
+    st.bodies = new T.Mesh(bg, new T.ShaderMaterial({
+      vertexShader: 'attribute float aPart; attribute vec3 aPos; attribute vec3 aCol; attribute vec3 aRot; varying vec3 vCol;' +
+        'void main(){ vec3 p = position; float f = aRot.y * aPart; float c = cos(f), s = sin(f); p = vec3(p.x * c - p.y * s, p.x * s + p.y * c, p.z); p.x += 0.26 * aPart;' +
+        ' c = cos(aRot.x); s = sin(aRot.x); p = vec3(p.x * c + p.z * s, p.y, p.z * c - p.x * s) * aRot.z;' +
+        ' vCol = mix(aCol, vec3(1.0), 0.18 + 0.3 * clamp(position.y / 0.17, -0.4, 1.0) * (1.0 - abs(aPart)));' +
+        ' gl_Position = projectionMatrix * modelViewMatrix * vec4(aPos + p, 1.0); }',
+      fragmentShader: 'varying vec3 vCol; void main(){ gl_FragColor = vec4(vCol, 1.0); }' }));
+    st.bodies.frustumCulled = false; st.bodies.l3cs = true; g.add(st.bodies);
+    // The paper boat: the game's folded hull (one flat shade per face), lit from inside, on a little cloud.
+    var bL = 0.66, bW = 0.32, B = [bL, 0.2, 0], S2 = [-bL, 0.2, 0], KF = [0.26, -0.12, 0], KB = [-0.26, -0.12, 0], A = [0, 0.05, bW], C = [0, 0.05, -bW], F = [0.24, 0.05, 0], G = [-0.24, 0.05, 0], P = [0, 0.44, 0];
+    var faces = [[B, A, KF, 0xfff4dd], [A, KB, KF, 0xf4e6c9], [S2, KB, A, 0xfff4dd], [B, KF, C, 0xe6d6b6], [C, KF, KB, 0xdccaa8], [S2, C, KB, 0xe6d6b6],
+      [B, F, A, 0xfffaf0], [B, C, F, 0xeadbbd], [S2, A, G, 0xfffaf0], [S2, G, C, 0xeadbbd], [P, A, F, 0xffffff], [P, G, A, 0xf8ecd4], [P, F, C, 0xeee0c4], [P, C, G, 0xe2d2b2]];
+    var hp = [], hc = [];
+    for (i = 0; i < faces.length; i++) { tmpB.setHex(faces[i][3]); for (k = 0; k < 3; k++) { hp.push(faces[i][k][0], faces[i][k][1], faces[i][k][2]); hc.push(tmpB.r, tmpB.g, tmpB.b); } }
     var hull = new T.BufferGeometry();
-    hull.setAttribute('position', new T.Float32BufferAttribute([0, 0.02, 0.62, -0.24, 0.24, 0, 0.24, 0.24, 0, 0, 0.02, -0.62, 0, -0.06, 0, 0, 0.5, 0, -0.1, 0.2, 0.2, 0.1, 0.2, 0.2, -0.1, 0.2, -0.2, 0.1, 0.2, -0.2], 3));
-    hull.setIndex([0, 1, 4, 0, 4, 2, 3, 4, 1, 3, 2, 4, 0, 2, 1, 3, 1, 2, 5, 6, 7, 5, 9, 8, 5, 8, 6, 5, 7, 9]);
-    st.boatMat = new T.MeshBasicMaterial({ color: 0xfff1d6, transparent: true, opacity: 0, side: T.DoubleSide, fog: false });
-    st.boatShade = new T.MeshBasicMaterial({ color: 0xe8c9a0, transparent: true, opacity: 0, side: T.DoubleSide, fog: false });
-    st.boat = new T.Group(); st.boat.rotation.order = 'YXZ'; st.boat.scale.set(1.5, 1.5, 1.5);
-    part(hull, st.boatMat, st.boat).l3cs = true;
-    var fold = new T.BufferGeometry(); fold.setAttribute('position', new T.Float32BufferAttribute([0, 0.5, 0, 0, 0.2, 0.2, 0, 0.2, -0.2], 3));
-    part(fold, st.boatShade, st.boat).l3cs = true;
-    st.boatGlow = sprite(H.glowTex, WARM, true); st.boatGlow.position.y = 0.3; st.boatGlow.scale.set(2.2, 2.2, 1); st.boat.add(st.boatGlow);
-    st.boatPuff = sprite(H.glowTex, 0xdfe6ff, false); st.boatPuff.position.y = -0.12; st.boatPuff.scale.set(1.9, 0.7, 1); st.boat.add(st.boatPuff);
+    hull.setAttribute('position', new T.Float32BufferAttribute(hp, 3)); hull.setAttribute('color', new T.Float32BufferAttribute(hc, 3));
+    st.boatMat = new T.MeshBasicMaterial({ color: 0xffffff, vertexColors: true, transparent: true, opacity: 0, side: T.DoubleSide, fog: false });
+    st.boat = new T.Group(); st.boat.scale.set(BOAT_SCALE, BOAT_SCALE, BOAT_SCALE);
+    st.boatBody = part(hull, st.boatMat, st.boat); st.boatBody.l3cs = true;
+    st.boatGlow = sprite(H.glowTex, 0xffd9a0, true); st.boatGlow.position.y = 0.22; st.boatGlow.scale.set(2.3, 2.3, 1); st.boat.add(st.boatGlow);
+    st.boatLamp = sprite(H.glowTex, 0xfff4cc, true); st.boatLamp.position.y = 0.48; st.boatLamp.scale.set(0.42, 0.42, 1); st.boat.add(st.boatLamp);
+    st.puffs = [];
+    var pd = [[-0.34, 0.8], [0.3, 0.72], [0, 1.05]];
+    for (i = 0; i < 3; i++) { var pf = sprite(H.glowTex, 0xe6ecff, false); pf.position.set(pd[i][0], -0.2, 0); st.boat.add(pf); st.puffs.push(pf); }
     st.boat.visible = false; g.add(st.boat);
+    /* The wake: one ribbon laid along where the boat has been (rebuilt in place each frame from wakeAt), widening and
+     * fading with age, broken up like a dry brush stroke; plus a few glints that stay where they were dropped. */
+    var wn = WAKE_SEG + 1, wuv = new Float32Array(wn * 4), widx = [];
+    st.wPos = new Float32Array(wn * 6);
+    for (i = 0; i < wn; i++) { wuv[i * 4] = i / WAKE_SEG; wuv[i * 4 + 1] = -1; wuv[i * 4 + 2] = i / WAKE_SEG; wuv[i * 4 + 3] = 1; if (i < WAKE_SEG) widx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2); }
+    var wg = new T.BufferGeometry();
+    wg.setAttribute('position', new T.BufferAttribute(st.wPos, 3)); wg.setAttribute('aUv', new T.BufferAttribute(wuv, 2)); wg.setIndex(widx);
+    st.wakeU = { uTime: { value: 0 }, uAlpha: { value: 0 }, uStart: { value: 0 } };
+    st.wakeMesh = new T.Mesh(wg, new T.ShaderMaterial({ uniforms: st.wakeU, transparent: true, depthWrite: false, side: T.DoubleSide,
+      vertexShader: 'attribute vec2 aUv; varying vec2 vUv; void main(){ vUv = aUv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: 'uniform float uTime; uniform float uAlpha; uniform float uStart; varying vec2 vUv;' + NOISE_GLSL +
+        'void main(){ float a = vUv.x, v = abs(vUv.y); float fade = (1.0 - a) * (1.0 - a) * smoothstep(0.0, 0.04, a) * (1.0 - smoothstep(uStart - 0.2, uStart, a));' +
+        ' float prof = pow(1.0 - v, 1.4) * 0.7 + smoothstep(0.4, 0.7, v) * (1.0 - smoothstep(0.78, 1.0, v)) * 0.55 * (0.3 + a);' +
+        ' float n = noise(vec2(a * 16.0 - uTime * 0.35, vUv.y * 2.4 + 3.0)); float brush = 0.55 + 0.45 * smoothstep(0.25, 0.7, n);' +
+        ' vec3 col = mix(vec3(1.0, 0.8, 0.46), vec3(1.0, 0.9, 0.74), smoothstep(0.0, 0.8, a));' +
+        ' gl_FragColor = vec4(col, uAlpha * fade * prof * brush * (1.0 - smoothstep(0.88, 1.0, v))); }' }));
+    st.wakeMesh.frustumCulled = false; st.wakeMesh.l3cs = true; st.wakeMesh.renderOrder = 2; g.add(st.wakeMesh);
     st.wake = [];
-    for (i = 0; i < WAKE; i++) { var ws = sprite(H.glowTex, 0xffe2a8, true); g.add(ws); st.wake.push(ws); }
+    for (i = 0; i < GLINTS; i++) { var ws = sprite(H.glowTex, 0xffe6b8, true); g.add(ws); st.wake.push(ws); }
     st.canvas = doc.querySelector('canvas');
     // The game's own sky and lights: borrowed while staged, handed back untouched.
     for (i = 0; i < H.scene.children.length; i++) {
@@ -409,35 +501,52 @@
     // Other levels' catchable butterflies (preview on level 1) keep their own state; they are only kept out of the picture.
     var wild = root.__bf && root.__bf.butterflies ? root.__bf.butterflies : [];
     for (i = 0; i < wild.length; i++) if (wild[i].g) hide(wild[i].g);
-    // Lamps
+    // Lamps: a warm core, a tight halo and a wide soft one, a pool of light on the grass.
     for (i = 0; i < 3; i++) {
-      var L = st.lamps[i], gl = f.lamps[i], hs = 1.6 + 1.5 * gl;
+      var L = st.lamps[i], gl = f.lamps[i], hs = 1.5 + 1.3 * gl, cs2 = 1 + 0.35 * gl;
       L.core.material.color.copy(st.dim).lerp(st.warm, clamp((gl - 0.3) / 0.6, 0, 1));
-      L.halo.material.opacity = 0.2 + 0.7 * gl; L.halo.scale.set(hs, hs, 1);
-      L.pool.material.opacity = 0.55 * gl;
+      L.core.scale.set(cs2, cs2, cs2); L.core.rotation.y = t * 0.5 + i;
+      L.halo.material.opacity = 0.14 + 0.72 * gl; L.halo.scale.set(hs, hs, 1);
+      L.aura.material.opacity = 0.34 * clamp((gl - 0.3) / 0.7, 0, 1); L.aura.scale.set(2.6 + 2.6 * gl, 2.6 + 2.6 * gl, 1);
+      L.pool.material.opacity = 0.5 * gl;
       st.grassU.uLamps.value[i].z = gl;
     }
+    st.gold.emissiveIntensity = clamp((f.lamps[1] - 0.3) / 0.7, 0, 1);
     // Fireflies
-    var P = st.fPos, A = st.fA, b = st.pose;
+    var P = st.fPos, A = st.fA, R = st.fRot, b = st.pose;
     for (i = 0; i < N; i++) {
       flyAt(i, t, b);
       P[i * 3] = b.x; P[i * 3 + 1] = top + b.y; P[i * 3 + 2] = b.z;
-      A[i * 2] = b.alpha * lerp(1, b.twinkle, b.star); A[i * 2 + 1] = b.size;
+      A[i * 2] = b.alpha * b.twinkle; A[i * 2 + 1] = b.size;
+      R[i * 3] = b.yaw; R[i * 3 + 1] = b.flap; R[i * 3 + 2] = 0.8 * b.body * b.alpha;
     }
     st.flies.geometry.attributes.position.needsUpdate = true; st.flies.geometry.attributes.aA.needsUpdate = true;
+    st.bodies.geometry.attributes.aPos.needsUpdate = true; st.bodies.geometry.attributes.aRot.needsUpdate = true;
     if (st.canvas) st.flyU.uPx.value = st.canvas.height / (2 * Math.tan(cam.fov * Math.PI / 360));
     // Boat and wake
-    var bo = f.boat;
-    st.boat.visible = bo.alpha > 0.01;
-    st.boat.position.set(bo.x, top + bo.y, bo.z); st.boat.rotation.set(0, bo.yaw, bo.roll);
-    st.boatMat.opacity = st.boatShade.opacity = bo.alpha; st.boatGlow.material.opacity = 0.75 * bo.glow; st.boatPuff.material.opacity = 0.5 * bo.alpha;
-    for (i = 0; i < WAKE; i++) {
-      var ws = st.wake[i], s0 = bo.s - (i + 1) * WAKE_GAP, fade = 1 - i / WAKE, sz = 0.5 + 0.9 * (i / WAKE);
-      ws.visible = s0 > 0 && bo.alpha > 0.01;
+    var bo = f.boat, on = bo.alpha > 0.01, W = st.wPos;
+    st.boat.visible = on; st.wakeMesh.visible = on;
+    st.boat.position.set(bo.x, top + bo.y, bo.z); st.boat.rotation.y = bo.yaw;
+    st.boatBody.rotation.set(bo.roll, 0, bo.pitch);
+    st.boatMat.opacity = bo.alpha; st.boatGlow.material.opacity = 0.8 * bo.glow; st.boatLamp.material.opacity = bo.glow;
+    for (i = 0; i < 3; i++) { var ps = (i === 2 ? 1.05 : 0.76) + 0.08 * Math.sin(t * 0.9 + i * 2); st.puffs[i].scale.set(ps, ps * 0.62, 1); st.puffs[i].material.opacity = 0.34 * bo.alpha; }
+    if (on) {
+      for (i = 0; i <= WAKE_SEG; i++) {
+        wakeAt(t, i / WAKE_SEG * WAKE_AGE, sA);
+        var tl = Math.sqrt(sA.tx * sA.tx + sA.tz * sA.tz) || 1, nx = -sA.tz / tl * sA.half, nz = sA.tx / tl * sA.half;
+        W[i * 6] = sA.x - nx; W[i * 6 + 1] = top + sA.y; W[i * 6 + 2] = sA.z - nz; W[i * 6 + 3] = sA.x + nx; W[i * 6 + 4] = top + sA.y; W[i * 6 + 5] = sA.z + nz;
+      }
+      st.wakeMesh.geometry.attributes.position.needsUpdate = true;
+      st.wakeU.uTime.value = t; st.wakeU.uAlpha.value = 0.95 * bo.alpha; st.wakeU.uStart.value = clamp((t - BOAT_T0) / WAKE_AGE, 0, 1) + 0.2;
+    }
+    for (i = 0; i < GLINTS; i++) {
+      var ws = st.wake[i], age = (t + i * WAKE_AGE / GLINTS) % WAKE_AGE, side = (hsh(i, 21) - 0.5) * 1.4;
+      wakeAt(t, age, sA);
+      ws.visible = on && sA.alpha > 0.01;
       if (!ws.visible) continue;
-      boatPath(s0, sA);
-      ws.position.set(sA.x, top + sA.y - 0.05, sA.z); ws.scale.set(sz, sz * 0.6, 1);
-      ws.material.opacity = 0.55 * bo.alpha * fade * fade * (0.8 + 0.2 * Math.sin(t * 2.3 - i));
+      var tl2 = Math.sqrt(sA.tx * sA.tx + sA.tz * sA.tz) || 1, gs = 0.4 + 0.4 * sA.age;
+      ws.position.set(sA.x - sA.tz / tl2 * sA.half * side, top + sA.y + 0.04, sA.z + sA.tx / tl2 * sA.half * side); ws.scale.set(gs, gs, 1);
+      ws.material.opacity = 0.8 * bo.alpha * sA.alpha * (0.6 + 0.4 * Math.sin(t * 3.1 + i * 2.3));
     }
     // Camera: overrides the gameplay orbit for this frame only; the game takes it back when we stop.
     var c = f.camera, halfH = Math.tan(cam.fov * Math.PI / 360), halfW = halfH * cam.aspect;
@@ -673,9 +782,19 @@
     beats: function () { return BEATS.map(function (b) { return { id: b.id, t0: b.t0, t1: b.t1, caption: b.caption }; }); },
     frame: function (t) { return frame(t === undefined ? time() : clamp(+t || 0, 0, DURATION)); },
     text: function () { return { title: TITLE, subtitle: SUBTITLE, cont: CONTINUE, skip: SKIP }; },
-    layout: function () { return { lamps: LAMPS, count: N, kinds: KINDS.map(function (k) { return k[0]; }), boat: BOAT }; },
+    layout: function () { return { lamps: LAMPS, lampY: LAMP_Y, count: N, kinds: KINDS.map(function (k) { return k[0]; }), boat: BOAT, boatT0: BOAT_T0, wakeAge: WAKE_AGE, release: REL, releaseStep: REL_STEP, climb: CLIMB }; },
     // Pose of one firefly at t (the stage uses exactly this), and the colours the cast wears for a given catch.
     fly: function (j, t) { return flyAt(clamp(j | 0, 0, N - 1), +t || 0, {}); },
+    boat: function (t) { return boatAt(+t || 0, {}); },
+    wake: function (t, age) { return wakeAt(+t || 0, +age || 0, {}); },
+    // What is actually on stage this frame (island-local; y above the grass): for the seek/determinism checks.
+    probe: function () {
+      if (!st || !staged) return null;
+      var out = { flies: [], bodies: [], boat: [st.boat.position.x, st.boat.position.y - H.TOP_Y, st.boat.position.z, st.boat.rotation.y], wake: [] }, i;
+      for (i = 0; i < N; i++) { out.flies.push([st.fPos[i * 3], st.fPos[i * 3 + 1] - H.TOP_Y, st.fPos[i * 3 + 2], st.fA[i * 2]]); out.bodies.push(st.fRot[i * 3 + 2]); }
+      if (st.wakeMesh.visible) for (i = 0; i < st.wPos.length; i += 6) out.wake.push([st.wPos[i], st.wPos[i + 2]]); // the ribbon's left edge
+      return out;
+    },
     castFor: castFor,
     muted: function () { return muted; },
     scored: function () { return scored; },

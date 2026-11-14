@@ -55,17 +55,40 @@ for (let t = 0.05; t <= D; t += 0.05) {
 assert(f1.lamps.every(g => g < 0.36), 'dim at dusk');
 const at13 = cs.frame(13).lamps; assert(at13[0] > 0.6 && at13[2] < 0.36, 'one by one');
 for (const t of marks.filter(t => t >= 20)) assert(cs.frame(t).lamps.every(g => g > 0.85 && g <= 1.001), 'all three warm after the lamps beat');
-// Fireflies: hidden until released, out of the lamps, up into the sky, where they settle as stars.
+// Fireflies: out over the meadow at dusk (curl drift, blinking), gathered round their lamp, released lamp by lamp,
+// up in a spiral and away into the sky, where they settle as twinkling stars. Never in the ground, never teleporting.
 assert.equal(lay.count, 24); assert.equal(lay.lamps.length, 3); assert.equal(lay.kinds.length, 6);
-assert(cs.frame(19).flies.every(f => f.alpha === 0), 'none before the beat');
+assert(cs.frame(2).flies.every(f => f.alpha === 0), 'none before dusk settles');
+assert(cs.frame(10.5).flies.every(f => f.alpha === 1 && f.body === 1 && f.star === 0), 'all out by the lamps beat');
+const rels = [];
 for (let j = 0; j < lay.count; j++) {
-  const a = cs.fly(j, 20.5 + j * 0.33 + 0.9), L = lay.lamps[j % 3];
-  assert(a.alpha > 0.99 && Math.hypot(a.x - L[0], a.z - L[1]) < 1.6 && a.y < 1.6, 'firefly ' + j + ' leaves its lamp');
-  const z = cs.fly(j, 42); assert(z.y > 7 && z.star === 1 && z.alpha === 1 && z.size < a.size, 'firefly ' + j + ' ends as a star');
+  const L = lay.lamps[j % 3], home = cs.fly(j, 9), rel = home.rel; rels.push(rel);
+  assert(rel >= lay.release && rel <= lay.release + lay.count * lay.releaseStep);
+  assert(Math.hypot(home.x, home.z) < 5 && home.y > 0.5 && home.y < 2.2, 'firefly ' + j + ' drifts over the meadow');
+  // drifting, not parked: it moves between two moments, and blinks
+  const later = cs.fly(j, 10.2); assert(Math.hypot(later.x - home.x, later.y - home.y, later.z - home.z) > 0.03, 'firefly ' + j + ' drifts');
+  let lo = 1, hi = 0; for (let t = 5; t < 12; t += 0.1) { const w = cs.fly(j, t).twinkle; lo = Math.min(lo, w); hi = Math.max(hi, w); }
+  assert(lo < 0.7 && hi > 0.9 && lo > 0.3, 'firefly ' + j + ' blinks softly');
+  const a = cs.fly(j, rel - 0.05), ring = Math.hypot(a.x - L[0], a.z - L[1]);
+  assert(a.alpha === 1 && ring > 0.4 && ring < 1.6 && a.y > lay.lampY - 0.2 && a.y < lay.lampY + 1.1 && a.body === 1, 'firefly ' + j + ' circles its lamp before release');
+  const mid = cs.fly(j, rel + lay.climb * 0.35); assert(mid.y > a.y + 1 && mid.y < 12 && mid.star === 0, 'firefly ' + j + ' spirals up first');
+  const z = cs.fly(j, 42), z2 = cs.fly(j, 49);
+  assert(z.y > 20 && z.z < -50 && z.star === 1 && z.alpha === 1 && z.body === 0, 'firefly ' + j + ' ends as a star');
+  assert(Math.hypot(z.x - z2.x, z.y - z2.y, z.z - z2.z) < 1e-9, 'a star stays put');
   assert.equal(JSON.stringify(cs.fly(j, 27.3)), JSON.stringify(cs.frame(27.3).flies[j]));
-  let p = cs.fly(j, 20);
-  for (let t = 20.05; t < 45; t += 0.05) { const q = cs.fly(j, t); assert(Math.hypot(q.x - p.x, q.y - p.y, q.z - p.z) < 0.25, 'firefly ' + j + ' never teleports'); p = q; }
+  let p = cs.fly(j, 2);
+  for (let t = 2.05; t < 45; t += 0.05) {
+    const q = cs.fly(j, t), step = Math.hypot(q.x - p.x, q.y - p.y, q.z - p.z);
+    assert(step < (q.star > 0 ? 1 : 0.2), 'firefly ' + j + ' never teleports (' + step.toFixed(2) + ' at ' + t.toFixed(2) + ')');
+    assert(q.y > 0.5, 'firefly ' + j + ' stays above the grass at ' + t.toFixed(2));
+    p = q;
+  }
 }
+assert.equal(new Set(rels).size, lay.count, 'released one at a time');
+assert(Math.max(...rels.filter((r, j) => j % 3 === 0)) < Math.min(...rels.filter((r, j) => j % 3 === 1)), 'lamp by lamp');
+// Determinism: asking in any order gives the same pose (no hidden state).
+const order = [33.3, 8.1, 21.7, 44, 15.2], seen = order.map(t => JSON.stringify(cs.frame(t).flies) + JSON.stringify(cs.boat(t)));
+order.slice().reverse().forEach((t, i) => assert.equal(JSON.stringify(cs.frame(t).flies) + JSON.stringify(cs.boat(t)), seen[order.length - 1 - i]));
 // The cast wears the player's colours in proportion; an empty catch shows all six.
 assert.deepEqual([...new Set(cs.castFor(null))].sort(), lay.kinds.slice().sort());
 assert.deepEqual([...new Set(cs.castFor({}))].sort(), lay.kinds.slice().sort());
@@ -74,12 +97,29 @@ assert.equal(cast.length, 24); assert.deepEqual([...new Set(cast)].sort(), ['dew
 const count = id => cast.filter(c => c === id).length;
 assert(count('dew') > count('tide') && count('tide') > count('moon') && count('moon') >= 1);
 assert.equal(cs.castFor({ amber: 2 }).every(c => c === 'amber'), true);
-// The boat: unseen before its beat, then sails away from the island without a jump, glowing.
+// The boat: unseen before its beat; then round the front of the island on the cloud sea (never over the grass),
+// and away behind it towards the moon, without a jump, bobbing and rolling gently, its light on.
 assert.equal(cs.frame(29).boat.alpha, 0);
 const b33 = cs.frame(33).boat, b49 = cs.frame(49.9).boat;
-assert(b33.alpha === 1 && b33.glow > 0.6 && Math.hypot(b49.x - b33.x, b49.z - b33.z) > 8 && b49.z < -5 && b49.y > b33.y, 'sails out towards the moon');
-let pb = cs.frame(30).boat;
-for (let t = 30.05; t <= D; t += 0.05) { const q = cs.frame(t).boat; assert(Math.hypot(q.x - pb.x, q.y - pb.y, q.z - pb.z) < 0.12, 'boat is continuous at ' + t.toFixed(2)); pb = q; }
+assert(b33.alpha === 1 && b33.glow > 0.6 && b33.z > 5 && b49.z < -8 && Math.hypot(b49.x - b33.x, b49.z - b33.z) > 15, 'sails round and out towards the moon');
+let pb = cs.frame(30).boat, rollLo = 0, rollHi = 0;
+for (let t = 30.05; t <= D; t += 0.05) {
+  const q = cs.frame(t).boat;
+  assert(Math.hypot(q.x - pb.x, q.y - pb.y, q.z - pb.z) < 0.25, 'boat is continuous at ' + t.toFixed(2));
+  assert(Math.abs(q.yaw - pb.yaw) < 0.05, 'boat turns smoothly at ' + t.toFixed(2));
+  assert(Math.hypot(q.x, q.z) > 6.6, 'boat keeps clear of the island at ' + t.toFixed(2));
+  assert(Math.abs(q.roll) <= 0.08 && Math.abs(q.pitch) <= 0.06 && q.y < 1, 'gentle bob and roll');
+  rollLo = Math.min(rollLo, q.roll); rollHi = Math.max(rollHi, q.roll); pb = q;
+}
+assert(rollLo < -0.05 && rollHi > 0.05, 'the boat rolls both ways');
+assert.equal(JSON.stringify(cs.boat(37.7)), JSON.stringify(cs.frame(37.7).boat));
+// The wake lies where the boat has been, widens and fades with age, and is gone before the boat set out.
+for (const t of [34, 39, 46]) {
+  const w0 = cs.wake(t, 0), w2 = cs.wake(t, 2), w5 = cs.wake(t, lay.wakeAge), was = cs.boat(t - 2), here = cs.boat(t);
+  assert(Math.hypot(w0.x - here.x, w0.z - here.z) < 1e-9 && Math.hypot(w2.x - was.x, w2.z - was.z) < 1e-9, 'wake follows the path');
+  assert(w0.alpha > w2.alpha && w2.alpha > 0 && w5.alpha === 0 && w0.half < w2.half && w2.half < w5.half, 'wake widens and fades');
+}
+assert.equal(cs.wake(31, 2).alpha, 0);
 
 // State machine on a fake clock: play -> skip -> guarded continue -> onContinue exactly once -> closed.
 assert.equal(cs.state(), 'idle'); assert.equal(cs.enabled(), true); assert.equal(cs.staged(), false); assert.equal(cs.busy(), false);
