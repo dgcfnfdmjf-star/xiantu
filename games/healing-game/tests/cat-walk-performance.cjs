@@ -87,6 +87,9 @@ async function frameScenes(browser, server, variant, layout) {
       GardenCatModels.pose = function (k, t, dt) {
         const wasMoving = k.moving;
         k.moving = __walkFrameMode === 'walk'; k.catWalkSpeed = .55; k.root.rotation.y = 0;
+        // Keep the paired rendering layout fixed while supplying a real-sized
+        // travel sample to the distance-driven mixer (not a gameplay benchmark).
+        if (k.moving) { k.catWalkX = k.x; k.catWalkZ = k.z - .55 * dt; }
         const value = pose.call(this, k, t, dt);
         k.moving = wasMoving; return value;
       };
@@ -97,6 +100,7 @@ async function frameScenes(browser, server, variant, layout) {
     for (const mode of ['idle', 'walk']) {
       await test.page.evaluate(mode => { window.__walkFrameMode = mode; }, mode);
       await test.page.waitForTimeout(1800);
+      if (mode === 'walk' && variant === 'walk') assert(await test.page.evaluate(() => __kittens.list.filter(k=>k.catModel).every(k=>k.catWalkActive)), 'benchmark renders the active Walk skin');
       const scene = await f.scene(test.page, 5000);
       scene.frameIntervalsMs = f.summarize(scene.frames.map(f => f.interval));
       scene.renderSubmitMs = f.summarize(scene.frames.map(f => f.draw));

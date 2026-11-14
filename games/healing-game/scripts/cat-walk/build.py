@@ -29,7 +29,7 @@ for kind in kinds:
             name = f'{kind}-cat.{suffix}'
             data = subprocess.check_output(['git', 'show', f'{BASELINE}:games/healing-game/assets/cats/{name}'], cwd=REPO)
             (baseline / name).write_bytes(data)
-    subprocess.run([args.blender, '-b', '-t', '3', '--python', str(ROOT / 'rig.py'), '--', '--kind', kind,
+    subprocess.run([args.blender, '-b', '-t', '3', '--python-exit-code', '1', '--python', str(ROOT / 'rig.py'), '--', '--kind', kind,
                     '--baseline-dir', str(baseline), '--output-dir', str(work)], check=True)
     current = work / f'{kind}-walk-raw.glb'
     for script, stage in [('repair_surfaces.py', 'surfaces'), ('flatten_bind.py', 'bind'),

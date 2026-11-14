@@ -864,14 +864,16 @@
   // Rear end of the spine, in Body-bone space (glTF axes: +Y up the seated back, +Z towards the chest). Blender rest
   // (0, 0.16, 0.10) minus the Body centre (0, 0.047, 0.235); the walking pelvis carries it to the top of the rump.
   var RUMP = null, PROC_RUMP = null, TAIL_Q = null;
-  /* Tail (Blender coats). The whole tail is skinned to the single TailRoot bone, whose rest sits where the seated
+  /* Tail (Blender coats). TailRoot's rest sits where the seated
    * sculpt's tail leaves the right haunch: 0.155 model units off the midline. Seated that is right (the tail lies along
    * the flank and round the paws, and the seated surface is drawn unskinned), but the Walk clip carries the same
    * offset onto the standing cat, so the tail stuck out of the side of the hip. While the walking surface is up the
    * bone is therefore re-seated every frame: root on the rump midline at the end of the spine (carried by the Body
    * bone), and the rigid curl turned into the sagittal plane so it leaves the rump backwards, rises and hooks at the
    * tip. TAIL_Q maps the rest curl (chord base->tip, bulge) onto chord = up, bulge = back; lean/sway/twist then
-   * rotate it about the root only - nothing translates the root off the body. */
+   * rotate it about the root only - nothing translates the root off the body.
+   * New Walk assets also have TailMid/Tip; carry their authored delayed bends
+   * through the same root relocation instead of leaving the tail behind. */
   function tailInit() {
     if (RUMP) return;
     RUMP = new T.Vector3(0, -0.135, -0.113); PROC_RUMP = new T.Vector3(0, 0.05, -0.272);
@@ -884,9 +886,17 @@
   // lean > 0 tips the raised tail back and down (a chase), yaw is the slow side-to-side sway, twist rolls the hook.
   function rigTail(rig, lean, yaw, twist) {
     var B = rig.by.Body.bone, Tr = rig.by.TailRoot;
+    rv2.copy(Tr.bone.position); rq2.copy(Tr.bone.quaternion).invert();
     rv.copy(RUMP).multiply(B.scale).applyQuaternion(B.quaternion).add(B.position);
     Tr.bone.position.copy(rv);
     Tr.bone.quaternion.setFromEuler(re.set(-lean, yaw, twist, 'YXZ')).multiply(TAIL_Q).multiply(Tr.q);
+    rq2.premultiply(Tr.bone.quaternion);
+    ['TailMid', 'TailTip'].forEach(function (name) {
+      var joint = rig.by[name];
+      if (!joint) return; // original single-bone coats remain supported
+      joint.bone.position.sub(rv2).applyQuaternion(rq2).add(Tr.bone.position);
+      joint.bone.quaternion.premultiply(rq2);
+    });
   }
   /* Tail (procedural white / glow, and any coat whose GLB failed): the game's tail is one straight cylinder, so the
    * stage actor gets its own short chain instead - TAIL_N tapered links between joints that are placed each frame

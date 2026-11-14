@@ -24,6 +24,7 @@ for comment, source in [('private mode / quota: ignore', 'garden'), ('ignore', '
   }''' % comment
     new = '''  var saveTimer = null, saveDirty = false;
   function flushSave() {
+    if (window.GardenReset && window.GardenReset.pending()) return;
     if (!saveDirty) return;
     clearTimeout(saveTimer); saveTimer = null;
     try { window.localStorage.setItem(SAVE_KEY, JSON.stringify(S)); saveDirty = false; if (window.GardenJourney) window.GardenJourney.saveOk('__SOURCE__'); } catch (e) {
@@ -54,6 +55,7 @@ replace('''  function store(k, v) {
     Object.keys(pendingKitWrites).forEach(function (key) { store(key, pendingKitWrites[key]); });
   }
   function store(k, v) {
+    if (v !== undefined && window.GardenReset && window.GardenReset.pending()) return null;
     if (v !== undefined) pendingKitWrites[k] = v;
     try {
       if (v === undefined) return Object.prototype.hasOwnProperty.call(pendingKitWrites, k) ? pendingKitWrites[k] : window.localStorage.getItem(k);
@@ -219,10 +221,11 @@ exec((ROOT / 'scripts/butterfly-v94.py').read_text())
 exec((ROOT / 'scripts/cats-v95.py').read_text())
 # Pin the loader locally and keep the model adapter ready before kitten init.
 replace('<script>/* kittens.js', '<script>\n' + '\n'.join((ROOT / path).read_text() for path in ['assets/cats/vendor/three-r128/GLTFLoader.js', 'assets/cats/vendor/meshoptimizer-1.3.0/meshopt_decoder.cjs', 'assets/cats/cat-geometry.js']) + '\n</script>\n<script>\n' + (ROOT / 'src/cat-models.js').read_text() + '\n</script>\n<script>/* kittens.js')
-replace("<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps", '<style>\n' + (ROOT / 'src/journey.css').read_text() + '\n' + (ROOT / 'src/chime-chapter.css').read_text() + '\n' + (ROOT / 'src/lotus-chapter.css').read_text() + '\n</style>\n<script>\n' + '\n</script>\n<script>\n'.join('\n'.join((ROOT / ('src/' + part + '.js')).read_text() for part in name.split('+')) for name in ['clipping', 'chime-rules', 'lotus-rules', 'save-guard+journey', 'level3plus', 'level3fx', 'voyage', 'chime-chapter', 'lotus-chapter', 'music-lush']) + "\n</script>\n<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps")
+replace("<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps", '<style>\n' + (ROOT / 'src/journey.css').read_text() + '\n' + (ROOT / 'src/chime-chapter.css').read_text() + '\n' + (ROOT / 'src/lotus-chapter.css').read_text() + '\n</style>\n<script>\n' + '\n</script>\n<script>\n'.join('\n'.join((ROOT / ('src/' + part + '.js')).read_text() for part in name.split('+')) for name in ['clipping', 'chime-rules', 'lotus-rules', 'garden-reset+save-guard+journey', 'level3plus', 'level3fx', 'voyage', 'chime-chapter', 'lotus-chapter', 'music-lush']) + "\n</script>\n<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps")
 # The V9.5 package is frozen here: later hooks reach only the working site, never the released ZIP.
 release_html = html
 exec((ROOT / 'scripts/l2-cutscene-v96.py').read_text())
+exec((ROOT / 'scripts/l1-cutscene-v96.py').read_text())
 baseline = ROOT / 'site/healing-game-v9.5-baseline/index.html'
 baseline.parent.mkdir(parents=True, exist_ok=True)
 baseline.write_text(release_html)

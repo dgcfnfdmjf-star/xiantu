@@ -265,10 +265,12 @@ check('gameplay numbers unchanged', () => {
   assert(head.includes('var RARE_CHANCE = 0.08;'));
   assert(head.includes("value: 3, rare: true }"));
   // Outside the cutscene block and its two hooks the working site equals the release HTML.
-  const strip = text => text.split('\n').filter(line => !/__l2Cutscene|__l2Stage|showCard|garden-working/.test(line)).join('\n');
+  // (The level-1 cutscene adds its own block and hooks after the same freeze point; they are stripped the same way.)
+  const strip = text => text.split('\n').filter(line => !/__l2Cutscene|__l2Stage|__l1Cutscene|showCard|garden-working/.test(line)).join('\n');
   const score = fs.readFileSync(path.join(ROOT, 'src/l2-cutscene-music.js'), 'utf8');
-  const without = site.replace('<script>\n' + source + '\n</script>\n', '').replace('<script>\n' + score + '\n</script>\n', '');
-  const base = release.split('\n').filter(line => !line.includes("$('kitEnding').classList.remove('hidden'); }, 7000);")).join('\n');
+  const l1 = ['src/l1-cutscene.js', 'src/l1-cutscene-music.js'].filter(f => fs.existsSync(path.join(ROOT, f))).map(f => fs.readFileSync(path.join(ROOT, f), 'utf8'));
+  const without = l1.reduce((text, block) => text.replace('<script>\n' + block + '\n</script>\n', ''), site.replace('<script>\n' + source + '\n</script>\n', '').replace('<script>\n' + score + '\n</script>\n', ''));
+  const base = release.split('\n').filter(line => !/\$\('(kit|bf)Ending'\)\.classList\.remove\('hidden'\); \}, (7000|5200)\);/.test(line)).join('\n');
   assert.strictEqual(strip(without), base);
 });
 
