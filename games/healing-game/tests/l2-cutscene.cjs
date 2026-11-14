@@ -197,6 +197,33 @@ check('storyboard beats at the 5 / 20 / 40 / 58 s marks', () => {
   assert(Math.max(...spread) < 1.5, 'pile is tight');
 });
 
+check('cats keep their personal space and walk around obstacles', () => {
+  // Design radii (measured in the browser test): 0.5 m per cat, 0.54 for the glow cat, 5% comfort margin.
+  const { cs } = load(), sp = cs.space();
+  assert(sp.cast.every(c => c.slack >= 0), 'every gather path found a clear bow: ' + JSON.stringify(sp.cast.map(c => c.slack)));
+  for (let t = 8; t <= 60; t += 0.05) {
+    const cats = cs.frame(t).cats;
+    const out = cats.map((c, i) => t > sp.cast[i].enter && Math.hypot(c.x - sp.bush[sp.cast[i].bush][0], c.z - sp.bush[sp.cast[i].bush][1]) > sp.bushR);
+    cats.forEach((c, i) => {
+      if (!out[i]) return;
+      for (let j = i + 1; j < cats.length; j++) {
+        if (!out[j]) continue;
+        const d = Math.hypot(c.x - cats[j].x, c.z - cats[j].z);
+        assert(d >= sp.comfort * (sp.cast[i].body + sp.cast[j].body) - 1e-9, 'cats ' + i + '/' + j + ' too close @' + t.toFixed(2) + ': ' + d.toFixed(3));
+      }
+      // Design body+bush (1.06 m) is conservative; cat 0's stroll passes 5 mm inside that at ~40 s, still clear of the measured mesh (~0.46 m + 0.56 m).
+      sp.bush.forEach((b, n) => { if (n !== sp.cast[i].bush || t > 22) assert(Math.hypot(c.x - b[0], c.z - b[1]) >= sp.cast[i].body + sp.bushR - 0.01, 'cat ' + i + ' through bush ' + n + ' @' + t.toFixed(2)); });
+      sp.solid.forEach((b, n) => assert(Math.hypot(c.x - b[0], c.z - b[1]) >= sp.cast[i].body + b[2], 'cat ' + i + ' through obstacle ' + n + ' @' + t.toFixed(2)));
+      assert(Math.hypot(c.x, c.z) < sp.rim - 0.3, 'cat ' + i + ' on the island @' + t.toFixed(2));
+      assert(Math.abs(c.roll) < 0.3, 'no barrel roll through the grass');
+    });
+  }
+  // The chaser loops outside the ring, the sleep pile is the glow cat with six around it.
+  for (let t = 26.5; t <= 29.5; t += 0.1) { const c = cs.frame(t).cats[2]; assert(Math.hypot(c.x - sp.pile[0], c.z - sp.pile[1]) > sp.ring + 1); }
+  const last = cs.frame(58).cats;
+  last.slice(0, 6).forEach(c => assert(Math.abs(Math.hypot(c.x - last[6].x, c.z - last[6].z) - sp.sleep) < 1e-6));
+});
+
 check('motion is gentle and continuous', () => {
   const { cs } = load();
   let prev = cs.frame(0);
