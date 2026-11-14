@@ -47,7 +47,14 @@ Skip (`跳过`, `#l3csSkip`) jumps to the end card; the tap that skipped cannot 
     23-segment ribbon (warm gold to cream, normal blending, dry-brush noise, widening as √age and fading as (1-age)²
     over 5.5 s) and eight glints that stay where they were dropped.
   - `__l3Cutscene.fly(j,t)`, `.boat(t)`, `.wake(t,age)` give the model; `.probe()` gives what is on stage (tests compare them).
-- Music (item 3) will be `src/l3-cutscene-music.js` → `window.__l3Score` (`start/sync/settle/stop`).
+- Music: `src/l3-cutscene-music.js` → `window.__l3Score` (`start/sync/settle/stop/state/score/sparkles`), 「星灯摇篮曲」: an
+  original F-major lullaby in 6/8 (2 s a bar, 25 bars) on the music-lush voices (felt piano, harp, warm string pad), registered
+  as a GardenAudio track so the music switch / volume / reverb apply; the level theme (星灯夜曲) crossfades out (1.2 s) and
+  back in (3 s). Bars follow the beats: 0–10 s strings + slow harp rock, the motif hinted; 10–20 s the tune on solo piano,
+  one bell note per lamp (11.3 / 14.0 / 16.7 s); 20–32 s the lift — harp eighths, tune an octave up, a rising run of high
+  harp "celesta" sparkles while the fireflies are released; 32–44 s the tune in octaves over the fullest strings, top note at
+  40 s, dominant at 42 s; 44–50 s cadence on F under the title. seek → re-anchor on the film clock with a 0.25 s fade;
+  pause → fade and hold; skip → fade and play only the last three bars; `&mute=1` and the music switch keep it silent.
 
 ## Hook, switches, preview
 

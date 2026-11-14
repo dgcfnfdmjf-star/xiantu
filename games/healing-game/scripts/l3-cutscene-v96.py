@@ -24,3 +24,6 @@ replace("\n      group = new T.Group(); group.visible = false; H.island.add(grou
         "\n      group = new T.Group(); group.visible = false; H.island.add(group);\n      " + HIDE)
 # Loads after the level-1 cutscene and before kittens.js; it chains onto GardenPlay like the other modules.
 replace('<script>/* kittens.js', '<script>\n' + (ROOT / 'src/l3-cutscene.js').read_text() + '\n</script>\n<script>/* kittens.js')
+# The score needs the music-lush voices: it loads after them (and after the other two scores), before the main game script.
+MAIN = "<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps"
+replace(MAIN, '<script>\n' + (ROOT / 'src/l3-cutscene-music.js').read_text() + '\n</script>\n' + MAIN)

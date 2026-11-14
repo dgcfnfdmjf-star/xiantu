@@ -4,7 +4,10 @@
 //  A. ?l3cutscene=0 reference: third lamp -> finale -> #starEnding, no cutscene.
 //  B. real clear path: third lamp -> finale -> cutscene (gameplay frozen and hidden) -> skip -> guarded tap to continue ->
 //     #starEnding exactly once, same save as A, 留下来 closes it, wheel zoom works, everything hidden is back.
-//  C. ?cutscene=l3&mute=1 preview: plays at once, frames are seekable, captions fit one line at 360x780, no save writes.
+//     The score (星灯摇篮曲) starts with the film, takes the music bus, follows the film clock through seeks, settles on skip
+//     and hands the level theme back on close.
+//  D. music switch off: the film runs silent and leaves the switch and the track alone.
+//  C. ?cutscene=l3&mute=1 preview (never starts the score): plays at once, frames are seekable, captions fit one line at 360x780, no save writes.
 // Run after python3 games/healing-game/scripts/build.py:
 // PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/google-chrome node games/healing-game/tests/l3-cutscene-browser.cjs
 const assert = require('node:assert/strict');
@@ -55,6 +58,7 @@ const SAVES = {
   const clear = async page => {
     await page.locator('#start').click(); await page.waitForTimeout(1500);
     assert.equal(await page.evaluate(() => window.__journey.state().level), 3);
+    if (page.__beforeClear) await page.__beforeClear();
     await page.locator('#starLamp2').click();
     assert.equal(await page.evaluate(() => window.__level3.isRunning()), true, 'finale starts');
     await page.waitForTimeout(600);
@@ -83,6 +87,8 @@ const SAVES = {
       window.__shown = 0; const card = document.getElementById('starEnding');
       new MutationObserver(() => { if (!card.hidden) window.__shown++; }).observe(card, { attributes: true, attributeFilter: ['hidden'] });
     });
+    let themeBefore = '';
+    page.__beforeClear = async () => { themeBefore = await page.evaluate(() => GardenAudio.currentTrackName()); assert.equal(await page.evaluate(() => __l3Score.state().active), false, 'score idle before the clear'); };
     const visibleBefore = await page.evaluate(() => { let n = 0; window.GardenClip.world.scene.traverse(o => { if (o.visible) n++; }); return n; });
     await clear(page);
     await page.waitForFunction(() => window.__l3Cutscene.playing() && window.__l3Cutscene.staged(), null, { timeout: 8000 });
@@ -98,6 +104,33 @@ const SAVES = {
     const f0 = await frozen(); await page.waitForTimeout(700);
     assert.equal(await frozen(), f0, 'boat, beams and wisps hold still while staged');
     assert.equal(await page.evaluate(() => window.__l3Stage.groups().concat(window.__l3Hide, [window.GardenClip.boat]).some(g => g.visible)), false, 'gameplay wisps, lamps, beams and boat are off the set');
+    // The score starts with the film, owns the music bus and follows the film clock (also through seeks).
+    assert.equal(await page.evaluate(() => window.__l3Cutscene.scored()), true, 'score started with the cutscene');
+    await page.waitForTimeout(900);
+    let music = await page.evaluate(() => ({ s: __l3Score.state(), t: __l3Cutscene.time(), audio: GardenAudio.context().state, others: [__l1Score.state().active, __l2Score.state().active] }));
+    assert.equal(music.audio, 'running');
+    assert(music.s.active && music.s.current && music.s.musicOn && music.s.track === '星灯摇篮曲' && themeBefore && themeBefore !== '星灯摇篮曲', 'lullaby owns the music bus: ' + JSON.stringify([music.s, themeBefore]));
+    assert(music.s.steps > 0 && Math.abs(music.s.position - music.t) < 0.45, 'score follows the film clock: ' + JSON.stringify(music));
+    assert.deepEqual(music.others, [false, false], 'level-1 and level-2 scores untouched');
+    await page.evaluate(() => window.__l3Cutscene.seek(33.4));
+    let peakLive = 0;
+    await page.waitForTimeout(2500); // tails from before the seek ring out
+    for (let i = 0; i < 14; i++) { await page.waitForTimeout(250); peakLive = Math.max(peakLive, await page.evaluate(() => __musicLush.live())); }
+    music = await page.evaluate(() => ({ s: __l3Score.state(), t: __l3Cutscene.time() }));
+    assert(music.t > 36 && music.t < 43 && Math.abs(music.s.position - music.t) < 0.45 && music.s.lastStep >= 96, 'score jumped with seek: ' + JSON.stringify(music));
+    // felt/harp stop at 34 live sources; a string chord adds four sustained voices on top (same bound as levels 1 and 2).
+    assert(peakLive > 4 && peakLive <= 34 + 4, 'voice count in the swell: ' + peakLive);
+    report.peakLive = peakLive;
+    await page.evaluate(() => window.__l3Cutscene.seek(11));
+    await page.waitForTimeout(1200);
+    music = await page.evaluate(() => ({ s: __l3Score.state(), t: __l3Cutscene.time() }));
+    assert(Math.abs(music.s.position - music.t) < 0.45 && music.t < 14, 'score follows a backward seek: ' + JSON.stringify(music));
+    await page.evaluate(() => window.__l3Cutscene.pause()); await page.waitForTimeout(900);
+    const heldSteps = await page.evaluate(() => __l3Score.state().steps); await page.waitForTimeout(900);
+    assert.equal(await page.evaluate(() => __l3Score.state().steps), heldSteps, 'paused film, silent score');
+    await page.evaluate(() => window.__l3Cutscene.resume()); await page.waitForTimeout(900);
+    music = await page.evaluate(() => ({ s: __l3Score.state(), t: __l3Cutscene.time() }));
+    assert(music.s.steps > heldSteps && Math.abs(music.s.position - music.t) < 0.45, 'resumes on the film clock: ' + JSON.stringify(music));
     await page.mouse.click(195, 500); // a tap on the film neither catches nor continues
     assert.equal(await page.evaluate(() => window.__l3Cutscene.state()), 'playing');
     assert.equal(await page.locator('#l3csSkip').isVisible(), true);
@@ -109,12 +142,17 @@ const SAVES = {
     assert.equal(await page.locator('#l3csTitle').textContent(), '第三关 · 完成');
     assert.equal(await page.locator('#l3csSub').textContent(), '暮色浮岛');
     assert.equal(await page.evaluate(() => window.__l3Cutscene.proceed()), false, 'the skipping tap cannot also continue');
+    music = await page.evaluate(() => __l3Score.state());
+    assert(music.active && music.free, 'score settles into its cadence after skip');
     assert.equal(await cardShown(page), false);
     await page.waitForTimeout(750);
     await page.locator('#l3csGo').tap();
     await page.waitForFunction(() => !document.getElementById('starEnding').hidden);
     await page.waitForTimeout(500);
     assert.equal(await page.evaluate(() => window.__shown), 1, '#starEnding shown exactly once');
+    music = await page.evaluate(() => ({ s: __l3Score.state(), scored: __l3Cutscene.scored() }));
+    assert(!music.s.active && !music.scored && music.s.musicOn && music.s.track === themeBefore, 'level music returns: ' + JSON.stringify(music.s));
+    report.theme = themeBefore;
     assert.equal(await page.evaluate(() => window.__l3Cutscene.state()), 'closed');
     assert.equal(await page.evaluate(() => window.__l3Cutscene.staged()), false);
     assert.equal(await page.locator('#l3cs').isVisible(), false);
@@ -145,11 +183,31 @@ const SAVES = {
     await page.screenshot({ path: path.join(OUT, 'ingame-after.png') });
     await context.close();
 
+    /* ---- D: music switch off -> the film runs silent; the switch and the track are left as they were ---- */
+    ({ context, page } = await fresh());
+    await page.goto(url);
+    let quietTheme = '';
+    page.__beforeClear = async () => { quietTheme = await page.evaluate(() => { GardenAudio.setMusic(false); return GardenAudio.currentTrackName(); }); };
+    await clear(page);
+    await page.waitForFunction(() => window.__l3Cutscene.playing() && window.__l3Cutscene.staged(), null, { timeout: 8000 });
+    await page.waitForTimeout(2500);
+    let quiet = await page.evaluate(() => ({ s: __l3Score.state(), live: __musicLush.live() }));
+    assert(quiet.s.active && quiet.s.musicOn === false && quiet.s.steps === 0, 'music switch off: nothing is played: ' + JSON.stringify(quiet));
+    await page.evaluate(() => { window.__l3Cutscene.skip(); window.__l3Cutscene.proceed(true); });
+    quiet = await page.evaluate(() => ({ s: __l3Score.state(), cs: __l3Cutscene.state() }));
+    assert(quiet.cs === 'closed' && !quiet.s.active && quiet.s.musicOn === false && quiet.s.steps === 0 && quiet.s.track === quietTheme, 'closed with the film, switch still off: ' + JSON.stringify(quiet));
+    assert.equal(await cardShown(page), true, 'the card still follows a silent film');
+    await page.evaluate(() => GardenAudio.setMusic(true));
+    await page.waitForTimeout(1200);
+    assert.equal(await page.evaluate(() => GardenAudio.currentTrackName()), quietTheme, 'switching music back on plays the level theme');
+    await context.close();
+
     /* ---- C: preview gate, seekable frames, one-line captions at 360x780, no save writes ---- */
     ({ context, page } = await fresh({ width: 360, height: 780 }, {}));
     await page.goto(url + '?cutscene=l3&mute=1');
     await page.waitForFunction(() => window.__l3Cutscene.playing() && window.__l3Cutscene.staged(), null, { timeout: 15000 });
     const before = await page.evaluate(() => JSON.stringify(Object.keys(localStorage).sort().map(k => [k, localStorage.getItem(k)])));
+    assert.deepEqual(await page.evaluate(() => [__l3Cutscene.scored(), __l3Score.state().active]), [false, false], '&mute=1 never starts the score');
     assert.equal(await page.evaluate(() => window.__l3Cutscene.pause()), true);
     report.captions = [];
     for (const b of await page.evaluate(() => window.__l3Cutscene.beats())) {
