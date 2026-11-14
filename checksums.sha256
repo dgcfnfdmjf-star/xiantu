@@ -1392,7 +1392,7 @@ cb5bd7784bfa9a050951558274ef4d930221eede3b7d840408b97a5e0a93a7e1  games/healing-
 ff566590f97a6210e58a61655cc6df6094208da13678f6274c1f3c7be8b1578b  games/healing-game/src/save-guard.js
 84c1f29cc872cb7b268141814beaeff526924e8c3351e1c2bb4e6327dee5fa71  games/healing-game/src/voyage.js
 f0ba467cf7c3a2940f2a0decfb382c716ee6d50299d40ffb70e6f8d99d5f8cbc  games/healing-game/tests/cat-gait-browser.cjs
-672f74a7fc648465d8298ebe2b692d006450227e8416a5c56669ce72b3da9641  games/healing-game/tests/cat-models-browser.cjs
+195cf685da2d039ebe2a518763cee77450ff99875555821f5dda6af6e61239ff  games/healing-game/tests/cat-models-browser.cjs
 d0cfa5af4e937c2169662e34c0aab9c1e6a0b92de926271aba2114b274759e76  games/healing-game/tests/cat-models-fixture.cjs
 48283a7f837403f14af55a375383a4104ea80c3819dbb16bd56148833bef428d  games/healing-game/tests/cat-models-performance.cjs
 8546078766ad11f3e85c32af72ca04997d58008f3c929efa9c15467bb4b42787  games/healing-game/tests/cat-walk-browser.cjs
