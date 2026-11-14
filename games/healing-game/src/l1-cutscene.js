@@ -178,11 +178,24 @@
     { t: 50, x: -0.8, y: 4.4, z: -2.4, th: 1.44, phi: 1.54, w: 7.4, lift: 0.26 }
   ];
   var CAM_KEYS = ['x', 'y', 'z', 'th', 'phi', 'w', 'lift'];
+  // One continuous move: a cubic Hermite through the keys (C1, so the camera never stops and restarts at a key).
+  // Tangents are the slope across the neighbours, zero where a channel turns round and at both ends (no overshoot there).
+  function camSlope(i, key) {
+    if (i <= 0 || i >= CAM.length - 1) return 0;
+    var a = CAM[i - 1], b = CAM[i], c = CAM[i + 1], d0 = (b[key] - a[key]) / (b.t - a.t), d1 = (c[key] - b[key]) / (c.t - b.t);
+    if (d0 * d1 <= 0) return 0;
+    var m = (c[key] - a[key]) / (c.t - a.t), lim = 3 * Math.min(Math.abs(d0), Math.abs(d1));
+    return Math.abs(m) > lim ? (m < 0 ? -lim : lim) : m;
+  }
   function cameraAt(t) {
     var i = 0;
     while (i < CAM.length - 2 && t >= CAM[i + 1].t) i++;
-    var a = CAM[i], b = CAM[i + 1], u = ease(ramp(t, a.t, b.t)), out = {};
-    for (var k = 0; k < CAM_KEYS.length; k++) out[CAM_KEYS[k]] = lerp(a[CAM_KEYS[k]], b[CAM_KEYS[k]], u);
+    var a = CAM[i], b = CAM[i + 1], h = b.t - a.t, u = ramp(t, a.t, b.t), u2 = u * u, u3 = u2 * u, out = {};
+    var h00 = 2 * u3 - 3 * u2 + 1, h10 = u3 - 2 * u2 + u, h01 = 3 * u2 - 2 * u3, h11 = u3 - u2;
+    for (var k = 0; k < CAM_KEYS.length; k++) {
+      var key = CAM_KEYS[k];
+      out[key] = h00 * a[key] + h10 * h * camSlope(i, key) + h01 * b[key] + h11 * h * camSlope(i + 1, key);
+    }
     return out;
   }
   // Everything the renderer needs, derived from t alone.
@@ -259,17 +272,20 @@
         'void main(){ vec3 d = normalize(vDir); float h = d.y; float wash = fbm(d.xz * 2.2 + d.y * 3.0 + 3.1); float hh = h + (wash - 0.5) * 0.22;' +
         ' vec3 col = mix(uLow, uHor, smoothstep(-0.55, -0.03, hh)); col = mix(col, uMid, smoothstep(-0.06, 0.1, hh)); col = mix(col, uTop, smoothstep(0.08, 0.46, hh));' +
         ' col *= 0.94 + 0.12 * wash; float s = max(dot(d, uSun), 0.0);' +
-        ' col += uSunCol * (pow(s, 4.0) * 0.18 + pow(s, 48.0) * 0.22 + smoothstep(0.9986, 0.9992, s) * 0.9);' +
+        ' col += uSunCol * (pow(s, 4.0) * 0.18 + pow(s, 48.0) * 0.2 + pow(s, 420.0) * 0.12);' +
+        // The sun: a warm disc with a soft brushed edge (pale gold by day, deep apricot at sunset), not a white hole.
+        ' float disc = smoothstep(0.99855, 0.99925, s + (wash - 0.5) * 0.0002); vec3 sunPaint = mix(vec3(1.0, 0.985, 0.86), vec3(1.0, 0.95, 0.72), uRose);' +
+        ' col = mix(col, max(col, sunPaint) + vec3(0.05, 0.04, 0.0) * smoothstep(0.9992, 1.0, s), disc);' +
         // Cumulus: towers heaped up from a soft base along the horizon (az = compass angle, seam behind the camera), with
         // billowed edges, a sunlit rim, a cool belly and three flat tones like poster paint.
         ' if (h > -0.4 && h < 0.75) { float az = atan(d.x, -d.z) + uTime * 0.004; vec2 p = vec2(az * 1.5, h * 3.4);' +
         '  float big = noise(vec2(az * 1.25 + 7.0, 2.5)); float mid = noise(vec2(az * 3.1 + 1.7, 9.5));' +
         '  float top = -0.12 + 0.7 * smoothstep(0.25, 0.8, big) + 0.1 * mid; float bil = fbm(p * 2.6 + 4.0);' +
-        '  float e = top - h + (bil - 0.5) * 0.3; float mask = smoothstep(0.0, 0.012, e) * smoothstep(-0.4, -0.2, h);' +
-        '  float e2 = 0.5 * (noise(vec2(az * 2.3 + 30.0, 1.0)) - 0.62) - abs(h - 0.5) * 1.6 + (bil - 0.5) * 0.16; mask = max(mask, smoothstep(0.0, 0.012, e2)); e = max(e, e2 * 2.0);' +
+        '  float e = top - h + (bil - 0.5) * 0.3; float wet = 0.01 + 0.075 * smoothstep(0.35, 0.75, noise(p * 1.7 + 11.0)); float mask = smoothstep(0.0, wet, e) * smoothstep(-0.4, -0.2, h);' +
+        '  float e2 = 0.5 * (noise(vec2(az * 2.3 + 30.0, 1.0)) - 0.62) - abs(h - 0.5) * 1.6 + (bil - 0.5) * 0.16; mask = max(mask, smoothstep(0.0, wet, e2)); e = max(e, e2 * 2.0);' +
         '  float sunSide = fbm(p * 2.6 + 4.0 + vec2(uSun.x > 0.0 ? 0.16 : -0.16, 0.12)) - bil;' +
         '  float lite = (1.0 - smoothstep(0.0, 0.2, e)) * 0.75 + smoothstep(-0.02, 0.05, -sunSide) * 0.45 - smoothstep(0.2, 0.5, e) * 0.2;' +
-        '  lite = floor(clamp(lite, 0.0, 1.0) * 3.0 + 0.5) / 3.0;' +
+        '  lite = clamp(lite, 0.0, 1.0) * 3.0 + 0.5; lite = clamp((floor(lite) + smoothstep(0.0, 0.35, fract(lite)) - 1.0) / 3.0, 0.0, 1.0);' +
         '  vec3 cloud = mix(uShade, uLit, lite) * (0.95 + 0.1 * wash); cloud += uSunCol * pow(s, 5.0) * (0.12 + 0.25 * uRose);' +
         '  col = mix(col, cloud, mask * 0.97); }' +
         ' col *= 0.975 + 0.05 * hash(floor(gl_FragCoord.xy * 0.5)); gl_FragColor = vec4(col, 1.0); }' }));
@@ -425,6 +441,14 @@
     kept = { flies: [], sky: sky ? sky.visible : false, sun: st.sun ? st.sun.color.getHex() : 0,
       hemi: st.hemi ? [st.hemi.color.getHex(), st.hemi.groundColor.getHex()] : null };
     if (sky) sky.visible = false;
+    // The game's orbiting mini-islets and low-poly cloud puffs cross in front of the lens at random moments (and clash
+    // with the painted sky); they sit this film out and come back on close.
+    kept.drift = [];
+    for (var i = 0; i < H.scene.children.length; i++) {
+      var ch = H.scene.children[i], ud = ch.userData;
+      if (ch.isGroup && ch.visible && ud && typeof ud.sp === 'number' && typeof ud.r === 'number' && typeof ud.a === 'number') { ch.visible = false; kept.drift.push(ch); }
+    }
+    st.drift = kept.drift;
     st.sky.visible = true; st.g.visible = true; st.tick = 0; paint();
     if (doc.body) doc.body.classList.add('l1cs-on');
     staged = true;
@@ -432,6 +456,7 @@
   function exitStage() {
     if (!staged) return;
     for (var i = 0; i < kept.flies.length; i++) kept.flies[i].visible = true;
+    for (i = 0; i < kept.drift.length; i++) kept.drift[i].visible = true;
     st.g.visible = false; st.sky.visible = false;
     unpaint();
     if (sky) sky.visible = kept.sky;
@@ -501,8 +526,10 @@
     'background:radial-gradient(ellipse at 50% 46%,rgba(255,246,224,0) 52%,rgba(255,238,200,.6) 100%);box-shadow:inset 0 0 70px rgba(255,236,200,.5)}',
     '.l1cs-bar{position:absolute;left:0;right:0;height:7%;background:#2a1f2a;pointer-events:none}',
     '#l1csTop{top:0;transform-origin:50% 0}#l1csBottom{bottom:0;transform-origin:50% 100%}',
-    '#l1csCaption{position:absolute;left:5%;right:5%;bottom:17%;text-align:center;font-size:15px;line-height:1.8;letter-spacing:1.5px;',
-    'text-shadow:0 1px 10px rgba(70,36,50,.8);pointer-events:none}',
+    '#l1csCaption{position:absolute;left:5%;right:5%;bottom:14.5%;text-align:center;font-size:17px;line-height:1.7;letter-spacing:1.5px;',
+    'padding:14px 0 12px;color:#fffdf6;text-shadow:0 1px 2px rgba(60,28,40,.85),0 0 10px rgba(70,36,50,.75);pointer-events:none;',
+    // A soft dusk wash behind the line (fades with it) keeps white text readable over pale sky and bright grass.
+    'background:radial-gradient(ellipse at 50% 50%,rgba(64,36,58,.42) 0%,rgba(64,36,58,.26) 45%,rgba(64,36,58,0) 72%)}',
     '#l1csSkip{position:absolute;top:12px;top:calc(12px + env(safe-area-inset-top));right:12px;right:calc(12px + env(safe-area-inset-right));',
     'min-width:64px;min-height:44px;padding:0 16px;border-radius:22px;font:inherit;font-size:14px;letter-spacing:3px;color:#fffaf0;cursor:pointer;',
     'background:rgba(200,150,110,.26);border:1px solid rgba(255,238,210,.46);box-shadow:0 4px 18px rgba(60,30,40,.25);',
@@ -512,12 +539,12 @@
     'body.l1cs-on>:not(canvas):not(#l1cs):not(.l1cs-paint){visibility:hidden!important}',
     '.l1cs-paint.hidden{display:none}',
     '#l1csEnd{position:absolute;left:0;right:0;top:21%;text-align:center;pointer-events:none}',
-    '#l1csTitle{font-family:"Songti SC","Noto Serif CJK SC","Source Han Serif SC",STSong,serif;font-size:30px;font-weight:500;letter-spacing:9px;text-indent:9px;',
-    'text-shadow:0 0 22px rgba(255,226,170,.75),0 2px 10px rgba(90,40,50,.6)}',
+    '#l1csTitle{font-family:"Songti SC","Noto Serif CJK SC","Source Han Serif SC",STSong,serif;font-size:32px;font-weight:600;letter-spacing:8px;text-indent:8px;',
+    'text-shadow:0 1px 3px rgba(80,34,50,.8),0 0 22px rgba(255,226,170,.6),0 2px 12px rgba(90,40,50,.7)}',
     '#l1csRule{width:132px;height:1px;margin:16px auto 0;background:linear-gradient(90deg,transparent,rgba(255,240,205,.9),transparent)}',
-    '#l1csSub{margin-top:14px;font-size:16px;letter-spacing:14px;text-indent:14px;opacity:.92;text-shadow:0 1px 10px rgba(90,40,50,.7)}',
+    '#l1csSub{margin-top:14px;font-size:17px;letter-spacing:14px;text-indent:14px;opacity:.96;text-shadow:0 1px 2px rgba(80,34,50,.8),0 1px 10px rgba(90,40,50,.7)}',
     '#l1csGo{position:absolute;left:50%;bottom:10%;transform:translateX(-50%);min-width:168px;min-height:44px;padding:0 26px;border-radius:24px;font:inherit;font-size:15px;letter-spacing:5px;color:#fffaf0;',
-    'cursor:pointer;pointer-events:auto;background:rgba(200,150,110,.26);border:1px solid rgba(255,238,210,.46);',
+    'cursor:pointer;pointer-events:auto;background:rgba(96,52,70,.5);border:1px solid rgba(255,238,210,.6);text-shadow:0 1px 2px rgba(60,28,40,.8);',
     '-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);animation:l1csPulse 2.4s ease-in-out infinite}',
     '#l1csGo.hidden,#l1csSkip.hidden{display:none}',
     '@keyframes l1csPulse{0%,100%{opacity:.62}50%{opacity:1}}',
@@ -677,6 +704,8 @@
         // Island-local [x, height above the grass, z] of every visible butterfly mesh, as posed this frame.
         cast3: st ? st.flies.filter(function (f) { return f.g.visible; }).map(function (f) { return [+f.g.position.x.toFixed(3), +(f.g.position.y - H.TOP_Y).toFixed(3), +f.g.position.z.toFixed(3)]; }) : [],
         sky: !!(st && st.sky.visible), gameSky: sky ? sky.visible : null,
+        // [hidden now, found] of the game's orbiting mini-islets and cloud puffs (hidden only while staged).
+        drift: st && st.drift ? [st.drift.filter(function (d) { return !d.visible; }).length, st.drift.length] : [0, 0],
         camera: H ? H.camera.position.toArray().map(function (v) { return +v.toFixed(3); }) : null };
     },
     pause: pause, resume: resume, close: close, proceed: proceed,

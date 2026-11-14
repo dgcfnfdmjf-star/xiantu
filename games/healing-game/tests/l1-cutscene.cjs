@@ -35,6 +35,19 @@ marks.forEach(t => finite(cs.frame(t), 'frame(' + t + ')'));
 assert.equal(cs.frame(-5).t, 0);
 assert.equal(cs.frame(999).t, D);
 
+// One continuous camera move: speed never jumps between frames (C1) and the camera does not stop at the interior keys.
+{
+  const K = ['x', 'y', 'z', 'th', 'phi', 'w', 'lift'], h = 1 / 60, vel = t => { const a = cs.frame(t, true).camera, b = cs.frame(t + h, true).camera; return K.map(k => (b[k] - a[k]) / h); };
+  let prev = vel(0);
+  for (let t = h; t < D - h; t += h) {
+    const v = vel(t);
+    K.forEach((k, i) => assert(Math.abs(v[i] - prev[i]) < 0.03, 'camera speed jump in ' + k + ' at ' + t.toFixed(2) + ': ' + prev[i].toFixed(3) + ' -> ' + v[i].toFixed(3)));
+    prev = v;
+  }
+  for (const t of [9, 38, 43]) assert(Math.abs(vel(t - h / 2)[5]) > 0.05, 'camera keeps moving through the key at ' + t);
+  assert(Math.abs(vel(0)[5]) < 0.02 && Math.abs(vel(D - 2 * h)[5]) < 0.02, 'eases out of the first frame and into the last');
+}
+
 // Continuity: no jump in camera, light or butterfly position between neighbouring frames (1/30 s).
 const lay = cs.layout();
 for (let t = 0; t < D; t += 1 / 30) {

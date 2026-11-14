@@ -1,6 +1,6 @@
 # 第一关通关过场 · Level-1 clear cutscene storyboard
 
-Status: **item 3: the score**. Timeline, camera, sky, clouds, grass wind, light, paper, captions,
+Status: **item 4: polish pass** (after item 3: the score). Timeline, camera, sky, clouds, grass wind, light, paper, captions,
 skip / continue and the build hook came with item 1; item 2 replaced the placeholder butterflies with
 the game's own butterflies on deterministic flight paths (see "Butterflies" below) and gave the net a
 shape; item 3 added the score (see "Score" below).
@@ -36,9 +36,14 @@ shape; item 3 added the score (see "Score" below).
   close. `night` stays low (0.36–0.58): this is sunset, not night.
 - **Paper**: procedural paper grain (`multiply`) and a bleached edge (`soft-light`) over the canvas,
   only while the cutscene is open.
-- **Camera**: nine slow keys, smoothstep-eased: far and wide → down to the net → across the flowers
+- **Camera**: nine slow keys joined by a cubic Hermite spline (C1: one continuous move that never stops
+  at a key; a channel pauses only where it reverses): far and wide → down to the net → across the flowers
   → crane up and wide for the title. It overrides the gameplay orbit per frame only; the game's own
-  camera state (orbit, zoom) is never written, so pinch / wheel / button zoom work as before on close.
+  camera state (orbit, zoom) is never written, so pinch / wheel zoom work as before on close (the game has no zoom buttons).
+- **Item-4 polish**: captions 17 px on a soft dusk wash, heavier title; the sun is a warm soft-edged disc
+  with a halo; cloud edges vary between wet-soft and crisp, tone steps are softened; the game's orbiting
+  mini-islets and low-poly cloud puffs are hidden while staged (they crossed the lens at random) and
+  restored on close.
 - `prefers-reduced-motion`: same story, smaller movement (`soft = 0.3`).
 
 ## Butterflies (all a function of `t`)

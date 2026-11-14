@@ -150,6 +150,7 @@ const KEY = 'healingGarden.butterflies.v1';
     const again = await shoot(13);
     again.camera.forEach((v, i) => assert(Math.abs(v - shots[13].camera[i]) < 0.35, 'seek repeats the camera'));
     assert.equal(again.flies, shots[13].flies);
+    assert(again.drift[0] >= 3 && again.drift[0] === again.drift[1], 'orbiting mini-islets and cloud puffs stay out of the film: ' + again.drift);
     assert.equal(await page.locator('#l1csCaption').innerText(), '你轻轻打开网，三十份心动回到风里');
     await shoot(48);
     assert.equal(await page.locator('#l1csEnd').evaluate(e => getComputedStyle(e).opacity), '1', 'title visible');
@@ -191,6 +192,7 @@ const KEY = 'healingGarden.butterflies.v1';
     await page.waitForTimeout(400);
     const back = await page.evaluate(() => window.__l1Cutscene.stage());
     assert(!back.staged && back.toon === 0 && !back.sky && back.gameSky === true, 'island handed back: ' + JSON.stringify(back));
+    assert.deepEqual(back.drift, [0, shots[13].drift[1]], 'orbiting mini-islets and cloud puffs shown again');
     assert.equal(await page.evaluate(() => window.__bf.butterflies.every(b => b.g.visible)), true, 'gameplay butterflies shown again');
     assert.notEqual(await wild(), w0, 'gameplay butterflies move again');
     assert.equal(await rawSave(page), rawAtClear, 'cutscene changed no save');
@@ -206,6 +208,28 @@ const KEY = 'healingGarden.butterflies.v1';
     await page.waitForTimeout(1500);
     const d1 = await dist();
     assert(Math.abs(d1 - d0) > 0.5, 'wheel zoom works after the cutscene: ' + d0.toFixed(2) + ' -> ' + d1.toFixed(2));
+    // Pinch (two real touch points through CDP) zooms too, both ways, and a one-finger drag still orbits.
+    const cdp = await context.newCDPSession(page);
+    const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map((p, i) => ({ x: p[0], y: p[1], id: i })) });
+    const pinch = async (from, to) => {
+      await touch('touchStart', [[195 - from, 420], [195 + from, 420]]);
+      for (let i = 1; i <= 8; i++) { const g = from + (to - from) * i / 8; await touch('touchMove', [[195 - g, 420], [195 + g, 420]]); await page.waitForTimeout(30); }
+      await touch('touchEnd', []);
+      await page.waitForTimeout(1500);
+    };
+    await pinch(40, 150);
+    const d2 = await dist();
+    await pinch(150, 40);
+    const d3 = await dist();
+    assert(d2 < d1 - 0.5 && d3 > d2 + 0.5, 'pinch zoom works after the cutscene: ' + [d1, d2, d3].map(v => v.toFixed(2)));
+    const az = () => page.evaluate(() => { const c = window.__l1Cutscene.stage().camera; return Math.atan2(c[2], c[0]); });
+    const a0 = await az();
+    await touch('touchStart', [[120, 300]]);
+    for (let i = 1; i <= 8; i++) { await touch('touchMove', [[120 + i * 18, 300]]); await page.waitForTimeout(30); }
+    await touch('touchEnd', []);
+    await page.waitForTimeout(1200);
+    report.orbit = Math.abs((await az()) - a0);
+    report.zoom = [d0, d1, d2, d3].map(v => +v.toFixed(2));
     // A reload of the ended save does not replay.
     await page.reload(); await page.locator('#start').click(); await page.waitForTimeout(1200);
     assert.equal(await page.evaluate(() => window.__l1Cutscene.state()), 'idle');
