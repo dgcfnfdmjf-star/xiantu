@@ -8,6 +8,32 @@ const f = require('./cat-models-fixture.cjs');
 const report = { checks: [], scenes: [] };
 let browser;
 
+// Observe the actor's local model hierarchy, including the bones and morphs
+// actually driven by Walk. The moving gameplay root/camera and mixer clock are
+// deliberately excluded: translating a frozen seated cat must not pass.
+function installPoseProbe() {
+  const graph = root => {
+    const nodes = [];
+    root.traverse(node => nodes.push({ id: node.uuid, values: [
+      ...node.position.toArray(), ...node.quaternion.toArray(), ...node.scale.toArray(),
+      ...(node.morphTargetInfluences || [])
+    ] }));
+    return nodes;
+  };
+  window.__catPoseProbe = {
+    graph,
+    snapshot: () => __kittens.list.filter(k => k.catVisual && !k.dead && k.state !== 'hug')
+      .flatMap(k => graph(k.catVisual)),
+    changed: (before, after) => {
+      const previous = new Map(before.map(node => [node.id, node.values]));
+      return after.some(node => {
+        const values = previous.get(node.id);
+        return values && values.some((value, i) => Math.abs(value - node.values[i]) > .00001);
+      });
+    }
+  };
+}
+
 async function ready(page, except) {
   await page.waitForFunction(except => window.GardenCatModels && window.__kittens.list.length &&
     __kittens.list.filter(k => ['orange', 'calico', 'black', 'tabby'].includes(k.kind.id) && k.kind.id !== except)
@@ -105,6 +131,7 @@ async function basicAndCache(server, mobile) {
   const test = await f.fresh(browser, { mobile, save: { level: 1, total: 0, ended: false, caught: {}, companions: {} } });
   const { page } = test;
   await f.start(test, server.url);
+  await page.evaluate(installPoseProbe);
   assert.equal(test.requests.filter(url => /-cat\.glb$/.test(url)).length, 0, 'chapter one does not download cat models');
   await chapter(page, 2);
   await ready(page);
@@ -139,12 +166,16 @@ async function basicAndCache(server, mobile) {
   console.log('  exact two-tap interaction passed');
   await page.waitForTimeout(1400);
   await page.waitForFunction(() => __kittens.list.some(k => k.catVisual && k.state !== 'hug'));
-  const posedBefore = await page.evaluate(() => __kittens.list.filter(k => k.catVisual && k.state !== 'hug').map(k => ({ id: k.root.uuid, scaleY: k.catVisual.scale.y, offsetY: k.catVisual.position.y })));
-  const scene = await f.scene(page);
-  assert(await page.evaluate(before => before.some(old => {
-    const k = __kittens.list.find(k => k.root.uuid === old.id);
-    return k?.catVisual && (Math.abs(k.catVisual.scale.y - old.scaleY) > .00001 || Math.abs(k.catVisual.position.y - old.offsetY) > .00001);
-  }), posedBefore), 'running game changes the actual loaded model transform');
+  const posedBefore = await page.evaluate(() => __catPoseProbe.snapshot());
+  // #85 keeps the outer group at scale.y=1/position.y=0 during Walk; only idle
+  // breathing changes it. Poll rendered frames so an all-walking population or
+  // two matching phases of a loop cannot masquerade as a frozen model.
+  const [scene, motion] = await Promise.all([
+    f.scene(page),
+    page.waitForFunction(before => __catPoseProbe.changed(before, __catPoseProbe.snapshot()), posedBefore,
+      { polling: 'raf', timeout: 8000 })
+  ]);
+  await motion.dispose();
   for (const cat of await inspectBounds(page)) assert(cat.min[1] >= -.002 && cat.rootY >= .249, 'animated model remains above the ground plane');
   scene.intervals = f.summarize(scene.frames.map(x => x.interval));
   scene.drawDurations = f.summarize(scene.frames.map(x => x.draw));
@@ -183,6 +214,90 @@ async function basicAndCache(server, mobile) {
   await clean(test);
   console.log('  three cache reentries passed');
   report.checks.push((mobile ? 'phone' : 'desktop') + ': lazy four-coat load, normalized floor bounds, immediate two-tap input, hidden freeze, repeated chapter cache reuse');
+}
+
+async function motionObserverAndIsolation() {
+  console.log('Checking skeletal motion observation and real GLB instance isolation');
+  const server = await f.server({ spawnSequence: ['orange', 'orange', 'calico', 'black', 'tabby', 'white'] });
+  const test = await f.fresh(browser, { randomSeed: 638471, save: { level: 1, total: 0, ended: false, caught: {}, companions: {} } });
+  const { page } = test;
+  try {
+    await f.start(test, server.url);
+    await page.evaluate(installPoseProbe);
+    // Capture the actual prepared, cached GLBs before entering chapter two.
+    // Instrument the fixture only; the shipped loader/clone/mixer code is used.
+    await page.evaluate(() => {
+      const load = THREE.GLTFLoader.prototype.load;
+      window.__catPoseTemplates = {};
+      THREE.GLTFLoader.prototype.load = function (url, onLoad, onProgress, onError) {
+        return load.call(this, url, function (gltf) {
+          const result = onLoad.apply(this, arguments);
+          __catPoseTemplates[url] = gltf.scene;
+          return result;
+        }, onProgress, onError);
+      };
+    });
+    await chapter(page, 2); await ready(page);
+    const result = await page.evaluate(() => {
+      // Pause automatic updates, then advance one real actor's pose at a time.
+      // Other actors, including a same-coat sibling and ambient cat, stay still.
+      Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+      document.dispatchEvent(new Event('visibilitychange'));
+      const probe = __catPoseProbe, cats = __kittens.list.filter(k => k.catModel);
+      cats.forEach(k => { k.state = 'idle'; k.moving = false; k.crouch = k.curl = k.phase = 0; GardenCatModels.pose(k, 0, 0); });
+      const templates = Object.values(__catPoseTemplates);
+      const cached = JSON.stringify(templates.map(probe.graph));
+      const cachedNodes = new Set(templates.flatMap(root => probe.graph(root).map(node => node.id)));
+      const rows = [];
+      for (const kind of ['orange', 'calico', 'black', 'tabby']) {
+        const k = cats.find(cat => cat.kind.id === kind);
+        const peers = cats.filter(cat => cat !== k).concat(__catTestAmbient);
+        const peersBefore = JSON.stringify(peers.map(cat => probe.graph(cat.catVisual)));
+        const rest = probe.graph(k.catModel), ownNodes = new Set(rest.map(node => node.id));
+        const foreignNodes = new Set(peers.flatMap(cat => probe.graph(cat.catModel).map(node => node.id)));
+        const privateBones = k.catSkeletons.length > 0 && k.catSkeletons.every(s => s.bones.length > 0 && s.bones.every(b => ownNodes.has(b.uuid) && !foreignNodes.has(b.uuid) && !cachedNodes.has(b.uuid)));
+        let time = 0;
+        const step = () => {
+          time += .05; k.x += .55 * .05; k.root.position.x = k.x;
+          GardenCatModels.pose(k, time, .05);
+        };
+        k.state = 'roam'; k.moving = true; k.catWalkX = k.x; k.catWalkZ = k.z;
+        step(); step(); // settle into the fully walking surface before sampling
+        const before = probe.graph(k.catVisual), outer = [k.catVisual.scale.y, k.catVisual.position.y];
+        // Negative control: a translating actor with a frozen mixer is not an
+        // animated model, even while gameplay coordinates continue to change.
+        const update = k.catMixer.update, xBefore = k.root.position.x, timeBefore = k.catWalkAction.time;
+        k.catMixer.update = function () {};
+        try { step(); k.catMixer.time += .1; k.catWalkAction.time += .1; } finally { k.catMixer.update = update; }
+        const frozenChanged = probe.changed(before, probe.graph(k.catVisual));
+        const rootMoved = k.root.position.x !== xBefore, clockMoved = k.catWalkAction.time !== timeBefore;
+        for (let i = 0; i < 5; i++) step();
+        const walkChanged = probe.changed(before, probe.graph(k.catVisual));
+        const outerUnchanged = outer[0] === k.catVisual.scale.y && outer[1] === k.catVisual.position.y;
+        const peersUnchanged = peersBefore === JSON.stringify(peers.map(cat => probe.graph(cat.catVisual)));
+        k.state = 'idle'; k.moving = false; GardenCatModels.pose(k, 0, 0);
+        const restored = JSON.stringify(rest) === JSON.stringify(probe.graph(k.catModel));
+        const idle = probe.graph(k.catVisual);
+        GardenCatModels.pose(k, .8, .05);
+        rows.push({ kind, privateBones, rootMoved, clockMoved, frozenChanged, walkChanged, outerUnchanged, peersUnchanged, restored,
+          idleChanged: probe.changed(idle, probe.graph(k.catVisual)), cachedUnchanged: cached === JSON.stringify(templates.map(probe.graph)) });
+      }
+      return { templates: templates.length, orangeInstances: cats.filter(k => k.kind.id === 'orange').length, l1: __l1Cutscene.state(), rows };
+    });
+    assert.equal(result.templates, 4, 'inspect the four actual cached GLBs');
+    assert.equal(result.orangeInstances, 2, 'same-coat sibling is present');
+    assert.equal(result.l1, 'idle', 'L1 cutscene has not played during this chapter-two test');
+    for (const row of result.rows) {
+      const label = row.kind + ': ' + JSON.stringify(row);
+      assert(row.outerUnchanged && row.walkChanged, 'Walk is visible despite the unchanged outer group: ' + label);
+      assert(row.rootMoved && row.clockMoved && !row.frozenChanged, 'translation and advancing clocks cannot pass a frozen pose: ' + label);
+      assert(row.privateBones && row.peersUnchanged && row.cachedUnchanged, 'only the selected clone is posed: ' + label);
+      assert(row.restored && row.idleChanged, 'exact seated rest and idle breathing remain observable: ' + label);
+    }
+    report.motionIsolation = result;
+    report.checks.push('four real GLBs: skeletal motion, frozen-mixer negative control, private bones, immutable cached templates and same-coat siblings');
+    await clean(test);
+  } finally { await test.context.close(); await server.close(); }
 }
 
 async function rulesAndFallback() {
@@ -311,6 +426,7 @@ async function lateResponses(server) {
   try {
     report.browser = await browser.version();
     await basicAndCache(server, false); await basicAndCache(server, true);
+    await motionObserverAndIsolation();
     await rulesAndFallback(); await rareValues(); await lateResponses(server);
     f.fs.writeFileSync(f.path.join(f.output, 'browser-results.json'), JSON.stringify(report, null, 2));
     console.log(JSON.stringify({ checks: report.checks, scenes: report.scenes.map(s => ({ mobile: s.mobile, count: s.scene.count, render: s.scene.render, renderer: s.scene.renderer })), report: f.path.join(f.output, 'browser-results.json') }, null, 2));

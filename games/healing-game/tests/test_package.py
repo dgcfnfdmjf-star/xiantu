@@ -47,7 +47,7 @@ class Package(unittest.TestCase):
     def test_all_inline_scripts_parse(self):
         self.assertEqual(len(re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.html.decode())), 19)
         scripts = re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.site.decode())
-        self.assertEqual(len(scripts), 21)  # V9.5's 19 + cutscene + its score
+        self.assertEqual(len(scripts), 23)  # V9.5's 19 + level-2 cutscene + its score + level-1 cutscene + its score
         with tempfile.TemporaryDirectory() as tmp:
             for i, script in enumerate(scripts):
                 path = Path(tmp) / f'{i}.js'
@@ -94,6 +94,8 @@ class Package(unittest.TestCase):
         self.assertIn(b'name="garden-working" content="9.6-l2-cutscene"', self.site)
         self.assertIn(b'name="garden-version" content="9.5.0"', self.site)
         self.assertNotIn(b'__l2Cutscene', self.html)
+        self.assertIn((ROOT / 'src/l1-cutscene.js').read_bytes(), self.site)
+        self.assertNotIn(b'__l1Cutscene', self.html)
         self.assertNotIn(b'garden-working', self.html)
 
     def test_reproducible_release(self):
