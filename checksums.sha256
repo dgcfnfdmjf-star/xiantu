@@ -1337,7 +1337,9 @@ fb0d978cd94e942f951a7703484fe2384d895f2e0f62bbaeb19daee7dffeaf20  games/healing-
 c71dfe9748769063327b5e67eee12b19cc423fa51d0a91d891647cd580b6b85d  games/healing-game/assets/cats/walk-preview/tabby-walk-50.png
 1b123de22f576bf6d61ee63d3f49fb04183dd840061c73fd9e2800bf830f28c0  games/healing-game/assets/cats/walk-preview/tabby-walk-75.png
 19a90003e4b3b45c075b4c1da5a81341fddac954397d481e680a6ea3c1a5cb31  games/healing-game/assets/nightvoyage-bgm.mp3
-91f79769a896dc2bcd87df04607245deffa6ab8db1b7c70982d6998929fbba3f  games/healing-game/docs/l2-cutscene-storyboard.md
+7113c861961bbe09a05e0084bf60aa29f6bf1269e4b050f94b26f1b6ed846b37  games/healing-game/docs/l2-cutscene-storyboard.md
+0112f9641d8becd7f7492bd52ea542ce449671e362b23b218a86d79f4c6b6d7d  games/healing-game/docs/pr81-walk-sit-comparison.webp
+8b19ab8991eb399afd3917b66b1352d2b5a92c99d5bf115bd31e3aa29fcdb6f0  games/healing-game/docs/pr81-walk-sit-frames.webp
 c3bf4d100e6f5d254975807c30ee480e8f2bc05cbc31404d6e7156ae9455037e  games/healing-game/releases/healing-game-v9.4-SHA256SUMS.txt
 827dd5c0f0a6c7dabba8dd906716f90230d8f06524bcc0bc86c5ba9d5b8d9134  games/healing-game/releases/healing-game-v9.4-tencent.zip
 99fe2706e911e208eb3165a56605c6904112fd292ca4ca96618248c28cc84f95  games/healing-game/releases/healing-game-v9.5-SHA256SUMS.txt
@@ -1372,7 +1374,7 @@ dbbf20c94f5053cc00fd0e60e53c08d849cff4ccecb9e5fefb79d8e3bf153f60  games/healing-
 618d65b554b0cd18cff0ce9e561ab52dbd215d1d090917ed59377a9df6f0479f  games/healing-game/src/journey.css
 08c619e9ad6446fd8656838f4d6c110908381247c6e894f93e1f2764cbe9a902  games/healing-game/src/journey.js
 2fdd3b91065a27ce9cab6eb3e0359224fb3ee37705fc36fbf2ca3af8b5d8310c  games/healing-game/src/l2-cutscene-music.js
-972668e96c6e74f86e657b605c45fa348487f4962307f588995130ce20053f11  games/healing-game/src/l2-cutscene.js
+6cd0cae13aee617a323c825b1675f268ce454e71e2d0998644307a30638e2ec2  games/healing-game/src/l2-cutscene.js
 e7d9fb387c2232ef7cbc4b75ce304125cecbb9bd1a124aed6f309e2277866340  games/healing-game/src/level3fx.js
 df4597cac499736b20f6eba37e69bedba58cb505f8393062ad95928a8a0667e0  games/healing-game/src/level3plus.js
 0bfd8ce28fd65e6cbcd59ab9ea6109a97c2deae6a1f181143dcfa85cda659bfa  games/healing-game/src/lotus-chapter.css
@@ -1400,7 +1402,7 @@ c2414ed83c79150f6bd7341cfa556a92caaa5bff4869f7c7f155c7924db27f14  games/healing-
 517f64c3b47062e6d71e74e256c4bf2e3d9c136adc8bacd1ce3d211cbd50ccf1  games/healing-game/tests/journey-browser.js
 43cf4074b84a14b6bb341c121bf2e331c45427e0ce532a88a3474babae19b551  games/healing-game/tests/l2-cutscene-browser.cjs
 0c564d512c826237fd2e7195c8c5f1b541b1ef63fb4abdc02a92a0157f746bba  games/healing-game/tests/l2-cutscene-ingame-browser.cjs
-9a43cfa5faa7e8f31dbecfb3eb33db017cefd026d0059b9af710429604f36d46  games/healing-game/tests/l2-cutscene-motion-browser.cjs
+2b71319be138ac7f505ad9a06e0053c090dafb443baa98e0f336669a0b1cf928  games/healing-game/tests/l2-cutscene-motion-browser.cjs
 a958abee91bc3fcb0cb65a92658147fce573859099c0fc629a99ae52d9ac2624  games/healing-game/tests/l2-cutscene.cjs
 ae7febbcbc47b09e383dfc5d86df3717af98fe397b1c8f70b0158a514912fba6  games/healing-game/tests/lotus-browser.js
 9749a6701c9e7b2e9ea821fdd0a0aa8f63235972041ef133cfe1805bb80d9c3b  games/healing-game/tests/lotus-carryover-browser.js
