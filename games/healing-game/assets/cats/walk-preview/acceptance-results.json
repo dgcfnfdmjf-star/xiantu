@@ -1,380 +1,819 @@
 {
-  "baseline": "8812ff565b29a0f57bdcb80698f6c8b950ca3965",
-  "assets": {
-    "html": "db67e892fe84de5df2c97cf65fddff142a28dba8b1e07103c5cc7117014f5f8a",
-    "assets": [
+  "base": "9cbd5820a1c06e3a5e69a7d7dead298b06a6c4bf",
+  "gait": {
+    "diagnosticOnly": false,
+    "cats": [
       {
         "kind": "orange",
-        "bytes": 286140,
-        "sha256": "e7da71dbe0e99610bcd8f307d0bc69748a34ca08b80a890233e88d698da50289"
+        "samples": 121,
+        "contactSamples": 181,
+        "slip": {
+          "n": 181,
+          "median": 0,
+          "p95": 1.3322676295501878e-14
+        },
+        "maxSlip": 2.6645352591003757e-14,
+        "minSoleHeight": -0.0002408831162718228,
+        "maxSoleHeight": 0.04042863391482421,
+        "cadenceError": 8.673617379884035e-17,
+        "hz": {
+          "n": 120,
+          "median": 1.0825094135351523,
+          "p95": 1.0825094135351523
+        },
+        "screenshots": 4
       },
       {
         "kind": "calico",
-        "bytes": 307824,
-        "sha256": "c4cf0c2651be2e2afa65f82c11bf32cc9a3ae1c8654fc9492ae7e434daa5cf8b"
+        "samples": 121,
+        "contactSamples": 178,
+        "slip": {
+          "n": 178,
+          "median": 0,
+          "p95": 1.3322676295501878e-14
+        },
+        "maxSlip": 7.152557373046875e-06,
+        "minSoleHeight": -0.00024234919546547995,
+        "maxSoleHeight": 0.04065262260765368,
+        "cadenceError": 2.949029909160572e-17,
+        "hz": {
+          "n": 120,
+          "median": 1.075964173270988,
+          "p95": 1.075964173270988
+        },
+        "screenshots": 4
       },
       {
         "kind": "black",
-        "bytes": 256916,
-        "sha256": "80c16d834409686f02d6aee180d634f67e125267fe743c3ee45c32f8532e9369"
+        "samples": 121,
+        "contactSamples": 184,
+        "slip": {
+          "n": 184,
+          "median": 0,
+          "p95": 2.6645352591003757e-14
+        },
+        "maxSlip": 7.152557373046875e-06,
+        "minSoleHeight": -0.0002589879991074795,
+        "maxSoleHeight": 0.043542458342481494,
+        "cadenceError": 1.4051260155412137e-16,
+        "hz": {
+          "n": 120,
+          "median": 1.0067469113474317,
+          "p95": 1.0067469113474317
+        },
+        "screenshots": 4
       },
       {
         "kind": "tabby",
-        "bytes": 292172,
-        "sha256": "591426b32b4e0269b4b819d7c8472207ac6cbd29d49ff20c8443e8a72fe027c1"
+        "samples": 121,
+        "contactSamples": 182,
+        "slip": {
+          "n": 182,
+          "median": 0,
+          "p95": 3.5762786865234375e-06
+        },
+        "maxSlip": 7.152557399692228e-06,
+        "minSoleHeight": -0.00025417919237821773,
+        "maxSoleHeight": 0.042658642506731126,
+        "cadenceError": 3.469446951953614e-17,
+        "hz": {
+          "n": 120,
+          "median": 1.0258342963810714,
+          "p95": 1.0258342963810714
+        },
+        "screenshots": 4
       }
     ]
   },
-  "browser": "151.0.7922.173",
-  "checks": [
-    "desktop: actual roam articulation/+Z; independent skin clones; opposite paw steps; exact loop/rest; 96 ground samples per coat; special-state/background/exit stop; untouched saves before real moving-head two-tap input",
-    "phone: actual roam articulation/+Z; independent skin clones; opposite paw steps; exact loop/rest; 96 ground samples per coat; special-state/background/exit stop; untouched saves before real moving-head two-tap input",
-    "desktop: lazy four-coat load, normalized floor bounds, immediate two-tap input, hidden freeze, repeated chapter cache reuse",
-    "phone: lazy four-coat load, normalized floor bounds, immediate two-tap input, hidden freeze, repeated chapter cache reuse",
-    "failed GLB playable fallback; fourth/fifth same-coat cap; legacy six-coat saves; goal20/chapter3 unlock/replay",
-    "white +1 and rare glow +3 with legacy counts retained",
-    "delayed model responses after chapter exit do not attach; reentry cache; removed actor detaches",
-    "all four cats front/side/back, drag, wheel, fitted reset",
-    "four real Walk clips articulate and return to exact Sit; Walk pauses and resumes without a time jump across background/context loss; switching away from Walk disposes it and stops continuous rendering",
-    "three complete switch cycles retain only current model textures and six model geometries",
-    "all replaced decoded ImageBitmaps are closed",
-    "embedded GLB bytes match accepted files, scene triangle counts and zero fur UV conflicts",
-    "actual rendered drag image changes",
-    "front/side/back/reset",
-    "wheel min/max and keyboard controls",
-    "idle rendering stops",
-    "simulated document.hidden cancels rendering; resume renders once",
-    "real WebGL context loss/restoration",
-    "no external requests, external GLBs or storage access",
-    "context loss during initial embedded atlas decode restores fitted view",
-    "late embedded texture decode preserves latest cat and releases replaced resources; decode failure retries",
-    "phone portrait/landscape resize",
-    "DPR 3 capped to 2",
-    "real CDP touch pinch",
-    "reduced motion has no idle animation",
-    "corrupt embedded GLB displays labeled static PNG and disables 3D controls; restored snapshot retry succeeds",
-    "each failed selection shows its own PNG; selected-cat retry and later switches recover",
-    "WebGL unavailable shows explicit static fallback"
-  ],
-  "animationGeometry": [
-    {
-      "label": "desktop",
-      "viewport": "1200x900 DPR1",
-      "phases": [
-        {
-          "kind": "orange",
-          "minY": 0.0007395446346744052,
-          "maxRadius": 0.7050317012601037,
-          "pawQuarter": [
-            [
-              -0.0966836397410917,
-              0.0345080747007093,
-              0.22240224274077097
-            ],
-            [
-              0.09790002391078487,
-              0.09165168549502163,
-              0.14077711563747375
-            ]
-          ],
-          "pawThreeQuarter": [
-            [
-              -0.09668637759212684,
-              0.09058294457019266,
-              0.13936850264457232
-            ],
-            [
-              0.09789853360322132,
-              0.03557319391497978,
-              0.22380214688334238
-            ]
-          ],
-          "seamDifference": 1.1636977810258742e-06,
-          "surfaceChange": 0.20139726023607268
-        },
-        {
-          "kind": "calico",
-          "minY": 0.0007395386428997173,
-          "maxRadius": 0.7050316679355041,
-          "pawQuarter": [
-            [
-              -0.09668371950880238,
-              0.034508073466103614,
-              0.22240221327626536
-            ],
-            [
-              0.0979000984963954,
-              0.09165168646040994,
-              0.14077709694507118
-            ]
-          ],
-          "pawThreeQuarter": [
-            [
-              -0.09668632256350002,
-              0.09058293298198992,
-              0.13936846946382364
-            ],
-            [
-              0.097898471798132,
-              0.035573175848083914,
-              0.2238021283385322
-            ]
-          ],
-          "seamDifference": 1.1268509320094822e-06,
-          "surfaceChange": 0.20139731862857407
-        },
-        {
-          "kind": "black",
-          "minY": 0.0007395389561621335,
-          "maxRadius": 0.7050316657916718,
-          "pawQuarter": [
-            [
-              -0.09668358288909072,
-              0.03450806120944554,
-              0.22240221843784838
-            ],
-            [
-              0.09790009067921647,
-              0.09165168822255797,
-              0.1407770747123403
-            ]
-          ],
-          "pawThreeQuarter": [
-            [
-              -0.09668636773476093,
-              0.0905829326833908,
-              0.13936846163115896
-            ],
-            [
-              0.09789843173708296,
-              0.035573196197154634,
-              0.2238021662178123
-            ]
-          ],
-          "seamDifference": 1.1400421554563778e-06,
-          "surfaceChange": 0.20139729124926564
-        },
-        {
-          "kind": "tabby",
-          "minY": 0.0007395398242147075,
-          "maxRadius": 0.7050317202000981,
-          "pawQuarter": [
-            [
-              -0.09668374582844858,
-              0.03450807946770661,
-              0.22240220837938732
-            ],
-            [
-              0.09789992766484357,
-              0.0916516963160192,
-              0.14077705506771857
-            ]
-          ],
-          "pawThreeQuarter": [
-            [
-              -0.09668628363462023,
-              0.0905829273016054,
-              0.13936851698530667
-            ],
-            [
-              0.09789843071110087,
-              0.035573197511608035,
-              0.22380219104480922
-            ]
-          ],
-          "seamDifference": 1.176842772787623e-06,
-          "surfaceChange": 0.20139733694484468
-        }
-      ],
-      "movement": {
-        "before": [
-          0,
-          0.8825
-        ],
-        "after": [
-          0,
-          0.9924999999999998
-        ],
-        "speed": 0.55,
-        "actionTimeScale": 2.165018859331575
-      }
-    },
-    {
-      "label": "phone",
-      "viewport": "390x844 DPR2",
-      "phases": [
-        {
-          "kind": "orange",
-          "minY": 0.0007395459648599778,
-          "maxRadius": 0.7050316895445139,
-          "pawQuarter": [
-            [
-              -0.09668364003396117,
-              0.03450806144437708,
-              0.22240228755283006
-            ],
-            [
-              0.09790002521525565,
-              0.09165167888999454,
-              0.1407770702142429
-            ]
-          ],
-          "pawThreeQuarter": [
-            [
-              -0.09668637965788926,
-              0.09058294000032678,
-              0.13936845725601074
-            ],
-            [
-              0.09789853484338357,
-              0.035573178519261554,
-              0.22380219185252545
-            ]
-          ],
-          "seamDifference": 1.0583294272059618e-06,
-          "surfaceChange": 0.20139727680264752
-        },
-        {
-          "kind": "calico",
-          "minY": 0.0007395399958406434,
-          "maxRadius": 0.7050317177682648,
-          "pawQuarter": [
-            [
-              -0.09668354471943885,
-              0.03450805875568359,
-              0.2224022410892144
-            ],
-            [
-              0.09790001521441528,
-              0.09165169129320257,
-              0.14077709725342202
-            ]
-          ],
-          "pawThreeQuarter": [
-            [
-              -0.09668627359025643,
-              0.09058293465036264,
-              0.13936847395164442
-            ],
-            [
-              0.09789851413046448,
-              0.03557319362535139,
-              0.22380215213917246
-            ]
-          ],
-          "seamDifference": 1.1043231794571895e-06,
-          "surfaceChange": 0.20139730350539345
-        },
-        {
-          "kind": "black",
-          "minY": 0.0007395378948478193,
-          "maxRadius": 0.7050317582197108,
-          "pawQuarter": [
-            [
-              -0.09668353089239576,
-              0.0345080613372824,
-              0.22240222044051067
-            ],
-            [
-              0.09790003788661783,
-              0.09165168742959043,
-              0.1407770933064508
-            ]
-          ],
-          "pawThreeQuarter": [
-            [
-              -0.09668625741496316,
-              0.0905829484374983,
-              0.13936845101587553
-            ],
-            [
-              0.09789853383578116,
-              0.03557317851013394,
-              0.2238021502802373
-            ]
-          ],
-          "seamDifference": 1.1033228315415755e-06,
-          "surfaceChange": 0.20139729959942265
-        },
-        {
-          "kind": "tabby",
-          "minY": 0.0007395386875224674,
-          "maxRadius": 0.7050316980857176,
-          "pawQuarter": [
-            [
-              -0.09668358368512495,
-              0.03450806250754753,
-              0.22240232610165928
-            ],
-            [
-              0.09790006371229025,
-              0.0916516819149756,
-              0.14077713308619846
-            ]
-          ],
-          "pawThreeQuarter": [
-            [
-              -0.09668632833599249,
-              0.09058293540713394,
-              0.13936849845292912
-            ],
-            [
-              0.09789858922879445,
-              0.03557318726019535,
-              0.22380213523810505
-            ]
-          ],
-          "seamDifference": 1.0622543720195665e-06,
-          "surfaceChange": 0.20139728994704198
-        }
-      ],
-      "movement": {
-        "before": [
-          0,
-          0.8825
-        ],
-        "after": [
-          0,
-          0.9924999999999998
-        ],
-        "speed": 0.55,
-        "actionTimeScale": 2.1919226096609723
-      }
-    }
-  ],
-  "visualReview": {
-    "orange": {
-      "result": "PASS in captured desktop/phone browser views",
-      "hindLegVolume": "no collapsed calves in reviewed loop phases",
-      "pawCaps": "curved inner surfaces use coat texture; no flat cap color blocks",
-      "seatedSeams": "no visible open joints in reviewed seated front/side/back views",
-      "forward": "+Z",
-      "textures": "original 1024px JPEG bytes preserved"
-    },
-    "calico": {
-      "result": "PASS in captured desktop/phone browser views",
-      "hindLegVolume": "no collapsed calves in reviewed loop phases",
-      "pawCaps": "curved inner surfaces use coat texture; no flat cap color blocks",
-      "seatedSeams": "no visible open joints in reviewed seated front/side/back views",
-      "forward": "+Z",
-      "textures": "original 1024px JPEG bytes preserved"
-    },
-    "black": {
-      "result": "PASS in captured desktop/phone browser views",
-      "hindLegVolume": "no collapsed calves in reviewed loop phases",
-      "pawCaps": "curved inner surfaces use coat texture; no flat cap color blocks",
-      "seatedSeams": "no visible open joints in reviewed seated front/side/back views",
-      "forward": "+Z",
-      "textures": "original 1024px JPEG bytes preserved"
-    },
-    "tabby": {
-      "result": "PASS in captured desktop/phone browser views",
-      "hindLegVolume": "no collapsed calves in reviewed loop phases",
-      "pawCaps": "curved inner surfaces use coat texture; no flat cap color blocks",
-      "seatedSeams": "no visible open joints in reviewed seated front/side/back views",
-      "forward": "+Z",
-      "textures": "original 1024px JPEG bytes preserved"
-    }
+  "liveMovement": {
+    "samples": 254,
+    "active": 213,
+    "blocked": 41,
+    "blockedSitting": 41,
+    "blockedRunning": 0,
+    "maxCadenceError": 8.881784197001252e-16
   },
-  "limitation": "Cloud Chromium/SwiftShader and touch emulation; not physical-phone FPS. Low-poly joint facets remain visible at extreme zoom."
+  "browser": {
+    "checks": [
+      "desktop: actual roam articulation/+Z; independent skin clones; opposite paw steps; exact loop/rest; 96 ground samples per coat; special-state/background/exit stop; untouched saves before real moving-head two-tap input",
+      "phone: actual roam articulation/+Z; independent skin clones; opposite paw steps; exact loop/rest; 96 ground samples per coat; special-state/background/exit stop; untouched saves before real moving-head two-tap input"
+    ],
+    "scenes": [
+      {
+        "label": "desktop",
+        "viewport": "1200x900 DPR1",
+        "ownership": [
+          {
+            "id": "CD02EF6B-D42B-4E38-AF0B-2B8CCEA4C398",
+            "kind": "orange",
+            "mixerRoot": "A36247E8-B24D-401B-B537-C3955CC8F709",
+            "model": "A36247E8-B24D-401B-B537-C3955CC8F709",
+            "bones": [
+              "CB16D146-BA63-4E5E-9D85-297CA4338F28",
+              "BF506565-1E8D-40A3-B177-378AA876AC11",
+              "F34FF96F-C23A-4710-85A1-0135EC079C53",
+              "578F4B92-D64A-4AC4-896A-F54520D578F3",
+              "0BECB58E-FAB7-4404-9D4D-DD94E4D15380",
+              "FFD9AEA5-5E05-4C9B-B113-162EE8D8153F",
+              "33CDB853-0217-4828-8550-6E852C6E34D4",
+              "A77963A9-E610-4D5A-99D9-738EB0555BD4",
+              "5BD37FC7-0A57-4FF0-ADC0-C76A7493B016",
+              "4F0E9424-6E8D-477B-815C-B2F3786B58A9",
+              "839E8F8F-1298-463A-953E-F732BC61396C",
+              "F737BF23-F69A-49B4-A93B-E91E403A0096",
+              "ABCE00A2-1AFA-4DF7-BD68-BE2D04F963A7",
+              "9F9637E3-7E59-45A1-9118-249408E2A990",
+              "D3030058-229D-4915-A5E0-12434C79690D",
+              "47CAA3C9-06E9-407D-B992-E2F8D082907A",
+              "FBDD4DD0-2AA1-4184-8D44-9EF99402A7AA",
+              "EF727EB2-8E69-46E8-A149-9842983C537C",
+              "23FDBEA1-3226-4244-B535-3E4DDCB41D37",
+              "97309688-16FB-43C2-89DD-2CB5602F75F2",
+              "4B01BCDD-3A4C-4B87-9D54-845524B0F28A",
+              "3FA38D30-9EBD-4B13-B1EE-7BB1287BDDE9"
+            ]
+          },
+          {
+            "id": "4DB1054C-5408-4CAD-AF3D-DA4D4E35482B",
+            "kind": "calico",
+            "mixerRoot": "53DDB477-A2A8-41FE-A575-A043CC10AB17",
+            "model": "53DDB477-A2A8-41FE-A575-A043CC10AB17",
+            "bones": [
+              "7BE71D4C-AA1C-4B9F-8D8A-5E0D148A9B10",
+              "6F546689-0EDD-453B-A127-B64A187C986D",
+              "A33610AD-B211-4BD2-B52B-870A5C2C23DF",
+              "078D3D2A-C64C-48AD-B923-61DA905C6A7E",
+              "BB6CE012-EA60-433B-8D81-AB1154984718",
+              "AF8D10DF-4E45-4AFE-A1F2-A84A584E2803",
+              "E363631B-F2DD-4BFB-B50A-B3699C0291FC",
+              "57A32B18-D64E-43CD-899E-128E2079AC53",
+              "0B40AD08-FAFB-4BF5-9DC1-535BE4B58F1A",
+              "FF6D919B-5E89-45D2-B1C7-D94DE8FCBD69",
+              "33A19A00-02DB-479E-8544-B32E2CD2ECB9",
+              "A78D988F-E614-4725-990D-AEFAB0F90798",
+              "5B279C84-0A9B-4708-AD34-ABD074777537",
+              "4FA26B85-6E11-42BF-8110-33BB788F99A6",
+              "837236E4-125C-47B3-9532-4969BCC59AA9",
+              "F74B89D3-F69E-4419-A96F-802A40DE657F",
+              "AB2282FF-1A3E-4772-BDDC-4EC204DDF114",
+              "9F2A4440-7EDD-40D2-91CC-A1E60806C46A",
+              "D3D7AB59-2261-4B55-A5D4-B17D4CDDB330",
+              "47DE42FC-06ED-4C65-B9C6-16EFD026EFDB",
+              "FB31747B-2AE5-4BAE-8DB8-1B1C94E63DBB",
+              "EF0600ED-8EED-42F5-A1FD-52D3986086CD"
+            ]
+          },
+          {
+            "id": "DF4337A4-BEA5-4839-9178-308548387E09",
+            "kind": "black",
+            "mixerRoot": "A3CC8333-B2AF-4D59-B531-BD265C7A456A",
+            "model": "A3CC8333-B2AF-4D59-B531-BD265C7A456A",
+            "bones": [
+              "CBC09AB3-BA05-48D8-9DBF-62F6A42593D4",
+              "BF9A0456-1E4F-438D-B151-F7D1A8884671",
+              "F339F86F-C21C-457B-851B-6200EC391E02",
+              "57999377-D6CC-4E17-8904-1CB620A7CA10",
+              "0B968927-FA59-40B7-9D87-B0B9E4C32932",
+              "FF23F88D-5EC7-40D4-B1ED-0F0DE8EAA168",
+              "33B70101-02F9-47DC-85CA-A84E2CA0C842",
+              "A703D634-E612-4A8C-99F3-A8F6B0A769D1",
+              "5BFDE557-0A79-4B14-AD7A-51A57405CB19",
+              "4FD857F8-6ECF-44F8-81B6-8A4C78FD302A",
+              "8308BBA6-12FA-460E-9538-B848BC13A2D4",
+              "F741FC89-F61C-4F31-A9D5-CCBC400CEB53",
+              "AB789958-1A9C-4AAB-BDA2-9EC504EBE25E",
+              "9FE0156B-7E1B-4B53-91F2-7A5808F4EE6D",
+              "D3EDADDB-227F-4AEA-A55A-FAE04CABC636",
+              "47544BE7-06EB-4E39-B9AC-14F2D0D477A2",
+              "FB07B903-2AC3-4EED-8DFE-749E9474AAC1",
+              "EF3C175F-8EAB-4446-A1A3-0D4C98CE2483",
+              "23678FBC-3288-4305-B52F-EC16DC668F30",
+              "973A48E2-167D-4A3A-8977-4D17600179F5",
+              "4BAB990C-3AEE-48D4-9D8E-F11E24A29AF4",
+              "3FED801A-9E7F-421E-B1C8-AFC1288D5BAF"
+            ]
+          },
+          {
+            "id": "1BC76BC2-CA37-497E-ADAA-246E34F24A1B",
+            "kind": "tabby",
+            "mixerRoot": "03827754-9225-42D6-956D-CEC93CCB9375",
+            "model": "03827754-9225-42D6-956D-CEC93CCB9375",
+            "bones": [
+              "2B2265C3-9A37-4BCA-BD88-FB0A84928B51",
+              "1F62E34B-FEAE-4345-9170-AF6E88531ABA",
+              "53C76E55-A28A-4E2D-A5EF-73A3CC420422",
+              "B7547C45-B690-4893-A936-16E50076F10E",
+              "6B57CFB9-DA6B-47D2-BDAF-3B48C410B1D2",
+              "5F4B581F-3E07-435E-916B-B0D0C89582A1",
+              "93A45F18-E246-41A7-A5FE-F8090C8919D8",
+              "07179BC4-C64E-4443-B93D-B98F90AE3F58",
+              "BB966123-EA82-4EA2-8D3B-0892540A19B9",
+              "AF571F9F-4E87-465E-A14C-049558E0A7F9",
+              "E3CD09B6-F23F-4B7E-B504-A77F9CB490B9",
+              "57AD13F4-D6D0-4766-8938-D94D204B1E3C",
+              "0BEA20B2-FA9D-4740-9DFB-C6F9E4A785B9",
+              "FFB77A4E-5E4B-4A15-B1A1-7370E80E6AC2",
+              "338B83D2-02BD-47EE-85BE-8DA52C04A1B9",
+              "A717AB39-E616-44A4-9927-831AB04B36A8",
+              "5B51A2CD-0ABD-434C-ADEE-D46C74E9AFEF",
+              "4F6CCF4B-6E53-4F4E-816A-ABBF7821929E",
+              "83DC01C8-12BE-47AB-952C-AA14BC77236B",
+              "F7556680-F620-4AED-A909-04E840B07098",
+              "ABCCBA16-1AE0-43CE-BD16-CFA304CF9049",
+              "9F74C2E2-7E9F-469E-91A6-98BE08182907"
+            ]
+          },
+          {
+            "id": "A1DA78DF-9899-4016-A3B6-1A9E328BE0B1",
+            "kind": "orange",
+            "mixerRoot": "B38753F2-828F-4213-856F-9920ACFA0BDE",
+            "model": "B38753F2-828F-4213-856F-9920ACFA0BDE",
+            "bones": [
+              "DBDDF107-8ADF-48AC-ADAF-D6BDF4AFF98B",
+              "CF802503-EE5D-49EA-81F2-DCB2F80FF908",
+              "03F9C27C-9230-4192-95FC-638A3C0E26CB",
+              "670D03F4-A611-4627-9962-E5BC70D4C1E0",
+              "1BC3F49F-CA03-46EF-AD06-2308349EDD41",
+              "0F1AE654-2EA6-40C6-811D-152838C24E97",
+              "43866244-D2DC-4213-953C-7B4F7CC4C73D",
+              "B7BB1228-B6CB-4511-A935-640F0069812F",
+              "6BAEF076-DAD6-4234-BD1E-8226C4B37E03",
+              "5F92BB73-3EA2-4724-914A-BEBBC8E810DF",
+              "93DBAB08-E211-4A98-A54D-0D180C8C9B5D",
+              "073E67A4-C649-4CC7-B9FC-8233906198B2",
+              "BBAD348C-EAAD-404F-8D6A-A6A9546DDB89",
+              "AF5E7057-4EE2-4DB2-A1EB-05E958F3166A",
+              "E3C43F88-F2CA-42CA-B513-0BB29C779F9D",
+              "57948575-D68B-4AE9-89B7-0E3920BE6FE5",
+              "0BC115FA-FA88-4074-9DEA-AC7FE4CA6C7A",
+              "FF7E299D-5E66-4427-B100-59B9E8E1E920",
+              "33421328-0208-4E68-858D-31CF2C876C52",
+              "A7BE32DD-E691-414E-9966-1457B07EB0C1",
+              "5BE828C4-0A68-4330-AD9D-F29174CCEBBC",
+              "4FF34BBF-6E2E-4CF9-8189-644578B45232"
+            ]
+          },
+          {
+            "id": "7743578D-7630-47C5-A9D3-6A7CC0EB71C3",
+            "kind": "calico",
+            "mixerRoot": "637E3551-7236-4604-B589-ECBE1C6F6393",
+            "model": "637E3551-7236-4604-B589-ECBE1C6F6393",
+            "bones": [
+              "8BAA4227-7A64-4172-9D0F-3D0A64B22F9C",
+              "7F40CC97-DE39-41A0-B1BD-54806881B30A",
+              "B35B5DF0-8253-4A98-8563-46BDAC5E0C90",
+              "17474FCD-961F-4131-89B8-7203E0479017",
+              "CB3F5FF0-BA78-4C9F-9D96-BE79A410E716",
+              "BF89E916-1E72-4DE6-B118-FDB6A8A3DBCE",
+              "F3984C3C-C2EF-47C1-85D2-38FEEC84EF51",
+              "6721B4CF-A615-4CD1-9996-FBC770789A5D",
+              "1B174D4C-CA47-4A15-AD7A-A2EC34828EF8",
+              "0FAEB95A-2E2A-47D2-81D1-F16938E63B73",
+              "435AC56F-D2A0-4F5C-9530-E9D77C2895CE",
+              "B7CF581C-B6CF-4C58-A969-D7E0000D13CD",
+              "6B02AE82-DA1A-4870-BD92-AE50C497F831",
+              "5F26C4A4-3E26-4F81-91FE-978FC80CD7F2",
+              "93AF1380-E2D5-47BA-A541-C89B0CF0515F",
+              "0752822A-C64D-4454-B930-93D690052383",
+              "BB019764-EAF1-46AE-8DDE-BF3854515E46",
+              "AFF2ED54-4E66-460E-A19F-1CC25817F60F",
+              "E398EC60-F28E-415B-B507-53389CDB7EEE",
+              "57A8B556-D68F-4375-89EB-FB882062338B",
+              "0B155D5C-FACC-4711-9D5E-F362E4AE386B",
+              "FF125C58-5EEA-4D43-B1B4-ECDAE8052243"
+            ]
+          },
+          {
+            "id": "E37D96B1-F22F-4082-B534-C79E9C2453D1",
+            "kind": "black",
+            "mixerRoot": "B37130F8-8271-463E-85E9-8793AC2CC4A2",
+            "model": "B37130F8-8271-463E-85E9-8793AC2CC4A2",
+            "bones": [
+              "DB076C03-8A01-4938-AD69-94D8F421B8A9",
+              "CF4A3D89-EE9F-4AEE-814C-29F5F8A1B59C",
+              "03638261-9292-45CE-95F6-D8863CC0B2A2",
+              "67973302-A613-49B0-997C-88BC70266662",
+              "1BEDF8AF-CA25-4882-ADC0-FA493410EEB7",
+              "0FE42703-2EE8-438F-8177-1B0638547D2F",
+              "43F0EBCE-D23E-4936-9536-4A567C76E677",
+              "B7C58DB8-B64D-4167-A9CF-35D8003B82EF",
+              "6B58A70C-DA78-4530-BD58-30D1C4A573C3",
+              "5FDC976D-3E64-43D4-9124-C308C8FA2B01",
+              "93C5374F-E2F3-40C6-A5C7-82220CBE2E9E",
+              "07C8CC73-C64B-403E-B916-23CB90B315BA",
+              "BBD73DDE-EACF-433A-8D24-CB4C54DFD49E",
+              "AF2887ED-4E24-421F-A145-A95E58853E43",
+              "E32E6E95-F22C-4A4D-B50D-C7439C29C753",
+              "579E75E8-D60D-475E-8951-1D8D20908905",
+              "0B6B1167-FA2A-44DD-9D24-E812E4BC8A37",
+              "FFC81AC8-5E28-41B2-B1DA-3AF9E8F33DA6",
+              "332C842E-02EA-4593-8507-D4D32CB94835",
+              "A7484D00-E693-4623-9980-313DB0D08693",
+              "5B12B7D2-0A8A-47AC-AD57-E474743E4EBD",
+              "4FBDB71F-6E70-418B-81E3-24D97846F320"
+            ]
+          },
+          {
+            "id": "71ACA8CB-2821-479F-B3F8-924E42C9370C",
+            "kind": "tabby",
+            "mixerRoot": "131F7DB7-627F-4F71-A5DD-74F88CD58A09",
+            "model": "131F7DB7-627F-4F71-A5DD-74F88CD58A09",
+            "bones": [
+              "3B61AE34-6ACB-43E2-8DE9-7F62D4E63309",
+              "2F8AD7EC-CE17-40A3-A1A2-C3A1D844564E",
+              "63E86F4F-7298-498D-B583-94C11C21870D",
+              "C7CA4081-86EF-4C6B-B9E7-B53750CD761F",
+              "7BA62E38-AACF-4EEF-8DA1-10B114B5D094",
+              "6F833BA2-0E40-4305-A12E-569418D7829C",
+              "A3D53852-B224-45EB-B522-7C735CB7FDEC",
+              "17517544-96A1-4B60-8952-2787E01918C7",
+              "CBE9F079-BA1A-4E3F-9DD0-FFD3A4025353",
+              "BFD3D0CC-1E34-4885-B1F2-441BA8B55DD1",
+              "F38213F2-C2D1-4D17-854C-A1AAECB6D99D",
+              "67AB84DC-A617-4F08-99B0-3E5F70CA5E52",
+              "1B41F1F4-CA69-4C28-AD34-1A7034F4BE83",
+              "0F789BDB-2E6C-4A0E-812B-98D338788AE2",
+              "43C4EEA6-D202-4603-952A-58547CDAD3C1",
+              "B7D973D3-B651-4865-A903-49A900DF3348",
+              "6BAC0459-DABC-4A74-BDCC-FC24C4890DCF",
+              "5F704099-3EE8-4AAA-91D8-3CD0C81E1234",
+              "93993F1B-E2B7-4EF5-A5BB-DD030C220521",
+              "07DC8748-C64F-4889-B94A-D3D59057C08D",
+              "BB2B409F-EA13-4A29-8D98-84ED54C37700",
+              "AFBCA40D-4EA8-4AFE-A1F9-5F9358A93D50"
+            ]
+          }
+        ],
+        "phases": [
+          {
+            "kind": "orange",
+            "minY": 0.000739545493939342,
+            "maxRadius": 0.7063107866819908,
+            "pawQuarter": [
+              [
+                -0.09668408454408878,
+                0.03450577225420868,
+                0.223397777918896
+              ],
+              [
+                0.09789878934249355,
+                0.06830734857510566,
+                0.1117512856346069
+              ]
+            ],
+            "pawThreeQuarter": [
+              [
+                -0.09668414842263193,
+                0.06734820325328023,
+                0.11028468132286615
+              ],
+              [
+                0.09789878049106646,
+                0.03557174996712091,
+                0.22479999627064082
+              ]
+            ],
+            "seamDifference": 1.580958014724132e-06,
+            "surfaceChange": 0.2519968669006819
+          },
+          {
+            "kind": "calico",
+            "minY": 0.0007395381422600766,
+            "maxRadius": 0.7063108153575773,
+            "pawQuarter": [
+              [
+                -0.09668406320205569,
+                0.03450575548675122,
+                0.22339776050780216
+              ],
+              [
+                0.09789878505034319,
+                0.0683073515919583,
+                0.11175132036378362
+              ]
+            ],
+            "pawThreeQuarter": [
+              [
+                -0.09668415619431957,
+                0.06734821388948527,
+                0.1102846922776703
+              ],
+              [
+                0.09789880812284327,
+                0.035571753317766214,
+                0.2247999886696993
+              ]
+            ],
+            "seamDifference": 1.591430481617806e-06,
+            "surfaceChange": 0.25199691142603103
+          },
+          {
+            "kind": "black",
+            "minY": 0.0007395399333595676,
+            "maxRadius": 0.7063108617619364,
+            "pawQuarter": [
+              [
+                -0.09668411767835898,
+                0.03450577481590697,
+                0.22339775396849187
+              ],
+              [
+                0.09789880733350424,
+                0.06830736352675554,
+                0.11175131462742656
+              ]
+            ],
+            "pawThreeQuarter": [
+              [
+                -0.09668414005922495,
+                0.06734819469185518,
+                0.11028468771785256
+              ],
+              [
+                0.09789875420108184,
+                0.03557174747008398,
+                0.2247999816090739
+              ]
+            ],
+            "seamDifference": 1.5738290498612528e-06,
+            "surfaceChange": 0.2519969220575087
+          },
+          {
+            "kind": "tabby",
+            "minY": 0.0007395399450584875,
+            "maxRadius": 0.706310764743846,
+            "pawQuarter": [
+              [
+                -0.0966841270569385,
+                0.03450575446992813,
+                0.2233978088800042
+              ],
+              [
+                0.09789879020448605,
+                0.06830734595547579,
+                0.11175137276279838
+              ]
+            ],
+            "pawThreeQuarter": [
+              [
+                -0.0966841923753263,
+                0.06734819085429503,
+                0.11028463513541703
+              ],
+              [
+                0.09789880499298956,
+                0.035571741967564394,
+                0.22480005203116304
+              ]
+            ],
+            "seamDifference": 1.5301803539813363e-06,
+            "surfaceChange": 0.25199691280306113
+          }
+        ],
+        "movement": {
+          "before": [
+            0,
+            0.8825
+          ],
+          "after": [
+            0,
+            0.9924999999999998
+          ],
+          "speed": 0.55,
+          "actionTimeScale": 1.7320150874652585
+        }
+      },
+      {
+        "label": "phone",
+        "viewport": "390x844 DPR2",
+        "ownership": [
+          {
+            "id": "255F62F9-4CEC-4C63-87A1-C27D06D49BEB",
+            "kind": "orange",
+            "mixerRoot": "09824204-E089-49A6-8B99-2356BA0A71D0",
+            "model": "09824204-E089-49A6-8B99-2356BA0A71D0",
+            "bones": [
+              "F122C6EB-A825-4D91-B332-9C84C2C17E2E",
+              "457C1D06-EC26-486E-A75B-C062A607C7D1",
+              "D9E0E5EF-703A-4CF7-9BF1-8F08CA598B91",
+              "1DC8B42F-E410-473B-BF0C-23365E9C6438",
+              "31BE1F75-E887-4567-B3B0-8E1A029EF6A4",
+              "852B354E-2C8D-4FA4-A70C-5E93E687A86D",
+              "19E4B239-B0E4-40B7-9B16-12E40ABE3E35",
+              "EDFB697F-7492-4F89-8F01-E1F86EE431A7",
+              "01C7D2E9-78DA-4F86-8341-6A1912DFD242",
+              "55D9E06E-BC40-48AD-B78A-AA8CF6D1AEE6",
+              "E906171C-4089-4583-ABD1-2FA21A213300",
+              "BD63DBD9-04B8-4E73-9F49-8DD47E709183",
+              "D1430BDA-0811-496B-9366-0FF922A4E30F",
+              "253BCFC5-4C18-4CA0-87DD-AFB006E08FE3",
+              "B91DAFFE-D091-45D8-BBA0-498E2A88EC84",
+              "8DFFE586-9481-4DAE-AFE5-0CA68E402443",
+              "A134F664-982B-4A99-A320-337A32ED59F3",
+              "F5507D96-DC13-44B7-9703-F37816B20C8E",
+              "892848E6-60FE-49A3-8B84-B47F3AF3BB90",
+              "5DCFA639-24EF-44E0-BFD6-84179E54CB47",
+              "71990029-282A-4C8A-B36D-CA5E42BAA664",
+              "C51AA8F7-6C33-4967-A7FD-38D426482684"
+            ]
+          },
+          {
+            "id": "A5BD16A9-CCB8-4C67-8703-CB7986D4C7AD",
+            "kind": "calico",
+            "mixerRoot": "F1E9D71D-A840-4EA0-B391-DC7DC2949DC3",
+            "model": "F1E9D71D-A840-4EA0-B391-DC7DC2949DC3",
+            "bones": [
+              "D98730E3-70B5-4060-9B30-DC00CA8C84B5",
+              "ADFB1504-340F-42C7-8FD7-55902E3F0BC5",
+              "C1E2C4E4-38C3-4971-8393-3717D28592F0",
+              "85E29EB2-2CD8-47BB-A7DB-EBE2E60A562F",
+              "198BB4FC-B05F-4096-9B55-2DC00AF1BA64",
+              "ED920A60-743D-41AC-8FB0-28016EC78FB9",
+              "014E096C-78B5-4E0C-8360-ED2F1272D5AC",
+              "55509432-BC4B-4FBE-B719-E844F614C9BF",
+              "E96D1E24-40C4-4FED-ABD0-16201A148855",
+              "BDBAFDC2-0423-4778-9FB8-7C1B7E13F45A",
+              "D18AFF01-08AC-4AB6-9345-D6AA22F7D61A",
+              "25723C62-4CE3-4174-872C-8D3C06E346E2",
+              "B9442C24-D08C-4A6C-BB5F-ECCF2A3B4A59",
+              "8D16FA1F-94AC-4CB4-AF14-94F48EA3BBB3",
+              "A13B1819-9886-4EFD-A3BF-2D2732006E1E",
+              "F54714A1-DC9E-4886-9712-60BF1675900C",
+              "890FABDD-60B9-492A-8B03-03E33A665249",
+              "5DA61CC6-24DA-4AF5-BFC5-93329E77C7F1",
+              "7160C0AB-2845-4306-B3CC-E822428D0BBB",
+              "C5D1D821-6C7E-4CD4-A7CC-253826CBA628",
+              "59CEA798-F049-46FF-9BBA-EF954A953197",
+              "2D6AC23F-B4AB-4A4E-8FC9-E098AE8F383F"
+            ]
+          },
+          {
+            "id": "E937B599-4006-44B4-AB2A-3A211AA62F44",
+            "kind": "black",
+            "mixerRoot": "39315B1F-508F-47F8-BB80-E4BAAAE15651",
+            "model": "39315B1F-508F-47F8-BB80-E4BAAAE15651",
+            "bones": [
+              "21B8A40A-18D9-4B63-A3EF-A9D5B2768F32",
+              "754C7E8E-5CD9-4542-970B-FB0F9613F227",
+              "091C47A1-E05B-417F-8B43-8555BAAC224C",
+              "4D8233F5-54A5-45EF-AF36-352C4EDA1C06",
+              "6183985C-58AB-4889-A31C-A6C2F242A520",
+              "B52B3B47-9CAF-40B2-976C-E57AD683D877",
+              "494FF476-2076-485C-8B19-4799FA0032CB",
+              "1D02E092-E402-4527-BF56-84E65E5ED12A",
+              "3198F10B-E899-49F7-B39A-6FC502809EC9",
+              "85A5C720-2CBF-4B9C-A796-E8E9E689AD7F",
+              "19FEBF54-B036-47D9-9B40-10250AE0E2E0",
+              "EDB54BEE-7404-4245-8FCB-BCFA6E26D70B",
+              "01218350-786C-40CB-83AB-2DF41241FB94",
+              "55D3F943-BCF2-48DD-B794-FFE3F653FC31",
+              "E9A0D282-405B-4884-AB7B-608F1AC36709",
+              "BD9D131C-04AA-45E1-9F93-83707E328FCA",
+              "D11D3A82-0823-46EA-9350-55862286ACF1",
+              "25B50E59-4C4A-414F-8767-6F6506E245DC",
+              "B937B956-D0E3-44E1-BBCA-4CFE2AAAD191",
+              "8DB914CC-94F3-48FA-AFAF-BDCC8E829A64",
+              "A18E43A8-98BD-43A0-A38A-9B64324FE3CE",
+              "F54A830B-DCC5-4D73-970D-BD8F16344B30"
+            ]
+          },
+          {
+            "id": "27383F0D-66BD-4C94-999B-FA9E3036325B",
+            "kind": "tabby",
+            "mixerRoot": "09037419-E016-430C-8BC2-2D56BA1F4BDE",
+            "model": "09037419-E016-430C-8BC2-2D56BA1F4BDE",
+            "bones": [
+              "F1C327B0-A852-4829-B37B-EB76C2769B34",
+              "45ADB072-ECA3-4760-A7B4-87ADA68C5CBC",
+              "D9A17B69-7007-4DA8-9B5A-C855CAAE3E38",
+              "1DD9A6C1-E4ED-47C0-BF45-0C455E81F277",
+              "315F9295-E8B4-4D72-B3F9-16F00253F8EA",
+              "855C6937-2C0A-4C10-A765-6E00E60CF32B",
+              "19A57991-B0B1-4E36-9B7F-A37B0A137718",
+              "ED4C24C8-74AF-4B60-8F7A-FCA86E09CD5B",
+              "01A87183-7847-479A-83CA-28D412D4150A",
+              "554AE527-BCFD-47E1-B723-3501F696AEFB",
+              "E9079252-4096-4A62-AB7A-BF051AB6D4CC",
+              "BDF46D2C-0415-4634-9F02-6BBB7ED589A5",
+              "D164E668-08BE-4F34-932F-943F22D9B72D",
+              "25ECB303-4C15-4F2C-87B6-447406E59451",
+              "B95EEE11-D0DE-415F-BB89-67362A5D47BA",
+              "8DD0603A-941E-4024-AFDE-3CFD8EE5C91E",
+              "A1951DA9-9818-4039-A329-0ED732620FD1",
+              "F5415292-DC50-4AE1-971C-22F716F7662B",
+              "89A95B98-608B-4D0D-8BAD-F0483A0820C2",
+              "5DE019A9-24CC-420B-BF0F-97BC9E396E7D",
+              "713A8426-2857-4195-B3B6-8B40426F8DFF",
+              "C54B7D6E-6CB0-422B-A756-929C26CD25FB"
+            ]
+          },
+          {
+            "id": "4D26E7EE-54F9-4C35-AF7A-BC724E4E1324",
+            "kind": "orange",
+            "mixerRoot": "99AADA1A-30F9-4C62-9B20-AABE8A46A6E9",
+            "model": "99AADA1A-30F9-4C62-9B20-AABE8A46A6E9",
+            "bones": [
+              "815D732A-F87E-4E7D-839C-83E59277AB90",
+              "D5972394-3CED-42C4-B74D-304E76B27804",
+              "696D4AFB-C0BD-4856-AB7C-F45F9AC99EA5",
+              "AD41E605-349D-49B1-8F0D-FCEB2EFDFFEB",
+              "C188E6F0-3831-43AD-8329-1681D223A4A6",
+              "15D7A598-7CA3-4311-B70E-E7ACB6020084",
+              "A9006335-00B8-4375-ABB1-1885DAFDEC28",
+              "7D190088-C472-46AB-9F45-1AFE3EB9C861",
+              "91759644-C817-4D26-933E-D476E21899F2",
+              "E5A84AFC-0C2B-4B49-8751-9C45C64070F7",
+              "798760DA-9070-4A04-BB70-69BAEA9410B9",
+              "4D258FC8-54EC-4E19-AFD1-474A4EB9D019",
+              "61D694CE-58E2-4AF6-A3E7-0CD8F291BFFE",
+              "B52E0BC1-9CD6-420E-9767-4B4ED6420859",
+              "49027B93-208D-41F5-8B44-87FEFA2F96B3",
+              "1D65B0E1-E409-4CDA-BFB1-A9795EFDF868",
+              "31AB4E84-E890-4504-B325-B5D5028F88E5",
+              "8568A444-2CA6-436F-A751-B994E608C999",
+              "1971BF03-B00D-42BF-9B2B-07A10ACF0E81",
+              "EDD8C0E8-74CB-4613-8FE6-A4126E856260",
+              "01F4706A-7823-4679-83F6-01B21210A521",
+              "55561348-BC99-4608-B70F-EB6BF692F3EE"
+            ]
+          },
+          {
+            "id": "C33CF711-5221-4797-95B6-3DE4FCFCF63E",
+            "kind": "calico",
+            "mixerRoot": "81E4D72E-F859-43F3-83BB-6474920A748B",
+            "model": "81E4D72E-F859-43F3-83BB-6474920A748B",
+            "bones": [
+              "69D43FCB-C0F8-48BB-AB7B-F9619ABC79A4",
+              "3D49E682-845F-4DCA-9FCB-380BFE036045",
+              "51C1CD67-8870-4A5D-9340-8E67A2AF7D74",
+              "154EEE1B-7CAE-4B3A-B79D-816AB645D3B0",
+              "A967CF33-00F3-4EA0-ABB0-ACF7DAF00AD9",
+              "7D705723-C4DD-4FDA-9FB4-06F63E5C0404",
+              "91BC8F2F-C8B2-4F56-931D-E8B2E26B75B1",
+              "E5DF8C91-0CF6-419F-87A0-16A2C643201C",
+              "79AE8223-906B-4025-BB2F-F9CFEA4777BE",
+              "4D3C1875-5417-4FBA-AF00-0C7D4E1C816F",
+              "61DDFB1A-583D-4094-A386-94D6F2A4FC7B",
+              "B525B74D-9C61-48D6-9776-9500D605C55F",
+              "49E9C22B-2048-42E6-8BC3-02E5FAA27503",
+              "1D3CDB32-E4F4-420A-BFA0-357C5E204EA2",
+              "317293C4-E8AB-4D1E-B384-A082026256BC",
+              "851F2ACA-2CF1-475D-A720-C3CFE68BC2B8",
+              "19189DCB-B088-4D85-9B6A-5EC20A02971C",
+              "ED6FFD0D-7476-44DB-8F95-E8756E688C79",
+              "017B038D-78FE-40CB-8315-41B512A33379",
+              "55CDE2E3-BCA4-493A-B79E-A4DEF6D559A8",
+              "E93A5E79-402D-4BB2-AB25-E12C1A65ACE6",
+              "BDD71B83-049C-4C0E-9FDD-C9197EF49C9E"
+            ]
+          }
+        ],
+        "phases": [
+          {
+            "kind": "orange",
+            "minY": 0.0007395630624669747,
+            "maxRadius": 0.7063107631725952,
+            "pawQuarter": [
+              [
+                -0.09668408800465472,
+                0.03450577091087514,
+                0.22339774533798828
+              ],
+              [
+                0.09789879204611551,
+                0.06830736917245539,
+                0.11175131623754453
+              ]
+            ],
+            "pawThreeQuarter": [
+              [
+                -0.09668415285561013,
+                0.06734819534630586,
+                0.1102847120862688
+              ],
+              [
+                0.09789878394614442,
+                0.035571746192573195,
+                0.22479996378397388
+              ]
+            ],
+            "seamDifference": 1.6005603982183203e-06,
+            "surfaceChange": 0.25199685792769566
+          },
+          {
+            "kind": "calico",
+            "minY": 0.0007395387507225792,
+            "maxRadius": 0.7063108016853857,
+            "pawQuarter": [
+              [
+                -0.09668398042096717,
+                0.03450576698235324,
+                0.22339778174025313
+              ],
+              [
+                0.09789868885866279,
+                0.06830734907403146,
+                0.11175131694185914
+              ]
+            ],
+            "pawThreeQuarter": [
+              [
+                -0.09668424470187485,
+                0.06734819745688564,
+                0.1102846864044212
+              ],
+              [
+                0.09789888349986794,
+                0.03557175083677718,
+                0.22480000956295013
+              ]
+            ],
+            "seamDifference": 1.5304214456834941e-06,
+            "surfaceChange": 0.2519968980526197
+          },
+          {
+            "kind": "black",
+            "minY": 0.0007395378583148204,
+            "maxRadius": 0.706310835237033,
+            "pawQuarter": [
+              [
+                -0.09668410033544257,
+                0.034505773297450706,
+                0.22339775319427027
+              ],
+              [
+                0.0978987827716348,
+                0.06830734441899196,
+                0.11175132960644156
+              ]
+            ],
+            "pawThreeQuarter": [
+              [
+                -0.09668413094298166,
+                0.06734820517886997,
+                0.11028469592539523
+              ],
+              [
+                0.09789873819527353,
+                0.03557174354573414,
+                0.2247999861208925
+              ]
+            ],
+            "seamDifference": 1.6067685141285537e-06,
+            "surfaceChange": 0.25199690855600926
+          },
+          {
+            "kind": "tabby",
+            "minY": 0.0007395383826330759,
+            "maxRadius": 0.7063107665452055,
+            "pawQuarter": [
+              [
+                -0.09668408006192226,
+                0.03450575804096026,
+                0.22339782683418719
+              ],
+              [
+                0.09789883927457739,
+                0.06830736566401867,
+                0.11175131925237651
+              ]
+            ],
+            "pawThreeQuarter": [
+              [
+                -0.09668404392135163,
+                0.06734821406225698,
+                0.11028473763416871
+              ],
+              [
+                0.09789872997378203,
+                0.03557174066431307,
+                0.22480002291604856
+              ]
+            ],
+            "seamDifference": 1.5946294407154227e-06,
+            "surfaceChange": 0.2519969695409843
+          }
+        ],
+        "movement": {
+          "before": [
+            0,
+            0.8825
+          ],
+          "after": [
+            0,
+            1.0199999999999998
+          ],
+          "speed": 0.55,
+          "actionTimeScale": 1.7535380877287758
+        }
+      }
+    ],
+    "browser": "151.0.7922.173"
+  },
+  "visual": {
+    "orange": "Reviewed actual chapter-two screenshots at 0/25/50/75 percent and the stepped browser capture: alternating paws, connected tail, preserved coat; seated geometry independently checked against approved source.",
+    "calico": "Reviewed actual chapter-two screenshots at 0/25/50/75 percent and the stepped browser capture: alternating paws, connected tail, preserved coat; seated geometry independently checked against approved source.",
+    "black": "Reviewed actual chapter-two screenshots at 0/25/50/75 percent and the stepped browser capture: alternating paws, connected tail, preserved coat; seated geometry independently checked against approved source.",
+    "tabby": "Reviewed actual chapter-two screenshots at 0/25/50/75 percent and the stepped browser capture: alternating paws, connected tail, preserved coat; seated geometry independently checked against approved source."
+  }
 }

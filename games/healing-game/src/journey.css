@@ -5,6 +5,10 @@
 .jr-card p, .jr-card small { line-height: 1.7; }
 .jr-eyebrow { color: #dac7a6; font-size: 11px; letter-spacing: 3px; }
 .jr-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.jr-restart { display:flex; align-items:center; flex-wrap:wrap; gap:8px 12px; margin-top:14px; }
+.jr-restart button { min-height:44px; padding:8px 15px; border:1px solid #d7b7a6; border-radius:13px; color:#ffe7d9; background:#ffe7d913; font-size:14px; }
+#journeyResetStatus { flex-basis:100%; margin:0; color:#ffe2a4; font-size:12px; }
+#journeyResetStatus:empty { display:none; }
 .jr-close { width: 44px; height: 44px; border: 1px solid #ffffff40; border-radius: 50%; font-size: 22px; }
 .jr-tabs { display: flex; gap: 6px; margin: 18px 0; }
 .jr-tabs button { flex: 1; min-height: 44px; border-radius: 13px; background: #ffffff0c; border: 1px solid transparent; }
