@@ -108,7 +108,7 @@ function harness(options = {}) {
   function kitten(kind = 'orange', phase = .7) {
     const root = new THREE.Group(), inner = new THREE.Group(); root.add(inner); island.add(root);
     root.position.set(1, .25, 2); root.rotation.y = 1.3;
-    return { root, inner, kind: { id: kind }, size: 1.3, phase, dead: false, state: 'idle', moving: false, crouch: 0, curl: 0 };
+    return { root, inner, x:1, z:2, kind: { id: kind }, size: 1.3, phase, dead: false, state: 'idle', moving: false, crouch: 0, curl: 0 };
   }
   return { api: window.GardenCatModels, requests, pending, assets, island, kitten, decoders };
 }
@@ -121,7 +121,7 @@ function transforms(model) {
 const settle = () => new Promise(resolve => setImmediate(resolve));
 function moving(api, k, speed = .55) {
   k.state = 'roam'; k.moving = true; k.catWalkSpeed = speed;
-  for (let i = 0; i < 8; i++) api.pose(k, 1 + i * .05, .05);
+  for (let i = 0; i < 8; i++) { k.z += speed * .05; api.pose(k, 1 + i * .05, .05); }
 }
 
 (async () => {
@@ -174,12 +174,23 @@ function moving(api, k, speed = .55) {
   assert.deepEqual(transforms(b.catModel), untouchedB, 'moving one actor never poses another');
   assert.deepEqual(transforms(h.assets.orange.scene), untouchedTemplate, 'cached template stays seated');
   assert.equal(a.catWalkAction.loop, THREE.LoopRepeat);
-  assert.equal(a.catWalkAction.getEffectiveTimeScale(), .55 * 1.6 / (.56 * .708 * a.size));
+  assert(Math.abs(a.catWalkAction.getEffectiveTimeScale() - .55 * 1.6 / (.56 * .708 * a.size)) < 1e-10);
   const orientation = a.root.rotation.y, position = a.root.position.toArray();
   for (const speed of [.55, 1.1, .75, 1]) {
-    a.catWalkSpeed = speed; h.api.pose(a, 2, .05);
-    assert.equal(a.catWalkAction.getEffectiveTimeScale(), speed * 1.6 / (.56 * .708 * a.size));
+    a.catWalkSpeed = speed; a.z += speed * .05; h.api.pose(a, 2, .05);
+    assert(Math.abs(a.catWalkAction.getEffectiveTimeScale() - speed * 1.6 / (.56 * .708 * a.size)) < 1e-10);
   }
+  a.catWalkSpeed = 1.1; a.z += .012; h.api.pose(a, 2.1, .05);
+  assert(Math.abs(a.catWalkActualSpeed - .24) < 1e-10, 'push-out shortens actual travel without changing the requested speed');
+  assert(Math.abs(a.catWalkAction.getEffectiveTimeScale() - .24 * 1.6 / (.56 * .708 * a.size)) < 1e-10);
+  const planted = a.catWalkAction.time;
+  h.api.pose(a, 2.15, .05);
+  assert.equal(a.catWalkAction.time, planted, 'completely blocked movement does not march or slide in place');
+  assert.equal(a.catWalkAction.getEffectiveTimeScale(), 0);
+  assert.equal(a.catWalkSpeed, 1.1, 'gameplay speed is untouched');
+  for (let i=0;i<5;i++) h.api.pose(a,2.2+i*.05,.05);
+  assert(!a.catWalkActive, 'a blocked cat settles into its seated rest instead of freezing with a raised paw');
+  assert.equal(a.catFootprint,.7*a.catWalkScale*a.size,'blocked pose keeps the gameplay collision reservation stable');
   assert.equal(a.root.rotation.y, orientation, '+Z heading remains owned by gameplay');
   assert.deepEqual(a.root.position.toArray(), position, 'animation never translates the game actor');
   assert.deepEqual(rootTransform[0].slice(1), [a.root.position.toArray(), a.root.quaternion.toArray(), a.root.scale.toArray()]);

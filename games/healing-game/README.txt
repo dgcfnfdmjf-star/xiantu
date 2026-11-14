@@ -1,3 +1,18 @@
+本次增量（2026-11-14，版本号保持现状）
+========================================
+- 手账 / 选关顶部新增“重新开始”。确认后清除 healingGarden.* 命名空间
+  （含备份、损坏记录及各章收藏）和 hg_level2_unlocked；保留其他应用数据。
+  删除失败显示反馈并尝试还原已删除项；成功后阻止旧页面的卸载自动保存，
+  移除 level / cutscene 调试参数，再进入第一关。取消不改变存档。
+- 四猫 Walk 在 Blender 中重做抬落脚曲线、肩膝弯曲、身体起伏和三节尾巴。
+  实际行走距离驱动步频，修复被避让挡住仍原地快踏的问题。玩法速度不变。
+  每只仍 7,430 三角面，原贴图与坐姿保留，四只 GLB 合计 1,188,012 字节。
+- 通关过场沿用原时间轴、走坐过渡与眼睛表现，仅适配新增的尾巴关节。
+- 新验证：tests/garden-reset.cjs、garden-reset-browser.cjs、cat-gait-browser.cjs。
+  浏览器及加载实测见 assets/cats/VALIDATION.txt，原图/视频见 walk-preview/。
+- 沿用下述 build.py 六文件打包流程及现有版本标记，不升版、不合并、不部署。
+  下文为原接入记录；当前 GLB 数据以 *-metrics.json 和 VALIDATION.txt 为准。
+
 暮色浮岛 V9.5 · 四种 Blender 猫咪行走修复（2026-11-11）
 
 基于包含 PR #74 的 main 8812ff5 修复第二关猫咪移动时仍保持静态坐姿的问题。
@@ -81,7 +96,7 @@ assets/cats/preview-cat-orange.html 保留原文件名，可切换四毛色、�
 python3 scripts/checksums.py；不改仙途/Jev 代码，不部署任何游戏或云函数。
 
 V9.6 工作版备注：第二关通关过场（场景动画已完成，已改为手绘水彩风：卡通渐变、描边、风吹草浪、蒲公英、风铃、纸纹；未发布，暂无配乐）
-build.py 先冻结 V9.5 发布 HTML 并照旧生成 releases/healing-game-v9.5-tencent.zip（字节不变），
+build.py 先冻结 V9.5 发布 HTML 并照旧生成 releases/healing-game-v9.5-tencent.zip（沿用原版本名，本次重新生成校验），
 再由 scripts/l2-cutscene-v96.py 把 src/l2-cutscene.js 挂入工作站点 site/healing-game/；
 site/healing-game-v9.5-baseline/ 为与 ZIP 一致的对照页。目前只有 60 秒时间轴、跳过、
 轻触继续；画面为岛上实景演出（镜头、小猫群演含一只星光猫、灯笼、逗猫棒、蝴蝶、图鉴、标题），配乐为原创程序化圆舞曲「猫团圆舞曲」（src/l2-cutscene-music.js，G 大调 3/4，毛毡钢琴主旋律 + 弦乐铺底 + 竖琴 + 长笛，复用 music-lush 音色，无采样、无引用旋律；跟随 seek，跳过时收束到尾句，静音预览 ?mute=1 不发声）；游戏内抱满 20 分后默认播放（?l2cutscene=0 可退回旧的 7 秒卡片），已通关存档再次载入不会重播，
