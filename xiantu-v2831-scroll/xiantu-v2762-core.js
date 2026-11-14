@@ -14216,6 +14216,11 @@ function villageEnhanceV286897(){
       FLAT_WORLD.raf=null;
       if(document.hidden){PERF_CONFIG.fpsFrames=0;PERF_CONFIG.fpsStartedAt=t;PERF_CONFIG.measuredFps=0;return;}
       if(isWorldOverlayOpen() || !document.body.classList.contains('flat-world-active')) {
+        // Paint one standing pose before freezing the map behind a panel, not a raised foot.
+        if(mapNpcWalkV1?.renderMoving){
+          mapNpcWalkV1.renderMoving=false;
+          if(document.body.classList.contains('flat-world-active'))drawFlatWorld(t,0);
+        }
         if(typeof mapFxFrameV2868104==='function')mapFxFrameV2868104(t);
         if(typeof interiorV286886!=='undefined'&&interiorV286886?.hallDestination)resetWorldMovementV28686();
         PERF_CONFIG.fpsFrames=0;PERF_CONFIG.fpsStartedAt=t;PERF_CONFIG.measuredFps=0;
@@ -14319,7 +14324,7 @@ function villageEnhanceV286897(){
       const profile=MAP_NPC_WALK_V1[currentRegion];if(!profile||!player)return;
       const poi=FLAT_WORLD.pois.find(o=>o.id===profile.id&&o.region===currentRegion);if(!poi)return;
       const s=mapNpcWalkV1={owner:player,region:currentRegion,poi,profile,homeX:poi.x,homeY:poi.y,
-        target:{x:poi.x,y:poi.y},probe:{x:poi.x,y:poi.y},seed:profile.seed,pause:0,walking:false,phase:0};
+        target:{x:poi.x,y:poi.y},probe:{x:poi.x,y:poi.y},seed:profile.seed,pause:0,walking:false,phase:0,dir:0,stepping:false,renderMoving:false};
       s.pause=2+mapNpcWalkRandomV1(s)*4;
     }
     function mapNpcWalkClearV1(s,x,y){
@@ -14336,6 +14341,7 @@ function villageEnhanceV286897(){
     function updateMapNpcWalkV1(dt){
       if(mapNpcWalkV1&&(mapNpcWalkV1.owner!==player||mapNpcWalkV1.region!==currentRegion))resetMapNpcWalkV1();
       const s=mapNpcWalkV1;
+      if(s)s.stepping=false;
       if(!s||!canMapNpcActV2864()||document.hidden||isWorldOverlayOpen()||
         (typeof interiorV286886!=='undefined'&&interiorV286886)||!Number.isFinite(dt)||dt<=0)return;
       // Keep the clicked destination still while the player follows its existing route to talk.
@@ -14356,7 +14362,69 @@ function villageEnhanceV286897(){
       const x=d?s.poi.x+dx/d*step:s.poi.x,y=d?s.poi.y+dy/d*step:s.poi.y;
       if(!mapNpcWalkClearV1(s,x,y)){s.walking=false;s.phase=0;s.pause=2+mapNpcWalkRandomV1(s)*4;return;}
       s.poi.x=x;s.poi.y=y;s.phase=(s.phase+step*.14)%(Math.PI*2);
+      if(step>0){s.stepping=true;s.dir=(Math.round(Math.atan2(dx,dy)/(Math.PI/4))+8)%8;}
       if(d<=step){s.walking=false;s.phase=0;s.pause=2+mapNpcWalkRandomV1(s)*4;}
+    }
+
+    // NPC presentation only. The existing home/radius/speed/seed/dwell simulation above is unchanged.
+    // Same 4x3 layout/cycle as enemies, at double resolution for the existing 1.35x NPC draw scale.
+    const MAP_NPC_GAITS_V2={
+      mentor_npc:{key:'mentor',bob:.55,sway:.010,shadow:26},
+      beast_npc:{key:'beast',bob:.8,sway:.018,shadow:21},
+      elder_npc:{key:'elder',bob:.35,sway:.006,shadow:25},
+      trader_npc:{key:'trader',bob:.5,sway:.016,shadow:25}
+    };
+    const MAP_NPC_WALK_CYCLE_V2=[1,2,3,2],MAP_NPC_WALK_KEYS_V2=['mentor','beast','elder','trader'],MAP_NPC_WALK_IMAGES_V2=new Map();
+    function mapNpcWalkFramesV2(key){
+      if(!MAP_NPC_WALK_KEYS_V2.includes(key))return null;
+      const cached=MAP_NPC_WALK_IMAGES_V2.get(key),limit=PERF_CONFIG.mobile&&PERF_CONFIG.lowEnd?1:4;
+      if(MAP_NPC_WALK_IMAGES_V2.size>=(cached?limit+1:limit))trimMapNpcWalkImagesV2(key,cached?limit:limit-1);
+      if(cached)return cached.ready?cached.frames:null;
+      const image=new Image(),entry={image,frames:null,ready:false};image.decoding='async';
+      image.onload=()=>{
+        if(image.naturalWidth===1024&&image.naturalHeight===960){
+          // Cache tight tiles once: cropping the full atlas each draw is costly on software Canvas.
+          entry.frames=[];
+          for(let i=0;i<12;i++){const tile=document.createElement('canvas');tile.width=256;tile.height=320;tile.getContext('2d').drawImage(image,i%4*256,Math.floor(i/4)*320,256,320,0,0,256,320);entry.frames.push(tile);}
+          entry.ready=true;
+        }
+        image.onload=image.onerror=null;image.removeAttribute?.('src');entry.image=null;
+      };
+      image.onerror=()=>releaseMapNpcWalkEntryV2(entry);
+      MAP_NPC_WALK_IMAGES_V2.set(key,entry);image.src=`./art/npc/walk-v1/${key}.webp`;
+      return null; // Only these four keys can allocate; failed/pending requests are cached too.
+    }
+    function trimMapNpcWalkImagesV2(keep,limit){
+      for(const [key,e] of MAP_NPC_WALK_IMAGES_V2){
+        if(MAP_NPC_WALK_IMAGES_V2.size<=limit)break;
+        if(key!==keep){releaseMapNpcWalkEntryV2(e);MAP_NPC_WALK_IMAGES_V2.delete(key);}
+      }
+    }
+    function releaseMapNpcWalkEntryV2(e){
+      if(e.image){e.image.onload=e.image.onerror=null;e.image.removeAttribute?.('src');e.image=null;}
+      if(e.frames){for(const tile of e.frames)tile.width=tile.height=0;e.frames=null;}e.ready=false;
+    }
+    function releaseMapNpcWalkImagesV2(){
+      for(const e of MAP_NPC_WALK_IMAGES_V2.values())releaseMapNpcWalkEntryV2(e);
+      MAP_NPC_WALK_IMAGES_V2.clear();
+    }
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseMapNpcWalkImagesV2();});
+    window.addEventListener('pagehide',releaseMapNpcWalkImagesV2);
+    function mapNpcSteppingV2(s){
+      return !!(s&&s.owner===player&&s.region===currentRegion&&s.walking&&s.stepping&&
+        canMapNpcActV2864()&&!document.hidden&&!isWorldOverlayOpen()&&
+        !(typeof interiorV286886!=='undefined'&&interiorV286886)&&
+        autoNavigationV2830?.poi!==s.poi&&autoNavigationV2830?.goal!==s.poi.id);
+    }
+    function drawMapNpcWalkFrameV2(ctx,s,gait,moving){
+      const frames=mapNpcWalkFramesV2(gait.key);if(!frames)return false;
+      const row=s.dir===2||s.dir===6?1:s.dir>=3&&s.dir<=5?2:0;
+      const frame=moving?MAP_NPC_WALK_CYCLE_V2[Math.floor(s.phase/(Math.PI/2))]:0;
+      ctx.save();ctx.fillStyle='rgba(22,37,31,.25)';ctx.beginPath();ctx.ellipse(0,23,gait.shadow,7,0,0,Math.PI*2);ctx.fill();
+      if(s.dir>=5)ctx.scale(-1,1);
+      // Packed feet are y=296. A fixed 80x100 draw keeps every pose on the original y=24 anchor.
+      ctx.drawImage(frames[row*4+frame],-40,24-296*.3125+(moving?Math.sin(s.phase*2)*gait.bob:0),80,100);
+      ctx.restore();return true;
     }
 
     function updateFlatWorld(dt) {
@@ -15739,7 +15807,6 @@ function villageEnhanceV286897(){
     }
     function drawMapNpcPresenceV286889(ctx,o,status){
       ctx.save();if(mapAliveQualityV2893()!=='off'){ctx.strokeStyle=o.action==='yewuji_v2810'?'rgba(180,120,210,.45)':'rgba(100,160,140,.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(0,24,36,11,0,0,Math.PI*2);ctx.stroke();}
-      const walk=mapNpcWalkV1;if(walk?.poi===o&&walk.walking)ctx.translate(Math.sin(walk.phase)*.35,-Math.abs(Math.sin(walk.phase))*.9);
       ctx.translate(0,24);ctx.scale(1.35,1.35);ctx.translate(0,-24);drawMapNpcV2863(ctx,o);if(status)drawMapNpcStatusV2864(ctx,o);ctx.restore();
     }
     function mapPoiBoundsV286889(o){
@@ -16590,6 +16657,15 @@ function drawWanderingMentorV2862(ctx){
 
 // Shared low-cost map silhouettes, individual clothing and props.
 function drawMapNpcV2863(ctx,o){
+ const s=mapNpcWalkV1,gait=s?.poi===o?MAP_NPC_GAITS_V2[o.id]:null;
+ if(!gait){drawMapNpcStillV2863(ctx,o);return;}
+ const moving=mapNpcSteppingV2(s);s.renderMoving=moving;
+ if(drawMapNpcWalkFrameV2(ctx,s,gait,moving))return;
+ // While offline/loading keep the familiar body, with distance-driven sway rather than sliding.
+ ctx.save();if(moving){const step=Math.sin(s.phase);ctx.translate(step*.4,Math.sin(s.phase*2)*gait.bob);ctx.translate(0,24);ctx.rotate(step*gait.sway);ctx.scale(1+step*.012,1-Math.abs(step)*.015);ctx.translate(0,-24);}
+ drawMapNpcStillV2863(ctx,o);ctx.restore();
+}
+function drawMapNpcStillV2863(ctx,o){
  if(o.action==='npc_mentor'||o.id==='mentor_npc'){drawWanderingMentorV2862(ctx);return;}
  const role=o.action==='yewuji_v2810'?'rival':o.action==='npc_beast'?'beast':o.action==='npc_trader'?'trader':o.action==='npc_elder'?'elder':'traveller';
  const palette={beast:['#85b798','#416f64','#d1d6a8'],trader:['#b59c71','#705643','#e0c28c'],elder:['#7d8b96','#4a5560','#d7dbd8'],rival:['#665568','#292638','#bd9a59'],traveller:['#94a797','#4a6459','#dbd1af']}[role];
