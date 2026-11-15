@@ -1,7 +1,7 @@
 /* l3-cutscene-music.js: 「星灯摇篮曲」, the original score for the level-3 clear cutscene.
  * A night lullaby in F major, 6/8 (two rocking beats a bar, one bar = 2 s, 25 bars = 50 s), in the manner of a
  * hand-drawn film score: a solo felt-piano tune in a long-short cradle rhythm over a rocking left hand, warm
- * sustained strings under it, harp for the night air, and high harp notes used like a celesta for the lamps and
+ * sustained strings under it, harp for the night air, and a soft celesta (its own small voice, see celesta()) for the lamps and
  * the star fireflies. No samples and no quoted melody; every note below was written for this scene.
  * Bars follow the picture: 0-10 s dusk (strings + a slow harp rock, the motif hinted), 10-20 s lamps (the tune,
  * piano alone, one bell note as each lamp warms), 20-32 s fireflies (the lift: harp eighths, the tune an octave
@@ -72,7 +72,7 @@
   bar('c', 0.62, 'F2', 'C4 A3 F4', 'A4:2 C5:1 F5:3', { strings: 0.044 });
   bar('c', 0.54, 'F2', 'Bb3 D4 F4', 'D5:2 Bb4:1 C5:3', { strings: 0.04, harp: 'F4 Bb4 D5 F5 Bb5 D6' });
   bar('c', 0.46, 'F2', 'C4 F4 A4', 'F5:6', { strings: 0.03 });
-  /* High harp notes played like a celesta, on the film clock rather than the bar grid: one bell as each lamp warms
+  /* Celesta notes, on the film clock rather than the bar grid: one bell as each lamp warms
    * (10.6 s, 2.7 s apart, each a third higher), a rising pentatonic run while the fireflies are released (20.6 s on),
    * a few late stars as they settle in the sky, and one last star over the final chord. */
   var SPARKS = [];
@@ -80,6 +80,29 @@
   notes('C6 D6 F6 G6 A6 C7 D7 F7').forEach(function (m, i) { SPARKS.push({ at: 20.7 + i * 0.95, m: m, v: 0.05 - i * 0.002 }); });
   notes('A6 F7 C7').forEach(function (m, i) { SPARKS.push({ at: 28.9 + i * 1.15, m: m, v: 0.034 }); });
   SPARKS.push({ at: 48.9, m: midi('C7'), v: 0.03 });
+
+  /* Celesta: the sparkle voice. Adapted from the game's own K.musicBox (a sine with a short upper-partial strike): a
+   * celesta is steel bars over wooden resonators, so the tone is nearly all fundamental - a felt-soft 5 ms attack, a
+   * warm octave partial from the box and one quick "tink" two octaves up; the music box's inharmonic 5.93x tine
+   * shimmer is left out, and high notes ring shorter. Three sine oscillators a note, 16 notes in the whole film.
+   * Without oscillators in the kit it falls back to the music box, then the harp. */
+  function celesta(t, m, v, out) {
+    if (!K.osc || !K.mtof) { (K.musicBox || V.harp)(t, m, v, out); return; }
+    var f = K.mtof(m), len = Math.max(1.1, Math.min(2.6, 2.6 - (m - 72) * 0.045)), peak = v * 0.9;
+    var g = K.gain(0, out), h = K.gain(0, out), k = K.gain(0, out);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(peak, t + 0.005);
+    g.gain.exponentialRampToValueAtTime(peak * 0.4, t + 0.22);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+    h.gain.setValueAtTime(0.0001, t);
+    h.gain.linearRampToValueAtTime(peak * 0.2, t + 0.005);
+    h.gain.exponentialRampToValueAtTime(0.0001, t + len * 0.45);
+    k.gain.setValueAtTime(peak * 0.26, t);
+    k.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+    K.osc('sine', f, t, t + len + 0.05, g, 0, [g]);
+    K.osc('sine', f * 2, t, t + len * 0.45 + 0.05, h, 3, [h]);
+    K.osc('sine', Math.min(f * 4.02, 15000), t, t + 0.2, k, 0, [k]);
+  }
 
   /* ----------------------------- Playing ---------------------------- */
   var def, cur = null, gen = null, origin = null, active = false, free = false, held = false, prev = -1, played = 0, lastStep = -1;
@@ -136,7 +159,7 @@
     }
     for (i = 0; i < SPARKS.length; i++) {
       var at = SPARKS[i].at - k * SD;
-      if (at >= 0 && at < SD) V.harp(t + at, SPARKS[i].m, SPARKS[i].v, out);
+      if (at >= 0 && at < SD) celesta(t + at, SPARKS[i].m, SPARKS[i].v, out);
     }
     played++; lastStep = k;
   }
@@ -199,6 +222,7 @@
     },
     // Offline listening/tests: the score as plain data.
     score: function () { return SCORE.map(function (b) { return { kind: b.kind, dyn: b.dyn, strings: b.strings, bass: b.bass, chord: b.chord.slice(), double: b.double, mel: b.mel.map(function (n) { return n.slice(); }) }; }); },
+    sparkleVoice: 'celesta', celesta: celesta,
     sparkles: function () { return SPARKS.map(function (g) { return { at: g.at, m: g.m, v: g.v }; }); }
   };
 })(window);

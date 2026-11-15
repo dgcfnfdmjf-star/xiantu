@@ -179,7 +179,31 @@ const SAVES = {
     await page.waitForTimeout(1500);
     const d1 = await dist();
     assert(Math.abs(d1 - d0) > 0.5, 'wheel zoom works after the cutscene: ' + d0.toFixed(2) + ' -> ' + d1.toFixed(2));
-    report.zoom = [+d0.toFixed(2), +d1.toFixed(2)];
+    // Pinch (two real touch points through CDP) zooms too, both ways.
+    const cdp = await page.context().newCDPSession(page);
+    const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map((p, i) => ({ x: p[0], y: p[1], id: i })) });
+    const pinch = async (from, to) => {
+      await touch('touchStart', [[195 - from, 420], [195 + from, 420]]);
+      for (let i = 1; i <= 8; i++) { const g = from + (to - from) * i / 8; await touch('touchMove', [[195 - g, 420], [195 + g, 420]]); await page.waitForTimeout(30); }
+      await touch('touchEnd', []);
+      await page.waitForTimeout(1500);
+    };
+    await pinch(40, 150);
+    const d2 = await dist();
+    await pinch(150, 40);
+    const d3 = await dist();
+    assert(d2 < d1 - 0.5 && d3 > d2 + 0.5, 'pinch zoom works after the cutscene: ' + [d1, d2, d3].map(v => v.toFixed(2)));
+    report.zoom = [d0, d1, d2, d3].map(v => +v.toFixed(2));
+    // The sparkle voice is the celesta (three sine oscillators a note through the kit), not the harp.
+    const cel = await page.evaluate(() => {
+      const GA = window.GardenAudio, K = GA.kit, V = window.__music2.voices, ctx = GA.context(), osc = K.osc, harp = V.harp, seen = { osc: [], harp: 0 };
+      K.osc = function (type, f) { seen.osc.push([type, Math.round(f)]); return osc.apply(this, arguments); };
+      V.harp = function () { seen.harp++; };
+      try { window.__l3Score.celesta(ctx.currentTime + 0.05, 84, 0.0001, K.gain(0)); } finally { K.osc = osc; V.harp = harp; }
+      return { seen, voice: window.__l3Score.sparkleVoice };
+    });
+    assert.equal(cel.voice, 'celesta');
+    assert.deepEqual(cel.seen, { osc: [['sine', 1047], ['sine', 2093], ['sine', 4207]], harp: 0 }, 'celesta = fundamental + octave + strike');
     await page.screenshot({ path: path.join(OUT, 'ingame-after.png') });
     await context.close();
 
@@ -237,13 +261,16 @@ const SAVES = {
     for (const t of [12.4, 24.6, 38.2]) {
       const a = await probeAt(t); await probeAt(t === 38.2 ? 6 : 45); const b = await probeAt(t);
       assert.equal(JSON.stringify(a.p), JSON.stringify(b.p), 'stage actors are a pure function of t at ' + t);
-      a.p.flies.forEach((f, j) => assert(f.every((v, k) => near(v, a.model[j][k])), 'firefly ' + j + ' is where the model puts it at ' + t));
+      // where the model puts it, except that one seen near the moon is slid round the rim (a few metres at star distance)
+      a.p.flies.forEach((f, j) => assert(f.every((v, k) => near(v, a.model[j][k], k < 3 && a.model[j][1] > 15 ? 9 : 1e-3)), 'firefly ' + j + ' is where the model puts it at ' + t));
       assert(a.p.flies.every(f => f[1] > 0.5), 'no firefly in the ground at ' + t);
       if (t > 31) {
         assert(near(a.p.boat[0], a.boat.x) && near(a.p.boat[1], a.boat.y) && near(a.p.boat[2], a.boat.z) && near(a.p.boat[3], a.boat.yaw) && a.st.boat, 'boat pose at ' + t);
         const mid = a.p.wake[(a.p.wake.length - 1) / 2]; assert(near(mid[0], a.wake.x, a.wake.half + 0.01) && near(mid[1], a.wake.z, a.wake.half + 0.01), 'wake lies on the path');
       } else assert.equal(a.st.boat, false);
     }
+    // No firefly (or the star it becomes) is ever drawn on the moon's disc.
+    for (let t = 8; t <= 50; t += 0.5) { const p = (await probeAt(t)).p; assert(p.moonClear > p.moonDisc * 1.2, 'fireflies keep off the moon at ' + t + ': ' + p.moonClear); }
     const bodies = (await probeAt(12.4)).p.bodies, stars = (await probeAt(44)).p;
     assert(bodies.every(v => v > 0.5) && stars.bodies.every(v => v === 0) && stars.flies.every(f => f[1] > 20 && f[2] < -50), 'wisp bodies near the ground, pure starlight in the sky');
     assert.equal(await page.evaluate(() => window.__l3Cutscene.seek(50) && window.__l3Cutscene.state()), 'ended');

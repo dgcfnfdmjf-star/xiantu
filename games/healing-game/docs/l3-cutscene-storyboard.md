@@ -71,3 +71,17 @@ Skip (`跳过`, `#l3csSkip`) jumps to the end card; the tap that skipped cannot 
   line `if (query('cutscene') !== 'l3') return;` (exactly once in the built `index.html`); a pack script can replace it
   to make a one-tap `preview.html`. `&csclock=1` shows the film clock.
 - The module never reads or writes a save; the cast colours come from an in-memory copy (`__l3Stage.caught()`).
+
+## Polish pass (item 4)
+
+- **Boat**: path ends nearer and to the right of the island (`[3, 1.6, -16]`), drawn larger as it sails away
+  (`boatSize(t)`: 1 → 1.95 over 38.5–48.5 s), warmer paper, a dusk-blue shade behind the hull and an amber halo, so it
+  reads on dark rock and on the pale cloud sea (≈55 px wide in the last wide shot at 390 px).
+- **Wake**: 7 s long, turned towards the lens (thick-line idea of THREE.MeshLine, on the CPU) so a low camera never sees
+  it edge-on; one premultiplied draw = amber foam body (normal blend) + gold core of light (additive); 10 glints.
+- **Fireflies**: glow never smaller than ~3.4 % of the canvas height while a firefly (shrinks to a point as a star),
+  hotter core; seen near the moon they slide round its rim (`probe().moonClear`), never across the disc.
+- **Celesta**: sparkles play on `celesta()` in `l3-cutscene-music.js` (adapted from the kit's `K.musicBox`): sine
+  fundamental, soft octave partial, short strike two octaves up; no inharmonic tine partial.
+- **Performance**: the film renders at a pixel ratio ≤ 1.5 (`window.__l3Render`, restored on close);
+  `tests/l3-cutscene-performance.cjs` measures frame time on a ×4-throttled CPU.

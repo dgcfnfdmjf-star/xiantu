@@ -22,6 +22,9 @@ replace("whose child count the regression tests read\n    group = new T.Group();
         "whose child count the regression tests read\n    group = new T.Group(); group.visible = false; H.island.add(group);\n    " + HIDE)
 replace("\n      group = new T.Group(); group.visible = false; H.island.add(group);\n",
         "\n      group = new T.Group(); group.visible = false; H.island.add(group);\n      " + HIDE)
+# The film is fill-rate bound (a full-screen painted sky): it renders at a pixel ratio of at most 1.5 while it is up and
+# puts the game's own ratio back when it closes. This only hands it the renderer.
+replace("  renderer.setPixelRatio(DPR);\n", "  renderer.setPixelRatio(DPR);\n  window.__l3Render = renderer; // for __l3Cutscene\n")
 # Loads after the level-1 cutscene and before kittens.js; it chains onto GardenPlay like the other modules.
 replace('<script>/* kittens.js', '<script>\n' + (ROOT / 'src/l3-cutscene.js').read_text() + '\n</script>\n<script>/* kittens.js')
 # The score needs the music-lush voices: it loads after them (and after the other two scores), before the main game script.

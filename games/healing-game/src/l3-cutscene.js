@@ -136,7 +136,9 @@
   /* The paper boat: slips off the front of the island, rounds its right side and sails out over the cloud sea towards
    * the moon. Position, heading, bob, roll and pitch are closed-form in t; the wake is the same path sampled at
    * earlier times, so it lies exactly where the boat has been and fades with age. */
-  var BOAT_SCALE = 2.1, BOAT = [[-4.4, -0.35, 5.6], [3.5, -1.0, 12.5], [13.5, -0.9, 4.5], [1.5, 0.5, -19]], BOAT_T0 = 30.5, WAKE_AGE = 5.5, WAKE_SEG = 22, GLINTS = 8;
+  var BOAT_SCALE = 2.3, BOAT = [[-4.4, -0.35, 5.6], [3.5, -1.0, 12.5], [13, -0.8, 5], [3, 1.6, -16]], BOAT_T0 = 30.5, WAKE_AGE = 7, WAKE_SEG = 26, GLINTS = 10;
+  // As the boat sails away it is drawn larger (and its wake wider), so it still reads at a glance in the last wide shot.
+  function boatSize(t) { return 1 + 0.95 * ease(ramp(t, 38.5, 48.5)); }
   function boatPath(s, out) { // one cubic Bezier: round the front of the island, well clear of its rim, then away
     var m = 1 - s, a = m * m * m, b = 3 * m * m * s, c = 3 * m * s * s, d = s * s * s, k;
     out.x = a * BOAT[0][0] + b * BOAT[1][0] + c * BOAT[2][0] + d * BOAT[3][0]; out.y = a * BOAT[0][1] + b * BOAT[1][1] + c * BOAT[2][1] + d * BOAT[3][1]; out.z = a * BOAT[0][2] + b * BOAT[1][2] + c * BOAT[2][2] + d * BOAT[3][2];
@@ -157,7 +159,7 @@
     out.pitch = 0.05 * soft * Math.sin(t * 0.8 + 1);
     out.alpha = ease(ramp(t, BOAT_T0 - 0.5, BOAT_T0 + 1.8));
     out.glow = out.alpha * (0.86 + 0.1 * Math.sin(t * 1.9) + 0.04 * Math.sin(t * 6.3));
-    out.s = s;
+    out.s = s; out.scale = boatSize(t);
     return out;
   }
   // A point of the wake `age` seconds behind the boat (flat on the sea: no bob), with its half-width and strength.
@@ -166,8 +168,8 @@
     var a = clamp(age / WAKE_AGE, 0, 1), tt = t - age;
     boatPath(boatS(tt), out);
     out.y -= 0.1; out.age = a;
-    out.half = 0.14 + 1.0 * Math.sqrt(a);
-    out.alpha = tt > BOAT_T0 ? (1 - a) * (1 - a) * ramp(tt, BOAT_T0, BOAT_T0 + 1.5) : 0;
+    out.half = (0.16 + 1.0 * Math.sqrt(a)) * (0.5 + 0.5 * boatSize(tt));
+    out.alpha = tt > BOAT_T0 ? Math.pow(1 - a, 1.5) * ramp(tt, BOAT_T0, BOAT_T0 + 1.5) : 0;
     return out;
   }
   /* Camera keys: look-at point, azimuth th (PI/2 = the gameplay side), polar phi, half-width w that
@@ -181,8 +183,8 @@
     { t: 27, x: -0.2, y: 2.6, z: 0.6, th: 1.52, phi: 1.5, w: 6.4, lift: 0.2 },
     { t: 32, x: 1.2, y: 1.7, z: 1.8, th: 1.44, phi: 1.44, w: 6.4, lift: 0.14 },
     { t: 40, x: 3.2, y: 1.5, z: 0.2, th: 1.37, phi: 1.45, w: 7.4, lift: 0.18 },
-    { t: 44, x: 2.0, y: 2.3, z: -1.6, th: 1.4, phi: 1.48, w: 8.4, lift: 0.24 },
-    { t: 50, x: 0.6, y: 3.1, z: -3, th: 1.43, phi: 1.5, w: 9.4, lift: 0.28 }
+    { t: 44, x: 2.2, y: 2.3, z: -1.6, th: 1.4, phi: 1.48, w: 8.2, lift: 0.24 },
+    { t: 50, x: 1.2, y: 3.1, z: -3, th: 1.43, phi: 1.5, w: 8.9, lift: 0.28 }
   ];
   var CAM_KEYS = ['x', 'y', 'z', 'th', 'phi', 'w', 'lift'];
   // One continuous move: a cubic Hermite through the keys (C1, so the camera never stops and restarts at a key).
@@ -228,7 +230,7 @@
     dusk: { top: 0x2c2f74, mid: 0x6c5cac, hor: 0xdc9aa6, low: 0x7e6ea8, lit: 0xf4dce4, shade: 0x6a5f9e, key: 0xc8a8d8, keyI: 0.5, hemiA: 0xb8a8e0, hemiB: 0x5a4a78, hemiI: 0.78, grass: [0.62, 0.7, 0.95], fog: 0x8a78b0 },
     night: { top: 0x0b1238, mid: 0x1b2964, hor: 0x46569a, low: 0x263270, lit: 0xdde5ff, shade: 0x2a3364, key: 0x9fb4ff, keyI: 0.42, hemiA: 0x7f92d8, hemiB: 0x2a2c58, hemiI: 0.64, grass: [0.38, 0.52, 0.84], fog: 0x202a5c }
   };
-  var MOON_COL = 0xffe6b0, WARM = 0xffc878;
+  var MOON_COL = 0xffe6b0, WARM = 0xffc878, MOON_KEEP = 0.07, MAX_PR = 1.5; // sine of the angle kept clear round the moon (disc = 0.049)
   var ramp4 = null, toons = {}, painted = [], tmpB = null, sA = {}, sB = {};
   function sprite(map, color, additive) {
     var m = new T.SpriteMaterial({ map: map, color: color, transparent: true, opacity: 0, depthWrite: false, fog: false });
@@ -264,7 +266,7 @@
     if (st || !H || !T) return !!st;
     var g = new T.Group(), i;
     g.visible = false; H.island.add(g);
-    st = { g: g, lamps: [], v: new T.Vector3(), tick: 0, kinds: '', pose: {} };
+    st = { g: g, lamps: [], v: new T.Vector3(), eye: new T.Vector3(), moonDir: new T.Vector3(), tick: 0, kinds: '', pose: {} };
     tmpB = new T.Color();
     ramp4 = new T.DataTexture(new Uint8Array([96, 160, 218, 255]), 4, 1, T.LuminanceFormat);
     ramp4.minFilter = ramp4.magFilter = T.NearestFilter; ramp4.generateMipmaps = false; ramp4.needsUpdate = true;
@@ -376,8 +378,8 @@
     st.flyU = { uPx: { value: 800 } };
     st.flies = new T.Points(fg, new T.ShaderMaterial({ uniforms: st.flyU, transparent: true, depthWrite: false, blending: T.AdditiveBlending,
       vertexShader: 'attribute vec2 aA; attribute vec3 aCol; uniform float uPx; varying float vA; varying vec3 vCol;' +
-        'void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); vA = aA.x; vCol = aCol; gl_PointSize = clamp(aA.y * uPx / max(-mv.z, 0.1), 2.0, 64.0); gl_Position = projectionMatrix * mv; }',
-      fragmentShader: 'varying float vA; varying vec3 vCol; void main(){ float d = length(gl_PointCoord - 0.5) * 2.0; float a = 1.0 - smoothstep(0.0, 1.0, d); gl_FragColor = vec4(mix(vCol, vec3(1.0), smoothstep(0.4, 0.0, d) * 0.75), a * a * vA); }' }));
+        'void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); vA = aA.x; vCol = aCol; gl_PointSize = clamp(aA.y * uPx / max(-mv.z, 0.1), 2.0, 96.0); gl_Position = projectionMatrix * mv; }',
+      fragmentShader: 'varying float vA; varying vec3 vCol; void main(){ float d = length(gl_PointCoord - 0.5) * 2.0; float a = 1.0 - smoothstep(0.0, 1.0, d); float core = smoothstep(0.34, 0.0, d); gl_FragColor = vec4(mix(vCol, vec3(1.0), core * 0.8), min(a * sqrt(a) * 0.9 + core * 0.5, 1.0) * vA); }' }));
     st.flies.frustumCulled = false; st.flies.renderOrder = 3; g.add(st.flies);
     var bp = [], bpart = [];
     function addPart(geo, sx, sy, sz, id) {
@@ -400,8 +402,8 @@
     st.bodies.frustumCulled = false; st.bodies.l3cs = true; g.add(st.bodies);
     // The paper boat: the game's folded hull (one flat shade per face), lit from inside, on a little cloud.
     var bL = 0.66, bW = 0.32, B = [bL, 0.2, 0], S2 = [-bL, 0.2, 0], KF = [0.26, -0.12, 0], KB = [-0.26, -0.12, 0], A = [0, 0.05, bW], C = [0, 0.05, -bW], F = [0.24, 0.05, 0], G = [-0.24, 0.05, 0], P = [0, 0.44, 0];
-    var faces = [[B, A, KF, 0xfff4dd], [A, KB, KF, 0xf4e6c9], [S2, KB, A, 0xfff4dd], [B, KF, C, 0xe6d6b6], [C, KF, KB, 0xdccaa8], [S2, C, KB, 0xe6d6b6],
-      [B, F, A, 0xfffaf0], [B, C, F, 0xeadbbd], [S2, A, G, 0xfffaf0], [S2, G, C, 0xeadbbd], [P, A, F, 0xffffff], [P, G, A, 0xf8ecd4], [P, F, C, 0xeee0c4], [P, C, G, 0xe2d2b2]];
+    var faces = [[B, A, KF, 0xfff4dd], [A, KB, KF, 0xf8e6c0], [S2, KB, A, 0xfff4dd], [B, KF, C, 0xf3d9a6], [C, KF, KB, 0xecc98e], [S2, C, KB, 0xf3d9a6],
+      [B, F, A, 0xfffaf0], [B, C, F, 0xf6e0b4], [S2, A, G, 0xfffaf0], [S2, G, C, 0xf6e0b4], [P, A, F, 0xffffff], [P, G, A, 0xf8ecd4], [P, F, C, 0xf8e4bc], [P, C, G, 0xf0d29c]];
     var hp = [], hc = [];
     for (i = 0; i < faces.length; i++) { tmpB.setHex(faces[i][3]); for (k = 0; k < 3; k++) { hp.push(faces[i][k][0], faces[i][k][1], faces[i][k][2]); hc.push(tmpB.r, tmpB.g, tmpB.b); } }
     var hull = new T.BufferGeometry();
@@ -409,8 +411,10 @@
     st.boatMat = new T.MeshBasicMaterial({ color: 0xffffff, vertexColors: true, transparent: true, opacity: 0, side: T.DoubleSide, fog: false });
     st.boat = new T.Group(); st.boat.scale.set(BOAT_SCALE, BOAT_SCALE, BOAT_SCALE);
     st.boatBody = part(hull, st.boatMat, st.boat); st.boatBody.l3cs = true;
-    st.boatGlow = sprite(H.glowTex, 0xffd9a0, true); st.boatGlow.position.y = 0.22; st.boatGlow.scale.set(2.3, 2.3, 1); st.boat.add(st.boatGlow);
-    st.boatLamp = sprite(H.glowTex, 0xfff4cc, true); st.boatLamp.position.y = 0.48; st.boatLamp.scale.set(0.42, 0.42, 1); st.boat.add(st.boatLamp);
+    // a soft dusk-blue shade behind the hull, so the cream paper has an edge on the pale cloud sea as well as on dark rock
+    st.boatShade = sprite(H.glowTex, 0x2a3170, false); st.boatShade.position.y = 0.1; st.boatShade.scale.set(4.4, 2.7, 1); st.boatShade.renderOrder = 1; st.boat.add(st.boatShade);
+    st.boatGlow = sprite(H.glowTex, 0xffb866, true); st.boatGlow.position.y = 0.22; st.boatGlow.scale.set(3.1, 3.1, 1); st.boatGlow.renderOrder = 2; st.boat.add(st.boatGlow);
+    st.boatLamp = sprite(H.glowTex, 0xfff4cc, true); st.boatLamp.position.y = 0.48; st.boatLamp.scale.set(0.62, 0.62, 1); st.boat.add(st.boatLamp);
     st.puffs = [];
     var pd = [[-0.34, 0.8], [0.3, 0.72], [0, 1.05]];
     for (i = 0; i < 3; i++) { var pf = sprite(H.glowTex, 0xe6ecff, false); pf.position.set(pd[i][0], -0.2, 0); st.boat.add(pf); st.puffs.push(pf); }
@@ -423,14 +427,18 @@
     var wg = new T.BufferGeometry();
     wg.setAttribute('position', new T.BufferAttribute(st.wPos, 3)); wg.setAttribute('aUv', new T.BufferAttribute(wuv, 2)); wg.setIndex(widx);
     st.wakeU = { uTime: { value: 0 }, uAlpha: { value: 0 }, uStart: { value: 0 } };
-    st.wakeMesh = new T.Mesh(wg, new T.ShaderMaterial({ uniforms: st.wakeU, transparent: true, depthWrite: false, side: T.DoubleSide,
+    // Premultiplied output: a pale foam body (normal blend, reads on dark rock and on the sea) plus a gold core of light (added).
+    st.wakeMesh = new T.Mesh(wg, new T.ShaderMaterial({ uniforms: st.wakeU, transparent: true, depthWrite: false, side: T.DoubleSide, blending: T.CustomBlending, blendSrc: T.OneFactor, blendDst: T.OneMinusSrcAlphaFactor,
       vertexShader: 'attribute vec2 aUv; varying vec2 vUv; void main(){ vUv = aUv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
       fragmentShader: 'uniform float uTime; uniform float uAlpha; uniform float uStart; varying vec2 vUv;' + NOISE_GLSL +
-        'void main(){ float a = vUv.x, v = abs(vUv.y); float fade = (1.0 - a) * (1.0 - a) * smoothstep(0.0, 0.04, a) * (1.0 - smoothstep(uStart - 0.2, uStart, a));' +
-        ' float prof = pow(1.0 - v, 1.4) * 0.7 + smoothstep(0.4, 0.7, v) * (1.0 - smoothstep(0.78, 1.0, v)) * 0.55 * (0.3 + a);' +
-        ' float n = noise(vec2(a * 16.0 - uTime * 0.35, vUv.y * 2.4 + 3.0)); float brush = 0.55 + 0.45 * smoothstep(0.25, 0.7, n);' +
-        ' vec3 col = mix(vec3(1.0, 0.8, 0.46), vec3(1.0, 0.9, 0.74), smoothstep(0.0, 0.8, a));' +
-        ' gl_FragColor = vec4(col, uAlpha * fade * prof * brush * (1.0 - smoothstep(0.88, 1.0, v))); }' }));
+        'void main(){ float a = vUv.x, v = abs(vUv.y); float fade = pow(1.0 - a, 1.5) * smoothstep(0.0, 0.03, a) * (1.0 - smoothstep(uStart - 0.2, uStart, a));' +
+        ' float prof = pow(1.0 - v, 1.4) * 0.75 + smoothstep(0.4, 0.7, v) * (1.0 - smoothstep(0.78, 1.0, v)) * 0.5 * (0.3 + a);' +
+        ' float n = noise(vec2(a * 18.0 - uTime * 0.35, vUv.y * 2.4 + 3.0)); float brush = 0.6 + 0.4 * smoothstep(0.25, 0.7, n);' +
+        ' float foam = prof * brush * (1.0 - smoothstep(0.86, 1.0, v)); float core = exp(-v * v * (5.0 + 22.0 * a)) * (0.3 + 0.7 * (1.0 - a)) * (0.75 + 0.25 * brush);' +
+        ' float al = min(uAlpha * fade * foam * 1.25, 1.0);' +
+        ' vec3 body = mix(vec3(1.0, 0.72, 0.36), vec3(0.98, 0.8, 0.56), smoothstep(0.0, 0.8, a));' +
+        ' vec3 light = vec3(1.0, 0.72, 0.34) * uAlpha * fade * (core * 0.85 + foam * 0.2);' +
+        ' gl_FragColor = vec4(body * al + light, al); }' }));
     st.wakeMesh.frustumCulled = false; st.wakeMesh.l3cs = true; st.wakeMesh.renderOrder = 2; g.add(st.wakeMesh);
     st.wake = [];
     for (i = 0; i < GLINTS; i++) { var ws = sprite(H.glowTex, 0xffe6b8, true); g.add(ws); st.wake.push(ws); }
@@ -461,7 +469,10 @@
     if (staged || !buildStage()) return;
     buildCast();
     kept = { hidden: [], sun: st.sun ? st.sun.color.getHex() : 0, hemi: st.hemi ? [st.hemi.color.getHex(), st.hemi.groundColor.getHex()] : null,
-      fog: H.scene.fog ? H.scene.fog.color.getHex() : 0 };
+      fog: H.scene.fog ? H.scene.fog.color.getHex() : 0, pr: 0 };
+    // Light on a phone GPU: the painted look does not need full resolution (captions and title are DOM, so stay sharp).
+    var rr = root.__l3Render;
+    try { if (rr && rr.getPixelRatio && rr.getPixelRatio() > MAX_PR) { kept.pr = rr.getPixelRatio(); rr.setPixelRatio(MAX_PR); } } catch (e) { kept.pr = 0; }
     /* Off the set while the film runs (all come back on close): the game's sky dome, star points, moon sprites, the
      * orbiting islets and cloud puffs, and every level-3 gameplay object (wisps, lamps, beams, boat, constellations). */
     var i, ch, ud;
@@ -489,6 +500,7 @@
     if (st.sun) st.sun.color.setHex(kept.sun);
     if (st.hemi) { st.hemi.color.setHex(kept.hemi[0]); st.hemi.groundColor.setHex(kept.hemi[1]); }
     if (H.scene.fog) H.scene.fog.color.setHex(kept.fog);
+    try { if (kept.pr && root.__l3Render) root.__l3Render.setPixelRatio(kept.pr); } catch (e) { /* keep closing */ }
     if (doc.body) doc.body.classList.remove('l3cs-on');
     staged = false; kept = null;
     // The game recomputes its own day/night target (and the camera is its own again from the next frame).
@@ -512,29 +524,66 @@
       st.grassU.uLamps.value[i].z = gl;
     }
     st.gold.emissiveIntensity = clamp((f.lamps[1] - 0.3) / 0.7, 0, 1);
+    // Camera: overrides the gameplay orbit for this frame only; the game takes it back when we stop.
+    var c = f.camera, halfH = Math.tan(cam.fov * Math.PI / 360), halfW = halfH * cam.aspect;
+    var r = Math.max(c.w / halfW, c.w * 0.9 / halfH), v3 = st.v;
+    v3.set(c.x, top + c.y + c.lift * r * halfH, c.z); H.island.localToWorld(v3);
+    cam.position.set(v3.x + r * Math.sin(c.phi) * Math.cos(c.th), v3.y + r * Math.cos(c.phi), v3.z + r * Math.sin(c.phi) * Math.sin(c.th));
+    cam.lookAt(v3);
+    /* The lens and the moon in stage coordinates: used to keep fireflies off the moon's disc, to hold their glow at a
+     * readable size in the wide shots and to turn the wake towards the lens. All of it follows from t. */
+    // Island coordinates straight from the camera key (not through the island's live bob), so they depend on t alone.
+    var eye = st.eye, md = st.moonDir;
+    eye.set(c.x + r * Math.sin(c.phi) * Math.cos(c.th), top + c.y + c.lift * r * halfH + r * Math.cos(c.phi), c.z + r * Math.sin(c.phi) * Math.sin(c.th));
+    md.set(f.moon.x, f.moon.y, f.moon.z).normalize();
+    var px = st.canvas ? st.canvas.height / (2 * halfH) : 800, minPx = (st.canvas ? st.canvas.height : 844) * 0.034;
     // Fireflies
     var P = st.fPos, A = st.fA, R = st.fRot, b = st.pose;
+    st.moonMin = 9;
     for (i = 0; i < N; i++) {
       flyAt(i, t, b);
-      P[i * 3] = b.x; P[i * 3 + 1] = top + b.y; P[i * 3 + 2] = b.z;
-      A[i * 2] = b.alpha * b.twinkle; A[i * 2 + 1] = b.size;
+      var fx = b.x - eye.x, fy = top + b.y - eye.y, fz = b.z - eye.z, fd = Math.sqrt(fx * fx + fy * fy + fz * fz) || 1;
+      var along = (fx * md.x + fy * md.y + fz * md.z) / fd;
+      if (along > 0.9) {
+        // Seen near the moon: slide it round the rim instead of across the disc (a continuous push away from the
+        // moon's centre, zero from a little outside the rim on, so nothing jumps).
+        var qx = fx / fd - md.x * along, qy = fy / fd - md.y * along, qz = fz / fd - md.z * along, dq = Math.sqrt(qx * qx + qy * qy + qz * qz);
+        if (dq < MOON_KEEP * 2.2) {
+          var wq = 1 - ease(ramp(dq, MOON_KEEP * 1.3, MOON_KEEP * 2.2)), dn = lerp(dq, Math.sqrt(dq * dq + MOON_KEEP * MOON_KEEP * 1.5), wq), kq;
+          if (dq < 1e-5) { qx = 1; qy = 0; qz = 0; dq = 1; dn = MOON_KEEP * 1.25; }
+          kq = dn / dq;
+          fx = (md.x * along + qx * kq) * fd; fy = (md.y * along + qy * kq) * fd; fz = (md.z * along + qz * kq) * fd; dq = dn;
+        }
+        if (dq < st.moonMin) st.moonMin = dq;
+      }
+      P[i * 3] = eye.x + fx; P[i * 3 + 1] = eye.y + fy; P[i * 3 + 2] = eye.z + fz;
+      // Glow size in world units, but never smaller on screen than a readable dab while it is a firefly (wide dusk
+      // shot); as a star it shrinks to a point of light.
+      A[i * 2] = b.alpha * b.twinkle; A[i * 2 + 1] = Math.max(b.size, lerp(minPx, minPx * 0.34, b.star) * fd / px);
       R[i * 3] = b.yaw; R[i * 3 + 1] = b.flap; R[i * 3 + 2] = 0.8 * b.body * b.alpha;
     }
     st.flies.geometry.attributes.position.needsUpdate = true; st.flies.geometry.attributes.aA.needsUpdate = true;
     st.bodies.geometry.attributes.aPos.needsUpdate = true; st.bodies.geometry.attributes.aRot.needsUpdate = true;
-    if (st.canvas) st.flyU.uPx.value = st.canvas.height / (2 * Math.tan(cam.fov * Math.PI / 360));
+    st.flyU.uPx.value = px;
     // Boat and wake
     var bo = f.boat, on = bo.alpha > 0.01, W = st.wPos;
     st.boat.visible = on; st.wakeMesh.visible = on;
-    st.boat.position.set(bo.x, top + bo.y, bo.z); st.boat.rotation.y = bo.yaw;
+    st.boat.position.set(bo.x, top + bo.y, bo.z); st.boat.rotation.y = bo.yaw; st.boat.scale.setScalar(BOAT_SCALE * bo.scale);
+    st.boatShade.material.opacity = 0.62 * bo.alpha;
     st.boatBody.rotation.set(bo.roll, 0, bo.pitch);
-    st.boatMat.opacity = bo.alpha; st.boatGlow.material.opacity = 0.8 * bo.glow; st.boatLamp.material.opacity = bo.glow;
+    st.boatMat.opacity = bo.alpha; st.boatGlow.material.opacity = 0.9 * bo.glow; st.boatLamp.material.opacity = bo.glow;
     for (i = 0; i < 3; i++) { var ps = (i === 2 ? 1.05 : 0.76) + 0.08 * Math.sin(t * 0.9 + i * 2); st.puffs[i].scale.set(ps, ps * 0.62, 1); st.puffs[i].material.opacity = 0.34 * bo.alpha; }
     if (on) {
       for (i = 0; i <= WAKE_SEG; i++) {
         wakeAt(t, i / WAKE_SEG * WAKE_AGE, sA);
-        var tl = Math.sqrt(sA.tx * sA.tx + sA.tz * sA.tz) || 1, nx = -sA.tz / tl * sA.half, nz = sA.tx / tl * sA.half;
-        W[i * 6] = sA.x - nx; W[i * 6 + 1] = top + sA.y; W[i * 6 + 2] = sA.z - nz; W[i * 6 + 3] = sA.x + nx; W[i * 6 + 4] = top + sA.y; W[i * 6 + 5] = sA.z + nz;
+        // Width direction: mostly across the line of sight (the thick-line idea of THREE.MeshLine, done on the CPU for 27
+        // nodes), with some of the flat-on-the-sea direction left in, so a low lens does not see the ribbon edge-on.
+        var tl = Math.sqrt(sA.tx * sA.tx + sA.tz * sA.tz) || 1, ux = sA.tx / tl, uz = sA.tz / tl;
+        var vx = eye.x - sA.x, vy = eye.y - (top + sA.y), vz = eye.z - sA.z, vl = Math.sqrt(vx * vx + vy * vy + vz * vz) || 1;
+        vx /= vl; vy /= vl; vz /= vl;
+        var nx = -uz * vy - uz * 0.45, ny = uz * vx - ux * vz, nz = ux * vy + ux * 0.45, nl = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1, hw = sA.half * 0.62 / nl;
+        nx *= hw; ny *= hw; nz *= hw;
+        W[i * 6] = sA.x - nx; W[i * 6 + 1] = top + sA.y - ny; W[i * 6 + 2] = sA.z - nz; W[i * 6 + 3] = sA.x + nx; W[i * 6 + 4] = top + sA.y + ny; W[i * 6 + 5] = sA.z + nz;
       }
       st.wakeMesh.geometry.attributes.position.needsUpdate = true;
       st.wakeU.uTime.value = t; st.wakeU.uAlpha.value = 0.95 * bo.alpha; st.wakeU.uStart.value = clamp((t - BOAT_T0) / WAKE_AGE, 0, 1) + 0.2;
@@ -544,16 +593,10 @@
       wakeAt(t, age, sA);
       ws.visible = on && sA.alpha > 0.01;
       if (!ws.visible) continue;
-      var tl2 = Math.sqrt(sA.tx * sA.tx + sA.tz * sA.tz) || 1, gs = 0.4 + 0.4 * sA.age;
+      var tl2 = Math.sqrt(sA.tx * sA.tx + sA.tz * sA.tz) || 1, gs = (0.55 + 0.5 * sA.age) * (0.5 + 0.5 * bo.scale);
       ws.position.set(sA.x - sA.tz / tl2 * sA.half * side, top + sA.y + 0.04, sA.z + sA.tx / tl2 * sA.half * side); ws.scale.set(gs, gs, 1);
-      ws.material.opacity = 0.8 * bo.alpha * sA.alpha * (0.6 + 0.4 * Math.sin(t * 3.1 + i * 2.3));
+      ws.material.opacity = 0.95 * bo.alpha * Math.sqrt(sA.alpha) * (0.6 + 0.4 * Math.sin(t * 3.1 + i * 2.3));
     }
-    // Camera: overrides the gameplay orbit for this frame only; the game takes it back when we stop.
-    var c = f.camera, halfH = Math.tan(cam.fov * Math.PI / 360), halfW = halfH * cam.aspect;
-    var r = Math.max(c.w / halfW, c.w * 0.9 / halfH), v3 = st.v;
-    v3.set(c.x, top + c.y + c.lift * r * halfH, c.z); H.island.localToWorld(v3);
-    cam.position.set(v3.x + r * Math.sin(c.phi) * Math.cos(c.th), v3.y + r * Math.cos(c.phi), v3.z + r * Math.sin(c.phi) * Math.sin(c.th));
-    cam.lookAt(v3);
     // Look: sky palette, moon, light and grass tint.
     mix2('top', sk, u.uTop.value); mix2('mid', sk, u.uMid.value); mix2('hor', sk, u.uHor.value); mix2('low', sk, u.uLow.value);
     mix2('lit', sk, u.uLit.value); mix2('shade', sk, u.uShade.value);
@@ -790,7 +833,7 @@
     // What is actually on stage this frame (island-local; y above the grass): for the seek/determinism checks.
     probe: function () {
       if (!st || !staged) return null;
-      var out = { flies: [], bodies: [], boat: [st.boat.position.x, st.boat.position.y - H.TOP_Y, st.boat.position.z, st.boat.rotation.y], wake: [] }, i;
+      var out = { moonClear: st.moonMin, moonDisc: 0.049, flies: [], bodies: [], boat: [st.boat.position.x, st.boat.position.y - H.TOP_Y, st.boat.position.z, st.boat.rotation.y], wake: [] }, i;
       for (i = 0; i < N; i++) { out.flies.push([st.fPos[i * 3], st.fPos[i * 3 + 1] - H.TOP_Y, st.fPos[i * 3 + 2], st.fA[i * 2]]); out.bodies.push(st.fRot[i * 3 + 2]); }
       if (st.wakeMesh.visible) for (i = 0; i < st.wPos.length; i += 6) out.wake.push([st.wPos[i], st.wPos[i + 2]]); // the ribbon's left edge
       return out;
