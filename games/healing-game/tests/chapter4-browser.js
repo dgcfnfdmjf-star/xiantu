@@ -20,7 +20,8 @@ async root => {
  await p.locator('#kitLevelBtn').click();assert(await p.locator('[data-jr-go="4"]').isDisabled(),'fourth locked before third clear');await p.locator('#journeyClose').click();
  await p.evaluate(()=>__kittens.setLevel(4));assert((await st()).level===1,'direct level switch gate');checks.push('new-save fourth-chapter gate');
  await p.addInitScript(()=>{if(sessionStorage.getItem('fixture-ch4'))return;sessionStorage.setItem('fixture-ch4','yes');localStorage.setItem('hg_level2_unlocked','1');localStorage.setItem('healingGarden.kittens.v1',JSON.stringify({total:20,ended:true,level:3}));localStorage.setItem('healingGarden.journey.v1',JSON.stringify({caught:{dew:2,peach:2,amber:2,moon:2,violet:2,tide:2},lamps:[true,true,true],completed:[1,2,3],decor:[false,true,false]}));localStorage.setItem('xiantu_save','KEEP');});
- await p.goto(url);await start();const before=await st();assert(before.xp===90,'V7 save keeps original XP');
+ // ?l4cutscene=0: this file covers the original short 演出 (#chimeSkip, reduced motion, save first); the film that replaces it by default is covered in l4-cutscene-browser.cjs.
+ await p.goto(url+'?l4cutscene=0');await start();const before=await st();assert(before.xp===90,'V7 save keeps original XP');
  await p.locator('#kitLevelBtn').click();assert(await p.locator('[data-jr-go="4"]').isEnabled(),'V7 third-clear unlocks fourth');await p.locator('[data-jr-go="4"]').click();
  assert((await st()).level===4,'enter fourth');assert(await p.locator('#starHud').isHidden()&&await p.locator('#chimeHud').isVisible(),'correct HUD');assert(await p.evaluate(()=>GardenAudio.currentTrackName())==='晨风来信','fourth soundtrack');
  await p.locator('#gpBookBtn').click();assert(await p.locator('.jr-item').count()===47,'47 collectible species');await p.locator('#journeyClose').click();

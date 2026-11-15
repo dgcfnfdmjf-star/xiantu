@@ -47,7 +47,7 @@ class Package(unittest.TestCase):
     def test_all_inline_scripts_parse(self):
         self.assertEqual(len(re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.html.decode())), 19)
         scripts = re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.site.decode())
-        self.assertEqual(len(scripts), 25)  # V9.5's 19 + level-2 cutscene + its score + level-1 cutscene + its score + level-3 cutscene + its score
+        self.assertEqual(len(scripts), 26)  # V9.5's 19 + level-2 cutscene + its score + level-1 cutscene + its score + level-3 cutscene + its score + level-4 cutscene
         with tempfile.TemporaryDirectory() as tmp:
             for i, script in enumerate(scripts):
                 path = Path(tmp) / f'{i}.js'
@@ -99,6 +99,9 @@ class Package(unittest.TestCase):
         self.assertIn((ROOT / 'src/l3-cutscene.js').read_bytes(), self.site)
         self.assertEqual(self.site.count(b"if (query('cutscene') !== 'l3') return;"), 1)
         self.assertNotIn(b'__l3', self.html)
+        self.assertIn((ROOT / 'src/l4-cutscene.js').read_bytes(), self.site)
+        self.assertEqual(self.site.count(b"if (query('cutscene') !== 'l4') return;"), 1)
+        self.assertNotIn(b'__l4', self.html)
         self.assertNotIn(b'garden-working', self.html)
 
     def test_reproducible_release(self):
