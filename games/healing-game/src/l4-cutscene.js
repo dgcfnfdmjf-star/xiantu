@@ -66,56 +66,99 @@
   function sunAt(t) { return { x: -0.17, y: -0.035 + 0.215 * ease(ramp(t, 1, 42)), z: -1 }; }
   // The edge of the first sunlight crossing the valley, far side (z < 0) to near side: grass with z < front is lit.
   function frontAt(t) { return lerp(-7, 7, ease(ramp(t, 9, 20.5))); }
-  /* The six wind chimes stand where the game's do, in the six tone colours. They wake one by one in the second beat
-   * (a first clear strike each), then keep ringing in turn on a slow round. The pulse is closed-form: time since the
-   * latest strike at or before t. */
+  /* The six wind chimes stand where the game's do, in the six tone colours. The cue is a fixed strike table on a 0.9 s
+   * beat grid: they wake one by one in the second beat (a first clear strike each, two beats apart), then play the
+   * last song of the level, 把早安送回家 = chimes [0, 3, 2, 5] one beat apart, answered five beats later by all six
+   * together (a soft roll); the phrase comes three times, and all six ring once more under the title. Every pose is
+   * closed-form: a sum over the strikes at or before t (a damped pendulum for the swing, a decaying pulse for the glow). */
   var CHIMES = [[-2.8, 1.2], [-2.4, -1.6], [0, -2.9], [2.5, -1.5], [2.9, 1.2], [0, 2.8]];
   var TONES = [['sprout', 0xa4dfb6], ['dewbell', 0x9bdce6], ['feather', 0xf5d794], ['breeze', 0xf4b3bc], ['cloudsong', 0xc7b7ef], ['home', 0xf0e4b8]];
-  var CHIME_T = 11.2, CHIME_STEP = 1.5, ROUND_T = 21.6, ROUND = 4.8, CHIME_SCALE = 1.3;
-  function strikeAt(i, t) { // the latest strike time of chime i that is <= t (or -1 before its first)
-    var first = CHIME_T + i * CHIME_STEP, r0 = ROUND_T + i * ROUND / 6;
-    if (t < first) return -1;
-    return t < r0 ? first : r0 + Math.floor((t - r0) / ROUND) * ROUND;
-  }
+  var BEAT = 0.9, CHIME_T = 11.7, CHIME_STEP = 2 * BEAT, SONG = [0, 3, 2, 5], PHRASES = [21.6, 29.7, 37.8], TOGETHER = 5 * BEAT, ROLL = 0.07, LAST_T = 45.9, CHIME_SCALE = 1.3;
+  var STRIKES = [], BY = [[], [], [], [], [], []]; // kind 0 = waking, 1 = a song note, 2 = all six together
+  (function () {
+    var i, k;
+    function hit(t, c, s, kind) { var e = { t: +t.toFixed(3), c: c, s: s, k: kind }; STRIKES.push(e); BY[c].push(e); }
+    for (i = 0; i < 6; i++) hit(CHIME_T + i * CHIME_STEP, i, 1, 0);
+    for (k = 0; k < PHRASES.length; k++) {
+      for (i = 0; i < SONG.length; i++) hit(PHRASES[k] + i * BEAT, SONG[i], 1, 1);
+      for (i = 0; i < 6; i++) hit(PHRASES[k] + TOGETHER + i * ROLL, i, 0.7, 2);
+    }
+    for (i = 0; i < 6; i++) hit(LAST_T + i * ROLL, i, 0.6, 2);
+  })();
+  var SWING_W = 5.4, SWING_AMP = 0.36; // a 1.16 s pendulum, about 20 degrees on a full strike
   function chimeAt(i, t, out) {
     out = out || {};
-    var first = CHIME_T + i * CHIME_STEP, last = strikeAt(i, t);
+    var L = BY[i], first = L[0].t, pulse = 0, sw = 0, tail = 0, last = -1, power = 0, k, a, p, C = CHIMES[i], w = windAt(C[0], C[1], t);
+    for (k = 0; k < L.length; k++) {
+      a = t - L[k].t; if (a < 0) break;
+      last = L[k].t; power = L[k].s;
+      p = L[k].s * Math.exp(-a * 1.3); if (p > pulse) pulse = p;
+      sw += L[k].s * SWING_AMP * Math.exp(-a * 0.85) * Math.sin(a * SWING_W);
+      if (a > 0.18) tail += L[k].s * 0.5 * Math.exp(-a * 0.6) * Math.sin((a - 0.18) * SWING_W); // the paper tail follows a little late and longer
+    }
     out.wake = ease(ramp(t, first - 0.5, first + 1.2));
-    out.pulse = last < 0 ? 0 : Math.exp(-(t - last) * 1.3);
-    out.swing = soft * (Math.sin(t * 1.6 + i) * (0.04 + 0.2 * out.pulse) + 0.07 * windAt(CHIMES[i][0], CHIMES[i][1], t));
-    out.glow = 0.16 + 0.34 * out.wake + 0.5 * out.pulse;
-    out.strike = last;
+    out.pulse = pulse;
+    // Struck: the pendulum. Always: the wind leans it, and a small idle sway once awake.
+    out.swing = soft * (sw + 0.07 * w + (0.012 + 0.028 * out.wake) * Math.sin(t * 1.6 + i));
+    out.sway = soft * 0.06 * windAt(C[0] + 1.3, C[1], t); // across the bar, so it is not a flat swing
+    out.tail = soft * (tail + 0.24 * windAt(C[0] + 0.5, C[1] + 0.3, t) + 0.09 * Math.sin(t * 3.1 + i * 2.1));
+    out.glow = 0.1 + 0.2 * out.wake + 0.7 * pulse;
+    out.strike = last; out.power = power;
     return out;
   }
   function hsh(j, k) { var s = Math.sin(j * 12.9898 + k * 78.233) * 43758.5453; return s - Math.floor(s); }
   // How far the wind carries things: further in the fourth beat, when the song goes out across the cloud sea.
-  function reachAt(t) { return 1 + 1.1 * ease(ramp(t, 31, 38)); }
-  /* Notes (placeholders in this item): each lifts from its chime, rises and rides the wind downwind (to the right and
-   * towards the lens, away from the sun), fades and starts again. Closed-form in t. */
-  var NOTES = 18, NOTE_T = 21.4, NOTE_LIFE = 9.5;
+  function reachAt(t) { return 1 + 0.9 * ease(ramp(t, 29, 38)); }
+  /* Notes: every strike sends up its own (two for a song note, one otherwise), in the chime's colour. A note pops out
+   * of the shell, lifts, then rides the wind downwind (right and towards the lens, away from the sun) on a closed-form
+   * flutter, out past the island's edge over the cloud sea, and fades. One life each; a pure function of t. Each
+   * note also leaves two small sparks behind it: the same path, a moment earlier. */
+  var NOTE_LIST = [], PETAL_LIST = [], AMBIENT = 18, SPARKS = 2, SPARK_LAG = 0.3;
+  (function () {
+    for (var e = 0; e < STRIKES.length; e++) for (var m = 0, n = STRIKES[e].k === 1 ? 2 : 1; m < n; m++) {
+      NOTE_LIST.push({ t: STRIKES[e].t + 0.04 + 0.3 * m, c: STRIKES[e].c, e: e });
+      PETAL_LIST.push({ t: STRIKES[e].t + 0.1 + 0.35 * m, c: STRIKES[e].c, e: e });
+    }
+  })();
+  var NOTES = NOTE_LIST.length, PETALS = AMBIENT + PETAL_LIST.length, NOTE_Y = 1.75;
   function noteAt(j, t, out) {
     out = out || {};
-    var c = j % 6, C = CHIMES[c], b = NOTE_T + j * 0.53 + 0.3 * hsh(j, 1), age = t - b, u = age < 0 ? 0 : (age % NOTE_LIFE) / NOTE_LIFE;
-    var d = (6 + 2.6 * hsh(j, 2)) * reachAt(t) * u * (0.45 + 0.55 * u), sw = soft * 0.28 * Math.sin(t * 1.1 + j * 1.7);
+    var N = NOTE_LIST[j], C = CHIMES[N.c], age = t - N.t, life = 8.5 + 1.5 * hsh(j, 5), on = age >= 0 && age <= life, u = clamp(age / life, 0, 1);
+    var d = (5.5 + 3 * hsh(j, 2)) * reachAt(N.t + 4) * (0.22 * u + 0.78 * u * u), free = ramp(u, 0, 0.18);
+    var sw = (hsh(j, 6) - 0.5) * 2.6 * u + soft * free * (0.45 * Math.sin(age * 1.1 + j * 1.7) + 0.2 * Math.sin(age * 2.3 + j * 0.9));
+    d += soft * free * 0.45 * windAt(C[0], C[1], t - 0.6); // carried a little further on each gust
     out.x = C[0] + WX * d - WZ * sw; out.z = C[1] + WZ * d + WX * sw;
-    out.y = 1.9 * CHIME_SCALE + 0.2 + (2.0 + 1.5 * hsh(j, 3)) * ease(ramp(u, 0, 0.75)) + soft * 0.16 * Math.sin(t * 1.4 + j * 2.3);
-    out.alpha = age < 0 ? 0 : ramp(u, 0, 0.07) * (1 - ramp(u, 0.8, 1));
-    out.size = 0.5 + 0.14 * hsh(j, 4); out.tilt = 0.3 * soft * Math.sin(t * 0.9 + j);
-    out.tone = c;
+    out.y = NOTE_Y + (2.2 + 2.0 * hsh(j, 3)) * ease(ramp(u, 0, 0.7)) + soft * free * 0.22 * Math.sin(age * 1.5 + j * 2.3);
+    out.alpha = on ? ramp(u, 0, 0.04) * (1 - ramp(u, 0.82, 1)) : 0;
+    out.size = (0.52 + 0.16 * hsh(j, 4)) * (0.55 + 0.45 * ease(ramp(age, 0, 0.6)));
+    out.tilt = soft * 0.35 * Math.sin(age * 0.9 + j);
+    out.tone = N.c; out.glyph = j % 3 === 1 ? 1 : 0; out.born = N.t;
     return out;
   }
-  /* Petals (placeholders in this item): a few loosen from the meadow in the first beat, the rest once the chimes
-   * are ringing; each lifts from its flower and tumbles downwind. Closed-form in t. */
-  var PETALS = 42, PETAL_T = 19.5;
+  /* Petals: the first eighteen loosen from the meadow on their own (a few on the first wind before dawn, the rest once
+   * the chimes ring, again and again); the others are shaken loose round a chime by each strike. Each lifts and
+   * tumbles downwind: drift along the wind + a two-sine flutter across it + a tumble (spin in the picture plane, flip
+   * through it), the stateless layout of shader petal systems. Closed-form in t. */
+  var PETAL_T = 19.5;
   function petalAt(j, t, out) {
     out = out || {};
-    var ha = hsh(j, 7) * TAU, hr = 0.8 + 3.6 * Math.sqrt(hsh(j, 8)), life = 7 + 3 * hsh(j, 9);
-    var b = (j % 3 === 0 ? 3 : PETAL_T) + 8 * hsh(j, 10), age = t - b, u = age < 0 ? 0 : (age % life) / life;
-    var d = (7 + 5 * hsh(j, 11)) * reachAt(t) * Math.pow(u, 1.35), sw = soft * (0.35 * Math.sin(t * 1.3 + j * 2.1) + 0.15 * Math.sin(t * 2.9 + j));
-    out.x = Math.cos(ha) * hr + WX * d - WZ * sw; out.z = Math.sin(ha) * hr + WZ * d + WX * sw;
-    out.y = 0.3 + (1.1 + 2.4 * hsh(j, 12)) * ease(ramp(u, 0, 0.65)) + soft * 0.2 * Math.sin(t * 1.7 + j * 1.3);
-    out.alpha = age < 0 ? 0 : ramp(u, 0, 0.08) * (1 - ramp(u, 0.82, 1));
-    out.spin = j * 1.9 + soft * t * (1.2 + 1.8 * hsh(j, 13)); out.size = 0.2 + 0.1 * hsh(j, 14); out.kind = j % 3;
+    var ha = hsh(j, 7) * TAU, life = 7 + 3 * hsh(j, 9), age, u, x0, z0, on, b, kick = 0;
+    if (j < AMBIENT) {
+      var hr = 0.8 + 3.6 * Math.sqrt(hsh(j, 8));
+      b = (j % 3 === 0 ? 3 : PETAL_T) + 8 * hsh(j, 10); age = t - b; on = age >= 0; u = on ? (age % life) / life : 0;
+      x0 = Math.cos(ha) * hr; z0 = Math.sin(ha) * hr;
+    } else {
+      var P = PETAL_LIST[j - AMBIENT], C = CHIMES[P.c];
+      b = P.t + 0.4 * hsh(j, 10); age = t - b; on = age >= 0 && age <= life; u = clamp(age / life, 0, 1);
+      kick = 0.5 + 0.6 * hsh(j, 8); // shaken loose: a short hop outwards from the foot of the chime
+      x0 = C[0] + Math.cos(ha) * kick * (0.6 + 0.9 * ease(ramp(u, 0, 0.12))); z0 = C[1] + Math.sin(ha) * kick * (0.6 + 0.9 * ease(ramp(u, 0, 0.12)));
+    }
+    var d = (6 + 5 * hsh(j, 11)) * reachAt(b + 3) * Math.pow(u, 1.35), sw = soft * (0.35 * Math.sin(t * 1.3 + j * 2.1) + 0.15 * Math.sin(t * 2.9 + j)) * ramp(u, 0, 0.1);
+    out.x = x0 + WX * d - WZ * sw; out.z = z0 + WZ * d + WX * sw;
+    out.y = 0.34 + (1.2 + 2.6 * hsh(j, 12)) * ease(ramp(u, 0, 0.6)) + soft * 0.2 * Math.sin(t * 1.7 + j * 1.3) * ramp(u, 0, 0.1);
+    out.alpha = on ? ramp(u, 0, 0.06) * (1 - ramp(u, 0.82, 1)) : 0;
+    out.spin = j * 1.9 + soft * t * (1.2 + 1.8 * hsh(j, 13)); out.flip = j * 0.7 + soft * t * (2.0 + 2.2 * hsh(j, 15));
+    out.size = 0.26 + 0.12 * hsh(j, 14); out.kind = j % 3;
     return out;
   }
   function listAt(fn, n, t) { var out = []; for (var j = 0; j < n; j++) out.push(fn(j, t, {})); return out; }
@@ -209,19 +252,40 @@
     'float fbm(vec2 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 4; i++) { s += a * noise(p); p = p * 2.03 + vec2(17.3, 9.1); a *= 0.5; } return s; }';
   var WIND_GLSL = 'float windF(vec2 p, float t){ float a = p.x * 0.86 + p.y * 0.5; float b = -p.x * 0.5 + p.y * 0.86;' +
     ' return (0.6 + 0.4 * sin(t * 0.31 + 0.7 + a * 0.12)) * (0.6 * sin(a * 1.2 - t * 1.5) + 0.25 * sin(b * 2.0 - t * 1.1 + a * 0.6) + 0.15 * sin(a * 3.3 - t * 2.9)); }';
-  // A little painted eighth note: R = body, G = dark outline, B = soft glow behind (the Points shader composes them).
+  /* Three painted glyphs side by side: an eighth note, a beamed pair and a four-point music-box spark.
+   * R = body, G = dark outline, B = soft glow behind (the Points shader composes them in the tone colour). */
   function noteTexture() {
-    var c = doc.createElement('canvas'), g; c.width = c.height = 64; g = c.getContext('2d');
-    g.fillStyle = '#000'; g.fillRect(0, 0, 64, 64); g.globalCompositeOperation = 'lighter';
-    var rg = g.createRadialGradient(32, 32, 2, 32, 32, 31); rg.addColorStop(0, 'rgba(0,0,255,1)'); rg.addColorStop(0.55, 'rgba(0,0,255,.5)'); rg.addColorStop(1, 'rgba(0,0,255,0)');
-    g.fillStyle = rg; g.fillRect(0, 0, 64, 64);
-    function shape(color, grow) {
-      g.fillStyle = g.strokeStyle = color; g.lineJoin = g.lineCap = 'round';
-      g.save(); g.translate(25, 44); g.rotate(-0.38); g.beginPath(); g.ellipse(0, 0, 9 + grow, 6.5 + grow, 0, 0, TAU); g.fill(); g.restore();
-      g.lineWidth = 4 + grow * 2; g.beginPath(); g.moveTo(32.5, 42); g.lineTo(32.5, 14); g.stroke();
-      g.lineWidth = 5 + grow * 2; g.beginPath(); g.moveTo(32.5, 15); g.quadraticCurveTo(45, 18, 44, 31); g.stroke();
+    var c = doc.createElement('canvas'), g, k; c.width = 192; c.height = 64; g = c.getContext('2d');
+    g.fillStyle = '#000'; g.fillRect(0, 0, 192, 64); g.globalCompositeOperation = 'lighter';
+    for (k = 0; k < 3; k++) {
+      var rg = g.createRadialGradient(32 + k * 64, 32, 2, 32 + k * 64, 32, 31); rg.addColorStop(0, 'rgba(0,0,255,1)'); rg.addColorStop(0.5, 'rgba(0,0,255,.62)'); rg.addColorStop(1, 'rgba(0,0,255,0)');
+      g.fillStyle = rg; g.fillRect(k * 64, 0, 64, 64);
     }
-    shape('rgb(0,255,0)', 2.6); shape('rgb(255,0,0)', 0);
+    function head(x, y, grow) { g.save(); g.translate(x, y); g.rotate(-0.38); g.beginPath(); g.ellipse(0, 0, 8 + grow, 5.8 + grow, 0, 0, TAU); g.fill(); g.restore(); }
+    function line(w, x0, y0, x1, y1) { g.lineWidth = w; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); }
+    function shapes(color, grow) {
+      g.fillStyle = g.strokeStyle = color; g.lineJoin = g.lineCap = 'round';
+      head(25, 44, grow); line(4 + grow * 2, 32, 42, 32, 15);
+      g.lineWidth = 5 + grow * 2; g.beginPath(); g.moveTo(32, 16); g.quadraticCurveTo(44, 19, 43, 31); g.stroke();
+      head(64 + 17, 46, grow - 1); head(64 + 41, 42, grow - 1);
+      line(3.6 + grow * 2, 64 + 23, 44, 64 + 23, 20); line(3.6 + grow * 2, 64 + 47, 40, 64 + 47, 16); line(6 + grow * 2, 64 + 23, 20, 64 + 47, 16);
+    }
+    shapes('rgb(0,255,0)', 2.6); shapes('rgb(255,0,0)', 0);
+    function star(color, grow) {
+      g.fillStyle = color; g.beginPath();
+      for (k = 0; k < 8; k++) { var a = k * TAU / 8, r = (k % 2 ? 5 : 19) + grow; g.lineTo(160 + Math.cos(a) * r, 32 + Math.sin(a) * r); }
+      g.closePath(); g.fill(); g.beginPath(); g.arc(160, 32, 7 + grow, 0, TAU); g.fill();
+    }
+    star('rgb(0,255,0)', 3); star('rgb(255,0,0)', 0);
+    var tex = new T.CanvasTexture(c); tex.needsUpdate = true;
+    return tex;
+  }
+  // The ring of light a struck chime throws: a soft annulus, drawn once and shared by the six.
+  function ringTexture() {
+    var c = doc.createElement('canvas'), g; c.width = c.height = 128; g = c.getContext('2d');
+    var rg = g.createRadialGradient(64, 64, 20, 64, 64, 63);
+    rg.addColorStop(0, 'rgba(255,255,255,0)'); rg.addColorStop(0.55, 'rgba(255,255,255,.16)'); rg.addColorStop(0.8, 'rgba(255,255,255,1)'); rg.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = rg; g.fillRect(0, 0, 128, 128);
     var tex = new T.CanvasTexture(c); tex.needsUpdate = true;
     return tex;
   }
@@ -320,43 +384,57 @@
     var poleGeo = new T.CylinderGeometry(0.045, 0.06, 1.9, 6), barGeo = new T.BoxGeometry(0.85, 0.07, 0.07);
     var shellGeo = new T.CylinderGeometry(0.19, 0.33, 0.48, 8, 1, true), cordGeo = new T.CylinderGeometry(0.012, 0.012, 0.36, 4);
     var leafGeo = new T.PlaneGeometry(0.18, 0.36), beadGeo = new T.SphereGeometry(0.065, 6, 4), baseGeo = new T.CylinderGeometry(0.38, 0.47, 0.12, 8);
+    var ringTex = ringTexture();
     for (i = 0; i < 6; i++) {
       var cg = new T.Group(); cg.position.set(CHIMES[i][0], H.TOP_Y, CHIMES[i][1]); cg.scale.setScalar(CHIME_SCALE);
       part(baseGeo, stone, cg, 0, 0.06, 0); part(poleGeo, wood, cg, -0.34, 0.97, 0); part(barGeo, wood, cg, 0, 1.9, 0);
       var swing = new T.Group(); swing.position.set(0, 1.86, 0); cg.add(swing);
       part(cordGeo, wood, swing, 0, -0.17, 0);
       var mat = new T.MeshLambertMaterial({ color: TONES[i][1], emissive: TONES[i][1], emissiveIntensity: 0.1, side: T.DoubleSide });
-      part(shellGeo, mat, swing, 0, -0.59, 0).l4cs = true; part(beadGeo, wood, swing, 0, -0.84, 0); part(leafGeo, mat, swing, 0, -1.08, 0).l4cs = true;
-      var glow = sprite(H.glowTex, TONES[i][1], true); glow.position.y = 1.3; cg.add(glow);
-      var ring = sprite(H.glowTex, 0xfff3d0, true); ring.position.y = 1.27; cg.add(ring);
-      g.add(cg); st.chimes.push({ g: cg, swing: swing, mat: mat, glow: glow, ring: ring });
+      part(shellGeo, mat, swing, 0, -0.59, 0).l4cs = true; part(beadGeo, wood, swing, 0, -0.84, 0);
+      // The paper tail hangs from the bead on its own pivot, so it can trail behind the swing and flutter in the wind.
+      var tail = new T.Group(); tail.position.set(0, -0.9, 0); swing.add(tail); part(leafGeo, mat, tail, 0, -0.18, 0).l4cs = true;
+      // Halo: a soft body in the tone colour (painted over the picture, so it reads on the bright dawn sky as well), a warm
+      // additive core, and a ring in the tone colour that opens on each strike.
+      var glow = sprite(H.glowTex, TONES[i][1], false); glow.position.y = 1.3; cg.add(glow);
+      var core = sprite(H.glowTex, 0xffe2b0, true); core.position.y = 1.27; cg.add(core);
+      tmpB.setHex(TONES[i][1]).lerp(new T.Color(0xfff0c8), 0.3);
+      var ring = sprite(ringTex, tmpB.getHex(), true); ring.position.y = 1.27; cg.add(ring);
+      g.add(cg); st.chimes.push({ g: cg, swing: swing, tail: tail, mat: mat, glow: glow, core: core, ring: ring });
     }
-    /* Notes and petals: two small Points clouds (one draw each). A frame only rewrites two small typed arrays apiece. */
-    st.nPos = new Float32Array(NOTES * 3); st.nA = new Float32Array(NOTES * 3); st.nCol = new Float32Array(NOTES * 3);
-    for (i = 0; i < NOTES; i++) { tmpB.setHex(TONES[i % 6][1]); st.nCol[i * 3] = tmpB.r; st.nCol[i * 3 + 1] = tmpB.g; st.nCol[i * 3 + 2] = tmpB.b; }
+    /* Notes (with their sparks) and petals: two small Points clouds (one draw each). A frame only rewrites two small
+     * typed arrays apiece; nothing is allocated. Slots 0..NOTES-1 are the glyphs, the sparks follow. */
+    var NP = NOTES * (1 + SPARKS);
+    st.nPos = new Float32Array(NP * 3); st.nA = new Float32Array(NP * 4); st.nCol = new Float32Array(NP * 3);
+    for (i = 0; i < NP; i++) { tmpB.setHex(TONES[NOTE_LIST[i % NOTES].c][1]); st.nCol[i * 3] = tmpB.r; st.nCol[i * 3 + 1] = tmpB.g; st.nCol[i * 3 + 2] = tmpB.b; }
     st.ptU = { uPx: { value: 800 }, uMap: { value: noteTexture() } };
     var ng = new T.BufferGeometry();
-    ng.setAttribute('position', new T.BufferAttribute(st.nPos, 3)); ng.setAttribute('aA', new T.BufferAttribute(st.nA, 3)); ng.setAttribute('aCol', new T.BufferAttribute(st.nCol, 3));
-    var PT_VERT = 'attribute vec3 aA; attribute vec3 aCol; uniform float uPx; varying float vA; varying float vRot; varying vec3 vCol;' +
-      'void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); vA = aA.x; vRot = aA.z; vCol = aCol; gl_PointSize = clamp(aA.y * uPx / max(-mv.z, 0.1), 2.0, 120.0); gl_Position = projectionMatrix * mv; }';
+    ng.setAttribute('position', new T.BufferAttribute(st.nPos, 3)); ng.setAttribute('aA', new T.BufferAttribute(st.nA, 4)); ng.setAttribute('aCol', new T.BufferAttribute(st.nCol, 3));
+    var PT_VERT = 'attribute vec4 aA; attribute vec3 aCol; uniform float uPx; varying float vA; varying float vRot; varying float vK; varying vec3 vCol;' +
+      'void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); vA = aA.x; vRot = aA.z; vK = aA.w; vCol = aCol; gl_PointSize = aA.x > 0.003 ? clamp(aA.y * uPx / max(-mv.z, 0.1), 2.0, 120.0) : 0.0; gl_Position = projectionMatrix * mv; }';
     var PT_ROT = ' vec2 q = gl_PointCoord - 0.5; float c = cos(vRot), s = sin(vRot); q = vec2(q.x * c - q.y * s, q.x * s + q.y * c);';
     st.notes = new T.Points(ng, new T.ShaderMaterial({ uniforms: st.ptU, transparent: true, depthWrite: false,
       vertexShader: PT_VERT,
-      fragmentShader: 'uniform sampler2D uMap; varying float vA; varying float vRot; varying vec3 vCol; void main(){' + PT_ROT +
-        ' if (abs(q.x) > 0.5 || abs(q.y) > 0.5) discard; vec4 m = texture2D(uMap, vec2(q.x + 0.5, 0.5 - q.y));' +
-        ' vec3 col = mix(vec3(1.0, 0.95, 0.8), mix(vec3(0.3, 0.2, 0.34), mix(vCol, vec3(1.0), 0.2), m.r), max(m.r, m.g));' +
-        ' gl_FragColor = vec4(col, max(max(m.r, m.g), m.b * 0.6) * vA); }' }));
+      fragmentShader: 'uniform sampler2D uMap; varying float vA; varying float vRot; varying float vK; varying vec3 vCol; void main(){' + PT_ROT +
+        ' if (abs(q.x) > 0.5 || abs(q.y) > 0.5) discard; vec4 m = texture2D(uMap, vec2((q.x + 0.5 + floor(vK + 0.5)) / 3.0, 0.5 - q.y));' +
+        // a halo in the tone colour, a dark brushed outline, a pale body tinted by the tone
+        ' vec3 halo = mix(vCol, vec3(1.0, 0.96, 0.84), 0.35); vec3 body = mix(vCol, vec3(1.0), vK > 1.5 ? 0.7 : 0.3);' +
+        ' vec3 col = mix(halo, mix(vec3(0.27, 0.19, 0.33), body, m.r), max(m.r, m.g));' +
+        ' gl_FragColor = vec4(col, max(max(m.r, m.g), m.b * 0.8) * vA); }' }));
     st.notes.frustumCulled = false; st.notes.renderOrder = 3; g.add(st.notes);
-    st.pPos = new Float32Array(PETALS * 3); st.pA = new Float32Array(PETALS * 3); st.pCol = new Float32Array(PETALS * 3);
-    var petalCols = [0xffb7c8, 0xfff0e2, 0xffcf9e];
+    st.pPos = new Float32Array(PETALS * 3); st.pA = new Float32Array(PETALS * 4); st.pCol = new Float32Array(PETALS * 3);
+    var petalCols = [0xffb9c6, 0xfff1e4, 0xffd0a2];
     for (i = 0; i < PETALS; i++) { tmpB.setHex(petalCols[i % 3]); st.pCol[i * 3] = tmpB.r; st.pCol[i * 3 + 1] = tmpB.g; st.pCol[i * 3 + 2] = tmpB.b; }
     var pg = new T.BufferGeometry();
-    pg.setAttribute('position', new T.BufferAttribute(st.pPos, 3)); pg.setAttribute('aA', new T.BufferAttribute(st.pA, 3)); pg.setAttribute('aCol', new T.BufferAttribute(st.pCol, 3));
+    pg.setAttribute('position', new T.BufferAttribute(st.pPos, 3)); pg.setAttribute('aA', new T.BufferAttribute(st.pA, 4)); pg.setAttribute('aCol', new T.BufferAttribute(st.pCol, 3));
+    // A petal: an oval with a notch at the tip, squashed by its flip (vK = cos of the flip angle) so it tumbles, two tones and a dark edge.
     st.petals = new T.Points(pg, new T.ShaderMaterial({ uniforms: st.ptU, transparent: true, depthWrite: false,
       vertexShader: PT_VERT,
-      fragmentShader: 'varying float vA; varying float vRot; varying vec3 vCol; void main(){' + PT_ROT +
-        ' float e = length(q * vec2(1.0, 2.0)) * 2.0; float a = 1.0 - smoothstep(0.72, 0.98, e);' +
-        ' vec3 col = mix(vCol * 0.84, mix(vCol, vec3(1.0), 0.35), 1.0 - smoothstep(0.1, 0.8, e + q.x)); gl_FragColor = vec4(col, a * vA); }' }));
+      fragmentShader: 'varying float vA; varying float vRot; varying float vK; varying vec3 vCol; void main(){' + PT_ROT +
+        ' vec2 p = q * 2.0; p.x /= 0.3 + 0.7 * abs(vK); float e = length(p * vec2(1.55, 1.0));' +
+        ' float a = (1.0 - smoothstep(0.84, 1.0, e)) * smoothstep(0.0, 0.2, length(p - vec2(0.0, 0.97)));' +
+        ' vec3 col = mix(mix(vCol, vec3(1.0), 0.3), vCol * vec3(0.93, 0.72, 0.78), smoothstep(0.3, -0.9, p.y)) * (vK > 0.0 ? 1.0 : 0.9);' +
+        ' col = mix(col, vCol * vec3(0.7, 0.46, 0.54), smoothstep(0.72, 0.94, e) * 0.5); gl_FragColor = vec4(col, a * vA); }' }));
     st.petals.frustumCulled = false; st.petals.renderOrder = 3; g.add(st.petals);
     st.canvas = doc.querySelector('canvas');
     // The game's own sky and lights: borrowed while staged, handed back untouched.
@@ -410,19 +488,22 @@
     try { if (H.refresh) H.refresh(); } catch (e) { /* keep closing */ }
   }
   /* Seen near the sun, a particle is slid round the rim instead of across the disc: a continuous push away from the
-   * sun's centre, zero from a little outside the rim on, so nothing jumps. In: the lens-to-particle vector in st.q. */
-  function keepOffSun() {
+   * sun's centre, zero from a little outside the rim on, so nothing jumps. The ring kept clear is widened by the
+   * particle's own radius on screen, so not even its edge or halo touches the disc. In: the lens-to-particle vector in
+   * st.q, the particle's world size and the smallest size it may have on screen (as a tangent). Out: st.q.s = its size. */
+  function keepOffSun(size, least) {
     var q = st.q, md = st.sunDir, fd = Math.sqrt(q.x * q.x + q.y * q.y + q.z * q.z) || 1, along = (q.x * md.x + q.y * md.y + q.z * md.z) / fd;
-    q.d = fd;
-    if (along <= 0.9) return;
+    q.d = fd; q.s = Math.max(size, least * fd);
+    if (along <= 0.86) return;
+    var rad = 0.5 * q.s / fd, K = SUN_KEEP + rad;
     var qx = q.x / fd - md.x * along, qy = q.y / fd - md.y * along, qz = q.z / fd - md.z * along, dq = Math.sqrt(qx * qx + qy * qy + qz * qz);
-    if (dq < SUN_KEEP * 2.2) {
-      var wq = 1 - ease(ramp(dq, SUN_KEEP * 1.3, SUN_KEEP * 2.2)), dn = lerp(dq, Math.sqrt(dq * dq + SUN_KEEP * SUN_KEEP * 1.5), wq), kq;
-      if (dq < 1e-5) { qx = 1; qy = 0; qz = 0; dq = 1; dn = SUN_KEEP * 1.25; }
+    if (dq < K * 2.2) {
+      var wq = 1 - ease(ramp(dq, K * 1.3, K * 2.2)), dn = lerp(dq, Math.sqrt(dq * dq + K * K * 1.5), wq), kq;
+      if (dq < 1e-5) { qx = 1; qy = 0; qz = 0; dq = 1; dn = K * 1.25; }
       kq = dn / dq;
       q.x = (md.x * along + qx * kq) * fd; q.y = (md.y * along + qy * kq) * fd; q.z = (md.z * along + qz * kq) * fd; dq = dn;
     }
-    if (dq < st.sunMin) st.sunMin = dq;
+    if (dq - rad < st.sunMin) st.sunMin = dq - rad; // the nearest edge of anything to the sun's centre this frame
   }
   function applyStage(t) {
     var f = frame(t, true), sk = f.sky, u = st.skyU, i, cam = H.camera, top = H.TOP_Y;
@@ -433,11 +514,12 @@
     for (i = 0; i < wild.length; i++) if (wild[i].g) hide(wild[i].g);
     // Chimes: the shell swings and brightens in its colour; a glow breathes round it and a ring of light opens on each strike.
     for (i = 0; i < 6; i++) {
-      var C = st.chimes[i], cm = f.chimes[i], age = cm.strike < 0 ? 9 : t - cm.strike, gs = 1.5 + 1.1 * cm.wake + 0.8 * cm.pulse, rs = 1.0 + 3.4 * ramp(age, 0, 1.6);
-      C.swing.rotation.z = cm.swing;
-      C.mat.emissiveIntensity = 0.08 + 0.3 * cm.wake + 0.5 * cm.pulse;
-      C.glow.material.opacity = clamp(cm.glow, 0, 1); C.glow.scale.set(gs, gs, 1);
-      C.ring.material.opacity = cm.strike < 0 ? 0 : 0.75 * (1 - ramp(age, 0.1, 1.6)); C.ring.scale.set(rs, rs, 1);
+      var C = st.chimes[i], cm = f.chimes[i], age = cm.strike < 0 ? 9 : t - cm.strike, gs = 1.7 + 1.0 * cm.wake + 1.3 * cm.pulse, rs = 0.8 + 3.8 * ease(ramp(age, 0, 1.7));
+      C.swing.rotation.z = cm.swing; C.swing.rotation.x = cm.sway; C.tail.rotation.z = cm.tail - cm.swing * 0.35;
+      C.mat.emissiveIntensity = 0.06 + 0.14 * cm.wake + 0.5 * cm.pulse;
+      C.glow.material.opacity = clamp(cm.glow, 0, 1) * 0.85; C.glow.scale.set(gs, gs, 1);
+      C.core.material.opacity = clamp(0.12 * cm.wake + 0.75 * cm.pulse, 0, 1); C.core.scale.set(0.9 + 0.9 * cm.pulse, 0.9 + 0.9 * cm.pulse, 1);
+      C.ring.material.opacity = cm.strike < 0 ? 0 : cm.power * (1 - ramp(age, 0.15, 1.7)); C.ring.scale.set(rs, rs, 1);
     }
     // Camera: overrides the gameplay orbit for this frame only; the game takes it back when we stop.
     var c = f.camera, halfH = Math.tan(cam.fov * Math.PI / 360), halfW = halfH * cam.aspect;
@@ -451,22 +533,27 @@
     var eye = st.eye, md = st.sunDir, q = st.q, b = st.pose;
     eye.set(c.x + r * Math.sin(c.phi) * Math.cos(c.th), top + c.y + c.lift * r * halfH + r * Math.cos(c.phi), c.z + r * Math.sin(c.phi) * Math.sin(c.th));
     md.set(f.sun.x, f.sun.y, f.sun.z).normalize();
-    var cvH = st.canvas ? st.canvas.height : 844, px = cvH / (2 * halfH), P = st.nPos, A = st.nA;
+    var cvH = st.canvas ? st.canvas.height : 844, px = cvH / (2 * halfH), P = st.nPos, A = st.nA, k, o, lag, near;
     st.sunMin = 9;
-    for (i = 0; i < NOTES; i++) {
-      noteAt(i, t, b);
-      q.x = b.x - eye.x; q.y = top + b.y - eye.y; q.z = b.z - eye.z; keepOffSun();
-      P[i * 3] = eye.x + q.x; P[i * 3 + 1] = eye.y + q.y; P[i * 3 + 2] = eye.z + q.z;
-      // World size, but never smaller on screen than a readable glyph (wide shots).
-      A[i * 3] = b.alpha; A[i * 3 + 1] = Math.max(b.size, cvH * 0.05 * q.d / px); A[i * 3 + 2] = b.tilt;
+    // Glyphs, then their sparks (the same path a moment earlier). World size, but never smaller on screen than a readable
+    // glyph (wide shots); and nothing brushes the lens: anything drifting very close fades instead of filling the frame.
+    for (k = 0; k <= SPARKS; k++) for (i = 0; i < NOTES; i++) {
+      o = k * NOTES + i; lag = k * SPARK_LAG;
+      noteAt(i, t - lag, b);
+      q.x = b.x - eye.x; q.y = top + b.y - eye.y; q.z = b.z - eye.z;
+      keepOffSun(k ? b.size * (0.62 - 0.14 * k) : b.size, (k ? 0.052 - 0.01 * k : 0.09) * halfH);
+      near = ramp(q.d, 3, 7);
+      P[o * 3] = eye.x + q.x; P[o * 3 + 1] = eye.y + q.y; P[o * 3 + 2] = eye.z + q.z;
+      A[o * 4] = (k ? b.alpha * (0.95 - 0.2 * k) * (0.7 + 0.3 * Math.sin(t * 7 + o * 2.4)) : b.alpha) * near; A[o * 4 + 1] = q.s;
+      A[o * 4 + 2] = k ? t * 0.8 + o : b.tilt; A[o * 4 + 3] = k ? 2 : b.glyph;
     }
     st.notes.geometry.attributes.position.needsUpdate = true; st.notes.geometry.attributes.aA.needsUpdate = true;
     P = st.pPos; A = st.pA;
     for (i = 0; i < PETALS; i++) {
       petalAt(i, t, b);
-      q.x = b.x - eye.x; q.y = top + b.y - eye.y; q.z = b.z - eye.z; keepOffSun();
+      q.x = b.x - eye.x; q.y = top + b.y - eye.y; q.z = b.z - eye.z; keepOffSun(b.size, 0.046 * halfH);
       P[i * 3] = eye.x + q.x; P[i * 3 + 1] = eye.y + q.y; P[i * 3 + 2] = eye.z + q.z;
-      A[i * 3] = b.alpha; A[i * 3 + 1] = Math.max(b.size, cvH * 0.02 * q.d / px); A[i * 3 + 2] = b.spin;
+      A[i * 4] = b.alpha * ramp(q.d, 3, 7); A[i * 4 + 1] = q.s; A[i * 4 + 2] = b.spin; A[i * 4 + 3] = Math.cos(b.flip);
     }
     st.petals.geometry.attributes.position.needsUpdate = true; st.petals.geometry.attributes.aA.needsUpdate = true;
     st.ptU.uPx.value = px;
@@ -688,7 +775,7 @@
     staged: function () { return staged; },
     stage: function () {
       return { staged: staged, reduced: soft < 1, toon: painted.length, blades: st ? st.blades : 0, blooms: st ? st.blooms : 0,
-        chimes: st ? st.chimes.length : 0, notes: st ? NOTES : 0, petals: st ? PETALS : 0,
+        chimes: st ? st.chimes.length : 0, notes: st ? NOTES : 0, sparks: st ? NOTES * SPARKS : 0, petals: st ? PETALS : 0,
         sky: !!(st && st.sky.visible), hidden: kept ? kept.hidden.length : 0,
         camera: H ? H.camera.position.toArray().map(function (v) { return +v.toFixed(3); }) : null };
     },
@@ -698,7 +785,8 @@
     beats: function () { return BEATS.map(function (b) { return { id: b.id, t0: b.t0, t1: b.t1, caption: b.caption }; }); },
     frame: function (t) { return frame(t === undefined ? time() : clamp(+t || 0, 0, DURATION)); },
     text: function () { return { title: TITLE, subtitle: SUBTITLE, cont: CONTINUE, skip: SKIP }; },
-    layout: function () { return { chimes: CHIMES, tones: TONES.map(function (k) { return k[0]; }), colors: TONES.map(function (k) { return k[1]; }), chimeT: CHIME_T, chimeStep: CHIME_STEP, round: ROUND, chimeScale: CHIME_SCALE, notes: NOTES, petals: PETALS, wind: [WX, WZ], sunDisc: SUN_DISC }; },
+    layout: function () { return { chimes: CHIMES, tones: TONES.map(function (k) { return k[0]; }), colors: TONES.map(function (k) { return k[1]; }), chimeT: CHIME_T, chimeStep: CHIME_STEP, beat: BEAT, song: SONG.slice(), phrases: PHRASES.slice(), together: TOGETHER, roll: ROLL, lastT: LAST_T,
+        strikes: STRIKES.map(function (e) { return [e.t, e.c, e.s, e.k]; }), chimeScale: CHIME_SCALE, notes: NOTES, petals: PETALS, ambient: AMBIENT, sparks: SPARKS, noteY: NOTE_Y, wind: [WX, WZ], sunDisc: SUN_DISC }; },
     // Pose of one chime, note or petal at t (the stage uses exactly these).
     chime: function (i, t) { return chimeAt(clamp(i | 0, 0, 5), +t || 0, {}); },
     note: function (j, t) { return noteAt(clamp(j | 0, 0, NOTES - 1), +t || 0, {}); },
@@ -706,10 +794,12 @@
     // What is actually on stage this frame (island-local; y above the grass): for the seek/determinism checks.
     probe: function () {
       if (!st || !staged) return null;
-      var out = { sunClear: st.sunMin, sunDisc: SUN_DISC, notes: [], petals: [], chimes: [] }, i;
-      for (i = 0; i < NOTES; i++) out.notes.push([st.nPos[i * 3], st.nPos[i * 3 + 1] - H.TOP_Y, st.nPos[i * 3 + 2], st.nA[i * 3], st.nA[i * 3 + 1]]);
-      for (i = 0; i < PETALS; i++) out.petals.push([st.pPos[i * 3], st.pPos[i * 3 + 1] - H.TOP_Y, st.pPos[i * 3 + 2], st.pA[i * 3], st.pA[i * 3 + 1]]);
-      for (i = 0; i < 6; i++) out.chimes.push([st.chimes[i].swing.rotation.z, st.chimes[i].glow.material.opacity, st.chimes[i].ring.material.opacity]);
+      var out = { sunClear: st.sunMin, sunDisc: SUN_DISC, notes: [], sparks: [], petals: [], chimes: [] }, i;
+      // [x, y, z, alpha, size]; notes first, then their sparks
+      for (i = 0; i < NOTES * (1 + SPARKS); i++) (i < NOTES ? out.notes : out.sparks).push([st.nPos[i * 3], st.nPos[i * 3 + 1] - H.TOP_Y, st.nPos[i * 3 + 2], st.nA[i * 4], st.nA[i * 4 + 1]]);
+      for (i = 0; i < PETALS; i++) out.petals.push([st.pPos[i * 3], st.pPos[i * 3 + 1] - H.TOP_Y, st.pPos[i * 3 + 2], st.pA[i * 4], st.pA[i * 4 + 1]]);
+      // [swing, halo opacity, ring opacity, tail angle, core opacity]
+      for (i = 0; i < 6; i++) out.chimes.push([st.chimes[i].swing.rotation.z, st.chimes[i].glow.material.opacity, st.chimes[i].ring.material.opacity, st.chimes[i].tail.rotation.z, st.chimes[i].core.material.opacity]);
       return out;
     },
     muted: function () { return muted; },

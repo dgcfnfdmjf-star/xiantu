@@ -96,7 +96,7 @@ const SAVES = {
     assert.equal(await cardShown(page), false, 'no card under the film'); assert.equal(await opens(page), 0);
     assert.equal(await page.evaluate(() => document.getElementById('toast') ? getComputedStyle(document.getElementById('toast')).visibility : 'hidden'), 'hidden');
     const stage = await page.evaluate(() => window.__l4Cutscene.stage());
-    assert(stage.staged && stage.sky && stage.chimes === 6 && stage.notes === 18 && stage.petals === 42 && stage.blades > 1000 && stage.blooms > 150 && stage.toon > 10 && stage.hidden > 3, 'stage is up: ' + JSON.stringify(stage));
+    assert(stage.staged && stage.sky && stage.chimes === 6 && stage.notes === 54 && stage.sparks === 108 && stage.petals === 72 && stage.blades > 1000 && stage.blooms > 150 && stage.toon > 10 && stage.hidden > 3, 'stage is up: ' + JSON.stringify(stage));
     assert.equal(await page.evaluate(() => window.__l4Hide.length === 1 && window.__l4Hide.every(g => !g.visible)), true, 'gameplay chimes are off the set');
     assert.equal(await page.evaluate(() => window.GardenJourney.blocked() && window.__l4Cutscene.busy()), true, 'the film counts as an open dialog');
     assert.equal(await page.evaluate(() => ['chimeHud', 'chimeDock', 'chimeSkip', 'topbar'].every(id => getComputedStyle(document.getElementById(id)).visibility === 'hidden')), true, 'chime HUD and dock are out of the frame');
@@ -192,15 +192,26 @@ const SAVES = {
     // seek(t) reproduces the frame: same camera and the same actors whichever way it is reached.
     const probeAt = t => page.evaluate(async t => { const cs = window.__l4Cutscene; cs.seek(t); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
       return { p: cs.probe(), cam: cs.stage().camera, notes: cs.frame(t).notes, chimes: cs.frame(t).chimes }; }, t);
-    for (const t of [12.4, 26, 38.2]) {
+    for (const t of [12.4, 22.7, 26.4, 38.2, 46.3]) {
       const a = await probeAt(t), other = await probeAt(t === 38.2 ? 6 : 45), b = await probeAt(t);
       assert.equal(JSON.stringify(a.p), JSON.stringify(b.p), 'stage actors are a pure function of t at ' + t);
       assert(a.cam.every((v, i) => Math.abs(v - b.cam[i]) < 0.05) && a.cam.some((v, i) => Math.abs(v - other.cam[i]) > 0.5), 'seek is deterministic at ' + t);
-      a.p.chimes.forEach((c, i) => assert(Math.abs(c[0] - a.chimes[i].swing) < 1e-6 && Math.abs(c[1] - Math.min(a.chimes[i].glow, 1)) < 1e-6, 'chime ' + i + ' is posed by the model at ' + t));
-      a.p.notes.forEach((n, j) => assert(Math.abs(n[3] - a.notes[j].alpha) < 1e-6 && Math.hypot(n[0] - a.notes[j].x, n[1] - a.notes[j].y, n[2] - a.notes[j].z) < 4, 'note ' + j + ' is where the model puts it at ' + t));
+      a.p.chimes.forEach((c, i) => assert(Math.abs(c[0] - a.chimes[i].swing) < 1e-6 && Math.abs(c[1] - Math.min(a.chimes[i].glow, 1) * 0.85) < 1e-6 && Math.abs(c[3] - (a.chimes[i].tail - a.chimes[i].swing * 0.35)) < 1e-6, 'chime ' + i + ' is posed by the model at ' + t));
+      a.p.notes.forEach((n, j) => assert(n[3] <= a.notes[j].alpha + 1e-6 && (n[3] > 0) === (a.notes[j].alpha > 0) && Math.hypot(n[0] - a.notes[j].x, n[1] - a.notes[j].y, n[2] - a.notes[j].z) < 4, 'note ' + j + ' is where the model puts it at ' + t));
+      // Each note trails two sparks on its own path, a moment behind.
+      assert.equal(a.p.sparks.length, 108);
+      if (t > 22) assert(a.p.sparks.filter(k => k[3] > 0.2).length >= 8, 'sparks trail the notes at ' + t);
     }
+    // The swing is readable on stage and comes back exactly on a seek; the ring opens on the strike, the song order is [0, 3, 2, 5].
+    for (const [t, i] of [[21.6, 0], [22.5, 3], [23.4, 2], [24.3, 5]]) {
+      const hit = await probeAt(t + 0.28), again = await probeAt(t + 0.28);
+      assert(Math.abs(hit.p.chimes[i][0]) > 0.2 && hit.p.chimes[i][0] === again.p.chimes[i][0], 'chime ' + i + ' swings on its note: ' + hit.p.chimes[i][0]);
+      assert(hit.p.chimes[i][1] > 0.5 && hit.p.chimes[i][2] > 0.8 && hit.p.chimes[i][4] > 0.45, 'halo, ring and core light up: ' + hit.p.chimes[i]);
+      assert.equal(hit.p.chimes.map(c => c[4]).indexOf(Math.max(...hit.p.chimes.map(c => c[4]))), i, 'the struck chime is the brightest at ' + t);
+    }
+    const all = await probeAt(26.1 + 0.6); assert(all.p.chimes.every(c => c[2] > 0.4 && c[1] > 0.3), 'all six ring together: ' + all.p.chimes.map(c => c[2].toFixed(2)));
     // Glows are plainly visible when a chime is struck, and notes stay a readable size in the widest shot.
-    const struck = await probeAt(11.3); assert(struck.p.chimes[0][1] > 0.6 && struck.p.chimes[0][2] > 0.5, 'a struck chime glows: ' + struck.p.chimes[0]);
+    const struck = await probeAt(11.9); assert(struck.p.chimes[0][1] > 0.6 && struck.p.chimes[0][2] > 0.5, 'a struck chime glows: ' + struck.p.chimes[0]);
     const wide = await page.evaluate(async () => { const cs = window.__l4Cutscene; cs.seek(46); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
       const cam = window.GardenClip.world.camera, h = document.querySelector('canvas').height, k = h / (2 * Math.tan(cam.fov * Math.PI / 360)), e = new THREE.Vector3();
       const px = (list, top) => list.filter(n => n[3] > 0.3).map(n => { e.set(n[0], n[1] + top, n[2]); return n[4] * k / e.distanceTo(cs.__eye ? cs.__eye : cam.position); });
@@ -209,7 +220,7 @@ const SAVES = {
     assert(wide.petals.length >= 15 && Math.min(...wide.petals) > wide.h * 0.012, 'petals read in the wide shot: ' + Math.min(...wide.petals).toFixed(1) + 'px');
     // No note or petal is ever drawn on the sun's disc.
     let closest = 9;
-    for (let t = 2; t <= 50; t += 0.5) { const p = (await probeAt(t)).p; closest = Math.min(closest, p.sunClear); assert(p.sunClear > p.sunDisc * 1.2, 'notes and petals keep off the sun at ' + t + ': ' + p.sunClear); }
+    for (let t = 1; t <= 50; t += 0.25) { const p = (await probeAt(t)).p; closest = Math.min(closest, p.sunClear); assert(p.sunClear > p.sunDisc * 1.2, 'notes and petals keep off the sun at ' + t + ': ' + p.sunClear); }
     report.sunClear = +closest.toFixed(3);
     assert.equal(await page.evaluate(() => window.__l4Cutscene.seek(50) && window.__l4Cutscene.state()), 'ended');
     await page.waitForTimeout(700);

@@ -54,34 +54,80 @@ for (let t = 0.05; t <= D; t += 0.05) {
   prev = c;
 }
 // Chimes: the game's six, in the game's tone colours and places; asleep before dawn, waking one after another in the
-// second beat (a strike each), then ringing in turn on a slow round.
+// second beat (a strike each), then the cue: the level's last song [0, 3, 2, 5] on the beat, answered by all six.
 const rules = require('../src/chime-rules.js');
-const tones = (rules.tones || globalThis.ChimeRules.tones);
+const R = rules.tones ? rules : globalThis.ChimeRules, tones = R.tones;
 assert.deepEqual(lay.tones, tones.map(t => t.id)); assert.deepEqual(lay.colors, tones.map(t => t.color));
 assert.deepEqual(lay.chimes, [[-2.8, 1.2], [-2.4, -1.6], [0, -2.9], [2.5, -1.5], [2.9, 1.2], [0, 2.8]]);
+assert.deepEqual(lay.song, R.songs[2].notes, 'the cue is the last song of the level');
 assert(f1.chimes.length === 6 && f1.chimes.every(c => c.wake === 0 && c.pulse === 0 && c.strike === -1), 'asleep before dawn');
 const firsts = [0, 1, 2, 3, 4, 5].map(i => lay.chimeT + i * lay.chimeStep);
+const near = (a, b) => Math.abs(a - b) < 1e-6;
+// The strike table: 6 waking strikes, three phrases of (4 song notes one beat apart + all six together five beats
+// after the phrase starts), and a last all-six under the title. Everything sits on the 0.9 s beat grid.
+assert.equal(lay.strikes.length, 6 + 3 * (4 + 6) + 6);
+assert.deepEqual(lay.strikes.slice(0, 6).map(e => e[1]), [0, 1, 2, 3, 4, 5]);
+lay.phrases.forEach((p0, k) => {
+  const ph = lay.strikes.slice(6 + k * 10, 16 + k * 10);
+  assert.deepEqual(ph.slice(0, 4).map(e => e[1]), [0, 3, 2, 5], 'phrase ' + k + ' plays 把早安送回家');
+  ph.slice(0, 4).forEach((e, i) => assert(near(e[0], p0 + i * lay.beat) && e[2] === 1 && e[3] === 1));
+  assert.deepEqual(ph.slice(4).map(e => e[1]), [0, 1, 2, 3, 4, 5], 'then all six');
+  ph.slice(4).forEach((e, i) => assert(Math.abs(e[0] - (p0 + lay.together + i * lay.roll)) < 2e-3 && e[2] < 1 && e[3] === 2, 'gently, as a soft roll'));
+  assert(near((p0 - lay.chimeT) / lay.beat, Math.round((p0 - lay.chimeT) / lay.beat)), 'on the beat grid');
+});
+assert(lay.phrases[0] >= 21 && lay.phrases[2] + lay.together < 43.5 && lay.lastT > 43.5 && lay.lastT < 48, 'phrases in the notes/send beats, the last ring under the title');
+for (let k = 1; k < lay.strikes.length; k++) assert(lay.strikes[k][0] >= lay.strikes[k - 1][0], 'strikes are in time order');
 firsts.forEach((t0, i) => {
   assert(t0 > 10 && t0 < 21, 'chime ' + i + ' wakes in the second beat');
   assert.equal(cs.chime(i, t0 - 0.6).pulse, 0); assert(cs.chime(i, t0 + 0.05).pulse > 0.9, 'chime ' + i + ' rings when it wakes');
   if (i < 5) assert(cs.chime(i + 1, t0 + 0.05).pulse === 0, 'in turn');
-  const strikes = new Set(); for (let t = 22; t < 50; t += 0.1) strikes.add(cs.chime(i, t).strike);
-  assert(strikes.size >= 5, 'chime ' + i + ' keeps ringing');
-  for (let t = 0; t < 50; t += 0.1) { const c = cs.chime(i, t); assert(c.pulse >= 0 && c.pulse <= 1 && Math.abs(c.swing) < 0.4 && c.glow > 0.1 && c.glow <= 1.001); }
+  const mine = lay.strikes.filter(e => e[1] === i), strikes = new Set(); for (let t = 0; t < 50; t += 0.05) strikes.add(cs.chime(i, t).strike);
+  strikes.delete(-1); assert.deepEqual([...strikes].sort((a, b) => a - b), mine.map(e => e[0]), 'chime ' + i + ' rings exactly on its strikes');
+  assert(mine.length >= 5, 'chime ' + i + ' keeps ringing');
+  // A readable swing: a damped pendulum from each strike (over 0.2 rad at its first peak, settling afterwards), and a glow that follows.
+  let peak = 0; for (let t = t0; t < t0 + 1.2; t += 0.02) peak = Math.max(peak, Math.abs(cs.chime(i, t).swing));
+  assert(peak > 0.2 && peak < 0.5, 'chime ' + i + ' swings readably: ' + peak.toFixed(3));
+  assert(Math.abs(cs.chime(i, t0 - 0.2).swing) < 0.12, 'only the wind moves it before the strike');
+  let tailPeak = 0; for (let t = t0; t < t0 + 2; t += 0.02) tailPeak = Math.max(tailPeak, Math.abs(cs.chime(i, t).tail));
+  assert(tailPeak > 0.25, 'the paper tail flutters');
+  for (let t = 0; t < 50; t += 0.05) { const c = cs.chime(i, t), d = cs.chime(i, t + 0.05); assert(c.pulse >= 0 && c.pulse <= 1 && Math.abs(c.swing) < 0.5 && Math.abs(c.tail) < 1 && Math.abs(c.sway) < 0.07 && c.glow >= 0.1 && c.glow <= 1.001);
+    assert(Math.abs(d.swing - c.swing) < 0.11 && Math.abs(d.tail - c.tail) < 0.16, 'chime ' + i + ' moves smoothly at ' + t.toFixed(2)); }
+  assert(cs.chime(i, t0 + 0.05).glow > 0.7 && cs.chime(i, t0 + 3).glow < 0.45, 'the halo pulses and settles');
 });
 assert(cs.frame(22).chimes.every(c => c.wake === 1), 'all six awake after the chimes beat');
-// Notes and petals (placeholders in this item): unseen before their time, above the grass, drifting downwind
-// (away from the sun's side), each a pure function of t.
-assert.equal(lay.notes, 18); assert.equal(lay.petals, 42);
-assert(cs.frame(20).notes.every(n => n.alpha === 0), 'no notes before the chimes have rung');
-assert(cs.frame(30).notes.filter(n => n.alpha > 0.5).length >= 10 && cs.frame(40).petals.filter(p => p.alpha > 0.5).length >= 20, 'plenty in the air');
-assert(cs.frame(8).petals.some(p => p.alpha > 0.5) && cs.frame(8).petals.filter(p => p.alpha > 0).length < 20, 'a few petals on the first wind');
-for (let j = 0; j < lay.notes; j++) for (let t = 21; t < 50; t += 0.25) {
-  const n = cs.note(j, t), C = lay.chimes[n.tone];
-  assert.equal(n.tone, j % 6); assert(n.y > 2 && n.y < 8 && n.alpha >= 0 && n.alpha <= 1, 'note ' + j + ' floats above its chime');
-  assert((n.x - C[0]) * lay.wind[0] + (n.z - C[1]) * lay.wind[1] > -0.5, 'note ' + j + ' goes downwind');
+// Determinism: a pose depends on t alone, whatever was asked before (swing, tail, glow, note and petal positions).
+for (const t of [12.34, 22.61, 26.3, 38.05, 46.2]) {
+  const a = JSON.stringify([0, 1, 2, 3, 4, 5].map(i => cs.chime(i, t))), n = JSON.stringify(cs.frame(t).notes), p = JSON.stringify(cs.frame(t).petals);
+  cs.frame(3); cs.chime(2, 49); cs.note(5, 31); cs.petal(40, 9); cs.frame(47.7);
+  assert.equal(JSON.stringify([0, 1, 2, 3, 4, 5].map(i => cs.chime(i, t))), a); assert.equal(JSON.stringify(cs.frame(t).notes), n); assert.equal(JSON.stringify(cs.frame(t).petals), p);
 }
-for (let j = 0; j < lay.petals; j++) for (let t = 3; t < 50; t += 0.25) { const p = cs.petal(j, t); assert(p.y > 0.05 && p.y < 5 && p.alpha >= 0 && p.alpha <= 1, 'petal ' + j + ' stays in the air'); }
+// Notes: one per strike (two per song note), born at the strike from that chime's shell in its tone, lifting and
+// drifting downwind (away from the sun's side), one life each. Petals: 18 from the meadow, the rest shaken loose by strikes.
+assert.equal(lay.notes, 6 + 3 * (8 + 6) + 6); assert.equal(lay.petals, lay.ambient + lay.notes); assert(lay.notes <= 60 && lay.petals <= 80 && lay.sparks <= 2, 'counts are capped for phones');
+assert(cs.frame(11.5).notes.every(n => n.alpha === 0), 'no notes before a chime has rung');
+assert(cs.frame(14).notes.some(n => n.alpha > 0.5), 'the waking strikes send up the first notes');
+assert(cs.frame(30).notes.filter(n => n.alpha > 0.5).length >= 10 && cs.frame(40).petals.filter(p => p.alpha > 0.5).length >= 20, 'plenty in the air');
+assert(cs.frame(30).notes.filter(n => n.alpha > 0).length <= 26, 'but never a crowd');
+assert(cs.frame(8).petals.some(p => p.alpha > 0.5) && cs.frame(8).petals.filter(p => p.alpha > 0).length < 20, 'a few petals on the first wind');
+for (let j = 0; j < lay.notes; j++) {
+  const n0 = cs.note(j, 0), C = lay.chimes[n0.tone], born = n0.born, st = lay.strikes.filter(e => e[1] === n0.tone && born - e[0] >= 0 && born - e[0] < 0.5);
+  assert.equal(st.length, 1, 'note ' + j + ' belongs to one strike of its chime');
+  assert.equal(cs.note(j, born - 0.01).alpha, 0); assert(cs.note(j, born + 0.6).alpha > 0.9, 'note ' + j + ' appears with the strike');
+  const s = cs.note(j, born + 0.02); assert(Math.hypot(s.x - C[0], s.z - C[1]) < 0.3 && Math.abs(s.y - lay.noteY) < 0.2, 'note ' + j + ' starts at its chime');
+  let last = null;
+  for (let t = born; t < Math.min(50, born + 11); t += 0.1) {
+    const n = cs.note(j, t);
+    assert(n.y > 1.5 && n.y < 7 && n.alpha >= 0 && n.alpha <= 1 && n.size > 0.25 && n.size < 0.7, 'note ' + j + ' floats above its chime');
+    assert((n.x - C[0]) * lay.wind[0] + (n.z - C[1]) * lay.wind[1] > -0.5, 'note ' + j + ' goes downwind');
+    if (last) assert(Math.hypot(n.x - last.x, n.y - last.y, n.z - last.z) < 0.6, 'note ' + j + ' never jumps');
+    last = n;
+  }
+  if (born + 9 < 50) { const e = cs.note(j, born + 7.5); assert((e.x - C[0]) * lay.wind[0] + (e.z - C[1]) * lay.wind[1] > 3 && e.y > 3, 'note ' + j + ' is carried up and away'); assert.equal(cs.note(j, born + 10.1).alpha, 0); }
+}
+// In the fourth beat they go out past the island's edge (radius about 5) over the cloud sea.
+assert(cs.frame(41).notes.filter(n => n.alpha > 0.3 && Math.hypot(n.x, n.z) > 6).length >= 3 && cs.frame(41).petals.filter(p => p.alpha > 0.3 && Math.hypot(p.x, p.z) > 6).length >= 5, 'out over the cloud sea');
+for (let j = 0; j < lay.petals; j++) { let last = null; for (let t = 3; t < 50; t += 0.1) { const p = cs.petal(j, t); assert(p.y > 0.05 && p.y < 5 && p.alpha >= 0 && p.alpha <= 1, 'petal ' + j + ' stays in the air');
+  if (last && p.alpha > 0.3 && last.alpha > 0.3) assert(Math.hypot(p.x - last.x, p.y - last.y, p.z - last.z) < 0.7, 'petal ' + j + ' never jumps'); last = p; } }
 assert.equal(JSON.stringify(cs.note(7, 33.3)), JSON.stringify(cs.frame(33.3).notes[7]));
 assert.equal(JSON.stringify(cs.petal(9, 41.2)), JSON.stringify(cs.frame(41.2).petals[9]));
 assert.equal(JSON.stringify(cs.chime(4, 17.7)), JSON.stringify(cs.frame(17.7).chimes[4]));

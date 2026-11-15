@@ -7,7 +7,7 @@ copied). ~50 s. It plays automatically on the last correct note of the third mel
 
 Module: `src/l4-cutscene.js` → `window.__l4Cutscene` (same API shape as `__l3Cutscene` / `__l1Cutscene`:
 `enabled/ready/play({source,onContinue})/close/playing/state/time/finished/pause/resume/seek/skip/proceed/stage/
-scored/frame/beats/busy/staged/…`, plus `layout()`, `chime(i,t)`, `note(j,t)`, `petal(j,t)`, `probe()`).
+scored/frame/beats/busy/staged/…`, plus `layout()` (incl. the strike table), `chime(i,t)`, `note(j,t)`, `petal(j,t)`, `probe()`).
 Build hook: `scripts/l4-cutscene-v96.py` (exec'd from `build.py` after `l3-cutscene-v96.py`, i.e. after the V9.5
 release HTML is frozen). Tests: `tests/l4-cutscene.cjs`, `tests/l4-cutscene-browser.cjs`.
 
@@ -16,10 +16,10 @@ release HTML is frozen). Tests: `tests/l4-cutscene.cjs`, `tests/l4-cutscene-brow
 | # | id | t | Picture | Caption (17px, one line at 360px) |
 |---|----|---|---------|-----------------------------------|
 | a | `predawn` | 0–10 | Wide establishing shot. Cool blue-grey sky with a rose band on the horizon, the sun's first rim in the cloud sea, heaped dawn clouds, wind waves crossing the tall grass and wildflowers. | 天还没亮，风先醒了 |
-| b | `chimes` | 10–21 | Slow glide down to the valley. The edge of first sunlight crosses the grass far side → near side (9–20.5 s); the six chimes wake one after another (first strikes from 11.2 s, 1.5 s apart) and glow in their tone colours. | 晨光漫过山谷，风铃一枚枚醒来 |
-| c | `notes` | 21–32 | Crane up after the notes: each lifts from its chime in the chime's colour and rides the wind downwind (right and towards the lens, away from the sun); petals lift from the flowers and tumble with them. Chimes keep ringing on a slow round (from 21.6 s, 4.8 s per round). | 音符和花瓣，乘上了晨风 |
-| d | `send` | 32–43.5 | Drift downwind. The wind carries further (`reachAt`), notes and petals go out over the sea of clouds; the sky is fully peach-gold and warm light fills the island. | 风把早安，送过了云海 |
-| e | `title` | 43.5–50 | Wide sunrise. Title `第四关 · 完成` / `暮色浮岛` fades in; at 50 s `轻触继续` (`#l4csGo`) appears. | — |
+| b | `chimes` | 10–21 | Slow glide down to the valley. The edge of first sunlight crosses the grass far side → near side (9–20.5 s); the six chimes wake one after another (first strikes 11.7 s → 20.7 s, two beats = 1.8 s apart): each swings, glows in its tone colour, throws a ring of light and sends up its first note and petal. | 晨光漫过山谷，风铃一枚枚醒来 |
+| c | `notes` | 21–32 | Crane up after the notes: each lifts from its chime in the chime's colour and rides the wind downwind (right and towards the lens, away from the sun); petals lift from the flowers and tumble with them. The chimes play the level's last song 把早安送回家 `[0, 3, 2, 5]` (21.6 s), answered by all six together (26.1 s); the phrase starts again at 29.7 s. | 音符和花瓣，乘上了晨风 |
+| d | `send` | 32–43.5 | Drift downwind. The wind carries further (`reachAt`), notes and petals go out past the island's edge over the sea of clouds; all six ring (34.2 s), the song a third time (37.8 s), all six (42.3 s); the sky is fully peach-gold. | 风把早安，送过了云海 |
+| e | `title` | 43.5–50 | Wide sunrise. Title `第四关 · 完成` / `暮色浮岛` fades in while all six ring once more, softly (45.9 s); at 50 s `轻触继续` (`#l4csGo`) appears. | — |
 
 Skip (`跳过`, `#l4csSkip`) jumps to the end card; the tap that skipped cannot also continue (600 ms guard).
 
@@ -42,12 +42,40 @@ Skip (`跳过`, `#l4csSkip`) jumps to the end card; the tap that skipped cannot 
 
 ## Actors (display-only; nothing reads or writes a save)
 
-- **Six wind chimes**: copies of the game's (stone foot, post, bar, swinging shell, bead, paper tail) at the game's six
-  positions in the six tone colours (芽响 / 露铃 / 晨羽 / 晴风 / 云歌 / 归音), ×1.3 and without number labels so they
-  read in the wide shots; each has a tone-coloured glow driven by its closed-form strike pulse.
-- **Notes (18) and petals (42)** — *placeholders in item 1* (item 2 gives them their proper motion): sprites on
-  closed-form paths in `t`, held at a readable minimum on-screen size, and slid round the sun's rim by `keepOffSun()`
-  so none crosses the disc (`probe().sunClear` > `sunDisc` is asserted in the browser test).
+- **Six wind chimes**: display-only copies built exactly like `chime-chapter.js` builds the game's (stone foot, wooden
+  post and bar, cord, swinging shell, bead, paper tail, glow sprite) at the game's six island coordinates in the six
+  tone colours (芽响 / 露铃 / 晨羽 / 晴风 / 云歌 / 归音), ×1.3 so they read in the wide shots. The numbered HUD labels
+  are left out (it is a film, not the puzzle). Additions for the film: the paper tail hangs on its own pivot, a warm
+  additive core and a tone-coloured ring of light per chime.
+- **The cue** (`layout().strikes`, a fixed table on a 0.9 s beat grid — item 3's score should land on it):
+
+  | t (s) | chimes | what |
+  |-------|--------|------|
+  | 11.7, 13.5, 15.3, 17.1, 18.9, 20.7 | 0, 1, 2, 3, 4, 5 | waking: one clear strike each, two beats apart |
+  | 21.6, 22.5, 23.4, 24.3 | 0, 3, 2, 5 | 把早安送回家, one beat apart (strength 1) |
+  | 26.1 (+0.07 s per chime) | all six | together, a soft roll (strength 0.7) |
+  | 29.7, 30.6, 31.5, 32.4 → 34.2 | 0, 3, 2, 5 → all six | the phrase again (9 beats after the first) |
+  | 37.8, 38.7, 39.6, 40.5 → 42.3 | 0, 3, 2, 5 → all six | and a third time, out over the cloud sea |
+  | 45.9 | all six | under the title, softly (strength 0.6) |
+
+  Pose (`chimeAt`, a sum over the strikes at or before `t`, so `seek` is exact): **swing** = a damped pendulum per
+  strike (0.36 rad × strength, 1.16 s period, e-fold 1.2 s) + the wind's lean + a small idle sway; **sway** across the
+  bar from the wind; **tail** = the paper tail trailing 0.18 s behind and ringing longer, plus wind flutter;
+  **pulse** = strength × e^(−1.3·age) drives the shell's emissive, the tone-coloured halo (painted over the picture so
+  it reads on the bright sky), the warm additive core, and the ring that opens ×0.8 → ×4.6 over 1.7 s.
+- **Notes (54) + sparks (108)**: every strike sends up its own note (two for a song note) in the chime's colour — an
+  eighth note or a beamed pair with a dark brushed outline and a tone-coloured halo. It pops out of the shell, lifts
+  2–4 m and rides the wind downwind (right and towards the lens, away from the sun) with a two-sine flutter and a
+  surge on each gust, past the island's edge in the fourth beat (`reachAt`), then fades; one life (8.5–10 s) each, at
+  most ~20 in the air. Each trails two four-point music-box sparks: the same path 0.3 s and 0.6 s earlier.
+- **Petals (72)**: 18 loosen from the meadow on their own (a few on the first wind before dawn), 54 are shaken loose
+  round the foot of a chime by each strike. Drift along the wind + two-sine flutter + tumble (spin in the picture
+  plane, flip through it — the sprite is squashed by cos(flip)); an oval with a notched tip, two tones.
+- Notes, sparks and petals are two `Points` draws; a frame rewrites four small typed arrays and allocates nothing.
+  They are held at a readable minimum on-screen size (note 4.5 %, petal 2.3 %, spark ≥ 1.6 % of the frame height), fade
+  rather than brush the lens (< 7 m), and are slid round the sun by `keepOffSun()`, whose clear ring is widened by the
+  particle's own radius, so not even an edge or halo touches the disc (`probe().sunClear` = nearest *edge* to the
+  sun's centre, asserted > 1.2 × `sunDisc` every 0.25 s of the film in the browser test).
 - The gameplay chime group (bells, number labels, gates, halo), the game's sky dome, star points, sun/moon sprites,
   islets and cloud puffs are hidden while staged and restored on close/skip.
 
@@ -66,5 +94,5 @@ Skip (`跳过`, `#l4csSkip`) jumps to the end card; the tap that skipped cannot 
 
 ## Later items
 
-- Item 2: proper motion for chimes, notes and petals. Item 3: the score (`src/l4-cutscene-music.js`,
+- Item 3: the score (`src/l4-cutscene-music.js`,
   `window.__l4Score`; piano + warm strings + the level-3 `celesta()` voice). `scored()` is false until then.
