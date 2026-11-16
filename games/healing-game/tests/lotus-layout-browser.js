@@ -19,6 +19,16 @@ async root=>{
   await p.setViewportSize({width:size.height,height:size.width});await p.waitForTimeout(350);await p.setViewportSize(size);await p.waitForTimeout(350);
   const back=await measure();assert(!back.covered.length,'rotation return HUD overlap: '+back.covered);assert(Math.abs(back.zoom-first.zoom)<.025,'fresh and return camera sizing differ: '+JSON.stringify({size,first,back}));
   const stages=[];for(let i=1;i<6;i++){await p.evaluate(i=>__layoutBay.preview(i),i);await p.waitForTimeout(150);const m=await measure();assert(!m.covered.length,JSON.stringify(size)+' task'+i+' HUD overlap: '+m.covered);stages.push({i,zoom:m.zoom,islandWidth:m.islandWidth});if(i===1||i===5)await p.screenshot({path:'output/playwright/healing-v9.2-validation/lotus92-layout-'+size.width+'x'+size.height+'-task'+i+'.png',scale:'css'});}
+  // Wheel/pinch zoom must visibly enlarge the island (regression: the fit used to cancel it).
+  // Phone size only, last so no restore is needed: the camera distance eases slowly under
+  // headless load, so poll the cheap camera distance and measure the island once.
+  if(size.width===390&&size.height===844){
+    const d0=await p.evaluate(()=>{const c=window.__layoutBay.H.camera.position;return Math.hypot(c.x,c.y-.4,c.z);});
+    await p.mouse.move(size.width/2,size.height/2);
+    for(let w=0;w<4;w++){await p.mouse.wheel(0,-240);await p.waitForTimeout(120);}
+    let d=null;for(let t=0;t<40;t++){await p.waitForTimeout(1000);d=await p.evaluate(()=>{const c=window.__layoutBay.H.camera.position;return Math.hypot(c.x,c.y-.4,c.z);});if(d<d0/1.25)break;}
+    const zoomed=await measure();assert(zoomed.islandWidth>first.islandWidth*1.15,'wheel zoom-in did not enlarge the island: '+JSON.stringify({size,first,zoomed,d0,d}));
+  }
   assert(!errors.length,errors.join(';'));results.push({size,first,back,stages});await c.close();
  }
  return results;

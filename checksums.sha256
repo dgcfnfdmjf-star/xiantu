@@ -1371,9 +1371,9 @@ b10475b159d47a5e4d17ffd6e58c9c1442f41f985e4c1fd692a934a80d7e7075  games/healing-
 b949786ba809e5ded8c9ae10945358538744c1cf39aad51e0a0c81b6e589f90a  games/healing-game/docs/reset-phone.png
 c3bf4d100e6f5d254975807c30ee480e8f2bc05cbc31404d6e7156ae9455037e  games/healing-game/releases/healing-game-v9.4-SHA256SUMS.txt
 827dd5c0f0a6c7dabba8dd906716f90230d8f06524bcc0bc86c5ba9d5b8d9134  games/healing-game/releases/healing-game-v9.4-tencent.zip
-7852d61532ed6955b4045228d58b97014460c264db42ad7c19d79557201ddf94  games/healing-game/releases/healing-game-v9.5-SHA256SUMS.txt
-71ef5f37b63a8e5284e0ab77cfdea6a67e33908f4c19e82292ee8b16bd8e14c8  games/healing-game/releases/healing-game-v9.5-tencent.zip
-cc3258a2c5e1d73eb1a69e1e1bda296bf1d59c3e36ff2d7c15c88a3e3b2f76f7  games/healing-game/scripts/build.py
+352fa5aff09740f973fee5fc88f21c0840a205ac7024f8472eb1c299218ed7ea  games/healing-game/releases/healing-game-v9.5-SHA256SUMS.txt
+4a5bbf22a8540222138435b681dc6a11f28e903f205bd295977732ed4a479cfe  games/healing-game/releases/healing-game-v9.5-tencent.zip
+729858efa7084378bbe76e29d8486f784a2301df65b1e0e16e0a070a25c55c29  games/healing-game/scripts/build.py
 b61429af5ed3075b3567212ae54753cd6ede3c65b37f57f98ae08650116e85c4  games/healing-game/scripts/butterfly-v94.py
 fdd42a22b68f009a0699a5261594ea0e16620dbd60536626dd38ca55cc6b23e9  games/healing-game/scripts/cat-walk/add_calf_phases.py
 ce9bac5dfb791db0facb11ee23a0a8798a29aeca063709dc5c0a659491196118  games/healing-game/scripts/cat-walk/append_body_walk.py
@@ -1417,7 +1417,7 @@ ff026c5d321992cb45fa172723e55e2fdd8f1f40581024c85af3474cb78cd437  games/healing-
 e7d9fb387c2232ef7cbc4b75ce304125cecbb9bd1a124aed6f309e2277866340  games/healing-game/src/level3fx.js
 df4597cac499736b20f6eba37e69bedba58cb505f8393062ad95928a8a0667e0  games/healing-game/src/level3plus.js
 0bfd8ce28fd65e6cbcd59ab9ea6109a97c2deae6a1f181143dcfa85cda659bfa  games/healing-game/src/lotus-chapter.css
-45e4aa62da407bfd65c4a1ffab86a05adfe8928e80b6a70540f69071ed0cfa78  games/healing-game/src/lotus-chapter.js
+9605a1dc3a6ddf217557e86f1d908a1378112ef3ec119ad398cff0a1e1f62352  games/healing-game/src/lotus-chapter.js
 cb5bd7784bfa9a050951558274ef4d930221eede3b7d840408b97a5e0a93a7e1  games/healing-game/src/lotus-rules.js
 649f76008be2dff21cf24f331d91dac50d2dca8a5b0426763792ff495061c644  games/healing-game/src/music-lush.js
 2828fbe11685f965a95253551d9adee2b253ccf71b179ff8816bd6795c7aa3a2  games/healing-game/src/nightvoyage-audio.js
@@ -1460,7 +1460,7 @@ ae7febbcbc47b09e383dfc5d86df3717af98fe397b1c8f70b0158a514912fba6  games/healing-
 9749a6701c9e7b2e9ea821fdd0a0aa8f63235972041ef133cfe1805bb80d9c3b  games/healing-game/tests/lotus-carryover-browser.js
 407b341ef16e1c2fe7aa043722ba974998de5706ec6ac5a6fadea1582e3adb98  games/healing-game/tests/lotus-clipping-browser.js
 41e89bc0c4f9b98c8d29155b4291c85bec5f66cd562fe75a6884698ecae654fb  games/healing-game/tests/lotus-finale-browser.js
-ee56008b145b0484f24a81d0628c0469e24a7bb87c2ad4fe72047ffb3ae36f88  games/healing-game/tests/lotus-layout-browser.js
+4245c139f1e36c7655af54e51fafc9200553a8982d784d3b57cda4954d275be9  games/healing-game/tests/lotus-layout-browser.js
 47e94fdf32e67fc9bfc72440ee75cac7d4428a6d714e7b71d986491555dbcd4b  games/healing-game/tests/lotus-rules.cjs
 a322039dcd8bed4ab3dcf9de0c289a14f543ddda5eed60741086aeb7ff621481  games/healing-game/tests/mode-reset-browser.js
 467ceba68456566b5aedbb4c1ddbdd05f8f6305baaadfb2ce64e2038cddf98ca  games/healing-game/tests/music-lush-browser.js

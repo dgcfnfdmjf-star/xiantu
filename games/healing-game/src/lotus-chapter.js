@@ -119,7 +119,13 @@
       var inside=c.corners.every(function(p){v.copy(p).project(camera);var px=(v.x+1)*w/2,py=(1-v.y)*h/2;return v.z>-1&&v.z<1&&px>=lo.x&&px<=hi.x&&py>=lo.y&&py<=hi.y;});
       if(!inside)for(var i=0;i<c.xyz.length;i+=3)add(temp.fromArray(c.xyz,i));
     });
-    var scale=Math.max(.1,Math.min(1,(right-left)/(hi.x-lo.x),(bottom-top)/(hi.y-lo.y))*.94);camera.zoom=sceneZoom*scale;
+    // The shared pinch/wheel zoom moves the camera (distance), while this fit
+    // measures the island through the live camera: without correcting for the
+    // user's zoom the fit shrinks the projection zoom by the same factor and
+    // the pinch looks dead. Divide the measured span by the user's zoom so the
+    // fit only frames the island at default zoom and the pinch stays visible.
+    var userZoom=(H.camZoom&&H.camZoom())||1;
+    var scale=Math.max(.1,Math.min(1,(right-left)/(hi.x-lo.x)/userZoom,(bottom-top)/(hi.y-lo.y)/userZoom)*.94);camera.zoom=sceneZoom*scale;
     var cx=w/2+((lo.x+hi.x)/2-w/2)*scale,cy=h/2+((lo.y+hi.y)/2-h/2)*scale;
     camera.setViewOffset(w,h,cx-(left+right)/2,cy-(top+bottom)/2,w,h);
   }
