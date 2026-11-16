@@ -36,10 +36,14 @@ jobs:
         run: node games/healing-game/assets/cats/tests/preview-cat-orange.cjs
       - name: Cat animation mixer and instance lifecycle
         run: node games/healing-game/tests/cat-walk-runtime.cjs
+      - name: Confirmed garden reset and storage ownership
+        run: node games/healing-game/tests/garden-reset.cjs && node games/healing-game/tests/garden-reset-browser.cjs
       - name: Chapter-two model interactions and lifecycle
         run: node games/healing-game/tests/cat-models-browser.cjs
       - name: Cat walking animation browser regression
         run: node games/healing-game/tests/cat-walk-browser.cjs
+      - name: Four-coat paw contact and actual-distance cadence
+        run: node games/healing-game/tests/cat-gait-browser.cjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: failure()
         with:
@@ -49,3 +53,5 @@ jobs:
             output/playwright/cat-variants/
             output/playwright/cat-models/
             output/playwright/cat-walk/
+            output/playwright/cat-gait/
+            output/playwright/garden-reset/
