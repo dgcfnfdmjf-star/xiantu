@@ -73,7 +73,7 @@
    * closed-form: a sum over the strikes at or before t (a damped pendulum for the swing, a decaying pulse for the glow). */
   var CHIMES = [[-2.8, 1.2], [-2.4, -1.6], [0, -2.9], [2.5, -1.5], [2.9, 1.2], [0, 2.8]];
   var TONES = [['sprout', 0xa4dfb6], ['dewbell', 0x9bdce6], ['feather', 0xf5d794], ['breeze', 0xf4b3bc], ['cloudsong', 0xc7b7ef], ['home', 0xf0e4b8]];
-  var BEAT = 0.9, CHIME_T = 11.7, CHIME_STEP = 2 * BEAT, SONG = [0, 3, 2, 5], PHRASES = [21.6, 29.7, 37.8], TOGETHER = 5 * BEAT, ROLL = 0.07, LAST_T = 45.9, CHIME_SCALE = 1.3;
+  var BEAT = 0.9, CHIME_T = 11.7, CHIME_STEP = 2 * BEAT, SONG = [0, 3, 2, 5], PHRASES = [21.6, 29.7, 37.8], TOGETHER = 5 * BEAT, ROLL = 0.07, LAST_T = 45.9, CHIME_SCALE = 1.3, CHIME_WIDE = 1.34;
   var STRIKES = [], BY = [[], [], [], [], [], []]; // kind 0 = waking, 1 = a song note, 2 = all six together
   (function () {
     var i, k;
@@ -102,7 +102,9 @@
     out.swing = soft * (sw + 0.07 * w + (0.012 + 0.028 * out.wake) * Math.sin(t * 1.6 + i));
     out.sway = soft * 0.06 * windAt(C[0] + 1.3, C[1], t); // across the bar, so it is not a flat swing
     out.tail = soft * (tail + 0.24 * windAt(C[0] + 0.5, C[1] + 0.3, t) + 0.09 * Math.sin(t * 3.1 + i * 2.1));
-    out.glow = 0.1 + 0.2 * out.wake + 0.7 * pulse;
+    out.glow = Math.min(1, 0.1 + 0.2 * out.wake + 0.7 * pulse + 0.16 * ease(ramp(t, 28, 40)));
+    // In the wide sunrise shots the chimes grow a little (slowly, with the crane up), so they still read on a phone.
+    out.scale = CHIME_SCALE * (1 + (CHIME_WIDE - 1) * ease(ramp(t, 27, 41)));
     out.strike = last; out.power = power;
     return out;
   }
@@ -218,7 +220,7 @@
   var H = null, T = null, st = null, staged = false, kept = null;
   var PAL = {
     cool: { top: 0x2f3d66, mid: 0x6a7494, hor: 0xc79aa4, low: 0x6e7896, lit: 0xdccfd8, shade: 0x626a8c, key: 0xa8b0d0, keyI: 0.5, hemiA: 0xa9b4d6, hemiB: 0x5a5f78, hemiI: 0.76, grass: [0.6, 0.72, 0.88], fog: 0x8088a6 },
-    warm: { top: 0x74a6d6, mid: 0xf4cdb0, hor: 0xffd292, low: 0xeeb690, lit: 0xfff2da, shade: 0xd29a90, key: 0xffdcae, keyI: 0.95, hemiA: 0xffeacc, hemiB: 0x9a8a78, hemiI: 0.9, grass: [1.04, 1.0, 0.86], fog: 0xf0c6a6 }
+    warm: { top: 0x74a6d6, mid: 0xf4cdb0, hor: 0xffd292, low: 0xdc9c8a, lit: 0xfff0d2, shade: 0xc98c96, key: 0xffd096, keyI: 0.6, hemiA: 0xffe2b4, hemiB: 0x8e9a62, hemiI: 0.6, grass: [0.9, 0.9, 0.6], fog: 0xf0c6a6 }
   };
   var SUN_COL = 0xffc888, SUN_DISC = 0.064, SUN_KEEP = 0.095, MAX_PR = 1.5; // sines of the disc's angular radius and of the angle kept clear round it
   var ramp4 = null, toons = {}, painted = [], tmpB = null;
@@ -309,21 +311,21 @@
       fragmentShader: 'uniform vec3 uTop; uniform vec3 uMid; uniform vec3 uHor; uniform vec3 uLow; uniform vec3 uLit; uniform vec3 uShade; uniform vec3 uSunCol; uniform vec3 uSun;' +
         'uniform float uTime; uniform float uDawn; uniform float uGlow; varying vec3 vDir;' + NOISE_GLSL +
         'void main(){ vec3 d = normalize(vDir); float h = d.y; float wash = fbm(d.xz * 2.2 + d.y * 3.0 + 3.1); float hh = h + (wash - 0.5) * 0.2;' +
-        ' vec3 col = mix(uHor, uMid, smoothstep(-0.04, 0.2, hh)); col = mix(col, uTop, smoothstep(0.14, 0.62, hh));' +
+        ' vec3 col = mix(uHor, uMid, smoothstep(-0.04, 0.2, hh)); col = mix(col, uTop, smoothstep(0.1, 0.46, hh));' +
         ' col *= 0.93 + 0.14 * wash; float s = max(dot(d, uSun), 0.0); float up = smoothstep(-0.06, 0.04, uSun.y);' +
         // First light: a warm band low on the sun's side, there before the sun itself.
         ' float az = max(dot(normalize(d.xz), normalize(uSun.xz)), 0.0);' +
         ' col = mix(col, mix(vec3(1.0, 0.62, 0.5), vec3(1.0, 0.8, 0.52), uDawn), pow(az, 5.0) * smoothstep(0.36, 0.0, abs(hh)) * (0.2 + 0.5 * uGlow) * (1.0 - 0.45 * uDawn));' +
         // The sun: a gold core shading to peach at a soft brushed edge, inside a wide warm halo (mixed, never added to white).
         ' vec3 haloC = mix(vec3(1.0, 0.66, 0.46), vec3(1.0, 0.8, 0.5), uDawn);' +
-        ' col = mix(col, haloC, clamp(pow(s, 7.0) * 0.26 + pow(s, 48.0) * 0.3 + pow(s, 320.0) * 0.3, 0.0, 0.86) * (0.3 + 0.7 * up));' +
+        ' col = mix(col, haloC, clamp(pow(s, 7.0) * 0.3 + pow(s, 48.0) * 0.4 + pow(s, 320.0) * 0.34, 0.0, 0.9) * (0.3 + 0.7 * up));' +
         ' float disc = smoothstep(0.99795, 0.99862, s + (wash - 0.5) * 0.0003);' +
         ' vec3 sunPaint = mix(mix(vec3(1.0, 0.56, 0.34), vec3(1.0, 0.7, 0.38), uDawn), mix(vec3(1.0, 0.8, 0.52), vec3(1.0, 0.9, 0.6), uDawn), smoothstep(0.9982, 0.99985, s));' +
         ' col = mix(col, sunPaint, disc);' +
         // Dawn cumulus heaped along the horizon (lower under the sun so it stays clear), three flat tones and a warm rim.
         ' if (h > -0.3 && h < 0.62) { float a2 = atan(d.x, -d.z) + uTime * 0.006; vec2 p = vec2(a2 * 1.5, h * 3.4);' +
         '  float big = noise(vec2(a2 * 1.25 + 4.0, 2.5)); float mid = noise(vec2(a2 * 3.1 + 1.7, 9.5));' +
-        '  float top = -0.1 + 0.5 * smoothstep(0.25, 0.8, big) + 0.08 * mid - 0.34 * smoothstep(0.84, 0.98, s); float bil = fbm(p * 2.6 + 4.0);' +
+        '  float da = atan(d.x, -d.z) - atan(uSun.x, -uSun.z) + uTime * 0.0012; float bank = 0.17 * exp(-pow((da - 0.25) / 0.15, 2.0)) + 0.12 * exp(-pow((da + 0.27) / 0.13, 2.0)) + 0.2 * exp(-pow((da - 0.62) / 0.16, 2.0)); float top = -0.1 + 0.5 * smoothstep(0.25, 0.8, big) * smoothstep(0.3, 0.6, abs(da)) + bank * (0.75 + 0.5 * mid) + 0.06 * mid - 0.4 * smoothstep(0.972, 0.993, s); float bil = fbm(p * 2.6 + 4.0);' +
         '  float e = top - h + (bil - 0.5) * 0.3; float wet = 0.012 + 0.07 * smoothstep(0.35, 0.75, noise(p * 1.7 + 11.0)); float mask = smoothstep(0.0, wet, e);' +
         '  float rim = 1.0 - smoothstep(0.0, 0.11, e);' +
         '  float lite = rim * 0.85 + smoothstep(0.5, 0.75, bil) * 0.35 - smoothstep(0.2, 0.5, e) * 0.2;' +
@@ -352,7 +354,7 @@
       off.push(x, z, rnd() * TAU); dim.push(hgt, flower ? 0.022 : 0.05 + 0.03 * rnd(), rnd());
     }
     st.grassU = { uTime: { value: 0 }, uSoft: { value: soft }, uTopY: { value: H.TOP_Y }, uLight: { value: new T.Vector3(1, 1, 1) }, uFront: { value: -7 },
-      uRoot: { value: new T.Color(0x5fae6a) }, uTip: { value: new T.Color(0xcdea96) } };
+      uRoot: { value: new T.Color(0x4c9a58) }, uTip: { value: new T.Color(0xb2d870) } };
     function field(basePos, index, o, d, head) {
       var geo = new T.InstancedBufferGeometry();
       geo.setAttribute('position', new T.Float32BufferAttribute(basePos, 3)); geo.setIndex(index);
@@ -367,8 +369,8 @@
           ' gl_Position = projectionMatrix * modelViewMatrix * vec4(aOff.x + p.x, uTopY + p.y, aOff.y + p.z, 1.0); }',
         fragmentShader: 'uniform vec3 uRoot; uniform vec3 uTip; uniform vec3 uLight; varying float vH; varying float vW; varying float vR; varying float vWarm;' +
           'void main(){\n#ifdef HEAD\n vec3 col = vR < 0.3 ? vec3(1.0, 0.97, 0.9) : vR < 0.55 ? vec3(1.0, 0.72, 0.8) : vR < 0.8 ? vec3(1.0, 0.86, 0.46) : vec3(0.8, 0.74, 1.0); col *= mix(uLight, vec3(1.0), 0.35);\n' +
-          '#else\n vec3 col = mix(uRoot, uTip, clamp(floor(vH * 3.0 + vR * 0.7) / 3.0, 0.0, 1.0)) * (0.92 + 0.16 * vR) * uLight; col += vec3(0.24, 0.26, 0.22) * smoothstep(0.25, 0.7, vW) * vH;\n#endif\n' +
-          ' col += vec3(0.5, 0.3, 0.06) * vWarm * (0.1 + 0.42 * vH); gl_FragColor = vec4(col, 1.0); }' }));
+          '#else\n vec3 col = mix(uRoot, uTip, clamp(floor(vH * 3.0 + vR * 0.7) / 3.0, 0.0, 1.0)) * (0.92 + 0.16 * vR) * uLight; col += vec3(0.14, 0.17, 0.08) * smoothstep(0.25, 0.7, vW) * vH;\n#endif\n' +
+          ' col += vec3(0.3, 0.17, 0.0) * vWarm * (0.08 + 0.3 * vH); gl_FragColor = vec4(col, 1.0); }' }));
       mesh.frustumCulled = false; mesh.l4cs = true; g.add(mesh);
       return mesh;
     }
@@ -380,18 +382,20 @@
     /* The six wind chimes: display-only copies of the game's (stone foot, wooden post and bar, a swinging shell with a
      * bead and a paper tail in the tone colour), a little larger so they read in the wide shots, without the number
      * labels; each has a glow in its colour and a ring of light that opens when it is struck. */
-    var wood = new T.MeshLambertMaterial({ color: 0xc9b292 }), stone = new T.MeshLambertMaterial({ color: 0xdce6d1 });
+    var wood = new T.MeshLambertMaterial({ color: 0x8a6444 }), stone = new T.MeshLambertMaterial({ color: 0xdce6d1 });
     var poleGeo = new T.CylinderGeometry(0.045, 0.06, 1.9, 6), barGeo = new T.BoxGeometry(0.85, 0.07, 0.07);
     var shellGeo = new T.CylinderGeometry(0.19, 0.33, 0.48, 8, 1, true), cordGeo = new T.CylinderGeometry(0.012, 0.012, 0.36, 4);
     var leafGeo = new T.PlaneGeometry(0.18, 0.36), beadGeo = new T.SphereGeometry(0.065, 6, 4), baseGeo = new T.CylinderGeometry(0.38, 0.47, 0.12, 8);
-    var ringTex = ringTexture();
+    var ringTex = ringTexture(), inkMat = new T.MeshBasicMaterial({ color: 0x4a3350, side: T.BackSide, fog: false });
     for (i = 0; i < 6; i++) {
       var cg = new T.Group(); cg.position.set(CHIMES[i][0], H.TOP_Y, CHIMES[i][1]); cg.scale.setScalar(CHIME_SCALE);
       part(baseGeo, stone, cg, 0, 0.06, 0); part(poleGeo, wood, cg, -0.34, 0.97, 0); part(barGeo, wood, cg, 0, 1.9, 0);
       var swing = new T.Group(); swing.position.set(0, 1.86, 0); cg.add(swing);
       part(cordGeo, wood, swing, 0, -0.17, 0);
-      var mat = new T.MeshLambertMaterial({ color: TONES[i][1], emissive: TONES[i][1], emissiveIntensity: 0.1, side: T.DoubleSide });
-      part(shellGeo, mat, swing, 0, -0.59, 0).l4cs = true; part(beadGeo, wood, swing, 0, -0.84, 0);
+      // Shell: the tone colour deepened (richer, darker) so it holds against the sunlit meadow, inside a dark brushed outline (an inverted hull).
+      tmpB.setHex(TONES[i][1]).offsetHSL(0, 0.14, -0.11);
+      var mat = new T.MeshLambertMaterial({ color: tmpB.getHex(), emissive: tmpB.getHex(), emissiveIntensity: 0.1, side: T.DoubleSide });
+      part(shellGeo, mat, swing, 0, -0.59, 0).l4cs = true; var ink = part(shellGeo, inkMat, swing, 0, -0.59, 0); ink.scale.set(1.16, 1.08, 1.16); ink.l4cs = true; part(beadGeo, wood, swing, 0, -0.84, 0);
       // The paper tail hangs from the bead on its own pivot, so it can trail behind the swing and flutter in the wind.
       var tail = new T.Group(); tail.position.set(0, -0.9, 0); swing.add(tail); part(leafGeo, mat, tail, 0, -0.18, 0).l4cs = true;
       // Halo: a soft body in the tone colour (painted over the picture, so it reads on the bright dawn sky as well), a warm
@@ -515,7 +519,7 @@
     // Chimes: the shell swings and brightens in its colour; a glow breathes round it and a ring of light opens on each strike.
     for (i = 0; i < 6; i++) {
       var C = st.chimes[i], cm = f.chimes[i], age = cm.strike < 0 ? 9 : t - cm.strike, gs = 1.7 + 1.0 * cm.wake + 1.3 * cm.pulse, rs = 0.8 + 3.8 * ease(ramp(age, 0, 1.7));
-      C.swing.rotation.z = cm.swing; C.swing.rotation.x = cm.sway; C.tail.rotation.z = cm.tail - cm.swing * 0.35;
+      C.g.scale.setScalar(cm.scale); C.swing.rotation.z = cm.swing; C.swing.rotation.x = cm.sway; C.tail.rotation.z = cm.tail - cm.swing * 0.35;
       C.mat.emissiveIntensity = 0.06 + 0.14 * cm.wake + 0.5 * cm.pulse;
       C.glow.material.opacity = clamp(cm.glow, 0, 1) * 0.85; C.glow.scale.set(gs, gs, 1);
       C.core.material.opacity = clamp(0.12 * cm.wake + 0.75 * cm.pulse, 0, 1); C.core.scale.set(0.9 + 0.9 * cm.pulse, 0.9 + 0.9 * cm.pulse, 1);
@@ -611,7 +615,7 @@
     // Everything but the canvas and the cutscene steps aside, so the island reads as a film frame.
     'body.l4cs-on>:not(canvas):not(#l4cs):not(.l4cs-paint){visibility:hidden!important}',
     '.l4cs-paint.hidden{display:none}',
-    '#l4csEnd{position:absolute;left:0;right:0;top:28%;text-align:center;pointer-events:none}',
+    '#l4csEnd{position:absolute;left:0;right:0;top:33%;text-align:center;pointer-events:none}',
     '#l4csTitle{font-family:"Songti SC","Noto Serif CJK SC","Source Han Serif SC",STSong,serif;font-size:32px;font-weight:600;letter-spacing:8px;text-indent:8px;',
     'text-shadow:0 1px 3px rgba(44,24,40,.85),0 0 22px rgba(255,214,150,.6),0 2px 12px rgba(58,34,50,.7)}',
     '#l4csRule{width:132px;height:1px;margin:16px auto 0;background:linear-gradient(90deg,transparent,rgba(255,236,196,.9),transparent)}',

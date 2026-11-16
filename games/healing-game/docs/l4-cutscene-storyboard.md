@@ -117,3 +117,15 @@ Registered as a GardenAudio track, so the music switch / volume / reverb apply; 
 - **Clock**: the track's `play()` follows `__l4Cutscene.time()`; a jump of more than 0.4 s (seek, stalled tab)
   re-anchors with a 0.3 s fade instead of chasing; pause → fade and hold; skip → 1.4 s fade, then only the three
   closing bars; `&mute=1` never starts it; with the music switch off nothing sounds and the switch is left alone.
+
+## Polish (item 4)
+
+- **Sunlit island**: the warm palette's key and hemisphere light were over-driving the toon ramp (0.95 + 0.9), so the
+  island top went near-white from ~22 s. Now 0.6 + 0.6 with a deeper gold key and a mossy ground bounce; grass root/tip
+  and the wind-crest and sunlight tints are richer greens and ochres, never white.
+- **Chimes**: darker wood, shell tone deepened (`offsetHSL(0, 0.14, -0.11)`), a dark brushed outline (inverted hull,
+  one shared material), a stronger resting halo from 28 s, and `chimeAt(t).scale` grows ×1.34 between 27 s and 41 s
+  (slowly, with the crane up) so all six read in the wide title shot.
+- **Sky**: blue enters lower, stronger sun halo, deeper cloud-sea troughs, and low heaped cloud banks either side of
+  the sun (the old clearance kept every cloud out of the narrow portrait frame).
+- **Title** sits at 33 % (was 28 %), clear of the sun disc.
