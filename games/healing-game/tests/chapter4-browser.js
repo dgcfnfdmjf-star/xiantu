@@ -20,7 +20,8 @@ async root => {
  await p.locator('#kitLevelBtn').click();assert(await p.locator('[data-jr-go="4"]').isDisabled(),'fourth locked before third clear');await p.locator('#journeyClose').click();
  await p.evaluate(()=>__kittens.setLevel(4));assert((await st()).level===1,'direct level switch gate');checks.push('new-save fourth-chapter gate');
  await p.addInitScript(()=>{if(sessionStorage.getItem('fixture-ch4'))return;sessionStorage.setItem('fixture-ch4','yes');localStorage.setItem('hg_level2_unlocked','1');localStorage.setItem('healingGarden.kittens.v1',JSON.stringify({total:20,ended:true,level:3}));localStorage.setItem('healingGarden.journey.v1',JSON.stringify({caught:{dew:2,peach:2,amber:2,moon:2,violet:2,tide:2},lamps:[true,true,true],completed:[1,2,3],decor:[false,true,false]}));localStorage.setItem('xiantu_save','KEEP');});
- await p.goto(url);await start();const before=await st();assert(before.xp===90,'V7 save keeps original XP');
+ // ?l4cutscene=0: this file covers the original short 演出 (#chimeSkip, reduced motion, save first); the film that replaces it by default is covered in l4-cutscene-browser.cjs.
+ await p.goto(url+'?l4cutscene=0');await start();const before=await st();assert(before.xp===90,'V7 save keeps original XP');
  await p.locator('#kitLevelBtn').click();assert(await p.locator('[data-jr-go="4"]').isEnabled(),'V7 third-clear unlocks fourth');await p.locator('[data-jr-go="4"]').click();
  assert((await st()).level===4,'enter fourth');assert(await p.locator('#starHud').isHidden()&&await p.locator('#chimeHud').isVisible(),'correct HUD');assert(await p.evaluate(()=>GardenAudio.currentTrackName())==='晨风来信','fourth soundtrack');
  await p.locator('#gpBookBtn').click();assert(await p.locator('.jr-item').count()===47,'47 collectible species');await p.locator('#journeyClose').click();
@@ -51,12 +52,17 @@ async root => {
  await p.screenshot({path:'output/playwright/healing-v8-ch4-ending.png',scale:'css'});await p.locator('#chimeStay').click();
  for(const n of [0,1,2,3,4,5,0,1,2])await p.locator('#chimeKey'+n).click();assert((await st()).xp===won.xp,'free play cannot award again');
  await p.reload();await start();assert((await st()).xp===won.xp&&(await st()).progress.chimes.round===3,'completion reload idempotence');
- const memory=[];
- for(let cycle=0;cycle<3;cycle++){
+ // GPU reuse. Models and lazily built props upload on first use, and under a software GL those first uploads can land a
+ // cycle or two late, so the first cycles are warm-up: keep switching until the renderer's counts hold still, then
+ // require three consecutive full cycles with identical geometry and texture counts. A real leak grows on every
+ // cycle, never holds still, and fails here (at most 10 cycles).
+ const memory=[];let steady=0;
+ for(let cycle=0;cycle<10&&steady<2;cycle++){
   for(const n of [1,2,3,4]){await p.locator('#kitLevelBtn').click();await p.locator('[data-jr-go="'+n+'"]').click();assert((await st()).level===n,'switch '+n);}
   await p.waitForTimeout(300);memory.push(await p.evaluate(()=>({g:__chRenderer.info.memory.geometries,t:__chRenderer.info.memory.textures,n:__chInspect.group.children.length})));
+  const m=memory.length;steady=m>1&&memory[m-1].g===memory[m-2].g&&memory[m-1].t===memory[m-2].t?steady+1:0;
  }
- assert(memory.every(x=>x.n===10),'chapter scene reused on every entry');assert(memory[2].g===memory[1].g&&memory[2].t===memory[1].t,'no new GPU resources after warm switches');
+ assert(memory.every(x=>x.n===10),'chapter scene reused on every entry');assert(memory.length>=3&&steady>=2,'no new GPU resources after warm switches: '+JSON.stringify(memory));
  assert((await st()).xp===won.xp,'switching cannot award twice');checks.push('first clear / skip / free play / reentry / GPU reuse');
  await p.setViewportSize({width:844,height:390});await p.waitForTimeout(300);await p.screenshot({path:'output/playwright/healing-v8-ch4-landscape.png',scale:'css'});
  for(let i=0;i<6;i++)assert(await p.locator('#chimeKey'+i).isVisible(),'landscape key visible');
