@@ -1371,8 +1371,8 @@ b10475b159d47a5e4d17ffd6e58c9c1442f41f985e4c1fd692a934a80d7e7075  games/healing-
 b949786ba809e5ded8c9ae10945358538744c1cf39aad51e0a0c81b6e589f90a  games/healing-game/docs/reset-phone.png
 c3bf4d100e6f5d254975807c30ee480e8f2bc05cbc31404d6e7156ae9455037e  games/healing-game/releases/healing-game-v9.4-SHA256SUMS.txt
 827dd5c0f0a6c7dabba8dd906716f90230d8f06524bcc0bc86c5ba9d5b8d9134  games/healing-game/releases/healing-game-v9.4-tencent.zip
-7852d61532ed6955b4045228d58b97014460c264db42ad7c19d79557201ddf94  games/healing-game/releases/healing-game-v9.5-SHA256SUMS.txt
-71ef5f37b63a8e5284e0ab77cfdea6a67e33908f4c19e82292ee8b16bd8e14c8  games/healing-game/releases/healing-game-v9.5-tencent.zip
+352fa5aff09740f973fee5fc88f21c0840a205ac7024f8472eb1c299218ed7ea  games/healing-game/releases/healing-game-v9.5-SHA256SUMS.txt
+4a5bbf22a8540222138435b681dc6a11f28e903f205bd295977732ed4a479cfe  games/healing-game/releases/healing-game-v9.5-tencent.zip
 729858efa7084378bbe76e29d8486f784a2301df65b1e0e16e0a070a25c55c29  games/healing-game/scripts/build.py
 b61429af5ed3075b3567212ae54753cd6ede3c65b37f57f98ae08650116e85c4  games/healing-game/scripts/butterfly-v94.py
 fdd42a22b68f009a0699a5261594ea0e16620dbd60536626dd38ca55cc6b23e9  games/healing-game/scripts/cat-walk/add_calf_phases.py
