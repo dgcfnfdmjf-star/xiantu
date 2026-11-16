@@ -714,7 +714,7 @@
   }
 
   /* ------------------------------- API ------------------------------- */
-  // The score will live in l4-cutscene-music.js (window.__l4Score, a later item); muted runs (headless capture) never start it.
+  // The score lives in l4-cutscene-music.js (window.__l4Score); muted runs (headless capture) never start it.
   function score() { return root.__l4Score || null; }
   function play(o) {
     opts = o || {};

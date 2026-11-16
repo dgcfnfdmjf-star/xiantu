@@ -6,6 +6,7 @@
 //     hidden and frozen, no input) -> skip -> guarded tap to continue -> #chimeEnding exactly once, same save as A,
 //     留下来 closes it, wheel zoom works, everything hidden is back.
 //  B2. the film watched to its natural end -> 轻触继续 -> #chimeEnding exactly once.
+//  D. music switch off: the film runs silent and leaves the switch and the track alone.
 //  R. prefers-reduced-motion: the card opens at once, no film, #chimeSkip hidden.
 //  C. ?cutscene=l4&mute=1 preview: plays at once, frames are seekable, captions fit one line at 360x780, notes and
 //     petals keep off the sun, no save writes. The L1/L2/L3 preview gates still start their own film only.
@@ -62,6 +63,7 @@ const SAVES = {
     assert.deepEqual(await page.evaluate(() => { const c = window.__journey.state().progress.chimes; return [c.round, c.step]; }), [2, 3], 'fixture: one note from the clear');
     await page.evaluate(() => { window.__cardOpens = 0; const end = document.getElementById('chimeEnding'); let was = end.hidden;
       new MutationObserver(() => { if (was && !end.hidden) window.__cardOpens++; was = end.hidden; }).observe(end, { attributes: true, attributeFilter: ['hidden'] }); });
+    if (page.__beforeClear) await page.__beforeClear();
     await page.locator('#chimeKey5').click();
   };
   const cardShown = page => page.evaluate(() => !document.getElementById('chimeEnding').hidden);
@@ -87,6 +89,8 @@ const SAVES = {
     ({ context, page } = await fresh());
     await page.goto(url);
     assert.equal(await page.evaluate(() => window.__l4Cutscene.enabled() && window.__l4Cutscene.ready()), true);
+    let themeBefore = '';
+    page.__beforeClear = async () => { themeBefore = await page.evaluate(() => GardenAudio.currentTrackName()); assert.equal(await page.evaluate(() => __l4Score.state().active), false, 'score idle before the clear'); };
     await clear(page);
     assert.equal(await csState(page), 'playing', 'the film starts on the clearing note');
     assert.equal(await progress(page), savedA, 'same save as the old path, written before the film');
@@ -108,12 +112,44 @@ const SAVES = {
     assert.equal(await csState(page), 'playing', 'a tap mid-film does not continue');
     assert.doesNotMatch(await page.evaluate(() => document.getElementById('chimeEcho').textContent), /芽响/);
     await page.screenshot({ path: path.join(OUT, 'ingame-film.png') });
+    // The score starts with the film, owns the music bus (晨风来信 fades out) and follows the film clock, also through seeks and a pause.
+    assert.equal(await page.evaluate(() => window.__l4Cutscene.scored()), true, 'score started with the cutscene');
+    let music = await page.evaluate(() => ({ s: __l4Score.state(), t: __l4Cutscene.time(), audio: GardenAudio.context().state, others: [__l1Score.state().active, __l2Score.state().active, __l3Score.state().active] }));
+    assert.equal(music.audio, 'running'); assert.equal(themeBefore, '晨风来信', 'the level was playing its own track');
+    assert(music.s.active && music.s.current && music.s.musicOn && music.s.track === '晨铃圆舞曲', 'the waltz owns the music bus: ' + JSON.stringify(music.s));
+    assert(music.s.steps > 0 && Math.abs(music.s.position - music.t) < 0.45, 'score follows the film clock: ' + JSON.stringify(music));
+    assert.deepEqual(music.others, [false, false, false], 'level-1/2/3 scores untouched');
+    // In the game other sources stay live under the film (the level track's long faded pad tails), so the swell is
+    // measured against the quietest moment of the pre-dawn bars as well as against the engine's bound.
+    let baseLive = 99;
+    for (let i = 0; i < 8; i++) { await page.waitForTimeout(200); baseLive = Math.min(baseLive, await page.evaluate(() => __musicLush.live())); }
+    await page.evaluate(() => window.__l4Cutscene.seek(32));
+    let peakLive = 0;
+    await page.waitForTimeout(2500); // tails from before the seek ring out
+    for (let i = 0; i < 16; i++) { await page.waitForTimeout(250); peakLive = Math.max(peakLive, await page.evaluate(() => __musicLush.live())); }
+    music = await page.evaluate(() => ({ s: __l4Score.state(), t: __l4Cutscene.time() }));
+    assert(music.t > 35 && music.t < 43 && Math.abs(music.s.position - music.t) < 0.45 && music.s.lastStep >= 72, 'score jumped with seek: ' + JSON.stringify(music));
+    // felt stops at 34 live sources; a string chord adds four sustained voices on top (same bound as levels 1-3).
+    assert(peakLive > 4 && peakLive <= 34 + 4 && peakLive - baseLive <= 26, 'voice count in the swell: ' + peakLive + ' over a floor of ' + baseLive);
+    report.peakLive = peakLive; report.baseLive = baseLive;
+    await page.evaluate(() => window.__l4Cutscene.seek(11));
+    await page.waitForTimeout(1200);
+    music = await page.evaluate(() => ({ s: __l4Score.state(), t: __l4Cutscene.time() }));
+    assert(Math.abs(music.s.position - music.t) < 0.45 && music.t < 14, 'score follows a backward seek: ' + JSON.stringify(music));
+    await page.evaluate(() => window.__l4Cutscene.pause()); await page.waitForTimeout(900);
+    const heldSteps = await page.evaluate(() => __l4Score.state().steps); await page.waitForTimeout(900);
+    assert.equal(await page.evaluate(() => __l4Score.state().steps), heldSteps, 'paused film, silent score');
+    await page.evaluate(() => window.__l4Cutscene.resume()); await page.waitForTimeout(1100);
+    music = await page.evaluate(() => ({ s: __l4Score.state(), t: __l4Cutscene.time() }));
+    assert(music.s.steps > heldSteps && Math.abs(music.s.position - music.t) < 0.45, 'resumes on the film clock: ' + JSON.stringify(music));
     // Skip, and the same tap cannot also continue (600 ms guard).
     assert.equal(await page.locator('#l4csSkip').isVisible(), true); assert.equal(await page.locator('#l4csSkip').textContent(), '跳过');
     await page.locator('#l4csSkip').tap();
     assert.equal(await csState(page), 'ended');
     await page.evaluate(() => document.getElementById('l4cs').click());
     assert.equal(await csState(page), 'ended', 'the tap that skipped cannot also continue'); assert.equal(await cardShown(page), false);
+    music = await page.evaluate(() => __l4Score.state());
+    assert(music.active && music.free && music.track === '晨铃圆舞曲', 'score settles into its closing bars after skip: ' + JSON.stringify(music));
     await page.waitForTimeout(750);
     assert.equal(await page.locator('#l4csGo').isVisible(), true); assert.equal(await page.locator('#l4csGo').textContent(), '轻触继续');
     assert.equal(await page.locator('#l4csTitle').textContent(), '第四关 · 完成'); assert.equal(await page.locator('#l4csSub').textContent(), '暮色浮岛');
@@ -125,6 +161,19 @@ const SAVES = {
     assert.equal(await page.locator('#chimeSkip').isHidden(), true);
     assert.equal(await progress(page), savedA, 'the film wrote nothing');
     await page.waitForTimeout(400);
+    music = await page.evaluate(() => ({ s: __l4Score.state(), scored: __l4Cutscene.scored() }));
+    assert(!music.s.active && !music.scored && music.s.musicOn && music.s.track === themeBefore, 'level music (晨风来信) returns: ' + JSON.stringify(music.s));
+    report.theme = themeBefore;
+    // The sparkle voice is the level-3 celesta (three sine oscillators a note through the kit), not the harp or the music box.
+    const cel = await page.evaluate(() => {
+      const GA = window.GardenAudio, K = GA.kit, V = window.__music2.voices, ctx = GA.context(), osc = K.osc, harp = V.harp, box = K.musicBox, seen = { osc: [], harp: 0, box: 0 };
+      K.osc = function (type, f) { seen.osc.push([type, Math.round(f)]); return osc.apply(this, arguments); };
+      V.harp = function () { seen.harp++; }; K.musicBox = function () { seen.box++; };
+      try { window.__l4Score.celesta(ctx.currentTime + 0.05, 86, 0.0001, K.gain(0)); } finally { K.osc = osc; V.harp = harp; K.musicBox = box; }
+      return { seen, voice: window.__l4Score.sparkleVoice, same: window.__l3Score.sparkleVoice };
+    });
+    assert.equal(cel.voice, 'celesta'); assert.equal(cel.same, 'celesta');
+    assert.deepEqual(cel.seen, { osc: [['sine', 1175], ['sine', 2349], ['sine', 4722]], harp: 0, box: 0 }, 'celesta = fundamental + octave + strike');
     const after = await page.evaluate(() => ({ st: window.__l4Cutscene.stage(), on: document.body.classList.contains('l4cs-on'), group: window.__l4Hide.every(g => g.visible), box: getComputedStyle(document.getElementById('l4cs')).display, hud: getComputedStyle(document.getElementById('chimeHud')).visibility }));
     assert(!after.st.staged && !after.st.sky && after.st.toon === 0 && after.st.hidden === 0 && !after.on && after.group && after.box === 'none' && after.hud === 'visible', 'everything is handed back: ' + JSON.stringify(after));
     await page.locator('#chimeStay').click();
@@ -160,6 +209,25 @@ const SAVES = {
     assert.equal(await page.locator('#chimeSkip').isHidden(), true); assert.equal(await progress(page), savedA);
     await context.close();
 
+    /* ---- D: music switch off -> the film runs silent; the switch and the track are left as they were ---- */
+    ({ context, page } = await fresh());
+    await page.goto(url);
+    let quietTheme = '';
+    page.__beforeClear = async () => { quietTheme = await page.evaluate(() => { GardenAudio.setMusic(false); return GardenAudio.currentTrackName(); }); };
+    await clear(page);
+    await page.waitForFunction(() => window.__l4Cutscene.playing() && window.__l4Cutscene.staged(), null, { timeout: 8000 });
+    await page.waitForTimeout(2500);
+    let quiet = await page.evaluate(() => ({ s: __l4Score.state(), live: __musicLush.live() }));
+    assert(quiet.s.active && quiet.s.musicOn === false && quiet.s.steps === 0, 'music switch off: nothing is played: ' + JSON.stringify(quiet));
+    await page.evaluate(() => { window.__l4Cutscene.skip(); window.__l4Cutscene.proceed(true); });
+    quiet = await page.evaluate(() => ({ s: __l4Score.state(), cs: __l4Cutscene.state() }));
+    assert(quiet.cs === 'closed' && !quiet.s.active && quiet.s.musicOn === false && quiet.s.steps === 0 && quiet.s.track === quietTheme, 'closed with the film, switch still off: ' + JSON.stringify(quiet));
+    assert.equal(await cardShown(page), true, 'the card still follows a silent film'); assert.equal(await opens(page), 1);
+    await page.evaluate(() => GardenAudio.setMusic(true));
+    await page.waitForTimeout(1200);
+    assert.equal(await page.evaluate(() => GardenAudio.currentTrackName()), quietTheme, 'switching music back on plays the level theme');
+    await context.close();
+
     /* ---- R: reduced motion keeps today's behaviour: the card at once, no film, no lengthy effect ---- */
     ({ context, page } = await fresh(null, undefined, { reducedMotion: 'reduce' }));
     await page.goto(url);
@@ -174,6 +242,7 @@ const SAVES = {
     await page.waitForFunction(() => window.__l4Cutscene.playing() && window.__l4Cutscene.staged(), null, { timeout: 15000 });
     const before = await page.evaluate(() => JSON.stringify(Object.keys(localStorage).sort().map(k => [k, localStorage.getItem(k)])));
     assert.deepEqual(await page.evaluate(() => [__l4Cutscene.scored(), __l1Cutscene.state(), __l2Cutscene.state(), __l3Cutscene.state()]), [false, 'idle', 'idle', 'idle']);
+    assert.equal(await page.evaluate(() => __l4Score.state().active), false, '&mute=1 never starts the score');
     assert.equal(await page.evaluate(() => window.__l4Cutscene.pause()), true);
     report.captions = [];
     for (const b of await page.evaluate(() => window.__l4Cutscene.beats())) {

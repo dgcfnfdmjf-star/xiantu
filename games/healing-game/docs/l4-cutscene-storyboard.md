@@ -92,7 +92,28 @@ Skip (`跳过`, `#l4csSkip`) jumps to the end card; the tap that skipped cannot 
   `?cutscene=l4` plays the film on the first gesture; `?cutscene=l4&mute=1` at once (headless capture). A pack script
   can replace that one line to make a one-tap `preview.html`.
 
-## Later items
+## Music (item 3)
 
-- Item 3: the score (`src/l4-cutscene-music.js`,
-  `window.__l4Score`; piano + warm strings + the level-3 `celesta()` voice). `scored()` is false until then.
+`src/l4-cutscene-music.js` → `window.__l4Score` (`start/sync/settle/stop/state/score/sparkles/celesta/sparkleVoice`),
+「晨铃圆舞曲」: an original waltz in **D major, 3/4**, locked to the film's strike grid — one beat = 0.9 s (≈ 66.7 bpm),
+one bar = 2.7 s, six eighth-steps of 0.45 s a bar, 19 bars (the 19th is the held last chord under the end of the film).
+Voices: felt piano (tune + left hand) and the warm string pad from music-lush, and the level-3 score's `celesta()`
+(`window.__l3Score.celesta`, reused as is; the kit's music box only if that score is missing). **No harp anywhere.**
+Registered as a GardenAudio track, so the music switch / volume / reverb apply; the level track 晨风来信 crossfades out
+(1.2 s) on `start()` and back in (3 s) on `stop()`, unless the player picked another track meanwhile.
+
+| bars | film time | picture | music |
+|---|---|---|---|
+| 1–4 | 0–10.8 s | before dawn | low strings hold; the piano tries three notes of the tune and waits |
+| 5–8 | 10.8–21.6 s | chimes wake | the tune, solo piano over an oom-pah-pah left hand; strings slip back in at bar 7; one celesta note per waking chime |
+| 9–12 | 21.6–32.4 s | notes and petals lift | flowing eighths, tune a sixth higher, strings fuller; celesta plays 把早安送回家 with the chimes |
+| 13–16 | 32.4–43.2 s | out over the cloud sea | IV–V–vi, tune doubled at the octave on downbeats, fullest strings, top note A6 at 37.8 s (the chimes' last song), then a suspended dominant |
+| 17–19 | 43.2 s → | title | home on D: the first bars of the tune as an echo, a plagal bar, the last soft roll of all six chimes, a held D |
+
+- **Celesta = the picture**: `sparkles()` is exactly `layout().strikes` (42 strikes; the unit test compares time and
+  chime): each strike is one celesta note at that chime's own pitch (D5 E5 F#5 A5 B5 D6) an octave up. Single strikes
+  fall on beats, each song phrase starts on a downbeat, and where all six ring on a third beat the left hand lifts so
+  the roll has the air (this also keeps the voice count at the level of the other scores).
+- **Clock**: the track's `play()` follows `__l4Cutscene.time()`; a jump of more than 0.4 s (seek, stalled tab)
+  re-anchors with a 0.3 s fade instead of chasing; pause → fade and hold; skip → 1.4 s fade, then only the three
+  closing bars; `&mute=1` never starts it; with the music switch off nothing sounds and the switch is left alone.

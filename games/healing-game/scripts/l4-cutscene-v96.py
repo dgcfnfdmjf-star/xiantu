@@ -25,3 +25,6 @@ replace("    group = new T.Group(); H.island.add(group);\n    var wood = new T.M
 # Loads beside the other cutscenes, before kittens.js; it chains onto GardenPlay like the other modules.
 # (The preview gate inside it, `if (query('cutscene') !== 'l4') return;`, appears exactly once in the build.)
 replace('<script>/* kittens.js', '<script>\n' + (ROOT / 'src/l4-cutscene.js').read_text() + '\n</script>\n<script>/* kittens.js')
+# The score needs the music-lush voices and the level-3 score's celesta(): it loads after the level-3 score, before the main game script.
+MAIN = "<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps"
+replace(MAIN, '<script>\n' + (ROOT / 'src/l4-cutscene-music.js').read_text() + '\n</script>\n' + MAIN)
