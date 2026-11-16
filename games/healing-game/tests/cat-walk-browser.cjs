@@ -45,7 +45,7 @@ function sampleModel(kind) {
   });
   return { kind, x: k.x, z: k.z, moving: k.moving, state: k.state, yaw: k.root.rotation.y, speed: k.catWalkSpeed,
     active: k.catWalkActive, weight: k.catWalkWeight, actionTime: k.catWalkAction.time, timeScale: k.catWalkAction.getEffectiveTimeScale(),
-    duration: k.catWalkAction.getClip().duration, stride: k.catWalkStride, scale: k.catWalkScale, size: k.size, footprint: k.catFootprint, minY, maxRadius, meshes, bones };
+    actualSpeed: k.catWalkActualSpeed, duration: k.catWalkAction.getClip().duration, stride: k.catWalkStride, scale: k.catWalkScale, size: k.size, footprint: k.catFootprint, minY, maxRadius, meshes, bones };
 }
 function maxDifference(a, b) {
   assert.equal(a.meshes.length, b.meshes.length);
@@ -78,7 +78,8 @@ async function poseAt(page, kind, phase, boundsOnly = false) {
   await page.evaluate(({ kind, phase }) => {
     const k = __kittens.list.find(k => k.kind.id === kind && k.catModel);
     k.state = 'roam'; k.moving = true; k.catWalkSpeed = .55;
-    GardenCatModels.pose(k, 0, .1); GardenCatModels.pose(k, .1, .1);
+    k.catWalkX = k.x; k.catWalkZ = k.z - .055;
+    GardenCatModels.pose(k, 0, .1);
     k.catWalkAction.setEffectiveWeight(1); k.catWalkAction.time = phase * k.catWalkAction.getClip().duration;
     k.catMixer.update(0); k.catModel.updateWorldMatrix(true, true);
   }, { kind, phase });
@@ -131,7 +132,7 @@ async function checkScene(browser, server, mobile) {
     const movingB = await page.evaluate(sampleModel, 'orange');
     assert(movingB.moving && Math.hypot(movingB.x - movingA.x, movingB.z - movingA.z) > .04, 'original roam movement still advances');
     assert.equal(movingB.speed, .55, 'existing roam speed drives cadence');
-    assert(Math.abs(movingB.timeScale - movingB.speed * movingB.duration / (movingB.stride * movingB.scale * movingB.size)) < 1e-8, 'cadence follows world stride without changing movement');
+    assert(Math.abs(movingB.timeScale - movingB.actualSpeed * movingB.duration / (movingB.stride * movingB.scale * movingB.size)) < 1e-8, 'cadence follows distance actually traveled without changing movement');
     assert(maxDifference(movingA, movingB) > .008, 'loaded GLB surface genuinely articulates while moving');
     assert(Math.abs(movingB.yaw) < .03 && movingB.z > movingA.z, 'unchanged +Z model front follows +Z movement');
     await page.screenshot({ path: f.path.join(output, label + '-moving.png') });

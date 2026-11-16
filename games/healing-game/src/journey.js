@@ -58,6 +58,7 @@
   function saveOk(source) { delete failing[source || 'journey']; showSaveWarning(); }
   // auto=true for pagehide/visibility/startup writes; they never replace a save that failed to load.
   function save(auto) {
+    if (window.GardenReset && window.GardenReset.pending()) return false;
     if (retrySave !== null) { clearTimeout(retrySave); retrySave = null; }
     try {
       if (!guard) window.localStorage.setItem(KEY, JSON.stringify(S));
@@ -282,11 +283,22 @@
     }
     $('journeyContent').innerHTML = body;
   }
+  function restartJourney() {
+    if (!window.GardenReset || window.GardenReset.pending()) return;
+    if (!window.confirm('确定要清除全部进度、回到第一关吗？\n花园、收藏和所有章节进度都会清除，无法撤销。')) return;
+    if (!window.GardenReset.reset()) {
+      $('journeyResetStatus').textContent = '未能清除进度。请检查浏览器存储权限后再试，当前旅程仍可继续。';
+    }
+  }
   function buildUI() {
     var panel = document.createElement('div'); panel.id = 'journeyPanel'; panel.hidden = true;
     panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); panel.setAttribute('aria-labelledby', 'journeyTitle');
     panel.innerHTML = '<div class="jr-card"><div class="jr-head"><div><div class="jr-eyebrow">TWILIGHT ISLES · JOURNAL</div><h2 id="journeyTitle">浮岛手账</h2></div><button class="jr-close" id="journeyClose" aria-label="合上手账">×</button></div><div class="jr-tabs" role="tablist" aria-label="手账分类"><button role="tab" data-jr-tab="journey">选关</button><button role="tab" data-jr-tab="collection">收藏</button><button role="tab" data-jr-tab="growth">成长</button></div><div id="journeyContent"></div></div>';
+    var restart = document.createElement('div'); restart.className = 'jr-restart';
+    restart.innerHTML = '<button id="journeyReset" type="button">重新开始</button><span class="jr-note">清除全部进度，回到第一关</span><p id="journeyResetStatus" role="status"></p>';
+    panel.querySelector('.jr-card').insertBefore(restart, panel.querySelector('.jr-tabs'));
     document.body.appendChild(panel);
+    $('journeyReset').onclick = restartJourney;
     $('journeyClose').onclick = function () { setModal('journeyPanel', false); };
     panel.addEventListener('click', function (e) {
       if (e.target === panel) setModal('journeyPanel', false);

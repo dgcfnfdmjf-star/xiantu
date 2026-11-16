@@ -36,8 +36,8 @@
     ]
   },
   "height": 0.8845179601428267,
-  "glbBytes": 307824,
-  "glbSha256": "c4cf0c2651be2e2afa65f82c11bf32cc9a3ae1c8654fc9492ae7e434daa5cf8b",
+  "glbBytes": 319068,
+  "glbSha256": "e42b2fe13c323cdf8163145e41656c1d9cb06fd8087e9dd7bf1ce5d1c8ae9d96",
   "palette": {
     "fur": "#fff4e6",
     "belly": "#ffffff",
@@ -50,9 +50,10 @@
   "animation": {
     "clip": "Walk",
     "durationSeconds": 1.6,
-    "stride": 0.4,
+    "stride": 0.5,
+    "stanceFraction": 0.6,
     "radius": 0.71,
-    "joints": 20,
+    "joints": 22,
     "defaultPose": "Approved seated rest; morph weights zero"
   },
   "approvedStaticSource": {

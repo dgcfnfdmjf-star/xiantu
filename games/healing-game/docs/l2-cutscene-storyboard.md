@@ -195,6 +195,55 @@ as before. No save field was added. Test hook: `window.__l2Score.state()`.
 
 Stage cats with a Blender coat own an `AnimationMixer` and the exported `Walk` action (`attachStage` passes `animate=true`); they never go through the gameplay `pose()`/`poseWalk` path or its level-2 `active` flag, so the standalone `?cutscene=1` preview moves the same way as the in-game run.
 
-- **Walk** plays wherever a cat really travels: leaving its bush (gather), the seed chase (a quicker trot: 1.6x cycles per metre plus the existing hop) and the stroll round the ring at 38.6-46s. `action.time` is set from the distance walked (`frame().cats[i].dist`, a table built once from `placeAt`) divided by the exported stride, then `mixer.update(0)`; the weight `walk` is a function of ground speed, so it blends in and out with the path's own ease instead of snapping. `GardenCatGeometry.setWalk` switches the surface at half weight; `action.stop()` hands back the seated bind pose.
-- **Seated beats** are additive bone offsets composed after the mixer on the flat rig (Body, Head, TailRoot, FrontUpper/Lower/Paw.L/R, Haunch.L/R), always starting from the stored rest (or the mixer's last output), never from the previous frame: tail sway and sleep wrap, head following the teaser or the chased seed, the ear-flick head shiver, a paw batting at the teaser, a stretch on arrival, a paw lick (`groom`), and slow breathing with the head tucked in the pile. Each cat keeps its own phase and leading paw.
+- **Walk** plays wherever a cat really travels: leaving its bush (gather), the seed chase (a quicker trot: 1.6x cycles per metre plus the existing hop) and the stroll round the ring at 38.6-46s. `action.time` is set from the distance walked (`frame().cats[i].dist`, a table built once from `placeAt`) divided by the exported stride, then `mixer.update(0)`; the gait follows ground speed. `standAt()` eases the rise/settle over 0.8 s (0.5 s with reduced motion), and `action.stop()` hands back the seated bind pose.
+- **Seated beats** still evaluate the original additive bone offsets (Body, Head, TailRoot, FrontUpper/Lower/Paw.L/R, Haunch.L/R) from rest, without accumulating the previous frame. The approved seated Blender fur remains unskinned: these offsets do not articulate its paws or torso. Whole-actor breathing/lean/curl and the face details remain visible; procedural cats still show their articulated seated beats. Each actor keeps its own phase and leading paw.
 - Everything is a pure function of the timeline second, so `seek()`, skip and screenshots reproduce the same bones. Cats without a GLB (white, glow, or a failed download) keep the procedural pose. Regression: `tests/l2-cutscene-motion-browser.cjs`.
+
+
+## PR #81 rebase and walk/sit overlap correction (V9.6 working build)
+
+Rebased the five polish commits onto `main` `1ab74032c454880660cbb3269025115fe5577067`.
+Only `handoff-checksums.sha256` conflicted, once per replayed commit. Regenerated the three
+SHA-256 manifests in dependency order with `python3 scripts/checksums.py --write`; did not
+choose old checksum rows. The Xiantu entry, release markers, root index and source files are unchanged.
+
+The reported “brief double exposure mid walk↔sit blend” was two silhouettes, with two sets
+of eyes/nose/whiskers also visible at 35–65% of the blend. Complementary pixel dithering
+hid pixels but did not align the seated and walking outlines. Stage coats now draw one
+opaque fur surface: the vertex shader interpolates from the authored seated position/normal
+to the fully skinned Walk position/normal, after skinning. One set of face details follows
+an interpolated Head transform. No half-weight skeleton, duplicate coat, dither or transparent
+face remains. The existing 0.8 s timing, settle offsets, distance-driven Walk, paths, tail-root
+correction, slit pupils and blink/sleep shader remain. GLBs and gameplay cat rendering are unchanged.
+
+The browser regression checks a single coat/face and the original triangle budget throughout
+each transition, continuous drawn height (including Blender coats), grounded paws, deterministic
+seek, normal and reduced motion, procedural fallback, actor spacing, tail attachment and eyes.
+
+Remaining model limitations are explicit: seated fur keeps the approved unskinned sculpt,
+so seated paw/body bone offsets do not deform that fur; the walking tail uses one rigid root
+bone, not a multi-joint flexible tail. These pre-existing rig limits are separate from the
+fixed double silhouette. No new model rig, colour, gameplay rule, save field or version change.
+
+Release convention stays as on main: `garden-working=9.6-l2-cutscene` in the working site;
+`build.py` keeps the published V9.5 ZIP frozen. The V9.6 deployment package is to be rebuilt
+after review/merge in the separate release step, not deployed by this PR.
+
+
+Browser evidence (Chromium 151 / SwiftShader, fresh local contexts, synthetic saves only):
+- [Before/after at 44.6 s](pr81-walk-sit-comparison.webp), captured at 1280×900 and resized equally for review.
+- [Continuous walk-to-sit frames](pr81-walk-sit-frames.webp), captured at 960×675, 0.05 s samples from 44–45 s; the contact sheet shows every fourth frame.
+- Actual phone layouts inspected at 390×844 and 844×390. This is browser emulation, not physical-phone performance.
+- Motion regression: minimum measured centre gap 1.052 m; one 5,254-triangle fur surface and one set of face parts during the blend (7,210 total visible triangles, below the unchanged 7,430-triangle asset budget). Ground contact, tail/eye probes, repeated seek, all seven transition groups, procedural fallback and reduced motion pass.
+
+
+Local validation on 2026-11-14:
+- `npm test`: 165 game regression scripts plus rate-limit, save/error, wrapper and packaging suites; zero failures.
+- `npm run test:browser`: final complete rerun 91/91 pass. The initial run had one combat-bag keyboard-focus timeout in unchanged Xiantu code; the exact case passed both on an untouched `main` archive and on this branch, then passed in the full rerun. No Xiantu code, timeout or test exclusion changed.
+- `l2-cutscene.cjs`, `l2-cutscene-browser.cjs`, `l2-cutscene-ingame-browser.cjs`, `l2-cutscene-motion-browser.cjs`: pass (including phone portrait/landscape, music, skip/continue, old completed saves and fallback).
+- `cat-walk-assets.cjs`, `cat-walk-runtime.cjs`, `cat-walk-browser.cjs`, `cat-walk-evidence.cjs`, `cat-walk-performance.cjs`: pass; `cat-models-browser.cjs`, `preview-cat-orange.cjs` and the actual async `feedback-cat-save-browser.js` browser fixture also pass.
+- `test_package.py`: 8/8; `test_compact_skin_glb.py`: 30/30; `scripts/checksums.py`, `npm run package:game`, `npm run package:cloud`: pass. These are local builds only.
+- The earlier performance diagnostic overlapped final packaging and is not used for the comparison below. The final paired measurement ran alone, against a working site built from untouched main `1ab7403`, three cache-cold contexts per version, 390×844 DPR2, CDP Fast 4G (9 Mbps down, 1.5 Mbps up, 60 ms latency).
+  main: model-ready median 2.686 s, range 2.359–2.891 s; after two render frames 3.168 s.
+  walk: model-ready median 2.406 s, range 2.262–2.945 s; after two render frames 3.326 s.
+  Both versions request exactly 1,143,052 GLB bytes. Timing starts on chapter-two entry, excluding the initial HTML download; overlapping ranges and software rendering do not establish a physical-phone speed improvement. Raw logs/frames remain under ignored `output/playwright/pr81-review/` and `output/playwright/cat-walk/`.

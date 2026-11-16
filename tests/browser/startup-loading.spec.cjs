@@ -86,11 +86,13 @@ test('a stalled scene releases the detail sheets once after the time limit',asyn
 test('a region without a painted scene requests sheets immediately',async({page})=>{
  await isolate(page);const seen=track(page);
  await boot(page);
- const region=await page.evaluate(()=>{
-  const region=['human_peaks','human_valleys','demon_domain','immortal_domain','north','east','west','south'].find(r=>!WILD_SCENES_V286898[r]);
-  if(region){currentRegion=region;loadScrollArtV2831();}
-  return region;
+ // All eight shipped regions now have panoramas. Exercise the absent-metadata
+ // compatibility path explicitly in this isolated page instead of depending on
+ // a particular production region remaining unpainted forever.
+ await page.evaluate(()=>{
+  delete WILD_SCENES_V286898.human_peaks;
+  currentRegion='human_peaks';loadScrollArtV2831();
  });
- expect(region).toBeTruthy();
  await expect.poll(()=>seen.sheets().sort()).toEqual([...SHEETS].sort());
+ expect(seen.has('human-peaks-panorama')).toBe(false);
 });
