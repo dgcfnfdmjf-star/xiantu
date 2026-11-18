@@ -313,6 +313,23 @@
         '  if (r > 0.72) { vec2 o = (vec2(hash(c + 3.1), hash(c + 7.7)) - 0.5) * 0.6; float dist = length(fract(sp) - 0.5 - o); float sz = 0.035 + 0.06 * hash(c + 1.3);' +
         '   starL = smoothstep(sz, 0.0, dist) * (0.62 + 0.38 * sin(uTime * (1.0 + 3.0 * r) + r * 40.0)) * uStars * smoothstep(-0.02, 0.14, h) * (1.0 - smoothstep(0.985, 0.996, sm));' +
         '   starC = mix(vec3(1.0, 0.93, 0.8), vec3(0.82, 0.9, 1.0), hash(c + 9.2)); } }' +
+        // Mid-sky cumulus (the big watercolour night clouds across the middle of the frame): a projected fbm field
+        // thresholded with a wet, irregular edge; lit by sampling the field one step towards the moon (the 2D
+        // light-march of shadertoy-style painted clouds, standing in for the rim/Fresnel term of mesh clouds), a
+        // silver rim on the moon's side and a darker dried-pigment edge on the far side. The threshold rises round
+        // the moon, so the clouds part in a soft clearing; they sit under the halo, which then glows over them.
+        ' float cmask = 0.0;' +
+        ' if (h > -0.02 && h < 0.9) { vec2 drift = vec2(uTime * 0.012, 0.0); vec2 cp = d.xz / (h + 0.32) * 0.9 + drift; vec2 mp = uMoon.xz / (uMoon.y + 0.32) * 0.9 + drift;' +
+        '  float den = fbm(cp * 1.15 + vec2(5.2, 1.3)) + 0.2 * (noise(cp * 4.3 + 8.0) - 0.5);' +
+        '  float thr = 0.45 + 0.4 * smoothstep(0.988, 0.9972, sm) + 0.12 * smoothstep(0.5, 0.85, h) + 0.06 * smoothstep(0.08, 0.0, h);' +
+        '  vec2 ld = normalize(mp - cp + vec2(1e-4)); float dl = fbm((cp + ld * 0.1) * 1.15 + vec2(5.2, 1.3));' +
+        '  float lit = clamp((den - dl) * 5.0 + 0.5, 0.0, 1.0);' +
+        '  float m = smoothstep(thr, thr + 0.02 + 0.05 * noise(cp * 2.0 + 3.0), den); float edge = 1.0 - smoothstep(thr, thr + 0.1, den);' +
+        '  vec3 cb = mix(uShade * 0.95, uLit * 0.8, lit * 0.7 + 0.1 * smoothstep(0.6, 0.8, den)) * (0.93 + 0.14 * wash);' +
+        '  cb = mix(cb, uShade * 0.7, smoothstep(thr + 0.04, thr + 0.008, den) * (1.0 - lit) * 0.6);' +
+        '  cb = mix(cb, vec3(0.93, 0.95, 1.0), edge * lit * (0.4 + 0.45 * pow(sm, 6.0)));' +
+        '  cb = mix(cb, vec3(1.0, 0.88, 0.66), edge * lit * pow(sm, 16.0) * 0.55);' +
+        '  cmask = m * 0.9 * (1.0 - smoothstep(0.9935, 0.998, sm)); col = mix(col, cb, cmask); starL *= 1.0 - cmask; }' +
         MOON_GLSL +
         ' col = mix(col + starC * starL * (1.0 - disc), moonPaint, disc);' +
         // Big night cumulus heaped along the horizon (lower under the moon so the disc stays clear), three flat tones,
@@ -467,6 +484,9 @@
         ' if (vK > 1.5 && vK < 2.5) { float body = smoothstep(0.24, 0.2, length(q * vec2(1.25, 0.95))); float rib = 0.85 + 0.15 * cos(q.y * 60.0);' +
         '  col = mix(vCol * 1.1, vec3(1.0, 0.96, 0.82), smoothstep(0.2, 0.0, length(q)) * 0.8) * mix(1.0, rib, body); a = max(body * 0.97, halo * 0.9); }' +
         ' else if (vK > 2.5) { col = vCol; a = halo * 0.5; }' +
+        // a firefly (after the threejs-fireflies material: a small bright disk inside a wide smooth glow)
+        ' else if (vK > 0.5) { float fc = smoothstep(0.28, 0.08, r); float fg = exp(-r * r * 4.2) - 0.015;' +
+        '  col = mix(vCol * 1.15, vec3(1.0, 0.99, 0.9), fc * 0.85); a = max(fc, fg * 0.78); }' +
         ' else { col = mix(vCol, vec3(1.0, 0.98, 0.92), core * 0.8) * (1.0 + 0.3 * halo); a = max(core, min(1.0, halo * 1.1));' +
         '  float ring = smoothstep(0.3, 0.4, r) * smoothstep(0.56, 0.44, r) * vS; col = mix(col, vCol * 0.35 + vec3(0.04, 0.03, 0.12), ring * 0.75); a = max(a, ring * 0.85); }' +
         ' gl_FragColor = vec4(col, a * vA); }' }));
@@ -635,7 +655,13 @@
       A[o * 4] = alpha * ramp(q.d, 2.5, 6); A[o * 4 + 1] = q.s; A[o * 4 + 2] = kind === 0 ? b.settled || 0 : 0; A[o * 4 + 3] = kind; o++;
     }
     for (i = 0; i < DEWS; i++) { dewAt(i, t, b); put(0, b.alpha, b.size, 0.045); }
-    for (i = 0; i < FLIES; i++) { flyAt(i, t, b); put(1, b.alpha, b.size, 0.055); }
+    // Near fireflies grow (up to ~2.2x within ~8 units of the lens) so they read as soft lights in the close shots;
+    // far ones keep their size. Their own shader branch keeps the extra area mostly halo, not a bigger hard dot.
+    for (i = 0; i < FLIES; i++) {
+      flyAt(i, t, b);
+      var fdx = b.x - eye.x, fdy = top + b.y - eye.y, fdz = b.z - eye.z, fdist = Math.sqrt(fdx * fdx + fdy * fdy + fdz * fdz);
+      put(1, b.alpha, b.size * (1.4 + 0.8 * (1 - ease(ramp(fdist, 8, 20)))), 0.09);
+    }
     for (i = 0; i < LANTERNS; i++) { lanternAt(i, t, b); put(2, b.alpha, b.size, 0.1); }
     for (i = 0; i < WAKE; i++) { wakeAt(i, t, b); put(3, b.alpha * 0.9, b.size, 0.035); }
     st.points.geometry.attributes.position.needsUpdate = true; st.points.geometry.attributes.aA.needsUpdate = true;
@@ -722,6 +748,10 @@
     '#l5csClock.hidden{display:none}',
     '@media (orientation:landscape) and (max-height:480px){#l5csCaption{bottom:13%;font-size:14px}#l5csTitle{font-size:24px}',
     '#l5csEnd{top:16%}#l5csRule{margin-top:8px}#l5csSub{margin-top:8px;font-size:14px}#l5csGo{bottom:11%;left:auto;right:5%;transform:none}.l5cs-bar{height:9%}}',
+    // Narrow portrait phones: the title block sits a little higher and smaller, so a safe gap stays between the
+    // subtitle and the lug sail's peak in the wide title shot (the boat itself is not shrunk).
+    '@media (orientation:portrait) and (max-width:400px){#l5csEnd{top:35%}#l5csSub{margin-top:11px}}',
+    '@media (orientation:portrait) and (max-width:370px){#l5csEnd{top:32.5%}#l5csTitle{font-size:29px;letter-spacing:7px;text-indent:7px}#l5csSub{margin-top:10px;font-size:16px}}',
     '@media (prefers-reduced-motion:reduce){#l5csGo{animation:none}}'
   ].join('');
 
