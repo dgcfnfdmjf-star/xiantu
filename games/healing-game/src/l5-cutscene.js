@@ -167,7 +167,7 @@
     out.x = p.x + 0.45 * Math.cos(a); out.z = p.z + 0.45 * Math.sin(a * 1.3);
     out.y = 0.4 + 1.4 * hsh(j, 5) + soft * 0.25 * Math.sin(t * 0.9 + j * 1.7);
     var blink = 0.5 + 0.5 * Math.sin(t * (1.3 + 1.2 * hsh(j, 6)) + j * 2.1);
-    out.alpha = ease(ramp(t, b, b + 2.5)) * (0.6 + 0.4 * blink * blink); out.size = (0.4 + 0.12 * hsh(j, 7)) * (1 + 0.4 * ease(ramp(t, 40, 48)));
+    out.alpha = ease(ramp(t, b, b + 2.5)) * (0.75 + 0.25 * blink * blink); out.size = (0.58 + 0.14 * hsh(j, 7)) * (1 + 0.45 * ease(ramp(t, 40, 48)));
     return out;
   }
   function lanternAt(j, t, out) {
@@ -368,6 +368,8 @@
         ' float br = 0.55 + 0.45 * smoothstep(0.3, 0.75, noise(vec2(along * 2.4 - uTime * 0.6 * uSoft, across * 6.0)));' +
         ' float skirt = smoothstep(hw * 2.4, hw * 0.6, across) * smoothstep(-0.8, 0.2, along) * smoothstep(uReach + 0.6, uReach - 2.5, along);' +
         ' col += vec3(0.32, 0.22, 0.1) * skirt * uPathGlow * 0.6;' +
+        ' float rimP = smoothstep(hw * 1.25, hw * 0.95, across) * smoothstep(hw * 0.55, hw * 0.9, across) * smoothstep(-0.8, 0.2, along) * smoothstep(uReach + 0.2, uReach - 1.6, along);' +
+        ' col = mix(col, uLow * 0.5, rimP * uPathGlow * 0.4);' +
         ' col = mix(col, vec3(1.0, 0.85, 0.56), lane * uPathGlow * br * 0.82); col += vec3(0.5, 0.36, 0.16) * lane * uPathGlow * 0.3;' +
         // each lotus pools its colour on the water under it (moonlight on the leaves), and sends a ripple ring out as it opens
         ' for (int i = 0; i < 6; i++) { vec4 L = uLot[i]; float dl = length(vL - L.xy);' +
@@ -457,15 +459,16 @@
     pg.setAttribute('position', new T.BufferAttribute(st.pPos, 3)); pg.setAttribute('aA', new T.BufferAttribute(st.pA, 4)); pg.setAttribute('aCol', new T.BufferAttribute(st.pCol, 3));
     // aA = alpha, world size, unused, kind (0 dew, 1 firefly, 2 lantern, 3 wake)
     st.points = new T.Points(pg, new T.ShaderMaterial({ uniforms: st.ptU, transparent: true, depthWrite: false,
-      vertexShader: 'attribute vec4 aA; attribute vec3 aCol; uniform float uPx; varying float vA; varying float vK; varying vec3 vCol;' +
-        'void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); vA = aA.x; vK = aA.w; vCol = aCol; gl_PointSize = aA.x > 0.003 ? clamp(aA.y * uPx / max(-mv.z, 0.1), 2.0, 140.0) : 0.0; gl_Position = projectionMatrix * mv; }',
-      fragmentShader: 'varying float vA; varying float vK; varying vec3 vCol; void main(){ vec2 q = gl_PointCoord - 0.5; float r = length(q) * 2.0; if (r > 1.0) discard;' +
+      vertexShader: 'attribute vec4 aA; attribute vec3 aCol; uniform float uPx; varying float vA; varying float vK; varying float vS; varying vec3 vCol;' +
+        'void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); vA = aA.x; vK = aA.w; vS = aA.z; vCol = aCol; gl_PointSize = aA.x > 0.003 ? clamp(aA.y * uPx / max(-mv.z, 0.1), 2.0, 140.0) : 0.0; gl_Position = projectionMatrix * mv; }',
+      fragmentShader: 'varying float vA; varying float vK; varying float vS; varying vec3 vCol; void main(){ vec2 q = gl_PointCoord - 0.5; float r = length(q) * 2.0; if (r > 1.0) discard;' +
         ' float core = smoothstep(0.34, 0.12, r), halo = pow(1.0 - r, 2.2); vec3 col; float a;' +
         // a lantern: a warm paper body (rounded box) with a bright heart, inside a wide glow
         ' if (vK > 1.5 && vK < 2.5) { float body = smoothstep(0.24, 0.2, length(q * vec2(1.25, 0.95))); float rib = 0.85 + 0.15 * cos(q.y * 60.0);' +
         '  col = mix(vCol * 1.1, vec3(1.0, 0.96, 0.82), smoothstep(0.2, 0.0, length(q)) * 0.8) * mix(1.0, rib, body); a = max(body * 0.97, halo * 0.9); }' +
         ' else if (vK > 2.5) { col = vCol; a = halo * 0.5; }' +
-        ' else { col = mix(vCol, vec3(1.0, 0.98, 0.92), core * 0.8) * (1.0 + 0.3 * halo); a = max(core, min(1.0, halo * 1.1)); }' +
+        ' else { col = mix(vCol, vec3(1.0, 0.98, 0.92), core * 0.8) * (1.0 + 0.3 * halo); a = max(core, min(1.0, halo * 1.1));' +
+        '  float ring = smoothstep(0.3, 0.4, r) * smoothstep(0.56, 0.44, r) * vS; col = mix(col, vCol * 0.35 + vec3(0.04, 0.03, 0.12), ring * 0.75); a = max(a, ring * 0.85); }' +
         ' gl_FragColor = vec4(col, a * vA); }' }));
     st.points.frustumCulled = false; st.points.renderOrder = 3; g.add(st.points);
     /* The little boat (the game's small gold finale boat, grown into a readable canoe): a wooden hull with raised bow
@@ -478,17 +481,18 @@
     for (i = 0; i < hp.count; i++) { var hz = hp.getZ(i), e = Math.abs(hz); hp.setXYZ(i, hp.getX(i) * 0.2 * (1 - 0.55 * e * e * e), hp.getY(i) * 0.16 + 0.13 * Math.pow(e, 4), hz * 0.62); }
     hullGeo.computeVertexNormals();
     var deckGeo = new T.CircleGeometry(1, 16); deckGeo.rotateX(-Math.PI / 2); deckGeo.scale(0.16, 1, 0.5);
-    var sailGeo = new T.BufferGeometry(); sailGeo.setAttribute('position', new T.Float32BufferAttribute([-0.24, 0.3, -0.02, 0.24, 0.3, -0.02, -0.2, 0.8, 0.02, 0.24, 0.3, -0.02, 0.2, 0.8, 0.02, -0.2, 0.8, 0.02], 3)); sailGeo.computeVertexNormals();
+    var sailGeo = new T.BufferGeometry(); sailGeo.setAttribute('position', new T.Float32BufferAttribute([-0.26, 0.28, -0.02, 0.26, 0.28, -0.02, -0.07, 0.86, 0.02, 0.26, 0.28, -0.02, 0.05, 0.9, 0.02, -0.07, 0.86, 0.02], 3)); sailGeo.computeVertexNormals();
     var mastGeo = new T.CylinderGeometry(0.014, 0.018, 0.86, 5); mastGeo.translate(0, 0.43, 0.0);
     st.boatMat = new T.MeshBasicMaterial({ color: 0x9a6440, fog: false, transparent: true, opacity: 0 });
     st.inkMat = new T.MeshBasicMaterial({ color: 0x120f26, side: T.BackSide, fog: false, transparent: true, opacity: 0 });
     st.deckMat = new T.MeshBasicMaterial({ color: 0xe8c890, fog: false, transparent: true, opacity: 0 });
-    st.sailMat = new T.MeshBasicMaterial({ color: 0xf6eedc, side: T.DoubleSide, fog: false, transparent: true, opacity: 0 });
+    st.sailMat = new T.MeshBasicMaterial({ color: 0xf2e2c2, side: T.DoubleSide, fog: false, transparent: true, opacity: 0 });
     st.mastMat = new T.MeshBasicMaterial({ color: 0x3a2a30, fog: false, transparent: true, opacity: 0 });
     var ink = part(hullGeo, st.inkMat, st.boat, 0, 0.0, 0); ink.scale.set(1.16, 1.2, 1.07);
     st.boatHull = part(hullGeo, st.boatMat, st.boat, 0, 0.0, 0);
     part(deckGeo, st.deckMat, st.boat, 0, 0.012, 0);
     part(mastGeo, st.mastMat, st.boat, 0, 0, 0); part(sailGeo, st.sailMat, st.boat, 0, 0, 0);
+    var sailInk = part(sailGeo, st.inkMat2 = new T.MeshBasicMaterial({ color: 0x2a2240, side: T.DoubleSide, fog: false, transparent: true, opacity: 0 }), st.boat, 0, -0.02, 0.03); sailInk.scale.set(1.08, 1.04, 1);
     st.boatShade = sprite(H.glowTex, 0x10142e, false); st.boatShade.scale.set(1.6, 0.6, 1); st.boatShade.position.y = 0.0; st.boat.add(st.boatShade);
     st.boatGlow = sprite(H.glowTex, 0xffb866, true); st.boatGlow.position.set(0, 0.3, 0.52); st.boatGlow.scale.set(1.5, 1.5, 1); st.boat.add(st.boatGlow);
     st.boatLamp = sprite(H.glowTex, 0xfff4cc, true); st.boatLamp.position.set(0, 0.3, 0.52); st.boatLamp.scale.set(0.38, 0.38, 1); st.boat.add(st.boatLamp);
@@ -501,11 +505,11 @@
         transparent: true, depthWrite: false, side: T.DoubleSide, fog: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
         vertexShader: 'uniform float uWater; uniform float uTime; varying float vD; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vec3 dir = w.xyz - cameraPosition;' +
           ' vD = uWater - w.y; float k = (uWater + 0.004 - cameraPosition.y) / min(dir.y, -1e-3); w.xyz = cameraPosition + dir * k; w.x += sin(w.z * 7.0 + uTime * 2.4) * 0.025 * min(vD * 4.0, 1.0); gl_Position = projectionMatrix * viewMatrix * w; }',
-        fragmentShader: 'uniform vec3 uCol; uniform float uOp; uniform float uA; varying float vD; void main(){ gl_FragColor = vec4(uCol, uOp * uA * (1.0 - smoothstep(0.1, 0.9, vD) * 0.6)); }' });
+        fragmentShader: 'uniform vec3 uCol; uniform float uOp; uniform float uA; uniform float uTime; varying float vD; void main(){ float band = 0.55 + 0.45 * sin(gl_FragCoord.y * 0.7 + uTime * 3.0); gl_FragColor = vec4(uCol, uOp * uA * (1.0 - smoothstep(0.05, 2.1, vD)) * band); }' });
     }
     st.boatRef = new T.Group(); g.add(st.boatRef); st.boatRef.visible = false; st.boatRef.renderOrder = 2;
     var rh = part(hullGeo, refMat(0x140f22, 0.72), st.boatRef, 0, 0, 0); rh.scale.set(1.12, 1.15, 1.06); rh.renderOrder = 2;
-    var rs = part(sailGeo, refMat(0xc8c0d8, 0.4), st.boatRef, 0, 0, 0); rs.renderOrder = 2;
+    var rs = part(sailGeo, refMat(0xe6d2a8, 0.5), st.boatRef, 0, 0, 0); rs.renderOrder = 2;
     st.canvas = doc.querySelector('canvas');
     for (i = 0; i < H.scene.children.length; i++) {
       var ch = H.scene.children[i];
@@ -628,7 +632,7 @@
     function put(kind, alpha, size, least) {
       q.x = b.x - eye.x; q.y = top + b.y - eye.y; q.z = b.z - eye.z; keepOffMoon(size, least * halfH);
       P[o * 3] = eye.x + q.x; P[o * 3 + 1] = eye.y + q.y; P[o * 3 + 2] = eye.z + q.z;
-      A[o * 4] = alpha * ramp(q.d, 2.5, 6); A[o * 4 + 1] = q.s; A[o * 4 + 2] = 0; A[o * 4 + 3] = kind; o++;
+      A[o * 4] = alpha * ramp(q.d, 2.5, 6); A[o * 4 + 1] = q.s; A[o * 4 + 2] = kind === 0 ? b.settled || 0 : 0; A[o * 4 + 3] = kind; o++;
     }
     for (i = 0; i < DEWS; i++) { dewAt(i, t, b); put(0, b.alpha, b.size, 0.045); }
     for (i = 0; i < FLIES; i++) { flyAt(i, t, b); put(1, b.alpha, b.size, 0.055); }
@@ -640,7 +644,7 @@
     var bo = f.boat, on = bo.alpha > 0.01;
     st.boat.visible = on;
     st.boat.position.set(bo.x, top + bo.y, bo.z); st.boat.rotation.set(bo.pitch, bo.yaw, bo.roll); st.boat.scale.setScalar(bo.scale);
-    st.boatMat.opacity = st.sailMat.opacity = st.inkMat.opacity = st.deckMat.opacity = st.mastMat.opacity = bo.alpha; st.boatShade.material.opacity = 0.5 * bo.alpha;
+    st.boatMat.opacity = st.sailMat.opacity = st.inkMat2.opacity = st.inkMat.opacity = st.deckMat.opacity = st.mastMat.opacity = bo.alpha; st.boatShade.material.opacity = 0.5 * bo.alpha;
     // the reflection: the boat mirrored in the water line (then laid on the water by its shader)
     var wy = top + WATER_Y; st.boatRef.visible = on;
     st.boatRef.position.set(bo.x, 2 * wy - (top + bo.y), bo.z); st.boatRef.rotation.set(-bo.pitch, bo.yaw, -bo.roll); st.boatRef.scale.set(bo.scale, -bo.scale, bo.scale);

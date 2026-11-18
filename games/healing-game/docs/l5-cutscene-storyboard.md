@@ -115,3 +115,9 @@ a beat (31.5 s).
 
 Item 1 (this): timeline, camera, sky/moon/clouds/water/grass/wind/paper, captions, skip/continue, placeholder
 lotuses/dew/boat/path/fireflies/lanterns, hooks, tests. Item 2 (done): actors above. Item 3 (done): the score.
+Item 4 (polish): the sail is a tall lug sail (narrow peak) with a thin ink edge, so the boat reads from behind in the
+wide 36–49 s shots instead of a lit rectangle; the boat's reflection fades with depth below the water line and breaks
+into ripple bands (no flat pale slab under the hull); settled dew beads carry a deep-ink ring round a bright heart so the
+stepping lights stay distinct on the brightest gold of the path; the path has a darker pigment edge either side;
+fireflies are larger and steadier. Score: after a skip an engine tick inside the 0.5 s lead-in plays nothing, so no
+tail of the skipped bar sounds before the goodnight bars.

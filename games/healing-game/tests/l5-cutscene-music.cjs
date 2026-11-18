@@ -218,6 +218,10 @@ assert(e.log.length > 0 && Math.abs(sc.state().position - e.scene.t) < 0.05, 're
 e.scene.s = 'ended'; e.scene.t = 50; e.log.length = 0; e.ducks.length = 0; e.ctx.currentTime = 399.6;
 assert.equal(sc.settle(), true); assert.equal(sc.state().free, true);
 assert.deepEqual(e.ducks, [1.4]);
+// an engine tick only 0.05 s after skip (inside the 0.5 s lead-in) plays nothing: no tail of the skipped bar
+e.ctx.currentTime = 399.62; e.def.play(399.65, 0, 0, null, SD, e.tick);
+assert.equal(e.log.length, 0, 'an early tick after skip stays silent');
+e.def.play(399.8, 0, 0, null, SD, e.tick); e.log.length = 0;
 for (let k = 0; k < 30; k++) { e.ctx.currentTime = 400 + k * SD; e.def.play(400.1 + k * SD, 0, 0, null, SD, e.tick); }
 const steps = sc.state().steps;
 assert.equal(sc.state().lastStep, 135, 'the closing reaches the last eighth');

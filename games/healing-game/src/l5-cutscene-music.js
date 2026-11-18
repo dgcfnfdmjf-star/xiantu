@@ -167,6 +167,9 @@
       } else if (origin === null) origin = t;
       var k = Math.ceil((t - origin) / SD - 1e-6), at = origin + k * SD;
       if (k < 0 || (active && k >= TOTAL)) return;
+      // After a skip only the goodnight bars sound: an engine tick that lands inside the 0.5 s lead-in must not play
+      // the tail of the bar before them.
+      if (free && k < Math.round(SETTLE_AT / SD)) return;
       playStep(k % TOTAL, at, p);
     } };
   M.register(def);
