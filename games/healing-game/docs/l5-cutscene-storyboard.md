@@ -56,7 +56,33 @@ Skip (`跳过`, `#l5csSkip`) jumps to the end card; the tap that skipped cannot 
 `if (query('cutscene') !== 'l5') return;` appears exactly once in the built `index.html`, so a pack script can replace
 it to make a one-tap `preview.html`. `&csclock=1` shows the film clock.
 
+## Actors (item 2; all pure functions of `t`, display-only, never touching the gameplay lotus group)
+
+- **Lotuses**: the game's own look (lotus-chapter.js): jade leaf pad `0x64a7a1`, stretched-sphere petals on hinges
+  (8 outer + 5 inner), gold seed `0xffe7ad`, halo in the petal colour; colours from `LotusRules.blooms`
+  (月珠莲 `e9edff`, 潮璃莲 `90e6e1`, 霞梦莲 `f4b8d1`, 愿灯莲 `ffd79b`, 紫憩莲 `c6b5f4`, 晓信莲 `b3e3c6`). Three instanced
+  draws for all six + six halo sprites. **Bloom cue**: lotus *i* wakes at `11 + 1.45 i` s; petals fold from bud
+  (outer −1.32 rad) to an open cup (−0.34 rad) over 2.4 s; a warm pulse in its colour peaks at `wake + 1.2` s and a
+  ripple ring runs out over the water (`wake + 0.6 … + 3.6`). **Chorus**: all six brighten together (rippling 0.12 s
+  apart) at **30.6 s** (the path of light reaches the moon, with a second ring) and **40.2 s** (the boat passes the
+  last flower). Each lotus also pools its colour on the water under it.
+- **Moon-dew**: 24 beads (4 per lotus, its colour), born in the opening flower's heart at `wake + 0.7 + 0.35 k`, lift
+  in a slow spiral and hover; from ~22 s, as the path reaches each spot, they arc down and settle as stepping lights
+  alternating either side of the ribbon (nearer flowers → nearer steps), breathing, growing for the wide shots.
+- **Path of light**: a warm ribbon (half-width 0.62 m + 0.045 m/m) with a soft gold skirt, broken by ripples,
+  revealed from the shore to `path.reach` (21.5–30.5 s), stepping lights on top.
+- **Boat**: a canoe (raised bow and stern) with an ink outline shell, cream gunwale, mast and a square moonlit sail
+  across the beam (the camera follows it home from behind, so a fore-and-aft sail would read as a line), bow and stern
+  lamps. Scale 2.6 → ×1.35 by 40 s → ×1.85 by 49 s. Wake: a Kelvin V (half-angle 19.47°, tan 0.354) in the water
+  shader + 14 foam dabs on its arms. Reflection: hull + sail mirrored in the water line and projected along the view
+  ray onto the water plane in the vertex shader (lies on the water, depth-tested against the shore), plus a warm lamp
+  streak on the water towards the lens.
+- **Fireflies** (22, from 33 s) and **lanterns** (6, from 34.5 s): larger, brighter cores and haloes, rounded ribbed
+  paper lanterns; both grow ×1.4/×1.35 for the wide title shot. All points pass `keepOffMoon`.
+- **Clouds**: a second cloud bank on the right of the moon balances the left; clouds thin out (no hard edge) within
+  ~7° of the moon so the disc and halo stay clear.
+
 ## Item status
 
 Item 1 (this): timeline, camera, sky/moon/clouds/water/grass/wind/paper, captions, skip/continue, placeholder
-lotuses/dew/boat/path/fireflies/lanterns, hooks, tests. Item 2: proper actor motion and models. Item 3: the score.
+lotuses/dew/boat/path/fireflies/lanterns, hooks, tests. Item 2 (done): actors above. Item 3: the score.

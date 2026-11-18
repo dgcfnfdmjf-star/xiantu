@@ -75,13 +75,27 @@
   function pathAt(t) { return { reach: PATH_LEN * ease(ramp(t, 21.5, 30.5)), glow: ease(ramp(t, 21, 25)) * (0.8 + 0.2 * ease(ramp(t, 30, 44))) }; }
   /* The six lotuses (月珠莲 潮璃莲 霞梦莲 愿灯莲 紫憩莲 晓信莲, in the game's petal colours) float either side of the
    * path, near the shore first. They wake one by one in the second beat. */
-  var BLOOMS = [['月珠莲', 0xe9edff], ['潮璃莲', 0x91dfe7], ['霞梦莲', 0xf6b6c8], ['愿灯莲', 0xffd79b], ['紫憩莲', 0xc6b2f0], ['晓信莲', 0xffe7ad]];
+  var BLOOMS = [['月珠莲', 0xe9edff], ['潮璃莲', 0x90e6e1], ['霞梦莲', 0xf4b8d1], ['愿灯莲', 0xffd79b], ['紫憩莲', 0xc6b5f4], ['晓信莲', 0xb3e3c6]];
+  // The game's lotus-rules.js palette wins when it is on the page (same values; this keeps them in step).
+  (function () { var R = root.LotusRules; if (R && R.blooms && R.blooms.length === 6) for (var i = 0; i < 6; i++) if (R.blooms[i].name === BLOOMS[i][0]) BLOOMS[i][1] = R.blooms[i].color; })();
+  // All six answer together twice: when the path of light reaches the moon, and when the boat passes the last flower.
+  var CHORUS = [30.6, 40.2];
   var LOTUS = [[1.5, 1.2], [2.8, -1.0], [4.2, 1.3], [5.6, -1.3], [7.0, 1.4], [8.5, -1.4]], LOTUS_T = 11, LOTUS_STEP = 1.45, LOTUS_SCALE = 1.5;
   function lotusAt(i, t, out) {
     out = out || {};
     var L = LOTUS[i], p = onPath(L[0], L[1], out), w = windAt(p.x, p.z, t), wake = LOTUS_T + i * LOTUS_STEP;
+    // Bloom (the game's lotus: 8 outer + 5 inner petals on hinges, closed bud -> open cup), a warm pulse in its colour
+    // as it opens, and a ripple ring that runs out over the water from the leaf.
     out.open = ease(ramp(t, wake, wake + 2.4));
-    out.glow = Math.min(1, 0.12 + 0.55 * out.open + 0.35 * Math.exp(-Math.max(0, t - wake - 1.2) * 0.8) * ramp(t, wake, wake + 1.2) + 0.15 * ease(ramp(t, 24, 30)));
+    out.outer = lerp(-1.32, -0.34, out.open) + soft * 0.04 * Math.sin(t * 0.9 + i * 2.1) * out.open;
+    out.inner = lerp(-1.42, -0.86, ease(ramp(t, wake + 0.5, wake + 2.8)));
+    out.pulse = ramp(t, wake + 0.4, wake + 1.2) * Math.exp(-Math.max(0, t - wake - 1.2) * 0.75);
+    var ch = 0; for (var c = 0; c < CHORUS.length; c++) { var dc = t - CHORUS[c] - 0.12 * i; ch = Math.max(ch, dc > -0.6 ? Math.exp(-dc * dc * (dc < 0 ? 6 : 0.5)) : 0); }
+    out.chorus = ch;
+    out.glow = Math.min(1.25, 0.1 + 0.5 * out.open + 0.55 * out.pulse + 0.15 * ease(ramp(t, 24, 30)) + 0.45 * ch);
+    var ru = ramp(t, wake + 0.6, wake + 3.6), rc = ramp(t, CHORUS[0] + 0.12 * i, CHORUS[0] + 0.12 * i + 3);
+    out.ringR = ru > 0 && ru < 1 ? 0.35 + 1.5 * ease(ru) : rc > 0 && rc < 1 ? 0.35 + 1.8 * ease(rc) : 0;
+    out.ringA = ru > 0 && ru < 1 ? (1 - ru) * ramp(ru, 0, 0.1) : rc > 0 && rc < 1 ? 0.8 * (1 - rc) * ramp(rc, 0, 0.1) : 0;
     // The leaf rocks and dips as the wind crosses the bay; the bloom bobs a little after it.
     out.tilt = soft * 0.07 * w; out.roll = soft * 0.05 * windAt(p.x + 0.7, p.z - 0.4, t);
     out.y = WATER_Y + 0.02 + soft * 0.025 * Math.sin(t * 1.1 + i * 1.7);
@@ -91,22 +105,31 @@
     return out;
   }
   function hsh(j, k) { var s = Math.sin(j * 12.9898 + k * 78.233) * 43758.5453; return s - Math.floor(s); }
-  /* Moon-dew: three beads per lotus, in its petal colour. They brighten in the open flower, hover over it, then (third
-   * beat) drift down onto the water and become the beads of light along the path. Placeholder motion (item 2). */
-  var DEWS = 18;
+  /* Moon-dew: four beads per lotus, in its petal colour. Each is born in the opening flower's heart, lifts in a slow
+   * spiral and hovers over the flower; in the third beat, as the path of light reaches its spot, it drifts down in a
+   * soft arc and settles on the water as one of the stepping lights of the path home (nearest flowers -> nearest
+   * steps), alternating either side of the ribbon. It keeps breathing there and brightens with the lotus chorus. */
+  var DEWS = 24, DEW_PER = 4;
+  var STEP = {}, LP = {};
+  function dewStep(j) { var i = j % 6, k = (j / 6) | 0, n = i * DEW_PER + k; STEP.s = 0.8 + n * (PATH_LEN - 2.6) / (DEWS - 1); STEP.side = (n % 2 ? 1 : -1) * (0.62 + 0.04 * n); return STEP; }
   function dewAt(j, t, out) {
     out = out || {};
-    var i = j % 6, k = (j / 6) | 0, L = lotusAt(i, t, {}), up = ease(ramp(t, L.wake + 0.8, L.wake + 2.6)), a = k * TAU / 3 + t * 0.5 * soft + i;
-    var hx = L.x + Math.cos(a) * 0.32, hz = L.z + Math.sin(a) * 0.32, hy = WATER_Y + 0.55 + 0.45 * up + soft * 0.08 * Math.sin(t * 1.6 + j);
-    var d = ease(ramp(t, 22 + 0.4 * i + 0.3 * k, 27 + 0.4 * i + 0.3 * k)), sp = onPath(Math.min(PATH_LEN - 1, 0.4 + j * 0.62), 0.18 * Math.sin(j * 2.3), {});
-    out.x = lerp(hx, sp.x, d); out.z = lerp(hz, sp.z, d); out.y = lerp(hy, WATER_Y + 0.12, d) + d * (1 - d) * 1.2;
-    out.alpha = up; out.size = 0.34 + 0.08 * hsh(j, 2) + 0.06 * Math.sin(t * 2.2 + j * 1.3);
-    out.tone = i; out.settled = d;
+    var i = j % 6, k = (j / 6) | 0, L = lotusAt(i, t, LP), born = L.wake + 0.7 + 0.35 * k, up = ease(ramp(t, born, born + 2.2));
+    var a = k * TAU / DEW_PER + i + soft * (0.35 * t + 0.6 * up), rad = (0.12 + 0.3 * up) * L.scale;
+    var hx = L.x + Math.cos(a) * rad, hz = L.z + Math.sin(a) * rad;
+    var hy = L.y + 0.35 * L.scale + (0.25 + 0.75 * hsh(j, 1)) * up * L.scale * 0.8 + soft * 0.07 * Math.sin(t * 1.5 + j);
+    var st = dewStep(j), tS = 22.6 + 7.4 * Math.sqrt(st.s / PATH_LEN), d = ease(ramp(t, tS - 2.4, tS));
+    var sx = P0[0] + PD[0] * st.s + PN[0] * st.side, sz = P0[1] + PD[1] * st.s + PN[1] * st.side;
+    out.x = lerp(hx, sx, d); out.z = lerp(hz, sz, d); out.y = lerp(hy, WATER_Y + 0.08, d) + 4 * d * (1 - d) * 0.5;
+    var breathe = 0.85 + 0.15 * Math.sin(t * 2.0 + j * 1.3);
+    out.alpha = up * breathe; out.settled = d; out.tone = i;
+    // Settled beads grow for the wide shots so the stepping lights stay readable on a phone.
+    out.size = (0.3 + 0.08 * hsh(j, 2)) * (1 + 0.35 * up) * (1 + d * (0.5 + 0.6 * ease(ramp(t, 32, 46)))) * (1 + 0.35 * L.chorus);
     return out;
   }
   /* The little boat: a lamp at its bow, it slips out from the shore at the start of the fourth beat and glides along
    * the path towards the moon, slow and steady; its wake is the same path at earlier times. */
-  var BOAT_T0 = 31.5, BOAT_SCALE = 3;
+  var BOAT_T0 = 31.5, BOAT_SCALE = 2.6;
   function boatS(t) { var u = ramp(t, BOAT_T0, DURATION + 2); return -0.6 + 15.5 * (0.35 * u + 0.65 * u * u * (1.6 - 0.6 * u)); }
   function boatAt(t, out) {
     out = out || {};
@@ -116,16 +139,19 @@
     out.yaw = Math.atan2(PD[0], PD[1]);
     out.roll = soft * 0.05 * Math.sin(t * 1.1 + 0.4); out.pitch = soft * 0.03 * Math.sin(t * 0.9);
     out.alpha = ease(ramp(t, BOAT_T0 - 1.2, BOAT_T0 + 0.6)); out.glow = out.alpha * (0.75 + 0.25 * Math.sin(t * 2.1) * soft);
-    out.scale = BOAT_SCALE * (1 + 0.45 * ease(ramp(t, 38, 48))); // drawn larger as it sails away, so it still reads
+    // Drawn larger as it sails away and the camera pulls out (L3's lesson), so the hull still reads on a 390-wide phone.
+    out.scale = BOAT_SCALE * (1 + 0.35 * ease(ramp(t, 34, 40)) + 0.5 * ease(ramp(t, 40, 49)));
     out.s = s;
     return out;
   }
-  var WAKE = 14;
+  var WAKE = 14, WB = {};
   function wakeAt(j, t, out) {
     out = out || {};
-    var age = 0.35 + j * 0.42, s = boatS(t - age), b = boatAt(t, {});
-    onPath(s, 0, out); out.y = WATER_Y + 0.03;
-    out.alpha = b.alpha * (1 - j / WAKE) * (s > -0.5 ? 1 : 0) * ramp(t - age, BOAT_T0 - 0.5, BOAT_T0 + 1); out.size = (0.5 + 0.12 * j) * b.scale / BOAT_SCALE;
+    // Foam dabs on the two arms of the V (Kelvin half-angle 19.47 deg: the arms spread tan = 0.354 per metre behind).
+    var age = 0.3 + (j >> 1) * 0.55, s = boatS(t - age), b = boatAt(t, WB), back = b.s - s, side = (j & 1 ? 1 : -1) * (0.2 * b.scale / BOAT_SCALE + 0.354 * back);
+    onPath(s, side, out); out.y = WATER_Y + 0.04;
+    out.alpha = b.alpha * (1 - 0.8 * (j >> 1) / (WAKE >> 1)) * (s > -0.5 ? 1 : 0) * ramp(t - age, BOAT_T0 - 0.5, BOAT_T0 + 1);
+    out.size = (0.45 + 0.1 * (j >> 1)) * b.scale / BOAT_SCALE;
     return out;
   }
   /* Fireflies (earlier chapters' 星萤) and lanterns (the star lamps' light) come back to see the boat off: fireflies
@@ -137,7 +163,7 @@
     out.x = p.x + 0.45 * Math.cos(a); out.z = p.z + 0.45 * Math.sin(a * 1.3);
     out.y = 0.4 + 1.4 * hsh(j, 5) + soft * 0.25 * Math.sin(t * 0.9 + j * 1.7);
     var blink = 0.5 + 0.5 * Math.sin(t * (1.3 + 1.2 * hsh(j, 6)) + j * 2.1);
-    out.alpha = ease(ramp(t, b, b + 2.5)) * (0.45 + 0.55 * blink * blink); out.size = 0.22 + 0.08 * hsh(j, 7);
+    out.alpha = ease(ramp(t, b, b + 2.5)) * (0.6 + 0.4 * blink * blink); out.size = (0.4 + 0.12 * hsh(j, 7)) * (1 + 0.4 * ease(ramp(t, 40, 48)));
     return out;
   }
   function lanternAt(j, t, out) {
@@ -146,7 +172,7 @@
     var p = onPath(s, side, {});
     out.x = p.x + soft * 0.15 * Math.sin(t * 0.5 + j); out.z = p.z;
     out.y = 0.6 + 3.2 * ease(u) + soft * 0.1 * Math.sin(t * 0.8 + j * 1.9);
-    out.alpha = ease(ramp(t, b, b + 1.5)); out.size = 0.62 + 0.1 * hsh(j, 3);
+    out.alpha = ease(ramp(t, b, b + 1.5)); out.size = (0.9 + 0.12 * hsh(j, 3)) * (1 + 0.35 * ease(ramp(t, 40, 48)));
     out.tone = j;
     return out;
   }
@@ -213,7 +239,7 @@
     night: { top: 0x141a3e, mid: 0x2e3a70, hor: 0x6a6aa0, low: 0x1c2450, lit: 0xd8dcf0, shade: 0x3a4072, key: 0xc8d0f0, keyI: 0.5, hemiA: 0x7c88c4, hemiB: 0x262a4c, hemiI: 0.64, grass: [0.46, 0.58, 0.9], fog: 0x2a3060 }
   };
   var MOON_COL = 0xffe4a8, MOON_DISC = 0.055, MOON_KEEP = 0.085, MAX_PR = 1.5; // sines of the disc's angular radius and of the angle kept clear round it
-  var ramp4 = null, toons = {}, painted = [], tmpB = null;
+  var ramp4 = null, toons = {}, painted = [], tmpB = null, PETALS = 13;
   function sprite(map, color, additive) {
     var m = new T.SpriteMaterial({ map: map, color: color, transparent: true, opacity: 0, depthWrite: false, fog: false });
     if (additive) m.blending = T.AdditiveBlending;
@@ -289,14 +315,15 @@
         // a silver rim brightest on the moon's side, and a darker pigment edge where the wash dried.
         ' if (h > -0.3 && h < 0.66) { float az = atan(d.x, -d.z) + uTime * 0.004; vec2 p = vec2(az * 1.4, h * 3.2);' +
         '  float big = noise(vec2(az * 1.1 + 2.0, 2.5)); float mid = noise(vec2(az * 2.9 + 1.7, 9.5));' +
-        '  float top = -0.06 + 0.52 * smoothstep(0.22, 0.8, big) + 0.1 * mid - 0.42 * smoothstep(0.9, 0.99, sm); float bil = fbm(p * 2.6 + 4.0);' +
+        '  float dAz = az - atan(uMoon.x, -uMoon.z); float bank = smoothstep(0.1, 0.3, dAz) * smoothstep(1.3, 0.75, dAz) + 0.8 * smoothstep(-0.12, -0.3, dAz) * smoothstep(-1.3, -0.75, dAz);' +
+        '  float top = -0.01 + 0.36 * smoothstep(0.2, 0.8, big) + 0.24 * bank * (0.6 + 0.4 * mid) + 0.1 * mid - 0.12 * smoothstep(0.97, 0.995, sm); float bil = fbm(p * 2.6 + 4.0);' +
         '  float e = top - h + (bil - 0.5) * 0.3; float wet = 0.012 + 0.07 * smoothstep(0.35, 0.75, noise(p * 1.7 + 11.0)); float mask = smoothstep(0.0, wet, e);' +
         '  float rim = 1.0 - smoothstep(0.0, 0.1, e);' +
         '  float lite = rim * 0.85 + smoothstep(0.5, 0.75, bil) * 0.35 - smoothstep(0.2, 0.5, e) * 0.2;' +
         '  lite = clamp(lite, 0.0, 1.0) * 3.0 + 0.5; lite = clamp((floor(lite) + smoothstep(0.0, 0.35, fract(lite)) - 1.0) / 3.0, 0.0, 1.0);' +
         '  vec3 cloud = mix(uShade, uLit, lite * 0.8) * (0.95 + 0.1 * wash); cloud = mix(cloud, uShade * 0.8, smoothstep(0.02, 0.0, abs(e - 0.03)) * 0.25);' +
         '  cloud = mix(cloud, vec3(0.94, 0.95, 1.0), rim * (0.25 + 0.6 * pow(sm, 4.0))); cloud = mix(cloud, vec3(1.0, 0.88, 0.66), rim * pow(sm, 12.0) * 0.5);' +
-        '  col = mix(col, cloud, mask * 0.95); }' +
+        '  col = mix(col, cloud, mask * 0.95 * (1.0 - smoothstep(0.972, 0.993, sm))); }' +
         // The far bay below the horizon: dark still water, the sky's colour faintly mirrored, the moon's glitter path.
         ' if (hh < 0.03) { float az2 = max(dot(normalize(d.xz), normalize(uMoon.xz)), 0.0); vec2 uv = d.xz / (0.08 - min(h, 0.0)) * 0.6;' +
         '  float rip = noise(vec2(uv.x * 0.6, uv.y * 4.0) + vec2(0.0, uTime * 0.15));' +
@@ -310,13 +337,15 @@
      * streaks, the moon's glitter (the view ray reflected off a gently rippled surface), the path of light along the
      * route home revealed from the shore outwards, and soft pigment pooling (a darker drying edge) at the shoreline. */
     st.waterU = { uTime: { value: 0 }, uMoon: { value: new T.Vector3() }, uReach: { value: 0 }, uPathGlow: { value: 0 }, uWarm: { value: 0 }, uSoft: { value: soft },
-      uP0: { value: new T.Vector2(P0[0], P0[1]) }, uPD: { value: new T.Vector2(PD[0], PD[1]) }, uBoat: { value: new T.Vector3(0, 0, -99) } };
+      uP0: { value: new T.Vector2(P0[0], P0[1]) }, uPD: { value: new T.Vector2(PD[0], PD[1]) }, uBoat: { value: new T.Vector4(0, 0, 0, 1) },
+      uLot: { value: [] }, uLotC: { value: [] }, uRingA: { value: [0, 0, 0, 0, 0, 0] } };
+    for (i = 0; i < 6; i++) { st.waterU.uLot.value.push(new T.Vector4(0, 0, 0, 0)); st.waterU.uLotC.value.push(new T.Color(BLOOMS[i][1])); }
     names = ['Top', 'Hor', 'Low'];
     for (i = 0; i < names.length; i++) st.waterU['u' + names[i]] = st.skyU['u' + names[i]];
     var wg = new T.CircleGeometry(60, 64); wg.rotateX(-Math.PI / 2);
     st.water = new T.Mesh(wg, new T.ShaderMaterial({ uniforms: st.waterU, fog: false,
       vertexShader: 'varying vec3 vW; varying vec2 vL; void main(){ vL = position.xz; vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
-      fragmentShader: 'uniform vec3 uTop; uniform vec3 uHor; uniform vec3 uLow; uniform vec3 uMoon; uniform vec2 uP0; uniform vec2 uPD; uniform vec3 uBoat;' +
+      fragmentShader: 'uniform vec3 uTop; uniform vec3 uHor; uniform vec3 uLow; uniform vec3 uMoon; uniform vec2 uP0; uniform vec2 uPD; uniform vec4 uBoat; uniform vec4 uLot[6]; uniform vec3 uLotC[6]; uniform float uRingA[6];' +
         'uniform float uTime; uniform float uReach; uniform float uPathGlow; uniform float uWarm; uniform float uSoft; varying vec3 vW; varying vec2 vL;' + NOISE_GLSL + WIND_GLSL +
         'void main(){ vec3 v = normalize(vW - cameraPosition); float dist = length(vW.xz - cameraPosition.xz);' +
         ' float w = windF(vL, uTime); float rip = noise(vec2(vL.x * 0.9 + vL.y * 0.3, vL.y * 3.2 - vL.x * 0.4) + vec2(uTime * 0.12, uTime * 0.3) * uSoft);' +
@@ -330,13 +359,21 @@
         ' float g = max(dot(r, uMoon), 0.0); float glit = pow(g, 300.0) * 1.1 + pow(g, 60.0) * 0.2 * smoothstep(0.5, 0.85, rip) + pow(g, 14.0) * 0.035;' +
         ' col += vec3(1.0, 0.86, 0.58) * glit;' +
         // the path of light home: lit from the shore out to uReach, warm gold, softly broken by the ripples
-        ' vec2 q = vL - uP0; float along = dot(q, uPD); float across = abs(q.x * uPD.y - q.y * uPD.x); float hw = 0.38 + 0.03 * along;' +
+        ' vec2 q = vL - uP0; float along = dot(q, uPD); float across = abs(q.x * uPD.y - q.y * uPD.x); float hw = 0.62 + 0.045 * along;' +
         ' float lane = smoothstep(hw, hw * 0.25, across) * smoothstep(-0.8, 0.2, along) * smoothstep(uReach + 0.2, uReach - 1.6, along);' +
         ' float br = 0.55 + 0.45 * smoothstep(0.3, 0.75, noise(vec2(along * 2.4 - uTime * 0.6 * uSoft, across * 6.0)));' +
-        ' col = mix(col, vec3(1.0, 0.84, 0.54), lane * uPathGlow * br * 0.75); col += vec3(0.5, 0.36, 0.16) * lane * uPathGlow * 0.25;' +
+        ' float skirt = smoothstep(hw * 2.4, hw * 0.6, across) * smoothstep(-0.8, 0.2, along) * smoothstep(uReach + 0.6, uReach - 2.5, along);' +
+        ' col += vec3(0.32, 0.22, 0.1) * skirt * uPathGlow * 0.6;' +
+        ' col = mix(col, vec3(1.0, 0.85, 0.56), lane * uPathGlow * br * 0.82); col += vec3(0.5, 0.36, 0.16) * lane * uPathGlow * 0.3;' +
+        // each lotus pools its colour on the water under it (moonlight on the leaves), and sends a ripple ring out as it opens
+        ' for (int i = 0; i < 6; i++) { vec4 L = uLot[i]; float dl = length(vL - L.xy);' +
+        '  col += uLotC[i] * (exp(-dl * dl * 0.8) * L.z * 0.3 + smoothstep(0.12, 0.0, abs(dl - L.w)) * uRingA[i] * 0.7); }' +
         // the boat's wake: a pale V spreading behind it
-        ' vec2 bq = vL - uBoat.xy; float ba = -dot(bq, uPD); float bc = abs(bq.x * uPD.y - bq.y * uPD.x); float wk = smoothstep(0.0, 0.6, ba) * smoothstep(5.0, 0.5, ba) * (smoothstep(0.12, 0.0, abs(bc - ba * 0.32 - 0.12)) + 0.4 * smoothstep(0.3, 0.0, bc)) * uBoat.z;' +
-        ' col += vec3(0.75, 0.8, 1.0) * wk * 0.35;' +
+        ' vec2 bq = vL - uBoat.xy; float ba = -dot(bq, uPD); float bc = abs(bq.x * uPD.y - bq.y * uPD.x); float wk = smoothstep(0.0, 0.5, ba) * smoothstep(6.5 * uBoat.w, 0.4, ba) * (smoothstep(0.16 * uBoat.w, 0.0, abs(bc - ba * 0.354 - 0.2 * uBoat.w)) + 0.45 * smoothstep(0.35 * uBoat.w, 0.0, bc)) * uBoat.z;' +
+        ' col = mix(col, vec3(0.86, 0.9, 1.0), clamp(wk * 0.55, 0.0, 0.7));' +
+        // the bow lamp mirrored: a warm streak on the water from the boat towards the lens
+        ' vec2 tc = normalize(cameraPosition.xz - uBoat.xy); vec2 lq = vL - uBoat.xy - uPD * 0.5 * uBoat.w; float la = dot(lq, tc); float lc = abs(lq.x * tc.y - lq.y * tc.x);' +
+        ' col += vec3(1.0, 0.72, 0.38) * smoothstep(0.22 * uBoat.w, 0.0, lc) * smoothstep(-0.2, 0.3, la) * smoothstep(3.0 * uBoat.w, 0.2, la) * (0.6 + 0.4 * rip) * uBoat.z * 0.7;' +
         // pigment pooled at the shore (the island rim at r = 5) and the far water melting into the sky's far bay
         ' float shore = length(vL); col = mix(col, uLow * 0.55, smoothstep(5.7, 5.02, shore) * 0.55);' +
         ' col = mix(col, mix(uLow, uHor, 0.3), smoothstep(30.0, 58.0, dist));' +
@@ -377,19 +414,31 @@
     for (i = 0; i < 6; i++) { discP.push(Math.cos(i * TAU / 6), Math.sin(i * TAU / 6), 0); di.push(0, 1 + i, 1 + (i + 1) % 6); }
     st.heads = field(discP, di, hoff, hdim, true);
     st.blades = off.length / 3; st.blooms = hoff.length / 3;
-    /* Placeholder lotuses (item 2 gives them proper motion): a dark jade leaf pad with a notch, an open cup of petals in
-     * the lotus colour that opens from a bud, a gold seed head and a soft halo in the petal colour. */
-    var padGeo = new T.CylinderGeometry(0.62, 0.62, 0.04, 20, 1, false, 0.25, TAU - 0.5), cupGeo = new T.ConeGeometry(0.42, 0.4, 10, 1, true), seedGeo = new T.SphereGeometry(0.1, 8, 6);
-    cupGeo.rotateX(Math.PI); cupGeo.translate(0, 0.2, 0);
-    var padMat = new T.MeshLambertMaterial({ color: 0x3f7a6e, emissive: 0x15302c, emissiveIntensity: 1 }), seedMat = new T.MeshBasicMaterial({ color: 0xffe2a0, fog: false });
+    /* The six lotuses, in the game's own look (lotus-chapter.js: a jade leaf pad, petals = stretched spheres on hinges
+     * round the stem that fold from a bud to an open cup, a gold seed head, a soft halo in the petal colour), as
+     * display-only copies. Three instanced draws for all six (pads, 8 outer + 5 inner petals each, seeds) plus six
+     * halo sprites; a frame only rewrites instance matrices and colours. */
+    var petGeo = new T.SphereGeometry(1, 10, 6), pp = petGeo.attributes.position;
+    for (i = 0; i < pp.count; i++) {
+      // a pointed petal: stretched sphere, tapering to a tip that curls up a little
+      var px = pp.getX(i) * 0.1, py = pp.getY(i) * 0.05, pz = pp.getZ(i) * 0.27, tip = Math.max(0, pz / 0.27);
+      pp.setXYZ(i, px * (1 - 0.6 * tip * tip), py + 0.07 * tip * tip, pz + 0.29);
+    }
+    petGeo.computeVertexNormals();
+    var padGeo = new T.CylinderGeometry(0.62, 0.6, 0.035, 24, 1, false, 0.22, TAU - 0.44), seedGeo = new T.SphereGeometry(0.11, 10, 6);
+    seedGeo.scale(1, 0.6, 1);
+    st.petals = new T.InstancedMesh(petGeo, new T.MeshLambertMaterial({ color: 0xffffff, emissive: 0x3a3048, side: T.DoubleSide }), 6 * PETALS);
+    st.pads = new T.InstancedMesh(padGeo, new T.MeshLambertMaterial({ color: 0x64a7a1, emissive: 0x16302e }), 6);
+    st.seeds = new T.InstancedMesh(seedGeo, new T.MeshBasicMaterial({ color: 0xffffff, fog: false }), 6);
+    var im = [st.pads, st.petals, st.seeds];
+    for (i = 0; i < im.length; i++) { im[i].l5cs = true; im[i].frustumCulled = false; im[i].instanceMatrix.setUsage(T.DynamicDrawUsage); g.add(im[i]); }
+    for (i = 0; i < 6 * PETALS; i++) st.petals.setColorAt(i, tmpB.setHex(BLOOMS[(i / PETALS) | 0][1]));
+    for (i = 0; i < 6; i++) { st.seeds.setColorAt(i, tmpB.setHex(0xffe7ad)); st.pads.setColorAt(i, tmpB.setHex(0xffffff)); }
+    st.m0 = new T.Matrix4(); st.m1 = new T.Matrix4(); st.m2 = new T.Matrix4(); st.qn = new T.Quaternion(); st.eu = new T.Euler(); st.sc = new T.Vector3(); st.ps = new T.Vector3();
+    st.lotusC = [];
     for (i = 0; i < 6; i++) {
-      var lg = new T.Group(); lg.scale.setScalar(LOTUS_SCALE); g.add(lg);
-      var pad = part(padGeo, padMat, lg, 0, 0, 0); pad.l5cs = true;
-      var mat = new T.MeshLambertMaterial({ color: BLOOMS[i][1], emissive: BLOOMS[i][1], emissiveIntensity: 0.2, side: T.DoubleSide });
-      var cup = part(cupGeo, mat, lg, 0, 0.03, 0); cup.l5cs = true;
-      var sd = part(seedGeo, seedMat, lg, 0, 0.2, 0);
-      var halo = sprite(H.glowTex, BLOOMS[i][1], true); halo.position.y = 0.35; lg.add(halo);
-      st.lotuses.push({ g: lg, pad: pad, cup: cup, mat: mat, seed: sd, halo: halo });
+      var halo = sprite(H.glowTex, BLOOMS[i][1], true); g.add(halo);
+      st.lotuses.push({ halo: halo, open: 0, x: 0 }); st.lotusC.push(new T.Color(BLOOMS[i][1]));
     }
     /* Dew, fireflies, lanterns and the boat's wake dabs share one Points cloud (one draw). A frame only rewrites two small
      * typed arrays; nothing is allocated. Slots: dew, fireflies, lanterns, wake. */
@@ -409,23 +458,50 @@
       fragmentShader: 'varying float vA; varying float vK; varying vec3 vCol; void main(){ vec2 q = gl_PointCoord - 0.5; float r = length(q) * 2.0; if (r > 1.0) discard;' +
         ' float core = smoothstep(0.34, 0.12, r), halo = pow(1.0 - r, 2.2); vec3 col; float a;' +
         // a lantern: a warm paper body (rounded box) with a bright heart, inside a wide glow
-        ' if (vK > 1.5 && vK < 2.5) { float box = step(abs(q.x), 0.15) * step(abs(q.y + 0.02), 0.2); col = mix(vCol, vec3(1.0, 0.95, 0.8), core); col = mix(col * 0.9, vec3(1.0, 0.82, 0.55), box * 0.6); a = max(box * 0.95, halo * 0.75); }' +
+        ' if (vK > 1.5 && vK < 2.5) { float body = smoothstep(0.24, 0.2, length(q * vec2(1.25, 0.95))); float rib = 0.85 + 0.15 * cos(q.y * 60.0);' +
+        '  col = mix(vCol * 1.1, vec3(1.0, 0.96, 0.82), smoothstep(0.2, 0.0, length(q)) * 0.8) * mix(1.0, rib, body); a = max(body * 0.97, halo * 0.9); }' +
         ' else if (vK > 2.5) { col = vCol; a = halo * 0.5; }' +
-        ' else { col = mix(vCol, vec3(1.0, 0.98, 0.92), core * 0.8); a = max(core, halo * 0.85); }' +
+        ' else { col = mix(vCol, vec3(1.0, 0.98, 0.92), core * 0.8) * (1.0 + 0.3 * halo); a = max(core, min(1.0, halo * 1.1)); }' +
         ' gl_FragColor = vec4(col, a * vA); }' }));
     st.points.frustumCulled = false; st.points.renderOrder = 3; g.add(st.points);
-    /* Placeholder boat: a small wooden hull (a pointed box), a pale sail, a bow lamp with a warm glow, and a dark
-     * reflection under it so it reads on the bright path. */
+    /* The little boat (the game's small gold finale boat, grown into a readable canoe): a wooden hull with raised bow
+     * and stern, a dark ink outline (an inflated back-face shell) so it reads against the bright path, a cream gunwale
+     * inside, a mast with a pale sail, a bow lamp with a warm glow. Its reflection is the same hull and sail mirrored in
+     * the water line and then projected along the view ray onto the water plane in the vertex shader, so it lies on the
+     * water (depth-tested against the shore like the water itself) instead of being hidden under it. */
     st.boat = new T.Group(); g.add(st.boat); st.boat.visible = false;
-    var hullGeo = new T.ConeGeometry(0.18, 0.7, 4); hullGeo.rotateX(Math.PI / 2); hullGeo.scale(1, 0.55, 1);
-    st.boatMat = new T.MeshBasicMaterial({ color: 0x6a4a3c, fog: false, transparent: true, opacity: 0 });
-    st.sailMat = new T.MeshBasicMaterial({ color: 0xf4ead4, side: T.DoubleSide, fog: false, transparent: true, opacity: 0 });
-    st.boatHull = part(hullGeo, st.boatMat, st.boat, 0, 0.06, 0);
-    var sailGeo = new T.BufferGeometry(); sailGeo.setAttribute('position', new T.Float32BufferAttribute([0, 0.1, -0.12, 0, 0.62, -0.06, 0, 0.12, 0.18], 3));
-    part(sailGeo, st.sailMat, st.boat, 0, 0, 0);
-    st.boatShade = sprite(H.glowTex, 0x10142e, false); st.boatShade.scale.set(1.2, 0.5, 1); st.boatShade.position.y = 0.0; st.boat.add(st.boatShade);
-    st.boatGlow = sprite(H.glowTex, 0xffb866, true); st.boatGlow.position.set(0, 0.32, 0.3); st.boatGlow.scale.set(1.3, 1.3, 1); st.boat.add(st.boatGlow);
-    st.boatLamp = sprite(H.glowTex, 0xfff4cc, true); st.boatLamp.position.set(0, 0.32, 0.3); st.boatLamp.scale.set(0.34, 0.34, 1); st.boat.add(st.boatLamp);
+    var hullGeo = new T.SphereGeometry(1, 16, 8, 0, TAU, Math.PI / 2, Math.PI / 2), hp = hullGeo.attributes.position;
+    for (i = 0; i < hp.count; i++) { var hz = hp.getZ(i), e = Math.abs(hz); hp.setXYZ(i, hp.getX(i) * 0.2 * (1 - 0.55 * e * e * e), hp.getY(i) * 0.16 + 0.13 * Math.pow(e, 4), hz * 0.62); }
+    hullGeo.computeVertexNormals();
+    var deckGeo = new T.CircleGeometry(1, 16); deckGeo.rotateX(-Math.PI / 2); deckGeo.scale(0.16, 1, 0.5);
+    var sailGeo = new T.BufferGeometry(); sailGeo.setAttribute('position', new T.Float32BufferAttribute([-0.24, 0.3, -0.02, 0.24, 0.3, -0.02, -0.2, 0.8, 0.02, 0.24, 0.3, -0.02, 0.2, 0.8, 0.02, -0.2, 0.8, 0.02], 3)); sailGeo.computeVertexNormals();
+    var mastGeo = new T.CylinderGeometry(0.014, 0.018, 0.86, 5); mastGeo.translate(0, 0.43, 0.0);
+    st.boatMat = new T.MeshBasicMaterial({ color: 0x9a6440, fog: false, transparent: true, opacity: 0 });
+    st.inkMat = new T.MeshBasicMaterial({ color: 0x120f26, side: T.BackSide, fog: false, transparent: true, opacity: 0 });
+    st.deckMat = new T.MeshBasicMaterial({ color: 0xe8c890, fog: false, transparent: true, opacity: 0 });
+    st.sailMat = new T.MeshBasicMaterial({ color: 0xf6eedc, side: T.DoubleSide, fog: false, transparent: true, opacity: 0 });
+    st.mastMat = new T.MeshBasicMaterial({ color: 0x3a2a30, fog: false, transparent: true, opacity: 0 });
+    var ink = part(hullGeo, st.inkMat, st.boat, 0, 0.0, 0); ink.scale.set(1.16, 1.2, 1.07);
+    st.boatHull = part(hullGeo, st.boatMat, st.boat, 0, 0.0, 0);
+    part(deckGeo, st.deckMat, st.boat, 0, 0.012, 0);
+    part(mastGeo, st.mastMat, st.boat, 0, 0, 0); part(sailGeo, st.sailMat, st.boat, 0, 0, 0);
+    st.boatShade = sprite(H.glowTex, 0x10142e, false); st.boatShade.scale.set(1.6, 0.6, 1); st.boatShade.position.y = 0.0; st.boat.add(st.boatShade);
+    st.boatGlow = sprite(H.glowTex, 0xffb866, true); st.boatGlow.position.set(0, 0.3, 0.52); st.boatGlow.scale.set(1.5, 1.5, 1); st.boat.add(st.boatGlow);
+    st.boatLamp = sprite(H.glowTex, 0xfff4cc, true); st.boatLamp.position.set(0, 0.3, 0.52); st.boatLamp.scale.set(0.38, 0.38, 1); st.boat.add(st.boatLamp);
+    var lampGeo = new T.SphereGeometry(0.045, 8, 6); part(lampGeo, st.deckMat, st.boat, 0, 0.3, 0.52); part(lampGeo, st.deckMat, st.boat, 0, 0.26, -0.5);
+    st.boatStern = sprite(H.glowTex, 0xffc070, true); st.boatStern.position.set(0, 0.26, -0.5); st.boatStern.scale.set(0.9, 0.9, 1); st.boat.add(st.boatStern);
+    // reflection (one shader: projected onto the water along the view ray, gently wobbled by the ripples)
+    st.refU = { uWater: { value: 0 }, uTime: { value: 0 }, uA: { value: 0 } };
+    function refMat(col, op) {
+      return new T.ShaderMaterial({ uniforms: { uWater: st.refU.uWater, uTime: st.refU.uTime, uA: st.refU.uA, uCol: { value: new T.Color(col) }, uOp: { value: op } },
+        transparent: true, depthWrite: false, side: T.DoubleSide, fog: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+        vertexShader: 'uniform float uWater; uniform float uTime; varying float vD; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vec3 dir = w.xyz - cameraPosition;' +
+          ' vD = uWater - w.y; float k = (uWater + 0.004 - cameraPosition.y) / min(dir.y, -1e-3); w.xyz = cameraPosition + dir * k; w.x += sin(w.z * 7.0 + uTime * 2.4) * 0.025 * min(vD * 4.0, 1.0); gl_Position = projectionMatrix * viewMatrix * w; }',
+        fragmentShader: 'uniform vec3 uCol; uniform float uOp; uniform float uA; varying float vD; void main(){ gl_FragColor = vec4(uCol, uOp * uA * (1.0 - smoothstep(0.1, 0.9, vD) * 0.6)); }' });
+    }
+    st.boatRef = new T.Group(); g.add(st.boatRef); st.boatRef.visible = false; st.boatRef.renderOrder = 2;
+    var rh = part(hullGeo, refMat(0x140f22, 0.72), st.boatRef, 0, 0, 0); rh.scale.set(1.12, 1.15, 1.06); rh.renderOrder = 2;
+    var rs = part(sailGeo, refMat(0xc8c0d8, 0.4), st.boatRef, 0, 0, 0); rs.renderOrder = 2;
     st.canvas = doc.querySelector('canvas');
     for (i = 0; i < H.scene.children.length; i++) {
       var ch = H.scene.children[i];
@@ -510,14 +586,29 @@
     if (cam.zoom !== 1) { cam.zoom = 1; cam.updateProjectionMatrix(); }
     var wild = root.__bf && root.__bf.butterflies ? root.__bf.butterflies : [];
     for (i = 0; i < wild.length; i++) if (wild[i].g) hide(wild[i].g);
-    // Lotuses: leaf rocks on the wind, the cup opens from a bud and glows in its colour.
+    // Lotuses: the leaf rocks on the wind, the petals fold open on their hinges, colour and halo pulse with the glow.
+    var m0 = st.m0, m1 = st.m1, m2 = st.m2, wl = st.waterU;
     for (i = 0; i < 6; i++) {
-      var L = st.lotuses[i], lp = f.lotuses[i], op = lp.open, gs = (0.9 + 1.4 * lp.glow) * (1 + 0.1 * Math.sin(t * 1.7 + i));
-      L.g.position.set(lp.x, top + lp.y, lp.z); L.g.rotation.set(lp.tilt, lp.yaw, lp.roll); L.g.scale.setScalar(lp.scale);
-      L.cup.scale.set(0.35 + 0.75 * op, 0.75 + 0.35 * op, 0.35 + 0.75 * op);
-      L.mat.emissiveIntensity = 0.12 + 0.55 * lp.glow;
-      L.seed.visible = op > 0.3; L.halo.material.opacity = clamp(lp.glow, 0, 1) * 0.9; L.halo.scale.set(gs, gs, 1);
+      var L = st.lotuses[i], lp = f.lotuses[i], gs = (0.75 + 0.75 * lp.glow) * lp.scale * (1 + 0.08 * Math.sin(t * 1.7 + i)), k;
+      st.ps.set(lp.x, top + lp.y, lp.z); st.eu.set(lp.tilt, lp.yaw, lp.roll); st.qn.setFromEuler(st.eu); st.sc.setScalar(lp.scale);
+      m0.compose(st.ps, st.qn, st.sc);
+      st.pads.setMatrixAt(i, m0);
+      for (k = 0; k < PETALS; k++) {
+        var inner = k >= 8, ang = inner ? (k - 8) * TAU / 5 + 0.3 : k * TAU / 8;
+        m1.makeRotationY(ang); m2.makeTranslation(0, inner ? 0.12 : 0.08, 0); m1.multiply(m2);
+        m2.makeRotationX(inner ? lp.inner : lp.outer); m1.multiply(m2);
+        if (inner) { m2.makeScale(0.68, 0.9, 0.68); m1.multiply(m2); }
+        m2.multiplyMatrices(m0, m1); st.petals.setMatrixAt(i * PETALS + k, m2);
+        tmpB.copy(st.lotusC[i]).multiplyScalar((inner ? 1.08 : 0.9) * (0.7 + 0.55 * lp.glow)); st.petals.setColorAt(i * PETALS + k, tmpB);
+      }
+      m1.makeTranslation(0, 0.1 + 0.08 * lp.open, 0); m2.multiplyMatrices(m0, m1); m1.makeScale(0.3 + 0.7 * lp.open, 0.3 + 0.7 * lp.open, 0.3 + 0.7 * lp.open); m2.multiply(m1);
+      st.seeds.setMatrixAt(i, m2);
+      L.halo.position.set(lp.x, top + lp.y + 0.38 * lp.scale, lp.z); L.halo.material.opacity = clamp(0.12 + 0.38 * lp.glow, 0, 0.6) * ramp(t, lp.wake - 1.5, lp.wake); L.halo.scale.set(gs, gs, 1);
+      L.open = lp.open; L.x = lp.x;
+      wl.uLot.value[i].set(lp.x, lp.z, lp.glow, lp.ringR); wl.uRingA.value[i] = lp.ringA;
     }
+    st.pads.instanceMatrix.needsUpdate = true; st.petals.instanceMatrix.needsUpdate = true; st.seeds.instanceMatrix.needsUpdate = true;
+    if (st.petals.instanceColor) st.petals.instanceColor.needsUpdate = true;
     // Camera: overrides the gameplay orbit for this frame only; the game takes it back when we stop.
     var c = f.camera, halfH = Math.tan(cam.fov * Math.PI / 360), halfW = halfH * cam.aspect;
     var r = Math.max(c.w / halfW, c.w * 0.9 / halfH), v3 = st.v;
@@ -535,18 +626,22 @@
       P[o * 3] = eye.x + q.x; P[o * 3 + 1] = eye.y + q.y; P[o * 3 + 2] = eye.z + q.z;
       A[o * 4] = alpha * ramp(q.d, 2.5, 6); A[o * 4 + 1] = q.s; A[o * 4 + 2] = 0; A[o * 4 + 3] = kind; o++;
     }
-    for (i = 0; i < DEWS; i++) { dewAt(i, t, b); put(0, b.alpha, b.size, 0.05); }
-    for (i = 0; i < FLIES; i++) { flyAt(i, t, b); put(1, b.alpha, b.size, 0.03); }
-    for (i = 0; i < LANTERNS; i++) { lanternAt(i, t, b); put(2, b.alpha, b.size, 0.07); }
-    for (i = 0; i < WAKE; i++) { wakeAt(i, t, b); put(3, b.alpha * 0.8, b.size, 0.03); }
+    for (i = 0; i < DEWS; i++) { dewAt(i, t, b); put(0, b.alpha, b.size, 0.045); }
+    for (i = 0; i < FLIES; i++) { flyAt(i, t, b); put(1, b.alpha, b.size, 0.055); }
+    for (i = 0; i < LANTERNS; i++) { lanternAt(i, t, b); put(2, b.alpha, b.size, 0.1); }
+    for (i = 0; i < WAKE; i++) { wakeAt(i, t, b); put(3, b.alpha * 0.9, b.size, 0.035); }
     st.points.geometry.attributes.position.needsUpdate = true; st.points.geometry.attributes.aA.needsUpdate = true;
     st.ptU.uPx.value = px;
     // The boat.
     var bo = f.boat, on = bo.alpha > 0.01;
     st.boat.visible = on;
     st.boat.position.set(bo.x, top + bo.y, bo.z); st.boat.rotation.set(bo.pitch, bo.yaw, bo.roll); st.boat.scale.setScalar(bo.scale);
-    st.boatMat.opacity = st.sailMat.opacity = bo.alpha; st.boatShade.material.opacity = 0.55 * bo.alpha;
-    st.boatGlow.material.opacity = 0.9 * bo.glow; st.boatLamp.material.opacity = bo.glow;
+    st.boatMat.opacity = st.sailMat.opacity = st.inkMat.opacity = st.deckMat.opacity = st.mastMat.opacity = bo.alpha; st.boatShade.material.opacity = 0.5 * bo.alpha;
+    // the reflection: the boat mirrored in the water line (then laid on the water by its shader)
+    var wy = top + WATER_Y; st.boatRef.visible = on;
+    st.boatRef.position.set(bo.x, 2 * wy - (top + bo.y), bo.z); st.boatRef.rotation.set(-bo.pitch, bo.yaw, -bo.roll); st.boatRef.scale.set(bo.scale, -bo.scale, bo.scale);
+    st.ps.set(0, wy, 0); H.island.localToWorld(st.ps); st.refU.uWater.value = st.ps.y; st.refU.uTime.value = t; st.refU.uA.value = bo.alpha;
+    st.boatGlow.material.opacity = 0.9 * bo.glow; st.boatLamp.material.opacity = bo.glow; st.boatStern.material.opacity = 0.85 * bo.glow;
     // Look: sky palette, moon, water, light and grass tint.
     mix2('top', sk, u.uTop.value); mix2('mid', sk, u.uMid.value); mix2('hor', sk, u.uHor.value); mix2('low', sk, u.uLow.value);
     mix2('lit', sk, u.uLit.value); mix2('shade', sk, u.uShade.value);
@@ -554,7 +649,7 @@
     st.sky.position.copy(cam.position);
     var wu = st.waterU;
     wu.uTime.value = t; wu.uMoon.value.copy(md); wu.uReach.value = f.path.reach; wu.uPathGlow.value = f.path.glow; wu.uWarm.value = sk.warm; wu.uSoft.value = soft;
-    wu.uBoat.value.set(bo.x, bo.z, bo.alpha);
+    wu.uBoat.value.set(bo.x, bo.z, bo.alpha, bo.scale / BOAT_SCALE);
     if (H.scene.fog) mix2('fog', sk, H.scene.fog.color);
     if (st.sun) { mix2('key', sk, st.sun.color); st.sun.intensity = mixS(PAL.dusk.keyI, PAL.night.keyI, sk); }
     if (st.hemi) { mix2('hemiA', sk, st.hemi.color); mix2('hemiB', sk, st.hemi.groundColor); st.hemi.intensity = mixS(PAL.dusk.hemiI, PAL.night.hemiI, sk); }
@@ -792,7 +887,7 @@
       var out = { moonClear: st.moonMin, moonDisc: MOON_DISC, points: [], lotuses: [], boat: null }, i;
       // [x, y, z, alpha, size, kind]
       for (i = 0; i < st.np; i++) out.points.push([st.pPos[i * 3], st.pPos[i * 3 + 1] - H.TOP_Y, st.pPos[i * 3 + 2], st.pA[i * 4], st.pA[i * 4 + 1], st.pA[i * 4 + 3]]);
-      for (i = 0; i < 6; i++) out.lotuses.push([st.lotuses[i].g.position.x, st.lotuses[i].cup.scale.x, st.lotuses[i].halo.material.opacity]);
+      for (i = 0; i < 6; i++) out.lotuses.push([st.lotuses[i].x, st.lotuses[i].open, st.lotuses[i].halo.material.opacity]);
       out.boat = [st.boat.visible, st.boat.position.x, st.boat.position.z, st.boat.scale.x];
       return out;
     },

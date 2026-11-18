@@ -51,7 +51,35 @@ for (let i = 1; i < 6; i++) assert(cs.lotus(i, 0).wake > cs.lotus(i - 1, 0).wake
 // The path of light spreads in the third beat.
 assert.equal(cs.frame(21).path.reach, 0); assert(cs.frame(31).path.reach >= lay.pathLen - 1e-9);
 // Dew shows over the opened flowers, then settles on the path.
-assert(cs.dew(0, 10).alpha === 0 && cs.dew(0, 18).alpha > 0.99 && cs.dew(0, 31).settled > 0.99);
+assert(cs.dew(0, 10).alpha === 0 && cs.dew(0, 18).alpha > 0.69 && cs.dew(0, 31).settled > 0.99);
+// Item 2: actor motion is a pure function of t (asked in any order, the same pose), and reads the game's palette.
+assert.deepEqual(lay.colors, [0xe9edff, 0x90e6e1, 0xf4b8d1, 0xffd79b, 0xc6b5f4, 0xb3e3c6], 'the six lotus colours of lotus-rules.js');
+const poses = t => JSON.stringify([[0, 1, 2, 3, 4, 5].map(i => cs.lotus(i, t)), Array.from({ length: lay.dew }, (_, j) => cs.dew(j, t)), cs.boat(t),
+  Array.from({ length: lay.flies }, (_, j) => cs.fly(j, t)), Array.from({ length: lay.lanterns }, (_, j) => cs.lantern(j, t)), cs.frame(t).path]);
+const pz = {}; for (const t of marks) pz[t] = poses(t);
+for (const t of marks.slice().reverse()) assert.equal(poses(t), pz[t], 'actor poses deterministic at ' + t);
+for (const t of marks) assert(!/null|NaN/.test(pz[t]), 'finite poses at ' + t);
+// Bloom: petals fold from bud (outer ~-1.3 rad) to open cup, with a warm pulse and a ripple ring as each wakes.
+for (let i = 0; i < 6; i++) {
+  const w = cs.lotus(i, 0).wake, bud = cs.lotus(i, w - 0.1), open = cs.lotus(i, w + 3);
+  assert(bud.outer < -1.25 && open.outer > -0.45, 'lotus ' + i + ' opens'); assert(open.inner > bud.inner);
+  assert(cs.lotus(i, w + 1.2).pulse > 0.9 && cs.lotus(i, w + 6).pulse < 0.1, 'warm pulse as it opens');
+  assert(cs.lotus(i, w + 1.5).ringA > 0 && cs.lotus(i, w + 1.5).ringR > 0.35, 'ripple ring');
+  assert(cs.lotus(i, 30.6 + 0.12 * i).chorus > 0.99, 'all six answer together when the path reaches the moon');
+}
+// Dew: born in its flower, lifts above it, then settles as a stepping light either side of the path, nearer flowers nearer.
+for (let j = 0; j < lay.dew; j++) {
+  const i = j % 6, L = cs.lotus(i, 19), d = cs.dew(j, 19.5);
+  assert(Math.hypot(d.x - L.x, d.z - L.z) < 1.2 && d.y > L.y + 0.3, 'dew ' + j + ' hovers over its lotus');
+  const e = cs.dew(j, 34), q = [e.x - lay.p0[0], e.z - lay.p0[1]], along = q[0] * lay.pd[0] + q[1] * lay.pd[1], across = Math.abs(q[0] * lay.pd[1] - q[1] * lay.pd[0]);
+  assert(e.settled > 0.99 && Math.abs(e.y - lay.waterY) < 0.2 && along > 0 && along < lay.pathLen && across < 1.8, 'dew ' + j + ' settles on the path');
+}
+// Boat: on the path (across ~ 0), and large enough to read in the wide shots.
+for (let t = 32; t <= 50; t += 1) { const b = cs.boat(t), q = [b.x - lay.p0[0], b.z - lay.p0[1]]; assert(Math.abs(q[0] * lay.pd[1] - q[1] * lay.pd[0]) < 1e-9); }
+assert(cs.boat(38).scale >= 3 && cs.boat(46).scale > cs.boat(38).scale);
+// Fireflies and lanterns read on a phone in the wide shots.
+for (let j = 0; j < lay.flies; j++) assert(cs.fly(j, 45).size >= 0.5);
+for (let j = 0; j < lay.lanterns; j++) assert(cs.lantern(j, 45).size >= 1.1);
 // The boat appears for the fourth beat, moves only forward along the path, and is drawn larger as it sails away.
 assert(cs.boat(30).alpha === 0 && cs.boat(33).alpha === 1);
 let s = -9; for (let t = 31; t <= 50; t += 0.5) { const b = cs.boat(t); assert(b.s >= s, 'forward only'); s = b.s; }

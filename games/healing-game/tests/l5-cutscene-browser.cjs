@@ -95,7 +95,7 @@ const SAVES = {
     assert.equal(await page.evaluate(() => document.getElementById('lotusSkip').hidden), true, 'the old 7 s 演出 does not also run');
     assert.equal(await cardShown(page), false, 'no card under the film'); assert.equal(await opens(page), 0);
     const stage = await page.evaluate(() => window.__l5Cutscene.stage());
-    assert(stage.staged && stage.sky && stage.water && stage.lotuses === 6 && stage.dew === 18 && stage.flies > 10 && stage.lanterns === 6 && stage.blades > 1000 && stage.toon > 10 && stage.hidden > 3, 'stage is up: ' + JSON.stringify(stage));
+    assert(stage.staged && stage.sky && stage.water && stage.lotuses === 6 && stage.dew === 24 && stage.flies > 10 && stage.lanterns === 6 && stage.blades > 1000 && stage.toon > 10 && stage.hidden > 3, 'stage is up: ' + JSON.stringify(stage));
     assert.equal(await page.evaluate(() => window.__l5Hide.length === 1 && window.__l5Hide.every(g => !g.visible)), true, 'gameplay lotus group is off the set');
     assert.equal(await page.evaluate(() => window.GardenJourney.blocked() && window.__l5Cutscene.busy()), true, 'the film counts as an open dialog');
     assert.equal(await page.evaluate(() => ['lotusHud', 'lotusDock', 'topbar'].every(id => !document.getElementById(id) || getComputedStyle(document.getElementById(id)).visibility === 'hidden')), true, 'lotus HUD and dock are out of the frame');
@@ -104,10 +104,10 @@ const SAVES = {
     assert.equal(await csState(page), 'playing', 'a tap mid-film does not continue');
     await page.screenshot({ path: path.join(OUT, 'ingame-film.png') });
     // Skip, then the guarded continue.
-    await page.locator('#l5csSkip').click();
-    assert.equal(await csState(page), 'ended'); assert.equal(await page.locator('#l5csGo').isVisible(), true);
-    await page.locator('#l5csGo').click({ force: true }); // inside the 600 ms guard: ignored
-    assert.equal(await csState(page), 'ended', 'the tap that skipped cannot also continue');
+    // Skip and the follow-up tap in one page call, so slow software-GL frames cannot stretch the gap past the guard.
+    const guard = await page.evaluate(() => { document.getElementById('l5csSkip').click(); const s1 = __l5Cutscene.state(); document.getElementById('l5csGo').click(); return [s1, __l5Cutscene.state()]; });
+    assert.equal(guard[0], 'ended'); assert.equal(await page.locator('#l5csGo').isVisible(), true);
+    assert.equal(guard[1], 'ended', 'the tap that skipped cannot also continue');
     await page.waitForTimeout(700); await page.locator('#l5csGo').click();
     assert.equal(await csState(page), 'closed'); assert.equal(await cardShown(page), true); assert.equal(await opens(page), 1, '#lotusEnding exactly once');
     assert.equal(await page.evaluate(() => window.__l5Hide.every(g => g.visible) && !document.body.classList.contains('l5cs-on')), true, 'gameplay lotus group restored');
