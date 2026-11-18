@@ -1479,7 +1479,6 @@
       z-index:2700; display:none;
     }
     #gameScreen.world-mode:has(#storyPanel:not(.hidden)) .world-close-panel,
-    #gameScreen.world-mode:has(#combatPanel:not(.hidden)) .world-close-panel,
     #gameScreen.world-mode:has(#alchemyPanel:not(.hidden)) .world-close-panel,
     #gameScreen.world-mode:has(#petPanel:not(.hidden)) .world-close-panel,
     #gameScreen.world-mode:has(#artifactPanel:not(.hidden)) .world-close-panel { display:block; }

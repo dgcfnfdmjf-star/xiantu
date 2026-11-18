@@ -96,3 +96,28 @@ test('a region without a painted scene requests sheets immediately',async({page}
  await expect.poll(()=>seen.sheets().sort()).toEqual([...SHEETS].sort());
  expect(seen.has('human-peaks-panorama')).toBe(false);
 });
+
+
+test('saved reduced motion skips automatic intro media and permits manual replay',async({page})=>{
+ await isolate(page);const seen=track(page);
+ await page.addInitScript(()=>localStorage.setItem('xt_reduce_motion','1'));
+ await page.goto('/game-v2762.html');
+ await expect(page.locator('html')).toHaveClass(/xt-reduce-motion/);
+ await page.locator('#xiantuSafeBootButton').click();
+ await expect(page.locator('html')).toHaveClass(/xiantu-v2762-ready/);
+ expect(seen.has(POSTER)).toBe(false);
+ expect(seen.has('.mp4')).toBe(false);
+
+ await page.reload();
+ await page.locator('#introReplayV286891').click();
+ await expect.poll(()=>seen.has('.mp4')).toBe(true);
+});
+
+test('standalone intro preview leaves the remembered skip setting editable',async({page})=>{
+ await isolate(page);await page.goto('/game-v2762.html');
+ await page.locator('#introReplayV286891').click();
+ await page.locator('#introSkipV2860').click();
+ await expect(page.locator('#introPanelV2860')).toBeHidden();
+ await page.locator('#introSkipChoiceV2898').check({timeout:2000});
+ expect(await page.evaluate(()=>localStorage.getItem('xiantu_skip_intro_v2898'))).toBe('1');
+});
