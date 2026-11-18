@@ -196,8 +196,19 @@
       let validOld=false;
       try{if(old){parseSaveV2768(old);validOld=true;}}catch(_){}
       // 备份写入失败时不覆盖主档，保留已有记录。
-      if(validOld && old!==raw)localStorage.setItem(SAVE_BACKUP_KEY,old);
-      localStorage.setItem(SAVE_KEY,raw);
+      const rotateBackup=validOld && old!==raw;
+      const previousBackup=rotateBackup ? localStorage.getItem(SAVE_BACKUP_KEY) : null;
+      if(rotateBackup)localStorage.setItem(SAVE_BACKUP_KEY,old);
+      try{
+        localStorage.setItem(SAVE_KEY,raw);
+      }catch(error){
+        // Restore only the backup we just rotated, while that main record is still current.
+        if(rotateBackup && previousBackup!==old && localStorage.getItem(SAVE_KEY)===old && localStorage.getItem(SAVE_BACKUP_KEY)===old){
+          if(previousBackup===null)localStorage.removeItem(SAVE_BACKUP_KEY);
+          else localStorage.setItem(SAVE_BACKUP_KEY,previousBackup);
+        }
+        throw error;
+      }
       if(SAVE_SESSION_V2868102.active)SAVE_SESSION_V2868102.raw=raw;
       try{window.saveMirrorV2895?.(raw);}catch(_){}
     }
@@ -14037,6 +14048,8 @@ function villageEnhanceV286897(){
         if (tag==='INPUT' || tag==='TEXTAREA') return;
         const k=e.key.toLowerCase();
         if (['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)) { FLAT_WORLD.keys[k]=true; FLAT_WORLD.target=null; e.preventDefault(); }
+        // Space activates the focused HUD control through its native click.
+        if (k===' ' && e.target.closest?.('button, summary, [role="button"]')) return;
         if ((k==='e' || k===' ') && !isWorldOverlayOpen()) { interactFlatWorld(); e.preventDefault(); }
         if (k==='escape' && isWorldOverlayOpen()) closeWorldOverlay();
       });
@@ -14196,6 +14209,8 @@ function villageEnhanceV286897(){
     }
 
     function closeWorldOverlay() {
+      // Only combat settlement may release the opponent and the pre-battle checkpoint.
+      if(gameState==='combat'||gameState==='combat-ending')return;
       alchemyStageStopV2868110();
       if(typeof mapFxCancelV2868104==='function')mapFxCancelV2868104();
       taskBattlePromptV2868103=null;
