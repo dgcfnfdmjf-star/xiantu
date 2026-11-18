@@ -1305,7 +1305,7 @@ function createSwordState(read,clock){
   function sync(){const btn=D.getElementById('inkFxQualityV2854');if(btn){btn.textContent='特效：'+(settings().reduced?'静态':({auto:'自动',rich:'精致',light:'省电'}[quality]));btn.setAttribute('aria-label',btn.textContent+'，点击切换');}}
   function cycle(){quality={auto:'rich',rich:'light',light:'auto'}[quality];try{localStorage.setItem(KEY,quality)}catch(_){}refreshThunder()}
   function install(){
-    const btn=D.getElementById('inkFxQualityV2854');if(btn&&!btn.dataset.boundV2854){btn.dataset.boundV2854='1';btn.addEventListener('click',cycle)}sync();
+    const btn=D.getElementById('inkFxQualityV2854');if(btn&&!btn.dataset.boundV2854){btn.disabled=false;btn.dataset.boundV2854='1';btn.addEventListener('click',cycle)}sync();
     const panel=D.getElementById('combatPanel');panel?.classList.add('ink-fx-ready-v2854');if(panel&&!observer&&typeof MutationObserver==='function'){observer=new MutationObserver(()=>{if(panel.classList.contains('hidden'))clear(true)});observer.observe(panel,{attributes:true,attributeFilter:['class']})}
   }
   D.addEventListener('visibilitychange',()=>{if(D.hidden)clear(false,true);else resumeThunder()});W.addEventListener('pagehide',()=>clear());W.addEventListener('resize',refreshThunder);W.addEventListener('orientationchange',refreshThunder);W.addEventListener('xiantu:combat-finishing',finish);

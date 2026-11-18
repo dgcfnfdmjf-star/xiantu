@@ -121,3 +121,60 @@ test('standalone intro preview leaves the remembered skip setting editable',asyn
  await page.locator('#introSkipChoiceV2898').check({timeout:2000});
  expect(await page.evaluate(()=>localStorage.getItem('xiantu_skip_intro_v2898'))).toBe('1');
 });
+
+const SKILL_FX='xiantu-v2855-skill-fx.js',DUEL_SCENE='xiantu-v2868124-duel-scene.js';
+
+async function enterBattle(page,name='野狼',task=false){
+ await page.evaluate(({name,task})=>{
+  startCombat({name,hp:5000,maxHp:5000,atk:1,def:1,gold:1,exp:1,_realmLevel:0,_realmPhase:0,_isTaskBattle:task});
+ },{name,task});
+ await expect(page.locator('#combatPanel')).toBeVisible();
+}
+
+test('combat modules wait for the first battle and a late download attaches only to the current foe',async({page})=>{
+ await isolate(page);const seen=track(page),errors=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ let release;const held=new Promise(resolve=>{release=resolve;});
+ await page.route('**/'+DUEL_SCENE+'?*',async r=>{await held;await r.continue();});
+ await boot(page);await start(page);
+ expect([seen.has(SKILL_FX),seen.has(DUEL_SCENE)]).toEqual([false,false]);
+ await enterBattle(page);
+ await expect.poll(()=>seen.has(DUEL_SCENE)).toBe(true);
+ const hp=await page.evaluate(()=>{const hp=currentEnemy.hp;combat('attack');return hp;});
+ await expect.poll(()=>page.evaluate(()=>currentEnemy.hp)).toBeLessThan(hp);
+ await page.evaluate(()=>{endCombatAfterCapture();closeWorldOverlay();});
+ await enterBattle(page,'山贼',true);
+ release();
+ const canvas=page.locator('#combatArena .duel25-canvas');
+ await expect(canvas).toHaveCount(1);
+ await expect(canvas).toHaveAttribute('aria-label',/山贼/);
+ await expect(page.locator('#inkFxQualityV2854')).toBeEnabled();
+ for(const name of [SKILL_FX,DUEL_SCENE])expect(seen.urls.filter(u=>u.includes(name))).toHaveLength(1);
+ expect(errors).toEqual([]);
+});
+
+test('a failed presentation download leaves combat playable and retries only that file on the next fight',async({page})=>{
+ await isolate(page);const seen=track(page);
+ await page.route('**/'+SKILL_FX+'?*',r=>r.abort(),{times:1});
+ await boot(page);await start(page);
+ await page.evaluate(()=>setBattlePresentationV2756('report'));
+ const failed=page.waitForEvent('requestfailed',r=>r.url().includes(SKILL_FX));
+ await enterBattle(page);await failed;
+ await page.waitForFunction(()=>!!window.XiantuDuel25D);
+ await expect(page.locator('#combatArena .duel25-canvas')).toHaveCount(0);
+ const rngCalls=await page.evaluate(()=>{
+  let calls=0;const random=Math.random;Math.random=()=>{calls++;return .5;};
+  try{playSkillEffect('炎爆术','fire','active');}finally{Math.random=random;}
+  return calls;
+ });
+ expect(rngCalls).toBe(0);
+ await expect(page.locator('#inkFxNameV2854')).toContainText('我方 · 炎爆术');
+ await expect(page.locator('.skill-v26-fx')).toHaveCount(0);
+ const hp=await page.evaluate(()=>{const hp=currentEnemy.hp;combat('attack');return hp;});
+ await expect.poll(()=>page.evaluate(()=>currentEnemy.hp)).toBeLessThan(hp);
+ await page.evaluate(()=>{endCombatAfterCapture();closeWorldOverlay();});
+ await enterBattle(page);
+ await expect(page.locator('#combatArena .duel25-canvas')).toHaveCount(1);
+ expect(seen.urls.filter(u=>u.includes(SKILL_FX))).toHaveLength(2);
+ expect(seen.urls.filter(u=>u.includes(DUEL_SCENE))).toHaveLength(1);
+});
