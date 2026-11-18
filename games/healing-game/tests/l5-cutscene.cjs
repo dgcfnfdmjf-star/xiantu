@@ -65,7 +65,7 @@ for (let i = 0; i < 6; i++) {
   assert(bud.outer < -1.25 && open.outer > -0.45, 'lotus ' + i + ' opens'); assert(open.inner > bud.inner);
   assert(cs.lotus(i, w + 1.2).pulse > 0.9 && cs.lotus(i, w + 6).pulse < 0.1, 'warm pulse as it opens');
   assert(cs.lotus(i, w + 1.5).ringA > 0 && cs.lotus(i, w + 1.5).ringR > 0.35, 'ripple ring');
-  assert(cs.lotus(i, 30.6 + 0.12 * i).chorus > 0.99, 'all six answer together when the path reaches the moon');
+  assert(cs.lotus(i, 30.75 + 0.12 * i).chorus > 0.99, 'all six answer together when the path reaches the moon');
 }
 // Dew: born in its flower, lifts above it, then settles as a stepping light either side of the path, nearer flowers nearer.
 for (let j = 0; j < lay.dew; j++) {

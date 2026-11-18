@@ -79,8 +79,10 @@
   // The game's lotus-rules.js palette wins when it is on the page (same values; this keeps them in step).
   (function () { var R = root.LotusRules; if (R && R.blooms && R.blooms.length === 6) for (var i = 0; i < 6; i++) if (R.blooms[i].name === BLOOMS[i][0]) BLOOMS[i][1] = R.blooms[i].color; })();
   // All six answer together twice: when the path of light reaches the moon, and when the boat passes the last flower.
-  var CHORUS = [30.6, 40.2];
-  var LOTUS = [[1.5, 1.2], [2.8, -1.0], [4.2, 1.3], [5.6, -1.3], [7.0, 1.4], [8.5, -1.4]], LOTUS_T = 11, LOTUS_STEP = 1.45, LOTUS_SCALE = 1.5;
+  // Cue times sit on the score's beat grid (one beat = 0.75 s, l5-cutscene-music.js): each lotus's warm pulse peaks on a
+  // beat (wake + 1.2 s = 12, 13.5 ... 19.5 s), the chorus rolls start on beats, and the dew lands on eighth notes.
+  var CHORUS = [30.75, 40.5];
+  var LOTUS = [[1.5, 1.2], [2.8, -1.0], [4.2, 1.3], [5.6, -1.3], [7.0, 1.4], [8.5, -1.4]], LOTUS_T = 10.8, LOTUS_STEP = 1.5, LOTUS_SCALE = 1.5;
   function lotusAt(i, t, out) {
     out = out || {};
     var L = LOTUS[i], p = onPath(L[0], L[1], out), w = windAt(p.x, p.z, t), wake = LOTUS_T + i * LOTUS_STEP;
@@ -112,13 +114,15 @@
   var DEWS = 24, DEW_PER = 4;
   var STEP = {}, LP = {};
   function dewStep(j) { var i = j % 6, k = (j / 6) | 0, n = i * DEW_PER + k; STEP.s = 0.8 + n * (PATH_LEN - 2.6) / (DEWS - 1); STEP.side = (n % 2 ? 1 : -1) * (0.62 + 0.04 * n); return STEP; }
+  // The moment a bead lands on the path, snapped to the score's eighth-note grid (0.375 s) so its celesta note rings with it.
+  function dewLand(j) { var st = dewStep(j); return Math.round((22.6 + 7.4 * Math.sqrt(st.s / PATH_LEN)) / 0.375) * 0.375; }
   function dewAt(j, t, out) {
     out = out || {};
     var i = j % 6, k = (j / 6) | 0, L = lotusAt(i, t, LP), born = L.wake + 0.7 + 0.35 * k, up = ease(ramp(t, born, born + 2.2));
     var a = k * TAU / DEW_PER + i + soft * (0.35 * t + 0.6 * up), rad = (0.12 + 0.3 * up) * L.scale;
     var hx = L.x + Math.cos(a) * rad, hz = L.z + Math.sin(a) * rad;
     var hy = L.y + 0.35 * L.scale + (0.25 + 0.75 * hsh(j, 1)) * up * L.scale * 0.8 + soft * 0.07 * Math.sin(t * 1.5 + j);
-    var st = dewStep(j), tS = 22.6 + 7.4 * Math.sqrt(st.s / PATH_LEN), d = ease(ramp(t, tS - 2.4, tS));
+    var st = dewStep(j), tS = dewLand(j), d = ease(ramp(t, tS - 2.4, tS));
     var sx = P0[0] + PD[0] * st.s + PN[0] * st.side, sz = P0[1] + PD[1] * st.s + PN[1] * st.side;
     out.x = lerp(hx, sx, d); out.z = lerp(hz, sz, d); out.y = lerp(hy, WATER_Y + 0.08, d) + 4 * d * (1 - d) * 0.5;
     var breathe = 0.85 + 0.15 * Math.sin(t * 2.0 + j * 1.3);
@@ -873,7 +877,7 @@
     beats: function () { return BEATS.map(function (b) { return { id: b.id, t0: b.t0, t1: b.t1, caption: b.caption }; }); },
     frame: function (t) { return frame(t === undefined ? time() : clamp(+t || 0, 0, DURATION)); },
     text: function () { return { title: TITLE, subtitle: SUBTITLE, cont: CONTINUE, skip: SKIP }; },
-    layout: function () { return { lotus: LOTUS, blooms: BLOOMS.map(function (k) { return k[0]; }), colors: BLOOMS.map(function (k) { return k[1]; }), lotusT: LOTUS_T, lotusStep: LOTUS_STEP,
+    layout: function () { return { lotus: LOTUS, blooms: BLOOMS.map(function (k) { return k[0]; }), colors: BLOOMS.map(function (k) { return k[1]; }), lotusT: LOTUS_T, lotusStep: LOTUS_STEP, chorus: CHORUS.slice(), dewLand: (function () { var a = []; for (var j = 0; j < DEWS; j++) a.push(dewLand(j)); return a; })(),
         p0: P0.slice(), pd: PD.slice(), pathLen: PATH_LEN, waterY: WATER_Y, boatT0: BOAT_T0, dew: DEWS, flies: FLIES, lanterns: LANTERNS, wake: WAKE, wind: [WX, WZ], moonDisc: MOON_DISC }; },
     // Pose of one actor at t (the stage uses exactly these).
     lotus: function (i, t) { return lotusAt(clamp(i | 0, 0, 5), +t || 0, {}); },

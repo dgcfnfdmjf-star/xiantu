@@ -17,7 +17,7 @@ V9.5 release HTML is frozen). Tests: `tests/l5-cutscene.cjs`, `tests/l5-cutscene
 | # | id | t | Picture | Caption (17px, one line at 360px) |
 |---|----|---|---------|-----------------------------------|
 | a | `bay` | 0–10 | Wide establishing shot from behind the island's shore, looking down the bay to a low cream-gold moon with a warm halo; big night clouds with silver rims; still water mirroring the sky with wind streaks; wind waves through the grass; letterbox bars close in. Dusk deepens to night, stars come out. | 月色落在莲湾上 |
-| b | `lotus` | 10–21 | Glide down to the six lotuses either side of the route (月珠莲 潮璃莲 霞梦莲 愿灯莲 紫憩莲 晓信莲, the game's petal colours), which open one by one (11 s + 1.45 s each); moon-dew beads glow above each flower. Leaves rock on the wind. | 花心里亮起月露 |
+| b | `lotus` | 10–21 | Glide down to the six lotuses either side of the route (月珠莲 潮璃莲 霞梦莲 愿灯莲 紫憩莲 晓信莲, the game's petal colours), which open one by one (10.8 s + 1.5 s each, pulse peaks on the score's beats); moon-dew beads glow above each flower. Leaves rock on the wind. | 花心里亮起月露 |
 | c | `path` | 21–32 | The dew drifts down onto the water and a path of warm light spreads from the shore across the moon's reflection towards the moon (21.5–30.5 s). Camera moves out along it. | 倒影把路轻轻铺开 |
 | d | `boat` | 32–43.5 | The little boat with a bow lamp slips out from the shore and glides along the path (a pale V wake behind it); fireflies from earlier chapters gather over the lotuses and lanterns lift from the shore and drift out with it. The boat is drawn larger as it sails away. | 小舟沿着光，走回家 |
 | e | `title` | 43.5–50 | Slow crane up into the wide moonlit bay. Title `第五关 · 完成` / `暮色浮岛` fades in from 44 s; at 50 s `轻触继续` (`#l5csGo`) appears. | — |
@@ -61,10 +61,10 @@ it to make a one-tap `preview.html`. `&csclock=1` shows the film clock.
 - **Lotuses**: the game's own look (lotus-chapter.js): jade leaf pad `0x64a7a1`, stretched-sphere petals on hinges
   (8 outer + 5 inner), gold seed `0xffe7ad`, halo in the petal colour; colours from `LotusRules.blooms`
   (月珠莲 `e9edff`, 潮璃莲 `90e6e1`, 霞梦莲 `f4b8d1`, 愿灯莲 `ffd79b`, 紫憩莲 `c6b5f4`, 晓信莲 `b3e3c6`). Three instanced
-  draws for all six + six halo sprites. **Bloom cue**: lotus *i* wakes at `11 + 1.45 i` s; petals fold from bud
+  draws for all six + six halo sprites. **Bloom cue**: lotus *i* wakes at `10.8 + 1.5 i` s; petals fold from bud
   (outer −1.32 rad) to an open cup (−0.34 rad) over 2.4 s; a warm pulse in its colour peaks at `wake + 1.2` s and a
   ripple ring runs out over the water (`wake + 0.6 … + 3.6`). **Chorus**: all six brighten together (rippling 0.12 s
-  apart) at **30.6 s** (the path of light reaches the moon, with a second ring) and **40.2 s** (the boat passes the
+  apart) at **30.75 s** (the path of light reaches the moon, with a second ring) and **40.5 s** (the boat passes the
   last flower). Each lotus also pools its colour on the water under it.
 - **Moon-dew**: 24 beads (4 per lotus, its colour), born in the opening flower's heart at `wake + 0.7 + 0.35 k`, lift
   in a slow spiral and hover; from ~22 s, as the path reaches each spot, they arc down and settle as stepping lights
@@ -82,7 +82,36 @@ it to make a one-tap `preview.html`. `&csclock=1` shows the film clock.
 - **Clouds**: a second cloud bank on the right of the moon balances the left; clouds thin out (no hard edge) within
   ~7° of the moon so the disc and halo stay clear.
 
+## Score — 「月汐晚安」 (src/l5-cutscene-music.js, window.__l5Score)
+
+An original closing lullaby in **Bb major, 4/4 andante, one beat = 0.75 s (80 bpm)**: a bar is 3 s and the film is
+17 bars (51 s; the last a held chord under the end of the picture). Not the key of the level-3 (F, 6/8) or level-4
+(D, 3/4) films, and it shares no 6-note phrase or rhythm with the level-1..4 scores (unit test).
+Voices: felt piano (tune + left hand), the warm string pad, and the level-3 score's `celesta()` for every sparkle
+(the kit's music box only if that score is missing). **No harp.** Registered as a GardenAudio track: the level track
+月汐摇光 crossfades out (1.2 s) on `start()` and back in (3 s) on `stop()`, unless the player picked another track.
+
+**Beat grid (the film's cues were moved onto it in item 3):** lotus *i* wakes at `10.8 + 1.5 i` s, so its warm pulse
+peaks on a beat (12, 13.5 … 19.5 s: beats 1 and 3 of bars 5–7); the dew lands on eighth notes (`layout().dewLand`,
+22.5–30 s); the two choruses start on beats (30.75 s, 40.5 s, a 0.12 s roll like the picture); the boat slips out on
+a beat (31.5 s).
+
+| bars | film time | picture | music |
+|---|---|---|---|
+| 1–3 | 0–9 s | moonlit bay | low strings hold; the piano tries three notes |
+| 4–7 | 9–21 s | lotuses open | the tune (A) over a rocking lullaby left hand; one celesta note per lotus at its pulse peak, Bb pentatonic low → high |
+| 8–10 | 21–30 s | path of light, dew settles | A′ a third higher, strings in; left hand stays in quarters so the dew's celesta has the eighths |
+| 11–15 | 30–45 s | chorus, boat glides home | B: tune in octaves over flowing eighths and the fullest strings, top Eb6 at 39 s; celesta rolls with both choruses (left hand lifts); F7 before the title |
+| 16–17 | 45 s → | title, goodnight | the tune's first bar echoed over Eb (a warm major seventh), a last celesta Bb6, home on a held Bb |
+
+- **Celesta = the picture**: `sparkles()` = 6 lotus openings + one note per dew landing moment (beads landing on the
+  same eighth ring once) + 2 × 6 chorus notes + one title note (34 notes); the unit test checks each against
+  `lotus()/dew()/layout()`.
+- **Clock**: same rules as levels 3/4 — follows `__l5Cutscene.time()`, re-anchors on a jump > 0.4 s with a 0.3 s fade,
+  pause → fade and hold, skip → 1.4 s fade then only the two goodnight bars, `&mute=1` never starts it, the music
+  switch off → nothing sounds.
+
 ## Item status
 
 Item 1 (this): timeline, camera, sky/moon/clouds/water/grass/wind/paper, captions, skip/continue, placeholder
-lotuses/dew/boat/path/fireflies/lanterns, hooks, tests. Item 2 (done): actors above. Item 3: the score.
+lotuses/dew/boat/path/fireflies/lanterns, hooks, tests. Item 2 (done): actors above. Item 3 (done): the score.

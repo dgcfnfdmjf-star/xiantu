@@ -47,7 +47,7 @@ class Package(unittest.TestCase):
     def test_all_inline_scripts_parse(self):
         self.assertEqual(len(re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.html.decode())), 19)
         scripts = re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.site.decode())
-        self.assertEqual(len(scripts), 28)  # V9.5's 19 + level-2 cutscene + its score + level-1 cutscene + its score + level-3 cutscene + its score + level-4 cutscene + its score + level-5 cutscene
+        self.assertEqual(len(scripts), 29)  # V9.5's 19 + level-2 cutscene + its score + level-1 cutscene + its score + level-3 cutscene + its score + level-4 cutscene + its score + level-5 cutscene + its score
         with tempfile.TemporaryDirectory() as tmp:
             for i, script in enumerate(scripts):
                 path = Path(tmp) / f'{i}.js'
@@ -106,6 +106,8 @@ class Package(unittest.TestCase):
         self.assertNotIn(b'__l4', self.html)
         self.assertIn((ROOT / 'src/l5-cutscene.js').read_bytes(), self.site)
         self.assertEqual(self.site.count(b"if (query('cutscene') !== 'l5') return;"), 1)
+        self.assertIn((ROOT / 'src/l5-cutscene-music.js').read_bytes(), self.site)
+        self.assertLess(self.site.index((ROOT / 'src/l4-cutscene-music.js').read_bytes()), self.site.index((ROOT / 'src/l5-cutscene-music.js').read_bytes()))  # after the level-3/4 scores (it borrows the level-3 celesta)
         self.assertNotIn(b'__l5', self.html)
         self.assertNotIn(b'garden-working', self.html)
 

@@ -3,7 +3,7 @@
 // Level-5 (final chapter) clear cutscene on the built page (390x844 phone). Synthetic saves only (晓信莲 one note from done).
 //  A. ?l5cutscene=0 reference: last note -> old 7 s 归航演出 (#lotusSkip) -> #lotusEnding, no cutscene.
 //  B. real clear: last note -> save written -> film INSTEAD of the 7 s 演出 (no #lotusSkip, gameplay lotus group hidden,
-//     no input) -> skip -> guarded tap -> #lotusEnding exactly once, same save as A; wheel zoom works after close;
+//     no input; its score 月汐晚安 takes over from 月汐摇光, follows seek/pause, settles on skip, hands 月汐摇光 back) -> skip -> guarded tap -> #lotusEnding exactly once, same save as A; wheel zoom works after close;
 //     「重看月汐归航」 replays the film (not the old 演出) and its card opens once more, no XP twice.
 //  B2. the film watched to its natural end -> 轻触继续 -> #lotusEnding exactly once.
 //  R. prefers-reduced-motion: the card opens at once, no film, #lotusSkip hidden.
@@ -62,6 +62,7 @@ const SAVES = {
     assert.deepEqual(await page.evaluate(() => window.__journey.state().progress.lotus.light), [3, 3, 3, 3, 3, 2], 'fixture: one note from the clear');
     await page.evaluate(() => { window.__cardOpens = 0; const end = document.getElementById('lotusEnding'); let was = end.hidden;
       new MutationObserver(() => { if (was && !end.hidden) window.__cardOpens++; was = end.hidden; }).observe(end, { attributes: true, attributeFilter: ['hidden'] }); });
+    if (page.__beforeClear) await page.__beforeClear();
     await page.locator('#lotusNote1').click();
   };
   const cardShown = page => page.evaluate(() => !document.getElementById('lotusEnding').hidden);
@@ -86,6 +87,8 @@ const SAVES = {
     ({ context, page } = await fresh());
     await page.goto(url);
     assert.equal(await page.evaluate(() => window.__l5Cutscene.enabled() && window.__l5Cutscene.ready()), true);
+    let themeBefore = '';
+    page.__beforeClear = async () => { themeBefore = await page.evaluate(() => GardenAudio.currentTrackName()); assert.equal(await page.evaluate(() => __l5Score.state().active), false, 'score idle before the clear'); };
     await clear(page);
     assert.equal(await csState(page), 'playing', 'the film starts on the clearing note');
     assert.equal(await progress(page), savedA, 'same save as the old path, written before the film');
@@ -103,15 +106,51 @@ const SAVES = {
     await page.touchscreen.tap(195, 500); await page.waitForTimeout(200);
     assert.equal(await csState(page), 'playing', 'a tap mid-film does not continue');
     await page.screenshot({ path: path.join(OUT, 'ingame-film.png') });
+    // The score starts with the film, owns the music bus (月汐摇光 fades out) and follows the film clock through seeks and a pause.
+    assert.equal(await page.evaluate(() => window.__l5Cutscene.scored()), true, 'score started with the cutscene');
+    let music = await page.evaluate(() => ({ s: __l5Score.state(), t: __l5Cutscene.time(), others: [__l1Score.state().active, __l2Score.state().active, __l3Score.state().active, __l4Score.state().active] }));
+    assert.equal(themeBefore, '月汐摇光', 'the level was playing its own track');
+    assert(music.s.active && music.s.current && music.s.musicOn && music.s.track === '月汐晚安', 'the lullaby owns the music bus: ' + JSON.stringify(music.s));
+    assert(music.s.steps > 0 && Math.abs(music.s.position - music.t) < 0.45, 'score follows the film clock: ' + JSON.stringify(music));
+    assert.deepEqual(music.others, [false, false, false, false], 'level-1..4 scores untouched');
+    await page.evaluate(() => window.__l5Cutscene.seek(30)); await page.waitForTimeout(1500);
+    music = await page.evaluate(() => ({ s: __l5Score.state(), t: __l5Cutscene.time() }));
+    assert(music.t > 30 && Math.abs(music.s.position - music.t) < 0.45 && music.s.lastStep >= 80, 'score jumped with seek: ' + JSON.stringify(music));
+    let peakLive = 0;
+    for (let i = 0; i < 10; i++) { await page.waitForTimeout(250); peakLive = Math.max(peakLive, await page.evaluate(() => __musicLush.live())); }
+    assert(peakLive > 4 && peakLive <= 34 + 4, 'voice count in the swell: ' + peakLive); report.peakLive = peakLive;
+    await page.evaluate(() => window.__l5Cutscene.seek(9)); await page.waitForTimeout(1200);
+    music = await page.evaluate(() => ({ s: __l5Score.state(), t: __l5Cutscene.time() }));
+    assert(Math.abs(music.s.position - music.t) < 0.45 && music.t < 12, 'score follows a backward seek: ' + JSON.stringify(music));
+    await page.evaluate(() => window.__l5Cutscene.pause()); await page.waitForTimeout(900);
+    const heldSteps = await page.evaluate(() => __l5Score.state().steps); await page.waitForTimeout(900);
+    assert.equal(await page.evaluate(() => __l5Score.state().steps), heldSteps, 'paused film, silent score');
+    await page.evaluate(() => window.__l5Cutscene.resume()); await page.waitForTimeout(1100);
+    music = await page.evaluate(() => ({ s: __l5Score.state(), t: __l5Cutscene.time() }));
+    assert(music.s.steps > heldSteps && Math.abs(music.s.position - music.t) < 0.45, 'resumes on the film clock: ' + JSON.stringify(music));
     // Skip, then the guarded continue.
     // Skip and the follow-up tap in one page call, so slow software-GL frames cannot stretch the gap past the guard.
     const guard = await page.evaluate(() => { document.getElementById('l5csSkip').click(); const s1 = __l5Cutscene.state(); document.getElementById('l5csGo').click(); return [s1, __l5Cutscene.state()]; });
     assert.equal(guard[0], 'ended'); assert.equal(await page.locator('#l5csGo').isVisible(), true);
     assert.equal(guard[1], 'ended', 'the tap that skipped cannot also continue');
+    music = await page.evaluate(() => __l5Score.state());
+    assert(music.active && music.free && music.track === '月汐晚安', 'score settles into its goodnight bars after skip: ' + JSON.stringify(music));
     await page.waitForTimeout(700); await page.locator('#l5csGo').click();
     assert.equal(await csState(page), 'closed'); assert.equal(await cardShown(page), true); assert.equal(await opens(page), 1, '#lotusEnding exactly once');
     assert.equal(await page.evaluate(() => window.__l5Hide.every(g => g.visible) && !document.body.classList.contains('l5cs-on')), true, 'gameplay lotus group restored');
     assert.equal(await page.locator('#lotusSkip').isHidden(), true);
+    await page.waitForTimeout(400);
+    music = await page.evaluate(() => ({ s: __l5Score.state(), scored: __l5Cutscene.scored() }));
+    assert(!music.s.active && !music.scored && music.s.musicOn && music.s.track === themeBefore, 'level music (月汐摇光) returns: ' + JSON.stringify(music.s));
+    // The sparkle voice is the level-3 celesta (three sine oscillators a note through the kit), not the harp or the music box.
+    const cel = await page.evaluate(() => {
+      const GA = window.GardenAudio, K = GA.kit, V = window.__music2.voices, ctx = GA.context(), osc = K.osc, harp = V.harp, box = K.musicBox, seen = { osc: [], harp: 0, box: 0 };
+      K.osc = function (type, f) { seen.osc.push([type, Math.round(f)]); return osc.apply(this, arguments); };
+      V.harp = function () { seen.harp++; }; K.musicBox = function () { seen.box++; };
+      try { window.__l5Score.celesta(ctx.currentTime + 0.05, 94, 0.0001, K.gain(0)); } finally { K.osc = osc; V.harp = harp; K.musicBox = box; }
+      return { seen, voice: window.__l5Score.sparkleVoice };
+    });
+    assert.equal(cel.voice, 'celesta'); assert(cel.seen.harp === 0 && cel.seen.box === 0 && cel.seen.osc.length === 3 && cel.seen.osc.every(o => o[0] === 'sine') && Math.abs(cel.seen.osc[0][1] - 1865) <= 1 && Math.abs(cel.seen.osc[2][1] / cel.seen.osc[0][1] - 4.02) < 0.01, 'celesta partials (Bb6): ' + JSON.stringify(cel.seen));
     // 留下来 closes the card; the wheel zoom still works.
     await page.locator('#lotusStay').click(); await page.waitForTimeout(300);
     const z0 = await page.evaluate(() => GardenClip.world.camera.position.distanceTo(GardenClip.world.camera.position.clone().set(0, 0, 0)));
@@ -122,10 +161,13 @@ const SAVES = {
     // 「重看月汐归航」 replays the film, not the old 7 s 演出; its card opens once more and nothing is awarded twice.
     await page.locator('#lotusFinale').click();
     assert.equal(await csState(page), 'playing', 'replay plays the film');
+    assert.equal(await page.evaluate(() => __l5Cutscene.scored() && __l5Score.state().track === '月汐晚安'), true, 'replay plays the score too');
     await page.waitForTimeout(500);
     assert.equal(await page.evaluate(() => document.getElementById('lotusSkip').hidden), true, 'replay does not run the old 演出');
     await page.locator('#l5csSkip').click(); await page.waitForTimeout(700); await page.locator('#l5csGo').click();
     assert.equal(await opens(page), 2); assert.equal(await page.evaluate(() => __journey.state().xp), xpA, 'replay cannot award twice');
+    await page.waitForTimeout(300);
+    assert.equal(await page.evaluate(() => GardenAudio.currentTrackName()), themeBefore, 'level music returns after the replay too');
     await page.locator('#lotusStay').click();
     await context.close();
 
@@ -153,6 +195,7 @@ const SAVES = {
     ({ context, page } = await fresh({ width: 360, height: 780 }));
     await page.goto(url + '?cutscene=l5&mute=1'); await page.waitForTimeout(2500);
     assert.equal(await csState(page), 'playing', 'preview gate plays at once');
+    assert.deepEqual(await page.evaluate(() => [__l5Cutscene.muted(), __l5Cutscene.scored(), __l5Score.state().active]), [true, false, false], '&mute=1 never starts the score');
     const before = await page.evaluate(k => localStorage.getItem(k), KEY);
     for (const t of [5, 15, 26, 37, 47]) {
       await page.evaluate(t => { __l5Cutscene.seek(t); __l5Cutscene.pause(); }, t); await page.waitForTimeout(400);
