@@ -119,11 +119,11 @@
     const SAVE_BACKUP_KEY='xiantu_save_backup';
     let lastSaveFailureNoticeV2768=0;
     // Exact persisted baseline, separate from in-memory gameplay and rollback snapshots.
-    const SAVE_SESSION_V2868102={active:false,raw:null,stale:false};
+    const SAVE_SESSION_V2868102={active:false,raw:null,stale:false,restored:null};
     function bindSaveSessionV2868102(raw){
       if(SAVE_SESSION_V2868102.stale)throw Error('此窗口的存档已过期，请刷新后继续');
       if(arguments.length===0){try{raw=localStorage.getItem(SAVE_KEY);}catch(_){raw=null;}}
-      SAVE_SESSION_V2868102.active=true;SAVE_SESSION_V2868102.raw=raw;
+      SAVE_SESSION_V2868102.active=true;SAVE_SESSION_V2868102.raw=raw;SAVE_SESSION_V2868102.restored=null;
     }
     function markSaveStaleV2868102(){
       const s=SAVE_SESSION_V2868102;s.stale=true;
@@ -189,18 +189,33 @@
       const clean=JSON.parse(JSON.stringify(player));normalizeItemCountsV2905(clean);normalizeDaoV286883(clean);
       return {player:clean,achievements:{progress:{...achievementProgress},completed:Array.from(completedAchievements)},timestamp:Date.now(),version:SAVE_VERSION};
     }
+    function sameSaveValueV2768(a,b) {
+      if(a===b)return true;
+      if(!a||!b||typeof a!=='object'||typeof b!=='object'||Array.isArray(a)!==Array.isArray(b))return false;
+      const keys=Object.keys(a);
+      return keys.length===Object.keys(b).length && keys.every(k=>Object.prototype.hasOwnProperty.call(b,k)&&sameSaveValueV2768(a[k],b[k]));
+    }
+    function sameSaveProgressV2768(a,b) {
+      return !!a && a.version===b.version && sameSaveValueV2768(a.player,b.player) && sameSaveValueV2768(a.achievements,b.achievements);
+    }
     function writeSaveV2768(raw) {
-      parseSaveV2768(raw);
+      const next=parseSaveV2768(raw);
       assertSaveSessionV2868102();
       const old=localStorage.getItem(SAVE_KEY);
-      let validOld=false;
-      try{if(old){parseSaveV2768(old);validOld=true;}}catch(_){}
+      const restored=SAVE_SESSION_V2868102.restored;
+      let previous=null;
+      // A structurally valid main can still have failed the full load and migration.
+      try{if(old && !restored?.fromBackup)previous=parseSaveV2768(old);}catch(_){}
+      const sameProgress=sameSaveProgressV2768(previous,next);
+      // Keep the original timestamp for duplicate lifecycle saves. The battle notice
+      // can change independently of the player and achievements restored from this record.
+      if(sameProgress && !!previous.interruptedBattleV286812===!!next.interruptedBattleV286812)raw=old;
       // 备份写入失败时不覆盖主档，保留已有记录。
-      const rotateBackup=validOld && old!==raw;
+      const rotateBackup=previous && !sameProgress && !sameSaveProgressV2768(restored?.progress,next);
       const previousBackup=rotateBackup ? localStorage.getItem(SAVE_BACKUP_KEY) : null;
       if(rotateBackup)localStorage.setItem(SAVE_BACKUP_KEY,old);
       try{
-        localStorage.setItem(SAVE_KEY,raw);
+        if(raw!==old)localStorage.setItem(SAVE_KEY,raw);
       }catch(error){
         // Restore only the backup we just rotated, while that main record is still current.
         if(rotateBackup && previousBackup!==old && localStorage.getItem(SAVE_KEY)===old && localStorage.getItem(SAVE_BACKUP_KEY)===old){
@@ -210,6 +225,7 @@
         throw error;
       }
       if(SAVE_SESSION_V2868102.active)SAVE_SESSION_V2868102.raw=raw;
+      SAVE_SESSION_V2868102.restored=null;
       try{window.saveMirrorV2895?.(raw);}catch(_){}
     }
     let miniSaveDeferredV286840=false;
@@ -6502,19 +6518,28 @@
     // Contact fights reuse the task-battle low-health threshold and prompt.
     let wildContactPromptV2868114=null;
     function warnWildContactV2868114(monster){
-      if(!monster||player.hp>=getMaxHp()*.5)return false;
+      if(!monster)return false;
+      const read=player.tutorial?.readPopups,enemy=monster.enemy;
+      const firstOrdinary=monster.regionId==='south'&&player.level===0&&player.phase===0&&
+        achievementProgress.monstersKilled===0&&!enemy?._isElite&&!enemy?._isTutorial&&!enemy?._isTaskBattle&&
+        Array.isArray(read)&&read.includes('training_reward')&&!read.includes('first_wild_contact');
+      const lowHealth=player.hp<getMaxHp()*.5;
+      if(!lowHealth&&!firstOrdinary)return false;
       const seq=++taskBattleSeqV2868103;
       wildContactPromptV2868114={seq,owner:player,monster,region:monster.regionId};
       monster.battleCooldown=8;   // same grace as after fleeing, so declining lets the player walk away
       stopNavigationV2830?.();FLAT_WORLD.keys={};FLAT_WORLD.target=null;FLAT_WORLD.moving=false;
-      showStory(`<section id="taskBattlePromptV2868103" data-prompt="${seq}" data-kind="wild"><h3>⚠️ 气血不足，先整备再迎战</h3><p>${discipleEscV2815(monster.enemy?.name||'妖兽')}挡在路前。当前气血 ${Math.floor(player.hp)} / ${getMaxHp()}，不足一半。战败会损失身上灵石的20%，且仅保留1点气血。</p><button class="choice-btn" onclick="showTaskSuppliesV2868103()">💧 先去补给</button><button class="choice-btn" onclick="confirmWildContactV2868114(${seq})">仍要出战</button></section>`,[{text:'暂且避开',action:'return_to_map'}]);
+      const title=lowHealth?'⚠️ 气血不足，先整备再迎战':'初次野外遇敌';
+      const preparation=firstOrdinary?`对手气血 ${Math.ceil(enemy.hp)} / ${Math.ceil(enemy.maxHp||enemy.hp)}。你可以暂且避开，先穿戴装备、补足状态，再回来应战。`:'';
+      showStory(`<section id="taskBattlePromptV2868103" data-prompt="${seq}" data-kind="wild"><h3>${title}</h3><p>${discipleEscV2815(enemy?.name||'妖兽')}挡在路前。你的气血 ${Math.floor(player.hp)} / ${getMaxHp()}${lowHealth?'，不足一半':''}。${preparation}战败会损失身上灵石的20%，且仅保留1点气血。</p><button class="choice-btn" onclick="showTaskSuppliesV2868103()">💧 先去补给</button><button class="choice-btn" onclick="confirmWildContactV2868114(${seq})">仍要出战</button></section>`,[{text:'暂且避开',action:'return_to_map'}]);
+      if(firstOrdinary){read.push('first_wild_contact');autoSave();}
       document.getElementById('storyText').scrollTop=0;
       document.querySelector('#taskBattlePromptV2868103 button')?.focus();
       return true;
     }
     function confirmWildContactV2868114(seq){
       const p=wildContactPromptV2868114,m=p?.monster;
-      if(!p||p.seq!==seq||p.owner!==player||document.getElementById('taskBattlePromptV2868103')?.dataset.prompt!==String(seq)||gameState!=='exploring'||COMBAT_FINISH_V2764.settling||player.breakthrough?.isAnimating)return false;
+      if(!p||p.seq!==seq||p.owner!==player||document.getElementById('storyPanel')?.classList.contains('hidden')||document.getElementById('taskBattlePromptV2868103')?.dataset.prompt!==String(seq)||gameState!=='exploring'||COMBAT_FINISH_V2764.settling||player.breakthrough?.isAnimating)return false;
       wildContactPromptV2868114=null;
       if(!m.alive||m.inCombat||!FLAT_WORLD.monsters.includes(m)||m.regionId!==(currentRegion||getPlayerRegion())){closeWorldOverlay();showFloatingText('妖兽已经离开。','#e5cf87');return false;}
       closeWorldOverlay();
@@ -14152,6 +14177,7 @@ function villageEnhanceV286897(){
       stopNavigationV2830();
       FLAT_WORLD.keys={};FLAT_WORLD.target=null;FLAT_WORLD.tapTargetFx=null;
       FLAT_WORLD.moving=false;FLAT_WORLD.moveDirX=0;FLAT_WORLD.moveDirY=0;
+      document.body.classList.toggle('world-walking',false);
       window.dispatchEvent(new CustomEvent('xiantu-movement-reset'));
     }
     window.addEventListener('blur',resetWorldMovementV28686);
@@ -14231,6 +14257,7 @@ function villageEnhanceV286897(){
       FLAT_WORLD.raf=null;
       if(document.hidden){PERF_CONFIG.fpsFrames=0;PERF_CONFIG.fpsStartedAt=t;PERF_CONFIG.measuredFps=0;return;}
       if(isWorldOverlayOpen() || !document.body.classList.contains('flat-world-active')) {
+        document.body.classList.toggle('world-walking',false);
         // Paint one standing pose before freezing the map behind a panel, not a raised foot.
         if(mapNpcWalkV1?.renderMoving){
           mapNpcWalkV1.renderMoving=false;
@@ -14249,7 +14276,8 @@ function villageEnhanceV286897(){
         return;
       }
       if (PERF_CONFIG.mobile) FLAT_WORLD._lastMobileFrame=t;
-      const elapsed=Math.max(0,Math.min(34,t-FLAT_WORLD.lastTime));
+      // Catch up ordinary slow frames, but bound the work after a long foreground stall.
+      const elapsed=Math.max(0,Math.min(100,t-FLAT_WORLD.lastTime));
       const dt=elapsed/1000;
       FLAT_WORLD.lastTime=t;
       PERF_CONFIG.fpsFrames++;
@@ -14262,7 +14290,13 @@ function villageEnhanceV286897(){
         // 战斗/剧情/角色面板打开时冻结地图在最后一帧，避免 iPhone 后台仍以 60FPS 重绘。
         const overlayOpen=isWorldOverlayOpen();
         if(!overlayOpen){
-          updateFlatWorld(dt);
+          // Keep the original maximum collision/encounter step and draw only once.
+          const steps=Math.max(1,Math.ceil(elapsed/34));
+          for(let i=0;i<steps;i++){
+            if(i>0&&(gameState!=='exploring'||isWorldOverlayOpen()))break;
+            updateFlatWorld(dt/steps);
+          }
+          document.body.classList.toggle('world-walking',FLAT_WORLD.moving && gameState==='exploring' && (typeof interiorV286886==='undefined'||!interiorV286886));
           drawFlatWorld(t,dt);
           if(typeof mapFxFrameV2868104==='function')mapFxFrameV2868104(t);
           if(AVATAR3D.ready && t-PERF_CONFIG.last3DDraw>=PERF_CONFIG.avatar3DInterval){
@@ -16207,10 +16241,10 @@ function villageEnhanceV286897(){
     function loadAndStart(prepared) {
       try{assertSaveSessionV2868102();}catch(_){return false;}
       let sourceRaw;try{sourceRaw=localStorage.getItem(SAVE_KEY);}catch(_){sourceRaw=null;}
-      let saveData=prepared;
+      let saveData=prepared,fromBackup=false;
       if(!saveData){
         for(const key of [SAVE_KEY,SAVE_BACKUP_KEY]){
-          try{const raw=localStorage.getItem(key);if(!raw)continue;saveData=dryRunLoadV2870(raw);if(key===SAVE_BACKUP_KEY)saveData._recoveredFromBackup=true;break;}
+          try{const raw=localStorage.getItem(key);if(!raw)continue;saveData=dryRunLoadV2870(raw);fromBackup=key===SAVE_BACKUP_KEY;break;}
           catch(e){console.warn('存档预加载失败：',e);}
         }
       }
@@ -16220,7 +16254,7 @@ function villageEnhanceV286897(){
         return;
       }
       
-      if(saveData._recoveredFromBackup)gameAlertV2868114('主存档无法读取，已使用最近一次有效备用档恢复。');
+      if(fromBackup)gameAlertV2868114('主存档无法读取，已使用最近一次有效备用档恢复。');
       // Loading may initialize tasks; do not overwrite either recovery candidate during setup.
       const wasSaveDeferred=miniSaveDeferredV286840;miniSaveDeferredV286840=true;
       try{
@@ -16270,6 +16304,9 @@ function villageEnhanceV286897(){
       `, [
         { text: '续行仙途', action: 'village' }
       ]);
+      // Initialization fills missing fields and migrates tasks. Keep the result as
+      // the first comparison point, before resuming an actual pending breakthrough.
+      SAVE_SESSION_V2868102.restored={fromBackup,progress:createSaveDataV2768()};
       recoverPendingBreakthroughV28683();
       }finally{miniSaveDeferredV286840=wasSaveDeferred;}
       return true;
@@ -16608,6 +16645,7 @@ function villageEnhanceV286897(){
     // V27.67：后台停止地图/人物绘制，前台按需恢复，防止生成重复动画循环。
     let characterAnimationPausedV2767=false;
     function pauseVisualsV2767() {
+      document.body.classList.toggle('world-walking',false);
       alchemyStageStopV2868110();
       if(typeof mapFxCancelV2868104==='function')mapFxCancelV2868104();
       if(typeof resetMapAliveV2893==='function')resetMapAliveV2893();

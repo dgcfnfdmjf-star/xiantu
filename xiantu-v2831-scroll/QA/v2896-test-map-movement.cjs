@@ -32,7 +32,7 @@ run('resetWorldMovementV28686()');a.equal(run('FLAT_WORLD.keys.joystick'),undefi
 // Equipment overlay pauses the actual world loop, clearing keyboard, joystick and navigation intent.
 fresh();run("closeWorldOverlay();FLAT_WORLD.keys={d:true};FLAT_WORLD.target={x:900,y:500};showEquipmentPanel()");a.deepEqual(J('FLAT_WORLD.keys'),{});a.equal(run('FLAT_WORLD.target'),null);a.equal(run('isWorldOverlayOpen()'),true);
 let draws=0,updates=0;f.c.drawFlatWorld=()=>{draws++};f.c.updateFlatWorld=()=>{updates++};run("document.body.classList.add('flat-world-active');PERF_CONFIG.mobile=false;flatWorldLoop(1000)");a.equal(draws,0);a.equal(updates,0);
-run("document.getElementById('equipmentPanel').remove();flatWorldLoop(1100)");a.equal(draws,1);a.equal(updates,1);
+run("document.getElementById('equipmentPanel').remove();FLAT_WORLD.initialized=true;resumeVisualsV2767();flatWorldLoop(FLAT_WORLD.lastTime+16)");a.equal(draws,1);a.equal(updates,1);
 const source=fs.readFileSync(root+'/xiantu-v28684-duel.js','utf8').split('// BEGIN MAP_MOVEMENT_V2896')[1].split('// END MAP_MOVEMENT_V2896')[0];a(!/requestAnimationFrame|setInterval|Math\.random|saveGame\s*=/.test(source),'no additional frame loop, RNG or save wrapper');
 a.equal(f.errors.length,0,JSON.stringify(f.errors));console.log('PASS map movement: optional 1.6x speed, frame-rate parity, tap/waypoint arrival, swept circle sliding, no tunnelling/corner penetration, unchanged actor base speed and map footprints');
 

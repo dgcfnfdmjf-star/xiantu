@@ -1,7 +1,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),fixture=require('./v2858-dom-fixture.cjs');
 const root=process.env.XIANTU_TEST_ROOT||path.resolve(__dirname,'..'),files=JSON.parse(fs.readFileSync(root+'/game-v2762.html','utf8').match(/var files=(\[[^;]+\]);/)[1]);
-function setup(old=false){const f=fixture(root),images=[],Base=f.c.Image;f.c.Image=class extends Base{constructor(){super();images.push(this)}};let rng=0;f.c.Math=Object.create(Math);f.c.Math.random=()=>{rng++;return .5};for(const name of files){const before=path.join(root,'../art/heal-skills-batch3/runtime-before',name);if(old&&fs.existsSync(before))f.run(fs.readFileSync(before,'utf8'));else f.load(name)}return {f,images,rng:()=>rng};}
+function setup(old=false){const f=fixture(root),images=[],Base=f.c.Image;f.c.Image=class extends Base{constructor(){super();images.push(this)}};let rng=0;f.c.Math=Object.create(Math);f.c.Math.random=()=>{rng++;return .5};for(const name of files)f.load(name,old&&path.join(root,'../art/heal-skills-batch3/runtime-before'));return {f,images,rng:()=>rng};}
 const {f,images}=setup(),fx=f.c.InkSkillFxV2854,b=fx.healBatch3;assert(b,'two approved healing guard animations must be integrated');
 const manifest=JSON.parse(fs.readFileSync(root+'/heal-skills-batch3/effect-manifest.json'));assert.deepEqual(JSON.parse(JSON.stringify(b.definitions)),manifest.effects);
 const ctx=f.ids.get('combatPlayerChar').getContext('2d'),draws=[];ctx.drawImage=(im,...args)=>draws.push({src:im.src,args});

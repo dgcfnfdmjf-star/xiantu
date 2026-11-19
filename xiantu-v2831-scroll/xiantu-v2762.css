@@ -5376,3 +5376,40 @@ html .xt-cell-icon.xt-slot-glyph-v2868122.is-empty{color:var(--xt-gold-700,#8a6a
 html .xt-cell-icon.xt-slot-glyph-v2868122.is-locked{color:var(--xt-text-3,#8a978e);box-shadow:inset 0 0 0 1px rgba(138,151,142,.35)}
 .xt-inline-glyph-v2868122{display:inline-flex;align-items:center;color:var(--xt-gold-300,#f0dca0)}
 .scroll-poi-v2831 i.xt-scroll-glyph-v2868122{display:flex;align-items:center;justify-content:center;width:30px;height:30px;font-size:20px;text-shadow:none;color:var(--xt-gold-300,#f0dca0);background:var(--xt-ink-800,#16221d);border:1px solid var(--xt-gold-500,#d4b06a);border-radius:50%}
+
+/* Outdoor walking on short landscape screens. Keep the controls under the player's thumbs. */
+@media (orientation: landscape) and (max-height: 500px) and (max-width: 1000px) {
+  .world-walking #worldPanel .world-hud {
+    width: min(196px, 40vw) !important;
+    padding: 6px 9px !important;
+  }
+  .world-walking #worldPanel .world-hud > :not(.world-bars),
+  .world-walking #worldPanel .world-bar-row ~ .world-bar-row,
+  .world-walking #worldMinimap,
+  .world-walking #worldPanel .world-location-card,
+  html.xt-has-questbar .world-walking #firstPathV2901 {
+    display: none !important;
+  }
+  .world-walking #worldPanel .world-bars {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    margin: 0 !important;
+  }
+  .world-walking #worldPanel .world-bar-row {
+    display: grid !important;
+    grid-template-columns: auto minmax(24px, 1fr) auto !important;
+    gap: 6px !important;
+  }
+  .world-walking #worldPanel .world-bar-row > span {
+    display: block !important;
+    font-size: 12px !important;
+    white-space: nowrap;
+  }
+  /* In the classic UI, use the first tracked task after the beginner guide has gone. */
+  html:not(.xt-theme) .world-walking:not(.tutorial-guided-mode):not(:has(#firstPathV2901:not([hidden]))) #taskTrackerCompact {
+    display: block !important;
+  }
+  .world-walking #taskTrackerCompact .task-track-row ~ .task-track-row {
+    display: none;
+  }
+}

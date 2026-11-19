@@ -40,8 +40,13 @@ for p in files:
         raise SystemExit('Unverified runtime file: '+str(p.relative_to(site)))
 fd,scratch=tempfile.mkstemp(prefix=target.stem+'-',suffix='.tmp',dir=out);os.close(fd)
 try:
-    with zipfile.ZipFile(scratch,'w',zipfile.ZIP_DEFLATED) as z:
-        for p in files:z.write(p,site.name+'/'+p.relative_to(site).as_posix())
+    with zipfile.ZipFile(scratch,'w') as z:
+        for p in files:
+            # A fresh checkout has different mtimes and may use a different umask.
+            entry=zipfile.ZipInfo(site.name+'/'+p.relative_to(site).as_posix(), (1980,1,1,0,0,0))
+            entry.create_system=3
+            entry.external_attr=0o100644<<16
+            z.writestr(entry,p.read_bytes(),compress_type=zipfile.ZIP_DEFLATED)
     with zipfile.ZipFile(scratch) as z:
         assert z.testzip() is None
         assert len(z.namelist())==len(files)

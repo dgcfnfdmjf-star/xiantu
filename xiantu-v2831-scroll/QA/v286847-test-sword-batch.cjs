@@ -21,7 +21,7 @@ for(const D of b.definitions){
 }
 function combat(name,old){
  const g=fixture(root);let rng=0;g.c.Math=Object.create(Math);g.c.Math.random=()=>{rng++;return .5};
- for(const file of files)if(old&&file==='xiantu-v2855-skill-fx.js')g.run(fs.readFileSync(path.join(root,'../art/sword-skills-batch1/runtime-before',file),'utf8'));else g.load(file);
+ for(const file of files)g.load(file,old&&path.join(root,'../art/sword-skills-batch1/runtime-before'));
  g.run(`startGame();closeWorldOverlay();resetRuntimeState();player=createDefaultPlayer();player.mp=1000;player.hp=1000;player.skills=[{...SKILLS.find(s=>s.name===${JSON.stringify(name)})}];player.skillLoadoutV212={sword:[${JSON.stringify(name)}]};player.skillLoadoutInitializedV212=true;setBattlePresentationV2756('report');startCombat({name:'血狐',hp:50000,maxHp:50000,atk:20,def:10,gold:1,exp:1,_realmLevel:0,_realmPhase:0});currentEnemy.atk=20;currentEnemy.def=10;`);
  g.timers.clear();const mp=g.run('player.mp');g.run('combat("skill",0)');g.flush(150);g.flush(300);
  assert.equal(mp-g.run('player.mp'),{'御剑术':10,'万剑归宗':50,'天地一剑':80}[name]);assert.equal(g.errors.length,0,JSON.stringify(g.errors));
