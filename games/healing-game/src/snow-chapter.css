@@ -1,0 +1,7 @@
+/* Chapter 6 「雪灯归林」: the shared island's controls stay; the level-1..3 tool modes are hidden like chapters 4/5. */
+body[data-garden-level="6"] #modes,body[data-garden-level="6"] #gpAch{display:none}
+#snowHud{display:flex;align-items:baseline;gap:8px;padding:8px 12px;border-radius:16px;color:#f4f1ff;font-size:13px;line-height:1.3;white-space:nowrap;pointer-events:none}
+#snowHud[hidden]{display:none}
+#snowHud strong{font-size:13px;color:#ffd99a;font-weight:600}
+#snowCount{font-size:12px;color:#dfe8ff}
+@media(max-width:400px){#snowHud{gap:6px;padding:7px 9px}#snowHud strong{font-size:12px}#snowCount{font-size:11px}}

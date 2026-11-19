@@ -47,7 +47,7 @@ class Package(unittest.TestCase):
     def test_all_inline_scripts_parse(self):
         self.assertEqual(len(re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.html.decode())), 19)
         scripts = re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.site.decode())
-        self.assertEqual(len(scripts), 29)  # V9.5's 19 + level-2 cutscene + its score + level-1 cutscene + its score + level-3 cutscene + its score + level-4 cutscene + its score + level-5 cutscene + its score
+        self.assertEqual(len(scripts), 30)  # V9.5's 19 + level-2 cutscene + its score + level-1 cutscene + its score + level-3 cutscene + its score + level-4 cutscene + its score + level-5 cutscene + its score + level-6 chapter
         with tempfile.TemporaryDirectory() as tmp:
             for i, script in enumerate(scripts):
                 path = Path(tmp) / f'{i}.js'
@@ -110,6 +110,13 @@ class Package(unittest.TestCase):
         self.assertLess(self.site.index((ROOT / 'src/l4-cutscene-music.js').read_bytes()), self.site.index((ROOT / 'src/l5-cutscene-music.js').read_bytes()))  # after the level-3/4 scores (it borrows the level-3 celesta)
         self.assertNotIn(b'__l5', self.html)
         self.assertNotIn(b'garden-working', self.html)
+        # Level 6 (雪灯归林) lives only in the working site.
+        self.assertIn((ROOT / 'src/snow-chapter.js').read_bytes(), self.site)
+        self.assertIn((ROOT / 'src/snow-rules.js').read_bytes(), self.site)
+        self.assertLess(self.site.index((ROOT / 'src/snow-rules.js').read_bytes()), self.site.index(b'window.SnowRules.normalize(null)'))
+        self.assertNotIn(b'SnowChapter', self.html)
+        self.assertNotIn(b'SnowRules', self.html)
+        self.assertNotIn(b'snowlantern', self.html)
 
     def test_reproducible_release(self):
         before = ZIP.read_bytes()
