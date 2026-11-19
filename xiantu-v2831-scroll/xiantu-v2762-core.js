@@ -96,11 +96,14 @@
         <div class="mobile-inventory-summary"><span>💰 灵石 ${player.gold||0}</span><span>💠 灵力 ${Math.max(0,Math.round(player.mp||0))} / ${typeof getMaxMp==='function'?getMaxMp():Math.max(0,Math.round(player.maxMp||0))}</span><span>🎐 物品 ${itemRows.reduce((a,b)=>a+b.count,0)}</span><span>🌿 材料 ${materialRows.reduce((a,b)=>a+Number(b.count||0),0)}</span><span>⚔️ 装备 ${equipmentRows.length}</span></div>
         <div class="mobile-inventory-tabs">${tabs.map(([id,label])=>`<button class="mobile-inventory-tab ${mobileInventoryTab===id?'active':''}" onclick="setMobileInventoryTab('${id}')">${label}</button>`).join('')}</div>
         ${mobileInventoryTab==='items'?'<button id="sortBagBtnV2870" class="choice-btn" style="width:100%;margin:8px 0" onclick="sortAndConsolidateBagV2870()">'+(bagPrefsV2905().items==='category'?'↩️ 恢复获得顺序':'🔄 按品类整理物品')+'</button>':''}
+        ${mobileInventoryTab==='items'&&!player.inventory.includes(FIELD_KIT_V2868124)?`<button type="button" class="choice-btn" data-pack-kit style="width:100%;margin-bottom:8px" ${player.inventory.includes('小还丹')&&player.inventory.includes('聚灵丹')?'':'disabled'}>封装行药囊 · 小还丹、聚灵丹各一枚<br><small>限带一囊，战中一回合同服两药</small></button>`:''}
         <div class="mobile-inventory-grid">${htmlRows}</div>
         ${mobileInventoryTab==='equipment'?`<button class="choice-btn" style="margin-top:10px;width:100%" onclick="closeMobileInventory();showEquipmentPanel();">📦 打开完整装备栏</button>`:''}
         <div class="mobile-inventory-footer">${footer}</div>`;
       const owner=player;
       card.onclick=e=>{
+        const pack=e.target.closest('[data-pack-kit]');
+        if(pack&&card.contains(pack)&&player===owner&&mobileInventoryTab==='items'){packFieldKitV2868124();return;}
         const batch=e.target.closest('[data-bag-batch]');
         if(batch&&card.contains(batch)&&player===owner&&gameState==='exploring'&&forgeAllowedV2825()){const row=rows[Number(batch.dataset.bagBatch)];if(row&&mobileInventoryTab==='items')useItemBatchV2905(row.name,/^\d+$/.test(batch.dataset.mode)?Number(batch.dataset.mode):batch.dataset.mode);return;}
         const button=e.target.closest('[data-bag-index]');
@@ -4254,7 +4257,9 @@
       { name: '鬼将', hp: 500, atk: 80, def: 40, gold: 350, exp: 400 }
     ];
     
+    const FIELD_KIT_V2868124='行药囊';
     const ITEMS = {
+      [FIELD_KIT_V2868124]:{type:'fieldKit',icon:'🎒',desc:'战中一回合恢复气血、灵力各最多30点。地图上点此拆回小还丹、聚灵丹各一枚。'},
       '神行符':{type:'escape',value:0,desc:'消耗一张，普通野外战必定脱战；首领、天劫、任务、擂台与正魔战禁用。'},
       '破障丹':{type:'breakthrough',desc:'突破预览选用，尝试消耗一颗，成功率+15个百分点'},
       '渡劫丹':{type:'breakthrough',desc:'突破预览选用，尝试消耗一颗，成功率+20个百分点'},
@@ -4756,7 +4761,7 @@
     }
 
     const SKILLS = [
-      { name: '御剑术', mpCost: 10, damage: 1.5, desc: '消耗10灵力，造成1.5倍攻击伤害', element: 'sword' },
+      { name: '御剑术', mpCost: 10, damage: 1.5, desc: '消耗10灵力，造成1.5倍攻击伤害。可脱战的遭遇中，紧接清风剑诀命中可使出回锋，减免下一次来袭伤害的30%。', element: 'sword' },
       { name: '雷法', mpCost: 20, damage: 2.0, desc: '消耗20灵力，造成2倍攻击伤害', element: 'thunder' },
       // 雷系进阶技能
       { name: '惊雷闪', mpCost: 25, damage: 2.2, desc: '消耗25灵力，造成2.2倍攻击伤害，概率封脉，使目标接下来2次行动无法施展术法或回生', element: 'thunder', effect: 'paralyze', statusChance: 0.42 },
@@ -4806,7 +4811,7 @@
       { name: '起死回生', mpCost: 60, heal: 0.8, desc: '消耗60灵力，恢复80%最大气血', element: 'heal' },
 
       // V27.85：追加而不插队，保留旧技能索引；明确境界解锁。
-      {name:'清风剑诀',element:'sword',mpCost:8,damage:1.35,unlockRealm:0,desc:'消耗8灵力，1.35倍剑伤；凡人自动领悟'},
+      {name:'清风剑诀',element:'sword',mpCost:8,damage:1.35,unlockRealm:0,desc:'消耗8灵力，1.35倍剑伤，凡人自动领悟。可脱战的遭遇中，命中后下一次行动接御剑术可回锋护体。'},
       {name:'破甲剑罡',element:'sword',mpCost:24,damage:2.1,armorPierce:.5,unlockRealm:1,desc:'消耗24灵力，2.1倍剑伤，本次穿透50%防御；练气解锁'},
       {name:'追魂一剑',element:'sword',mpCost:38,damage:2.8,executeBonus:.5,unlockRealm:2,desc:'消耗38灵力，2.8倍剑伤；目标气血不高于30%时本次伤害增加50%；筑基解锁'},
       {name:'饮血剑诀',element:'sword',mpCost:42,damage:2.7,lifeSteal:.2,unlockRealm:2,desc:'消耗42灵力，2.7倍剑伤；按实际扣血的20%回血，单次最多恢复15%最大气血；筑基解锁'},
@@ -7451,8 +7456,26 @@
       if(visualResult){visualResult.actualHeal=amount;visualResult.actualMpRestore=actualMpRestore;visualResult.emergency=!!skill.emergencyHeal&&before<=max*.25;}
       return amount; // Presentation metadata only; healing was already committed above.
     }
-    function swordAfterHitV2785(skill,actualLoss) {
+    function takeSwordOpeningV2868124() {
+      const tactics=tacticsV286821.get(currentEnemy);
+      if(tactics?.owner!==player || !tactics.swordOpening)return false;
+      tactics.swordOpening=false;
+      return true;
+    }
+    function swordAfterHitV2785(skill,actualLoss,hadOpening=false) {
       if(skill.element!=='sword')return;
+      if(actualLoss>0 && currentEnemy?.hp>0 && canFleeV286818()){
+        if(skill.name==='清风剑诀'){
+          const tactics=tacticsV286821.get(currentEnemy);
+          if(tactics?.owner===player){
+            tactics.swordOpening=true;
+            addCombatLog('清风起势：下一次行动接御剑术，命中即可回锋护体。','pet');
+          }
+        }else if(hadOpening && skill.name==='御剑术'){
+          addCombatLog('御剑回锋：剑势回转，护住身前。','heal');
+          applyGuardV2785({name:'御剑回锋',guardRatio:.3});
+        }
+      }
       if(skill.lifeSteal){
         const heal=Math.max(0,Math.min(getMaxHp()-player.hp,Math.floor(actualLoss*skill.lifeSteal),Math.floor(getMaxHp()*.15)));
         player.hp+=heal;notifySwordVfxV286887('heal',{name:skill.name,actualHeal:heal});showDamageNumber(heal,'player',true,false,false,false,skill.name+'·吸血');
@@ -7498,6 +7521,7 @@
         const usable=typeof getCombatSkillAvailabilityV2769==='function'?getCombatSkillAvailabilityV2769(skillIndex):{ok:false,reason:'技能配置尚未就绪'};
         if(!usable.ok){showFloatingText?.(usable.reason,'#ffd76a');updateCombatChoices?.();return;}
       }
+      const hadSwordOpening=['attack','skill','flee','escapeScroll'].includes(action) && takeSwordOpeningV2868124();
       if(currentEnemy._warV2839)currentEnemy._warV2839.awaitingAction=true;
       if(playerPressureStun && Math.random()<getControlResistanceV286849()){playerPressureStun=false;addCombatLog('护持稳神，抵抗本次威压控制。','heal');}
       if(playerPressureStun && action !== 'flee' && action !== 'escapeScroll'){
@@ -7639,7 +7663,7 @@
           const beforeHitV2882=currentEnemy.hp;
           damage=dealEnemyDamageV2882(currentEnemy,damage,isCrit,'direct',skill.name);
           const actualLossV2785=beforeHitV2882-currentEnemy.hp;
-          swordAfterHitV2785(skill,actualLossV2785);
+          swordAfterHitV2785(skill,actualLossV2785,hadSwordOpening);
           showDamageNumber(damage, 'enemy', false, isCrit, false, false, skill.name,skill.mpCost);
           playHitEffect('enemy');
           if (!skill.silent) playSound('hit');
@@ -9109,6 +9133,15 @@
     function useItem(itemName) {
       if(!player||gameState==='combat')return showFloatingText?.('战斗结束后才能使用储物袋物品','#ffd76a');
       if(!player.inventory.includes(itemName))return showFloatingText?.('储物袋中没有该物品','#ffd76a');
+      if(itemName===FIELD_KIT_V2868124){
+        if(gameState!=='exploring')return false;
+        if(player.inventory.length>=100000)return showFloatingText('拆囊需要一个空位。','#ffd76a');
+        removeItem(itemName);
+        player.inventory.push('小还丹','聚灵丹');
+        renderMobileInventory();
+        showFloatingText('已拆回小还丹、聚灵丹各一枚。','#69f0ae');
+        return true;
+      }
       const now=performance.now();if(now-lastItemUseV2768<350)return;
       const def=ITEMS[itemName];
       if(def?.type==='breakthrough')return showFloatingText?.('请在修为圆满后的闭关突破预览中选用，此处不消耗','#ffd76a');
@@ -9146,6 +9179,18 @@
     function removeItem(itemName) {
       const idx = player.inventory.indexOf(itemName);
       if (idx > -1) player.inventory.splice(idx, 1);
+    }
+
+    function packFieldKitV2868124(){
+      if(gameState!=='exploring')return false;
+      const bag=player.inventory;
+      if(bag.includes(FIELD_KIT_V2868124)||!bag.includes('小还丹')||!bag.includes('聚灵丹'))return false;
+      removeItem('小还丹');
+      removeItem('聚灵丹');
+      bag.push(FIELD_KIT_V2868124);
+      renderMobileInventory();
+      showFloatingText('行药囊已备好，可在战斗背包中服用。','#69f0ae');
+      return true;
     }
     
     // ================== 炼丹系统 ==================
@@ -12772,7 +12817,7 @@ function villageEnhanceV286897(){
       const bucket={};
       (player?.inventory||[]).forEach(name=>{
         const item=ITEMS?.[name]; if(!item)return;
-        if(['heal','mp'].includes(item.type))return;
+        if(['heal','mp','fieldKit'].includes(item.type))return;
         bucket[name]=(bucket[name]||0)+1;
       });
       return Object.entries(bucket).map(([name,count])=>({name,count,...ITEMS[name]}));
@@ -12842,11 +12887,12 @@ function villageEnhanceV286897(){
       (player?.inventory || []).forEach(name => {
         const item = ITEMS?.[name];
         if (!item) return;
-        if (item.type !== 'heal' && item.type !== 'mp') return;
+        if (!['heal','mp','fieldKit'].includes(item.type)) return;
         bucket[name] = (bucket[name] || 0) + 1;
       });
+      const order={fieldKit:0,heal:1,mp:2};
       return Object.entries(bucket).map(([name, count]) => ({ name, count, ...ITEMS[name] }))
-        .sort((a, b) => (a.type === b.type ? a.value - b.value : (a.type === 'heal' ? -1 : 1)));
+        .sort((a,b)=>order[a.type]-order[b.type] || a.value-b.value);
     }
 
     let combatBagState = { open: false, tab: 'all' };
@@ -12855,6 +12901,8 @@ function villageEnhanceV286897(){
       if (typeof force === 'boolean') combatBagState.open = force;
       else combatBagState.open = !combatBagState.open;
       renderCombatMedicineDrawer();
+      const target=combatBagState.open?'combatItemDrawer':'combatChoices';
+      document.getElementById(target)?.scrollIntoView?.({block:'start',behavior:'instant'});
     }
 
     function setCombatMedicineTab(tab) {
@@ -12874,8 +12922,12 @@ function villageEnhanceV286897(){
       if(!combatBagState.open)return;
       let rows='';
       if(tab==='all'||tab==='heal'||tab==='mp'){
-        const list=pills.filter(it=>tab==='all'||it.type===tab);
-        rows=list.length?list.map(it=>{const ready=combatMedicineAvailabilityV2856(it.name),esc=skillTextEscapeV212;return `<button type="button" class="combat-item-btn xt-item-cell" ${ready.ok?'':'disabled'} onclick="useCombatBagItem(${esc(JSON.stringify(it.name))})"><span><span class="xt-cell-icon" aria-hidden="true">${it.type==='heal'?'💊':'🔹'}</span> ${esc(it.name)}<span class="count">×${it.count}</span></span><span class="meta">${ready.ok?`实际恢复 ${ready.gain} 点${it.type==='heal'?'气血':'灵力'}${ready.curesMeridians?' · 清除经脉暗伤':''}`:esc(ready.reason)}${ready.ok&&ready.waste>0?` · 超出上限 ${ready.waste} 点`:''}<br>${esc(it.desc||'')}<br>使用消耗一个回合</span></button>`}).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无丹药<span class="meta">去商铺或 NPC 处补给</span></button>`;
+        const list=pills.filter(it=>tab==='all'||it.type===tab||it.type==='fieldKit');
+        rows=list.length?list.map(it=>{
+          const ready=combatMedicineAvailabilityV2856(it.name),esc=skillTextEscapeV212;
+          const icon=it.icon||(it.type==='heal'?'💊':'🔹');
+          return `<button type="button" class="combat-item-btn xt-item-cell" ${ready.ok?'':'disabled'} onclick="useCombatBagItem(${esc(JSON.stringify(it.name))})"><span><span class="xt-cell-icon" aria-hidden="true">${esc(icon)}</span> ${esc(it.name)}<span class="count">×${it.count}</span></span><span class="meta">${ready.ok?ready.summary:esc(ready.reason)}${ready.ok&&ready.waste>0?` · 超出上限 ${ready.waste} 点`:''}<br>${esc(it.desc||'')}<br>使用消耗一个回合</span></button>`;
+        }).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无丹药<span class="meta">去商铺或 NPC 处补给</span></button>`;
       }else{
         const list=extras.filter(it=>tab==='equip'?['weapon','armor'].includes(it.type):!['weapon','armor'].includes(it.type));
         rows=list.length?list.map(it=>`<button type="button" class="combat-item-btn xt-item-cell combat-readonly" disabled><span><span class="xt-cell-icon" aria-hidden="true">${['weapon','armor'].includes(it.type)?(it.type==='weapon'?'⚔️':'🛡️'):'🎐'}</span> ${it.name}<span class="count">x${it.count}</span></span><span class="meta">${it.desc||'背包道具'}<br>${tab==='equip'?'战斗中可查看，脱战后再正式换装':'当前战斗仅查看，不会误用'}</span></button>`).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无物品<span class="meta">获得后会自动显示在这里</span></button>`;
@@ -12890,33 +12942,36 @@ function villageEnhanceV286897(){
 
     function combatMedicineAvailabilityV2856(itemName) {
       const item=ITEMS?.[itemName],index=(player?.inventory||[]).indexOf(itemName);
-      if(index<0||!item||!['heal','mp'].includes(item.type))return {ok:false,reason:'当前没有此补给',gain:0};
-      const maximum=item.type==='heal'?getMaxHp():getMaxMp(),current=item.type==='heal'?player.hp:player.mp;
-      const value=Number(item.value),gain=Math.max(0,Math.min(value,maximum-current));
+      if(index<0||!item||!['heal','mp','fieldKit'].includes(item.type))return {ok:false,reason:'当前没有此补给',gain:0};
+      const kit=item.type==='fieldKit';
+      const hpDose=kit?ITEMS['小还丹'].value:item.type==='heal'?item.value:0;
+      const mpDose=kit?ITEMS['聚灵丹'].value:item.type==='mp'?item.value:0;
+      const hpGain=hpDose?Math.max(0,Math.min(hpDose,getMaxHp()-player.hp)):0;
+      const mpGain=mpDose?Math.max(0,Math.min(mpDose,getMaxMp()-player.mp)):0;
+      const value=hpDose+mpDose,gain=hpGain+mpGain;
       if(!Number.isFinite(value)||value<=0||!Number.isFinite(gain))return {ok:false,reason:'补给数据无效',gain:0};
-      if(gameState!=='combat'||!currentEnemy||currentEnemy.hp<=0||COMBAT_FINISH_V2764.settling)return {ok:false,reason:'当前不在可行动的战斗中',gain};
-      if(!isPlayerTurn)return {ok:false,reason:'等待行动结算',gain};
+      if(gameState!=='combat'||!currentEnemy||currentEnemy.hp<=0||player.hp<=0||COMBAT_FINISH_V2764.settling)return {ok:false,reason:'当前不在可行动的战斗中',gain};
+      if(!isPlayerTurn||player.petCapture?.isCapturing)return {ok:false,reason:'等待行动结算',gain};
       const curesMeridians=itemName==='玄玉护脉丹'&&hasStatusEffect('jingmai');
-      if(gain<=0&&!curesMeridians)return {ok:false,reason:item.type==='heal'?'气血已满，无需服用':'灵力已满，无需服用',gain:0};
-      return {ok:true,item,index,gain,waste:Math.max(0,value-gain),curesMeridians};
+      const vital=kit?'气血与灵力':item.type==='heal'?'气血':'灵力';
+      if(gain<=0&&!curesMeridians)return {ok:false,reason:vital+'已满，无需服用',gain:0};
+      const amount=kit?`${hpGain} 点气血、${mpGain} 点灵力`:`${gain} 点${vital}`;
+      const summary='实际恢复 '+amount+(curesMeridians?' · 清除经脉暗伤':'');
+      return {ok:true,item,index,hpGain,mpGain,gain,summary,waste:value-gain,curesMeridians};
     }
 
     function useCombatBagItem(itemName) {
       const ready=combatMedicineAvailabilityV2856(itemName);
       if(!ready.ok){showFloatingText?.(ready.reason,'#ffd76a');renderCombatMedicineDrawer();return;}
-      const {item,index,gain,curesMeridians}=ready;
+      const {index,hpGain,mpGain,curesMeridians}=ready;
+      takeSwordOpeningV2868124();
       isPlayerTurn=false;
       player.inventory.splice(index,1);
-      if(item.type==='heal'){
-        player.hp=Math.min(getMaxHp(),player.hp+gain);
-        if(curesMeridians)removeStatusEffect('jingmai');
-        showDamageNumber(gain,'player',true,false,false,false,itemName);
-        playSound('heal');
-      }else{
-        player.mp=Math.min(getMaxMp(),player.mp+gain);
-        playSound('heal');
-      }
-      addCombatLog(`使用${itemName}，实际恢复 ${gain} 点${item.type==='heal'?'气血':'灵力'}${curesMeridians?'，经脉暗伤已痊愈':''}。`,'heal');
+      if(hpGain){player.hp+=hpGain;showDamageNumber(hpGain,'player',true,false,false,false,itemName);}
+      if(mpGain)player.mp+=mpGain;
+      if(curesMeridians)removeStatusEffect('jingmai');
+      playSound('heal');
+      addCombatLog(`使用${itemName}，${ready.summary}。`,'heal');
       updateCombatUI();updateCombatChoices();renderCombatMedicineDrawer();updateStats?.();
       battleLaterV2838(()=>enemyTurn(),500);
     }
@@ -14517,11 +14572,16 @@ function villageEnhanceV286897(){
       }
     }
 
-    function interactFlatWorld() {
+    function interactFlatWorld(skipSurvey=false) {
       if(typeof interiorInteractV286886==='function'&&interiorInteractV286886())return;
       if(!canMapNpcActV2864())return;
       const p=FLAT_WORLD.nearby; if(!p||!FLAT_WORLD.pois.includes(p)||Math.hypot(FLAT_WORLD.player.x-p.x,FLAT_WORLD.player.y-p.y)>p.r+62)return;
       playSound?.('click');
+      if(skipSurvey!==true&&p.id===surveyStopV2868124()?.id){
+        showStory(surveyCardV2868124(true),[{text:'返回地图',action:'return_to_map'}]);
+        bindSurveyV2868124();
+        return;
+      }
       if(typeof tryEnterInteriorV286886==='function'&&tryEnterInteriorV286886(p))return;
       if(p.action==='war_map_v2840'){openWarOrdersV2840();return;}
       if(p.action==='world_travel_menu') showWorldTravelMenu();
@@ -15024,13 +15084,89 @@ function villageEnhanceV286897(){
       if(p.action==='explore_v2828'&&(!exploredPointV2828(p.x,p.y)||explorationV2828().claimed[p.id]))return;
       explorationV2828();player.explorationV2828.marked={region:currentRegion||'south',id};autoSave();ensureExplorationButtonV2829();showFloatingText?.(`🧭 已标记 ${p.name}，按顶部方向寻找`,'#ffd76a');showExplorationJournalV2829();
     }
+    // The survey uses public landmarks, so a fully explored region can still be surveyed.
+    const FIELD_SURVEYS_V2868124={
+      south:{title:'泉水入村',stops:['rest','village'],trace:'泉眼旁的陶管内壁结着一圈白色水垢。',question:'村口有两根断管，哪根还连着灵泉？',options:['内壁有相同白垢的陶管','塞满干叶的竹管'],answer:0},
+      east:{title:'寻回走失的幼兽',stops:['pets','forest'],trace:'谷口软泥上的小爪印缺了左前爪的外趾。',question:'林边分出两道兽径，哪道通往幼兽藏身处？',options:['每枚足印都有四趾的兽径','左前足印少一趾的兽径'],answer:1},
+      north:{title:'校勘雪路旧碑',stops:['factions','mountain'],trace:'旧碑的雪路符号是两峰之间夹着一道横刻。',question:'风雪盖住了字迹，哪块路石仍指向旧道？',options:['双峰间有横刻的路石','单峰下有圆点的路石'],answer:0},
+      west:{title:'寻访失落的阵器',stops:['battlefield','artifacts'],trace:'断阵枢上留有三道等距的弧形卡痕。',question:'法宝台摆着两块阵盘，哪块能嵌回阵枢？',options:['带两根直榫的方盘','带三枚弧齿的圆盘'],answer:1},
+      human_peaks:{title:'追查误送的药箱',stops:['human_peaks_supply','human_peaks_guide'],trace:'驿站留下的封条上，朱印正中缺了一角。',question:'哪张山门收条出自同一枚印？',options:['朱印中间断开的收条','朱印边缘有缺口的收条'],answer:0},
+      human_valleys:{title:'寻访花谷药泉',stops:['human_valleys_rest','human_valleys_supply'],trace:'灵泉里的花粉入水后泛出淡紫色。',question:'药铺的两壶泉水，哪壶取自花谷？',options:['壶底沉着金砂的一壶','水面浮着淡紫花粉的一壶'],answer:1},
+      demon_domain:{title:'辨认界门暗号',stops:['travel_gate','demon_domain_guide'],trace:'界门柱上刻着两长一短的三道刀痕。',question:'哪支路签是运粮队留下的？',options:['两道长痕后接一道短痕','一道长痕后接两道短痕'],answer:0},
+      immortal_domain:{title:'追寻遗失的星图',stops:['immortal_domain_guide','immortal_domain_supply'],trace:'路引上的星图拓本有四颗星，最小的一颗画在圈外。',question:'驿站的两卷散图，哪卷与拓本相合？',options:['四星都在圈内的图卷','一颗小星在圈外的图卷'],answer:1}
+    };
+    function surveyStepV2868124(){
+      const step=player.explorationV2828?.maps?.[currentRegion]?.surveyStepV2868124;
+      return [1,2,3].includes(step)?step:0;
+    }
+    function surveyStopV2868124(){
+      const id=FIELD_SURVEYS_V2868124[currentRegion]?.stops[surveyStepV2868124()-1];
+      return id&&FLAT_WORLD.pois.find(p=>p.id===id);
+    }
+    function surveyNearV2868124(poi){
+      return !!poi&&poi.region===currentRegion&&Math.hypot(FLAT_WORLD.player.x-poi.x,FLAT_WORLD.player.y-poi.y)<=poi.r+62;
+    }
+    function surveyCardV2868124(atLandmark=false){
+      const route=FIELD_SURVEYS_V2868124[currentRegion];if(!route||(typeof interiorV286886!=='undefined'&&interiorV286886))return '';
+      const step=surveyStepV2868124(),button=(key,label)=>`<button type="button" class="choice-btn" data-survey="${key}">${label}</button>`;
+      const stop=surveyStopV2868124(),near=surveyNearV2868124(stop);
+      let body;
+      if(step===0){
+        const names=route.stops.map(id=>FLAT_WORLD.pois.find(p=>p.id===id)?.name);
+        body=`<p>${names.join(' → ')}。在第一站采下线索，到第二站辨迹。报酬为神行符一张。</p>${button('accept','接取勘察 · 标记第一站')}`;
+      }else if(step===3){
+        body='<p>已结案 · 神行符 ×1 已收入行囊。</p>';
+      }else if(stop){
+        body=`<p>第${step===1?'一':'二'}站 · ${stop.name} · ${explorationDirectionV2829(stop)}</p>`;
+        if(step===2)body+=`<p>手册拓记：${route.trace}</p>`;
+        if(!near)body+=button('travel','循迹前往 · '+stop.name);
+        else if(step===1)body+=button('record','查验现场 · 拓下线索');
+        else body+=`<p>${route.question}</p>`+route.options.map((label,i)=>button(String(i),label)).join('');
+        if(atLandmark)body+=button('visit','照常探访 · '+stop.name);
+      }else return '';
+      return `<article class="task-card" id="fieldSurveyV2868124"><h4>山河勘察 · ${route.title}</h4>${body}<p role="status" data-survey-notice></p></article>`;
+    }
+    function bindSurveyV2868124(){
+      const card=document.getElementById('fieldSurveyV2868124');if(!card)return;
+      const owner=player,region=currentRegion,step=surveyStepV2868124(),route=FIELD_SURVEYS_V2868124[region];
+      const notice=message=>{card.querySelector('[data-survey-notice]').textContent=message;};
+      for(const button of card.querySelectorAll('[data-survey]'))button.onclick=()=>{
+        if(player!==owner||currentRegion!==region||surveyStepV2868124()!==step||!canMapNpcActV2864()||(typeof interiorV286886!=='undefined'&&interiorV286886)||
+           document.getElementById('fieldSurveyV2868124')!==card||document.getElementById('storyPanel').classList.contains('hidden'))return;
+        const action=button.dataset.survey,stop=surveyStopV2868124();
+        if(action==='travel'){if(stop)startNavigationV2830(stop.id);return;}
+        if(step>0&&!surveyNearV2868124(stop))return;
+        if(action==='visit'){closeWorldOverlay();FLAT_WORLD.nearby=stop;interactFlatWorld(true);return;}
+        if(step===2&&['0','1'].includes(action)&&Number(action)!==route.answer){
+          notice('这处痕迹和第一站的拓记对不上。再读一遍手册，重新比对。');return;
+        }
+        if(!((step===0&&action==='accept')||(step===1&&action==='record')||(step===2&&action===String(route.answer))))return;
+        if(step===2&&player.inventory.length>=100000){notice('行囊已满，整理出一个空位后可回来领取神行符。');return;}
+        const map=explorationV2828(),all=player.explorationV2828,previous=map.surveyStepV2868124,oldMark=all.marked,bag=player.inventory;
+        map.surveyStepV2868124=step+1;
+        if(step<2)all.marked={region,id:route.stops[step]};
+        else{
+          player.inventory=[...bag,'神行符'];
+          if(oldMark?.region===region&&oldMark.id===stop.id)all.marked=null;
+        }
+        let saved=false;
+        try{saved=saveGame();}catch(_){}
+        if(!saved){
+          if(previous===undefined)delete map.surveyStepV2868124;else map.surveyStepV2868124=previous;
+          all.marked=oldMark;player.inventory=bag;notice('勘察记录未能保存，可在此重试。');return;
+        }
+        showExplorationJournalV2829();
+        showFloatingText(['已接取勘察 · 第一站已标记','线索已拓入手册 · 第二站已标记','两处痕迹相合 · 获得神行符 ×1'][step],'#ffd76a');
+      };
+    }
     function showExplorationJournalV2829(){
       if(!forgeAllowedV2825())return;revealExplorationV2828();const progress=explorationProgressV2829(),map=explorationV2828(),esc=discipleEscV2815,marked=markedExplorationV2829();
       const distance=p=>Math.hypot(p.x-FLAT_WORLD.player.x,p.y-FLAT_WORLD.player.y);
       const pending=progress.found.filter(p=>!map.claimed[p.id]).sort((a,b)=>distance(a)-distance(b));
       const services=FLAT_WORLD.pois.filter(p=>p.action==='rest'||p.buildingId==='spirit_spring'||p.id==='travel_gate'||p.action==='shop').sort((a,b)=>distance(a)-distance(b));
       const row=p=>`<article class="task-card"><strong><span class="xt-inline-glyph-v2868122">${exploreIconV2868122(p)}</span> ${esc(p.name)}</strong><p>${esc(explorationDirectionV2829(p))}</p><button class="choice-btn" onclick="markExplorationV2829('${p.id}')">${marked?.id===p.id?'已标记 · 更新指引':'标记方向'}</button><button class="choice-btn" onclick="startNavigationV2830('${p.id}')">自动前往</button>${p.action==='explore_v2828'&&distance(p)<p.r+62?`<button class="choice-btn" onclick="showExplorationV2828('${p.id}')">查看探索点</button>`:''}</article>`;
-      showStory(`<section class="main-overview-v2822"><h3>🧭 ${esc(getRegionInfo(currentRegion||'south').name)} · 探索手册</h3><p>地面探索 ${progress.percent}% · 地点发现 ${progress.found.length}/${progress.points.length} · 已领取 ${progress.claimed.length}/${progress.points.length}</p><progress value="${progress.percent}" max="100" aria-label="地图探索进度"></progress><p>可选择方向标记或自动前往。自动寻路绕开静态障碍，到附近停下；摇杆、键盘或点地图可接管，遭遇战会停止。未发现探索点不显示坐标。</p>${marked?`<p>当前标记：${esc(marked.name)} · ${esc(explorationDirectionV2829(marked))}</p><button class="choice-btn" onclick="markExplorationV2829(null)">清除标记</button>`:''}${autoNavigationV2830?`<button class="choice-btn" onclick="stopNavigationV2830();showExplorationJournalV2829()">停止自动寻路</button>`:""}${typeof roamingNoticeV286818==='function'?roamingNoticeV286818():''}<button class="choice-btn" onclick="showEliteBoardV2883()">四域凶煞 · 悬赏榜</button><h4>已发现 · 待领取</h4>${pending.length?pending.map(row).join(''):'<p>暂无待领取地点，继续探索周围区域吧。</p>'}<details><summary>补给与返回入口</summary>${services.map(row).join('')}</details><p>每处探索资源仅领取一次。切换地图后，仅显示当前地图的标记。</p></section>`,[{text:'返回地图',action:'return_to_map'}]);
+      showStory(`<section class="main-overview-v2822"><h3>🧭 ${esc(getRegionInfo(currentRegion||'south').name)} · 探索手册</h3><p>地面探索 ${progress.percent}% · 地点发现 ${progress.found.length}/${progress.points.length} · 已领取 ${progress.claimed.length}/${progress.points.length}</p><progress value="${progress.percent}" max="100" aria-label="地图探索进度"></progress><p>可选择方向标记或自动前往。自动寻路绕开静态障碍，到附近停下；摇杆、键盘或点地图可接管，遭遇战会停止。未发现探索点不显示坐标。</p>${marked?`<p>当前标记：${esc(marked.name)} · ${esc(explorationDirectionV2829(marked))}</p><button class="choice-btn" onclick="markExplorationV2829(null)">清除标记</button>`:''}${autoNavigationV2830?`<button class="choice-btn" onclick="stopNavigationV2830();showExplorationJournalV2829()">停止自动寻路</button>`:""}${surveyCardV2868124()}${typeof roamingNoticeV286818==='function'?roamingNoticeV286818():''}<button class="choice-btn" onclick="showEliteBoardV2883()">四域凶煞 · 悬赏榜</button><h4>已发现 · 待领取</h4>${pending.length?pending.map(row).join(''):'<p>暂无待领取地点，继续探索周围区域吧。</p>'}<details><summary>补给与返回入口</summary>${services.map(row).join('')}</details><p>每处探索资源仅领取一次。切换地图后，仅显示当前地图的标记。</p></section>`,[{text:'返回地图',action:'return_to_map'}]);
+      bindSurveyV2868124();
     }
 
     const SCROLL_ART_V2831={started:false,landscape:null,palace:null};
@@ -17002,7 +17138,7 @@ function installItemSafetyV2905(){
   const base=window[name];if(typeof base!=='function')continue;
   window[name]=function(...args){if(ITEM_ACTION_V2905.depth){ITEM_ACTION_V2905.effects.push(()=>base.apply(this,args));return;}return base.apply(this,args);};
  }
- for(const name of ['useItem','useLongevityPill','craftPill','buyGeneralV2801','buyLongevityPill','buyBreakthroughPillV28683','buySectItem','buyMarketGearV2800','buyNewGearV2790','buyOldGearV2792','buyPetGrowthBatchV286845','bulkDismantleEquipment','dismantleOneEquipmentEncoded','craftPetMaterialBatchV286846','feedPet','feedPetMaxByIdV286845','advancePetByIdV210','mutatePetByIdV210','evolvePetByIdV210','upgradeArtifact','upgradeArtifactMaxV286845']){
+ for(const name of ['useItem','packFieldKitV2868124','useLongevityPill','craftPill','buyGeneralV2801','buyLongevityPill','buyBreakthroughPillV28683','buySectItem','buyMarketGearV2800','buyNewGearV2790','buyOldGearV2792','buyPetGrowthBatchV286845','bulkDismantleEquipment','dismantleOneEquipmentEncoded','craftPetMaterialBatchV286846','feedPet','feedPetMaxByIdV286845','advancePetByIdV210','mutatePetByIdV210','evolvePetByIdV210','upgradeArtifact','upgradeArtifactMaxV286845']){
   const base=window[name];if(typeof base!=='function')continue;
   window[name]=function(...args){return itemActionV2905(name,base,this,args);};
  }

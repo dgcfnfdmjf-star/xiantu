@@ -12,6 +12,16 @@ function burnComboMarkupV286834(skill,compact=false){
   if(compact&&text)text=text.includes('尚无')?'无灼烧 · 可先用焚心炎':text.split('（')[0]+'；消耗灼烧及附带效果';
   return text?`<small class="burn-combo-v286834">${skillTextEscapeV212(text)}</small>`:'';
 }
+function combatComboMarkupV2868124(skill,compact=false){
+  if(skill.element==='sword' && canFleeV286818()){
+    if(skill.name==='清风剑诀')return '<small>起手 · 下次接御剑术可护体</small>';
+    const tactics=tacticsV286821.get(currentEnemy);
+    if(skill.name==='御剑术' && tactics?.owner===player && tactics.swordOpening){
+      return '<small><strong>可回锋</strong> · 命中后下次受伤减30%</small>';
+    }
+  }
+  return burnComboMarkupV286834(skill,compact);
+}
 // ===== V27.13 每个系最多携带3个技能；战斗技能栏默认折叠 =====
 const SKILL_ELEMENT_META_V212={
   sword:{label:'兵刃系（剑 / 棍 / 枪）',short:'⚔️ 兵刃',icon:'⚔️'},
@@ -81,7 +91,7 @@ function renderCompactCombatSkillsV212(){
   const bar=document.createElement('div');bar.className='combat-quick-v286816';bar.setAttribute('aria-label',meta.label+'招式');
   bar.innerHTML=`<div class="combat-quick-heading-v286819">${meta.icon} ${meta.label} · 已携带 ${quick.length}/${SKILL_MAX_PER_ELEMENT_V212}</div>`+(quick.map(({s,index})=>{
     const available=getCombatSkillAvailabilityV2769(index),cost=Math.max(0,Number(s.mpCost)||0);
-    return `<button type="button" class="choice-btn quick-skill-v286816" ${available.ok?'':'disabled'} onclick="combat('skill',${index})" title="${skillTextEscapeV212(available.ok?s.desc:available.reason)}"><b>${skillTextEscapeV212(s.name)}</b><small>${cost} 灵力${available.ok?'':' · '+skillTextEscapeV212(available.reason)}</small>${burnComboMarkupV286834(s,true)}</button>`;
+    return `<button type="button" class="choice-btn quick-skill-v286816" ${available.ok?'':'disabled'} onclick="combat('skill',${index})" title="${skillTextEscapeV212(available.ok?s.desc:available.reason)}"><b>${skillTextEscapeV212(s.name)}</b><small>${cost} 灵力${available.ok?'':' · '+skillTextEscapeV212(available.reason)}</small>${combatComboMarkupV2868124(s,true)}</button>`;
   }).join('')||'<div class="combat-quick-empty-v286819">此系暂未携带技能，可在更多招式中配置。</div>');
   div.insertBefore(bar,toggle);
   if(!combatSkillUiV212.open)return;
@@ -95,7 +105,7 @@ function renderCompactCombatSkillsV212(){
     const missing=Math.max(0,Math.ceil(cost-(Number(player.mp)||0)));
     const reason=available.ok?`施展后剩 ${Math.max(0,Math.floor(player.mp-cost))} 灵力`:(available.reason==='灵力不足'?`还差 ${missing} 灵力`:available.reason);
     const tags=[s.damage?`${s.damage}倍攻击`:'',s.heal?`回复${Math.round(s.heal*100)}%气血`:'',s.guardRatio?`护体减伤${Math.round(s.guardRatio*100)}%`:'',s.armorPierce?`穿透${Math.round(s.armorPierce*100)}%防御`:''].filter(Boolean).join(' · ')||'辅助术法';
-    return `<button type="button" class="choice-btn combat-skill-btn-v212" ${available.ok?'':'disabled'} onclick="combat('skill',${idx})"><span class="skill-title-v2856">${skillTextEscapeV212(s.name)}<span class="cost">${cost} 灵力</span></span><span class="skill-tags-v2856">${skillTextEscapeV212(tags)}</span><span class="skill-ready-v2856 ${available.ok?'':'unavailable'}">${skillTextEscapeV212(reason)}</span>${burnComboMarkupV286834(s)}${combatSkillUiV212.details?`<span class="skill-desc-v2856">${skillTextEscapeV212(s.desc||'暂无补充说明')}</span>`:''}</button>`;
+    return `<button type="button" class="choice-btn combat-skill-btn-v212" ${available.ok?'':'disabled'} onclick="combat('skill',${idx})"><span class="skill-title-v2856">${skillTextEscapeV212(s.name)}<span class="cost">${cost} 灵力</span></span><span class="skill-tags-v2856">${skillTextEscapeV212(tags)}</span><span class="skill-ready-v2856 ${available.ok?'':'unavailable'}">${skillTextEscapeV212(reason)}</span>${combatComboMarkupV2868124(s)}${combatSkillUiV212.details?`<span class="skill-desc-v2856">${skillTextEscapeV212(s.desc||'暂无补充说明')}</span>`:''}</button>`;
   }).join('');
   drawer.innerHTML=`<div class="combat-skill-tabs-v212">${tabs}</div><div class="skill-drawer-heading-v2856"><b>${SKILL_ELEMENT_META_V212[combatSkillUiV212.element].label}</b><button type="button" aria-expanded="${combatSkillUiV212.details}" onclick="toggleSkillDetailsV2856()">${combatSkillUiV212.details?'收起':'展开'}招式说明</button></div><div class="combat-skill-list-v212">${skillBtns||'<div class="combat-skill-empty-v212">此系暂未携带技能。可在下方【配置技能】中选择已学招式。</div>'}</div><div class="combat-skill-tools-v212"><span>点击可用招式即可出手 · 每系最多3招</span><button type="button" onclick="showSkillLoadoutPanelV212('${combatSkillUiV212.element}')">配置技能</button></div>`;
   toggle.insertAdjacentElement('afterend',drawer);
