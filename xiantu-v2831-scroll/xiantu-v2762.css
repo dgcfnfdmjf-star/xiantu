@@ -4343,6 +4343,8 @@ html body #gameScreen #combatPanel.battle-clean-v286816>#battleSettingsV286816{o
  html body #gameScreen #combatPanel.battle-clean-v286816>#combatArena{grid-column:1;grid-row:1/7;position:sticky;top:0;}
  html body #gameScreen #combatPanel.battle-clean-v286816>#battleReadoutV2856{grid-column:2;grid-row:1;}
  html body #gameScreen #combatPanel.battle-clean-v286816>#combatChoices{grid-column:2;grid-row:2;}
+ html body #gameScreen #combatPanel.battle-clean-v286816>#combatItemDrawer{grid-column:2;}
+ #combatItemDrawer .combat-item-grid{grid-template-columns:1fr;}
  html body #gameScreen #combatPanel.battle-clean-v286816>#cinemaControlsV2756{grid-column:2;grid-row:3;}
  html body #gameScreen #combatPanel.battle-clean-v286816>#reportLogV2857{grid-column:2;grid-row:4;}
  html body #gameScreen #combatPanel.battle-clean-v286816>#battleSettingsV286816{grid-column:2;grid-row:5;}

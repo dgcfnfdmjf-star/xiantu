@@ -156,6 +156,7 @@ function captureSuccess(enemy,itemName,isDemon){
   const pet=makeCapturedPet(enemy,pd,{bondType:'blood'});player.pets.push(pet);if(!player.activePet)player.activePet=pet;if(isDemon)applyDemonPetReputationPenalty();updateAchievementProgress?.('pet');playSound?.('item');autoSave?.();updateStats?.();showCaptureResultUI(true,pet);endCombatAfterCapture();
 }
 function captureFail(enemy,itemName,isDemon){
+  takeSwordOpeningV2868124();
   const pc=ensurePetCaptureState();pc.isCapturing=false;pc.captureTarget=null;pc.usedItem=null;setPetCaptureCooldown(30);consumeInventoryItem(itemName);const pd=getPetData(enemy.name);let rampage=false;if(pd?.quality==='epic'&&Math.random()<.30)rampage=true;if(pd?.quality==='legendary'&&Math.random()<.50)rampage=true;if(pd?.quality==='mythic'&&Math.random()<.70)rampage=true;
   if(rampage){enemy.hp=Math.min(enemy.maxHp,enemy.hp+enemy.maxHp*.30);enemy.atk=Math.floor(enemy.atk*1.5);showFloatingText?.('💢 灵兽暴走！战力飙升！','#ff6b6b');addCombatLog?.('⚠️ 灵兽挣脱灵契，进入狂暴状态！','boss')}else{enemy.hp=Math.min(enemy.maxHp,enemy.hp+enemy.maxHp*.20);showFloatingText?.('❌ 收服失败，妖兽挣脱束缚','#ff6b6b');addCombatLog?.('⚠️ 妖兽挣脱灵链，本次收服失败！','damage')}
   updateCombatUI?.();autoSave?.();setTimeout(()=>{if(currentEnemy===enemy&&enemy.hp>0)enemyTurn?.()},650)
