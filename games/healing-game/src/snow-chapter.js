@@ -25,7 +25,7 @@
     }
   });
   var H,T,J,group=null,snow=null,snowU=null,dome=null,lanterns=[],cabin=null,windowGlow=null,cloudSprites=[];
-  var active=false,saved=null,hiddenFlowers=[],hemi=null,sun=null,temp=null,fogColor=null;
+  var active=false,staging=false,saved=null,hiddenFlowers=[],hemi=null,sun=null,temp=null,fogColor=null;
   var patch=null,patchU=[],litU=0,cats=[],homeSpots=[],sparks=[],practice=null,finale=0,elapsed=0,pendingFinale=false,reduced=false,lastFocus=null,warm=null,cool=null,FIN=7;
   var TOP=.25,PATH=[[.55,4.35],[.15,3.15],[-.25,1.9],[.55,.7],[.1,-.6],[-.45,-1.75],[-.5,-2.3]];
   var CABIN={x:-.5,z:-3.05},PINES=[[-2.05,-3.85,1],[1.85,-4.0,.9],[4.1,-.55,.95],[-4.2,-.55,.9],[-3.0,3.25,.85],[3.25,2.95,.8]];
@@ -318,6 +318,16 @@
       if(best){act(best[0],best[1]);return true;}
       var now=performance.now();if(!this._last||now-this._last>2500){this._last=now;H.toast(hint(),2600);}return true;},
     cameraBusy:function(){return false;},
+    // The level-6 film (l6-cutscene.js) borrows this snowy world as its set, on any level: stage(true) builds it,
+    // tints the island and shows the group (if level 6 is not already active) and hands back display handles;
+    // stage(false) puts everything back. It never touches progress or saves.
+    stage:function(on){
+      if(!H)return null;
+      if(on){buildWorld();if(!active){tint(true);hideFlowers(true);}staging=true;group.visible=true;
+        return {group:group,snow:snow,cabin:cabin,patch:patch,lanterns:lanterns.map(function(l){return l.g;}),cats:cats.map(function(c){return c.root;}),
+          markers:cats.map(function(c){return c.marker;}),dome:dome,clouds:cloudSprites,windowGlow:windowGlow,path:pathAt,cabinAt:{x:CABIN.x,z:CABIN.z},top:TOP,
+          pines:PINES.map(function(p){return p.slice();})};}
+      if(!staging)return null;staging=false;if(!active){tint(false);hideFlowers(false);group.visible=false;}return null;},
     isModalOpen:modal,
     hint:hint,
     // Read-only inspection for tests.

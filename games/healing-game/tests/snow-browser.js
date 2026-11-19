@@ -27,7 +27,7 @@ const base = snow => ({ 'healingGarden.kittens.v1': { total: 20, ended: true, le
     fs.createReadStream(file).pipe(res);
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  const url = 'http://127.0.0.1:' + server.address().port + '/?level=6&l5cutscene=0';
+  const url = 'http://127.0.0.1:' + server.address().port + '/?level=6&l5cutscene=0&l6cutscene=0';
   const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || undefined, args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
   const errors = [];
   const open = async (saves, opts) => {

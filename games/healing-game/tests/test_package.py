@@ -47,7 +47,7 @@ class Package(unittest.TestCase):
     def test_all_inline_scripts_parse(self):
         self.assertEqual(len(re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.html.decode())), 19)
         scripts = re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.site.decode())
-        self.assertEqual(len(scripts), 30)  # V9.5's 19 + level-2 cutscene + its score + level-1 cutscene + its score + level-3 cutscene + its score + level-4 cutscene + its score + level-5 cutscene + its score + level-6 chapter
+        self.assertEqual(len(scripts), 31)  # V9.5's 19 + level-2 cutscene + its score + level-1 cutscene + its score + level-3 cutscene + its score + level-4 cutscene + its score + level-5 cutscene + its score + level-6 chapter + level-6 cutscene
         with tempfile.TemporaryDirectory() as tmp:
             for i, script in enumerate(scripts):
                 path = Path(tmp) / f'{i}.js'
@@ -111,7 +111,11 @@ class Package(unittest.TestCase):
         self.assertNotIn(b'__l5', self.html)
         self.assertNotIn(b'garden-working', self.html)
         # Level 6 (雪灯归林) lives only in the working site.
-        self.assertIn((ROOT / 'src/snow-chapter.js').read_bytes(), self.site)
+        # The level-6 cutscene hook adds one line (naming __l6Cutscene) inside the chapter; without it the chapter is verbatim.
+        self.assertIn((ROOT / 'src/snow-chapter.js').read_bytes(), b'\n'.join(l for l in self.site.split(b'\n') if b'__l6Cutscene' not in l))
+        self.assertIn((ROOT / 'src/l6-cutscene.js').read_bytes(), self.site)
+        self.assertEqual(self.site.count(b"if (query('cutscene') !== 'l6') return;"), 1)
+        self.assertNotIn(b'__l6', self.html)
         self.assertIn((ROOT / 'src/snow-rules.js').read_bytes(), self.site)
         self.assertLess(self.site.index((ROOT / 'src/snow-rules.js').read_bytes()), self.site.index(b'window.SnowRules.normalize(null)'))
         self.assertNotIn(b'SnowChapter', self.html)
