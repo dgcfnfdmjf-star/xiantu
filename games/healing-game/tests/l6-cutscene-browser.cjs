@@ -144,12 +144,41 @@ const SAVES = {
     await page.goto(url + '?cutscene=l6&mute=1'); await page.waitForTimeout(2500);
     assert.equal(await csState(page), 'playing', 'preview gate plays at once');
     const before = await page.evaluate(k => localStorage.getItem(k), KEY);
-    for (const t of [4, 15, 26, 37, 48]) {
+    for (const t of [4, 11.4, 15, 26, 27.5, 31, 37, 41, 48]) {
       await page.evaluate(t => { __l6Cutscene.seek(t); __l6Cutscene.pause(); }, t); await page.waitForTimeout(500);
       const fit = await page.evaluate(() => { const c = document.getElementById('l6csCaption'); return { sw: c.scrollWidth, cw: c.clientWidth, h: c.getBoundingClientRect().height, text: c.textContent }; });
       assert(fit.sw <= fit.cw && fit.h < 60, 'caption on one line at 360px (t=' + t + '): ' + JSON.stringify(fit));
       await page.screenshot({ path: path.join(OUT, 'l6-preview-360-' + t + '.png') });
     }
+    // Item 4 actors: readable subjects at 390x844-class frames, glows visible, particles clear of the moon, modest draws.
+    await page.waitForFunction(() => __l6Cutscene.probe() && __l6Cutscene.probe().kittens.every(k => k.model), null, { timeout: 15000 });
+    const W = 360, Hh = 780, onScreen = b => b.cx > 0 && b.cx < W && b.cy > Hh * 0.07 && b.cy < Hh * 0.93;
+    const look = async t => { await page.evaluate(t => { __l6Cutscene.seek(t); __l6Cutscene.pause(); }, t); await page.waitForTimeout(400);
+      return page.evaluate(() => Object.assign(__l6Cutscene.actors(), { probe: __l6Cutscene.probe() })); };
+    let a = await look(12.35);
+    assert(a.lanterns[0].halo > 0.5 && a.lanterns[1].halo > a.lanterns[2].halo && a.lanterns[5].halo < 0.2, 'lanterns light one by one: ' + a.lanterns.map(l => l.halo));
+    assert(a.probe.sparks.some(v => v > 0.2), 'ignition sparks at 12.35 s');
+    a = await look(27.5);
+    for (const k of a.kittens) assert(onScreen(k) && k.h >= 22, 'kitten readable in the cabin beat: ' + JSON.stringify(k));
+    assert(a.probe.kittens.some(k => k.walk >= 0), 'a kitten is mid-walk with the Walk clip');
+    assert(a.window && onScreen(a.window) && a.probe.window > 0.8, 'warm window: ' + JSON.stringify(a.window) + ' ' + a.probe.window);
+    assert(a.probe.smoke.some(v => v > 0.3), 'chimney smoke');
+    a = await look(31);
+    assert(a.probe.kittens.every(k => k.walk === -1), 'all home and curled by 31 s');
+    const homes = a.probe.kittens;
+    for (const t of [41, 47]) {
+      a = await look(t);
+      for (const l of a.lanterns) assert(onScreen(l) && l.halo > 0.6, 'lantern glow visible in the wide shot at ' + t + ': ' + JSON.stringify(l));
+      assert(onScreen(a.window) && a.window.w >= 12, 'window glow readable wide');
+      for (const k of a.kittens) assert(onScreen(k) && k.h >= 4, 'kittens in frame by the window at ' + t);
+      assert(a.calls > 0 && a.calls < 220, 'modest draw calls: ' + a.calls);
+      assert.deepEqual(a.probe.kittens.map(k => [k.x, k.z]), homes.map(k => [k.x, k.z]), 'kittens stay curled up');
+    }
+    for (const t of [5, 15, 27.5, 36, 44, 49]) { a = await look(t); assert(a.probe.moonGap >= 0, 'no sprite particle crosses the moon at ' + t + ': ' + a.probe.moonGap); }
+    // Seek reproducibility of the actors: 27.5 s after a detour equals 27.5 s before.
+    const r1 = JSON.stringify((await look(27.5)).probe.kittens); await look(44); await look(3);
+    assert.equal(JSON.stringify((await look(27.5)).probe.kittens), r1, 'kittens reproduced by seek');
+    await page.screenshot({ path: path.join(OUT, 'l6-actors-360-27.5.png') });
     const t1 = await page.evaluate(() => { const e = document.getElementById('l6csTitle'); return [e.scrollWidth, e.clientWidth, e.getBoundingClientRect().height]; });
     assert(t1[0] <= t1[1] && t1[2] < 60, 'title on one line at 360px: ' + t1);
     // Determinism: the same second twice gives the same staged frame (camera, lanterns, snow clock).
@@ -161,7 +190,7 @@ const SAVES = {
     // Camera within the island's own gentle live bob/tilt (game clock); everything the film draws is exact.
     const q1 = JSON.parse(p1), q2 = JSON.parse(p2);
     assert(q1.camera.every((v, i) => Math.abs(v - q2.camera[i]) < 0.2), 'camera reproduced: ' + p1 + ' / ' + p2);
-    delete q1.camera; delete q2.camera; assert.deepEqual(q1, q2, 'seek reproduces the frame');
+    delete q1.camera; delete q2.camera; delete q1.moonGap; delete q2.moonGap; assert.deepEqual(q1, q2, 'seek reproduces the frame');
     // The preview runs on whatever level the save opened; on close the snow set and tint are put away again.
     const lvl = await page.evaluate(() => __journey.state().level);
     await page.evaluate(() => { __l6Cutscene.skip(); __l6Cutscene.proceed(true); }); await page.waitForTimeout(400);

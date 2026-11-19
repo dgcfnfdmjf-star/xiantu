@@ -7,8 +7,10 @@
  * numbers), a three.js stage that poses display-only actors on the live island (H.island) from that model, reusing the
  * snow chapter's own set (SnowChapter.stage: tinted island, pines, path, cabin), and a DOM layer (bars, captions,
  * title). This file never reads or writes a save; the caller's onContinue decides what happens afterwards.
- * Item 3 (this file's first cut): stage, world, camera, captions, title, trigger. Actor animation (lantern ignition
- * sequence, kittens, chimney smoke, window glow) and the score arrive in later items. */
+ * Item 3: stage, world, camera, captions, title, trigger. Item 4: actors on an 80 bpm beat grid (lantern ignition
+ * flare + sparks, the four Blender kittens walking the last stretch home and curling up under the window, window
+ * swell per arrival, chimney smoke, flakes that catch the lamplight, returning fireflies and paper sky lanterns), all
+ * pure functions of t; particles fade out before they reach the moon. The score arrives in item 5. */
 (function (root) {
   'use strict';
   var DURATION = 50;
@@ -74,12 +76,81 @@
     // larger halos in the wide shots, so each lamp reads as a warm dot on a 390-wide phone
     out.size = (0.9 + 0.35 * out.lit) * (1 + 0.9 * ease(ramp(t, 32, 46)));
     out.on = on;
+    out.flare = flareAt(t - on);
     return out;
   }
   // How far along the path (0..1) the warm light has spread: it follows the lanterns as they light.
   function pathAt(t) { return { reach: ease(ramp(t, LANT_T, LANT_T + LANTERNS * LANT_STEP + 1)), glow: ease(ramp(t, LANT_T, LANT_T + 3)) }; }
-  // The cabin window: always warm; it swells in the cabin beat (item 4 animates the kittens and smoke against it).
-  function cabinAt(t) { return { window: 0.65 + 0.35 * ease(ramp(t, 22, 28)), halo: (1.4 + 0.8 * ease(ramp(t, 22, 28))) * (1 + 0.8 * ease(ramp(t, 32, 46))) }; }
+  /* Beat grid (item 5 scores to it): 80 bpm, one beat = 0.75 s. Lanterns light every two beats from beat 14 (10.5 s);
+   * the kittens set off every two beats from beat 28 (21 s). */
+  var BPM = 80, BEAT = 60 / BPM;
+  // Ignition flourish: the halo flares and settles, a few sparks rise and fade (age = seconds since the lantern's cue).
+  function flareAt(age) { return age < 0 ? 0 : Math.exp(-age * 2.6) * ease(ramp(age, 0, 0.12)); }
+  var SPARKS = 6;
+  function sparkAt(i, k, t, out) {
+    out = out || {};
+    var age = t - (LANT_T + i * LANT_STEP) - k * 0.07, life = 1.5, u = age / life, a = (k * 2.39996 + i * 0.7) % 6.283;
+    out.a = u > 0 && u < 1 ? Math.sin(Math.PI * Math.min(1, u * 3)) * (1 - u) * 1.4 : 0; out.a = clamp(out.a, 0, 1);
+    u = clamp(u, 0, 1);
+    out.x = Math.cos(a) * (0.08 + 0.22 * u); out.z = Math.sin(a) * (0.08 + 0.22 * u) * 0.6 + 0.12; out.y = 0.25 + 0.75 * u - 0.25 * u * u;
+    out.s = 0.7 + 0.3 * Math.sin(k * 1.7 + i);
+    return out;
+  }
+  /* The four kittens (the gameplay coats, same Blender models) walk the last stretch of the lit path home in file
+   * and curl up together under the cabin window. route u = 0..1 along their own walk (the stage maps it onto the path). */
+  var KITS = ['orange', 'calico', 'black', 'tabby'], KIT_T = 21, KIT_STEP = 2 * BEAT * 1, KIT_U0 = [0.86, 0.8, 0.74, 0.68];
+  function kitDur(i) { return 3.2 + 0.6 * i; }
+  function kittenAt(i, t, out) {
+    out = out || {};
+    var s = KIT_T + i * KIT_STEP, d = kitDur(i), u = ramp(t, s, s + d);
+    // gentle start and arrive: smoothstep in time, so the walk cadence follows the true distance covered
+    out.id = KITS[i]; out.start = s; out.arrive = s + d;
+    out.u = ease(u); out.walking = t > s && t < s + d;
+    out.home = t >= s + d;
+    out.curl = ease(ramp(t, s + d + 0.2, s + d + 1.6));
+    out.breath = Math.sin(t * 1.6 + i * 1.9) * 0.5 + 0.5;
+    out.look = ease(ramp(t, s - 1.2, s)); // turns its head up the path just before it goes
+    return out;
+  }
+  function homeCount(t) { var n = 0; for (var i = 0; i < KITS.length; i++) n += ease(ramp(t, KIT_T + i * KIT_STEP + kitDur(i) - 0.4, KIT_T + i * KIT_STEP + kitDur(i) + 0.8)); return n; }
+  // The cabin window: always warm; it swells in the cabin beat, a step brighter as each kitten arrives under it.
+  function cabinAt(t) {
+    var n = homeCount(t), sw = ease(ramp(t, 22, 28));
+    return { window: clamp(0.6 + 0.15 * sw + 0.0625 * n, 0, 1), home: n, flicker: 0.04 * Math.sin(t * 2.3) * Math.sin(t * 0.7 + 1.0) * soft,
+      halo: (1.3 + 0.35 * sw + 0.15 * n) * (1 + 0.8 * ease(ramp(t, 32, 46))), pool: 0.25 + 0.1 * sw + 0.06 * n };
+  }
+  /* Chimney smoke: a slow curl of soft puffs, each a pure function of t (age = fract(t * rate + j / N)); it leans
+   * away from the moon (to +x) as it rises, the way the Coffee-Smoke shader leans with height (wind * h^3). */
+  var SMOKE = 9;
+  function smokeAt(j, t, out) {
+    out = out || {};
+    var age = (t * 0.075 + j / SMOKE) % 1, h = age * 2.1;
+    out.x = 0.55 * Math.pow(age, 1.8) * 2 + 0.07 * Math.sin(t * 0.5 + j * 2.1) * soft * age;
+    out.y = h; out.z = 0.05 * Math.sin(j * 1.3);
+    out.s = 0.22 + 0.75 * age;
+    out.a = 0.62 * ease(ramp(age, 0, 0.08)) * (1 - ease(ramp(age, 0.45, 1))) * ease(ramp(t, 0, 1.5));
+    out.warm = 1 - ease(ramp(age, 0, 0.18));
+    return out;
+  }
+  /* Lights from earlier chapters return softly in the wide shots: a few fireflies (the moon bay) drift round the island
+   * and three paper sky lanterns rise beyond its right edge, away from the moon. */
+  var FLIES = 14, SKYL = 3;
+  function flyAt(j, t, out) {
+    out = out || {};
+    var seed = j * 2.39996, r = 2.4 + 1.8 * ((j * 0.618) % 1), a0 = seed % 6.283, w = (j % 2 ? 1 : -1) * (0.05 + 0.02 * (j % 3));
+    var a = a0 + w * t;
+    out.x = Math.cos(a) * r; out.z = Math.sin(a) * r * 0.9 + 0.4; out.y = 0.6 + 0.9 * ((j * 0.37) % 1) + 0.25 * Math.sin(t * 0.6 + seed) * soft;
+    out.a = ease(ramp(t, 33 + (j % 5) * 0.6, 36 + (j % 5) * 0.6)) * (0.55 + 0.45 * Math.sin(t * (1.1 + 0.2 * (j % 4)) + seed * 3));
+    out.s = 0.7 + 0.3 * ((j * 0.53) % 1);
+    return out;
+  }
+  function skyLanternAt(j, t, out) {
+    out = out || {};
+    var s = 34 + j * 2.25, u = ramp(t, s, s + 16);
+    out.x = 4.6 + 1.2 * j + 0.15 * Math.sin(t * 0.4 + j) * soft; out.z = 1.4 - 1.6 * j; out.y = -1.2 + 5.2 * u;
+    out.a = ease(ramp(t, s, s + 2)) * 0.95; out.s = 0.55 - 0.08 * j;
+    return out;
+  }
   /* Camera keys: look-at point, azimuth th, polar phi, half-width w that must stay in frame, and lift = how far above
    * the look-at the frame centre sits (in half-screens). th = PI/2 looks from the island's front (+z) towards the cabin.
    * Low over the snow at the front of the path, along the lanterns as they light, close on the cabin window, then
@@ -130,6 +201,10 @@
       title: ease(ramp(t, TITLE_AT, TITLE_AT + TITLE_FADE)),
       canContinue: t >= DURATION,
       lanterns: lite ? null : listAt(lanternAt, LANTERNS, t),
+      kittens: lite ? null : listAt(kittenAt, KITS.length, t),
+      smoke: lite ? null : listAt(smokeAt, SMOKE, t),
+      flies: lite ? null : listAt(flyAt, FLIES, t),
+      skyLanterns: lite ? null : listAt(skyLanternAt, SKYL, t),
       camera: cameraAt(t)
     };
   }
@@ -174,6 +249,47 @@
   var NOISE_GLSL = 'float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }' +
     'float noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y); }' +
     'float fbm(vec2 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 4; i++) { s += a * noise(p); p = p * 2.03 + vec2(17.3, 9.1); a *= 0.5; } return s; }';
+  /* Particles never cross the moon disc: uMoon = (ndc x, ndc y, guard radius in ndc-y units, viewport height px); a
+   * point fades to nothing before its own disc reaches the guard ring round the moon. */
+  var MOON_GLSL = 'uniform vec4 uMoon; uniform float uAspect;' +
+    'float moonFade(vec4 cp, float ps){ if (cp.w <= 0.0) return 1.0; vec2 n = cp.xy / cp.w; float dm = length((n - uMoon.xy) * vec2(uAspect, 1.0)); float r = uMoon.z + ps / uMoon.w;' +
+    ' return smoothstep(r, r * 1.35 + 0.02, dm); }';
+  // Additive glow points (sparks, fireflies): positions/alpha/size written from the pure model each frame.
+  function glowPoints(n, color, name) {
+    var geo = new T.BufferGeometry();
+    geo.setAttribute('position', new T.BufferAttribute(new Float32Array(n * 3), 3));
+    geo.setAttribute('aAlpha', new T.BufferAttribute(new Float32Array(n), 1));
+    geo.setAttribute('aSize', new T.BufferAttribute(new Float32Array(n), 1));
+    var u = { uColor: { value: new T.Color(color) }, uScale: { value: 600 }, uMoon: st.moonU, uAspect: st.aspectU };
+    var pts = new T.Points(geo, new T.ShaderMaterial({ uniforms: u, transparent: true, depthWrite: false, blending: T.AdditiveBlending, fog: false,
+      vertexShader: 'attribute float aAlpha; attribute float aSize; uniform float uScale; varying float vA;' + MOON_GLSL +
+        'void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv;' +
+        ' gl_PointSize = clamp(aSize * uScale / max(-mv.z, 0.5), 2.0, 40.0); vA = aAlpha * moonFade(gl_Position, gl_PointSize); }',
+      fragmentShader: 'uniform vec3 uColor; varying float vA; void main(){ float d = length(gl_PointCoord - 0.5); float core = smoothstep(0.18, 0.0, d); float halo = smoothstep(0.5, 0.0, d);' +
+        ' gl_FragColor = vec4(mix(uColor, vec3(1.0, 0.98, 0.9), core) * (halo * 0.7 + core), 1.0) * vA; }' }));
+    pts.name = name; pts.frustumCulled = false; pts.renderOrder = 4; pts.userData.u = u;
+    return pts;
+  }
+  // Soft painterly smoke puff: a few overlapping washes, drawn once.
+  function smokeTex() {
+    var c = doc.createElement('canvas'), S = 96, g, i, seed = 23; c.width = c.height = S; g = c.getContext('2d');
+    var rnd = function () { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    for (i = 0; i < 7; i++) {
+      var x = S / 2 + (rnd() - 0.5) * S * 0.32, y = S / 2 + (rnd() - 0.5) * S * 0.26, r = S * (0.2 + 0.14 * rnd()), gr = g.createRadialGradient(x, y, 0, x, y, r);
+      gr.addColorStop(0, 'rgba(255,255,255,.5)'); gr.addColorStop(0.6, 'rgba(255,255,255,.22)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = gr; g.fillRect(0, 0, S, S);
+    }
+    return new T.CanvasTexture(c);
+  }
+  // A small paper sky lantern (warm paper, darker rims), as the earlier chapters' lights.
+  function paperLanternTex() {
+    var c = doc.createElement('canvas'); c.width = 48; c.height = 64; var g = c.getContext('2d'), gr = g.createLinearGradient(0, 8, 0, 58);
+    gr.addColorStop(0, '#ffe2a6'); gr.addColorStop(0.6, '#ffb45c'); gr.addColorStop(1, '#e8823e');
+    g.fillStyle = gr; g.beginPath(); g.moveTo(10, 8); g.quadraticCurveTo(24, 2, 38, 8); g.quadraticCurveTo(46, 34, 36, 56); g.lineTo(12, 56); g.quadraticCurveTo(2, 34, 10, 8); g.fill();
+    g.strokeStyle = 'rgba(150,72,40,.55)'; g.lineWidth = 2; g.stroke();
+    g.fillStyle = 'rgba(255,250,224,.75)'; g.beginPath(); g.ellipse(24, 48, 6, 4, 0, 0, 6.283); g.fill();
+    return new T.CanvasTexture(c);
+  }
   // Soft round glow (the game's glowTex when present).
   function glowTex() {
     if (H.glowTex) return H.glowTex;
@@ -252,17 +368,101 @@
     }
     var sg = new T.BufferGeometry();
     sg.setAttribute('position', new T.BufferAttribute(pos, 3)); sg.setAttribute('aSize', new T.BufferAttribute(aS, 1)); sg.setAttribute('aPhase', new T.BufferAttribute(aP, 1));
-    st.snowU = { uTime: { value: 0 }, uScale: { value: 600 }, uSpeed: { value: 0.42 }, uDrift: { value: 0.3 }, uAmount: { value: 1 } };
+    st.lampV = []; for (i = 0; i < 7; i++) st.lampV.push(new T.Vector4(0, -99, 0, 0));
+    st.moonU = { value: new T.Vector4(0, 9, 0, 800) }; st.aspectU = { value: 1 };
+    st.snowU = { uTime: { value: 0 }, uScale: { value: 600 }, uSpeed: { value: 0.42 }, uDrift: { value: 0.3 }, uAmount: { value: 1 }, uLamp: { value: st.lampV }, uMoon: st.moonU, uAspect: st.aspectU };
     st.snow = new T.Points(sg, new T.ShaderMaterial({ uniforms: st.snowU, transparent: true, depthWrite: false, fog: false,
-      vertexShader: 'attribute float aSize; attribute float aPhase; uniform float uTime; uniform float uScale; uniform float uSpeed; uniform float uDrift; uniform float uAmount; varying float vA;' +
+      vertexShader: 'attribute float aSize; attribute float aPhase; uniform float uTime; uniform float uScale; uniform float uSpeed; uniform float uDrift; uniform float uAmount; uniform vec4 uLamp[7]; varying float vA; varying float vWarm;' + MOON_GLSL +
         'void main(){ vec3 p = position; float sp = uSpeed * (0.8 + fract(aPhase * 7.3) * 0.5); p.y = mod(p.y - uTime * sp, 14.0) - 2.5;' +
         ' p.x += sin(uTime * 0.45 + aPhase) * uDrift * 1.2; p.z += cos(uTime * 0.37 + aPhase * 1.7) * uDrift; vec4 mv = modelViewMatrix * vec4(p, 1.0);' +
         ' gl_PointSize = clamp(aSize * uScale / max(-mv.z, 0.5), 1.5, 26.0); gl_Position = projectionMatrix * mv;' +
-        ' vA = smoothstep(-2.5, -1.2, p.y) * smoothstep(11.5, 9.5, p.y) * step(fract(aPhase * 3.17), uAmount); }',
-      fragmentShader: 'varying float vA; void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.12, d); gl_FragColor = vec4(0.94, 0.96, 1.0, a * 0.9 * vA); }' }));
+        ' vA = smoothstep(-2.5, -1.2, p.y) * smoothstep(11.5, 9.5, p.y) * step(fract(aPhase * 3.17), uAmount);' +
+        // flakes that drift through a lantern's or the window's light catch it: warm, a touch larger and brighter
+        ' float w = 0.0; for (int k = 0; k < 7; k++) { vec3 q = p - uLamp[k].xyz; w += uLamp[k].w * smoothstep(1.1, 0.15, length(q * vec3(1.0, 0.8, 1.0))); }' +
+        ' vWarm = clamp(w, 0.0, 1.0); gl_PointSize *= 1.0 + 0.35 * vWarm; vA *= moonFade(gl_Position, gl_PointSize); }',
+      fragmentShader: 'varying float vA; varying float vWarm; void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.12, d);' +
+        ' vec3 c = mix(vec3(0.94, 0.96, 1.0), vec3(1.0, 0.8, 0.5), vWarm * 0.85); gl_FragColor = vec4(c, a * (0.9 + 0.1 * vWarm) * vA); }' }));
     st.snow.name = 'l6cs-snow'; st.snow.frustumCulled = false; g.add(st.snow);
     st.tex = glowTex();
+    // Ignition sparks (6 per lantern) and the returning fireflies: one Points draw call each.
+    st.sparks = glowPoints(LANTERNS * SPARKS, 0xffc46a, 'l6cs-sparks'); g.add(st.sparks);
+    st.flies = glowPoints(FLIES, 0xe8f08a, 'l6cs-fireflies'); g.add(st.flies);
+    // Chimney smoke puffs (sprites in normal blending: pale blue-grey, warm where they leave the chimney).
+    var stex = smokeTex(); st.smoke = [];
+    for (i = 0; i < SMOKE; i++) { var sp = sprite(stex, 0xd4dbee, false); sp.name = 'l6cs-smoke-' + i; sp.renderOrder = 2; g.add(sp); st.smoke.push(sp); }
+    // Three paper sky lanterns with a warm halo each.
+    var ltex = paperLanternTex(); st.skyL = [];
+    for (i = 0; i < SKYL; i++) {
+      var body = sprite(ltex, 0xffffff, false), lh = sprite(st.tex, 0xffb050, true); body.name = 'l6cs-skylantern-' + i;
+      g.add(lh); g.add(body); st.skyL.push({ body: body, halo: lh });
+    }
+    // The window's light pooled on the snow where the kittens curl up.
+    st.pool = new T.Mesh(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ map: st.tex, color: 0xffa040, transparent: true, opacity: 0, depthWrite: false, fog: false }));
+    st.pool.rotation.x = -Math.PI / 2; st.pool.name = 'l6cs-window-pool'; st.pool.renderOrder = 1; g.add(st.pool);
+    st.kits = [];
     return true;
+  }
+  /* The four kittens: the gameplay cats' Blender models through GardenCatModels.snowCat (same coats, same Walk clip),
+   * with a painterly stand-in in the same colour until (or if never) the model is ready. Routes are arc-length
+   * polylines along the set's path: the last stretch from each kitten's waiting spot to the door, then under the
+   * window. Home spots are offsets from the cabin (the window is at +0.28 on the cabin's front face). */
+  var KIT_COL = { orange: 0xf2a65a, calico: 0xe8c9a0, black: 0x4a4658, tabby: 0xb98a5e };
+  var KIT_HOME = [[0.3, 0.86], [0.56, 0.82], [0.04, 0.92], [0.2, 1.14]], KIT_H = 0.62;
+  function standIn(parent, color) {
+    var g = new T.Group(), m = new T.MeshLambertMaterial({ color: color }), ink = new T.MeshBasicMaterial({ color: 0x2a2230 });
+    var sph = new T.SphereGeometry(1, 12, 8), cone = new T.ConeGeometry(0.05, 0.09, 6);
+    var body = part(sph, m, g, 0, 0.15, -0.03); body.scale.set(0.15, 0.14, 0.2);
+    var head = part(sph, m, g, 0, 0.36, 0.08); head.scale.set(0.12, 0.11, 0.11);
+    part(cone, m, g, -0.065, 0.47, 0.08); part(cone, m, g, 0.065, 0.47, 0.08);
+    var tail = part(sph, m, g, 0.12, 0.06, -0.14); tail.scale.set(0.05, 0.04, 0.14); tail.rotation.y = -0.8;
+    part(sph, ink, g, -0.04, 0.38, 0.185).scale.setScalar(0.015); part(sph, ink, g, 0.04, 0.38, 0.185).scale.setScalar(0.015);
+    g.scale.setScalar(KIT_H / 0.52); parent.add(g); return g;
+  }
+  function buildKittens(set) {
+    if (st.kits.length || !set || !set.path || !set.cabinAt) return;
+    var n = 240, pts = [], cum = [0], j;
+    for (j = 0; j <= n; j++) { var q = set.path(j / n); pts.push([q[0], q[1]]); if (j) cum.push(cum[j - 1] + Math.hypot(q[0] - pts[j - 1][0], q[1] - pts[j - 1][1])); }
+    var total = cum[n], top = set.top, CM = root.GardenCatModels;
+    function at(d) { var k = 1; while (k < n && cum[k] < d) k++; var f = clamp((d - cum[k - 1]) / Math.max(1e-6, cum[k] - cum[k - 1]), 0, 1); return [lerp(pts[k - 1][0], pts[k][0], f), lerp(pts[k - 1][1], pts[k][1], f)]; }
+    KITS.forEach(function (id, i) {
+      var home = [set.cabinAt.x + KIT_HOME[i][0], set.cabinAt.z + KIT_HOME[i][1]], d0 = KIT_U0[i] * total, d1 = 0.9 * total, route = [], m = 18;
+      for (j = 0; j <= m; j++) route.push(at(lerp(d0, d1, j / m)));
+      // the waiting spot sits a little to the side of the path, alternately left and right
+      var a = route[0], b = route[1], dx = b[0] - a[0], dz = b[1] - a[1], dl = Math.hypot(dx, dz) || 1, side = i % 2 ? 1 : -1;
+      route.unshift([a[0] - dz / dl * 0.16 * side, a[1] + dx / dl * 0.16 * side]); route.push(home);
+      var rc = [0]; for (j = 1; j < route.length; j++) rc.push(rc[j - 1] + Math.hypot(route[j][0] - route[j - 1][0], route[j][1] - route[j - 1][1]));
+      var r = new T.Group(); r.name = 'l6cs-kitten-' + id; r.position.set(route[0][0], top, route[0][1]); st.g.add(r);
+      var inner = new T.Group(); r.add(inner);
+      var K = { id: id, i: i, root: r, inner: inner, route: route, cum: rc, len: rc[rc.length - 1], home: home, owner: null, stand: standIn(inner, KIT_COL[id]) };
+      st.kits.push(K);
+      if (CM && CM.snowCat) CM.snowCat(id, inner, KIT_H).then(function (o) { if (o) { K.owner = o; K.stand.visible = false; } }).catch(function () { /* keep the stand-in */ });
+    });
+  }
+  function routeAt(K, d) {
+    var c = K.cum, k = 1; while (k < c.length - 1 && c[k] < d) k++;
+    var a = K.route[k - 1], b = K.route[k], f = clamp((d - c[k - 1]) / Math.max(1e-6, c[k] - c[k - 1]), 0, 1);
+    return [lerp(a[0], b[0], f), lerp(a[1], b[1], f), Math.atan2(b[0] - a[0], b[1] - a[1])];
+  }
+  // Every kitten from the frame alone: walk cadence = the distance covered / the clip's stride, so seek(t) repeats it.
+  function poseKitten(K, k, top) {
+    var d = k.u * K.len, p = routeAt(K, d), r = K.root, o = K.owner, CM = root.GardenCatModels;
+    r.position.set(p[0], top, p[1]);
+    var restYaw = Math.atan2(K.route[2][0] - K.route[0][0], K.route[2][1] - K.route[0][1]), n = K.route.length;
+    var arriveYaw = Math.atan2(K.home[0] - K.route[n - 2][0], K.home[1] - K.route[n - 2][1]);
+    // curled up facing the camera side (+z), turned a little towards each other
+    var homeYaw = 0.35 - 0.6 * (K.i % 3) / 2;
+    if (Math.abs(arriveYaw - homeYaw) > Math.PI) arriveYaw += arriveYaw < homeYaw ? 2 * Math.PI : -2 * Math.PI;
+    r.rotation.y = k.walking ? p[2] : k.home ? lerp(arriveYaw, homeYaw, k.curl) : lerp(restYaw + 0.9, restYaw, k.look);
+    // curled up: a little lower and rounder, breathing slowly
+    var curl = k.curl, br = 1 + 0.018 * k.breath * soft;
+    K.inner.scale.set(1 + 0.06 * curl, (1 - 0.12 * curl) * br, 1 + 0.04 * curl);
+    if (o && CM && CM.snowWalk) {
+      CM.snowWalk(o, k.walking, 0, 0);
+      if (k.walking && o.catWalkAction) {
+        var stride = (o.catWalkStride || 1) * (o.catWalkScale || 1), dur = o.catWalkAction.getClip().duration;
+        o.catWalkAction.time = ((K.i * 0.23 + d / stride) % 1) * dur; o.catMixer.update(0);
+      }
+    }
   }
   /* The film's own lanterns, at the gameplay lanterns' spots (copied on entry): a snow-lantern body (base + dome),
    * a warm window that lerps from cold to amber, and a halo sprite sized for the wide shots. */
@@ -274,9 +474,11 @@
       var L = new T.Group(); L.position.copy(spots[i].position); L.rotation.copy(spots[i].rotation); L.scale.copy(spots[i].scale); st.g.add(L);
       part(base, white, L, 0, 0.06, 0); part(dome, white, L, 0, 0.12, 0);
       var hm = new T.MeshBasicMaterial({ color: 0x3a2a30 }), h = part(hole, hm, L, 0, 0.2, 0.17); h.rotation.x = -0.25;
-      var halo = sprite(st.tex, WARM, true); halo.position.set(0, 0.2, 0.2); L.add(halo);
-      var pool = sprite(st.tex, 0xffb860, true); pool.position.set(0, 0.03, 0); L.add(pool); // the light pooled on the snow
-      st.lanterns.push({ g: L, hole: hm, halo: halo, pool: pool });
+      // amber washes in normal blending (additive light turns white over the pale snow), plus a small additive core
+      var halo = sprite(st.tex, 0xffa63c, false); halo.position.set(0, 0.2, 0.2); L.add(halo);
+      var core = sprite(st.tex, WARM, true); core.position.set(0, 0.2, 0.22); L.add(core);
+      var pool = sprite(st.tex, 0xff9a36, false); pool.position.set(0, 0.03, 0); L.add(pool); // the light pooled on the snow
+      st.lanterns.push({ g: L, hole: hm, halo: halo, core: core, pool: pool });
     }
   }
   function hide(o) { if (o && o.visible) { o.visible = false; if (kept.hidden.indexOf(o) < 0) kept.hidden.push(o); } }
@@ -314,6 +516,7 @@
     if (root.GardenClip && root.GardenClip.boat) hide(root.GardenClip.boat);
     if (set) {
       buildLanterns(set.lanterns);
+      buildKittens(set);
       for (i = 0; i < set.lanterns.length; i++) hide(set.lanterns[i]);
       for (i = 0; i < set.cats.length; i++) hide(set.cats[i]);
       for (i = 0; i < set.markers.length; i++) hide(set.markers[i]);
@@ -357,6 +560,7 @@
     for (i = 0; i < wild.length; i++) if (wild[i].g) hide(wild[i].g);
     // Camera: overrides the gameplay orbit for this frame only; the game takes it back when we stop.
     var c = f.camera, halfH = Math.tan(cam.fov * Math.PI / 360), halfW = halfH * cam.aspect;
+    (st.md || (st.md = new T.Vector3())).set(f.moon.x, f.moon.y, f.moon.z).normalize();
     var r = Math.max(c.w / halfW, c.w * 0.9 / halfH), v3 = st.v;
     v3.set(c.x, top + c.y + c.lift * r * halfH, c.z); H.island.localToWorld(v3);
     cam.position.set(v3.x + r * Math.sin(c.phi) * Math.cos(c.th), v3.y + r * Math.cos(c.phi), v3.z + r * Math.sin(c.phi) * Math.sin(c.th));
@@ -365,8 +569,9 @@
     for (i = 0; i < st.lanterns.length; i++) {
       var L = st.lanterns[i], lp = f.lanterns[i];
       L.hole.color.setHex(0x3a2a30).lerp(tmpB.setHex(0xffc566), lp.lit);
-      L.halo.material.opacity = clamp(0.1 + 0.75 * lp.glow, 0, 0.9); L.halo.scale.setScalar(0.55 * lp.size);
-      L.pool.material.opacity = 0.35 * lp.glow; L.pool.scale.set(1.1 * lp.size, 1.1 * lp.size, 1);
+      L.halo.material.opacity = clamp(0.1 + 0.75 * lp.glow + 0.25 * lp.flare, 0, 1); L.halo.scale.setScalar(0.55 * lp.size * (1 + 0.9 * lp.flare));
+      L.core.material.opacity = clamp(0.55 * lp.glow + 0.4 * lp.flare, 0, 1); L.core.scale.setScalar(0.28 * lp.size * (1 + 1.2 * lp.flare));
+      L.pool.material.opacity = 0.42 * lp.glow; L.pool.scale.set(1.1 * lp.size, 1.1 * lp.size, 1);
     }
     // The path's pressed-snow patches warm from the front edge towards the cabin as the lanterns light.
     var set = st.set;
@@ -379,7 +584,8 @@
       set.patch.instanceColor.needsUpdate = true;
     }
     // The cabin window: warm from the start, swelling in the cabin beat (item 4 animates it further).
-    if (set && set.windowGlow) { set.windowGlow.material.opacity = clamp(0.4 + 0.5 * f.cabin.window, 0, 1); set.windowGlow.scale.setScalar(f.cabin.halo); }
+    if (set && set.windowGlow) { set.windowGlow.material.opacity = clamp(0.4 + 0.5 * f.cabin.window + f.cabin.flicker, 0, 1); set.windowGlow.scale.setScalar(f.cabin.halo); }
+    applyActors(f, t, cam, halfH, top);
     // Snowfall.
     var su = st.snowU, pr = Math.min(MAX_PR, root.devicePixelRatio || 1);
     su.uTime.value = t; su.uSpeed.value = f.snow.speed; su.uDrift.value = f.snow.drift; su.uAmount.value = f.snow.amount;
@@ -396,6 +602,71 @@
     if (st.hemi) { mix2('hemiA', sk, st.hemi.color); mix2('hemiB', sk, st.hemi.groundColor); st.hemi.intensity = mixS(PAL.dusk.hemiI, PAL.night.hemiI, sk); }
     if (!st.canvas) st.canvas = doc.querySelector('canvas');
     if (++st.tick % 30 === 1) paint(); // anything planted or loaded since the last pass
+  }
+  // Screen-space moon guard for the sprite actors (the Points do the same in their shader).
+  function moonGuard(cam, halfH) {
+    var md = st.md, v = st.mv || (st.mv = new T.Vector3());
+    v.copy(md).multiplyScalar(50).add(cam.position).project(cam);
+    var r = Math.tan(0.075) / halfH, vh = st.canvas ? st.canvas.clientHeight || root.innerHeight : root.innerHeight;
+    if (v.z > 1 || v.z < -1) { st.moonU.value.set(0, 9, 0, vh); return; }
+    st.moonU.value.set(v.x, v.y, r, vh); st.aspectU.value = cam.aspect;
+  }
+  var wpos = null;
+  function spriteFade(o, alpha, cam, halfH) {
+    // returns alpha faded so the sprite's own disc never reaches the guard ring round the moon
+    if (alpha <= 0.002) return 0;
+    o.updateMatrixWorld(); o.getWorldPosition(wpos);
+    var dist = wpos.distanceTo(cam.position); wpos.project(cam);
+    var m = st.moonU.value, sr = Math.max(o.scale.x, o.scale.y) * 0.5 * (o.parent ? o.parent.matrixWorld.getMaxScaleOnAxis() : 1) / (Math.max(dist, 0.01) * halfH);
+    var dm = Math.hypot((wpos.x - m.x) * cam.aspect, wpos.y - m.y), rr = m.z + sr, a = alpha * (m.z ? (dm <= rr ? 0 : ease(clamp((dm - rr) / (rr * 0.35 + 0.02), 0, 1))) : 1);
+    if (a > 0.02 && m.z) st.moonGap = Math.min(st.moonGap, dm - rr);
+    return a;
+  }
+  var tmpS = {};
+  function applyActors(f, t, cam, halfH, top) {
+    var i, k, set = st.set, cab = set && set.cabinAt;
+    wpos = wpos || new T.Vector3();
+    if (!st.md) return;
+    moonGuard(cam, halfH); st.moonGap = 9;
+    // lamplight the flakes catch: the lit lanterns and the window
+    for (i = 0; i < 7; i++) {
+      if (i < st.lanterns.length) { var Lp = st.lanterns[i].g.position; st.lampV[i].set(Lp.x, Lp.y + 0.3, Lp.z, f.lanterns[i].lit * 0.9); }
+      else if (i === 6 && cab) st.lampV[i].set(cab.x + 0.28, top + 0.5, cab.z + 0.75, 0.6 + 0.4 * f.cabin.window);
+      else st.lampV[i].w = 0;
+    }
+    // ignition sparks
+    var sp = st.sparks.geometry.attributes, sc = (st.canvas ? st.canvas.height : root.innerHeight) / (2 * halfH);
+    st.sparks.userData.u.uScale.value = st.flies.userData.u.uScale.value = sc;
+    for (i = 0; i < st.lanterns.length; i++) {
+      var LP = st.lanterns[i].g.position, ls = st.lanterns[i].g.scale.x;
+      for (k = 0; k < SPARKS; k++) {
+        var j = i * SPARKS + k; sparkAt(i, k, t, tmpS);
+        sp.position.setXYZ(j, LP.x + tmpS.x * ls, LP.y + tmpS.y * ls, LP.z + tmpS.z * ls); sp.aAlpha.setX(j, tmpS.a); sp.aSize.setX(j, 0.07 * tmpS.s);
+      }
+    }
+    sp.position.needsUpdate = sp.aAlpha.needsUpdate = sp.aSize.needsUpdate = true;
+    // fireflies
+    var fa = st.flies.geometry.attributes;
+    for (i = 0; i < FLIES; i++) { var fl = f.flies[i]; fa.position.setXYZ(i, fl.x, top + fl.y, fl.z); fa.aAlpha.setX(i, fl.a); fa.aSize.setX(i, 0.16 * fl.s); }
+    fa.position.needsUpdate = fa.aAlpha.needsUpdate = fa.aSize.needsUpdate = true;
+    // chimney smoke (chimney top: cabin-local (.35, 1.48, -.15))
+    for (i = 0; i < st.smoke.length; i++) {
+      var sm = f.smoke[i], S = st.smoke[i];
+      if (!cab) { S.visible = false; continue; }
+      S.visible = true; S.position.set(cab.x + 0.35 + sm.x, top + 1.5 + sm.y, cab.z - 0.15 + sm.z); S.scale.set(sm.s * 1.15, sm.s, 1);
+      S.material.color.setHex(0xd4dbee).lerp(tmpB.setHex(0xffd9a8), sm.warm * 0.6);
+      S.material.opacity = spriteFade(S, sm.a, cam, halfH);
+    }
+    // sky lanterns from earlier chapters
+    for (i = 0; i < st.skyL.length; i++) {
+      var sl = f.skyLanterns[i], B = st.skyL[i];
+      B.body.position.set(sl.x, top + sl.y, sl.z); B.body.scale.set(sl.s * 0.75, sl.s, 1);
+      B.halo.position.copy(B.body.position); B.halo.scale.setScalar(sl.s * 2.6);
+      var la = spriteFade(B.halo, sl.a, cam, halfH); B.body.material.opacity = la; B.halo.material.opacity = la * 0.55;
+    }
+    // the window's light on the snow, and the kittens curled up in it
+    if (cab) { st.pool.position.set(cab.x + 0.2, top + 0.03, cab.z + 0.95); st.pool.scale.set(2.0, 1.3, 1); st.pool.material.opacity = f.cabin.pool; }
+    for (i = 0; i < st.kits.length; i++) poseKitten(st.kits[i], f.kittens[i], top);
   }
   function isOpen() { return state === 'playing' || state === 'paused' || state === 'ended'; }
   function stageTick() {
@@ -612,15 +883,41 @@
     beats: function () { return BEATS.map(function (b) { return { id: b.id, t0: b.t0, t1: b.t1, caption: b.caption }; }); },
     frame: function (t) { return frame(t === undefined ? time() : clamp(+t || 0, 0, DURATION)); },
     text: function () { return { title: TITLE, subtitle: SUBTITLE, cont: CONTINUE, skip: SKIP }; },
-    layout: function () { return { lanterns: LANTERNS, lanternT: LANT_T, lanternStep: LANT_STEP, cam: CAM.map(function (k) { return k.t; }), titleAt: TITLE_AT }; },
+    layout: function () { return { kittens: KITS.slice(), kittenT: KIT_T, kittenStep: KIT_STEP, flies: FLIES, skyLanterns: SKYL, smoke: SMOKE, lanterns: LANTERNS, lanternT: LANT_T, lanternStep: LANT_STEP, cam: CAM.map(function (k) { return k.t; }), titleAt: TITLE_AT }; },
     lantern: function (i, t) { return lanternAt(clamp(i | 0, 0, LANTERNS - 1), +t || 0, {}); },
+    kitten: function (i, t) { return kittenAt(clamp(i | 0, 0, KITS.length - 1), +t || 0, {}); },
+    spark: function (i, k, t) { return sparkAt(i | 0, k | 0, +t || 0, {}); },
+    smoke: function (j, t) { return smokeAt(j | 0, +t || 0, {}); },
+    grid: function () { return { bpm: BPM, beat: BEAT }; },
     camera: function (t) { return cameraAt(clamp(+t || 0, 0, DURATION)); },
     // What is actually on stage this frame: for the seek/determinism checks.
     probe: function () {
       if (!st || !staged) return null;
       // the camera in island coordinates (the island itself bobs on the game clock; the film rides on it)
       return { camera: H.island.worldToLocal(H.camera.position.clone()).toArray().map(function (v) { return +v.toFixed(4); }), snowTime: st.snowU.uTime.value, lanterns: st.lanterns.map(function (L) { return [L.halo.material.opacity, L.hole.color.getHex()]; }),
-        window: st.set && st.set.windowGlow ? st.set.windowGlow.material.opacity : null };
+        window: st.set && st.set.windowGlow ? st.set.windowGlow.material.opacity : null,
+        kittens: st.kits.map(function (K) { return { id: K.id, model: !!K.owner, x: +K.root.position.x.toFixed(4), z: +K.root.position.z.toFixed(4), yaw: +K.root.rotation.y.toFixed(4),
+          walk: K.owner && K.owner.catWalkAction && K.owner.catWalkActive ? +K.owner.catWalkAction.time.toFixed(4) : -1 }; }),
+        smoke: st.smoke.map(function (S) { return +S.material.opacity.toFixed(4); }), moonGap: st.moonGap,
+        sparks: Array.prototype.slice.call(st.sparks.geometry.attributes.aAlpha.array).map(function (v) { return +v.toFixed(4); }) };
+    },
+    // Screen boxes (CSS px) of the actors this frame, for readability checks: kittens, lanterns, cabin window, moon.
+    actors: function () {
+      if (!st || !staged) return null;
+      var cam = H.camera, v = new T.Vector3(), W = root.innerWidth, Hh = root.innerHeight;
+      function box(o, dy) {
+        var b = new T.Box3().setFromObject(o), pts = [], x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+        if (b.isEmpty()) { o.getWorldPosition(v); b.setFromCenterAndSize(v, new T.Vector3(0.1, dy || 0.1, 0.1)); }
+        for (var q = 0; q < 8; q++) { v.set(q & 1 ? b.max.x : b.min.x, q & 2 ? b.max.y : b.min.y, q & 4 ? b.max.z : b.min.z).project(cam);
+          var x = (v.x + 1) * W / 2, y = (1 - v.y) * Hh / 2; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+        return { x: +x0.toFixed(1), y: +y0.toFixed(1), w: +(x1 - x0).toFixed(1), h: +(y1 - y0).toFixed(1), cx: +((x0 + x1) / 2).toFixed(1), cy: +((y0 + y1) / 2).toFixed(1) };
+      }
+      var m = st.moonU.value;
+      return { kittens: st.kits.map(function (K) { var b = box(K.inner); b.id = K.id; b.visible = K.root.visible; return b; }),
+        lanterns: st.lanterns.map(function (L) { var b = box(L.g); b.halo = +L.halo.material.opacity.toFixed(3); return b; }),
+        window: st.set && st.set.windowGlow ? box(st.set.windowGlow) : null,
+        moon: { x: (m.x + 1) * W / 2, y: (1 - m.y) * Hh / 2, r: m.z * Hh / 2 },
+        calls: root.__l3Render && root.__l3Render.info ? root.__l3Render.info.render.calls : -1 };
     },
     muted: function () { return muted; },
     scored: function () { return scored; },

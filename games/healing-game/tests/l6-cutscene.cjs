@@ -48,6 +48,35 @@ for (let i = 0; i < 6; i++) {
 assert.equal(cs.frame(10).path.reach, 0); assert(cs.frame(21).path.reach > 0.99);
 assert(cs.frame(28).cabin.window > cs.frame(15).cabin.window, 'the cabin window swells');
 
+// Item 4 actors, all pure functions of t on a beat grid (80 bpm).
+const grid = cs.grid(); assert.equal(grid.bpm, 80);
+const onGrid = x => Math.abs(x / grid.beat - Math.round(x / grid.beat)) < 1e-9;
+for (let i = 0; i < 6; i++) {
+  const on = cs.lantern(i, 0).on; assert(onGrid(on), 'lantern ' + i + ' lights on the beat grid');
+  assert.equal(cs.lantern(i, on - 0.01).flare, 0); assert(cs.lantern(i, on + 0.2).flare > 0.5, 'ignition flare'); assert(cs.lantern(i, on + 3).flare < 0.01, 'flare settles');
+  for (let k = 0; k < 6; k++) { assert.equal(cs.spark(i, k, on - 0.05).a, 0, 'no spark before the cue'); assert.equal(cs.spark(i, k, on + 2).a, 0, 'sparks fade'); }
+  assert(Math.max(...[0, 1, 2, 3, 4, 5].map(k => cs.spark(i, k, on + 0.35).a)) > 0.3, 'sparks rise at the cue');
+}
+assert.deepEqual(lay.kittens, ['orange', 'calico', 'black', 'tabby']);
+for (let i = 0; i < 4; i++) {
+  const k0 = cs.kitten(i, 0); assert(onGrid(k0.start), 'kitten ' + i + ' sets off on the beat grid');
+  assert(k0.start >= 21 && k0.arrive <= 31, 'walks home in the cabin beat');
+  assert.equal(cs.kitten(i, 20).u, 0); assert.equal(cs.kitten(i, 20).walking, false);
+  assert.equal(cs.kitten(i, (k0.start + k0.arrive) / 2).walking, true);
+  assert.equal(cs.kitten(i, 32).u, 1); assert(cs.kitten(i, 33).curl > 0.99, 'curled up under the window');
+  let pu = 0; for (let t = 0; t <= D; t += 0.25) { const u = cs.kitten(i, t).u; assert(u >= pu - 1e-12, 'never walks back'); pu = u; }
+  if (i) assert(k0.start > cs.kitten(i - 1, 0).start, 'one after another');
+}
+let pw = 0; for (let t = 20; t <= 32; t += 0.25) { const w = cs.frame(t).cabin.window; assert(w >= pw - 1e-9 && w <= 1, 'window swells'); pw = w; }
+assert(cs.frame(32).cabin.window - cs.frame(21).cabin.window > 0.3 && cs.frame(32).cabin.home > 3.99, 'window warms as each kitten arrives');
+for (const t of marks) {
+  const f = cs.frame(t);
+  for (const s of f.smoke) assert(s.a >= 0 && s.a <= 0.62 && s.y >= 0 && s.x >= -0.08, 'smoke curls up and away from the moon (+x)');
+  for (const q of f.flies) assert(q.a >= -1e-9 && (t >= 33 || q.a === 0), 'fireflies return only in the wide shots');
+  for (const q of f.skyLanterns) assert(q.x > 4 && (t >= 34 || q.a === 0), 'sky lanterns rise off the island right edge, late');
+}
+assert(cs.frame(40).smoke.some(s => s.a > 0.3) && cs.frame(40).flies.some(q => q.a > 0.3), 'smoke and fireflies visible in the wide shots');
+
 // Camera: one continuous move (no jumps), a slow pull-back: the framed half-width grows from the cabin to the title.
 let prev = cs.camera(0);
 for (let t = 0.1; t <= D; t += 0.1) {
