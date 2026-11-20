@@ -696,6 +696,7 @@
     playing: function () { time(); return state === 'playing'; },
     finished: function () { time(); return done; },
     ready: function () { return ready; },
+    prewarm: build,
     // True while the stage owns the island: butterfly.js freezes its own butterflies for that time.
     staged: function () { return staged; },
     stage: function () {
@@ -731,7 +732,7 @@
   muted = query('mute') === '1';
   if (!doc) return;
   function boot() {
-    build();
+    ready = true;
     if (query('cutscene') !== 'l1') return;
     // Standalone preview: muted starts at once (headless capture), otherwise on the first gesture.
     if (muted) { play({ source: 'preview', muted: true }); return; }

@@ -23,33 +23,39 @@ function target() {
 }
 function node() {
   const classes = new Set();
-  return { ...target(), style: {}, textContent: '', innerHTML: '', classList: {
+  return { ...target(), style: {}, textContent: '', innerHTML: '', focus() {}, classList: {
     add(s) { classes.add(s); }, remove(s) { classes.delete(s); },
     toggle(s, on) { if (on) classes.add(s); else classes.delete(s); }, contains(s) { return classes.has(s); }
   } };
 }
 function butterflyFixture(saved) {
   const cvs = target(), elements = {}, timers = [], floats = [], toasts = [], writes = {};
-  for (const id of ['bfCount', 'bfBar', 'bfHud', 'bfGrid', 'bfSub', 'bfEnding', 'bfCodex', 'gpBookBtn']) elements[id] = node();
+  for (const id of ['bfCount', 'bfBar', 'bfHud', 'bfGrid', 'bfSub', 'bfEnding', 'bfStay', 'bfCodex', 'gpBookBtn']) elements[id] = node();
+  elements.bfEnding.classList.add('hidden'); elements.bfEnding.inert = true;
   const camera = new T.PerspectiveCamera(48, 1280 / 800, .5, 300);
   camera.position.set(0, 3, 12); camera.lookAt(0, 1, 0); camera.updateMatrixWorld();
   const scene = new T.Scene();
+  const key = 'healingGarden.butterflies.v1';
+  const raw = new Map([[key, JSON.stringify(saved)]]);
   const win = { ...target(), innerWidth: 1280, innerHeight: 800, GardenClip: clip,
     __kittens: { state: () => ({ level: 1 }) }, localStorage: {
-      getItem: () => JSON.stringify(saved), setItem: (key, value) => { writes[key] = JSON.parse(value); }
+      getItem: k => raw.get(k) ?? null, setItem: (k, value) => { raw.set(k,value); writes[k] = JSON.parse(value); }
     } };
+  win.GardenSaves = require('../src/save-progress.js').create(() => win.localStorage, null, () => {}, () => false);
   const doc = { ...target(), hidden: false, getElementById: id => elements[id] || null,
     querySelector: selector => selector.includes('#modes') ? { getAttribute: () => 'net' } : cvs,
     createElement: node, body: { appendChild(el) { floats.push(el); } } };
   const ctx = { window: win, document: doc, console, setTimeout(fn, ms) { timers.push({ fn, ms }); return timers.length; }, clearTimeout() {} };
+  const targets = scripts.find(s => s.includes('window.GardenTargets ='));
+  if (targets) vm.runInNewContext(targets, ctx);
   let source = scripts.find(s => s.includes('butterflies.js —'));
   assert.ok(source, 'butterfly runtime found');
   source = source.replace('  // Test hooks', `  window.__feedbackProbe = {
     setup: function (hooks) { H = hooks; T = hooks.THREE; tmp = new T.Vector3(); tmp2 = new T.Vector3(); tmpC = new T.Color();
       raycaster = new T.Raycaster(); ndc = new T.Vector2(); icons = {};
       SPECIES.forEach(function (sp) { icons[sp.id] = { on: '', off: '' }; });
-      load(); bindInput(); renderHud(false); },
-    codex: renderCodex, closeEnding: closeEnding, flush: flushSave
+      load(); if (typeof slot !== 'undefined') slot.remember(S); bindInput(); renderHud(false); },
+    codex: renderCodex, closeEnding: closeEnding, flush: typeof flushSave === 'function' ? flushSave : window.GardenSaves.flush
   };
   // Test hooks`);
   vm.runInNewContext(source, ctx);
@@ -85,11 +91,17 @@ test('a real rare pointerdown at 29 scores 32 points, ends once, and displays 30
   assert.equal(f.win.__bf.state().total, 32, 'ending blocks duplicate input');
   f.win.__feedbackProbe.flush();
   assert.equal(f.writes['healingGarden.butterflies.v1'].total, 32, 'legacy weighted save preserved');
+  f.timers.find(t => t.ms === 5200).fn();
   f.win.__feedbackProbe.closeEnding(false);
   assert.match(f.elements.bfCount.textContent, /32 点 · 自由捕蝶/);
   f.win.__feedbackProbe.closeEnding(true);
-  assert.equal(f.win.__bf.state().total, 0);
-  assert.equal(f.win.__bf.state().individuals, 30, 'replay keeps the lifetime collection');
+  assert.equal(f.win.__bf.state().total, 32, 'a replay after the card closed leaves progress intact');
+  const again = butterflyFixture({ total: 29, ended: false, caught: { pieris: 29 } });
+  again.add(); again.cvs.fire('pointerdown', again.event());
+  again.timers.find(t => t.ms === 5200).fn();
+  again.win.__feedbackProbe.closeEnding(true);
+  assert.equal(again.win.__bf.state().total, 0);
+  assert.equal(again.win.__bf.state().individuals, 30, 'replay from the active ending keeps the lifetime collection');
 });
 
 test('a winning rare catch during pointermove safely stops the active stroke', () => {

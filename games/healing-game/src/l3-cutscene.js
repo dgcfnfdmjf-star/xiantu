@@ -809,6 +809,7 @@
     playing: function () { time(); return state === 'playing'; },
     finished: function () { time(); return done; },
     ready: function () { return ready; },
+    prewarm: build,
     // True from play() until close(): journey.js treats the film like an open dialog (no gameplay input).
     busy: function () { time(); return isOpen(); },
     // True while the stage owns the island: journey.js freezes the wisps, lamps and boat for that time.
@@ -853,7 +854,7 @@
   muted = query('mute') === '1';
   if (!doc) return;
   function boot() {
-    build();
+    ready = true;
     if (query('cutscene') !== 'l3') return;
     // Standalone preview: muted starts at once (headless capture), otherwise on the first gesture.
     if (muted) { play({ source: 'preview', muted: true }); return; }

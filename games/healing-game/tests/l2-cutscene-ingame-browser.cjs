@@ -142,11 +142,30 @@ const KEY = 'healingGarden.kittens.v1';
     assert.equal(await cs(() => __l2Score.state().active), false);
     assert.equal((await save()).ended, true);
 
-    // 重新抱 20 只 still resets the run; the next clear would go through startEnding again.
-    await cs(() => document.getElementById('kitEnding').classList.remove('hidden'));
+    // A stale/hidden ending button cannot wipe an ended save on reload.
+    const endedSave = await save();
+    await cs(() => document.getElementById('kitAgain').click());
+    assert.deepEqual(await save(), endedSave);
+    // Even an apparently visible card needs an actual pending ending.
+    await cs(() => {
+      const ending = document.getElementById('kitEnding');
+      ending.classList.remove('hidden'); ending.inert = false; ending.ariaHidden = null;
+      document.getElementById('kitAgain').click();
+    });
+    assert.deepEqual(await save(), endedSave, 'free play rejects replay outside an active ending');
+
+    // Seed a new synthetic 19-point run and replay from its actual completion card.
+    await cs(() => sessionStorage.removeItem('l2cs'));
+    await open();
+    await hug();
+    await page.waitForFunction(() => __l2Cutscene.playing());
+    await page.locator('#l2csSkip').tap();
+    await page.waitForTimeout(700); // the continue button rejects the tap that skipped the cutscene
+    await page.locator('#l2csGo').tap();
     await page.locator('#kitAgain').click();
     const again = await save();
-    assert(again.total === 0 && again.ended === false, 'kitAgain reset unchanged');
+    assert.equal(again.total, 0); assert.equal(again.ended, false);
+    assert.deepEqual(again.companions, {});
     assert.equal(await cs(() => __l2Cutscene.playing()), false);
     assert.deepEqual(report.errors, []);
     await context.close();

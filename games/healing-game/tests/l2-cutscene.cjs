@@ -4,6 +4,7 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
+const { createHash } = require('node:crypto');
 const { execFileSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -264,43 +265,54 @@ check('gameplay numbers unchanged', () => {
   assert(head.includes('var GOAL = 20;'));
   assert(head.includes('var RARE_CHANCE = 0.08;'));
   assert(head.includes("value: 3, rare: true }"));
-  // Outside the cutscene block and its two hooks the working site equals the release HTML.
-  // (The level-1 cutscene adds its own block and hooks after the same freeze point; they are stripped the same way.)
-  const strip = text => text.split('\n').filter(line => !/__l2Cutscene|__l2Stage|__l1Cutscene|__l3Cutscene|__l4Cutscene|__l5Cutscene|showCard|garden-working/.test(line)).join('\n');
-  const score = fs.readFileSync(path.join(ROOT, 'src/l2-cutscene-music.js'), 'utf8');
-  const l1 = ['src/l1-cutscene.js', 'src/l1-cutscene-music.js', 'src/l3-cutscene.js', 'src/l3-cutscene-music.js', 'src/l4-cutscene.js', 'src/l4-cutscene-music.js', 'src/l5-cutscene.js', 'src/l5-cutscene-music.js'].filter(f => fs.existsSync(path.join(ROOT, f))).map(f => fs.readFileSync(path.join(ROOT, f), 'utf8'));
-  const without = l1.reduce((text, block) => text.replace('<script>\n' + block + '\n</script>\n', ''), site.replace('<script>\n' + source + '\n</script>\n', '').replace('<script>\n' + score + '\n</script>\n', ''));
-  const base = release.split('\n').filter(line => !/\$\('(kit|bf)Ending'\)\.classList\.remove\('hidden'\); \}, (7000|5200)\);/.test(line)).join('\n');
-  assert.strictEqual(strip(without), base);
+  const kittenRules = html => {
+    const start = html.indexOf('  var KINDS = [', html.indexOf('<script>/* kittens.js'));
+    const end = html.indexOf('  /* ------------------------------ Save data', start);
+    assert(start >= 0 && end > start, 'kitten species and scoring rules found');
+    return html.slice(start, end);
+  };
+  assert.strictEqual(kittenRules(site), kittenRules(release), 'species, values and rarity match V9.5');
+});
+
+check('V9.5 release HTML stays byte-identical', () => {
+  assert.strictEqual(createHash('sha256').update(release).digest('hex'),
+    'f52a97989c0efb03c52f912a045c4619b82eba17c62d9b33c7cf24bedbcaf1a4');
 });
 
 check('existing kitten save fields still parse', () => {
   const from = kit.indexOf('  var KINDS = ['), to = kit.indexOf('  function isUnlocked()');
   assert(from > 0 && to > from, 'save block found');
+  const key = 'healingGarden.kittens.v1';
+  const progress = require('../src/save-progress.js');
   const run = saved => {
-    const box = { saved, written: null };
-    vm.runInNewContext('var SAVE_KEY = "healingGarden.kittens.v1";\n' +
-      'function store(k, v) { if (v === undefined) return box.saved[k] === undefined ? null : box.saved[k]; box.written = [k, v]; return null; }\n' +
-      kit.slice(from, to) + '\nload(); box.S = S; save();', { box });
-    return box;
+    const storage = new Map(Object.entries(saved));
+    const guard = progress.create(() => ({
+      getItem: name => storage.get(name) ?? null,
+      setItem: (name, value) => storage.set(name, value)
+    }), null, () => {}, () => false);
+    const box = { slot: guard.open(key, progress.kittenSave) };
+    vm.runInNewContext(kit.slice(from, to) +
+      '\nload(); slot.remember(S); save(); this.state = JSON.parse(JSON.stringify(S));', box);
+    assert.strictEqual(storage.get(key), saved[key], 'initial selection leaves the original bytes alone');
+    vm.runInNewContext('S.total++; save();', box);
+    return { state: box.state, written: JSON.parse(storage.get(key)) };
   };
   const old = { caught: { orange: 6, calico: 3, black: 2, glow: 1, nope: 9 }, total: 20, ended: true, level: 2, companions: { orange: 4, calico: 3, tabby: 9 } };
   const got = run({ 'healingGarden.kittens.v1': JSON.stringify(old) });
-  assert.deepStrictEqual(plain(got.S.caught), { orange: 6, calico: 3, black: 2, glow: 1 });
-  assert.strictEqual(got.S.total, 20);
-  assert.strictEqual(got.S.ended, true);
-  assert.strictEqual(got.S.level, 2);
-  assert.deepStrictEqual(plain(got.S.companions), { orange: 4, calico: 3, tabby: 4 });
-  assert.strictEqual(got.written[0], 'healingGarden.kittens.v1');
-  assert.deepStrictEqual(Object.keys(JSON.parse(got.written[1])).sort(), ['caught', 'companions', 'ended', 'level', 'total'], 'no new save field');
+  assert.deepStrictEqual(plain(got.state.caught), { orange: 6, calico: 3, black: 2, glow: 1 });
+  assert.strictEqual(got.state.total, 20);
+  assert.strictEqual(got.state.ended, true);
+  assert.strictEqual(got.state.level, 2);
+  assert.deepStrictEqual(plain(got.state.companions), { orange: 4, calico: 3, tabby: 4 });
+  assert.deepStrictEqual(got.written, { ...plain(got.state), total: 21, saveRevision: 1 });
   // A pre-companions save and an empty slot both load with defaults.
   const legacy = run({ 'healingGarden.kittens.v1': JSON.stringify({ caught: { white: 1 }, total: 1, ended: false }) });
-  assert.strictEqual(legacy.S.total, 1);
-  assert.strictEqual(legacy.S.ended, false);
-  assert.deepStrictEqual(plain(legacy.S.companions), {});
+  assert.strictEqual(legacy.state.total, 1);
+  assert.strictEqual(legacy.state.ended, false);
+  assert.deepStrictEqual(plain(legacy.state.companions), {});
   const empty = run({});
-  assert.strictEqual(empty.S.total, 0);
-  assert.strictEqual(empty.S.ended, false);
+  assert.strictEqual(empty.state.total, 0);
+  assert.strictEqual(empty.state.ended, false);
 });
 
 console.log(JSON.stringify({ pass: true, duration: load().cs.duration(), checks }, null, 1));

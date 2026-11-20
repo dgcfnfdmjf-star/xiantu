@@ -1,0 +1,10 @@
+#sceneTargets { pointer-events: auto; position: relative; margin-top: 5px; font-size: 13px; }
+#sceneTargets summary { cursor: pointer; padding: 9px; border-radius: 8px; color: #fff9eb; background: #423c56; }
+#sceneTargets summary:focus-visible { outline: 2px solid #ffe2a4; outline-offset: 2px; }
+#sceneTargets[open] .target-list { display: grid; gap: 3px; max-height: 32vh; overflow-y: auto; touch-action: pan-y; }
+#sceneTargets button { text-align: left; min-height: 40px; border-radius: 8px; background: #373248; padding: 6px 9px; color: #fff9eb; }
+#sceneTargets button:focus-visible { outline-offset: -2px; }
+#sceneTargets button[aria-disabled=true] { opacity: .65; }
+#sceneTargets p { font-size: 12px; margin: 4px 0; }
+/* An overlay owns input even during a cutscene preview or a chapter transition. */
+body:has(> [role="dialog"]:not([hidden], .hidden), > .overlay:not(.hidden, #fail), > #gpBook:not(.hidden), > #bfCodex:not(.hidden), > #kitLevels:not(.hidden)) #sceneTargets { display: none; }

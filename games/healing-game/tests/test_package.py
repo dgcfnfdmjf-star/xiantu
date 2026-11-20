@@ -47,7 +47,8 @@ class Package(unittest.TestCase):
     def test_all_inline_scripts_parse(self):
         self.assertEqual(len(re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.html.decode())), 19)
         scripts = re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.site.decode())
-        self.assertEqual(len(scripts), 29)  # V9.5's 19 + level-2 cutscene + its score + level-1 cutscene + its score + level-3 cutscene + its score + level-4 cutscene + its score + level-5 cutscene + its score
+        # Frozen game's 19 scripts, five cutscenes with scores, save coordination and named scene targets.
+        self.assertEqual(len(scripts), 19 + 2 * 5 + 2)
         with tempfile.TemporaryDirectory() as tmp:
             for i, script in enumerate(scripts):
                 path = Path(tmp) / f'{i}.js'
@@ -111,10 +112,11 @@ class Package(unittest.TestCase):
         self.assertNotIn(b'__l5', self.html)
         self.assertNotIn(b'garden-working', self.html)
 
-    def test_reproducible_release(self):
+    def test_reproducible_release_and_working_site(self):
         before = ZIP.read_bytes()
         subprocess.run(['python3', str(ROOT / 'scripts/build.py')], check=True)
         self.assertEqual(before, ZIP.read_bytes())
+        self.assertEqual(self.site, (ROOT / 'site/healing-game/index.html').read_bytes())
 
 if __name__ == '__main__':
     unittest.main()

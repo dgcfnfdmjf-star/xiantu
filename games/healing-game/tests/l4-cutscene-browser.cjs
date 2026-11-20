@@ -57,13 +57,14 @@ const SAVES = {
     return { context, page };
   };
   // The real clear: start on level 4, then the last note (6 · 归音) of the third melody. Counts every time the card opens.
-  const clear = async page => {
+  const clear = async (page, { afterStart, beforeClear } = {}) => {
     await page.locator('#start').click(); await page.waitForTimeout(1500);
     assert.equal(await page.evaluate(() => window.__journey.state().level), 4);
+    if (afterStart) await afterStart();
     assert.deepEqual(await page.evaluate(() => { const c = window.__journey.state().progress.chimes; return [c.round, c.step]; }), [2, 3], 'fixture: one note from the clear');
     await page.evaluate(() => { window.__cardOpens = 0; const end = document.getElementById('chimeEnding'); let was = end.hidden;
       new MutationObserver(() => { if (was && !end.hidden) window.__cardOpens++; was = end.hidden; }).observe(end, { attributes: true, attributeFilter: ['hidden'] }); });
-    if (page.__beforeClear) await page.__beforeClear();
+    if (beforeClear) await beforeClear();
     await page.locator('#chimeKey5').click();
   };
   const cardShown = page => page.evaluate(() => !document.getElementById('chimeEnding').hidden);
@@ -85,14 +86,56 @@ const SAVES = {
     assert.equal(await csState(page), 'idle'); assert.equal(await opens(page), 1);
     await context.close();
 
-    /* ---- B: the cutscene replaces the short finale ---- */
-    ({ context, page } = await fresh());
+    /* ---- B: startup, paper prewarm, then the film replaces the short finale ---- */
+    const nearClear = structuredClone(SAVES);
+    nearClear[KEY].chimes.step = 2;
+    ({ context, page } = await fresh(null, nearClear));
+    await page.addInitScript(() => {
+      window.paperEncodes = 0;
+      const encode = HTMLCanvasElement.prototype.toDataURL;
+      HTMLCanvasElement.prototype.toDataURL = function (...args) {
+        if (this.width === 240 && this.height === 240) window.paperEncodes++;
+        return encode.apply(this, args);
+      };
+    });
     await page.goto(url);
+    assert.equal(await page.evaluate(() => window.paperEncodes), 0, 'no chapter papers on the start screen');
+    await page.evaluate(() => {
+      const opening = window.opening = { frames: 0, unlocked: false, beatAfterPaint: false };
+      const start = AudioBufferSourceNode.prototype.start;
+      AudioBufferSourceNode.prototype.start = function (...args) {
+        if (this.buffer?.length === 1 && navigator.userActivation.isActive) opening.unlocked = true;
+        return start.apply(this, args);
+      };
+      document.addEventListener('click', () => {
+        requestAnimationFrame(() => { opening.frames++; requestAnimationFrame(() => opening.frames++); });
+      }, { capture: true, once: true });
+      const track = window.__music2.tracks.find(t => t.id === 'morningchimes');
+      const play = track.play;
+      track.play = function (...args) {
+        opening.beatAfterPaint = opening.frames === 2 && document.getElementById('start').classList.contains('hidden');
+        track.play = play;
+        return play.apply(this, args);
+      };
+    });
+    const checkPrewarm = async () => {
+      assert.deepEqual(await page.evaluate(() => window.opening), { frames: 2, unlocked: true, beatAfterPaint: true });
+      assert.equal(await page.evaluate(() => window.paperEncodes), 0, 'start did not build any paper');
+      await page.locator('#chimeKey2').click();
+      await page.waitForFunction(() => document.getElementById('l4csPaper')?.style.backgroundImage);
+      assert.equal(await page.evaluate(() => window.paperEncodes), 1, 'only the active chapter prewarmed');
+    };
     assert.equal(await page.evaluate(() => window.__l4Cutscene.enabled() && window.__l4Cutscene.ready()), true);
     let themeBefore = '';
-    page.__beforeClear = async () => { themeBefore = await page.evaluate(() => GardenAudio.currentTrackName()); assert.equal(await page.evaluate(() => __l4Score.state().active), false, 'score idle before the clear'); };
-    await clear(page);
+    await clear(page, {
+      afterStart: checkPrewarm,
+      beforeClear: async () => {
+        themeBefore = await page.evaluate(() => GardenAudio.currentTrackName());
+        assert.equal(await page.evaluate(() => __l4Score.state().active), false, 'score idle before the clear');
+      }
+    });
     assert.equal(await csState(page), 'playing', 'the film starts on the clearing note');
+    assert.equal(await page.evaluate(() => window.paperEncodes), 1, 'play reused the prepared paper');
     assert.equal(await progress(page), savedA, 'same save as the old path, written before the film');
     await page.waitForFunction(() => window.__l4Cutscene.staged(), null, { timeout: 8000 });
     await page.waitForTimeout(3600); // longer than the old 3.2 s finale
@@ -213,8 +256,9 @@ const SAVES = {
     ({ context, page } = await fresh());
     await page.goto(url);
     let quietTheme = '';
-    page.__beforeClear = async () => { quietTheme = await page.evaluate(() => { GardenAudio.setMusic(false); return GardenAudio.currentTrackName(); }); };
-    await clear(page);
+    await clear(page, { beforeClear: async () => {
+      quietTheme = await page.evaluate(() => { GardenAudio.setMusic(false); return GardenAudio.currentTrackName(); });
+    } });
     await page.waitForFunction(() => window.__l4Cutscene.playing() && window.__l4Cutscene.staged(), null, { timeout: 8000 });
     await page.waitForTimeout(2500);
     let quiet = await page.evaluate(() => ({ s: __l4Score.state(), live: __musicLush.live() }));
