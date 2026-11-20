@@ -236,7 +236,7 @@ const KEY = 'healingGarden.butterflies.v1';
     await context.close();
 
     /* ---- D: music switch off -> the film runs silent, the switch and the track are left as they were;
-            the card's own button (closeEnding) closes film and score together ---- */
+            only the visible film controls can hand the game back to the ending card ---- */
     ({ context, page } = await fresh());
     await page.goto(url);
     await page.locator('#start').click(); await page.waitForTimeout(1500);
@@ -246,7 +246,12 @@ const KEY = 'healingGarden.butterflies.v1';
     await page.waitForTimeout(2500);
     let quiet = await page.evaluate(() => ({ s: __l1Score.state(), live: __musicLush.live() }));
     assert(quiet.s.active && quiet.s.musicOn === false && quiet.s.steps === 0, 'music switch off: nothing is played: ' + JSON.stringify(quiet));
-    await page.evaluate(() => document.getElementById('bfStay').click()); // the game closing the ending mid-film
+    await page.evaluate(() => document.getElementById('bfStay').click());
+    assert.equal(await page.evaluate(() => __l1Cutscene.state()), 'playing', 'a hidden ending control cannot interrupt the film');
+    await page.locator('#l1csSkip').tap();
+    await page.waitForTimeout(750); // Skip and Continue are two distinct gestures.
+    await page.locator('#l1csGo').tap();
+    await page.locator('#bfStay').tap();
     quiet = await page.evaluate(() => ({ s: __l1Score.state(), cs: __l1Cutscene.state() }));
     assert(quiet.cs === 'closed' && !quiet.s.active && quiet.s.musicOn === false && quiet.s.track === quietTheme, 'closed with the film, switch still off: ' + JSON.stringify(quiet));
     await page.evaluate(() => GardenAudio.setMusic(true));

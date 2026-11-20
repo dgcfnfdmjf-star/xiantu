@@ -50,7 +50,7 @@ f.fs.mkdirSync(out, { recursive: true });
             };
           });
           page.once('dialog',dialog=>dialog.accept());await reset.click();
-          assert.match(await page.locator('#journeyResetStatus').textContent(),/未能清除进度/);
+          await page.locator('#journeyResetStatus').filter({hasText:/未能清除进度/}).waitFor({state:'visible'});
           assert.equal(await page.evaluate(()=>GardenReset.pending()),false);
           assert.deepEqual(await page.evaluate(()=>Object.fromEntries(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)]))),before,'failure restores stored progress');
           await page.evaluate(()=>{Storage.prototype.removeItem=resetStorageRemove;delete window.resetStorageRemove;});

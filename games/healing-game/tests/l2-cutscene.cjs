@@ -240,7 +240,13 @@ check('motion is gentle and continuous', () => {
 });
 
 // ---- Built working site: hooks present, numbers and save parsing untouched ----
-execFileSync('python3', [path.join(ROOT, 'scripts/build.py')], { stdio: 'pipe' });
+// Compare the five-film layer with the historical release separately from
+// the current player's save, input and first-interaction fixes.
+const cutsceneLayer = execFileSync('python3', ['-c', [
+  'import contextlib, runpy, sys',
+  'with contextlib.redirect_stdout(sys.stderr): build = runpy.run_path(sys.argv[1])',
+  'sys.stdout.write(build["cutscene_html"])',
+].join('\n'), path.join(ROOT, 'scripts/build.py')], {encoding:'utf8', maxBuffer:4 * 1024 * 1024});
 const site = fs.readFileSync(path.join(ROOT, 'site/healing-game/index.html'), 'utf8');
 const release = fs.readFileSync(path.join(ROOT, 'site/healing-game-v9.5-baseline/index.html'), 'utf8');
 const kit = site.slice(site.indexOf('<script>/* kittens.js'));
@@ -264,24 +270,29 @@ check('gameplay numbers unchanged', () => {
   assert(head.includes('var GOAL = 20;'));
   assert(head.includes('var RARE_CHANCE = 0.08;'));
   assert(head.includes("value: 3, rare: true }"));
-  // Outside the cutscene block and its two hooks the working site equals the release HTML.
-  // (The level-1 cutscene adds its own block and hooks after the same freeze point; they are stripped the same way.)
+  // Removing the five film modules, scores and entry hooks from their build
+  // stage must reproduce the frozen release before player fixes are applied.
   const strip = text => text.split('\n').filter(line => !/__l2Cutscene|__l2Stage|__l1Cutscene|__l3Cutscene|__l4Cutscene|__l5Cutscene|showCard|garden-working/.test(line)).join('\n');
   const score = fs.readFileSync(path.join(ROOT, 'src/l2-cutscene-music.js'), 'utf8');
   const l1 = ['src/l1-cutscene.js', 'src/l1-cutscene-music.js', 'src/l3-cutscene.js', 'src/l3-cutscene-music.js', 'src/l4-cutscene.js', 'src/l4-cutscene-music.js', 'src/l5-cutscene.js', 'src/l5-cutscene-music.js'].filter(f => fs.existsSync(path.join(ROOT, f))).map(f => fs.readFileSync(path.join(ROOT, f), 'utf8'));
-  const without = l1.reduce((text, block) => text.replace('<script>\n' + block + '\n</script>\n', ''), site.replace('<script>\n' + source + '\n</script>\n', '').replace('<script>\n' + score + '\n</script>\n', ''));
+  const without = l1.reduce((text, block) => text.replace('<script>\n' + block + '\n</script>\n', ''), cutsceneLayer.replace('<script>\n' + source + '\n</script>\n', '').replace('<script>\n' + score + '\n</script>\n', ''));
   const base = release.split('\n').filter(line => !/\$\('(kit|bf)Ending'\)\.classList\.remove\('hidden'\); \}, (7000|5200)\);/.test(line)).join('\n');
   assert.strictEqual(strip(without), base);
 });
 
 check('existing kitten save fields still parse', () => {
-  const from = kit.indexOf('  var KINDS = ['), to = kit.indexOf('  function isUnlocked()');
+  const from = kit.indexOf('  function store(k, v)'), to = kit.indexOf('  function isUnlocked()');
   assert(from > 0 && to > from, 'save block found');
+  const create = require('../src/save-session.js').create;
   const run = saved => {
-    const box = { saved, written: null };
+    const rows = new Map(Object.entries(saved)), key = 'healingGarden.kittens.v1';
+    const host = { navigator:{locks:{request:(_key,action)=>Promise.resolve(action())}}, localStorage: { getItem:k => rows.get(k) ?? null, setItem:(k,v) => rows.set(k,v) },
+      document:{ addEventListener() {} }, addEventListener() {} };
+    host.GardenSaves = create(host);
+    const box = {};
     vm.runInNewContext('var SAVE_KEY = "healingGarden.kittens.v1";\n' +
-      'function store(k, v) { if (v === undefined) return box.saved[k] === undefined ? null : box.saved[k]; box.written = [k, v]; return null; }\n' +
-      kit.slice(from, to) + '\nload(); box.S = S; save();', { box });
+      kit.slice(from, to) + '\nload(); box.S = S; save();', { box, window:host });
+    box.written = [key, rows.get(key)];
     return box;
   };
   const old = { caught: { orange: 6, calico: 3, black: 2, glow: 1, nope: 9 }, total: 20, ended: true, level: 2, companions: { orange: 4, calico: 3, tabby: 9 } };
