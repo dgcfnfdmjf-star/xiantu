@@ -20,3 +20,7 @@ replace("    if (window.__l5Cutscene && window.__l5Cutscene.staged()) return;\n"
 # Loads beside the other cutscenes, before kittens.js; it chains onto GardenPlay like the other modules.
 # (The preview gate inside it, `if (query('cutscene') !== 'l6') return;`, appears exactly once in the build.)
 replace('<script>/* kittens.js', '<script>\n' + (ROOT / 'src/l6-cutscene.js').read_text() + '\n</script>\n<script>/* kittens.js')
+# The score needs the music-lush voices and the level-3 score's celesta(): it loads after the level-5 score, before the
+# main game script (the level-5 hook already put its score right before the same marker).
+MAIN = "<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps"
+replace(MAIN, '<script>\n' + (ROOT / 'src/l6-cutscene-music.js').read_text() + '\n</script>\n' + MAIN)

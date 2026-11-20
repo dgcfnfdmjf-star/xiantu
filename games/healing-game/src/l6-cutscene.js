@@ -10,7 +10,7 @@
  * Item 3: stage, world, camera, captions, title, trigger. Item 4: actors on an 80 bpm beat grid (lantern ignition
  * flare + sparks, the four Blender kittens walking the last stretch home and curling up under the window, window
  * swell per arrival, chimney smoke, flakes that catch the lamplight, returning fireflies and paper sky lanterns), all
- * pure functions of t; particles fade out before they reach the moon. The score arrives in item 5. */
+ * pure functions of t; particles fade out before they reach the moon. Item 5: the score 「雪窗归途」 (l6-cutscene-music.js). */
 (function (root) {
   'use strict';
   var DURATION = 50;
@@ -22,7 +22,7 @@
     { id: 'island', t0: 32, t1: 43.5, caption: '整座岛都睡在雪里' },
     { id: 'title', t0: 43.5, t1: 50, caption: '' }
   ];
-  var TITLE_AT = 44, TITLE_FADE = 3, CONTINUE_GUARD_MS = 600;
+  var TITLE_AT = 43.5, TITLE_FADE = 3, CONTINUE_GUARD_MS = 600;
   var TITLE = '第六关 · 完成', SUBTITLE = '暮色浮岛', CONTINUE = '轻触继续', SKIP = '跳过';
 
   var doc = root.document || null;
@@ -81,9 +81,10 @@
   }
   // How far along the path (0..1) the warm light has spread: it follows the lanterns as they light.
   function pathAt(t) { return { reach: ease(ramp(t, LANT_T, LANT_T + LANTERNS * LANT_STEP + 1)), glow: ease(ramp(t, LANT_T, LANT_T + 3)) }; }
-  /* Beat grid (item 5 scores to it): 80 bpm, one beat = 0.75 s. Lanterns light every two beats from beat 14 (10.5 s);
-   * the kittens set off every two beats from beat 28 (21 s). */
-  var BPM = 80, BEAT = 60 / BPM;
+  /* Beat grid: 80 bpm, one beat = 0.75 s. Lanterns light every two beats from beat 14 (10.5 s); the kittens set off
+   * every two beats from beat 28 (21 s). The score (l6-cutscene-music.js) is a 3/4 waltz at 120 bpm: one bar = 1.5 s =
+   * two of these beats, so every lantern and every departure lands on a barline; arrivals and the title sit on its beats. */
+  var BPM = 80, BEAT = 60 / BPM, SCORE_BPM = 120, METER = 3;
   // Ignition flourish: the halo flares and settles, a few sparks rise and fade (age = seconds since the lantern's cue).
   function flareAt(age) { return age < 0 ? 0 : Math.exp(-age * 2.6) * ease(ramp(age, 0, 0.12)); }
   var SPARKS = 6;
@@ -99,7 +100,8 @@
   /* The four kittens (the gameplay coats, same Blender models) walk the last stretch of the lit path home in file
    * and curl up together under the cabin window. route u = 0..1 along their own walk (the stage maps it onto the path). */
   var KITS = ['orange', 'calico', 'black', 'tabby'], KIT_T = 21, KIT_STEP = 2 * BEAT * 1, KIT_U0 = [0.86, 0.8, 0.74, 0.68];
-  function kitDur(i) { return 3.2 + 0.6 * i; }
+  // each walk is a whole number of score beats (0.5 s at 120 bpm), so the kittens arrive on the score's beat grid: 24, 26, 28, 30 s
+  function kitDur(i) { return 3 + 0.5 * i; }
   function kittenAt(i, t, out) {
     out = out || {};
     var s = KIT_T + i * KIT_STEP, d = kitDur(i), u = ramp(t, s, s + d);
@@ -114,8 +116,9 @@
   }
   function homeCount(t) { var n = 0; for (var i = 0; i < KITS.length; i++) n += ease(ramp(t, KIT_T + i * KIT_STEP + kitDur(i) - 0.4, KIT_T + i * KIT_STEP + kitDur(i) + 0.8)); return n; }
   // The cabin window: always warm; it swells in the cabin beat, a step brighter as each kitten arrives under it.
+  var SWELL_T0 = 22, SWELL_T1 = 28; // on the score's beats (bar 14 beat 3 .. bar 18 beat 3)
   function cabinAt(t) {
-    var n = homeCount(t), sw = ease(ramp(t, 22, 28));
+    var n = homeCount(t), sw = ease(ramp(t, SWELL_T0, SWELL_T1));
     return { window: clamp(0.6 + 0.15 * sw + 0.0625 * n, 0, 1), home: n, flicker: 0.04 * Math.sin(t * 2.3) * Math.sin(t * 0.7 + 1.0) * soft,
       halo: (1.3 + 0.35 * sw + 0.15 * n) * (1 + 0.8 * ease(ramp(t, 32, 46))), pool: 0.25 + 0.1 * sw + 0.06 * n };
   }
@@ -813,7 +816,7 @@
   }
 
   /* ------------------------------- API ------------------------------- */
-  // The score will live in l6-cutscene-music.js (window.__l6Score, a later item); muted runs never start it.
+  // The score lives in l6-cutscene-music.js (window.__l6Score); muted runs never start it.
   function score() { return root.__l6Score || null; }
   function play(o) {
     opts = o || {};
@@ -883,12 +886,13 @@
     beats: function () { return BEATS.map(function (b) { return { id: b.id, t0: b.t0, t1: b.t1, caption: b.caption }; }); },
     frame: function (t) { return frame(t === undefined ? time() : clamp(+t || 0, 0, DURATION)); },
     text: function () { return { title: TITLE, subtitle: SUBTITLE, cont: CONTINUE, skip: SKIP }; },
-    layout: function () { return { kittens: KITS.slice(), kittenT: KIT_T, kittenStep: KIT_STEP, flies: FLIES, skyLanterns: SKYL, smoke: SMOKE, lanterns: LANTERNS, lanternT: LANT_T, lanternStep: LANT_STEP, cam: CAM.map(function (k) { return k.t; }), titleAt: TITLE_AT }; },
+    layout: function () { return { kittens: KITS.slice(), kittenT: KIT_T, kittenStep: KIT_STEP, flies: FLIES, skyLanterns: SKYL, smoke: SMOKE, lanterns: LANTERNS, lanternT: LANT_T, lanternStep: LANT_STEP, cam: CAM.map(function (k) { return k.t; }), titleAt: TITLE_AT,
+      arrive: KITS.map(function (k, i) { return KIT_T + i * KIT_STEP + kitDur(i); }), swell: [SWELL_T0, SWELL_T1] }; },
     lantern: function (i, t) { return lanternAt(clamp(i | 0, 0, LANTERNS - 1), +t || 0, {}); },
     kitten: function (i, t) { return kittenAt(clamp(i | 0, 0, KITS.length - 1), +t || 0, {}); },
     spark: function (i, k, t) { return sparkAt(i | 0, k | 0, +t || 0, {}); },
     smoke: function (j, t) { return smokeAt(j | 0, +t || 0, {}); },
-    grid: function () { return { bpm: BPM, beat: BEAT }; },
+    grid: function () { return { bpm: BPM, beat: BEAT, scoreBpm: SCORE_BPM, scoreBeat: 60 / SCORE_BPM, meter: METER, bar: METER * 60 / SCORE_BPM }; },
     camera: function (t) { return cameraAt(clamp(+t || 0, 0, DURATION)); },
     // What is actually on stage this frame: for the seek/determinism checks.
     probe: function () {
