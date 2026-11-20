@@ -72,17 +72,23 @@ replace("""    if (!window.GardenReset.reset()) {
       if (!ok) $('journeyResetStatus').textContent = '未能清除进度。请检查存储权限或刷新以载入最新存档。';
     });""")
 
-# Keep an available local save durable before each real chapter finale, including reduced motion.
-for chapter, overlay, delay in [(1, 'bfEnding', 5200), (2, 'kitEnding', 7000)]:
-    start = f"    if (window.__l{chapter}Cutscene && window.__l{chapter}Cutscene.enabled()) window.__l{chapter}Cutscene.play("
-    end = f'    else setTimeout(showCard, {delay});'
-    begin = html.index(start)
-    block = html[begin:html.index(end, begin) + len(end)]
-    replace(block, '    window.GardenSaves.afterWrite(function () {\n' + block + '\n    });')
-replace('if (done(3)) { if (L3) L3.startFinale(index, showEnding); else showEnding(); }',
-        'if (done(3)) { window.GardenSaves.afterWrite(function () { if (L3) L3.startFinale(index, showEnding); else showEnding(); }); }')
-start = "    if (result.finished) {\n      if (!reduced && window.__l4Cutscene"
-replace(start, "    if (result.finished) {\n      window.GardenSaves.afterWrite(function () {\n      if (!reduced && window.__l4Cutscene")
-replace("    } else if (result.roundComplete) {", "      });\n    } else if (result.roundComplete) {")
-replace("if(result.finished){if(!practice)J.complete(5);persist();startFinale();}",
-        "if(result.finished){if(!practice)J.complete(5);persist();window.GardenSaves.afterWrite(startFinale);}")
+# Legacy animations, reduced-motion cards and chapter input locks still start synchronously.
+# Wait for a pending save only at the boundary that actually opens a film.
+for chapter in (1, 2):
+    call = f"window.__l{chapter}Cutscene.play({{ source: 'level{chapter}', onContinue: showCard }});"
+    replace(call, 'window.GardenSaves.afterWrite(function () { ' + call + ' });')
+call = "cs.play({ source: 'level3', onContinue: starCard });"
+replace(call, 'window.GardenSaves.afterWrite(function () { ' + call + ' });')
+call = "window.__l4Cutscene.play({ source: 'level4', onContinue: showEnding });"
+replace(call, 'window.GardenSaves.afterWrite(function () { ' + call + ' render(); }); render();')
+call = "window.__l5Cutscene.play({source:'level5',onContinue:showEnding});"
+replace(call, 'window.GardenSaves.afterWrite(function(){' + call + '});render();')
+
+# Close the input gap while the origin lock is occupied, before the film has a dialog.
+replace('    if (!API.ready) return false;', '    if (!API.ready) return false;\n    if (window.GardenSaves.waitingForFilm()) return true;')
+replace('if (!API.ready || (L3 && L3.isRunning())) return;', 'if (!API.ready || window.GardenSaves.waitingForFilm() || (L3 && L3.isRunning())) return;')
+replace("    $('chimeListen').disabled = !!preview || finale > 0;", """    var film = window.GardenSaves.waitingForFilm() || (window.__l4Cutscene && window.__l4Cutscene.busy());
+    $('chimeListen').disabled = !!preview || finale > 0 || film;""")
+replace("      $('chimeKey'+i).disabled = !!preview || finale>0;", "      $('chimeKey'+i).disabled = !!preview || finale>0 || film;")
+replace("$('lotusReplay').hidden=!done||!!finale;$('lotusFinale').hidden=!done||!!finale;",
+        "$('lotusReplay').hidden=$('lotusFinale').hidden=!done||!!finale||window.GardenSaves.waitingForFilm();")

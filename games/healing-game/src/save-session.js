@@ -217,6 +217,7 @@
     host.document.addEventListener('visibilitychange', function () { check(); flush(); });
     restoreStage(); flush();
     return { read:read, write:write, status:status, message:message, flush:flush, headKey:HEAD,
+      waitingForFilm:function () { return afterWrites.length > 0; },
       afterWrite:function (callback) { if (scheduled) afterWrites.push(callback); else callback(); },
       nextGeneration:function () { stamp(writer + '-' + Date.now().toString(36), 0); pending = {}; stage(); },
       reset:function (removeAndNavigate, done) {

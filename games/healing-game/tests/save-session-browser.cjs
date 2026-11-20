@@ -7,8 +7,8 @@ const finale = {[CAT]:JSON.stringify({level:5,total:20,ended:true}), hg_level2_u
 
 (async () => {
   const server = await fixture.server(), browser = await fixture.browser();
-  async function context(seed, denyCat = false) {
-    const c = await browser.newContext({viewport:{width:390,height:844}, reducedMotion:'reduce'});
+  async function context(seed, denyCat = false, reducedMotion = 'reduce') {
+    const c = await browser.newContext({viewport:{width:390,height:844}, reducedMotion});
     await c.route('**/*', r => new URL(r.request().url()).hostname === '127.0.0.1' ? r.continue() : r.abort());
     await c.addInitScript(({seed,denyCat}) => {
       if (!localStorage.getItem('test-seeded')) {
@@ -68,6 +68,30 @@ const finale = {[CAT]:JSON.stringify({level:5,total:20,ended:true}), hg_level2_u
       if(deny)assert.match(got.warning,/无法读取/);
       await isolated.close();
     }
+    const chimes = {[CAT]:JSON.stringify({level:4,total:20,ended:true}), hg_level2_unlocked:'1',
+      [JOURNEY]:JSON.stringify({completed:[1,2,3],lamps:[true,true,true],chimes:{round:2,step:3}})};
+    for (const filmEnabled of [true,false]) {
+      const isolated = await context(chimes,false,'no-preference');
+      const p = await page(isolated,filmEnabled ? '' : '?l4cutscene=0');
+      await p.locator('#start').click();
+      // Hold the origin lock to separate synchronous player input from durable storage.
+      await p.evaluate(()=>new Promise(acquired=>{
+        navigator.locks.request('healingGarden.save',()=>new Promise(release=>{
+          window.releaseTestSaveLock=release; acquired();
+        }));
+      }));
+      const immediate = await p.evaluate(()=>{
+        document.getElementById('chimeKey5').click();
+        return {note:document.getElementById('chimeKey0').disabled,listen:document.getElementById('chimeListen').disabled,
+          skip:!document.getElementById('chimeSkip').hidden, film:window.__l4Cutscene.busy()};
+      });
+      assert.deepEqual(immediate,{note:true, listen:true, skip:!filmEnabled, film:false});
+      await p.evaluate(()=>window.releaseTestSaveLock());
+      await p.waitForFunction(k=>JSON.parse(localStorage.getItem(k)).completed.includes(4),JOURNEY);
+      if (filmEnabled) await p.waitForFunction(()=>window.__l4Cutscene.busy());
+      await isolated.close();
+    }
+
     const fallback = await context(finale);
     await fallback.addInitScript(() => {Object.defineProperty(navigator,'locks',{value:undefined});});
     const first=await page(fallback), second=await page(fallback);
@@ -75,6 +99,6 @@ const finale = {[CAT]:JSON.stringify({level:5,total:20,ended:true}), hg_level2_u
     await first.waitForFunction(k=>JSON.parse(localStorage.getItem(k)).completed.includes(5),JOURNEY);
     await second.waitForFunction(k=>GardenSaves.status(k).stale,JOURNEY);
     await fallback.close();
-    console.log('Chromium: L5 clear + stale-tab close/reload, reset invalidation, three kitten load outcomes and IndexedDB serialization passed');
+    console.log('Chromium: L5 clear + stale-tab close/reload, reset invalidation, three kitten load outcomes, synchronous L4 finale input locks and IndexedDB serialization passed');
   } finally { await browser.close(); await server.close(); }
 })().catch(e=>{ console.error(e);process.exitCode=1; });
