@@ -66,11 +66,19 @@ const KEY = 'healingGarden.kittens.v1';
     assert.equal(await cs(() => __l2Cutscene.enabled()), true, 'hook is on by default');
     assert.equal(await cs(() => __l2Cutscene.state()), 'idle', 'nothing plays before the clear');
     const themeBefore = await cs(() => GardenAudio.currentTrackName());
+    await page.evaluate(key => {
+      const play = window.__l2Cutscene.play;
+      window.__l2Cutscene.play = function (...args) {
+        window.__savedAtFilmStart = JSON.parse(localStorage.getItem(key));
+        return play.apply(this, args);
+      };
+    }, KEY);
     await hug();
-    assert.equal((await save()).ended, true, 'clear is saved before the cutscene starts');
 
     // startEnding (1.4 s after the hug) plays the cutscene instead of the 7 s card.
     await page.waitForFunction(() => __l2Cutscene.playing(), null, { timeout: 8000 });
+    const atStart = await cs(() => window.__savedAtFilmStart);
+    assert(atStart && atStart.ended && atStart.total >= 20, 'clear is saved before the cutscene starts');
     assert.equal(await cardHidden(), true, 'existing card waits behind the cutscene');
     assert.equal(await cs(() => __l2Cutscene.duration()), 60);
     assert.equal(await cs(() => __l2Cutscene.scored()), true, 'score started with the cutscene');
@@ -142,11 +150,27 @@ const KEY = 'healingGarden.kittens.v1';
     assert.equal(await cs(() => __l2Score.state().active), false);
     assert.equal((await save()).ended, true);
 
-    // 重新抱 20 只 still resets the run; the next clear would go through startEnding again.
+    // Showing the old card's DOM during free play cannot restart a completed run.
     await cs(() => document.getElementById('kitEnding').classList.remove('hidden'));
     await page.locator('#kitAgain').click();
-    const again = await save();
-    assert(again.total === 0 && again.ended === false, 'kitAgain reset unchanged');
+    assert.equal(await cs(() => __kittens.state().ended), true);
+    assert.deepEqual(await save(), after);
+
+    // Start a second trial with the same pre-clear fixture and use its real ending card.
+    await page.evaluate(() => sessionStorage.removeItem('l2cs'));
+    await open();
+    assert.equal(await cs(() => __kittens.state().total), 19);
+    await hug();
+    await page.locator('#l2csSkip').tap();
+    await page.waitForTimeout(750);
+    await page.locator('#l2csGo').tap();
+    await page.locator('#kitAgain').click();
+    const again = await cs(() => __kittens.state());
+    assert(again.total === 0 && again.ended === false, 'kitAgain resets the run');
+    await page.waitForFunction(key => {
+      const saved = JSON.parse(localStorage.getItem(key));
+      return saved && saved.total === 0 && saved.ended === false;
+    }, KEY);
     assert.equal(await cs(() => __l2Cutscene.playing()), false);
     assert.deepEqual(report.errors, []);
     await context.close();

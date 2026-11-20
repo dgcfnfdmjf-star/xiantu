@@ -60,6 +60,14 @@ async function tap(test, point) {
   else await test.page.mouse.click(point.x, point.y);
 }
 
+async function savedRun(page, total) {
+  const saved = await page.waitForFunction(total => {
+    const value = JSON.parse(localStorage.getItem('healingGarden.kittens.v1'));
+    return value && value.total === total ? value : null;
+  }, total);
+  return saved.jsonValue();
+}
+
 async function twoTap(test, id, uuid) {
   const { page } = test, point = await choose(page, id, uuid);
   const before = await page.evaluate(() => __kittens.state().total);
@@ -76,10 +84,11 @@ async function twoTap(test, id, uuid) {
   await tap(test, secondPoint);
   const second = await page.evaluate(uuid => {
     const k = __kittens.list.find(k => k.root.uuid === uuid);
-    return { state: k?.state, total: __kittens.state().total, value: k?.kind.value, save: JSON.parse(localStorage.getItem('healingGarden.kittens.v1')) };
+    return { state: k?.state, total: __kittens.state().total, value: k?.kind.value };
   }, point.uuid);
   assert.equal(second.state, 'hug', 'immediate second canvas tap hugs');
   assert.equal(second.total, before + second.value, 'hug grants exactly the original coat value');
+  second.save = await savedRun(page, second.total);
   return { point, first, secondPoint, second };
 }
 
@@ -350,7 +359,7 @@ async function rulesAndFallback() {
     await test.page.waitForFunction(() => __kittens.list.some(k => k.state === 'sleep'), null, { timeout: 20000 });
     for (const cat of await inspectBounds(test.page)) assert(cat.min[1] >= -.002 && cat.rootY >= .249, 'gather/sleep finale model remains above the ground plane');
     await test.page.locator('#kitAgain').click();
-    const replay = await test.page.evaluate(() => JSON.parse(localStorage.getItem('healingGarden.kittens.v1')));
+    const replay = await savedRun(test.page, 0);
     assert.equal(replay.total, 0, 'explicit replay resets run points');
     assert.deepEqual(replay.companions, {}, 'explicit replay resets per-coat cap');
     assert.deepEqual(replay.caught, last.second.save.caught, 'replay preserves all six lifetime coats');
