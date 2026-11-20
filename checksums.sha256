@@ -1380,7 +1380,7 @@ c3bf4d100e6f5d254975807c30ee480e8f2bc05cbc31404d6e7156ae9455037e  games/healing-
 a8fc95b2469816df237eb3d2f6fc1a991ab360f378f7b8fdc2881ba2398c5054  games/healing-game/scripts/audit-first-audio.py
 90da16cb190e47369f20c61b899cee59effd474e0752d0b4b270245519297ace  games/healing-game/scripts/audit-focus.py
 93fd9cbc0f42636af6f212e5628e0275a05b5e6615e6d987d8e4a518b0120629  games/healing-game/scripts/audit-paper.py
-b8a47dc664d06605eaf3f125bade0c2918f5ee28f8e25b2792d7ad10c53c793a  games/healing-game/scripts/audit-saves.py
+fca255e6662348d050c14a7aade789228e99d1f9ffd78dde4931c7bc873ca766  games/healing-game/scripts/audit-saves.py
 7731405466ce84b617851d3289f774389e13c5a2885105ff7340a5eaf3404a48  games/healing-game/scripts/audit-targets.py
 e3c3e182bc50dab03117ee2fb9e41e8a4550d104c548b260f90d5ac0301d38be  games/healing-game/scripts/build.py
 b61429af5ed3075b3567212ae54753cd6ede3c65b37f57f98ae08650116e85c4  games/healing-game/scripts/butterfly-v94.py
@@ -1439,7 +1439,7 @@ cb5bd7784bfa9a050951558274ef4d930221eede3b7d840408b97a5e0a93a7e1  games/healing-
 649f76008be2dff21cf24f331d91dac50d2dca8a5b0426763792ff495061c644  games/healing-game/src/music-lush.js
 2828fbe11685f965a95253551d9adee2b253ccf71b179ff8816bd6795c7aa3a2  games/healing-game/src/nightvoyage-audio.js
 ff566590f97a6210e58a61655cc6df6094208da13678f6274c1f3c7be8b1578b  games/healing-game/src/save-guard.js
-71441cb9170781e1b02cbb2528d9a35a999736317fda29881fa8341f07f2c660  games/healing-game/src/save-session.js
+32edfbee5401ec1b69c2d24436c1a501a62b27c361e07b548161801c3e4a7d20  games/healing-game/src/save-session.js
 84c1f29cc872cb7b268141814beaeff526924e8c3351e1c2bb4e6327dee5fa71  games/healing-game/src/voyage.js
 f0ba467cf7c3a2940f2a0decfb382c716ee6d50299d40ffb70e6f8d99d5f8cbc  games/healing-game/tests/cat-gait-browser.cjs
 195cf685da2d039ebe2a518763cee77450ff99875555821f5dda6af6e61239ff  games/healing-game/tests/cat-models-browser.cjs
@@ -1492,7 +1492,7 @@ a322039dcd8bed4ab3dcf9de0c289a14f543ddda5eed60741086aeb7ff621481  games/healing-
 88cb3ccabe96e52beda94113eca8cdb8f69f5e9216766630b92326cb0aea150e  games/healing-game/tests/nightvoyage-audio-browser.js
 aa77c5d1920b4bfac75c7aaf8344d2243d5bf6a6db80eca4e537ad0fedb87532  games/healing-game/tests/pointer-cleanup.cjs
 d07b134cc8fb080d93b541af035718cfd7c1b1fb255e136c4c732592d5389108  games/healing-game/tests/save-guard-rules.cjs
-824a278f0f09f8fc69f430788d0b770684cf829730ee684dcc4cc1a887dd37b0  games/healing-game/tests/save-session-browser.cjs
+bf4592ed86814a1f44157218e34a1cc4964b27aee69587e6ae2dceac6a068bf6  games/healing-game/tests/save-session-browser.cjs
 5fef41a5d1462a42d8ad9367601ef08e1c0c62348c97821771bde5d7d3f13a7a  games/healing-game/tests/save-session.cjs
 9fae61308b8e2422b23b1ff88645d47fae4d44e1dce729a72cd8596afa48a053  games/healing-game/tests/shared-audio-browser.js
 c8d44a4afb7eba483d2ff9d171eb4c4f33b6586e28ca4d80e153c0baabb0ec61  games/healing-game/tests/test_package.py
