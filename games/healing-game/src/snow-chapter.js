@@ -30,7 +30,7 @@
   var TOP=.25,PATH=[[.55,4.35],[.15,3.15],[-.25,1.9],[.55,.7],[.1,-.6],[-.45,-1.75],[-.5,-2.3]];
   var CABIN={x:-.5,z:-3.05},PINES=[[-2.05,-3.85,1],[1.85,-4.0,.9],[4.1,-.55,.95],[-4.2,-.55,.9],[-3.0,3.25,.85],[3.25,2.95,.8]];
   // Island colours in snow (original V5 hex -> winter hex). Anything not listed keeps its colour.
-  var WINTER={0xa9dcb2:0xeef3fb,0xe6b8a2:0xb7b9da,0xc6a0c0:0x9aa3cc,0xc4e8ff:0xa9c8ea,0xd8cde6:0xe7edf7,0x86c993:0xd3e0f1,0xd6c6e2:0xe3e9f5,
+  var WINTER={0xa9dcb2:0xd9e3f2,0xe6b8a2:0xb7b9da,0xc6a0c0:0x9aa3cc,0xc4e8ff:0xa9c8ea,0xd8cde6:0xe7edf7,0x86c993:0xc2d0e8,0xd6c6e2:0xe3e9f5,
     0xffc4d8:0xf3f6fc,0xffd3e2:0xeaf0fa,0xf7b6cf:0xe2eaf7,0xa9846f:0x7f6b68,0xffeaf2:0xe9effc};
   var EMISSIVE={0x4a2034:0x26304e,0x403048:0x2a3358};
   function $(id){return document.getElementById(id);}
@@ -153,11 +153,11 @@
       for(i=0;i<24;i++){var ang=base+(i%2?1:-1)*Math.ceil(i/2)*.3,r=.62+(i>12?.25:0);x=lx+Math.sin(ang)*r;z=lz+Math.cos(ang)*r;if(freeSpot(x,z,taken,.18))break;}
       taken.push([x,z]);
       var root=new T.Group();root.name='snow-kitten-'+k.id;root.position.set(x,TOP,z);group.add(root);
-      var marker=new T.Sprite(new T.SpriteMaterial({map:tex[0],transparent:true,depthWrite:false,depthTest:false}));marker.position.set(0,1.02,0);marker.scale.set(.5,.5,1);marker.renderOrder=3;root.add(marker);
+      var marker=new T.Sprite(new T.SpriteMaterial({map:tex[0],transparent:true,depthWrite:false,depthTest:false}));marker.position.set(0,1.12,0);marker.scale.set(.5,.5,1);marker.renderOrder=3;root.add(marker);
       var c={k:k,i:ki,root:root,spot:[x,z],home:homeSpots[ki],marker:marker,tex:tex,walk:null,owner:null,yaw:0,bob:Math.random()*6};
       root.rotation.y=Math.atan2(pa[0]-x,pa[1]-z);cats.push(c);
       var CM=window.GardenCatModels;
-      if(CM&&CM.snowCat)CM.snowCat(k.id,root,.56).then(function(o){if(o)c.owner=o;else fallbackCat(root,k.color);});else fallbackCat(root,k.color);
+      if(CM&&CM.snowCat)CM.snowCat(k.id,root,.66).then(function(o){if(o)c.owner=o;else fallbackCat(root,k.color);});else fallbackCat(root,k.color);
     });
   }
   // Arc-length walk (equal-distance sampling of the curve, as in zz85/threejs-path-flow; arrive-style easing as in
@@ -331,6 +331,7 @@
     isModalOpen:modal,
     hint:hint,
     // Read-only inspection for tests.
+    isActive:function(){return active;},
     debug:function(){return {active:active,built:!!group,visible:!!group&&group.visible,lanterns:lanterns.map(function(l){return {x:l.g.position.x,z:l.g.position.z};}),
       cabin:CABIN,pines:PINES.map(function(p){return {x:p[0],z:p[1],r:.62*p[2]};}),path:PATH.map(function(p,i){return pathAt(i/(PATH.length-1));}),tinted:saved?saved.length:0,finale:finale,practice:!!practice,
       kittens:cats.map(function(c){return {id:c.k.id,x:c.root.position.x,z:c.root.position.z,spot:c.spot,home:c.home,walking:!!c.walk,model:!!c.owner,marker:c.marker.visible};}),

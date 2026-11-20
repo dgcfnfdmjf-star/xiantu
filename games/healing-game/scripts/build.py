@@ -227,8 +227,15 @@ exec((ROOT / 'scripts/l1-cutscene-v96.py').read_text())
 exec((ROOT / 'scripts/l3-cutscene-v96.py').read_text())
 exec((ROOT / 'scripts/l4-cutscene-v96.py').read_text())
 exec((ROOT / 'scripts/l5-cutscene-v96.py').read_text())
+# Test hook (tests/l2-cutscene.cjs): HG_PRE_L6_OUT=<file> writes the working HTML as it stands before the level-6 hooks
+# and stops, so the level-1..5 'only the cutscene hooks differ from V9.5' check keeps its meaning; level 6 has its own tests.
+import os
+if os.environ.get('HG_PRE_L6_OUT'):
+    Path(os.environ['HG_PRE_L6_OUT']).write_text(html)
+    raise SystemExit(0)
 exec((ROOT / 'scripts/l6-chapter-v96.py').read_text())
 exec((ROOT / 'scripts/l6-cutscene-v96.py').read_text())
+exec((ROOT / 'scripts/l6-polish-v96.py').read_text())
 baseline = ROOT / 'site/healing-game-v9.5-baseline/index.html'
 baseline.parent.mkdir(parents=True, exist_ok=True)
 baseline.write_text(release_html)

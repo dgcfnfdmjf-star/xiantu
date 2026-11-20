@@ -269,7 +269,12 @@ check('gameplay numbers unchanged', () => {
   const strip = text => text.split('\n').filter(line => !/__l2Cutscene|__l2Stage|__l1Cutscene|__l3Cutscene|__l4Cutscene|__l5Cutscene|showCard|garden-working/.test(line)).join('\n');
   const score = fs.readFileSync(path.join(ROOT, 'src/l2-cutscene-music.js'), 'utf8');
   const l1 = ['src/l1-cutscene.js', 'src/l1-cutscene-music.js', 'src/l3-cutscene.js', 'src/l3-cutscene-music.js', 'src/l4-cutscene.js', 'src/l4-cutscene-music.js', 'src/l5-cutscene.js', 'src/l5-cutscene-music.js'].filter(f => fs.existsSync(path.join(ROOT, f))).map(f => fs.readFileSync(path.join(ROOT, f), 'utf8'));
-  const without = l1.reduce((text, block) => text.replace('<script>\n' + block + '\n</script>\n', ''), site.replace('<script>\n' + source + '\n</script>\n', '').replace('<script>\n' + score + '\n</script>\n', ''));
+  // Level 6 (snow chapter + its cutscene) is applied after these hooks and checked by its own tests (snow-*, l6-*), so
+  // the comparison uses the working HTML as it stands just before the level-6 hooks (build.py HG_PRE_L6_OUT).
+  const preFile = path.join(require('os').tmpdir(), 'hg-pre-l6-' + process.pid + '.html');
+  execFileSync('python3', [path.join(ROOT, 'scripts/build.py')], { stdio: 'pipe', env: Object.assign({}, process.env, { HG_PRE_L6_OUT: preFile }) });
+  const preL6 = fs.readFileSync(preFile, 'utf8'); fs.unlinkSync(preFile);
+  const without = l1.reduce((text, block) => text.replace('<script>\n' + block + '\n</script>\n', ''), preL6.replace('<script>\n' + source + '\n</script>\n', '').replace('<script>\n' + score + '\n</script>\n', ''));
   const base = release.split('\n').filter(line => !/\$\('(kit|bf)Ending'\)\.classList\.remove\('hidden'\); \}, (7000|5200)\);/.test(line)).join('\n');
   assert.strictEqual(strip(without), base);
 });
