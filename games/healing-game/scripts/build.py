@@ -24,6 +24,7 @@ for comment, source in [('private mode / quota: ignore', 'garden'), ('ignore', '
   }''' % comment
     new = '''  var saveTimer = null, saveDirty = false;
   function flushSave() {
+    if (window.GardenReset && window.GardenReset.pending()) return;
     if (!saveDirty) return;
     clearTimeout(saveTimer); saveTimer = null;
     try { window.localStorage.setItem(SAVE_KEY, JSON.stringify(S)); saveDirty = false; if (window.GardenJourney) window.GardenJourney.saveOk('__SOURCE__'); } catch (e) {
@@ -54,6 +55,7 @@ replace('''  function store(k, v) {
     Object.keys(pendingKitWrites).forEach(function (key) { store(key, pendingKitWrites[key]); });
   }
   function store(k, v) {
+    if (v !== undefined && window.GardenReset && window.GardenReset.pending()) return null;
     if (v !== undefined) pendingKitWrites[k] = v;
     try {
       if (v === undefined) return Object.prototype.hasOwnProperty.call(pendingKitWrites, k) ? pendingKitWrites[k] : window.localStorage.getItem(k);
@@ -121,7 +123,7 @@ replace("      toast(mode === 'net' ? (window.__kittens && window.__kittens.stat
 replace('  var nightTarget = 0, nightMix = 0, ending = null, ended = false;\n', '  var nightTarget = 0, nightMix = 0, deepNight = 0, ending = null, ended = false;\n')
 replace('    starUniforms.uMix.value = nightMix;\n', '    // deepNight (0..1) goes past full night for the level 3 finale; it is 0 everywhere else\n    skyUniforms.uDeep.value = deepNight;\n    starUniforms.uMix.value = nightMix + deepNight * 0.9;\n    starUniforms.uPR.value = DPR * (1 + deepNight * 0.45);\n')
 replace('    scene.fog.color.copy(fogDusk).lerp(fogNight, nightMix);\n    hemi.intensity = lerp(0.95, 0.6, nightMix);\n    sun.intensity = lerp(0.65, 0.2, nightMix);\n', '    scene.fog.color.copy(fogDusk).lerp(fogNight, nightMix).multiplyScalar(1 - deepNight * 0.5);\n    hemi.intensity = lerp(0.95, 0.6, nightMix) * (1 - deepNight * 0.4);\n    sun.intensity = lerp(0.65, 0.2, nightMix) * (1 - deepNight * 0.6);\n')
-replace('    setNightTarget: function (v) { if (!ending) nightTarget = v; }, isStarted: function () { return started; }\n', '    setNightTarget: function (v) { if (!ending) nightTarget = v; }, setDeepNight: function (v) { deepNight = v; },\n    // Levels 4/5 hide #modes, so a mode left over from levels 1-3 must not keep planting or releasing lanterns.\n    resetMode: function () { mode = "net"; for (var j = 0; j < modeBtns.length; j++) modeBtns[j].classList.toggle("on", modeBtns[j].getAttribute("data-mode") === "net"); }, isStarted: function () { return started; }\n')
+replace('    setNightTarget: function (v) { if (!ending) nightTarget = v; }, isStarted: function () { return started; }\n', '    setNightTarget: function (v) { if (!ending) nightTarget = v; }, setDeepNight: function (v) { deepNight = v; },\n    // Levels 4/5 hide #modes, so a mode left over from levels 1-3 must not keep planting or releasing lanterns.\n    resetMode: function () { mode = "net"; for (var j = 0; j < modeBtns.length; j++) modeBtns[j].classList.toggle("on", modeBtns[j].getAttribute("data-mode") === "net"); }, isStarted: function () { return started; },\n    // Chapter 5 fit: the user pinch/wheel zoom (cam.zoom, 1 = default) so the fit does not cancel it.\n    camZoom: function () { return cam.zoom; }\n')
 # Clipping fixes; helpers and footprints live in src/clipping.js (see CLIPPING-FIXES.md).
 # Near plane: nothing ever gets closer than 0.5 (see keepFromCamera), and it gives 5x the depth precision of 0.1.
 replace('new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 300)', 'new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.5, 300)')
@@ -219,7 +221,7 @@ exec((ROOT / 'scripts/butterfly-v94.py').read_text())
 exec((ROOT / 'scripts/cats-v95.py').read_text())
 # Pin the loader locally and keep the model adapter ready before kitten init.
 replace('<script>/* kittens.js', '<script>\n' + '\n'.join((ROOT / path).read_text() for path in ['assets/cats/vendor/three-r128/GLTFLoader.js', 'assets/cats/vendor/meshoptimizer-1.3.0/meshopt_decoder.cjs', 'assets/cats/cat-geometry.js']) + '\n</script>\n<script>\n' + (ROOT / 'src/cat-models.js').read_text() + '\n</script>\n<script>/* kittens.js')
-replace("<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps", '<style>\n' + (ROOT / 'src/journey.css').read_text() + '\n' + (ROOT / 'src/chime-chapter.css').read_text() + '\n' + (ROOT / 'src/lotus-chapter.css').read_text() + '\n</style>\n<script>\n' + '\n</script>\n<script>\n'.join('\n'.join((ROOT / ('src/' + part + '.js')).read_text() for part in name.split('+')) for name in ['clipping', 'chime-rules', 'lotus-rules', 'save-guard+journey', 'level3plus', 'level3fx', 'voyage', 'chime-chapter', 'lotus-chapter', 'music-lush']) + "\n</script>\n<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps")
+replace("<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps", '<style>\n' + (ROOT / 'src/journey.css').read_text() + '\n' + (ROOT / 'src/chime-chapter.css').read_text() + '\n' + (ROOT / 'src/lotus-chapter.css').read_text() + '\n</style>\n<script>\n' + '\n</script>\n<script>\n'.join('\n'.join((ROOT / ('src/' + part + '.js')).read_text() for part in name.split('+')) for name in ['clipping', 'chime-rules', 'lotus-rules', 'garden-reset+save-guard+journey', 'level3plus', 'level3fx', 'voyage', 'chime-chapter', 'lotus-chapter', 'music-lush']) + "\n</script>\n<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps")
 # The V9.5 package is frozen here: later hooks reach only the working site, never the released ZIP.
 release_html = html
 exec((ROOT / 'scripts/l2-cutscene-v96.py').read_text())

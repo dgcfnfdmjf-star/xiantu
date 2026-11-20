@@ -114,8 +114,11 @@ fresh(f);
  f.idb.failPut=true;a.equal(f.run('saveGame()'),true,'saveGame still succeeds');f.run('suMirrorScheduleV2895(true)');await drain();
  a.equal(f.run('SAVEUI_STATE_V2895.mirror.status'),'error');f.idb.failPut=false;
  // a failed localStorage write never reaches the mirror
- {f.run('SAVEUI_STATE_V2895.mirror.pending=null');const set=ls.setItem;ls.setItem=(k,v)=>{if(k==='xiantu_save'){const e=Error('full');e.name='QuotaExceededError';throw e;}return set(k,v);};
+ {f.run('player.gold=5432;saveGame();player.gold=6543;saveGame();SAVEUI_STATE_V2895.mirror.pending=null');
+  const main=ls.getItem('xiantu_save'),backup=ls.getItem('xiantu_save_backup');a.notEqual(main,backup);
+  const set=ls.setItem;ls.setItem=(k,v)=>{if(k==='xiantu_save'){const e=Error('full');e.name='QuotaExceededError';throw e;}return set(k,v);};
   a.equal(f.run('player.gold=7777;saveGame()'),false,'main save failed');ls.setItem=set;a.equal(f.run('SAVEUI_STATE_V2895.mirror.pending'),null,'failed save not mirrored');
+  a.equal(ls.getItem('xiantu_save'),main);a.equal(ls.getItem('xiantu_save_backup'),backup,'failed main write preserves the older backup');
   a.equal(f.errors.filter(e=>e[0]==='保存失败:').length,1,'the game logged its own save failure');f.errors.splice(0);}
  // invalid saves never reach the hook
  const before=f.run('SAVEUI_STATE_V2895.mirror.pending');a.throws(()=>f.run('writeSaveV2768("{}")'));a.equal(f.run('SAVEUI_STATE_V2895.mirror.pending'),before,'rejected save not mirrored');

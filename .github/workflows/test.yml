@@ -31,6 +31,10 @@ jobs:
       - run: python3 scripts/test-redis.py
       - run: npm run test:browser
       - run: npm run package:game
+      - name: Verify downloadable game matches the rebuilt archive
+        run: |
+          cmp dist/xiantu-v*-game-folder.zip downloads/xiantu-v2831-scroll.zip
+          (cd downloads && sha256sum --check SHA256SUMS.txt)
       - run: npm run package:cloud
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()

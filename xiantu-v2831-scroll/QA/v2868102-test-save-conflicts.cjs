@@ -11,6 +11,16 @@ for(const action of ['saveGame()','autoSave()','manualSave()','deleteSave()','ne
 {const f=setup();f.storage.delete('xiantu_save');a.equal(f.run('saveGame()'),false);a.equal(f.storage.has('xiantu_save'),false,'old page cannot resurrect deleted save');}
 {const f=setup(),raw=f.storage.get('xiantu_save');newer(f);f.run('saveGame()');f.storage.set('xiantu_save',raw);a.equal(f.run('saveGame()'),false,'conflict is sticky even if raw restored');}
 {const f=setup();f.run('player.gold=300;saveGame();player.gold=400;saveGame()');a.equal(JSON.parse(f.storage.get('xiantu_save')).player.gold,400);a.equal(JSON.parse(f.storage.get('xiantu_save_backup')).player.gold,300);a.equal(f.run('SAVE_SESSION_V2868102.stale'),false);}
+{
+ const f=setup();f.run('player.gold=404;saveGame();player.gold=505;saveGame()');
+ const backup=f.storage.get('xiantu_save_backup');
+ f.run('writeSaveV2768(JSON.stringify({...createSaveDataV2768(),interruptedBattleV286812:true}))');
+ a.equal(f.run('loadGame().interruptedBattleV286812'),true);
+ a.equal(f.storage.get('xiantu_save_backup'),backup,'battle notice alone keeps the previous recovery point');
+ f.run('saveGame()');
+ a.equal(f.run('loadGame().interruptedBattleV286812'),undefined);
+ a.equal(f.storage.get('xiantu_save_backup'),backup,'clearing the notice also keeps the recovery point');
+}
 {const f=setup(),before=f.storage.get('xiantu_save'),set=f.c.localStorage.setItem;f.c.localStorage.setItem=(k,v)=>{if(k==='xiantu_save')throw Error('quota');return set(k,v)};f.run('player.gold=150');a.equal(f.run('saveGame()'),false);a.equal(f.run('SAVE_SESSION_V2868102.raw'),before);f.c.localStorage.setItem=set;a(f.run('saveGame()'),'retry after quota error');}
 {const f=setup();f.run('globalThis.copy102=createSaveDataV2768();copy102.player.gold=998;replaceSaveV2870(JSON.stringify(copy102),dryRunLoadV2870(JSON.stringify(copy102)))');a.equal(f.run('player.gold'),998);a(f.run('saveGame()'));a.equal(f.run('SAVE_SESSION_V2868102.stale'),false);}
 console.log('PASS save conflicts: stale autosave/manual/import/restore/new/load/delete gates, deletion, sticky conflict, backup preservation, quota retry and valid replacement');

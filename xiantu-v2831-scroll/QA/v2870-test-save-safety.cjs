@@ -48,7 +48,8 @@ const who=()=>f.run('player.name');
 // ===== Item 2: loading normalizes before it commits =====
 fresh();{const bad=mkSave('BOOM'),good=mkSave('GOOD');put(K,bad);put(B,good);
   f.run('loadAndStart()');                                   // old code: reset, then throw, backup never tried
-  a.equal(who(),'GOOD');a.equal(f.resets,1);a(f.alerts.some(m=>m.includes('备用档')));a.equal(get(K),bad,'main save is not deleted');}
+  a.equal(who(),'GOOD');a.equal(f.resets,1);a(f.alerts.some(m=>m.includes('备用档')));a.equal(get(K),bad,'main save is not deleted');
+  f.run('player.gold++;saveGame()');a.equal(get(B),good,'a main rejected during load never rotates over the working backup');}
 fresh();put(K,mkSave('MAIN'));put(B,mkSave('GOOD'));f.run('loadAndStart()');a.equal(who(),'MAIN');a.equal(f.alerts.length,0);
 fresh();put(B,mkSave('GOOD'));f.run('loadAndStart()');a.equal(who(),'GOOD');a(f.alerts.some(m=>m.includes('备用档')));
 fresh();{const bad=mkSave('BOOM');put(K,bad);put(B,bad);f.run('loadAndStart()');
