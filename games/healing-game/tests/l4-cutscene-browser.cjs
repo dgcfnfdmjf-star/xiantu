@@ -101,7 +101,7 @@ const SAVES = {
     await page.goto(url);
     assert.equal(await page.evaluate(() => window.paperEncodes), 0, 'no chapter papers on the start screen');
     await page.evaluate(() => {
-      const opening = window.opening = { frames: 0, unlocked: false, beatAfterPaint: false };
+      const opening = window.opening = { frames: 0, unlocked: false, beatAfterPaint: false, beatBuffers: 0 };
       const start = AudioBufferSourceNode.prototype.start;
       AudioBufferSourceNode.prototype.start = function (...args) {
         if (this.buffer?.length === 1 && navigator.userActivation.isActive) opening.unlocked = true;
@@ -115,11 +115,17 @@ const SAVES = {
       track.play = function (...args) {
         opening.beatAfterPaint = opening.frames === 2 && document.getElementById('start').classList.contains('hidden');
         track.play = play;
-        return play.apply(this, args);
+        const context = window.GardenAudio.context();
+        const createBuffer = context.createBuffer;
+        context.createBuffer = function (...params) {
+          opening.beatBuffers++;
+          return createBuffer.apply(this, params);
+        };
+        try { return play.apply(this, args); } finally { delete context.createBuffer; }
       };
     });
     const checkPrewarm = async () => {
-      assert.deepEqual(await page.evaluate(() => window.opening), { frames: 2, unlocked: true, beatAfterPaint: true });
+      assert.deepEqual(await page.evaluate(() => window.opening), { frames: 2, unlocked: true, beatAfterPaint: true, beatBuffers: 0 });
       assert.equal(await page.evaluate(() => window.paperEncodes), 0, 'start did not build any paper');
       await page.locator('#chimeKey2').click();
       await page.waitForFunction(() => document.getElementById('l4csPaper')?.style.backgroundImage);

@@ -235,8 +235,8 @@ const KEY = 'healingGarden.butterflies.v1';
     assert.equal(await page.evaluate(() => window.__l1Cutscene.state()), 'idle');
     await context.close();
 
-    /* ---- D: music switch off -> the film runs silent, the switch and the track are left as they were;
-            the card's own button (closeEnding) closes film and score together ---- */
+    /* ---- D: the hidden ending card cannot interrupt a silent film; its visible button
+            returns to play with the music preference and level track preserved ---- */
     ({ context, page } = await fresh());
     await page.goto(url);
     await page.locator('#start').click(); await page.waitForTimeout(1500);
@@ -246,7 +246,15 @@ const KEY = 'healingGarden.butterflies.v1';
     await page.waitForTimeout(2500);
     let quiet = await page.evaluate(() => ({ s: __l1Score.state(), live: __musicLush.live() }));
     assert(quiet.s.active && quiet.s.musicOn === false && quiet.s.steps === 0, 'music switch off: nothing is played: ' + JSON.stringify(quiet));
-    await page.evaluate(() => document.getElementById('bfStay').click()); // the game closing the ending mid-film
+    assert(await cardHidden(page));
+    await page.evaluate(() => document.getElementById('bfStay').click());
+    assert.equal(await page.evaluate(() => __l1Cutscene.state()), 'playing', 'the hidden stay button cannot interrupt the film');
+    assert(await cardHidden(page));
+    await page.locator('#l1csSkip').tap();
+    await page.waitForTimeout(700); // allow the separate continue gesture after the skip
+    await page.locator('#l1csGo').tap();
+    await page.locator('#bfStay').tap();
+    assert(await cardHidden(page), 'the visible stay button returns to free play');
     quiet = await page.evaluate(() => ({ s: __l1Score.state(), cs: __l1Cutscene.state() }));
     assert(quiet.cs === 'closed' && !quiet.s.active && quiet.s.musicOn === false && quiet.s.track === quietTheme, 'closed with the film, switch still off: ' + JSON.stringify(quiet));
     await page.evaluate(() => GardenAudio.setMusic(true));
