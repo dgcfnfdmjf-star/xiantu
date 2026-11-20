@@ -4,7 +4,7 @@ async root=>{
   const c=await b.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true}),p=await c.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
   await p.route('**/*',async r=>{if(new URL(r.request().url()).hostname!=='127.0.0.1')throw Error('External request');if(r.request().resourceType()!=='document')return r.continue();const response=await r.fetch();let body=await response.text();body=body.replace('render();pose(0,0);','window.__trail={H,mote,beacons,boat,lanterns,drag:()=>drag};render();pose(0,0);');await r.fulfill({response,body});});
   await p.addInitScript(mode=>{localStorage.setItem('hg_level2_unlocked','1');localStorage.setItem('healingGarden.kittens.v1',JSON.stringify({total:20,ended:true,level:5}));localStorage.setItem('healingGarden.journey.v1',JSON.stringify({completed:[1,2,3],lamps:[true,true,true],chimes:{round:3},lotus:{light:mode==='finale'?[3,3,3,3,3,2]:[3,3,0,0,0,0]}}));},mode);
-  await p.goto('http://127.0.0.1:8784/xiantu/games/healing-game/site/healing-game/');await p.locator('#start').click();
+  await p.goto('http://127.0.0.1:8784/xiantu/games/healing-game/site/healing-game/?l5cutscene=0');await p.locator('#start').click();
   if(mode==='finale'){
    const xp=await p.evaluate(()=>__journey.state().xp);await p.locator('#lotusNote1').click();assert(await p.locator('#lotusSkip').isVisible(),'final procession starts');
    await p.waitForFunction(()=>!document.getElementById('lotusEnding').hidden,null,{timeout:90000});

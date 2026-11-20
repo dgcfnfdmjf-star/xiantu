@@ -7,8 +7,8 @@ async root=>{
   body=body.replace('render();pose(0,0);','window.__lotusInspect={group,flowers,ripples,H,stations,beacons,mote,boat,lanterns,pose,progress,finale:()=>finale,elapsed:()=>elapsed};render();pose(0,0);');
   body=body.replace('  renderer.setPixelRatio(DPR);','  window.__renderer=renderer;window.__drawCount=0;var drawBase=renderer.render;renderer.render=function(){__drawCount++;return drawBase.apply(this,arguments)};\n  renderer.setPixelRatio(DPR);');await r.fulfill({response,body});
  });
- const url='http://127.0.0.1:8784/xiantu/games/healing-game/site/healing-game/',state=()=>p.evaluate(()=>__journey.state());
- await p.goto(url+'?level=5');await p.locator('#start').click();await p.evaluate(()=>__kittens.setLevel(5));assert((await state()).level===1,'fifth gate cannot be bypassed');
+ const url='http://127.0.0.1:8784/xiantu/games/healing-game/site/healing-game/?l4cutscene=0&l5cutscene=0',state=()=>p.evaluate(()=>__journey.state());
+ await p.goto(url+'&level=5');await p.locator('#start').click();await p.evaluate(()=>__kittens.setLevel(5));assert((await state()).level===1,'fifth gate cannot be bypassed');
  await p.addInitScript(()=>{if(sessionStorage.getItem('lotus91'))return;sessionStorage.setItem('lotus91','1');localStorage.setItem('hg_level2_unlocked','1');localStorage.setItem('healingGarden.kittens.v1',JSON.stringify({total:20,ended:true,level:4}));localStorage.setItem('healingGarden.journey.v1',JSON.stringify({completed:[1,2,3],lamps:[true,true,true],chimes:{round:2,step:3}}));localStorage.setItem('xiantu_save','KEEP');});
  await p.goto(url);await p.locator('#start').click();await p.locator('#chimeKey5').click();await p.locator('#chimeSkip').click();
  await p.evaluate(()=>{const W=GardenClip.world;window.__sharedIsland={island:W.island,landmarks:W.island.children.slice(0,15).map(o=>({o,geometry:o.geometry,material:o.material,position:o.position.clone(),scale:o.scale.clone(),visible:o.visible})),moving:W.scene.children.filter(o=>o.userData&&typeof o.userData.r==='number')};});
