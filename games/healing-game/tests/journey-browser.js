@@ -21,7 +21,7 @@ async root => {
  assert(await page.title()==='暮色浮岛 · 月汐莲湾 V9.5','version');
  await page.evaluate(()=>localStorage.setItem('xiantu_save','untouched'));
  await journal();assert(await page.locator('[data-jr-go="2"]').isDisabled(),'new save chapter2 locked');assert(await page.locator('[data-jr-go="3"]').isDisabled(),'new save chapter3 locked');
- await page.locator('[data-jr-tab="collection"]').click();assert(await page.locator('.jr-item').count()===47,'47 species in journal');await page.locator('#journeyClose').click();
+ await page.locator('[data-jr-tab="collection"]').click();assert(await page.locator('.jr-item').count()===51,'51 species in journal (incl. 4 level-6 kittens)');await page.locator('#journeyClose').click();
  await page.evaluate(()=>{__garden.plantRandom();window.dispatchEvent(new PageTransitionEvent('pagehide'));});
  await page.reload();await start();assert(await page.evaluate(()=>__garden.count())===1,'immediate close flushes flower');
  // Migrate a real-shaped V5 save; no V6 progress exists in this fixture.

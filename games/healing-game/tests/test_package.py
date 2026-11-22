@@ -47,9 +47,10 @@ class Package(unittest.TestCase):
     def test_all_inline_scripts_parse(self):
         self.assertEqual(len(re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.html.decode())), 19)
         scripts = re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.site.decode())
-        # V9.5's 19, the five films and their five scores, and the working
-        # player's focus, persistence, instrument worker and target controls.
-        self.assertEqual(len(scripts), 33)
+        # V9.5's 19, the five films and their five scores, the working
+        # player's focus, persistence, instrument worker and target controls,
+        # and the level-6 chapter, cutscene and its score.
+        self.assertEqual(len(scripts), 36)
         with tempfile.TemporaryDirectory() as tmp:
             for i, script in enumerate(scripts):
                 path = Path(tmp) / f'{i}.js'
@@ -112,6 +113,17 @@ class Package(unittest.TestCase):
         self.assertLess(self.site.index((ROOT / 'src/l4-cutscene-music.js').read_bytes()), self.site.index((ROOT / 'src/l5-cutscene-music.js').read_bytes()))  # after the level-3/4 scores (it borrows the level-3 celesta)
         self.assertNotIn(b'__l5', self.html)
         self.assertNotIn(b'garden-working', self.html)
+        # Level 6 (雪灯归林) lives only in the working site.
+        # The level-6 cutscene hook adds one line (naming __l6Cutscene) inside the chapter; without it the chapter is verbatim.
+        self.assertIn((ROOT / 'src/snow-chapter.js').read_bytes(), b'\n'.join(l for l in self.site.split(b'\n') if b'__l6Cutscene' not in l))
+        self.assertIn((ROOT / 'src/l6-cutscene.js').read_bytes(), self.site)
+        self.assertEqual(self.site.count(b"if (query('cutscene') !== 'l6') return;"), 1)
+        self.assertNotIn(b'__l6', self.html)
+        self.assertIn((ROOT / 'src/snow-rules.js').read_bytes(), self.site)
+        self.assertLess(self.site.index((ROOT / 'src/snow-rules.js').read_bytes()), self.site.index(b'window.SnowRules.normalize(null)'))
+        self.assertNotIn(b'SnowChapter', self.html)
+        self.assertNotIn(b'SnowRules', self.html)
+        self.assertNotIn(b'snowlantern', self.html)
 
     def test_reproducible_release(self):
         before = ZIP.read_bytes()

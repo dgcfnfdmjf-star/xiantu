@@ -254,7 +254,7 @@ const kit = site.slice(site.indexOf('<script>/* kittens.js'));
 check('build wires the module and the flagged startEnding hook', () => {
   assert(site.includes(source), 'module inlined in the working site');
   assert(!release.includes('__l2Cutscene'), 'V9.5 release HTML is free of the cutscene');
-  assert(kit.includes("if (window.__l2Cutscene && window.__l2Cutscene.enabled()) window.__l2Cutscene.play({ source: 'level2', onContinue: showCard });"));
+  assert(kit.includes("if (window.__l2Cutscene && window.__l2Cutscene.enabled()) window.GardenSaves.afterWrite(function () { window.__l2Cutscene.play({ source: 'level2', onContinue: showCard }); });")); // audit-saves (#94): the film waits for the pending save write
   assert(kit.includes('else setTimeout(showCard, 7000);'), 'opt-out path keeps the 7s card');
   const music = fs.readFileSync(path.join(ROOT, 'src/l2-cutscene-music.js'), 'utf8');
   assert(site.includes(music) && !release.includes('__l2Score'), 'score inlined in the working site only');
@@ -275,6 +275,9 @@ check('gameplay numbers unchanged', () => {
   const strip = text => text.split('\n').filter(line => !/__l2Cutscene|__l2Stage|__l1Cutscene|__l3Cutscene|__l4Cutscene|__l5Cutscene|showCard|garden-working/.test(line)).join('\n');
   const score = fs.readFileSync(path.join(ROOT, 'src/l2-cutscene-music.js'), 'utf8');
   const l1 = ['src/l1-cutscene.js', 'src/l1-cutscene-music.js', 'src/l3-cutscene.js', 'src/l3-cutscene-music.js', 'src/l4-cutscene.js', 'src/l4-cutscene-music.js', 'src/l5-cutscene.js', 'src/l5-cutscene-music.js'].filter(f => fs.existsSync(path.join(ROOT, f))).map(f => fs.readFileSync(path.join(ROOT, f), 'utf8'));
+  // Level 6 (snow chapter + its cutscene) is applied after the cutscene layer
+  // and checked by its own tests (snow-*, l6-*); cutsceneLayer is captured in
+  // build.py before the audit hooks and the level-6 hooks.
   const without = l1.reduce((text, block) => text.replace('<script>\n' + block + '\n</script>\n', ''), cutsceneLayer.replace('<script>\n' + source + '\n</script>\n', '').replace('<script>\n' + score + '\n</script>\n', ''));
   const base = release.split('\n').filter(line => !/\$\('(kit|bf)Ending'\)\.classList\.remove\('hidden'\); \}, (7000|5200)\);/.test(line)).join('\n');
   assert.strictEqual(strip(without), base);

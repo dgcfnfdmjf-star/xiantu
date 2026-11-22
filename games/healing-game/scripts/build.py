@@ -230,8 +230,16 @@ exec((ROOT / 'scripts/l3-cutscene-v96.py').read_text())
 exec((ROOT / 'scripts/l4-cutscene-v96.py').read_text())
 exec((ROOT / 'scripts/l5-cutscene-v96.py').read_text())
 # The animated chapters have their own regression against the frozen release.
-# Apply the current player's input, persistence and startup changes after them.
+# cutscene_html is the working HTML after the level-1..5 film hooks but before
+# the audit hooks and the level-6 hooks, so tests/l2-cutscene.cjs can compare
+# the film layer against the frozen V9.5 release.
 cutscene_html = html
+# Level 6 first: its hooks match the pre-audit HTML (audit-saves rewrites the
+# API.ready line that l6-chapter anchors on), then the current player's
+# input, persistence and startup changes apply after all chapters.
+exec((ROOT / 'scripts/l6-chapter-v96.py').read_text())
+exec((ROOT / 'scripts/l6-cutscene-v96.py').read_text())
+exec((ROOT / 'scripts/l6-polish-v96.py').read_text())
 for hook in ('audit-saves.py', 'audit-paper.py', 'audit-first-audio.py', 'audit-focus.py', 'audit-targets.py'):
     exec((ROOT / 'scripts' / hook).read_text())
 baseline = ROOT / 'site/healing-game-v9.5-baseline/index.html'
