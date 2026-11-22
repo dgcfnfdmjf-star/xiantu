@@ -30,6 +30,7 @@ function loadThree(){
 function create(THREE,host,options){
  let renderer=null,scene=null,envTarget=null,resizeObserver=null,observer=null,raf=0,disposed=false;
  let started=0,last=0,active=null,slow=0,low=!!options.low;
+ let cachedShow={pills:0,total:0,smoke:0,thunder:false};
  const caption=options.caption,resources=new Set();let seed=110123;
  const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
  const valid=()=>!disposed&&options.current();
@@ -389,7 +390,7 @@ function create(THREE,host,options){
  }
  const ease=p=>p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
  function update(t,dt){
-  const warming=t>.85&&t<2.65,opening=t>=2.65,show=active?planShow(active):{pills:0,smoke:0,thunder:false},success=show.pills>0;
+  const warming=t>.85&&t<2.65,opening=t>=2.65,show=cachedShow,success=show.pills>0;
   alc.cauldron.glowLevel=warming?.8:opening?.55:.22;
   alc.cauldron.lidOpen=t<.85||opening?1:0;
   for(const step of alc.updaters)step(dt,t);
@@ -405,14 +406,18 @@ function create(THREE,host,options){
   smoke.material.color.setHex(opening&&!success?0x8c9ca2:0x88edca);smoke.material.opacity=opening&&!success?.55:warming?.25:.12;
   for(let i=0;i<smokePositions.count;i++){const p=(i/smokePositions.count+t*.4)%1,a=i*2.4+t*1.4,r=.14+p*.5;smokePositions.setXYZ(i,Math.cos(a)*r,2.55+p*1.8,Math.sin(a)*r);}smokePositions.needsUpdate=true;
   // Herbs and their coloured smoke trails.
-  const herbCount=active?Math.min(herbs.length,active.materials.length):0,trailPos=herbTrail.geometry.attributes.position,trailCol=herbTrail.geometry.attributes.color;
-  for(let i=0;i<herbs.length;i++){
-   const p=Math.max(0,Math.min(1,(t-i*.12)/.65)),on=t<1.4&&i<herbCount&&p<1;
-   herbs[i].visible=on&&t<1.2;herbAt(i,p,herbs[i].position);herbs[i].material.rotation=t*3;
-   const c=HERB_COLORS[i];
-   for(let k=0;k<TRAIL;k++){const j=i*TRAIL+k,pk=Math.max(0,p-(k+1)*.045),fade=on&&p>0?(1-k/TRAIL)*(t<1.2?1:Math.max(0,(1.4-t)/.2)):0;herbAt(i,pk,v0);trailPos.setXYZ(j,v0.x,v0.y+k*.02,v0.z);trailCol.setXYZ(j,((c>>16)&255)/255*fade,((c>>8)&255)/255*fade,(c&255)/255*fade);}
+  if (t < 1.4) {
+   const herbCount=active?Math.min(herbs.length,active.materials.length):0,trailPos=herbTrail.geometry.attributes.position,trailCol=herbTrail.geometry.attributes.color;
+   for(let i=0;i<herbs.length;i++){
+    const p=Math.max(0,Math.min(1,(t-i*.12)/.65)),on=t<1.4&&i<herbCount&&p<1;
+    herbs[i].visible=on&&t<1.2;herbAt(i,p,herbs[i].position);herbs[i].material.rotation=t*3;
+    const c=HERB_COLORS[i];
+    for(let k=0;k<TRAIL;k++){const j=i*TRAIL+k,pk=Math.max(0,p-(k+1)*.045),fade=on&&p>0?(1-k/TRAIL)*(t<1.2?1:Math.max(0,(1.4-t)/.2)):0;herbAt(i,pk,v0);trailPos.setXYZ(j,v0.x,v0.y+k*.02,v0.z);trailCol.setXYZ(j,((c>>16)&255)/255*fade,((c>>8)&255)/255*fade,(c&255)/255*fade);}
+   }
+   trailPos.needsUpdate=trailCol.needsUpdate=true;
+  } else {
+   for(let i=0;i<herbs.length;i++) herbs[i].visible = false;
   }
-  trailPos.needsUpdate=trailCol.needsUpdate=true;
   // One pill per pill actually made (pool of MAX_PILLS), staggered out of the mouth.
   let shown=0,landed=0;const haloPos=pillHalo.geometry.attributes.position;
   for(let i=0;i<show.pills;i++){
@@ -423,10 +428,16 @@ function create(THREE,host,options){
   pills.count=shown;pills.instanceMatrix.needsUpdate=true;haloPos.needsUpdate=true;pillHalo.geometry.setDrawRange(0,shown);
   pillHalo.material.opacity=shown?.55:0;trayGlow.material.opacity=landed?.35+.35*landed/MAX_PILLS:0;
   // Grey smoke for failed furnaces, scaled by the failed share.
-  const pt=t-2.75,pp=puff.geometry.attributes.position;
-  puff.material.opacity=show.smoke&&pt>0?show.smoke*Math.max(0,1-pt/1.6)*.85:0;
-  for(let i=0;i<pp.count;i++){const a=i*2.39996,s=.5+((i*37)%11)/11,age=Math.max(0,pt);pp.setXYZ(i,Math.cos(a)*s*age*.9,MOUTH_TOP+.15+age*(.9+s*.5),.2+Math.sin(a)*s*age*.6);}pp.needsUpdate=true;
-  puff.material.size=.7+Math.max(0,pt)*.9;
+  const pt=t-2.75;
+  if (show.smoke && pt > 0 && pt < 1.6) {
+   const pp=puff.geometry.attributes.position;
+   puff.material.opacity=show.smoke*Math.max(0,1-pt/1.6)*.85;
+   for(let i=0;i<pp.count;i++){const a=i*2.39996,s=.5+((i*37)%11)/11,age=Math.max(0,pt);pp.setXYZ(i,Math.cos(a)*s*age*.9,MOUTH_TOP+.15+age*(.9+s*.5),.2+Math.sin(a)*s*age*.6);}
+   pp.needsUpdate=true;
+   puff.material.size=.7+pt*.9;
+  } else {
+   puff.material.opacity=0;
+  }
   // 紫霄丹雷: bolts strike the lid as it opens.
   let strike=0;
   for(let b=0;b<bolts.length;b++){
@@ -450,7 +461,7 @@ function create(THREE,host,options){
  function play(result){
   if(!valid())return;
   active=result;if(raf)cancelAnimationFrame(raf);
-  const show=planShow(result);host.dataset.pillsShown=String(show.pills);host.dataset.thunder=String(show.thunder);host.dataset.smoke=show.smoke?'1':'0';
+  cachedShow=planShow(result);const show=cachedShow;host.dataset.pillsShown=String(show.pills);host.dataset.thunder=String(show.thunder);host.dataset.smoke=show.smoke?'1':'0';
   started=performance.now();last=started-100;update(0,.1);draw();raf=requestAnimationFrame(tick);
  }
  return {play,dispose};
