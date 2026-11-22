@@ -896,21 +896,34 @@
       }
     }
     
-    function movePlayer() {
-      if (!isMoving || !isMoveMode) return;
-      
-      const speed = 5;
-      playerX += moveDirection.x * speed;
-      playerY += moveDirection.y * speed;
-      
-      // 边界检测
-      playerX = Math.max(0, Math.min(window.innerWidth - 60, playerX));
-      playerY = Math.max(0, Math.min(window.innerHeight - 80, playerY));
-      
-      updatePlayerPosition();
-      checkZoneCollision();
-      
-      requestAnimationFrame(movePlayer);
+    function movePlayer(timestamp) {
+      // 快速松开再按下时，沿用尚在运行的移动循环。
+      if (movePlayer.running) return;
+      movePlayer.running = true;
+      let previousTime = timestamp;
+
+      function step(now) {
+        if (!isMoving || !isMoveMode) {
+          movePlayer.running = false;
+          return;
+        }
+
+        const dt = Math.min((now - previousTime) / 1000, 0.1);
+        previousTime = now;
+        const speed = 300;
+        playerX += moveDirection.x * speed * dt;
+        playerY += moveDirection.y * speed * dt;
+
+        // 边界检测
+        playerX = Math.max(0, Math.min(window.innerWidth - 60, playerX));
+        playerY = Math.max(0, Math.min(window.innerHeight - 80, playerY));
+
+        updatePlayerPosition();
+        checkZoneCollision();
+        requestAnimationFrame(step);
+      }
+
+      step(timestamp);
     }
     
     function updatePlayerPosition() {
