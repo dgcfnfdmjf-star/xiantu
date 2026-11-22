@@ -32,6 +32,34 @@ const captureExport=()=>page=>page.evaluate(async()=>{
 const importText=(page,text)=>page.evaluate(t=>importSaveV2768(new File([t],'in.json',{type:'application/json'})),text);
 const snapshot=page=>page.evaluate(()=>({main:localStorage.getItem('xiantu_save'),backup:localStorage.getItem('xiantu_save_backup'),before:localStorage.getItem('xiantu_save_before_replace_v2870'),gold:player.gold,replaced:window.__replaced}));
 
+test('repeated lifecycle saves and reloading preserve the previous distinct recovery point',async({page})=>{
+ await boot(page);
+ await page.evaluate(()=>{player.gold=404;saveGame();player.gold=505;saveGame();});
+ const saved=await snapshot(page);
+ expect(JSON.parse(saved.main).player.gold).toBe(505);
+ expect(JSON.parse(saved.backup).player.gold).toBe(404);
+ await page.evaluate(()=>{
+  Object.defineProperty(document,'hidden',{configurable:true,value:true});
+  try{document.dispatchEvent(new Event('visibilitychange'));}finally{delete document.hidden;}
+  window.dispatchEvent(new Event('pagehide'));
+  window.dispatchEvent(new Event('beforeunload'));
+ });
+ expect(await snapshot(page)).toEqual(saved);
+ await page.reload();
+ const slots=()=>page.evaluate(()=>[localStorage.getItem('xiantu_save'),localStorage.getItem('xiantu_save_backup')]);
+ expect(await slots()).toEqual([saved.main,saved.backup]);
+ await page.locator('#introSkipChoiceV2898').check();await page.locator('#xiantuSafeBootButton').click();
+ await expect(page.locator('html')).toHaveClass(/xiantu-v2762-ready/);
+ await page.evaluate(()=>{loadAndStart();saveGame();});
+ const [resumed,backup]=await slots();
+ expect(JSON.parse(resumed).player.gold).toBe(505);
+ expect(backup).toBe(saved.backup);
+ await page.evaluate(()=>{achievementProgress.monstersKilled++;saveGame();autoSave();});
+ const [advanced,prior]=await slots();
+ expect(prior).toBe(resumed);
+ expect(JSON.parse(advanced).achievements.progress.monstersKilled).toBe(JSON.parse(resumed).achievements.progress.monstersKilled+1);
+});
+
 test('export roundtrip carries a checksum and restores the same character',async({page})=>{
  await boot(page);
  const exported=await captureExport()(page);const data=JSON.parse(exported);

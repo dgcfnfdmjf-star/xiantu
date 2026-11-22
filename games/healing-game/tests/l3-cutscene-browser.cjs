@@ -136,12 +136,18 @@ const SAVES = {
     assert.equal(await page.locator('#l3csSkip').isVisible(), true);
     assert.equal(await page.locator('#starHud').isVisible(), false, 'HUD steps aside');
     await page.screenshot({ path: path.join(OUT, 'ingame-playing.png') });
+    // Observe the second activation while the real tap is still being dispatched.
+    await page.evaluate(() => {
+      document.getElementById('l3csSkip').addEventListener('click', () => {
+        window.__continuedOnSkip = window.__l3Cutscene.proceed();
+      }, { once: true });
+    });
     await page.locator('#l3csSkip').tap();
+    assert.equal(await page.evaluate(() => window.__continuedOnSkip), false, 'the skipping tap cannot also continue');
     assert.equal(await page.evaluate(() => window.__l3Cutscene.state()), 'ended');
     assert.equal(await page.locator('#l3csGo').isVisible(), true);
     assert.equal(await page.locator('#l3csTitle').textContent(), '第三关 · 完成');
     assert.equal(await page.locator('#l3csSub').textContent(), '暮色浮岛');
-    assert.equal(await page.evaluate(() => window.__l3Cutscene.proceed()), false, 'the skipping tap cannot also continue');
     music = await page.evaluate(() => __l3Score.state());
     assert(music.active && music.free, 'score settles into its cadence after skip');
     assert.equal(await cardShown(page), false);

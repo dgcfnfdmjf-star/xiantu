@@ -19,9 +19,10 @@ fresh();day(10000);run('player=normalizePlayer(player)');a.equal(run('player.sec
 // Full rollback on every action's storage failure, including a matured payout.
 for(const kind of ['start','claim','art','decree','appoint','dismiss']){
  fresh();if(kind==='claim'){act('start');day(130);}if(kind==='dismiss')act('appoint','hufa',1);
- run('showSectAdminV2873()');const before=state();run('globalThis.oldSet=localStorage.setItem;localStorage.setItem=()=>{throw Error("quota")}');
+ run('showSectAdminV2873()');a.equal(run('saveGame()'),true);const before=state(),disk=f.storage.get('xiantu_save');
+ run('globalThis.oldSet=localStorage.setItem;localStorage.setItem=()=>{throw Error("quota")}');
  const id=kind==='art'?'juling':kind==='decree'?'kaicang':'hufa';
- a.equal(run(`executeSectAdminV2873('${kind}','${id}',1,sectAdminViewV2873.token)`),false,kind);run('localStorage.setItem=oldSet');a.equal(state(),before,kind+' rollback');
+ a.equal(run(`executeSectAdminV2873('${kind}','${id}',1,sectAdminViewV2873.token)`),false,kind);run('localStorage.setItem=oldSet');a.equal(state(),before,kind+' rollback');a.equal(f.storage.get('xiantu_save'),disk);
 }
 fresh();run('showSectAdminV2873()');f.c.confirm=()=>false;const cancelled=state();a.equal(act('start'),false);a.equal(state(),cancelled);
 for(const mode of ['combat','combat-ending']){fresh();run('showSectAdminV2873()');run(`gameState='${mode}'`);a.equal(run("executeSectAdminV2873('start','',null,sectAdminViewV2873.token)"),false);}

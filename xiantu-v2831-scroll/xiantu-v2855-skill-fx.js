@@ -1305,7 +1305,7 @@ function createSwordState(read,clock){
   function sync(){const btn=D.getElementById('inkFxQualityV2854');if(btn){btn.textContent='特效：'+(settings().reduced?'静态':({auto:'自动',rich:'精致',light:'省电'}[quality]));btn.setAttribute('aria-label',btn.textContent+'，点击切换');}}
   function cycle(){quality={auto:'rich',rich:'light',light:'auto'}[quality];try{localStorage.setItem(KEY,quality)}catch(_){}refreshThunder()}
   function install(){
-    const btn=D.getElementById('inkFxQualityV2854');if(btn&&!btn.dataset.boundV2854){btn.dataset.boundV2854='1';btn.addEventListener('click',cycle)}sync();
+    const btn=D.getElementById('inkFxQualityV2854');if(btn&&!btn.dataset.boundV2854){btn.disabled=false;btn.dataset.boundV2854='1';btn.addEventListener('click',cycle)}sync();
     const panel=D.getElementById('combatPanel');panel?.classList.add('ink-fx-ready-v2854');if(panel&&!observer&&typeof MutationObserver==='function'){observer=new MutationObserver(()=>{if(panel.classList.contains('hidden'))clear(true)});observer.observe(panel,{attributes:true,attributeFilter:['class']})}
   }
   D.addEventListener('visibilitychange',()=>{if(D.hidden)clear(false,true);else resumeThunder()});W.addEventListener('pagehide',()=>clear());W.addEventListener('resize',refreshThunder);W.addEventListener('orientationchange',refreshThunder);W.addEventListener('xiantu:combat-finishing',finish);
@@ -1319,4 +1319,4 @@ function createSwordState(read,clock){
   W.InkSkillFxV2854={profile,draw,drawGround,sample,solar,butterfly,heart,absoluteZero,swordBatch,swordBatch2,swordBatch3,healBatch1,healBatch2,healBatch3,fireBatch,fireBatch2,fireBatch3,elementBatch,thunderBatch,thunderBatch2,thunderBatch3,fireFinale,iceFinale,swordFinale,authoredDuration:name=>healDefinition(name)?.timing.durationMs||(fireDefinition(name)?1100:0),catalog:()=>[...new Set([...Object.keys(styles),...Object.keys(forms),...(typeof SKILLS!=='undefined'?SKILLS.map(s=>s.name):[])])].map(name=>profile(name)),play,hit,clear,finish,cinemaClear,install,cycle,settings,inspect:()=>({version:'28.68',quality,finishing:finishUntil>now(),active:jobs.length,iceStates:reportIce.inspect(),swordStates:reportSword.inspect(),raf:!!raf,pixels:canvas?canvas.width*canvas.height:0,jobs:jobs.map(j=>({name:j.profile.name,kind:j.profile.kind,family:j.profile.family,side:j.side,self:j.profile.self,actualHeal:j.actualHeal,actualMpRestore:j.actualMpRestore,emergency:j.emergency,hitAt:j.hitAt,from:{...j.from},to:{...j.to}}))})};
   install();
 })();
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2855-skill-fx.js']='28.68.122';
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814['xiantu-v2855-skill-fx.js']='28.68.124';

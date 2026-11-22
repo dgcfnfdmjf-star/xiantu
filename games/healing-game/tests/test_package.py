@@ -47,7 +47,10 @@ class Package(unittest.TestCase):
     def test_all_inline_scripts_parse(self):
         self.assertEqual(len(re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.html.decode())), 19)
         scripts = re.findall(r'<script[^>]*>([\s\S]*?)</script>', self.site.decode())
-        self.assertEqual(len(scripts), 32)  # V9.5's 19 + level-2 cutscene + its score + level-1 cutscene + its score + level-3 cutscene + its score + level-4 cutscene + its score + level-5 cutscene + its score + level-6 chapter + level-6 cutscene + its score
+        # V9.5's 19, the five films and their five scores, the working
+        # player's focus, persistence, instrument worker and target controls,
+        # and the level-6 chapter, cutscene and its score.
+        self.assertEqual(len(scripts), 36)
         with tempfile.TemporaryDirectory() as tmp:
             for i, script in enumerate(scripts):
                 path = Path(tmp) / f'{i}.js'

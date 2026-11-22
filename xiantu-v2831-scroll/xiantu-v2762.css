@@ -1479,7 +1479,6 @@
       z-index:2700; display:none;
     }
     #gameScreen.world-mode:has(#storyPanel:not(.hidden)) .world-close-panel,
-    #gameScreen.world-mode:has(#combatPanel:not(.hidden)) .world-close-panel,
     #gameScreen.world-mode:has(#alchemyPanel:not(.hidden)) .world-close-panel,
     #gameScreen.world-mode:has(#petPanel:not(.hidden)) .world-close-panel,
     #gameScreen.world-mode:has(#artifactPanel:not(.hidden)) .world-close-panel { display:block; }
@@ -3942,7 +3941,7 @@ html #storyPanel.equipment-bag-view-v2803 .equip-manager-row{gap:7px;flex-wrap:w
 /* V28.12 洞府管理 */
 .home-board-v2812{padding:16px;border:1px solid #9eb781;border-radius:16px;background:linear-gradient(135deg,#14251e,#18202b);color:#e9eee3;line-height:1.65}.home-board-v2812 h3{color:#ead592;margin:0 0 12px}.home-grid-v2812{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-grid-v2812 article{padding:14px;border:1px solid #526454;border-radius:12px;background:#ffffff08}.home-grid-v2812 h4{margin:0;color:#e8d594}.home-grid-v2812 p{color:#d0dbd1}.home-grid-v2812 strong{color:#83ddb6}.home-notice-v2812{padding:12px;background:#31534066;border-radius:10px}@media(max-width:600px){.home-grid-v2812{grid-template-columns:1fr}.home-board-v2812{padding:12px;font-size:14px}}
 
-:root{--xiantu-build:2868122;}
+:root{--xiantu-build:2868124;}
 #xiantuBuildBadgeV2814{font-size:11px;min-height:32px;padding:5px 9px;white-space:nowrap;color:#b4d4bd;background:#18251f;border:1px solid #718475;border-radius:8px;}
 
 /* V28.68 战斗数值可视层 */
@@ -4344,6 +4343,8 @@ html body #gameScreen #combatPanel.battle-clean-v286816>#battleSettingsV286816{o
  html body #gameScreen #combatPanel.battle-clean-v286816>#combatArena{grid-column:1;grid-row:1/7;position:sticky;top:0;}
  html body #gameScreen #combatPanel.battle-clean-v286816>#battleReadoutV2856{grid-column:2;grid-row:1;}
  html body #gameScreen #combatPanel.battle-clean-v286816>#combatChoices{grid-column:2;grid-row:2;}
+ html body #gameScreen #combatPanel.battle-clean-v286816>#combatItemDrawer{grid-column:2;}
+ #combatItemDrawer .combat-item-grid{grid-template-columns:1fr;}
  html body #gameScreen #combatPanel.battle-clean-v286816>#cinemaControlsV2756{grid-column:2;grid-row:3;}
  html body #gameScreen #combatPanel.battle-clean-v286816>#reportLogV2857{grid-column:2;grid-row:4;}
  html body #gameScreen #combatPanel.battle-clean-v286816>#battleSettingsV286816{grid-column:2;grid-row:5;}
@@ -5377,3 +5378,40 @@ html .xt-cell-icon.xt-slot-glyph-v2868122.is-empty{color:var(--xt-gold-700,#8a6a
 html .xt-cell-icon.xt-slot-glyph-v2868122.is-locked{color:var(--xt-text-3,#8a978e);box-shadow:inset 0 0 0 1px rgba(138,151,142,.35)}
 .xt-inline-glyph-v2868122{display:inline-flex;align-items:center;color:var(--xt-gold-300,#f0dca0)}
 .scroll-poi-v2831 i.xt-scroll-glyph-v2868122{display:flex;align-items:center;justify-content:center;width:30px;height:30px;font-size:20px;text-shadow:none;color:var(--xt-gold-300,#f0dca0);background:var(--xt-ink-800,#16221d);border:1px solid var(--xt-gold-500,#d4b06a);border-radius:50%}
+
+/* Outdoor walking on short landscape screens. Keep the controls under the player's thumbs. */
+@media (orientation: landscape) and (max-height: 500px) and (max-width: 1000px) {
+  .world-walking #worldPanel .world-hud {
+    width: min(196px, 40vw) !important;
+    padding: 6px 9px !important;
+  }
+  .world-walking #worldPanel .world-hud > :not(.world-bars),
+  .world-walking #worldPanel .world-bar-row ~ .world-bar-row,
+  .world-walking #worldMinimap,
+  .world-walking #worldPanel .world-location-card,
+  html.xt-has-questbar .world-walking #firstPathV2901 {
+    display: none !important;
+  }
+  .world-walking #worldPanel .world-bars {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    margin: 0 !important;
+  }
+  .world-walking #worldPanel .world-bar-row {
+    display: grid !important;
+    grid-template-columns: auto minmax(24px, 1fr) auto !important;
+    gap: 6px !important;
+  }
+  .world-walking #worldPanel .world-bar-row > span {
+    display: block !important;
+    font-size: 12px !important;
+    white-space: nowrap;
+  }
+  /* In the classic UI, use the first tracked task after the beginner guide has gone. */
+  html:not(.xt-theme) .world-walking:not(.tutorial-guided-mode):not(:has(#firstPathV2901:not([hidden]))) #taskTrackerCompact {
+    display: block !important;
+  }
+  .world-walking #taskTrackerCompact .task-track-row ~ .task-track-row {
+    display: none;
+  }
+}

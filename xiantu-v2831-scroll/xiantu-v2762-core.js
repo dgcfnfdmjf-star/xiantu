@@ -96,11 +96,14 @@
         <div class="mobile-inventory-summary"><span>💰 灵石 ${player.gold||0}</span><span>💠 灵力 ${Math.max(0,Math.round(player.mp||0))} / ${typeof getMaxMp==='function'?getMaxMp():Math.max(0,Math.round(player.maxMp||0))}</span><span>🎐 物品 ${itemRows.reduce((a,b)=>a+b.count,0)}</span><span>🌿 材料 ${materialRows.reduce((a,b)=>a+Number(b.count||0),0)}</span><span>⚔️ 装备 ${equipmentRows.length}</span></div>
         <div class="mobile-inventory-tabs">${tabs.map(([id,label])=>`<button class="mobile-inventory-tab ${mobileInventoryTab===id?'active':''}" onclick="setMobileInventoryTab('${id}')">${label}</button>`).join('')}</div>
         ${mobileInventoryTab==='items'?'<button id="sortBagBtnV2870" class="choice-btn" style="width:100%;margin:8px 0" onclick="sortAndConsolidateBagV2870()">'+(bagPrefsV2905().items==='category'?'↩️ 恢复获得顺序':'🔄 按品类整理物品')+'</button>':''}
+        ${mobileInventoryTab==='items'&&!player.inventory.includes(FIELD_KIT_V2868124)?`<button type="button" class="choice-btn" data-pack-kit style="width:100%;margin-bottom:8px" ${player.inventory.includes('小还丹')&&player.inventory.includes('聚灵丹')?'':'disabled'}>封装行药囊 · 小还丹、聚灵丹各一枚<br><small>限带一囊，战中一回合同服两药</small></button>`:''}
         <div class="mobile-inventory-grid">${htmlRows}</div>
         ${mobileInventoryTab==='equipment'?`<button class="choice-btn" style="margin-top:10px;width:100%" onclick="closeMobileInventory();showEquipmentPanel();">📦 打开完整装备栏</button>`:''}
         <div class="mobile-inventory-footer">${footer}</div>`;
       const owner=player;
       card.onclick=e=>{
+        const pack=e.target.closest('[data-pack-kit]');
+        if(pack&&card.contains(pack)&&player===owner&&mobileInventoryTab==='items'){packFieldKitV2868124();return;}
         const batch=e.target.closest('[data-bag-batch]');
         if(batch&&card.contains(batch)&&player===owner&&gameState==='exploring'&&forgeAllowedV2825()){const row=rows[Number(batch.dataset.bagBatch)];if(row&&mobileInventoryTab==='items')useItemBatchV2905(row.name,/^\d+$/.test(batch.dataset.mode)?Number(batch.dataset.mode):batch.dataset.mode);return;}
         const button=e.target.closest('[data-bag-index]');
@@ -119,11 +122,11 @@
     const SAVE_BACKUP_KEY='xiantu_save_backup';
     let lastSaveFailureNoticeV2768=0;
     // Exact persisted baseline, separate from in-memory gameplay and rollback snapshots.
-    const SAVE_SESSION_V2868102={active:false,raw:null,stale:false};
+    const SAVE_SESSION_V2868102={active:false,raw:null,stale:false,restored:null};
     function bindSaveSessionV2868102(raw){
       if(SAVE_SESSION_V2868102.stale)throw Error('此窗口的存档已过期，请刷新后继续');
       if(arguments.length===0){try{raw=localStorage.getItem(SAVE_KEY);}catch(_){raw=null;}}
-      SAVE_SESSION_V2868102.active=true;SAVE_SESSION_V2868102.raw=raw;
+      SAVE_SESSION_V2868102.active=true;SAVE_SESSION_V2868102.raw=raw;SAVE_SESSION_V2868102.restored=null;
     }
     function markSaveStaleV2868102(){
       const s=SAVE_SESSION_V2868102;s.stale=true;
@@ -189,16 +192,43 @@
       const clean=JSON.parse(JSON.stringify(player));normalizeItemCountsV2905(clean);normalizeDaoV286883(clean);
       return {player:clean,achievements:{progress:{...achievementProgress},completed:Array.from(completedAchievements)},timestamp:Date.now(),version:SAVE_VERSION};
     }
+    function sameSaveValueV2768(a,b) {
+      if(a===b)return true;
+      if(!a||!b||typeof a!=='object'||typeof b!=='object'||Array.isArray(a)!==Array.isArray(b))return false;
+      const keys=Object.keys(a);
+      return keys.length===Object.keys(b).length && keys.every(k=>Object.prototype.hasOwnProperty.call(b,k)&&sameSaveValueV2768(a[k],b[k]));
+    }
+    function sameSaveProgressV2768(a,b) {
+      return !!a && a.version===b.version && sameSaveValueV2768(a.player,b.player) && sameSaveValueV2768(a.achievements,b.achievements);
+    }
     function writeSaveV2768(raw) {
-      parseSaveV2768(raw);
+      const next=parseSaveV2768(raw);
       assertSaveSessionV2868102();
       const old=localStorage.getItem(SAVE_KEY);
-      let validOld=false;
-      try{if(old){parseSaveV2768(old);validOld=true;}}catch(_){}
+      const restored=SAVE_SESSION_V2868102.restored;
+      let previous=null;
+      // A structurally valid main can still have failed the full load and migration.
+      try{if(old && !restored?.fromBackup)previous=parseSaveV2768(old);}catch(_){}
+      const sameProgress=sameSaveProgressV2768(previous,next);
+      // Keep the original timestamp for duplicate lifecycle saves. The battle notice
+      // can change independently of the player and achievements restored from this record.
+      if(sameProgress && !!previous.interruptedBattleV286812===!!next.interruptedBattleV286812)raw=old;
       // 备份写入失败时不覆盖主档，保留已有记录。
-      if(validOld && old!==raw)localStorage.setItem(SAVE_BACKUP_KEY,old);
-      localStorage.setItem(SAVE_KEY,raw);
+      const rotateBackup=previous && !sameProgress && !sameSaveProgressV2768(restored?.progress,next);
+      const previousBackup=rotateBackup ? localStorage.getItem(SAVE_BACKUP_KEY) : null;
+      if(rotateBackup)localStorage.setItem(SAVE_BACKUP_KEY,old);
+      try{
+        if(raw!==old)localStorage.setItem(SAVE_KEY,raw);
+      }catch(error){
+        // Restore only the backup we just rotated, while that main record is still current.
+        if(rotateBackup && previousBackup!==old && localStorage.getItem(SAVE_KEY)===old && localStorage.getItem(SAVE_BACKUP_KEY)===old){
+          if(previousBackup===null)localStorage.removeItem(SAVE_BACKUP_KEY);
+          else localStorage.setItem(SAVE_BACKUP_KEY,previousBackup);
+        }
+        throw error;
+      }
       if(SAVE_SESSION_V2868102.active)SAVE_SESSION_V2868102.raw=raw;
+      SAVE_SESSION_V2868102.restored=null;
       try{window.saveMirrorV2895?.(raw);}catch(_){}
     }
     let miniSaveDeferredV286840=false;
@@ -4227,7 +4257,9 @@
       { name: '鬼将', hp: 500, atk: 80, def: 40, gold: 350, exp: 400 }
     ];
     
+    const FIELD_KIT_V2868124='行药囊';
     const ITEMS = {
+      [FIELD_KIT_V2868124]:{type:'fieldKit',icon:'🎒',desc:'战中一回合恢复气血、灵力各最多30点。地图上点此拆回小还丹、聚灵丹各一枚。'},
       '神行符':{type:'escape',value:0,desc:'消耗一张，普通野外战必定脱战；首领、天劫、任务、擂台与正魔战禁用。'},
       '破障丹':{type:'breakthrough',desc:'突破预览选用，尝试消耗一颗，成功率+15个百分点'},
       '渡劫丹':{type:'breakthrough',desc:'突破预览选用，尝试消耗一颗，成功率+20个百分点'},
@@ -4729,7 +4761,7 @@
     }
 
     const SKILLS = [
-      { name: '御剑术', mpCost: 10, damage: 1.5, desc: '消耗10灵力，造成1.5倍攻击伤害', element: 'sword' },
+      { name: '御剑术', mpCost: 10, damage: 1.5, desc: '消耗10灵力，造成1.5倍攻击伤害。可脱战的遭遇中，紧接清风剑诀命中可使出回锋，减免下一次来袭伤害的30%。', element: 'sword' },
       { name: '雷法', mpCost: 20, damage: 2.0, desc: '消耗20灵力，造成2倍攻击伤害', element: 'thunder' },
       // 雷系进阶技能
       { name: '惊雷闪', mpCost: 25, damage: 2.2, desc: '消耗25灵力，造成2.2倍攻击伤害，概率封脉，使目标接下来2次行动无法施展术法或回生', element: 'thunder', effect: 'paralyze', statusChance: 0.42 },
@@ -4779,7 +4811,7 @@
       { name: '起死回生', mpCost: 60, heal: 0.8, desc: '消耗60灵力，恢复80%最大气血', element: 'heal' },
 
       // V27.85：追加而不插队，保留旧技能索引；明确境界解锁。
-      {name:'清风剑诀',element:'sword',mpCost:8,damage:1.35,unlockRealm:0,desc:'消耗8灵力，1.35倍剑伤；凡人自动领悟'},
+      {name:'清风剑诀',element:'sword',mpCost:8,damage:1.35,unlockRealm:0,desc:'消耗8灵力，1.35倍剑伤，凡人自动领悟。可脱战的遭遇中，命中后下一次行动接御剑术可回锋护体。'},
       {name:'破甲剑罡',element:'sword',mpCost:24,damage:2.1,armorPierce:.5,unlockRealm:1,desc:'消耗24灵力，2.1倍剑伤，本次穿透50%防御；练气解锁'},
       {name:'追魂一剑',element:'sword',mpCost:38,damage:2.8,executeBonus:.5,unlockRealm:2,desc:'消耗38灵力，2.8倍剑伤；目标气血不高于30%时本次伤害增加50%；筑基解锁'},
       {name:'饮血剑诀',element:'sword',mpCost:42,damage:2.7,lifeSteal:.2,unlockRealm:2,desc:'消耗42灵力，2.7倍剑伤；按实际扣血的20%回血，单次最多恢复15%最大气血；筑基解锁'},
@@ -6491,19 +6523,28 @@
     // Contact fights reuse the task-battle low-health threshold and prompt.
     let wildContactPromptV2868114=null;
     function warnWildContactV2868114(monster){
-      if(!monster||player.hp>=getMaxHp()*.5)return false;
+      if(!monster)return false;
+      const read=player.tutorial?.readPopups,enemy=monster.enemy;
+      const firstOrdinary=monster.regionId==='south'&&player.level===0&&player.phase===0&&
+        achievementProgress.monstersKilled===0&&!enemy?._isElite&&!enemy?._isTutorial&&!enemy?._isTaskBattle&&
+        Array.isArray(read)&&read.includes('training_reward')&&!read.includes('first_wild_contact');
+      const lowHealth=player.hp<getMaxHp()*.5;
+      if(!lowHealth&&!firstOrdinary)return false;
       const seq=++taskBattleSeqV2868103;
       wildContactPromptV2868114={seq,owner:player,monster,region:monster.regionId};
       monster.battleCooldown=8;   // same grace as after fleeing, so declining lets the player walk away
       stopNavigationV2830?.();FLAT_WORLD.keys={};FLAT_WORLD.target=null;FLAT_WORLD.moving=false;
-      showStory(`<section id="taskBattlePromptV2868103" data-prompt="${seq}" data-kind="wild"><h3>⚠️ 气血不足，先整备再迎战</h3><p>${discipleEscV2815(monster.enemy?.name||'妖兽')}挡在路前。当前气血 ${Math.floor(player.hp)} / ${getMaxHp()}，不足一半。战败会损失身上灵石的20%，且仅保留1点气血。</p><button class="choice-btn" onclick="showTaskSuppliesV2868103()">💧 先去补给</button><button class="choice-btn" onclick="confirmWildContactV2868114(${seq})">仍要出战</button></section>`,[{text:'暂且避开',action:'return_to_map'}]);
+      const title=lowHealth?'⚠️ 气血不足，先整备再迎战':'初次野外遇敌';
+      const preparation=firstOrdinary?`对手气血 ${Math.ceil(enemy.hp)} / ${Math.ceil(enemy.maxHp||enemy.hp)}。你可以暂且避开，先穿戴装备、补足状态，再回来应战。`:'';
+      showStory(`<section id="taskBattlePromptV2868103" data-prompt="${seq}" data-kind="wild"><h3>${title}</h3><p>${discipleEscV2815(enemy?.name||'妖兽')}挡在路前。你的气血 ${Math.floor(player.hp)} / ${getMaxHp()}${lowHealth?'，不足一半':''}。${preparation}战败会损失身上灵石的20%，且仅保留1点气血。</p><button class="choice-btn" onclick="showTaskSuppliesV2868103()">💧 先去补给</button><button class="choice-btn" onclick="confirmWildContactV2868114(${seq})">仍要出战</button></section>`,[{text:'暂且避开',action:'return_to_map'}]);
+      if(firstOrdinary){read.push('first_wild_contact');autoSave();}
       document.getElementById('storyText').scrollTop=0;
       document.querySelector('#taskBattlePromptV2868103 button')?.focus();
       return true;
     }
     function confirmWildContactV2868114(seq){
       const p=wildContactPromptV2868114,m=p?.monster;
-      if(!p||p.seq!==seq||p.owner!==player||document.getElementById('taskBattlePromptV2868103')?.dataset.prompt!==String(seq)||gameState!=='exploring'||COMBAT_FINISH_V2764.settling||player.breakthrough?.isAnimating)return false;
+      if(!p||p.seq!==seq||p.owner!==player||document.getElementById('storyPanel')?.classList.contains('hidden')||document.getElementById('taskBattlePromptV2868103')?.dataset.prompt!==String(seq)||gameState!=='exploring'||COMBAT_FINISH_V2764.settling||player.breakthrough?.isAnimating)return false;
       wildContactPromptV2868114=null;
       if(!m.alive||m.inCombat||!FLAT_WORLD.monsters.includes(m)||m.regionId!==(currentRegion||getPlayerRegion())){closeWorldOverlay();showFloatingText('妖兽已经离开。','#e5cf87');return false;}
       closeWorldOverlay();
@@ -7415,8 +7456,26 @@
       if(visualResult){visualResult.actualHeal=amount;visualResult.actualMpRestore=actualMpRestore;visualResult.emergency=!!skill.emergencyHeal&&before<=max*.25;}
       return amount; // Presentation metadata only; healing was already committed above.
     }
-    function swordAfterHitV2785(skill,actualLoss) {
+    function takeSwordOpeningV2868124() {
+      const tactics=tacticsV286821.get(currentEnemy);
+      if(tactics?.owner!==player || !tactics.swordOpening)return false;
+      tactics.swordOpening=false;
+      return true;
+    }
+    function swordAfterHitV2785(skill,actualLoss,hadOpening=false) {
       if(skill.element!=='sword')return;
+      if(actualLoss>0 && currentEnemy?.hp>0 && canFleeV286818()){
+        if(skill.name==='清风剑诀'){
+          const tactics=tacticsV286821.get(currentEnemy);
+          if(tactics?.owner===player){
+            tactics.swordOpening=true;
+            addCombatLog('清风起势：下一次行动接御剑术，命中即可回锋护体。','pet');
+          }
+        }else if(hadOpening && skill.name==='御剑术'){
+          addCombatLog('御剑回锋：剑势回转，护住身前。','heal');
+          applyGuardV2785({name:'御剑回锋',guardRatio:.3});
+        }
+      }
       if(skill.lifeSteal){
         const heal=Math.max(0,Math.min(getMaxHp()-player.hp,Math.floor(actualLoss*skill.lifeSteal),Math.floor(getMaxHp()*.15)));
         player.hp+=heal;notifySwordVfxV286887('heal',{name:skill.name,actualHeal:heal});showDamageNumber(heal,'player',true,false,false,false,skill.name+'·吸血');
@@ -7462,6 +7521,7 @@
         const usable=typeof getCombatSkillAvailabilityV2769==='function'?getCombatSkillAvailabilityV2769(skillIndex):{ok:false,reason:'技能配置尚未就绪'};
         if(!usable.ok){showFloatingText?.(usable.reason,'#ffd76a');updateCombatChoices?.();return;}
       }
+      const hadSwordOpening=['attack','skill','flee','escapeScroll'].includes(action) && takeSwordOpeningV2868124();
       if(currentEnemy._warV2839)currentEnemy._warV2839.awaitingAction=true;
       if(playerPressureStun && Math.random()<getControlResistanceV286849()){playerPressureStun=false;addCombatLog('护持稳神，抵抗本次威压控制。','heal');}
       if(playerPressureStun && action !== 'flee' && action !== 'escapeScroll'){
@@ -7603,7 +7663,7 @@
           const beforeHitV2882=currentEnemy.hp;
           damage=dealEnemyDamageV2882(currentEnemy,damage,isCrit,'direct',skill.name);
           const actualLossV2785=beforeHitV2882-currentEnemy.hp;
-          swordAfterHitV2785(skill,actualLossV2785);
+          swordAfterHitV2785(skill,actualLossV2785,hadSwordOpening);
           showDamageNumber(damage, 'enemy', false, isCrit, false, false, skill.name,skill.mpCost);
           playHitEffect('enemy');
           if (!skill.silent) playSound('hit');
@@ -9073,6 +9133,15 @@
     function useItem(itemName) {
       if(!player||gameState==='combat')return showFloatingText?.('战斗结束后才能使用储物袋物品','#ffd76a');
       if(!player.inventory.includes(itemName))return showFloatingText?.('储物袋中没有该物品','#ffd76a');
+      if(itemName===FIELD_KIT_V2868124){
+        if(gameState!=='exploring')return false;
+        if(player.inventory.length>=100000)return showFloatingText('拆囊需要一个空位。','#ffd76a');
+        removeItem(itemName);
+        player.inventory.push('小还丹','聚灵丹');
+        renderMobileInventory();
+        showFloatingText('已拆回小还丹、聚灵丹各一枚。','#69f0ae');
+        return true;
+      }
       const now=performance.now();if(now-lastItemUseV2768<350)return;
       const def=ITEMS[itemName];
       if(def?.type==='breakthrough')return showFloatingText?.('请在修为圆满后的闭关突破预览中选用，此处不消耗','#ffd76a');
@@ -9110,6 +9179,18 @@
     function removeItem(itemName) {
       const idx = player.inventory.indexOf(itemName);
       if (idx > -1) player.inventory.splice(idx, 1);
+    }
+
+    function packFieldKitV2868124(){
+      if(gameState!=='exploring')return false;
+      const bag=player.inventory;
+      if(bag.includes(FIELD_KIT_V2868124)||!bag.includes('小还丹')||!bag.includes('聚灵丹'))return false;
+      removeItem('小还丹');
+      removeItem('聚灵丹');
+      bag.push(FIELD_KIT_V2868124);
+      renderMobileInventory();
+      showFloatingText('行药囊已备好，可在战斗背包中服用。','#69f0ae');
+      return true;
     }
     
     // ================== 炼丹系统 ==================
@@ -12736,7 +12817,7 @@ function villageEnhanceV286897(){
       const bucket={};
       (player?.inventory||[]).forEach(name=>{
         const item=ITEMS?.[name]; if(!item)return;
-        if(['heal','mp'].includes(item.type))return;
+        if(['heal','mp','fieldKit'].includes(item.type))return;
         bucket[name]=(bucket[name]||0)+1;
       });
       return Object.entries(bucket).map(([name,count])=>({name,count,...ITEMS[name]}));
@@ -12806,11 +12887,12 @@ function villageEnhanceV286897(){
       (player?.inventory || []).forEach(name => {
         const item = ITEMS?.[name];
         if (!item) return;
-        if (item.type !== 'heal' && item.type !== 'mp') return;
+        if (!['heal','mp','fieldKit'].includes(item.type)) return;
         bucket[name] = (bucket[name] || 0) + 1;
       });
+      const order={fieldKit:0,heal:1,mp:2};
       return Object.entries(bucket).map(([name, count]) => ({ name, count, ...ITEMS[name] }))
-        .sort((a, b) => (a.type === b.type ? a.value - b.value : (a.type === 'heal' ? -1 : 1)));
+        .sort((a,b)=>order[a.type]-order[b.type] || a.value-b.value);
     }
 
     let combatBagState = { open: false, tab: 'all' };
@@ -12819,6 +12901,8 @@ function villageEnhanceV286897(){
       if (typeof force === 'boolean') combatBagState.open = force;
       else combatBagState.open = !combatBagState.open;
       renderCombatMedicineDrawer();
+      const target=combatBagState.open?'combatItemDrawer':'combatChoices';
+      document.getElementById(target)?.scrollIntoView?.({block:'start',behavior:'instant'});
     }
 
     function setCombatMedicineTab(tab) {
@@ -12838,8 +12922,12 @@ function villageEnhanceV286897(){
       if(!combatBagState.open)return;
       let rows='';
       if(tab==='all'||tab==='heal'||tab==='mp'){
-        const list=pills.filter(it=>tab==='all'||it.type===tab);
-        rows=list.length?list.map(it=>{const ready=combatMedicineAvailabilityV2856(it.name),esc=skillTextEscapeV212;return `<button type="button" class="combat-item-btn xt-item-cell" ${ready.ok?'':'disabled'} onclick="useCombatBagItem(${esc(JSON.stringify(it.name))})"><span><span class="xt-cell-icon" aria-hidden="true">${it.type==='heal'?'💊':'🔹'}</span> ${esc(it.name)}<span class="count">×${it.count}</span></span><span class="meta">${ready.ok?`实际恢复 ${ready.gain} 点${it.type==='heal'?'气血':'灵力'}${ready.curesMeridians?' · 清除经脉暗伤':''}`:esc(ready.reason)}${ready.ok&&ready.waste>0?` · 超出上限 ${ready.waste} 点`:''}<br>${esc(it.desc||'')}<br>使用消耗一个回合</span></button>`}).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无丹药<span class="meta">去商铺或 NPC 处补给</span></button>`;
+        const list=pills.filter(it=>tab==='all'||it.type===tab||it.type==='fieldKit');
+        rows=list.length?list.map(it=>{
+          const ready=combatMedicineAvailabilityV2856(it.name),esc=skillTextEscapeV212;
+          const icon=it.icon||(it.type==='heal'?'💊':'🔹');
+          return `<button type="button" class="combat-item-btn xt-item-cell" ${ready.ok?'':'disabled'} onclick="useCombatBagItem(${esc(JSON.stringify(it.name))})"><span><span class="xt-cell-icon" aria-hidden="true">${esc(icon)}</span> ${esc(it.name)}<span class="count">×${it.count}</span></span><span class="meta">${ready.ok?ready.summary:esc(ready.reason)}${ready.ok&&ready.waste>0?` · 超出上限 ${ready.waste} 点`:''}<br>${esc(it.desc||'')}<br>使用消耗一个回合</span></button>`;
+        }).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无丹药<span class="meta">去商铺或 NPC 处补给</span></button>`;
       }else{
         const list=extras.filter(it=>tab==='equip'?['weapon','armor'].includes(it.type):!['weapon','armor'].includes(it.type));
         rows=list.length?list.map(it=>`<button type="button" class="combat-item-btn xt-item-cell combat-readonly" disabled><span><span class="xt-cell-icon" aria-hidden="true">${['weapon','armor'].includes(it.type)?(it.type==='weapon'?'⚔️':'🛡️'):'🎐'}</span> ${it.name}<span class="count">x${it.count}</span></span><span class="meta">${it.desc||'背包道具'}<br>${tab==='equip'?'战斗中可查看，脱战后再正式换装':'当前战斗仅查看，不会误用'}</span></button>`).join(''):`<button class="combat-item-btn disabled" disabled>当前分类暂无物品<span class="meta">获得后会自动显示在这里</span></button>`;
@@ -12854,33 +12942,36 @@ function villageEnhanceV286897(){
 
     function combatMedicineAvailabilityV2856(itemName) {
       const item=ITEMS?.[itemName],index=(player?.inventory||[]).indexOf(itemName);
-      if(index<0||!item||!['heal','mp'].includes(item.type))return {ok:false,reason:'当前没有此补给',gain:0};
-      const maximum=item.type==='heal'?getMaxHp():getMaxMp(),current=item.type==='heal'?player.hp:player.mp;
-      const value=Number(item.value),gain=Math.max(0,Math.min(value,maximum-current));
+      if(index<0||!item||!['heal','mp','fieldKit'].includes(item.type))return {ok:false,reason:'当前没有此补给',gain:0};
+      const kit=item.type==='fieldKit';
+      const hpDose=kit?ITEMS['小还丹'].value:item.type==='heal'?item.value:0;
+      const mpDose=kit?ITEMS['聚灵丹'].value:item.type==='mp'?item.value:0;
+      const hpGain=hpDose?Math.max(0,Math.min(hpDose,getMaxHp()-player.hp)):0;
+      const mpGain=mpDose?Math.max(0,Math.min(mpDose,getMaxMp()-player.mp)):0;
+      const value=hpDose+mpDose,gain=hpGain+mpGain;
       if(!Number.isFinite(value)||value<=0||!Number.isFinite(gain))return {ok:false,reason:'补给数据无效',gain:0};
-      if(gameState!=='combat'||!currentEnemy||currentEnemy.hp<=0||COMBAT_FINISH_V2764.settling)return {ok:false,reason:'当前不在可行动的战斗中',gain};
-      if(!isPlayerTurn)return {ok:false,reason:'等待行动结算',gain};
+      if(gameState!=='combat'||!currentEnemy||currentEnemy.hp<=0||player.hp<=0||COMBAT_FINISH_V2764.settling)return {ok:false,reason:'当前不在可行动的战斗中',gain};
+      if(!isPlayerTurn||player.petCapture?.isCapturing)return {ok:false,reason:'等待行动结算',gain};
       const curesMeridians=itemName==='玄玉护脉丹'&&hasStatusEffect('jingmai');
-      if(gain<=0&&!curesMeridians)return {ok:false,reason:item.type==='heal'?'气血已满，无需服用':'灵力已满，无需服用',gain:0};
-      return {ok:true,item,index,gain,waste:Math.max(0,value-gain),curesMeridians};
+      const vital=kit?'气血与灵力':item.type==='heal'?'气血':'灵力';
+      if(gain<=0&&!curesMeridians)return {ok:false,reason:vital+'已满，无需服用',gain:0};
+      const amount=kit?`${hpGain} 点气血、${mpGain} 点灵力`:`${gain} 点${vital}`;
+      const summary='实际恢复 '+amount+(curesMeridians?' · 清除经脉暗伤':'');
+      return {ok:true,item,index,hpGain,mpGain,gain,summary,waste:value-gain,curesMeridians};
     }
 
     function useCombatBagItem(itemName) {
       const ready=combatMedicineAvailabilityV2856(itemName);
       if(!ready.ok){showFloatingText?.(ready.reason,'#ffd76a');renderCombatMedicineDrawer();return;}
-      const {item,index,gain,curesMeridians}=ready;
+      const {index,hpGain,mpGain,curesMeridians}=ready;
+      takeSwordOpeningV2868124();
       isPlayerTurn=false;
       player.inventory.splice(index,1);
-      if(item.type==='heal'){
-        player.hp=Math.min(getMaxHp(),player.hp+gain);
-        if(curesMeridians)removeStatusEffect('jingmai');
-        showDamageNumber(gain,'player',true,false,false,false,itemName);
-        playSound('heal');
-      }else{
-        player.mp=Math.min(getMaxMp(),player.mp+gain);
-        playSound('heal');
-      }
-      addCombatLog(`使用${itemName}，实际恢复 ${gain} 点${item.type==='heal'?'气血':'灵力'}${curesMeridians?'，经脉暗伤已痊愈':''}。`,'heal');
+      if(hpGain){player.hp+=hpGain;showDamageNumber(hpGain,'player',true,false,false,false,itemName);}
+      if(mpGain)player.mp+=mpGain;
+      if(curesMeridians)removeStatusEffect('jingmai');
+      playSound('heal');
+      addCombatLog(`使用${itemName}，${ready.summary}。`,'heal');
       updateCombatUI();updateCombatChoices();renderCombatMedicineDrawer();updateStats?.();
       battleLaterV2838(()=>enemyTurn(),500);
     }
@@ -13421,6 +13512,7 @@ function villageEnhanceV286897(){
       if(player) player.worldMapId=regionId;
       FLAT_WORLD.width=cfg.width; FLAT_WORLD.height=cfg.height;
       FLAT_WORLD.pois=buildWorldMapPois(regionId);
+      resetMapNpcWalkV1();
       FLAT_WORLD.player.x=cfg.spawn.x; FLAT_WORLD.player.y=cfg.spawn.y;
       FLAT_WORLD.camera.x=0; FLAT_WORLD.camera.y=0;
       FLAT_WORLD.target=null; FLAT_WORLD.keys={}; FLAT_WORLD.nearby=null;
@@ -13803,6 +13895,7 @@ function villageEnhanceV286897(){
     }
 
     function updateWorldMonsters(dt) {
+      clearMonsterWalkFramesV1();
       const introduction=typeof firstJourneyV28687==='function'?firstJourneyV28687():null;
       if(introduction&&!introduction.paused&&introduction.step<4)return;
       const warSceneV2840=typeof WAR_MAP_V2840!=='undefined'?WAR_MAP_V2840.scene:null;
@@ -13810,22 +13903,17 @@ function villageEnhanceV286897(){
       for (const monster of FLAT_WORLD.monsters) {
         if (!monster.alive || monster.inCombat) continue;
         if (monster.battleCooldown > 0) monster.battleCooldown = Math.max(0, monster.battleCooldown - dt);
-        monster.dirTimer -= dt;
-        if (monster.dirTimer <= 0) {
-          const dx = Math.random() - 0.5, dy = Math.random() - 0.5;
-          const len = Math.hypot(dx, dy) || 1;
-          monster.dir.x = dx / len;
-          monster.dir.y = dy / len;
-          monster.dirTimer = 2 + Math.random() * 4;
-        }
-
-        const nextX = monster.x + monster.dir.x * monster.speed * dt;
-        const nextY = monster.y + monster.dir.y * monster.speed * dt;
+        const walk=monsterWalkStateV1(monster);
+        // The cooldown clock/contact rules remain below; the actor waits instead of closing in.
+        if(monster.battleCooldown>0||!advanceMonsterRoamV1(monster,walk,dt))continue;
+        walk.from.x=monster.x;walk.from.y=monster.y;
+        const nextX = monster.x + monster.dir.x * monster.speed * walk.profile.speed * dt;
+        const nextY = monster.y + monster.dir.y * monster.speed * walk.profile.speed * dt;
         const rb = getRegionInfo(monster.regionId || currentRegion || getPlayerRegion()).bounds;
         const minX=rb.xMin+30,maxX=rb.xMax-30,minY=rb.yMin+30,maxY=rb.yMax-30;
         let candidateX = Math.max(minX, Math.min(maxX, nextX));
         let candidateY = Math.max(minY, Math.min(maxY, nextY));
-        const resolvedMonsterPos = resolveWorldCollisionForActor(monster.x, monster.y, candidateX, candidateY, monster.radius || 18, c => c.type !== 'tree' || Math.random() > 0.03);
+        const resolvedMonsterPos = resolveWorldCollisionForActor(monster.x, monster.y, candidateX, candidateY, monster.radius || 18);
         if (Math.abs(resolvedMonsterPos.x - candidateX) > 0.6) monster.dir.x *= -1;
         if (Math.abs(resolvedMonsterPos.y - candidateY) > 0.6) monster.dir.y *= -1;
         monster.x = Math.max(minX, Math.min(maxX, resolvedMonsterPos.x));
@@ -13842,6 +13930,13 @@ function villageEnhanceV286897(){
           monster.x += monster.dir.x * 28 * dt;
           monster.y += monster.dir.y * 28 * dt;
         }
+        // Validate the complete step including POI repulsion, so it cannot push through a wall.
+        if(!monsterWalkStepClearV1(monster,walk,minX,maxX,minY,maxY)){
+          monster.x=walk.from.x;monster.y=walk.from.y;
+          turnMonsterHomeV1(monster,walk);
+          walk.pause=2+monsterWalkRandomV1(walk)*4;walk.alertAt=0;
+        }
+        recordMonsterStepV1(monster,walk);
       }
 
       if (!isWorldOverlayOpen() && gameState !== 'combat') {
@@ -14033,6 +14128,8 @@ function villageEnhanceV286897(){
         if (tag==='INPUT' || tag==='TEXTAREA') return;
         const k=e.key.toLowerCase();
         if (['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)) { FLAT_WORLD.keys[k]=true; FLAT_WORLD.target=null; e.preventDefault(); }
+        // Space activates the focused HUD control through its native click.
+        if (k===' ' && e.target.closest?.('button, summary, [role="button"]')) return;
         if ((k==='e' || k===' ') && !isWorldOverlayOpen()) { interactFlatWorld(); e.preventDefault(); }
         if (k==='escape' && isWorldOverlayOpen()) closeWorldOverlay();
       });
@@ -14135,6 +14232,7 @@ function villageEnhanceV286897(){
       stopNavigationV2830();
       FLAT_WORLD.keys={};FLAT_WORLD.target=null;FLAT_WORLD.tapTargetFx=null;
       FLAT_WORLD.moving=false;FLAT_WORLD.moveDirX=0;FLAT_WORLD.moveDirY=0;
+      document.body.classList.toggle('world-walking',false);
       window.dispatchEvent(new CustomEvent('xiantu-movement-reset'));
     }
     window.addEventListener('blur',resetWorldMovementV28686);
@@ -14192,6 +14290,8 @@ function villageEnhanceV286897(){
     }
 
     function closeWorldOverlay() {
+      // Only combat settlement may release the opponent and the pre-battle checkpoint.
+      if(gameState==='combat'||gameState==='combat-ending')return;
       alchemyStageStopV2868110();
       if(typeof mapFxCancelV2868104==='function')mapFxCancelV2868104();
       taskBattlePromptV2868103=null;
@@ -14212,6 +14312,12 @@ function villageEnhanceV286897(){
       FLAT_WORLD.raf=null;
       if(document.hidden){PERF_CONFIG.fpsFrames=0;PERF_CONFIG.fpsStartedAt=t;PERF_CONFIG.measuredFps=0;return;}
       if(isWorldOverlayOpen() || !document.body.classList.contains('flat-world-active')) {
+        document.body.classList.toggle('world-walking',false);
+        // Paint one standing pose before freezing the map behind a panel, not a raised foot.
+        if(mapNpcWalkV1?.renderMoving){
+          mapNpcWalkV1.renderMoving=false;
+          if(document.body.classList.contains('flat-world-active'))drawFlatWorld(t,0);
+        }
         if(typeof mapFxFrameV2868104==='function')mapFxFrameV2868104(t);
         if(typeof interiorV286886!=='undefined'&&interiorV286886?.hallDestination)resetWorldMovementV28686();
         PERF_CONFIG.fpsFrames=0;PERF_CONFIG.fpsStartedAt=t;PERF_CONFIG.measuredFps=0;
@@ -14225,7 +14331,8 @@ function villageEnhanceV286897(){
         return;
       }
       if (PERF_CONFIG.mobile) FLAT_WORLD._lastMobileFrame=t;
-      const elapsed=Math.max(0,Math.min(34,t-FLAT_WORLD.lastTime));
+      // Catch up ordinary slow frames, but bound the work after a long foreground stall.
+      const elapsed=Math.max(0,Math.min(100,t-FLAT_WORLD.lastTime));
       const dt=elapsed/1000;
       FLAT_WORLD.lastTime=t;
       PERF_CONFIG.fpsFrames++;
@@ -14238,7 +14345,13 @@ function villageEnhanceV286897(){
         // 战斗/剧情/角色面板打开时冻结地图在最后一帧，避免 iPhone 后台仍以 60FPS 重绘。
         const overlayOpen=isWorldOverlayOpen();
         if(!overlayOpen){
-          updateFlatWorld(dt);
+          // Keep the original maximum collision/encounter step and draw only once.
+          const steps=Math.max(1,Math.ceil(elapsed/34));
+          for(let i=0;i<steps;i++){
+            if(i>0&&(gameState!=='exploring'||isWorldOverlayOpen()))break;
+            updateFlatWorld(dt/steps);
+          }
+          document.body.classList.toggle('world-walking',FLAT_WORLD.moving && gameState==='exploring' && (typeof interiorV286886==='undefined'||!interiorV286886));
           drawFlatWorld(t,dt);
           if(typeof mapFxFrameV2868104==='function')mapFxFrameV2868104(t);
           if(AVATAR3D.ready && t-PERF_CONFIG.last3DDraw>=PERF_CONFIG.avatar3DInterval){
@@ -14297,6 +14410,127 @@ function villageEnhanceV286897(){
       const length=Math.hypot(x,y)||1;return {x:x/length,y:y/length};
     }
 
+    // Runtime POIs are rebuilt on entry/load. Never put movement state on player.mapNpc.
+    // Bounds are small home-relative patches on the painted forecourts/banks (world pixels),
+    // in addition to the shared colliders: the scenery also contains uncollided water/cliffs.
+    const MAP_NPC_WALK_V1={
+      south:{id:'mentor_npc',radius:75,speed:12,seed:41833,bounds:[-65,-30,5,10]},
+      east:{id:'beast_npc',radius:80,speed:15,seed:92717,bounds:[0,0,40,70],bankSlope:.5},
+      north:{id:'elder_npc',radius:80,speed:9,seed:16381,bounds:[0,-15,75,5]},
+      west:{id:'trader_npc',radius:85,speed:13,seed:63853,bounds:[0,-55,75,0]}
+    };
+    let mapNpcWalkV1=null;
+    function mapNpcWalkRandomV1(s){s.seed=(Math.imul(s.seed,1664525)+1013904223)>>>0;return s.seed/4294967296;}
+    function resetMapNpcWalkV1(){
+      const old=mapNpcWalkV1;
+      if(old&&FLAT_WORLD.pois.includes(old.poi)){old.poi.x=old.homeX;old.poi.y=old.homeY;}
+      mapNpcWalkV1=null;
+      const profile=MAP_NPC_WALK_V1[currentRegion];if(!profile||!player)return;
+      const poi=FLAT_WORLD.pois.find(o=>o.id===profile.id&&o.region===currentRegion);if(!poi)return;
+      const s=mapNpcWalkV1={owner:player,region:currentRegion,poi,profile,homeX:poi.x,homeY:poi.y,
+        target:{x:poi.x,y:poi.y},probe:{x:poi.x,y:poi.y},seed:profile.seed,pause:0,walking:false,phase:0,dir:0,stepping:false,renderMoving:false};
+      s.pause=2+mapNpcWalkRandomV1(s)*4;
+    }
+    function mapNpcWalkClearV1(s,x,y){
+      const dx=x-s.homeX,dy=y-s.homeY,b=s.profile.bounds;
+      if(x<30||y<30||x>FLAT_WORLD.width-30||y>FLAT_WORLD.height-30||
+        dx<b[0]||dx>b[2]||dy<b[1]||dy>b[3]||Math.hypot(dx,dy)>s.profile.radius||
+        (s.profile.bankSlope&&dx<dy*s.profile.bankSlope))return false;
+      const to=s.probe;to.x=x;to.y=y;
+      // Sweep the entire step/route, so narrow obstacles cannot be skipped between frames.
+      for(const c of FLAT_WORLD.colliders)if(worldDistanceSegmentV2827(c.x,c.y,s.poi,to)<c.radius+16)return false;
+      for(const p of FLAT_WORLD.pois)if(p!==s.poi&&worldDistanceSegmentV2827(p.x,p.y,s.poi,to)<(p.r||0)+28)return false;
+      return true;
+    }
+    function updateMapNpcWalkV1(dt){
+      if(mapNpcWalkV1&&(mapNpcWalkV1.owner!==player||mapNpcWalkV1.region!==currentRegion))resetMapNpcWalkV1();
+      const s=mapNpcWalkV1;
+      if(s)s.stepping=false;
+      if(!s||!canMapNpcActV2864()||document.hidden||isWorldOverlayOpen()||
+        (typeof interiorV286886!=='undefined'&&interiorV286886)||!Number.isFinite(dt)||dt<=0)return;
+      // Keep the clicked destination still while the player follows its existing route to talk.
+      if(autoNavigationV2830?.poi===s.poi||autoNavigationV2830?.goal===s.poi.id)return;
+      dt=Math.min(dt,.1);
+      if(!s.walking){
+        s.pause-=dt;if(s.pause>0)return;
+        const b=s.profile.bounds;
+        for(let attempt=0;attempt<12;attempt++){
+          const x=s.homeX+b[0]+mapNpcWalkRandomV1(s)*(b[2]-b[0]),y=s.homeY+b[1]+mapNpcWalkRandomV1(s)*(b[3]-b[1]);
+          if(Math.hypot(x-s.poi.x,y-s.poi.y)<18||!mapNpcWalkClearV1(s,x,y))continue;
+          s.target.x=x;s.target.y=y;s.walking=true;break;
+        }
+        if(!s.walking)s.pause=2+mapNpcWalkRandomV1(s)*4;
+        return;
+      }
+      const dx=s.target.x-s.poi.x,dy=s.target.y-s.poi.y,d=Math.hypot(dx,dy),step=Math.min(d,s.profile.speed*dt);
+      const x=d?s.poi.x+dx/d*step:s.poi.x,y=d?s.poi.y+dy/d*step:s.poi.y;
+      if(!mapNpcWalkClearV1(s,x,y)){s.walking=false;s.phase=0;s.pause=2+mapNpcWalkRandomV1(s)*4;return;}
+      s.poi.x=x;s.poi.y=y;s.phase=(s.phase+step*.14)%(Math.PI*2);
+      if(step>0){s.stepping=true;s.dir=(Math.round(Math.atan2(dx,dy)/(Math.PI/4))+8)%8;}
+      if(d<=step){s.walking=false;s.phase=0;s.pause=2+mapNpcWalkRandomV1(s)*4;}
+    }
+
+    // NPC presentation only. The existing home/radius/speed/seed/dwell simulation above is unchanged.
+    // Same 4x3 layout/cycle as enemies, at double resolution for the existing 1.35x NPC draw scale.
+    const MAP_NPC_GAITS_V2={
+      mentor_npc:{key:'mentor',bob:.55,sway:.010,shadow:26},
+      beast_npc:{key:'beast',bob:.8,sway:.018,shadow:21},
+      elder_npc:{key:'elder',bob:.35,sway:.006,shadow:25},
+      trader_npc:{key:'trader',bob:.5,sway:.016,shadow:25}
+    };
+    const MAP_NPC_WALK_CYCLE_V2=[1,2,3,2],MAP_NPC_WALK_KEYS_V2=['mentor','beast','elder','trader'],MAP_NPC_WALK_IMAGES_V2=new Map();
+    function mapNpcWalkFramesV2(key){
+      if(!MAP_NPC_WALK_KEYS_V2.includes(key))return null;
+      const cached=MAP_NPC_WALK_IMAGES_V2.get(key),limit=PERF_CONFIG.mobile&&PERF_CONFIG.lowEnd?1:4;
+      if(MAP_NPC_WALK_IMAGES_V2.size>=(cached?limit+1:limit))trimMapNpcWalkImagesV2(key,cached?limit:limit-1);
+      if(cached)return cached.ready?cached.frames:null;
+      const image=new Image(),entry={image,frames:null,ready:false};image.decoding='async';
+      image.onload=()=>{
+        if(image.naturalWidth===1024&&image.naturalHeight===960){
+          // Cache tight tiles once: cropping the full atlas each draw is costly on software Canvas.
+          entry.frames=[];
+          for(let i=0;i<12;i++){const tile=document.createElement('canvas');tile.width=256;tile.height=320;tile.getContext('2d').drawImage(image,i%4*256,Math.floor(i/4)*320,256,320,0,0,256,320);entry.frames.push(tile);}
+          entry.ready=true;
+        }
+        image.onload=image.onerror=null;image.removeAttribute?.('src');entry.image=null;
+      };
+      image.onerror=()=>releaseMapNpcWalkEntryV2(entry);
+      MAP_NPC_WALK_IMAGES_V2.set(key,entry);image.src=`./art/npc/walk-v1/${key}.webp`;
+      return null; // Only these four keys can allocate; failed/pending requests are cached too.
+    }
+    function trimMapNpcWalkImagesV2(keep,limit){
+      for(const [key,e] of MAP_NPC_WALK_IMAGES_V2){
+        if(MAP_NPC_WALK_IMAGES_V2.size<=limit)break;
+        if(key!==keep){releaseMapNpcWalkEntryV2(e);MAP_NPC_WALK_IMAGES_V2.delete(key);}
+      }
+    }
+    function releaseMapNpcWalkEntryV2(e){
+      if(e.image){e.image.onload=e.image.onerror=null;e.image.removeAttribute?.('src');e.image=null;}
+      if(e.frames){for(const tile of e.frames)tile.width=tile.height=0;e.frames=null;}e.ready=false;
+    }
+    function releaseMapNpcWalkImagesV2(){
+      for(const e of MAP_NPC_WALK_IMAGES_V2.values())releaseMapNpcWalkEntryV2(e);
+      MAP_NPC_WALK_IMAGES_V2.clear();
+    }
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseMapNpcWalkImagesV2();});
+    window.addEventListener('pagehide',releaseMapNpcWalkImagesV2);
+    function mapNpcSteppingV2(s){
+      return !!(s&&s.owner===player&&s.region===currentRegion&&s.walking&&s.stepping&&
+        canMapNpcActV2864()&&!document.hidden&&!isWorldOverlayOpen()&&
+        !(typeof interiorV286886!=='undefined'&&interiorV286886)&&
+        autoNavigationV2830?.poi!==s.poi&&autoNavigationV2830?.goal!==s.poi.id);
+    }
+    function drawMapNpcWalkFrameV2(ctx,s,gait,moving){
+      const frames=mapNpcWalkFramesV2(gait.key);if(!frames)return false;
+      const row=s.dir===2||s.dir===6?1:s.dir>=3&&s.dir<=5?2:0;
+      const frame=moving?MAP_NPC_WALK_CYCLE_V2[Math.floor(s.phase/(Math.PI/2))]:0;
+      ctx.save();ctx.fillStyle='rgba(22,37,31,.25)';ctx.beginPath();ctx.ellipse(0,23,gait.shadow,7,0,0,Math.PI*2);ctx.fill();
+      if(s.dir>=5)ctx.scale(-1,1);
+      // Packed feet are y=296. A fixed 80x100 draw keeps every pose on the original y=24 anchor.
+      ctx.drawImage(frames[row*4+frame],-40,24-296*.3125+(moving?Math.sin(s.phase*2)*gait.bob:0),80,100);
+      ctx.restore();return true;
+    }
+
     function updateFlatWorld(dt) {
       if(typeof updateInteriorV286886==='function'&&updateInteriorV286886(dt))return;
       if(typeof syncWarMapV2840==='function')syncWarMapV2840();
@@ -14325,6 +14559,7 @@ function villageEnhanceV286897(){
 
       // 地图怪物随机游走、碰撞触发战斗与自动补充
       updateWorldMonsters(dt);
+      updateMapNpcWalkV1(dt);
 
       let near=null, nd=1e9;
       for(const p of FLAT_WORLD.pois){ const d=Math.hypot(FLAT_WORLD.player.x-p.x,FLAT_WORLD.player.y-p.y); if(d<p.r+62 && d<nd){near=p;nd=d;} }
@@ -14337,11 +14572,16 @@ function villageEnhanceV286897(){
       }
     }
 
-    function interactFlatWorld() {
+    function interactFlatWorld(skipSurvey=false) {
       if(typeof interiorInteractV286886==='function'&&interiorInteractV286886())return;
       if(!canMapNpcActV2864())return;
       const p=FLAT_WORLD.nearby; if(!p||!FLAT_WORLD.pois.includes(p)||Math.hypot(FLAT_WORLD.player.x-p.x,FLAT_WORLD.player.y-p.y)>p.r+62)return;
       playSound?.('click');
+      if(skipSurvey!==true&&p.id===surveyStopV2868124()?.id){
+        showStory(surveyCardV2868124(true),[{text:'返回地图',action:'return_to_map'}]);
+        bindSurveyV2868124();
+        return;
+      }
       if(typeof tryEnterInteriorV286886==='function'&&tryEnterInteriorV286886(p))return;
       if(p.action==='war_map_v2840'){openWarOrdersV2840();return;}
       if(p.action==='world_travel_menu') showWorldTravelMenu();
@@ -14762,6 +15002,9 @@ function villageEnhanceV286897(){
       return {left:a.x,right:b.x,top:a.y,bottom:b.y};
     }
     function tappedPoiV2904(x,y){
+      // The four walking actors remain selectable over broad panorama landmark bounds.
+      const walk=mapNpcWalkV1;
+      if(walk&&walk.owner===player&&walk.region===currentRegion){const b=mapPoiBoundsV286889(walk.poi);if(b&&x>=b.left&&x<=b.right&&y>=b.top&&y<=b.bottom)return walk.poi;}
       // Last painted (largest y) wins when roofs overlap, rather than choosing a hidden building centre.
       return [...FLAT_WORLD.pois].reverse().sort((a,b)=>b.y-a.y).find(o=>{const b=poiTapBoxV2904(o);return b&&x>=b.left&&x<=b.right&&y>=b.top&&y<=b.bottom;})||null;
     }
@@ -14841,13 +15084,89 @@ function villageEnhanceV286897(){
       if(p.action==='explore_v2828'&&(!exploredPointV2828(p.x,p.y)||explorationV2828().claimed[p.id]))return;
       explorationV2828();player.explorationV2828.marked={region:currentRegion||'south',id};autoSave();ensureExplorationButtonV2829();showFloatingText?.(`🧭 已标记 ${p.name}，按顶部方向寻找`,'#ffd76a');showExplorationJournalV2829();
     }
+    // The survey uses public landmarks, so a fully explored region can still be surveyed.
+    const FIELD_SURVEYS_V2868124={
+      south:{title:'泉水入村',stops:['rest','village'],trace:'泉眼旁的陶管内壁结着一圈白色水垢。',question:'村口有两根断管，哪根还连着灵泉？',options:['内壁有相同白垢的陶管','塞满干叶的竹管'],answer:0},
+      east:{title:'寻回走失的幼兽',stops:['pets','forest'],trace:'谷口软泥上的小爪印缺了左前爪的外趾。',question:'林边分出两道兽径，哪道通往幼兽藏身处？',options:['每枚足印都有四趾的兽径','左前足印少一趾的兽径'],answer:1},
+      north:{title:'校勘雪路旧碑',stops:['factions','mountain'],trace:'旧碑的雪路符号是两峰之间夹着一道横刻。',question:'风雪盖住了字迹，哪块路石仍指向旧道？',options:['双峰间有横刻的路石','单峰下有圆点的路石'],answer:0},
+      west:{title:'寻访失落的阵器',stops:['battlefield','artifacts'],trace:'断阵枢上留有三道等距的弧形卡痕。',question:'法宝台摆着两块阵盘，哪块能嵌回阵枢？',options:['带两根直榫的方盘','带三枚弧齿的圆盘'],answer:1},
+      human_peaks:{title:'追查误送的药箱',stops:['human_peaks_supply','human_peaks_guide'],trace:'驿站留下的封条上，朱印正中缺了一角。',question:'哪张山门收条出自同一枚印？',options:['朱印中间断开的收条','朱印边缘有缺口的收条'],answer:0},
+      human_valleys:{title:'寻访花谷药泉',stops:['human_valleys_rest','human_valleys_supply'],trace:'灵泉里的花粉入水后泛出淡紫色。',question:'药铺的两壶泉水，哪壶取自花谷？',options:['壶底沉着金砂的一壶','水面浮着淡紫花粉的一壶'],answer:1},
+      demon_domain:{title:'辨认界门暗号',stops:['travel_gate','demon_domain_guide'],trace:'界门柱上刻着两长一短的三道刀痕。',question:'哪支路签是运粮队留下的？',options:['两道长痕后接一道短痕','一道长痕后接两道短痕'],answer:0},
+      immortal_domain:{title:'追寻遗失的星图',stops:['immortal_domain_guide','immortal_domain_supply'],trace:'路引上的星图拓本有四颗星，最小的一颗画在圈外。',question:'驿站的两卷散图，哪卷与拓本相合？',options:['四星都在圈内的图卷','一颗小星在圈外的图卷'],answer:1}
+    };
+    function surveyStepV2868124(){
+      const step=player.explorationV2828?.maps?.[currentRegion]?.surveyStepV2868124;
+      return [1,2,3].includes(step)?step:0;
+    }
+    function surveyStopV2868124(){
+      const id=FIELD_SURVEYS_V2868124[currentRegion]?.stops[surveyStepV2868124()-1];
+      return id&&FLAT_WORLD.pois.find(p=>p.id===id);
+    }
+    function surveyNearV2868124(poi){
+      return !!poi&&poi.region===currentRegion&&Math.hypot(FLAT_WORLD.player.x-poi.x,FLAT_WORLD.player.y-poi.y)<=poi.r+62;
+    }
+    function surveyCardV2868124(atLandmark=false){
+      const route=FIELD_SURVEYS_V2868124[currentRegion];if(!route||(typeof interiorV286886!=='undefined'&&interiorV286886))return '';
+      const step=surveyStepV2868124(),button=(key,label)=>`<button type="button" class="choice-btn" data-survey="${key}">${label}</button>`;
+      const stop=surveyStopV2868124(),near=surveyNearV2868124(stop);
+      let body;
+      if(step===0){
+        const names=route.stops.map(id=>FLAT_WORLD.pois.find(p=>p.id===id)?.name);
+        body=`<p>${names.join(' → ')}。在第一站采下线索，到第二站辨迹。报酬为神行符一张。</p>${button('accept','接取勘察 · 标记第一站')}`;
+      }else if(step===3){
+        body='<p>已结案 · 神行符 ×1 已收入行囊。</p>';
+      }else if(stop){
+        body=`<p>第${step===1?'一':'二'}站 · ${stop.name} · ${explorationDirectionV2829(stop)}</p>`;
+        if(step===2)body+=`<p>手册拓记：${route.trace}</p>`;
+        if(!near)body+=button('travel','循迹前往 · '+stop.name);
+        else if(step===1)body+=button('record','查验现场 · 拓下线索');
+        else body+=`<p>${route.question}</p>`+route.options.map((label,i)=>button(String(i),label)).join('');
+        if(atLandmark)body+=button('visit','照常探访 · '+stop.name);
+      }else return '';
+      return `<article class="task-card" id="fieldSurveyV2868124"><h4>山河勘察 · ${route.title}</h4>${body}<p role="status" data-survey-notice></p></article>`;
+    }
+    function bindSurveyV2868124(){
+      const card=document.getElementById('fieldSurveyV2868124');if(!card)return;
+      const owner=player,region=currentRegion,step=surveyStepV2868124(),route=FIELD_SURVEYS_V2868124[region];
+      const notice=message=>{card.querySelector('[data-survey-notice]').textContent=message;};
+      for(const button of card.querySelectorAll('[data-survey]'))button.onclick=()=>{
+        if(player!==owner||currentRegion!==region||surveyStepV2868124()!==step||!canMapNpcActV2864()||(typeof interiorV286886!=='undefined'&&interiorV286886)||
+           document.getElementById('fieldSurveyV2868124')!==card||document.getElementById('storyPanel').classList.contains('hidden'))return;
+        const action=button.dataset.survey,stop=surveyStopV2868124();
+        if(action==='travel'){if(stop)startNavigationV2830(stop.id);return;}
+        if(step>0&&!surveyNearV2868124(stop))return;
+        if(action==='visit'){closeWorldOverlay();FLAT_WORLD.nearby=stop;interactFlatWorld(true);return;}
+        if(step===2&&['0','1'].includes(action)&&Number(action)!==route.answer){
+          notice('这处痕迹和第一站的拓记对不上。再读一遍手册，重新比对。');return;
+        }
+        if(!((step===0&&action==='accept')||(step===1&&action==='record')||(step===2&&action===String(route.answer))))return;
+        if(step===2&&player.inventory.length>=100000){notice('行囊已满，整理出一个空位后可回来领取神行符。');return;}
+        const map=explorationV2828(),all=player.explorationV2828,previous=map.surveyStepV2868124,oldMark=all.marked,bag=player.inventory;
+        map.surveyStepV2868124=step+1;
+        if(step<2)all.marked={region,id:route.stops[step]};
+        else{
+          player.inventory=[...bag,'神行符'];
+          if(oldMark?.region===region&&oldMark.id===stop.id)all.marked=null;
+        }
+        let saved=false;
+        try{saved=saveGame();}catch(_){}
+        if(!saved){
+          if(previous===undefined)delete map.surveyStepV2868124;else map.surveyStepV2868124=previous;
+          all.marked=oldMark;player.inventory=bag;notice('勘察记录未能保存，可在此重试。');return;
+        }
+        showExplorationJournalV2829();
+        showFloatingText(['已接取勘察 · 第一站已标记','线索已拓入手册 · 第二站已标记','两处痕迹相合 · 获得神行符 ×1'][step],'#ffd76a');
+      };
+    }
     function showExplorationJournalV2829(){
       if(!forgeAllowedV2825())return;revealExplorationV2828();const progress=explorationProgressV2829(),map=explorationV2828(),esc=discipleEscV2815,marked=markedExplorationV2829();
       const distance=p=>Math.hypot(p.x-FLAT_WORLD.player.x,p.y-FLAT_WORLD.player.y);
       const pending=progress.found.filter(p=>!map.claimed[p.id]).sort((a,b)=>distance(a)-distance(b));
       const services=FLAT_WORLD.pois.filter(p=>p.action==='rest'||p.buildingId==='spirit_spring'||p.id==='travel_gate'||p.action==='shop').sort((a,b)=>distance(a)-distance(b));
       const row=p=>`<article class="task-card"><strong><span class="xt-inline-glyph-v2868122">${exploreIconV2868122(p)}</span> ${esc(p.name)}</strong><p>${esc(explorationDirectionV2829(p))}</p><button class="choice-btn" onclick="markExplorationV2829('${p.id}')">${marked?.id===p.id?'已标记 · 更新指引':'标记方向'}</button><button class="choice-btn" onclick="startNavigationV2830('${p.id}')">自动前往</button>${p.action==='explore_v2828'&&distance(p)<p.r+62?`<button class="choice-btn" onclick="showExplorationV2828('${p.id}')">查看探索点</button>`:''}</article>`;
-      showStory(`<section class="main-overview-v2822"><h3>🧭 ${esc(getRegionInfo(currentRegion||'south').name)} · 探索手册</h3><p>地面探索 ${progress.percent}% · 地点发现 ${progress.found.length}/${progress.points.length} · 已领取 ${progress.claimed.length}/${progress.points.length}</p><progress value="${progress.percent}" max="100" aria-label="地图探索进度"></progress><p>可选择方向标记或自动前往。自动寻路绕开静态障碍，到附近停下；摇杆、键盘或点地图可接管，遭遇战会停止。未发现探索点不显示坐标。</p>${marked?`<p>当前标记：${esc(marked.name)} · ${esc(explorationDirectionV2829(marked))}</p><button class="choice-btn" onclick="markExplorationV2829(null)">清除标记</button>`:''}${autoNavigationV2830?`<button class="choice-btn" onclick="stopNavigationV2830();showExplorationJournalV2829()">停止自动寻路</button>`:""}${typeof roamingNoticeV286818==='function'?roamingNoticeV286818():''}<button class="choice-btn" onclick="showEliteBoardV2883()">四域凶煞 · 悬赏榜</button><h4>已发现 · 待领取</h4>${pending.length?pending.map(row).join(''):'<p>暂无待领取地点，继续探索周围区域吧。</p>'}<details><summary>补给与返回入口</summary>${services.map(row).join('')}</details><p>每处探索资源仅领取一次。切换地图后，仅显示当前地图的标记。</p></section>`,[{text:'返回地图',action:'return_to_map'}]);
+      showStory(`<section class="main-overview-v2822"><h3>🧭 ${esc(getRegionInfo(currentRegion||'south').name)} · 探索手册</h3><p>地面探索 ${progress.percent}% · 地点发现 ${progress.found.length}/${progress.points.length} · 已领取 ${progress.claimed.length}/${progress.points.length}</p><progress value="${progress.percent}" max="100" aria-label="地图探索进度"></progress><p>可选择方向标记或自动前往。自动寻路绕开静态障碍，到附近停下；摇杆、键盘或点地图可接管，遭遇战会停止。未发现探索点不显示坐标。</p>${marked?`<p>当前标记：${esc(marked.name)} · ${esc(explorationDirectionV2829(marked))}</p><button class="choice-btn" onclick="markExplorationV2829(null)">清除标记</button>`:''}${autoNavigationV2830?`<button class="choice-btn" onclick="stopNavigationV2830();showExplorationJournalV2829()">停止自动寻路</button>`:""}${surveyCardV2868124()}${typeof roamingNoticeV286818==='function'?roamingNoticeV286818():''}<button class="choice-btn" onclick="showEliteBoardV2883()">四域凶煞 · 悬赏榜</button><h4>已发现 · 待领取</h4>${pending.length?pending.map(row).join(''):'<p>暂无待领取地点，继续探索周围区域吧。</p>'}<details><summary>补给与返回入口</summary>${services.map(row).join('')}</details><p>每处探索资源仅领取一次。切换地图后，仅显示当前地图的标记。</p></section>`,[{text:'返回地图',action:'return_to_map'}]);
+      bindSurveyV2868124();
     }
 
     const SCROLL_ART_V2831={started:false,landscape:null,palace:null};
@@ -14881,7 +15200,67 @@ function villageEnhanceV286897(){
         artifacts:{plaque:[970,780],door:[810,760],bounds:[710,735,985,965],mask:[[730,780],[805,755],[900,730],[940,800],[920,880],[760,880]]},
         travel_gate:{door:[240,925],bounds:[170,775,280,925]}
       },rocks:[[445,395,47],[1200,190,70],[1030,245,30],[832,855,43],[825,310,60],[1100,580,55],[565,825,48]],
-      roads:[[480,510],[575,565],[695,610],[825,515],[970,435],[1100,350],[765,690],[810,760],[500,720],[420,830],[240,925],[365,640],[265,625]],links:[[0,1],[1,2],[2,3],[3,4],[4,5],[2,6],[6,7],[2,8],[8,9],[9,10],[2,11],[11,12]]}
+      roads:[[480,510],[575,565],[695,610],[825,515],[970,435],[1100,350],[765,690],[810,760],[500,720],[420,830],[240,925],[365,640],[265,625]],links:[[0,1],[1,2],[2,3],[3,4],[4,5],[2,6],[6,7],[2,8],[8,9],[9,10],[2,11],[11,12]]},
+      // Four faction maps share authored paintings; source-pixel entrances preserve the V28.06 POIs.
+      human_peaks:{file:'human-peaks-panorama-v2868124.webp',width:1484,height:1060,minimap:true,overview:true,actorScale:1,rooms:{
+        faction_zhandian:{"door":[324.625,203.167],"bounds":[201,45,435,220],"mask":[[211,105],[243,91],[268,83],[376,83],[402,105],[426,121],[411,139],[224,139]]},
+        faction_qingluan:{"door":[649.25,176.667],"bounds":[484,33,810,207],"mask":[[488,135],[533,112],[569,90],[612,69],[645,34],[682,73],[724,96],[775,117],[807,138],[790,157],[504,156]]},
+        faction_leiyin:{"door":[973.875,203.167],"bounds":[873,66,1111,235],"mask":[[881,132],[913,110],[942,79],[1026,79],[1058,113],[1095,132],[1108,146],[1088,165],[892,164]]},
+        faction_ziwei:{"door":[1224.3,388.667],"bounds":[1124,253,1380,424],"mask":[[1181,294],[1214,284],[1250,253],[1286,284],[1323,304],[1315,326],[1194,325]]},
+        faction_qinglian:{"door":[1224.3,697.833],"bounds":[1048,510,1389,721],"mask":[[1054,599],[1107,582],[1142,546],[1192,536],[1228,511],[1267,541],[1308,558],[1366,586],[1382,604],[1354,622],[1102,623]]},
+        faction_xuehun:{"door":[973.875,865.667],"bounds":[845,716,1097,904],"mask":[[850,775],[887,755],[897,728],[1005,727],[1040,749],[1085,778],[1091,794],[1070,812],[865,811]]},
+        faction_biyun:{"door":[649.25,865.667],"bounds":[486,719,783,901],"mask":[[501,763],[558,751],[587,731],[685,729],[711,750],[750,772],[737,787],[509,787]]},
+        faction_liuli:{"door":[324.625,750.833],"bounds":[184,588,501,770],"mask":[[185,680],[220,659],[251,647],[267,618],[322,611],[369,610],[398,639],[431,649],[451,671],[434,688],[260,694],[218,705],[187,701]]},
+        human_peaks_supply:{"door":[204.05,450.5],"bounds":[54,326,305,484],"mask":[[57,389],[91,367],[125,354],[154,329],[224,329],[258,365],[292,387],[279,405],[67,406]]},
+        human_peaks_rest:{"door":[426.65,574.167],"bounds":[329,491,550,595]},
+        human_peaks_guide:{"door":[742.0,530.0],"bounds":[605,424,867,584],"mask":[[641,474],[681,459],[702,437],[766,436],[793,459],[827,477],[856,489],[844,507],[656,505]]},
+        travel_gate:{"door":[157.675,936.333],"bounds":[80,851,237,962],"mask":[[87,877],[116,865],[180,862],[217,877],[232,892],[218,906],[95,906]]}
+      },bodies:[[248,136,387,168],[534,122,781,153],[915,147,1068,179],[1096,619,1360,650],[882,800,1055,831],[539,783,731,815],[711,819,759,848],[222,681,437,714],[95,406,148,438],[153,393,251,424],[259,405,289,435],[620,502,697,534],[790,503,840,536]],
+      rocks:[[1034,658,20],[1060,626,17],[433,533,20],[1249,344,13],[1205,370,6],[1297,370,6],[119,166,30],[469,209,30],[582,332,44],[571,366,34],[462,371,24],[476,506,26],[369,540,12],[389,541,13],[481,541,14],[506,558,12],[387,815,32],[841,846,27],[1101,867,25],[999,558,27],[1368,487,33],[1411,753,25],[131,928,9],[202,928,9],[880,1015,29]],
+      roads:[[157.675,936.333],[158,962],[240,975],[296.8,936.333],[309,871],[345,793],[324.625,750.833],[374,762],[460,745],[560,691],[671,644],[747,594],[742.0,530.0],[858,554],[984,480],[1090,438],[1248,425],[1224.3,388.667],[1118,404],[1093,348],[1048,277],[985,247],[973.875,203.167],[861,249],[739,218],[650,206],[649.25,176.667],[563,252],[455,295],[351,323],[337,265],[323,227],[324.625,203.167],[349,401],[303,465],[228,490],[204.05,450.5],[301,538],[340,584],[427,604],[426.65,574.167],[555,610],[460,919],[640,917],[649.25,865.667],[774,947],[930,929],[974,907],[973.875,865.667],[1115,912],[1153,870],[1171,777],[1225,737],[1224.3,697.833],[1094,727],[979,715],[875,681],[799,639]],links:[[0,1],[1,2],[2,3],[4,3],[5,4],[6,5],[6,7],[7,8],[8,9],[9,10],[10,11],[12,11],[11,13],[13,14],[14,15],[15,16],[17,16],[16,18],[18,19],[19,20],[20,21],[22,21],[21,23],[23,24],[24,25],[26,25],[25,27],[27,28],[28,29],[30,29],[31,30],[32,31],[29,33],[33,34],[34,35],[36,35],[35,37],[37,38],[38,39],[40,39],[39,41],[41,11],[3,42],[42,43],[44,43],[43,45],[45,46],[46,47],[48,47],[47,49],[49,50],[50,51],[51,52],[53,52],[52,54],[54,55],[55,56],[56,57],[57,11]]},
+      human_valleys:{file:'human-valleys-panorama-v2868124.webp',width:1484,height:1060,minimap:true,overview:true,actorScale:1,rooms:{
+        faction_jinbi:{"door":[324.625,203.167],"bounds":[160,56,454,236],"mask":[[169,137],[208,116],[249,112],[270,78],[286,59],[359,59],[379,95],[404,116],[438,119],[453,141],[431,155],[177,157]]},
+        faction_xingyue:{"door":[649.25,176.667],"bounds":[557,76,770,232],"mask":[[557,188],[566,148],[590,115],[626,90],[689,84],[731,112],[756,150],[766,194],[710,193],[706,155],[688,139],[671,136],[648,147],[627,164],[622,193]]},
+        faction_nishang:{"door":[973.875,203.167],"bounds":[855,69,1101,234],"mask":[[863,114],[900,105],[928,94],[971,70],[1003,98],[1054,113],[1082,117],[1097,141],[1072,157],[888,155]]},
+        faction_lianhua:{"door":[1224.3,388.667],"bounds":[1105,228,1415,412],"mask":[[1106,303],[1154,286],[1183,264],[1216,250],[1249,229],[1285,260],[1310,283],[1379,300],[1413,318],[1396,335],[1125,335]]},
+        faction_caifeng:{"door":[1224.3,697.833],"bounds":[1106,479,1416,714],"mask":[[1110,583],[1146,562],[1173,542],[1202,531],[1255,482],[1294,534],[1335,553],[1375,568],[1410,590],[1393,609],[1129,610]]},
+        faction_cuizhu:{"door":[973.875,865.667],"bounds":[854,744,1152,902],"mask":[[855,779],[891,766],[929,751],[1003,746],[1040,770],[1055,787],[1038,799],[872,799]]},
+        faction_panyu:{"door":[649.25,865.667],"bounds":[526,723,741,901],"mask":[[530,843],[542,804],[566,778],[602,756],[652,748],[689,765],[718,803],[737,844],[685,845],[671,813],[650,795],[623,791],[600,808],[588,843]]},
+        faction_zixia:{"door":[324.625,750.833],"bounds":[137,615,481,800],"mask":[[141,701],[175,679],[197,654],[239,642],[247,623],[285,623],[304,646],[345,633],[392,633],[410,656],[447,665],[457,694],[429,709],[354,699],[332,680],[274,681],[246,705],[155,719]]},
+        human_valleys_supply:{"door":[204.05,450.5],"bounds":[65,321,296,465],"mask":[[67,378],[112,352],[142,322],[223,323],[252,354],[288,374],[293,393],[273,409],[87,408]]},
+        human_valleys_rest:{"door":[426.65,574.167],"bounds":[328,500,558,600]},
+        human_valleys_guide:{"door":[742.0,530.0],"bounds":[546,390,880,564],"mask":[[550,452],[600,435],[643,424],[660,402],[758,397],[784,424],[826,439],[873,451],[860,474],[569,472]]},
+        travel_gate:{"door":[157.675,936.333],"bounds":[57,843,236,997],"mask":[[63,880],[106,862],[130,847],[182,853],[211,872],[232,890],[219,909],[75,910]]}
+      },bodies:[[207,143,425,174],[592,93,720,125],[894,144,1052,175],[1150,320,1372,350],[1141,601,1385,634],[883,800,1055,831],[1040,814,1125,845],[560,741,700,772],[184,692,283,723],[340,691,430,723],[110,401,168,433],[172,391,251,420],[254,402,285,434],[585,475,654,507],[663,474,806,505],[813,475,863,506]],
+      rocks:[[501,173,18],[504,209,16],[610,164,12],[716,174,12],[583,829,12],[699,836,12],[438,535,20],[1410,426,17],[580,159,21],[737,160,23],[563,805,19],[708,804,21],[109,939,10],[204,939,10],[373,545,14],[400,546,13],[479,547,15],[506,548,13],[495,348,24],[556,324,30],[604,312,26],[973,460,22],[1299,420,17],[1333,422,17],[1371,422,17],[764,737,20],[768,800,19],[902,628,19],[949,646,19],[595,1000,25],[1182,105,27]],
+      roads:[[157.675,936.333],[158,986],[257,979],[296.8,936.333],[278,895],[322,829],[324.625,750.833],[446,817],[485,752],[472,676],[456,622],[571,611],[718,578],[742.0,530.0],[860,558],[996,514],[1073,437],[1200,417],[1224.3,388.667],[1037,398],[998,337],[966,278],[974,238],[973.875,203.167],[831,292],[730,286],[666,237],[649.25,176.667],[574,251],[505,270],[421,263],[338,252],[324.625,203.167],[311,301],[285,358],[310,421],[307,462],[279,482],[260,463],[215,477],[204.05,450.5],[261,533],[307,587],[426,607],[426.65,574.167],[433,914],[592,916],[649.25,865.667],[723,934],[857,941],[978,916],[973.875,865.667],[1129,883],[1191,825],[1170,748],[1257,728],[1224.3,697.833],[1110,709],[961,711],[857,684],[792,628]],links:[[0,1],[1,2],[2,3],[4,3],[5,4],[6,5],[5,7],[7,8],[8,9],[9,10],[10,11],[11,12],[13,12],[12,14],[14,15],[15,16],[16,17],[18,17],[17,19],[19,20],[20,21],[21,22],[23,22],[22,24],[24,25],[25,26],[27,26],[26,28],[28,29],[29,30],[30,31],[32,31],[31,33],[33,34],[34,35],[35,36],[36,37],[37,38],[38,39],[40,39],[39,41],[41,42],[42,43],[44,43],[43,11],[3,45],[45,46],[47,46],[46,48],[48,49],[49,50],[51,50],[50,52],[52,53],[53,54],[54,55],[56,55],[55,57],[57,58],[58,59],[59,60],[60,12]]},
+      demon_domain:{file:'demon-domain-panorama-v2868124.webp',width:1484,height:1060,minimap:true,overview:true,actorScale:1,rooms:{
+        faction_tiancan:{"door":[324.625,203.167],"bounds":[199,18,449,211],"mask":[[207,76],[255,63],[294,44],[327,18],[359,48],[411,76],[441,98],[423,124],[218,124]]},
+        faction_huyan:{"door":[649.25,176.667],"bounds":[572,7,798,190],"mask":[[572,51],[615,35],[647,13],[679,7],[716,40],[758,59],[792,79],[775,111],[588,109]]},
+        faction_moba:{"door":[973.875,203.167],"bounds":[890,31,1119,214],"mask":[[890,83],[932,68],[971,51],[998,31],[1035,53],[1100,83],[1115,105],[1094,127],[907,125]]},
+        faction_zhanhun:{"door":[1224.3,388.667],"bounds":[1134,187,1452,389],"mask":[[1154,209],[1197,236],[1241,218],[1291,187],[1330,226],[1377,202],[1374,262],[1451,261],[1445,284],[1151,285]]},
+        faction_xianmo:{"door":[1224.3,697.833],"bounds":[1094,500,1394,703],"mask":[[1100,566],[1151,549],[1196,532],[1243,501],[1288,537],[1362,566],[1388,578],[1375,610],[1115,612]]},
+        demon_domain_supply:{"door":[204.05,450.5],"bounds":[97,342,288,465],"mask":[[101,376],[140,365],[182,342],[225,363],[266,373],[283,393],[267,415],[111,415]]},
+        demon_domain_rest:{"door":[426.65,574.167],"bounds":[331,504,552,593]},
+        demon_domain_guide:{"door":[742.0,530.0],"bounds":[606,411,856,534],"mask":[[610,447],[669,440],[699,422],[724,414],[749,434],[803,444],[850,449],[835,471],[630,471]]},
+        travel_gate:{"door":[157.675,936.333],"bounds":[67,771,254,937],"mask":[[71,791],[113,785],[151,771],[181,790],[218,791],[252,806],[237,830],[87,831]]},
+        yewuji_gate:{"door":[973.875,865.667],"bounds":[946,824,1091,905]}
+      },bodies:[[244,127,415,170],[602,111,755,147],[921,128,1085,171],[1190,289,1360,337],[1148,610,1353,650],[653,468,807,497],[124,409,168,442],[173,392,231,422],[239,408,271,440]],
+      rocks:[[120,867,9],[120,895,9],[211,867,9],[211,895,9],[451,540,14],[480,544,15],[385,544,12],[92,277,30],[399,302,32],[511,188,29],[1025,306,39],[1372,437,29],[1245,812,30],[768,648,35],[521,841,28],[1393,932,28],[752,1015,29]],
+      roads:[[157.675,936.333],[296.8,936.333],[369,890],[406,803],[461,761],[451,717],[514,654],[612,596],[714,558],[742.0,530.0],[837,517],[959,451],[1095,410],[1206,393],[1224.3,388.667],[1128,339],[1090,279],[998,231],[973.875,203.167],[878,257],[781,225],[691,200],[649.25,176.667],[588,241],[497,269],[403,249],[331,225],[324.625,203.167],[269,281],[236,333],[210,350],[295,384],[315,423],[307,470],[281,445],[226,472],[204.05,450.5],[283,529],[340,567],[429,604],[426.65,574.167],[542,593],[1224.3,697.833],[1238,719],[1149,655],[1042,590],[904,559],[1165,796],[1087,865],[973.875,865.667],[1006,917],[865,949],[683,938],[497,914]],links:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[9,8],[8,10],[10,11],[11,12],[12,13],[14,13],[13,15],[15,16],[16,17],[18,17],[17,19],[19,20],[20,21],[22,21],[21,23],[23,24],[24,25],[25,26],[27,26],[26,28],[28,29],[29,30],[30,31],[31,32],[32,33],[33,34],[34,35],[36,35],[35,37],[37,38],[38,39],[40,39],[39,41],[41,8],[42,43],[43,44],[44,45],[45,46],[46,8],[43,47],[47,48],[48,49],[49,50],[50,51],[51,52],[52,53],[53,2]]},
+      immortal_domain:{file:'immortal-domain-panorama-v2868124.webp',width:1484,height:1060,minimap:true,overview:true,actorScale:1,rooms:{
+        faction_yinyue:{"door":[324.625,203.167],"bounds":[190,28,435,216],"mask":[[199,105],[240,80],[274,70],[312,28],[335,75],[397,105],[433,118],[415,137],[206,132]]},
+        faction_huanyu:{"door":[649.25,176.667],"bounds":[535,6,820,192],"mask":[[536,60],[576,42],[605,36],[668,6],[711,34],[795,55],[817,88],[782,112],[558,109]]},
+        faction_taisui:{"door":[973.875,203.167],"bounds":[845,37,1105,209],"mask":[[865,72],[927,58],[970,37],[1027,58],[1081,79],[1060,103],[881,103]]},
+        faction_fengqi:{"door":[1224.3,388.667],"bounds":[1020,211,1373,411],"mask":[[1020,259],[1096,241],[1150,220],[1192,215],[1262,234],[1355,273],[1373,296],[1324,320],[1049,322]]},
+        faction_taixu:{"door":[1224.3,697.833],"bounds":[1074,497,1392,712],"mask":[[1074,569],[1113,540],[1185,532],[1237,497],[1290,545],[1356,567],[1391,592],[1379,618],[1090,614]]},
+        immortal_domain_supply:{"door":[204.05,450.5],"bounds":[104,349,322,478],"mask":[[108,379],[160,366],[193,349],[237,366],[287,371],[315,393],[296,419],[116,419]]},
+        immortal_domain_rest:{"door":[426.65,574.167],"bounds":[332,493,566,593]},
+        immortal_domain_guide:{"door":[742.0,530.0],"bounds":[660,416,858,563],"mask":[[664,453],[700,441],[734,431],[754,416],[775,439],[816,451],[850,449],[845,472],[675,471]]},
+        travel_gate:{"door":[157.675,936.333],"bounds":[40,784,275,944],"mask":[[43,817],[91,807],[126,791],[160,784],[199,808],[235,808],[274,823],[254,850],[57,850]]}
+      },bodies:[[246,132,393,166],[585,107,768,139],[895,108,1057,154],[1079,316,1324,349],[1111,619,1352,659],[694,474,819,510],[128,410,170,445],[174,394,247,424],[252,410,290,445]],
+      rocks:[[93,881,10],[93,913,10],[230,881,10],[230,913,10],[92,137,38],[420,322,43],[150,704,39],[274,821,30],[640,292,34],[734,307,40],[838,312,34],[946,301,29],[994,500,27],[1375,464,32],[566,762,26],[595,818,37],[696,820,42],[790,817,46],[876,805,37],[928,754,34],[839,680,40],[749,655,36],[1044,747,29],[750,1013,28],[1128,993,28],[445,540,14],[479,543,15]],
+      roads:[[157.675,936.333],[296.8,936.333],[381,876],[439,773],[490,730],[511,665],[574,616],[651,592],[755,573],[742.0,530.0],[864,555],[950,472],[1050,423],[1190,417],[1224.3,388.667],[1043,370],[1041,300],[1020,241],[974,222],[973.875,203.167],[900,244],[807,256],[729,218],[674,200],[649.25,176.667],[587,226],[501,267],[418,258],[326,229],[324.625,203.167],[261,267],[224,321],[191,343],[81,354],[70,441],[112,484],[219,493],[204.05,450.5],[282,545],[333,590],[415,615],[426.65,574.167],[426,601],[1224.3,697.833],[1228,722],[1115,689],[1030,621],[911,591],[1190,807],[1085,874],[931,924],[772,955],[580,951],[413,935],[495,318],[497,368],[560,422],[618,470],[643,529]],links:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[9,8],[8,10],[10,11],[11,12],[12,13],[14,13],[13,15],[15,16],[16,17],[17,18],[19,18],[18,20],[20,21],[21,22],[22,23],[24,23],[23,25],[25,26],[26,27],[27,28],[29,28],[28,30],[30,31],[31,32],[32,33],[33,34],[34,35],[35,36],[37,36],[36,38],[38,39],[39,40],[40,6],[41,42],[42,40],[43,44],[44,45],[45,46],[46,47],[47,8],[44,48],[48,49],[49,50],[50,51],[51,52],[52,53],[53,1],[26,54],[54,55],[55,56],[56,57],[57,58],[58,7]]}
     };
     function wildSceneV286898(){return WILD_SCENES_V286898[currentRegion]||null;}
     function wildSceneReadyV286898(){return !!SCROLL_ART_V2831.wildScenes?.[currentRegion];}
@@ -15998,10 +16377,10 @@ function villageEnhanceV286897(){
     function loadAndStart(prepared) {
       try{assertSaveSessionV2868102();}catch(_){return false;}
       let sourceRaw;try{sourceRaw=localStorage.getItem(SAVE_KEY);}catch(_){sourceRaw=null;}
-      let saveData=prepared;
+      let saveData=prepared,fromBackup=false;
       if(!saveData){
         for(const key of [SAVE_KEY,SAVE_BACKUP_KEY]){
-          try{const raw=localStorage.getItem(key);if(!raw)continue;saveData=dryRunLoadV2870(raw);if(key===SAVE_BACKUP_KEY)saveData._recoveredFromBackup=true;break;}
+          try{const raw=localStorage.getItem(key);if(!raw)continue;saveData=dryRunLoadV2870(raw);fromBackup=key===SAVE_BACKUP_KEY;break;}
           catch(e){console.warn('存档预加载失败：',e);}
         }
       }
@@ -16011,7 +16390,7 @@ function villageEnhanceV286897(){
         return;
       }
       
-      if(saveData._recoveredFromBackup)gameAlertV2868114('主存档无法读取，已使用最近一次有效备用档恢复。');
+      if(fromBackup)gameAlertV2868114('主存档无法读取，已使用最近一次有效备用档恢复。');
       // Loading may initialize tasks; do not overwrite either recovery candidate during setup.
       const wasSaveDeferred=miniSaveDeferredV286840;miniSaveDeferredV286840=true;
       try{
@@ -16061,6 +16440,9 @@ function villageEnhanceV286897(){
       `, [
         { text: '续行仙途', action: 'village' }
       ]);
+      // Initialization fills missing fields and migrates tasks. Keep the result as
+      // the first comparison point, before resuming an actual pending breakthrough.
+      SAVE_SESSION_V2868102.restored={fromBackup,progress:createSaveDataV2768()};
       recoverPendingBreakthroughV28683();
       }finally{miniSaveDeferredV286840=wasSaveDeferred;}
       return true;
@@ -16399,6 +16781,7 @@ function villageEnhanceV286897(){
     // V27.67：后台停止地图/人物绘制，前台按需恢复，防止生成重复动画循环。
     let characterAnimationPausedV2767=false;
     function pauseVisualsV2767() {
+      document.body.classList.toggle('world-walking',false);
       alchemyStageStopV2868110();
       if(typeof mapFxCancelV2868104==='function')mapFxCancelV2868104();
       if(typeof resetMapAliveV2893==='function')resetMapAliveV2893();
@@ -16428,7 +16811,7 @@ function villageEnhanceV286897(){
     window.addEventListener('pagehide',pauseVisualsV2767);
     window.addEventListener('pageshow',resumeVisualsV2767);
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.122";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-core.js"]="28.68.124";
 
 // Map-space ink-style elder, drawn at the existing NPC anchor.
 function drawWanderingMentorV2862(ctx){
@@ -16463,6 +16846,15 @@ function drawWanderingMentorV2862(ctx){
 
 // Shared low-cost map silhouettes, individual clothing and props.
 function drawMapNpcV2863(ctx,o){
+ const s=mapNpcWalkV1,gait=s?.poi===o?MAP_NPC_GAITS_V2[o.id]:null;
+ if(!gait){drawMapNpcStillV2863(ctx,o);return;}
+ const moving=mapNpcSteppingV2(s);s.renderMoving=moving;
+ if(drawMapNpcWalkFrameV2(ctx,s,gait,moving))return;
+ // While offline/loading keep the familiar body, with distance-driven sway rather than sliding.
+ ctx.save();if(moving){const step=Math.sin(s.phase);ctx.translate(step*.4,Math.sin(s.phase*2)*gait.bob);ctx.translate(0,24);ctx.rotate(step*gait.sway);ctx.scale(1+step*.012,1-Math.abs(step)*.015);ctx.translate(0,-24);}
+ drawMapNpcStillV2863(ctx,o);ctx.restore();
+}
+function drawMapNpcStillV2863(ctx,o){
  if(o.action==='npc_mentor'||o.id==='mentor_npc'){drawWanderingMentorV2862(ctx);return;}
  const role=o.action==='yewuji_v2810'?'rival':o.action==='npc_beast'?'beast':o.action==='npc_trader'?'trader':o.action==='npc_elder'?'elder':'traveller';
  const palette={beast:['#85b798','#416f64','#d1d6a8'],trader:['#b59c71','#705643','#e0c28c'],elder:['#7d8b96','#4a5560','#d7dbd8'],rival:['#665568','#292638','#bd9a59'],traveller:['#94a797','#4a6459','#dbd1af']}[role];
@@ -16746,7 +17138,7 @@ function installItemSafetyV2905(){
   const base=window[name];if(typeof base!=='function')continue;
   window[name]=function(...args){if(ITEM_ACTION_V2905.depth){ITEM_ACTION_V2905.effects.push(()=>base.apply(this,args));return;}return base.apply(this,args);};
  }
- for(const name of ['useItem','useLongevityPill','craftPill','buyGeneralV2801','buyLongevityPill','buyBreakthroughPillV28683','buySectItem','buyMarketGearV2800','buyNewGearV2790','buyOldGearV2792','buyPetGrowthBatchV286845','bulkDismantleEquipment','dismantleOneEquipmentEncoded','craftPetMaterialBatchV286846','feedPet','feedPetMaxByIdV286845','advancePetByIdV210','mutatePetByIdV210','evolvePetByIdV210','upgradeArtifact','upgradeArtifactMaxV286845']){
+ for(const name of ['useItem','packFieldKitV2868124','useLongevityPill','craftPill','buyGeneralV2801','buyLongevityPill','buyBreakthroughPillV28683','buySectItem','buyMarketGearV2800','buyNewGearV2790','buyOldGearV2792','buyPetGrowthBatchV286845','bulkDismantleEquipment','dismantleOneEquipmentEncoded','craftPetMaterialBatchV286846','feedPet','feedPetMaxByIdV286845','advancePetByIdV210','mutatePetByIdV210','evolvePetByIdV210','upgradeArtifact','upgradeArtifactMaxV286845']){
   const base=window[name];if(typeof base!=='function')continue;
   window[name]=function(...args){return itemActionV2905(name,base,this,args);};
  }

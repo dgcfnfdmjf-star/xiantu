@@ -31,16 +31,23 @@ function node() {
 function butterflyFixture(saved) {
   const cvs = target(), elements = {}, timers = [], floats = [], toasts = [], writes = {};
   for (const id of ['bfCount', 'bfBar', 'bfHud', 'bfGrid', 'bfSub', 'bfEnding', 'bfCodex', 'gpBookBtn']) elements[id] = node();
+  elements.bfEnding.classList.add('hidden');
   const camera = new T.PerspectiveCamera(48, 1280 / 800, .5, 300);
   camera.position.set(0, 3, 12); camera.lookAt(0, 1, 0); camera.updateMatrixWorld();
   const scene = new T.Scene();
   const win = { ...target(), innerWidth: 1280, innerHeight: 800, GardenClip: clip,
+    GardenFocus: { isCurrent: id => id === 'bfEnding' && !elements[id].classList.contains('hidden') },
     __kittens: { state: () => ({ level: 1 }) }, localStorage: {
-      getItem: () => JSON.stringify(saved), setItem: (key, value) => { writes[key] = JSON.parse(value); }
+      getItem: key => Object.hasOwn(writes,key) ? JSON.stringify(writes[key]) : (key === 'healingGarden.butterflies.v1' ? JSON.stringify(saved) : null),
+      setItem: (key, value) => { writes[key] = JSON.parse(value); }
     } };
   const doc = { ...target(), hidden: false, getElementById: id => elements[id] || null,
     querySelector: selector => selector.includes('#modes') ? { getAttribute: () => 'net' } : cvs,
-    createElement: node, body: { appendChild(el) { floats.push(el); } } };
+    createElement: node, body: { dataset:{gardenLevel:'1'}, appendChild(el) { floats.push(el); } } };
+  win.document = doc;
+  win.navigator = {locks:{request:(_key,action)=>Promise.resolve(action())}};
+  win.GardenSaves = require('../src/save-session.js').create(win);
+  win.GardenJourney = { feedbackBusy: () => false,ready:true, blocked:()=>false};
   const ctx = { window: win, document: doc, console, setTimeout(fn, ms) { timers.push({ fn, ms }); return timers.length; }, clearTimeout() {} };
   let source = scripts.find(s => s.includes('butterflies.js —'));
   assert.ok(source, 'butterfly runtime found');
@@ -49,7 +56,7 @@ function butterflyFixture(saved) {
       raycaster = new T.Raycaster(); ndc = new T.Vector2(); icons = {};
       SPECIES.forEach(function (sp) { icons[sp.id] = { on: '', off: '' }; });
       load(); bindInput(); renderHud(false); },
-    codex: renderCodex, closeEnding: closeEnding, flush: flushSave
+    codex: renderCodex, closeEnding: closeEnding, flush: window.GardenSaves.flush
   };
   // Test hooks`);
   vm.runInNewContext(source, ctx);
@@ -85,11 +92,21 @@ test('a real rare pointerdown at 29 scores 32 points, ends once, and displays 30
   assert.equal(f.win.__bf.state().total, 32, 'ending blocks duplicate input');
   f.win.__feedbackProbe.flush();
   assert.equal(f.writes['healingGarden.butterflies.v1'].total, 32, 'legacy weighted save preserved');
+  f.win.__feedbackProbe.closeEnding(true);
+  assert.equal(f.win.__bf.state().total, 32, 'hidden replay is inert during the ending');
+  f.timers.find(t => t.ms === 5200).fn(); // the fallback sequence reveals its card
   f.win.__feedbackProbe.closeEnding(false);
   assert.match(f.elements.bfCount.textContent, /32 点 · 自由捕蝶/);
   f.win.__feedbackProbe.closeEnding(true);
-  assert.equal(f.win.__bf.state().total, 0);
-  assert.equal(f.win.__bf.state().individuals, 30, 'replay keeps the lifetime collection');
+  assert.equal(f.win.__bf.state().total, 32, 'replay stays inert after returning to free play');
+
+  const replay = butterflyFixture({total:29, ended:false, caught:{pieris:29}});
+  replay.add();
+  replay.cvs.fire('pointerdown', replay.event());
+  replay.timers.find(t => t.ms === 5200).fn();
+  replay.win.__feedbackProbe.closeEnding(true);
+  assert.equal(replay.win.__bf.state().total, 0);
+  assert.equal(replay.win.__bf.state().individuals, 30, 'visible replay keeps the lifetime collection');
 });
 
 test('a winning rare catch during pointermove safely stops the active stroke', () => {

@@ -1,0 +1,68 @@
+四张 V28.06 势力地图水墨整景（V28.68.123）
+
+基线
+main c8d8b68，仙途 V28.68.122。先在真实 Chromium 151 中进入群宗仙山、百花灵谷、玄煞魔域和九霄仙境，截图检查现状。
+这四图原来没有 WILD_SCENES 条目：旧水墨 atlas 底图、程序石板路、卡通树和独立建筑叠加，缩放后有明显图块拼接。
+浏览器使用全新临时角色，阻断外部请求，不读取真实存档或调用付费服务。
+
+范围
+- 每图一幅完整 1484×1060 水墨淡彩 WebP；山水、植被、建筑和道路统一绘制。
+- 群宗仙山：灰绿山脉与八家人族宗门。百花灵谷：溪流、竹林、花木与八家人族宗门。
+- 玄煞魔域：灰紫荒原与五家魔族势力；额外保留 main 已有的夜无疆·裂界台，画中只含空台，人物仍动态绘制。
+- 九霄仙境：淡玉色云海与五座仙宗。
+- 四图保留各自补给、灵泉、路引、界门，以及原有探索点。逻辑尺寸1600×1200、出生(320,1060)、安全区(390,630,r230)和全部 POI 定义不变；运行时沿用1.45倍世界坐标。
+- 只接入现有全景绘制、门前导航、拾取、屋顶遮挡和碰撞机制。数值、战斗、经济、存档、解锁与传送条件不变。
+- 当前地域按需加载，全景图片缓存沿用最多两幅；错误或尺寸不符时保留旧地图回退。大地图、小地图和山河图共用同幅全景。
+- 旧四域全景、北域雪层、宗门执事贴图与其他 NPC 画法保持原样。
+
+美术资源
+使用 image_gen 结合现有南域/宗门画风和按原坐标绘制的布局参考，分别生成完整画作，再定向修正偏移的门阶、灵泉岸边与裂界台。没有将旧贴图拼成底图，也没有仅替换颜色。机械工具只用于尺寸归一和 WebP 编码。
+human-peaks-panorama-v2868123.webp：597858字节，Q91。
+human-valleys-panorama-v2868123.webp：573302字节，Q91。
+demon-domain-panorama-v2868123.webp：401638字节，Q88。
+immortal-domain-panorama-v2868123.webp：513616字节，Q88。
+四图均为1484×1060不透明图，合计2086414字节，约1.99MiB。地图按需读取一幅，仍最多缓存两幅解码图，未增加永久全图缓存。
+
+接线与坐标核对
+- 只在 WILD_SCENES 中添加四份场景配置。除构建标记外，core 原有函数和其他39个加载脚本与基线逐字节相同；旧四域场景数据、NPC画法和玩法函数未改。
+- 四图共43个固定交互点、24个探索点；实际运行的 POI、地图配置、出生、安全区、资格、等级、入场效果和宗门归属与基线逐字段一致。
+- 沿用现有矩形采样/圆形碰撞，覆盖主要建筑实体、洞拱、池水和岩石；窄门柱单独用圆形碰撞标定，门阶和池岸原落点保持开放。没有引入逐像素地形遮罩或新移动算法。
+- 新 Node 回归已通过794组入口/出生到全部地点的无穿墙路径、160次固定种子刷怪、48个实际实体探点。全部43个固定入口均能用手绘道路节点连通，所有道路连接不穿碰撞。
+- 图片迟到、失败、尺寸错误、两图缓存、屋顶裁切、夜无疆动态绘制与探索奖励不被渲染改写均有回归覆盖。
+
+自动验证
+- npm test：163个游戏回归脚本、20项工具/安全测试、9项打包测试全部通过。
+- PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:browser：91项全部通过，约4.3分钟。
+- 新增5项真实浏览器回归覆盖四幅解码图、实际静态底图/小地图/山河图共图、原坐标/出生/安全区、所有固定入口拾取和无碰撞路径、手机目录点击导航后的普通移动、加载失败和两图缓存。
+- 既有“无全景时立即请求回退图集”的测试改用独立页面临时移除场景元数据；八图现在均有全景，仍保留该兼容路径的断言。
+- 三张SHA-256清单刷新后校验通过；npm run package:game逐文件验证479个运行时文件，本地ZIP为66295378字节，保留xiantu-v2831-scroll顶层目录。
+
+游戏内验收
+- Chromium 151 headless，桌面1366×900、手机390×844、横屏844×390，DPR1；检查四图出生点、中央驿站、宗门屋顶群和山河图。旧卡通树与程序道路不再叠画，三种地图共用完整画作。
+- 43/43固定点从原交互范围外用真实画布点击，随后沿正常update步行150世界单位以上，分别打开正确的26家宗门、补给室内、灵泉、路引、界门和夜无疆原菜单；以菜单文字/室内id核对结果。
+- 四图各通过界门原菜单按钮传送一次，落点均为运行时原出生(464,1537)，无页面异常。
+- 四图各一处建筑主体用真实W键持续靠近，均停止向墙内推进，碰撞间距保持非负。魔域圆形碰撞接缝出现约1.2世界单位横向滑动，前进方向未穿透；保留原始记录，未改现有碰撞解析。
+- 三轮菜单打开/关闭及显式暂停恢复中，暂停期间地图绘制0次、RAF清空；重复调用恢复后未出现循环倍增，画布保持1366×900。
+- 该交互诊断使用临时15级角色，暂时隔离随机野怪更新以避免战斗打断，保留原速度、路径、碰撞和点击/传送代码，结束后恢复野怪更新；未修改正式遭遇逻辑。
+
+本地证据
+output/playwright/faction-panoramas/before-{human_peaks,human_valleys,demon_domain,immortal_domain}-desktop.png
+output/playwright/faction-panoramas/baseline.json
+output/playwright/faction-panoramas/baseline-invariants.json
+output/playwright/faction-panoramas/after-invariants.json
+output/playwright/faction-panoramas/after-{地图ID}-{desktop,mobile,landscape}.png
+output/playwright/faction-panoramas/after-interaction.json
+output/playwright/faction-panoramas/after-collision.json
+output/playwright/faction-panoramas/after-lifecycle-result.txt
+output/playwright/faction-panoramas/after-performance.json
+output/playwright/faction-panoramas/scope-audit.json
+output/playwright/faction-panoramas/npm-test.log
+output/playwright/faction-panoramas/browser-test.log
+
+基线采样条件：Chromium 151 headless，1366×900，DPR1，每图预热约1.6秒、采样约1.2秒。drawFlatWorld中位1.0–1.1ms、P95 1.6–1.7ms，绘制间隔中位16.7ms。此为云主机短样本，不代表实体手机性能。
+
+接入后在完整自动测试结束后单独采样：同浏览器/1366×900/DPR1，高画质，每图预热1.6秒、采样1.2秒，各73次drawFlatWorld，中位均1.0ms；群宗/百花/魔域/仙境P95分别1.6/1.7/1.8/1.7ms，RAF间隔中位16.7ms。站位(1200.35,870)，实体分别为3、3、4至5、3。与基线的实体数量和站位并非完全一致，只记录绝对耗时，不据此宣称性能提升，也未测量实体手机GPU性能。
+
+交付方式
+同步版本、40脚本标记、CSS校验值和启动缓存参数；刷新三张 SHA-256 清单。本地网站包由 npm run package:game 生成在 dist/，不更新 downloads 中的历史发布包。
+通过 PR 交付；不合并 main，不部署，不更新 Jev。

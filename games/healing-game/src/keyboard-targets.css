@@ -1,0 +1,11 @@
+#gardenTargets { position:relative; pointer-events:auto; margin-top:4px; }
+#gardenTargets button { min-height:44px; color:#fff5e3; border:1px solid #c6b6ba; border-radius:12px; background:#454358; font-size:13px; line-height:1.35; }
+#gardenTargetsToggle { width:100%; padding:5px 8px; }
+#gardenTargetsPanel { position:absolute; left:0; top:100%; z-index:2; width:min(274px,calc(100vw - 52px)); box-sizing:border-box; padding:8px; background:#302f43; color:#fff5e3; border:1px solid #c6b6ba; border-radius:12px; }
+#gardenTargetsPanel[hidden] { display:none; }
+.garden-target-options { display:grid; grid-template-columns:1fr 1fr; gap:6px; max-height:32vh; max-height:32dvh; overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; padding:4px; }
+#gardenTargetsPanel button { padding:4px; }
+#gardenTargetsPanel button[aria-disabled=true] { background:#302f43; border-color:#767185; color:#b7b5c2; }
+#gardenTargetsPanel p { margin:6px 3px 0; font-size:12px; line-height:1.5; }
+#gardenTargetsPanel p:empty { margin:0; }
+#gardenTargets button:focus-visible { outline:3px solid #ffe4a6; outline-offset:1px; }

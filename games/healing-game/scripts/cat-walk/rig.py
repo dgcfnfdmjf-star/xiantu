@@ -27,7 +27,6 @@ for side,s in [('L',-1),('R',1)]:
 for side,sgn in [('L',-1),('R',1)]:centers['Haunch.'+side]=(sgn*.137,.027,.157)
 centers.update({'TailRoot':(.155,.113,.137),'TailMid':(.292,-.092,.044),'TailTip':(.111,-.239,.056)})
 for name,p in centers.items():
- if name in ['TailMid','TailTip']:continue
  b=arm.edit_bones.new(name);b.head=p
  if 'Upper' in name:b.tail=centers[name.replace('Upper','Lower')]
  elif 'Lower' in name:b.tail=centers[name.replace('Lower','Ankle' if name.startswith('Rear') else 'Paw')]
@@ -110,7 +109,7 @@ def weights(v, return_part=False):
   elif n=='Neck':sub={'Body':1-smooth((z-.49)/.11),'Head':smooth((z-.49)/.11)}
   elif n=='Tail':
    u=best[1]
-   f=smooth(u/.32);sub={'Body':1-f,'TailRoot':f}
+   sub=mixbones(u,['TailRoot','TailMid','TailTip'],[.1,.5,.9])
   else:sub={n:1}
   for name,ww in sub.items():out[name]=out.get(name,0)+w*ww
  if z>.61:out={'Head':1}
@@ -192,7 +191,9 @@ for obj in meshes:
    if part=='Body':
     ww={n:w for n,w in ww.items() if n in ['Body','Head']}
     if not ww:ww={'Body':1}
-   elif part=='Tail':ww={'TailRoot':1}
+   elif part=='Tail':
+    ww={n:w for n,w in ww.items() if n.startswith('Tail')}
+    if not ww:ww={'TailRoot':1}
    elif part.startswith('Haunch.'):
     ww={part:1}
    elif part.startswith('RearPaw.'):ww={part:1}
@@ -354,12 +355,12 @@ mod=shin.modifiers.new('Walk hind limb chain','ARMATURE');mod.object=rig
 meshes.append(shin)
 print('HIDDEN_SHINS',len(shinfaces),'triangles',len(shinverts),'vertices',flush=True)
 
-rig['catWalkRadius']=.710;rig['catWalkStride']=.40;rig['catWalkDuration']=1.6;rig['catWalkForward']='+Z';rig['catWalkStanceFraction']=.62
+rig['catWalkRadius']=.710;rig['catWalkStride']=.50;rig['catWalkDuration']=1.6;rig['catWalkForward']='+Z';rig['catWalkStanceFraction']=.60
 
 # Every deform bone has the same local axes as the model. Pose matrices are easy to audit.
 def bone(name, transform):
  rig.pose.bones[name].matrix=transform@rig.data.bones[name].matrix_local
- rig.pose.bones[name].scale=(.70,.70,.70) if name.startswith('Haunch.') else (1,1,1)
+ rig.pose.bones[name].scale=(.80,.80,.80) if name.startswith('Haunch.') else (1,1,1)
 def at(name,target,R=None):
  c=Vector(centers[name]);return Matrix.Translation(Vector(target))@(R or Matrix.Identity(4))@Matrix.Translation(-c)
 def segment(name,restend,start,end):
@@ -373,25 +374,35 @@ def knee_ik(start,target,upper,lower,bend):
  height=math.sqrt(max(0,upper*upper-along*along));axis=Vector(bend);axis=(axis-direction*axis.dot(direction)).normalized()
  return start+direction*along+axis*height
 def foot(q):
- q%=1;stance=.62;span=.40*stance
- if q<stance:return -span/2+span*q/stance,0
- t=(q-stance)/(1-stance);a=(1-math.cos(math.pi*t))/2
- return span/2-span*a,.068*math.sin(math.pi*t)**1.5
+ q%=1;stance=.60;stride=.50;span=stride*stance
+ if q<stance:return -span/2+stride*q,0,0
+ t=(q-stance)/(1-stance)
+ # Match the planted paw's velocity AND acceleration at toe-off/landing.
+ # A cosine swing used to brake to zero just before the foot touched the ground.
+ ease=t*t*t*(10+t*(-15+6*t))
+ travel=span/2+stride*(1-stance)*t-stride*ease
+ lift=.040*math.sin(math.pi*t)**2
+ pitch=.12*math.sin(2*math.pi*t)*math.sin(math.pi*t)**2
+ return travel,lift,pitch
 
 def pose(t):
  phase=t/1.6;ang=2*math.pi*phase
- bob=.006*(1-math.cos(2*ang));roll=.018*math.sin(ang)
+ bob=.0025*(1-math.cos(2*ang));roll=.012*math.sin(ang)
  R=Matrix.Rotation(math.radians(65),4,'X')@Matrix.Rotation(roll,4,'Y')
- pelvis=Vector((.006*math.sin(ang),.12,.365+bob));B=Matrix.Translation(pelvis)@R@Matrix.Translation(-Vector(centers['Body']))
+ pelvis=Vector((.004*math.sin(ang),.12,.350+bob));B=Matrix.Translation(pelvis)@R@Matrix.Translation(-Vector(centers['Body']))
  bone('Body',B)
  hp=B@Vector(centers['Head'])+Vector((0,.08,.13));bone('Head',at('Head',hp,Matrix.Rotation(roll*.5,4,'Y')))
  for side,s in [('L',-1),('R',1)]:
   for leg in ['Front','Rear']:
    n=leg+'Upper.'+side; lo=leg+'Lower.'+side; pa=leg+'Paw.'+side
    ph=phase+(0 if side=='L' else .5)+(0 if leg=='Front' else .25)
-   dy,lift=foot(ph)
-   start=B@Vector(centers[n]); base_y=-.18 if leg=='Front' else .095
-   if leg=='Rear':start.z-=.003
+   dy,lift,pitch=foot(ph)
+   start=B@Vector(centers[n]); base_y=-.18 if leg=='Front' else .10
+   # A seated sculpt's shoulder/hip origins are close together. Open the
+   # shoulder girdle in the standing pose instead of locking the elbows at
+   # full extension; keep the hock underneath the pelvis.
+   if leg=='Front':start.y-=.065
+   else:start.y+=.020;start.z-=.003
    target=Vector((s*(.095 if leg=='Front' else .162),base_y+dy,.044+lift))
    if leg=='Front':
     length1=(Vector(centers[lo])-Vector(centers[n])).length;length2=(Vector(centers[pa])-Vector(centers[lo])).length
@@ -403,17 +414,23 @@ def pose(t):
     hock=target+Vector((0,.08,.07)).normalized()*length3
     knee=knee_ik(start,hock,length1,length2,(0,-1,0))
     bone(n,segment(n,centers[lo],start,knee));bone(lo,segment(lo,centers[ankle],knee,hock));bone(ankle,segment(ankle,centers[pa],hock,target))
-    h='Haunch.'+side;ht=(start+knee)*.5+Vector((0,.02,.01));hq=(Vector(centers[lo])-Vector(centers[n])).rotation_difference(knee-start);bone(h,at(h,ht,hq.to_matrix().to_4x4()))
-   bone(pa,at(pa,target))
- tr=B@Vector(centers['TailRoot'])
- chord=Vector(tail[-1]-tail[0]);current=R.to_3x3()@chord;desired=Vector((.025*math.sin(ang),chord.length,.035))
+    h='Haunch.'+side;ht=start.lerp(knee,.35)+Vector((0,.012,.008));hq=(Vector(centers[lo])-Vector(centers[n])).rotation_difference(knee-start);bone(h,at(h,ht,hq.to_matrix().to_4x4()))
+   bone(pa,at(pa,target,Matrix.Rotation(pitch,4,'X')))
+ tr=B@Vector((0,.16,.10)) # standing tail leaves the spine, not the seated right flank
+ chord=Vector(tail[-1]-tail[0]);current=R.to_3x3()@chord;desired=Vector((.018*math.sin(ang-.45),chord.length,.12+.004*math.sin(2*ang)))
  tailR=current.rotation_difference(desired).to_matrix().to_4x4()@R
  tailT=Matrix.Translation(tr)@tailR@Matrix.Translation(-Vector(centers['TailRoot']))
  bone('TailRoot',tailT)
+ # A small delayed bend travels down the tail, rather than swinging it as a
+ # single rigid rod. All bones retain the pipeline's flat model-space bind.
+ for name,delay,amount in [('TailMid',.8,.075),('TailTip',1.5,.10)]:
+  pivot=tailT@Vector(centers[name])
+  tailT=Matrix.Translation(pivot)@Matrix.Rotation(amount*math.sin(ang-delay),4,'Z')@Matrix.Translation(-pivot)@tailT
+  bone(name,tailT)
  bpy.context.view_layer.update()
 scene.render.fps=30;scene.frame_start=0;scene.frame_end=48
 previous_quaternions={}
-for f in sorted(set(range(0,49,4))|{5.76,17.76,29.76,41.76}):
+for f in sorted(set(range(0,49,2))|{4.8,16.8,28.8,40.8}):
  scene.frame_set(int(f),subframe=f-int(f));pose(f/30)
  for p in rig.pose.bones:
   if p.name=='Root':continue

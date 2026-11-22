@@ -137,3 +137,30 @@ test('jade UI fits phone and landscape, honours motion preference and restores o
  await page.reload();await page.locator('#xiantuSafeBootButton').click();await expect(page.locator('html')).toHaveClass(/xiantu-v2762-ready/);await expect(page.locator('html')).not.toHaveClass(/xt-theme/);await expect(page.locator('html')).toHaveClass(/xt-reduce-motion/);
  await page.evaluate(()=>{XT_UI.setTheme(true);XT_UI.setReduceMotion(false);loadAndStart();closeWorldOverlay();tutorialState.active=false;});await expect(page.locator('html')).toHaveClass(/xt-theme/);await expect(page.locator('#taskBtn .xt-nav')).toHaveCount(1);await expect(bar).toBeVisible();expect(errors).toEqual([]);
 });
+
+
+test('focused map buttons keep their native Space action',async({page})=>{
+ await boot(page);await start(page);
+ const character=page.locator('#panelToggleBtn'),panel=page.locator('#characterPanel');
+ await character.press('Space');
+ await expect(panel).toBeVisible();
+ await panel.getByRole('button',{name:'关闭角色面板'}).click();
+ await page.locator('#inventoryToggleBtn').press('Space');
+ await expect(page.locator('#mobileInventoryOverlay')).toBeVisible();
+});
+
+test('return to map cannot discard an unsettled battle or its save checkpoint',async({page})=>{
+ await boot(page);await start(page);
+ await page.evaluate(()=>{
+   startCombat({name:'山贼',hp:60,maxHp:60,atk:5,def:1,gold:10,exp:10,_realmLevel:0,_realmPhase:0,_isTaskBattle:true});
+ });
+ const combat=page.locator('#combatPanel');
+ await expect(combat).toBeVisible();
+ expect(await page.evaluate(()=>canFleeV286818())).toBe(false);
+ await page.keyboard.press('Escape');
+ await expect(combat).toBeVisible();
+ await expect(page.locator('.world-close-panel button')).toBeHidden();
+ // A previously queued return action must also leave the battle intact.
+ await page.evaluate(()=>closeWorldOverlay());
+ expect(await page.evaluate(()=>[gameState,currentEnemy.name,createSaveDataV2768().interruptedBattleV286812])).toEqual(['combat','山贼',true]);
+});

@@ -156,6 +156,7 @@ function captureSuccess(enemy,itemName,isDemon){
   const pet=makeCapturedPet(enemy,pd,{bondType:'blood'});player.pets.push(pet);if(!player.activePet)player.activePet=pet;if(isDemon)applyDemonPetReputationPenalty();updateAchievementProgress?.('pet');playSound?.('item');autoSave?.();updateStats?.();showCaptureResultUI(true,pet);endCombatAfterCapture();
 }
 function captureFail(enemy,itemName,isDemon){
+  takeSwordOpeningV2868124();
   const pc=ensurePetCaptureState();pc.isCapturing=false;pc.captureTarget=null;pc.usedItem=null;setPetCaptureCooldown(30);consumeInventoryItem(itemName);const pd=getPetData(enemy.name);let rampage=false;if(pd?.quality==='epic'&&Math.random()<.30)rampage=true;if(pd?.quality==='legendary'&&Math.random()<.50)rampage=true;if(pd?.quality==='mythic'&&Math.random()<.70)rampage=true;
   if(rampage){enemy.hp=Math.min(enemy.maxHp,enemy.hp+enemy.maxHp*.30);enemy.atk=Math.floor(enemy.atk*1.5);showFloatingText?.('💢 灵兽暴走！战力飙升！','#ff6b6b');addCombatLog?.('⚠️ 灵兽挣脱灵契，进入狂暴状态！','boss')}else{enemy.hp=Math.min(enemy.maxHp,enemy.hp+enemy.maxHp*.20);showFloatingText?.('❌ 收服失败，妖兽挣脱束缚','#ff6b6b');addCombatLog?.('⚠️ 妖兽挣脱灵链，本次收服失败！','damage')}
   updateCombatUI?.();autoSave?.();setTimeout(()=>{if(currentEnemy===enemy&&enemy.hp>0)enemyTurn?.()},650)
@@ -244,7 +245,7 @@ window.updatePetPanel=function(){
 // 培养遵循品质等级上限；兼容旧宠物并支持一次多级。
 window.feedPet=function(index,foodName){ensurePetSystemState?.();ensurePetCaptureState();const pet=player.pets[index],food=PET_FOOD[foodName],count=Math.max(0,Number(player.petMaterials?.[foodName])||0);if(!pet||!food||count<=0)return;const maxLv=getPetQualityInfo(pet.quality).maxLevel;if((pet.level||1)>=maxLv){showFloatingText?.(`✅ ${pet.name} 已达到${getPetQualityInfo(pet.quality).label}等级上限 Lv.${maxLv}`,'#69f0ae');return}player.petMaterials[foodName]=count-1;if(player.petMaterials[foodName]<=0)delete player.petMaterials[foodName];pet.exp=Math.max(0,Number(pet.exp)||0)+Number(food.exp||0);let gained=0,safe=0;while(safe++<50&&(pet.level||1)<maxLv){const need=Math.max(1,Number(pet.level||1)*30);if(pet.exp<need)break;pet.exp-=need;pet.level=Math.min(maxLv,Math.max(1,Number(pet.level)||1)+1);gained++}if((pet.level||1)>=maxLv)pet.exp=0;if(gained){playSound?.('levelup');showFloatingText?.(`🎉 ${pet.name} 提升 ${gained} 级 → Lv.${pet.level}`,'#8ff0cf')}else showFloatingText?.(`🍖 ${pet.name} 经验 +${food.exp}`,'#d9c98e');updatePetPanel?.();updateStats?.();autoSave?.()};
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-14-v279-pet-capture-system.js"]="28.68.122";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-14-v279-pet-capture-system.js"]="28.68.124";
 
 function fieldEncounterV2870(enemy,boss,trib,monster){return !!monster&&!!enemy&&!boss&&!trib&&!enemy._isTutorial&&!enemy._isTaskBattle&&!enemy._taskId&&!enemy._warV2839&&!enemy.tournamentFight&&!enemy._nightRivalV2810&&!authoredStoryCombatV286835(enemy);}
 function mercyBabyV2870(){

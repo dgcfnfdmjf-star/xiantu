@@ -19,9 +19,13 @@ for(const action of ['combat("skill",0)','useCombatBagItem("大还丹")']){
  f.flush(300);f.flush(150);a.equal(f.run(`JSON.stringify(${fields})`),before,'old action cannot change restored character');
 }
 console.log('PASS paid skill/medicine interruption rolls back complete battle, stale callbacks isolated');
-fresh();f.run('startCombat({...ENEMIES[0],_realmLevel:0,_realmPhase:0});');
+fresh();f.run('saveGame()');
 const raw=f.storage.get('xiantu_save');const set=f.c.localStorage.setItem;
-f.c.localStorage.setItem=()=>{throw Error('quota')};a.equal(f.run('saveGame()'),false);a.equal(f.storage.get('xiantu_save'),raw);f.c.localStorage.setItem=set;
+// Fail the first write of the battle checkpoint and its retry. Once persisted,
+// saving an identical checkpoint correctly needs no localStorage write.
+f.c.localStorage.setItem=(key,value)=>{if(key==='xiantu_save')throw Error('quota');return set(key,value);};
+f.run('startCombat({...ENEMIES[0],_realmLevel:0,_realmPhase:0})');
+a.equal(f.run('saveGame()'),false);a.equal(f.storage.get('xiantu_save'),raw);f.c.localStorage.setItem=set;
 f.run('currentEnemy.hp=0;checkBattleEnd();');const settled=f.run(`JSON.stringify(${fields})`);
 a.equal(f.run('loadGame().interruptedBattleV286812'),undefined);a.equal(f.run('loadGame().player.gold'),f.run('player.gold'));
 f.run('checkBattleEnd();loadAndStart()');a.equal(f.run(`JSON.stringify(${fields})`),settled,'won rewards retained exactly once');

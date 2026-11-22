@@ -7,7 +7,7 @@
   '炎爆术':'🔥','红莲业火':'🪷','火墙术':'🔥','三昧真火':'☀️','赤焰龙息':'🐉','焚心炎':'💜','燎原火域':'🔥','太阳真火':'☀️','流火飞索':'⛓️','炎阳护盾':'🛡️'
  };
  window.playV26ElementFx=function(name){
-   if(window.InkSkillFxV2854)return; // V28.68 owns these effects; avoid the old full-screen emoji layer.
+   if(window.playInkSkillV2854)return; // V28.68 owns these effects; avoid the old full-screen emoji layer.
    if(!ICE.has(name)&&!FIRE.has(name)) return;
    const root=document.createElement('div'); root.className='skill-v26-fx';
    root.style.color=ICE.has(name)?'#9eeeff':'#ff9b5e';
@@ -27,4 +27,4 @@
  });
 })();
 
-;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-11-feature-11.js"]="28.68.122";
+;window.__xiantuBuildFilesV2814=window.__xiantuBuildFilesV2814||{};window.__xiantuBuildFilesV2814["xiantu-v2762-11-feature-11.js"]="28.68.124";

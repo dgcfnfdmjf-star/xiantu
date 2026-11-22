@@ -24,7 +24,19 @@ module.exports=function(root){
  setTimeout:(f,delay=0)=>{const id=++timerId;timers.set(id,{f,delay});return id},clearTimeout:id=>timers.delete(id),setInterval:()=>++timerId,clearInterval(){},requestAnimationFrame:()=>++timerId,cancelAnimationFrame(){},getComputedStyle:()=>({getPropertyValue:()=>'',display:'block'}),matchMedia:()=>({matches:false,addEventListener(){}}),addEventListener(k,f){(events[k]||=[]).push(f)},removeEventListener(){},dispatchEvent(e){for(const f of events[e.type]||[])f(e)},CustomEvent:class{constructor(type){this.type=type}},Image:class{constructor(){this.complete=false;this.naturalWidth=0;this.listeners={}}addEventListener(k,f){this.listeners[k]=f}set src(v){this._src=v}get src(){return this._src}},MutationObserver:class{observe(){}disconnect(){}},ResizeObserver:class{observe(){}disconnect(){}},confirm:()=>true,alert:()=>{},fetch:()=>Promise.reject(Error('offline test')),screen:{orientation:{addEventListener(){}}}};
  c.window=c;c.globalThis=c;vm.createContext(c);
  function run(code){return vm.runInContext(code,c)}
- function load(name){return vm.runInContext(fs.readFileSync(root+'/'+name,'utf8'),c,{filename:name});}
+ // Synchronous gameplay and VFX suites exercise a fully loaded game. Browser
+ // tests exercise the actual network boundary, cold start, aborts and late arrivals.
+ function load(name,beforeDir){
+  const archived=beforeDir&&beforeDir+'/'+name;
+  const path=archived&&fs.existsSync(archived)?archived:root+'/'+name;
+  const result=vm.runInContext(fs.readFileSync(path,'utf8'),c,{filename:name});
+  if(name==='xiantu-v2868124-battle-loader.js'){
+   load('xiantu-v2855-skill-fx.js',beforeDir);
+   // Older duel snapshots already contain the renderer.
+   if(!beforeDir||!fs.existsSync(beforeDir+'/xiantu-v28684-duel.js'))load('xiantu-v2868124-duel-scene.js');
+  }
+  return result;
+ }
  return {c,ids,El,storage,timers,events,errors,run,load,warmDuel(){
   // Existing VFX tests require already-loaded action art. Trigger it through the real lazy path.
   run("(()=>{const host=document.createElement('div');document.body.appendChild(host);const scene=XiantuDuel25D.create(host,()=>({active:true,playerHp:100,playerMax:100,enemyHp:100,enemyMax:100}));scene.destroy();host.remove();})()");

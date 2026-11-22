@@ -115,6 +115,8 @@
       owner.catWalkStride = template.stride; owner.catWalkScale = scale;
       owner.catRestRadius = template.radius; owner.catWalkRadius = template.walkRadius;
       owner.catWalkWeight = 0; owner.catWalkActive = false;
+      owner.catWalkX = owner.x; owner.catWalkZ = owner.z;
+      owner.catStillTime = 0;
       updateFootprint(owner);
     }
     return scale;
@@ -142,6 +144,15 @@
     var special = k.state === 'hop' || k.state === 'hug' || k.state === 'sleep' || k.state === 'play';
     var moving = k.moving && !special;
     dt = isFinite(dt) ? Math.max(0, Math.min(dt, .1)) : 0;
+    var traveled = isFinite(k.catWalkX) && isFinite(k.catWalkZ) ? Math.hypot(k.x - k.catWalkX, k.z - k.catWalkZ) : 0;
+    k.catWalkX = k.x; k.catWalkZ = k.z;
+    // stepTo can be shortened or completely stopped by the existing push-out.
+    // Advance by what the displayed root actually covered, never its requested
+    // speed. Brief stalls hold the planted pose; a sustained stop returns to
+    // sitting without changing the gameplay state or collision reservation.
+    k.catWalkActualSpeed = moving && dt > 0 ? traveled / dt : 0;
+    k.catStillTime = moving && k.catWalkActualSpeed < .015 ? k.catStillTime + dt : 0;
+    if (k.catStillTime > .18) moving = false;
     if (moving) {
       if (!k.catWalkActive) {
         if (window.GardenCatGeometry) window.GardenCatGeometry.setWalk(k.catModel, true);
@@ -152,15 +163,14 @@
       action.paused = false;
       k.catWalkWeight = 1;
       action.setEffectiveWeight(1);
-      // stepTo supplies its existing speed; this only changes animation cadence.
-      // The exported stride is in model units and includes both alternating steps.
+      // The exported stride includes both alternating steps, in model units.
       var distance = k.catWalkStride * k.catWalkScale * k.size;
-      action.setEffectiveTimeScale((k.catWalkSpeed || 0) * action.getClip().duration / distance);
+      action.setEffectiveTimeScale(k.catWalkActualSpeed * action.getClip().duration / distance);
       k.catMixer.update(dt);
     } else if (k.catWalkActive) {
       stopWalk(k);
     }
-    updateFootprint(k);
+    updateFootprint(k, k.moving && !special ? 1 : undefined);
   }
 
   function attach(k) {
@@ -223,7 +233,7 @@
       var breathe = Math.sin(t * (k.state === 'sleep' ? .9 : 1.5) + k.phase);
       // The Walk clip supplies leg, body and tail motion; retain only the existing
       // breath/crouch and play feedback outside it. Root movement still belongs to kittens.js.
-      k.catVisual.scale.y = 1 + breathe * .008 - k.crouch * .025 - k.curl * .015;
+      k.catVisual.scale.y = k.catWalkActive ? 1 : 1 + breathe * .008 - k.crouch * .025 - k.curl * .015;
       k.catVisual.position.y = 0;
       if (k.state === 'play') k.catVisual.position.y += (1 + Math.sin(t * 4 + k.phase)) * .004;
       return true;

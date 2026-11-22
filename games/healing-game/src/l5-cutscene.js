@@ -756,7 +756,9 @@
   ].join('');
 
   // Procedural paper (borrowing the cold-pressed "tooth" idea: fine speckle, fibres, faint brush streaks); drawn once, tiled by CSS.
+  var paperPrepared = false;
   function paperTexture() {
+    if (!el || paperPrepared) return;
     try {
       var c = doc.createElement('canvas'), S = 240, g, i, seed = 29;
       var rnd = function () { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
@@ -770,6 +772,8 @@
       }
       for (i = 0; i < 9; i++) { g.fillStyle = 'rgba(110,104,140,' + (0.012 + 0.016 * rnd()).toFixed(3) + ')'; g.fillRect(0, rnd() * S, S, 5 + rnd() * 16); }
       el.Paper.style.backgroundImage = 'url(' + c.toDataURL('image/png') + ')';
+      el.Paper.style.display = '';
+      paperPrepared = true;
     } catch (e) { el.Paper.style.display = 'none'; }
   }
   function stop(e) { if (e) { e.stopPropagation(); if (e.cancelable) e.preventDefault(); } }
@@ -792,7 +796,6 @@
     for (var p = 0; p < layers.length; p++) { var layer = doc.createElement('div'); layer.id = 'l5cs' + layers[p]; layer.className = 'l5cs-paint hidden'; doc.body.insertBefore(layer, box); el[layers[p]] = layer; }
     var ids = ['Veil', 'Top', 'Bottom', 'Caption', 'End', 'Go', 'Skip', 'Clock'];
     for (var i = 0; i < ids.length; i++) el[ids[i]] = doc.getElementById('l5cs' + ids[i]);
-    paperTexture();
     showClock = query('csclock') === '1';
     if (!showClock) el.Clock.className = 'hidden';
     // The box is an input shield: nothing underneath is tappable while the cutscene is up.
@@ -808,7 +811,7 @@
     var t = time();
     if (!el) return;
     var open = isOpen();
-    el.box.className = open ? '' : 'hidden';
+    el.box.classList.toggle('hidden', !open);
     el.Paper.className = el.Edge.className = open ? 'l5cs-paint' : 'l5cs-paint hidden';
     if (!open) return;
     var f = frame(t, true);
@@ -818,8 +821,8 @@
     el.Caption.style.opacity = f.captionAlpha.toFixed(3);
     el.End.style.opacity = f.title.toFixed(3);
     el.End.style.transform = 'translateY(' + ((1 - f.title) * 10).toFixed(1) + 'px)';
-    el.Go.className = f.canContinue ? '' : 'hidden';
-    el.Skip.className = f.canContinue ? 'hidden' : '';
+    el.Go.classList.toggle('hidden', !f.canContinue);
+    el.Skip.classList.toggle('hidden', f.canContinue);
     var s = Math.floor(t);
     if (showClock) el.Clock.textContent = two(Math.floor(s / 60)) + ':' + two(s % 60) + ' / ' + two(Math.floor(DURATION / 60)) + ':' + two(DURATION % 60) + ' · ' + f.beat;
   }
@@ -847,6 +850,7 @@
     if (opts.muted !== undefined) muted = !!opts.muted;
     scored = !muted && !!score() && !!score().start();
     build();
+    paperTexture();
     base = clamp(+opts.from || 0, 0, DURATION); anchor = clock(); done = false; state = 'playing';
     run();
     return true;
@@ -854,6 +858,7 @@
   function seek(t) {
     t = clamp(+t || 0, 0, DURATION);
     build();
+    paperTexture();
     var running = state === 'playing' || state === 'ended';
     base = t; anchor = clock();
     if (t >= DURATION) reach();
@@ -895,6 +900,7 @@
     playing: function () { time(); return state === 'playing'; },
     finished: function () { time(); return done; },
     ready: function () { return ready; },
+    preparePaper: paperTexture,
     // True from play() until close(): journey.js treats the film like an open dialog (no gameplay input).
     busy: function () { time(); return isOpen(); },
     // True while the stage owns the island: journey.js freezes the gameplay lotus chapter for that time.

@@ -1,5 +1,6 @@
 """Exercise packaging integrity without altering the real release or player files."""
-import hashlib, json, pathlib, shutil, subprocess, sys, tempfile, unittest, zipfile
+import hashlib, json, os, pathlib, shutil, subprocess, sys, tempfile, unittest, zipfile
+from unittest import mock
 SCRIPT=pathlib.Path(__file__).resolve().parents[1]/'scripts/package-game.py'
 class Packaging(unittest.TestCase):
     def setUp(self):
@@ -29,6 +30,14 @@ class Packaging(unittest.TestCase):
         with zipfile.ZipFile(self.target) as z:
             self.assertIn('xiantu-v2831-scroll/vendor/THREE-LICENSE.txt',z.namelist())
             self.assertIn('xiantu-v2831-scroll/vendor/three-r128.min.js',z.namelist())
+    def test_rebuild_ignores_checkout_times_and_permissions(self):
+        self.assertEqual(self.invoke().returncode,0)
+        expected=self.target.read_bytes()
+        page=self.site/'game.html'
+        os.utime(page,(1710000000,1710000000))
+        page.chmod(0o600)
+        self.assertEqual(self.invoke().returncode,0)
+        self.assertEqual(self.target.read_bytes(),expected)
     def test_art_preview_exclusions_preserve_runtime_layers_and_diagnostics(self):
         kit=self.site/'fire-skills-batch1';kit.mkdir()
         for name in ['index.html','preview.js','stage-reference.webp','effect-manifest.preview.json','impact.png','definition.js','effect-manifest.json']:
@@ -70,9 +79,10 @@ class Packaging(unittest.TestCase):
         self.assertFalse(list(self.target.parent.glob('*.tmp')))
     def test_write_failure_keeps_previous_archive_and_removes_scratch(self):
         self.target.parent.mkdir();self.target.write_bytes(b'previous release')
-        script=self.root/'scripts/package-game.py'
-        script.write_text(script.read_text().replace("for p in files:z.write(p,site.name+'/'+p.relative_to(site).as_posix())","raise OSError('simulated write failure')"))
-        r=self.invoke();self.assertNotEqual(r.returncode,0);self.assertIn('simulated write failure',r.stderr)
+        import runpy
+        with mock.patch.object(zipfile.ZipFile,'writestr',side_effect=OSError('simulated write failure')):
+            with self.assertRaisesRegex(OSError,'simulated write failure'):
+                runpy.run_path(str(self.root/'scripts/package-game.py'))
         self.assertEqual(self.target.read_bytes(),b'previous release')
         self.assertFalse(list(self.target.parent.glob('*.tmp')))
 if __name__=='__main__':unittest.main()

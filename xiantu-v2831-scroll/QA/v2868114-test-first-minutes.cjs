@@ -62,6 +62,26 @@ run('mm.alive=false');a.equal(run(`confirmWildContactV2868114(${seq2})`),false);
 fresh("player.tutorial.skipped=true;"+ADJ);run('player.hp=Math.ceil(getMaxHp()*.5)');started=[];touch();a.deepEqual(started,['山贼'],'half health fights without prompt');
 console.log('PASS low-health contact asks first with the shared prompt; stale and repeated confirms are ignored');
 
+// A prepared beginner may inspect one healthy, ordinary southern field opponent before committing.
+const rookie = DONE + ";player.tutorial.readPopups=['training_reward'];achievementProgress.monstersKilled=0;player.hp=getMaxHp();" + ADJ;
+fresh(rookie);started=[];touch();
+a.equal(started.length,0,'healthy newcomer can choose');
+a(run("document.getElementById('storyText').innerHTML").includes('对手气血 600 / 600'));
+a(run("player.tutorial.readPopups.includes('first_wild_contact')"));
+const firstSeq=run("wildContactPromptV2868114.seq");
+run('closeWorldOverlay()');
+a.equal(run(`confirmWildContactV2868114(${firstSeq})`),false,'a dismissed choice cannot start combat');
+run('mm.battleCooldown=0');touch();
+a.deepEqual(started,['山贼'],'next healthy contact starts normally');
+for(const change of ['player.phase=1','achievementProgress.monstersKilled=1','mm.enemy._isElite=true',
+  'mm.enemy._isTutorial=true','mm.enemy._isTaskBattle=true',"mm.regionId='east'"]){
+  fresh(rookie+';'+change);
+  a.equal(run('warnWildContactV2868114(mm)'),false,change);
+}
+fresh(rookie+";player.tutorial.readPopups.push('first_wild_contact');player.hp=1;");
+a.equal(run('warnWildContactV2868114(mm)'),true,'low-health protection still applies');
+console.log('PASS first ordinary southern contact offers one choice and retains the low-health guard');
+
 // --- G2: battle receipt ---
 const receipt=()=>run("document.getElementById('afterBattleV2838')");
 const showReceipt=()=>run("lastBattleV2838={owner:player,name:'山贼',gold:10,exp:12,taskType:'main'};showAfterBattleV2838(player)");
