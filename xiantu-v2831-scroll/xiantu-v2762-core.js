@@ -813,6 +813,7 @@
     let moveDirection = { x: 0, y: 0 };
     let isMoving = false;
     let currentZone = null;
+    let moveZoneBounds = [];
     
     function initMoveSystem() {
       document.addEventListener('keydown', handleKeyDown);
@@ -841,6 +842,15 @@
           el.style.height = z.h;
         }
       });
+      if (isMoveMode) cacheMoveZoneBounds(document.querySelectorAll('.move-zone'));
+    }
+
+    function cacheMoveZoneBounds(zones) {
+      moveZoneBounds = Array.from(zones, zone => ({
+        element: zone,
+        name: zone.dataset.zone,
+        rect: zone.getBoundingClientRect()
+      }));
     }
     
     function toggleMoveMode() {
@@ -857,6 +867,8 @@
       zones.forEach(z => z.classList.toggle('active', isMoveMode));
       
       if (isMoveMode) {
+        // 区域显示后再读布局，移动帧只使用这些坐标。
+        cacheMoveZoneBounds(zones);
         // 初始化角色位置
         playerX = window.innerWidth / 2 - 30;
         playerY = window.innerHeight / 2 - 40;
@@ -945,35 +957,14 @@
     }
     
     function checkZoneCollision() {
-      const moveChar = document.getElementById('playerMoveChar');
-      const charRect = {
-        left: playerX,
-        right: playerX + 60,
-        top: playerY,
-        bottom: playerY + 80
-      };
-      
-      const zones = document.querySelectorAll('.move-zone');
       let newZone = null;
-      
-      zones.forEach(zone => {
-        const rect = zone.getBoundingClientRect();
-        const zoneRect = {
-          left: rect.left,
-          right: rect.right,
-          top: rect.top,
-          bottom: rect.bottom
-        };
-        
-        // 检测碰撞
-        if (charRect.right > zoneRect.left &&
-            charRect.left < zoneRect.right &&
-            charRect.bottom > zoneRect.top &&
-            charRect.top < zoneRect.bottom) {
-          newZone = zone.dataset.zone;
+      for (const { name, rect } of moveZoneBounds) {
+        if (playerX + 60 > rect.left && playerX < rect.right &&
+            playerY + 80 > rect.top && playerY < rect.bottom) {
+          newZone = name;
         }
-      });
-      
+      }
+
       if (newZone && newZone !== currentZone) {
         currentZone = newZone;
         playSound('click');
@@ -989,7 +980,7 @@
       document.getElementById('moveToggle').classList.remove('active');
       document.getElementById('moveHint').classList.remove('show');
       document.getElementById('playerMoveChar').style.display = 'none';
-      document.querySelectorAll('.move-zone').forEach(z => z.classList.remove('active'));
+      for (const { element } of moveZoneBounds) element.classList.remove('active');
       
       // 触发对应功能
       switch(zone) {
@@ -2258,19 +2249,21 @@
     }
     PROTAGONIST_PORTRAIT_IMAGE.addEventListener('load',refreshProtagonistPortraits);
 
-    function drawCharacter(canvas, type, level, isEnemy = false) {
-      if (!canvas) return;
-      // 玩家相关立绘统一使用用户指定的男主原图；敌人仍使用原有程序绘制。
-      if (!isEnemy && ['startChar','panelAvatar','playerChar','combatPlayerChar'].includes(canvas.id)) {
-        drawProtagonistPortrait(canvas);
-        return;
-      }
-      if (!isEnemy) level = getRealmVisualTier(level);
-      const ctx = canvas.getContext('2d');
-      const w = canvas.width;
-      const h = canvas.height;
-      ctx.clearRect(0, 0, w, h);
-      
+    // 每个画布只保留当前角色本体；底层光晕、飘带与剑光仍逐帧绘制。
+    const characterBodies = new WeakMap();
+
+    function drawCharacterWeapon(ctx, w, h) {
+      ctx.fillStyle = '#c0c0c0';
+      ctx.fillRect(w*0.75, h*0.35, w*0.04, h*0.5);
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(w*0.74, h*0.32, w*0.06, h*0.06);
+    }
+
+    function createCharacterBody(w, h, type, level, isEnemy) {
+      const image = document.createElement('canvas');
+      image.width = w;
+      image.height = h;
+      const ctx = image.getContext('2d');
       let hairColor, clothColor, skinColor, glowColor;
       
       if (isEnemy) {
@@ -2311,21 +2304,6 @@
         clothColor = style.cloth;
         skinColor = style.skin;
         glowColor = style.glow;
-      }
-      
-      if (isEnemy) {
-        ctx.save();
-        ctx.globalAlpha = 0.3 + Math.sin(Date.now() / 500) * 0.1;
-        const gradient = ctx.createRadialGradient(w/2, h*0.4, 0, w/2, h*0.4, w*0.6);
-        gradient.addColorStop(0, glowColor);
-        gradient.addColorStop(1, 'transparent');
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.arc(w/2, h*0.4, w*0.6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      } else {
-        drawRealmAura(ctx, w * 0.5, h * 0.5, Math.min(w, h) * 0.42, level, { compact:true, alpha:0.82 + Math.min(3, player?.phase || 0) * 0.12 });
       }
       
       ctx.fillStyle = hairColor;
@@ -2387,6 +2365,45 @@
       ctx.closePath();
       ctx.fill();
       
+      if (level >= 1 && (isEnemy || level < 4)) drawCharacterWeapon(ctx, w, h);
+      return { image, type, level, isEnemy, glowColor };
+    }
+
+    function drawCharacter(canvas, type, level, isEnemy = false) {
+      if (!canvas || !canvas.width || !canvas.height) return;
+      // 玩家相关立绘统一使用用户指定的男主原图；敌人仍使用原有程序绘制。
+      if (!isEnemy && ['startChar','panelAvatar','playerChar','combatPlayerChar'].includes(canvas.id)) {
+        drawProtagonistPortrait(canvas);
+        return;
+      }
+      if (!isEnemy) level = getRealmVisualTier(level);
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      let body = characterBodies.get(canvas);
+      if (!body || body.type !== type || body.level !== level || body.isEnemy !== isEnemy ||
+          body.image.width !== w || body.image.height !== h) {
+        body = createCharacterBody(w, h, type, level, isEnemy);
+        characterBodies.set(canvas, body);
+      }
+      ctx.clearRect(0, 0, w, h);
+      if (isEnemy) {
+        ctx.save();
+        ctx.globalAlpha = 0.3 + Math.sin(Date.now() / 500) * 0.1;
+        const gradient = ctx.createRadialGradient(w/2, h*0.4, 0, w/2, h*0.4, w*0.6);
+        gradient.addColorStop(0, body.glowColor);
+        gradient.addColorStop(1, 'transparent');
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(w/2, h*0.4, w*0.6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      } else {
+        drawRealmAura(ctx, w * 0.5, h * 0.5, Math.min(w, h) * 0.42, level, { compact:true, alpha:0.82 + Math.min(3, player?.phase || 0) * 0.12 });
+      }
+
+      ctx.drawImage(body.image, 0, 0);
+
       if (level >= 4 && !isEnemy) {
         ctx.strokeStyle = 'rgba(255,255,255,0.4)';
         ctx.lineWidth = 2;
@@ -2399,27 +2416,21 @@
         ctx.moveTo(w*0.8, h*0.5);
         ctx.quadraticCurveTo(w*0.85 + Math.sin(time+1)*5, h*0.6, w*0.9, h*0.75);
         ctx.stroke();
+        drawCharacterWeapon(ctx, w, h);
       }
       
-      if (level >= 1) {
-        ctx.fillStyle = '#c0c0c0';
-        ctx.fillRect(w*0.75, h*0.35, w*0.04, h*0.5);
-        ctx.fillStyle = '#8B4513';
-        ctx.fillRect(w*0.74, h*0.32, w*0.06, h*0.06);
-        
-        if (level >= 3) {
-          ctx.strokeStyle = glowColor;
-          ctx.lineWidth = 1;
-          ctx.globalAlpha = 0.5 + Math.sin(Date.now()/200) * 0.3;
-          ctx.beginPath();
-          ctx.moveTo(w*0.77, h*0.35);
-          ctx.lineTo(w*0.77, h*0.1);
-          ctx.stroke();
-          ctx.globalAlpha = 1;
-        }
+      if (level >= 3) {
+        ctx.strokeStyle = body.glowColor;
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.5 + Math.sin(Date.now()/200) * 0.3;
+        ctx.beginPath();
+        ctx.moveTo(w*0.77, h*0.35);
+        ctx.lineTo(w*0.77, h*0.1);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
       }
     }
-    
+
     let animationFrame = null;
     let lastAnimationDraw = 0;
     const ANIMATION_FRAME_INTERVAL = 1000 / ((/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '') || window.matchMedia?.('(pointer: coarse)').matches) ? 15 : 30); // 手机15FPS，动画演武本身仍由CSS与计时器驱动
