@@ -6,7 +6,7 @@
  * actors on the live island from that model, and a DOM layer (bars, captions, book, title). */
 (function (root) {
   'use strict';
-  var DURATION = 60;
+  var DURATION = 60, catPose = root.GardenCatPose;
   // Clock times are seconds from play(); beats are contiguous and end at DURATION.
   var BEATS = [
     { id: 'settle', t0: 0, t1: 8, caption: '风吹过草浪，夕阳把云染成了金色' },
@@ -223,11 +223,11 @@
   /* Sitting down / standing up. `walk` above says when a cat travels; it flips within ~0.1 s, and showing that flip
    * directly is a one-frame swap between the walking mesh and the seated sculpt. STAND lists, per cat, the stretches
    * in which walk > 0.5 (found once by scanning the timeline), and standAt eases across each end of a stretch over
-   * SIT_T seconds (0.8 s; 0.5 s under reduced motion): a cat starts to rise 70% of that before its first step and
+   * the sit duration (0.45 s; 0.35 s under reduced motion): a cat starts to rise 70% of that before its first step and
    * has settled 80% of it after its last one. 1 = on its feet, 0 = seated; a pure function of t. */
   var STAND = null, SIT_STEP = 0.02;
-  function sitT() { return soft < 1 ? 0.5 : 0.8; }
-  function standAt(i, t) {
+  function sitT() { return soft < 1 ? 0.35 : 0.45; }
+  function standAt(i, t, d) {
     var j, n;
     if (!STAND) {
       STAND = [];
@@ -242,7 +242,7 @@
         STAND.push(row);
       }
     }
-    var d = sitT(), out = 0;
+    var out = 0;
     for (j = 0; j < STAND[i].length; j++) {
       var q = STAND[i][j];
       out = Math.max(out, ease(ramp(t, q[0] - 0.7 * d, q[0] + 0.3 * d)) * (1 - ease(ramp(t, q[1] - 0.2 * d, q[1] + 0.8 * d))));
@@ -273,30 +273,28 @@
     // Faces the viewer, then the teaser; curls along the ring; turns into its own path while walking.
     var yaw = Math.atan2(lerp(PILE.x * 0.4, te.x, look) - p.x, lerp(PILE.z + 8, te.z, look) - p.z);
     yaw = turnTo(yaw, Math.atan2(Math.sin(p.a), -Math.cos(p.a)), ease(ramp(t, 38.5, 40))); // clockwise, the way the stroll goes
-    // No side-sliding: a moving cat faces where it goes. While it sits down / stands up the heading turns with the
-    // stand ramp (towards the direction it last walked, or is about to walk), not in the frame the speed dies.
-    var stand = standAt(i, t), hx = vx, hz = vz, hv = speed, hk;
-    for (hk = 1; hv <= 0.02 && stand > 0 && hk <= 24; hk++) {
+    // Let the head and body turn into the path at their original pace while the posture changes.
+    var stand = standAt(i, t, sitT()), turn = standAt(i, t, soft < 1 ? 0.5 : 0.8), hx = vx, hz = vz, hv = speed, hk;
+    for (hk = 1; hv <= 0.02 && turn > 0 && hk <= 24; hk++) {
       var ht = t + (hk <= 12 ? -0.1 * hk : 0.1 * (hk - 12)), h0 = placeAt(c, ht - 0.06), h1 = placeAt(c, ht + 0.06);
       hx = (h1.x - h0.x) / 0.12; hz = (h1.z - h0.z) / 0.12; hv = Math.sqrt(hx * hx + hz * hz);
     }
     if (hv > 0.02) {
       // A near about-turn always goes the same way round, so a small change of path cannot flip it mid-turn.
       var hd = (Math.atan2(hx, hz) - yaw) % TAU; if (hd > TAU / 2) hd -= TAU; if (hd < -TAU / 2) hd += TAU; if (hd < -0.75 * TAU / 2) hd += TAU;
-      yaw += hd * stand;
+      yaw += hd * turn;
     }
     var env = playEnv(t), hop = Math.max(0, Math.sin(t * 2.1 + i * 1.7));
     // A playful wriggle (lean one way, then the other) instead of a full barrel roll: the body stays above the grass.
     var roll = soft < 1 ? 0 : i === 1 ? ramp(t, 27, 28.5) : i === 4 ? ramp(t, 31, 32.5) : 0;
     // Sit first, then curl: the loaf only starts to fold as the stroll's sit-down completes (one settle, not two).
     var curl = ease(ramp(t, 45.6 + 0.25 * i, 48.4 + 0.2 * i)) * (1 - stand), chase = i === CHASER ? chaseEnv(t) : 0;
-    // Ear flick: a short pulse every few seconds, out of phase per cat; stops once asleep.
-    var eu = frac((t + c.phase * 1.3) / (3.1 + 0.4 * (i % 3))) * (3.1 + 0.4 * (i % 3)), ear = eu < 0.32 ? Math.sin(Math.PI * eu / 0.32) * (1 - 0.8 * curl) : 0;
+    var motion = catPose.sample(t, c.phase);
     return {
       kind: c.kind, x: p.x, z: p.z, yaw: yaw, roll: 0.22 * Math.sin(TAU * roll) * Math.sin(Math.PI * roll),
       // Hops are for seated pounces only; a walking cat keeps its paws on the grass (the Walk clip carries the bounce).
       y: env * 0.1 * soft * hop * hop * hop * (1 - ramp(chase, 0, 0.1)),
-      ear: ear, tail: Math.sin(t * (1.1 + 0.8 * env) + c.phase) * (1 - 0.7 * curl), chase: chase,
+      motion: motion, ear: motion.earPulse * (1 - 0.8 * curl), tail: Math.sin(t * (1.1 + 0.8 * env) + c.phase) * (1 - 0.7 * curl), chase: chase,
       fade: ease(ramp(t, c.enter - 1.4, c.enter - 0.4)), crouch: 1 - ease(ramp(t, c.enter - 0.2, c.enter + 0.7)),
       curl: curl, moving: speed > 0.12, bat: Math.max(env * (1 - chase) * Math.max(0, Math.sin(t * 1.9 + i * 2.6)), chase * Math.abs(Math.sin(t * 4))),
       state: t < c.enter ? 'hide' : t < c.enter + c.walk ? 'gather' : t < 22 ? 'idle' : t < 38 ? 'play' : curl > 0.5 ? 'sleep' : t < 45.5 ? 'gather' : 'idle',
@@ -703,6 +701,7 @@
     st.g.visible = st.far.visible = true;
     if (doc.body) doc.body.classList.add('l2cs-on');
     staged = true;
+    root.GardenPlay.setAmbientLevel(kit.level());
   }
   function exitStage() {
     if (!staged) return;
@@ -718,6 +717,7 @@
     if (st.hemi) { st.hemi.color.setHex(kept.hemi[0]); st.hemi.groundColor.setHex(kept.hemi[1]); }
     if (doc.body) doc.body.classList.remove('l2cs-on');
     staged = false; kept = null;
+    root.GardenPlay.setAmbientLevel(kit.level());
   }
   /* ---- Eyes (stage actors only; gameplay kittens keep the approved look) ----
    * One small unlit ShaderMaterial per actor, drawn on the eye geometry that is already there (the coat's "Cat eyes"
@@ -805,9 +805,9 @@
       for (i = 0; i < lights.length; i++) lights[i].visible = false; // the highlight is drawn in the iris instead
     }
   }
-  function poseEyes(k, m, t) {
+  function poseEyes(k, m) {
     dressEyes(k);
-    var u = ((t + k.phase) % 4.2) / 0.14, blink = u < 1 ? Math.sin(Math.PI * u) : 0, lid = Math.max(ease(ramp(m.curl, 0.25, 0.55)), blink);
+    var lid = Math.max(ease(ramp(m.curl, 0.25, 0.55)), m.motion.blink);
     var mats = [k.l2eyeP, k.l2eyeB];
     for (var i = 0; i < 2; i++) if (mats[i]) {
       // The procedural sphere shuts by squashing (as in the game) and turns into a lid line; the sculpt's almond narrows.
@@ -936,6 +936,7 @@
       var ux = Math.sin(t * quick + k.phase - f * 1.4) * 0.11 * f * f * (0.4 + 0.6 * soft) + m.tail * 0.03 * f;
       // Wrapped: down off the rump, then forwards along one flank just outside the legs, tip towards the paws.
       var a = f * 1.9, wx = sgn * (0.245 + 0.03 * c) * Math.sin(Math.min(a, 1.45)), wz = -0.05 - 0.26 * Math.cos(a);
+      wx += 0.025 * f * f * m.motion.tail * (1 - c) * soft;
       var wy = Math.max(ground, PROC_RUMP.y - 0.34 * f) + (i === TAIL_N ? 0.012 * (1 + Math.sin(t * 1.3 + k.phase)) * (1 - c) : 0);
       p[i].set(ux * up + wx * (1 - up), y * up + wy * (1 - up), z * up + wz * (1 - up));
     }
@@ -963,53 +964,10 @@
     for (i = 0; i < RIG_BONES.length; i++) if (!by[boneKey(RIG_BONES[i])]) return null; // unknown rig: stay seated
     tailInit();
     if (!rq) { rq = new T.Quaternion(); rq2 = new T.Quaternion(); re = new T.Euler(); rv = new T.Vector3(); rv2 = new T.Vector3(); }
-    k.l2rig = { all: all, by: by, walking: false, surface: false, weight: 0 };
-    rigSurface(k, k.l2rig);
+    var pose = catPose.create(k);
+    if (!pose) return null;
+    k.l2rig = { all: all, by: by, walking: false, surface: false, weight: 0, pose: pose };
     return k.l2rig;
-  }
-  /* A single opaque surface moves between the authored seated vertices and the fully posed Walk vertices.
-   * Both endpoints are evaluated in mesh space AFTER skinning, not by weakening the skeleton (the seated sculpt
-   * has a different bind). The topology/UVs are shared, so this keeps one silhouette and one face throughout the
-   * 0.8 s rise/settle. Geometry and materials belong only to the stage; gameplay coats and GLBs stay untouched. */
-  function standMat(src, u) {
-    var m = src.clone(), prev = src.onBeforeCompile, key = src.customProgramCacheKey ? src.customProgramCacheKey() : '';
-    m.onBeforeCompile = function (shader, renderer) {
-      if (prev) prev.call(m, shader, renderer);
-      shader.uniforms.l2stand = u;
-      shader.vertexShader = 'uniform float l2stand;\nattribute vec3 l2SeatPosition;\nattribute vec3 l2SeatNormal;\n' + shader.vertexShader
-        .replace('#include <skinning_vertex>', '#include <skinning_vertex>\ntransformed = mix(l2SeatPosition, transformed, l2stand);')
-        .replace('#include <skinnormal_vertex>', '#include <skinnormal_vertex>\nobjectNormal = mix(l2SeatNormal, objectNormal, l2stand);');
-    };
-    m.customProgramCacheKey = function () { return key + '|l2stand-surface'; };
-    return m;
-  }
-  function rigSurface(k, rig) {
-    var geo = root.GardenCatGeometry, nodes = [], was = [], i;
-    rig.stand = { value: 0 }; rig.parts = []; rig.face = []; rig.alpha = 0;
-    if (!geo) return;
-    k.catModel.traverse(function (o) { if (o.isSkinnedMesh && o.material !== hullMat && o.material.length === undefined) nodes.push(o); });
-    for (i = 0; i < nodes.length; i++) was.push({ g: nodes[i].geometry, v: nodes[i].visible });
-    geo.setWalk(k.catModel, true);
-    for (i = 0; i < nodes.length; i++) {
-      var o = nodes[i], w = was[i], src = o.geometry, g = new T.BufferGeometry();
-      g.setIndex(src.index);
-      Object.keys(src.attributes).forEach(function (name) { g.setAttribute(name, src.attributes[name]); });
-      g.morphAttributes = src.morphAttributes; g.morphTargetsRelative = src.morphTargetsRelative;
-      g.setAttribute('l2SeatPosition', w.g.attributes.position);
-      g.setAttribute('l2SeatNormal', w.g.attributes.normal);
-      o.geometry = g; o.material = standMat(o.material, rig.stand);
-      o.l2stand = rig.stand; o.l2seatVisible = w.v; o.visible = w.v;
-      rig.parts.push(o);
-    }
-    // One set of face parts follows one interpolated Head transform. No duplicated eyes/nose/whiskers.
-    var H0 = rig.by.Head.bone;
-    rig.seatHead = new T.Object3D(); rig.seatHead.name = 'l2PoseHead'; H0.parent.add(rig.seatHead);
-    var children = H0.children.slice();
-    for (i = 0; i < children.length; i++) {
-      var f = children[i];
-      if (!f.isMesh || f.material === hullMat || /catchlight/i.test(f.name)) continue;
-      rig.seatHead.add(f); rig.face.push(f);
-    }
   }
   function rigRest(rig) {
     for (var i = 0; i < rig.all.length; i++) { var r = rig.all[i]; r.bone.position.copy(r.p); r.bone.quaternion.copy(r.q); r.bone.scale.copy(r.s); }
@@ -1035,18 +993,17 @@
     P.bone.position.add(rv2).sub(P.p); P.bone.position.y -= drop; P.bone.quaternion.premultiply(rq2);
   }
   function poseRig(k, m, t) {
-    var rig = rigOf(k), i;
+    var rig = rigOf(k);
     if (!rig) return;
     // a = endpoint interpolation: 1 on its feet, 0 at the exact seated surface.
     var act = k.catWalkAction, a = clamp(m.stand || 0, 0, 1), ph = k.phase;
     if (a < 0.002) a = 0; if (a > 0.998) a = 1;
     if (a < 1) {
-      // Seated pose first: the sculpt is drawn as authored, its face parts follow the seated Head.
+      // Capture the seated head after the directed look/tuck so face details and fur turn together.
       if (a === 0 && rig.walking) { act.stop(); rig.walking = false; } // stop() restores the seated bind pose
       rigRest(rig);
       rigLayers(k, rig, m, t, 0, 1);
-      var Hd = rig.by.Head.bone;
-      rig.seatHead.position.copy(Hd.position); rig.seatHead.quaternion.copy(Hd.quaternion); rig.seatHead.scale.copy(Hd.scale);
+      catPose.seat(rig.pose, m.motion, (1 - m.look) * (1 - m.curl) * (1 - m.groom) * soft, 0.4 + 0.6 * soft);
     }
     if (a > 0) {
       // Walk clip at full weight (never a half-blended skeleton); cadence follows the ground covered, so the
@@ -1058,18 +1015,11 @@
       act.time = (cyc - Math.floor(cyc)) * dur;
       k.catMixer.update(0);
       rigKeep(rig);
+      catPose.gait(rig.pose, cyc, 0.4 + 0.6 * soft);
       rigLayers(k, rig, m, t, 1, a);
     }
-    rig.stand.value = a;
-    for (i = 0; i < rig.parts.length; i++) rig.parts[i].visible = rig.parts[i].l2seatVisible || a > 0;
-    // The bones share a parent; interpolate their final transforms, after all clip and stage offsets.
-    var head = rig.by.Head.bone;
-    if (a === 1) {
-      rig.seatHead.position.copy(head.position); rig.seatHead.quaternion.copy(head.quaternion); rig.seatHead.scale.copy(head.scale);
-    } else if (a > 0) {
-      rig.seatHead.position.lerp(head.position, a); rig.seatHead.quaternion.slerp(head.quaternion, a); rig.seatHead.scale.lerp(head.scale, a);
-    }
-    rig.surface = a >= 0.5; rig.weight = a; rig.alpha = a;
+    catPose.blend(rig.pose, a);
+    rig.surface = a >= 0.5; rig.weight = a;
   }
   // Bone layer on top of the clip (w = 1, walking endpoint) or of the seated rest (w = 0). `a` is the stand amount:
   // below 1 the walking endpoint settles - hind end and rump sink, the chest tips up, the head draws back, the tail drops.
@@ -1091,7 +1041,7 @@
     rigTurn(rig, 'Body', 0.3 * str + 0.06 * gr, 0.05 * m.tail * s * soft, 0);
     rigMove(rig, 'Body', 0, -0.02 * str - 0.012 * c, 0.02 * str);
     // Head: follow the toy / seed, a slow idle glance, the ear-flick shiver, then the tuck into the pile.
-    var hy = Math.sin(t * 0.7 + ph) * 0.22 * (1 - m.look) * (1 - c) * (1 - gr) * (0.3 + 0.7 * soft), hp = 0, hr = 0;
+    var hy = w * m.motion.yaw * (1 - m.look) * (1 - c) * soft, hp = 0, hr = 0;
     if (m.look > 0.01 && st) {
       var tg = m.chase > 0.5 ? heroSeedAt(t) : teaserAt(t), wx = tg.x - m.x, wz = tg.z - m.z, cy = Math.cos(m.yaw), sy = Math.sin(m.yaw);
       var lx = wx * cy - wz * sy, lz = wx * sy + wz * cy, hgt = tg.y - (m.y + 0.6 * k.size);
@@ -1127,7 +1077,7 @@
   // Same derived pose as kittens.js updateOne, driven by the model instead of a state machine.
   function poseCat(k, m, t) {
     // stride eases with the stand ramp (no instant leg cut-off); settle = the dip in the middle of a sit-down / stand-up.
-    var c = m.curl, wob = t * 9 + k.phase, stride = clamp(m.stand || 0, 0, 1), settle = Math.sin(Math.PI * stride), breathe = Math.sin(t * (1.5 - c * 0.6) + k.phase), i;
+    var c = m.curl, wob = t * 9 + k.phase, stride = clamp(m.stand || 0, 0, 1), settle = Math.sin(Math.PI * stride), idle = (1 - stride) * (1 - c), breathe = m.motion.breath * (0.4 + 0.6 * soft), i;
     // Procedural actors (white, glow, or any coat whose GLB failed) are a standing shape: PROC brings their length
     // into the same family as a walking Blender cat.
     var sc = k.size * (k.catVisual ? 1 : PROC) * Math.max(0.01, m.fade);
@@ -1137,7 +1087,7 @@
     k.root.position.set(m.x, H.TOP_Y + m.y + c * (k.catVisual ? 0.028 : 0.037 * k.size) + 0.13 * Math.abs(m.roll), m.z);
     k.root.rotation.set(0, m.yaw, m.roll);
     k.root.scale.set(sc, sc, sc);
-    var lid = poseEyes(k, m, t);
+    var lid = poseEyes(k, m);
     if (k.catVisual) {
       // Blender coat: settle into a low loaf and lean on a neighbour; the rig layer below moves the cat itself.
       var seated = 1 - stride;
@@ -1150,20 +1100,22 @@
     } else {
       // Procedural coat: a standing shape. Standing still it rests a little lower on its haunches (rump down, chest
       // up); the stride, the bounce and that haunch tilt all follow the same stand ramp.
-      k.inner.scale.y = 1 - m.crouch * 0.28 - c * 0.3 + breathe * 0.012 - 0.03 * settle;
+      k.inner.scale.y = 1 - m.crouch * 0.28 - c * 0.3 - 0.03 * settle;
+      k.body.scale.set(1 + 0.012 * breathe * (1 - stride), 1 + 0.016 * breathe * (1 - stride), 1);
       k.inner.rotation.z = c * 0.22;
       k.body.position.y = 0.24 - c * 0.11 + stride * Math.abs(Math.sin(wob)) * 0.022 - 0.012 * (1 - stride) * (1 - c);
-      k.body.rotation.x = -0.1 * (1 - stride) * (1 - c);
+      k.body.rotation.x = (-0.1 + 0.018 * breathe) * idle + 0.025 * Math.sin(2 * wob) * stride * soft;
       for (i = 0; i < 4; i++) {
         k.legs[i].rotation.x = stride * Math.sin(wob + (i === 0 || i === 3 ? 0 : Math.PI)) * 0.65;
         k.legs[i].scale.y = 1 - c * 0.8;
+        if (i < 2) k.legs[i].position.z = 0.15 + Math.max(0, (i ? 1 : -1) * m.motion.paw) * idle;
       }
       if (m.bat > 0) k.legs[0].rotation.x = -m.bat * (1.1 + 0.3 * Math.sin(t * 5 + k.phase));
       k.head.position.set(c * 0.17, 0.2 - c * 0.2 - m.crouch * 0.09, 0.25 - c * 0.03);
-      k.head.rotation.set(c * 0.45 - m.bat * 0.35, c + (1 - c) * Math.sin(t * 0.7 + k.phase) * 0.25, c * 0.3);
+      k.head.rotation.set(c * 0.45 - m.bat * 0.35, c + (1 - c) * m.motion.yaw * soft, c * 0.3 + idle * m.motion.tilt * soft);
       if (k.l2tail) poseTail(k, m, t);
       else { k.tail.rotation.x = -0.75 - c * 0.85; k.tail.rotation.z = c * 0.9 + (1 - c) * Math.sin(t * (m.state === 'play' ? 4 : 2.4) + k.phase) * 0.4 + m.tail * 0.25; }
-      for (i = 0; i < k.ears.length; i++) k.ears[i].rotation.z = (i ? -1 : 1) * m.ear * 0.5 * Math.abs(Math.sin(t * 22));
+      for (i = 0; i < k.ears.length; i++) k.ears[i].rotation.z = (i ? m.motion.earR : m.motion.earL) * (1 - 0.8 * c) * soft;
       var ey = lid > 0.6 ? (c > 0.5 ? 0.14 : 0.2) : 1;
       k.eyes[0].scale.set(1, ey, 0.6); k.eyes[1].scale.set(1, ey, 0.6);
     }
@@ -1468,6 +1420,17 @@
     return true;
   }
 
+  // The stage probes measure the same two endpoints and weight that the material draws.
+  function drawnVertex(mesh, pose, index, point, seat) {
+    if (mesh.isSkinnedMesh && mesh.material.skinning !== false) mesh.boneTransform(index, point);
+    else point.fromBufferAttribute(mesh.geometry.attributes.position, index);
+    if (mesh.l2stand && mesh.l2stand.value < 1) {
+      seat.fromBufferAttribute(mesh.geometry.attributes.l2SeatPosition, index);
+      catPose.seatPoint(pose, seat, mesh.geometry.attributes.catAnatomy, index);
+      point.lerp(seat, 1 - mesh.l2stand.value);
+    }
+  }
+
   var api = {
     play: play, skip: skip, seek: seek, time: time,
     duration: function () { return DURATION; },
@@ -1515,12 +1478,11 @@
         k.root.traverse(function (m) {
           if (!m.isMesh || m.material === hullMat || !m.geometry.attributes.position) return;
           var q = m; while (q && q !== k.root) { if (!q.visible) return; q = q.parent; }
-          var drawnSkinned = m.isSkinnedMesh && m.material.skinning !== false; // the seated sculpt is drawn unskinned
+          var drawnSkinned = m.isSkinnedMesh && m.material.skinning !== false;
           var pos = m.geometry.attributes.position, si = m.isSkinnedMesh ? m.geometry.attributes.skinIndex : null, step = Math.max(1, Math.floor(pos.count / 1500));
           var isTail = !m.isSkinnedMesh && (m === k.tail || m.l2tailPart);
           for (var j = 0; j < pos.count; j += step) {
-            if (drawnSkinned) { m.boneTransform(j, v); } else v.fromBufferAttribute(pos, j);
-            if (m.l2stand) v.lerp(seat.fromBufferAttribute(m.geometry.attributes.l2SeatPosition, j), 1 - m.l2stand.value);
+            drawnVertex(m, k.l2rig && k.l2rig.pose, j, v, seat);
             v.applyMatrix4(m.matrixWorld).applyMatrix4(inv);
             var dx = v.x - px, dz = v.z - pz, d = Math.sqrt(dx * dx + dz * dz), y = v.y - H.TOP_Y;
             var tailV = isTail || (si && drawnSkinned && /^Tail/.test(m.skeleton.bones[si.getX(j)].name));
@@ -1542,12 +1504,12 @@
         var r = k.l2rig, o = { blender: !!(k.catVisual && r), visible: k.root.visible, x: +k.root.position.x.toFixed(4), y: +(k.root.position.y - H.TOP_Y).toFixed(4), z: +k.root.position.z.toFixed(4),
           yaw: +k.root.rotation.y.toFixed(4), sy: +(k.root.scale.y / k.root.scale.x).toFixed(4), duration: sitT() };
         if (o.blender) {
-          o.stand = +r.alpha.toFixed(4);
-          o.surface = +r.stand.value.toFixed(4);
-          o.fur = r.parts.filter(function (p) { return p.visible && p.geometry.index.count > 3000; }).length;
-          o.triangles = r.parts.concat(r.face).reduce(function (n, p) { return n + (p.visible ? p.geometry.index.count / 3 : 0); }, 0);
-          o.face = r.face.filter(function (f) { return f.visible; }).length;
-          o.opaque = r.parts.every(function (p) { return !p.material.transparent && p.material.opacity === 1; });
+          o.stand = +r.weight.toFixed(4);
+          o.surface = +r.pose.stand.value.toFixed(4);
+          o.fur = r.pose.parts.filter(function (p) { return p.visible && p.geometry.index.count > 3000; }).length;
+          o.triangles = r.pose.parts.concat(r.pose.face).reduce(function (n, p) { return n + (p.visible ? p.geometry.index.count / 3 : 0); }, 0);
+          o.face = r.pose.face.filter(function (f) { return f.visible; }).length;
+          o.opaque = r.pose.parts.every(function (p) { return !p.material.transparent && p.material.opacity === 1; });
         } else {
           o.stand = null; o.surface = null;
           o.legs = +Math.max(Math.abs(k.legs[0].rotation.x), Math.abs(k.legs[1].rotation.x)).toFixed(4); o.tilt = +k.body.rotation.x.toFixed(4); o.bodyY = +k.body.position.y.toFixed(4);
@@ -1562,7 +1524,7 @@
      * root to the nearest rendered body vertex (0 = on the skin), unit = metres per model unit, px = screen position. */
     tails: function () {
       if (!st || !staged) return [];
-      var a = new T.Vector3(), b = new T.Vector3(), v = new T.Vector3(), ax = new T.Vector3(), sc = new T.Vector3();
+      var a = new T.Vector3(), b = new T.Vector3(), v = new T.Vector3(), seat = new T.Vector3(), ax = new T.Vector3(), sc = new T.Vector3();
       tailInit();
       H.island.updateMatrixWorld(true);
       function r3(n) { return +n.toFixed(4); }
@@ -1582,7 +1544,7 @@
               var tw = 0;
               if (si.getX(j) === ti) tw += sw.getX(j); if (si.getY(j) === ti) tw += sw.getY(j); if (si.getZ(j) === ti) tw += sw.getZ(j); if (si.getW(j) === ti) tw += sw.getW(j);
               if (tw > 0.02) continue;
-              if (skinned) m.boneTransform(j, v); else v.fromBufferAttribute(pos, j);
+              drawnVertex(m, rig.pose, j, v, seat);
               v.applyMatrix4(m.matrixWorld);
               var d = v.distanceTo(a); if (d < surf) surf = d;
             }

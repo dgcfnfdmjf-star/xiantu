@@ -7,8 +7,7 @@ const f = require('./cat-models-fixture.cjs');
 const output = f.path.join(f.repo, 'output/playwright/cat-walk');
 f.fs.mkdirSync(output, { recursive: true });
 const report = { checks: [], scenes: [] };
-// Skeleton matrices are Float32 on the GPU. A microunit covers matrix roundoff
-// when breathing/play offsets change while the bone pose returns to rest.
+// Repeat the same idle time to distinguish a repeatable living pose from residual Walk transforms.
 const REST_EPSILON = 1e-6;
 
 function sampleModel(kind) {
@@ -18,7 +17,7 @@ function sampleModel(kind) {
   __catTestScene.updateMatrixWorld(true);
   k.catModel.updateMatrixWorld(true);
   const inverse = new THREE.Matrix4().copy(k.catModel.matrixWorld).invert();
-  const vertex = new THREE.Vector3(), meshes = [], bones = [];
+  const seated = new THREE.Vector3(), vertex = new THREE.Vector3(), meshes = [], bones = [];
   let minY = Infinity, maxRadius = 0;
   k.catModel.traverse(node => {
     if (node.isBone && !boundsOnly) bones.push({ name: node.name, uuid: node.uuid, p: node.position.toArray(), q: node.quaternion.toArray(), s: node.scale.toArray() });
@@ -36,15 +35,21 @@ function sampleModel(kind) {
       }
       if (!boundsOnly) pawSides.push(pawSide);
       vertex.fromBufferAttribute(attr, i);
-      if (node.isSkinnedMesh) __catTestSkinVertex(node, i, vertex);
+      if (node.isSkinnedMesh && node.material.skinning) __catTestSkinVertex(node, i, vertex);
+      if (node.l2stand && node.l2stand.value < 1) {
+        const attributes = node.geometry.attributes;
+        seated.fromBufferAttribute(attributes.l2SeatPosition, i);
+        GardenCatPose.seatPoint(k.catMotion.pose, seated, attributes.catAnatomy, i);
+        vertex.lerp(seated, 1 - node.l2stand.value);
+      }
       vertex.applyMatrix4(node.matrixWorld).applyMatrix4(inverse);
-      minY = Math.min(minY, vertex.y); maxRadius = Math.max(maxRadius, Math.hypot(vertex.x, vertex.z));
+      if (node.visible) { minY = Math.min(minY, vertex.y); maxRadius = Math.max(maxRadius, Math.hypot(vertex.x, vertex.z)); }
       if (!boundsOnly) positions.push(...vertex.toArray());
     }
     meshes.push({ name: node.name, skinned: !!node.isSkinnedMesh, positions, pawSides });
   });
   return { kind, x: k.x, z: k.z, moving: k.moving, state: k.state, yaw: k.root.rotation.y, speed: k.catWalkSpeed,
-    active: k.catWalkActive, weight: k.catWalkWeight, actionTime: k.catWalkAction.time, timeScale: k.catWalkAction.getEffectiveTimeScale(),
+    active: k.catWalkActive, stand: k.catStand, weight: k.catWalkWeight, actionTime: k.catWalkAction.time, timeScale: k.catWalkAction.getEffectiveTimeScale(),
     actualSpeed: k.catWalkActualSpeed, duration: k.catWalkAction.getClip().duration, stride: k.catWalkStride, scale: k.catWalkScale, size: k.size, footprint: k.catFootprint, minY, maxRadius, meshes, bones };
 }
 function maxDifference(a, b) {
@@ -78,10 +83,13 @@ async function poseAt(page, kind, phase, boundsOnly = false) {
   await page.evaluate(({ kind, phase }) => {
     const k = __kittens.list.find(k => k.kind.id === kind && k.catModel);
     k.state = 'roam'; k.moving = true; k.catWalkSpeed = .55;
-    k.catWalkX = k.x; k.catWalkZ = k.z - .055;
-    GardenCatModels.pose(k, 0, .1);
-    k.catWalkAction.setEffectiveWeight(1); k.catWalkAction.time = phase * k.catWalkAction.getClip().duration;
-    k.catMixer.update(0); k.catModel.updateWorldMatrix(true, true);
+    for (let frame = 0; frame < 5 && k.catStand !== 1; frame++) {
+      k.catWalkX = k.x; k.catWalkZ = k.z - .055;
+      GardenCatModels.pose(k, 0, .1);
+    }
+    k.catWalkAction.time = phase * k.catWalkAction.getClip().duration;
+    GardenCatModels.pose(k, 0, 0);
+    k.catModel.updateWorldMatrix(true, true);
   }, { kind, phase });
   return page.evaluate(sampleModel, boundsOnly ? { kind, boundsOnly: true } : kind);
 }
@@ -89,7 +97,7 @@ async function stop(page, kind, state = 'idle') {
   await page.evaluate(({ kind, state }) => {
     const k = __kittens.list.find(k => k.kind.id === kind && k.catModel);
     k.state = state; k.moving = false;
-    GardenCatModels.pose(k, 0, .1); GardenCatModels.pose(k, .1, .1);
+    for (let frame = 1; frame <= 5; frame++) GardenCatModels.pose(k, frame / 10, .1);
   }, { kind, state });
   return page.evaluate(sampleModel, kind);
 }
@@ -145,6 +153,36 @@ async function checkScene(browser, server, mobile) {
     for (const kind of f.kinds) await stop(page, kind);
     const rest = {};
     for (const kind of f.kinds) rest[kind] = await page.evaluate(sampleModel, kind);
+    const clearance = await page.evaluate(() => {
+      const k = __kittens.list.find(k => k.kind.id === 'orange');
+      const rest = k.catFootprint, full = k.catWalkRadius * k.catWalkScale * k.size;
+      const probe = () => ({ footprint: k.catFootprint, stand: k.catStand, active: k.catWalkActive });
+      const advance = (state, moving, traveled) => {
+        k.state = state; k.moving = moving;
+        k.catWalkX = k.x; k.catWalkZ = k.z - traveled;
+        GardenCatModels.pose(k, .5, .05);
+      };
+      GardenCatModels.prepareWalk(k, .05);
+      const reserved = probe();
+      advance('roam', true, .025);
+      const rising = probe();
+      advance('hop', true, 0);
+      const special = probe();
+      for (let i = 0; i < 10; i++) advance('roam', true, .025);
+      for (let i = 0; i < 5; i++) advance('roam', true, 0);
+      const stall = probe();
+      advance('idle', false, 0);
+      return { rest, full, reserved, rising, special, stall, stopped: probe() };
+    });
+    assert.equal(clearance.reserved.footprint, clearance.full, 'stepTo reserves the walking outline before moving');
+    assert(clearance.rising.stand > 0 && clearance.rising.stand < 1 && clearance.rising.footprint === clearance.full,
+      'partial rise uses the original full walking clearance');
+    assert.equal(clearance.special.footprint, clearance.rest, 'special state uses the original rest clearance immediately');
+    assert(!clearance.stall.active && clearance.stall.stand > 0 && clearance.stall.stand < 1 && clearance.stall.footprint === clearance.full,
+      'a blocked traveler starts to sit while preserving its walking reservation');
+    assert(clearance.stopped.stand > 0 && clearance.stopped.footprint === clearance.rest,
+      'a true stop releases the walking reservation independently of the visible settle');
+    await stop(page, 'orange');
     const phases = [];
     for (const kind of f.kinds) {
       const first = await poseAt(page, kind, .25), second = await poseAt(page, kind, .75);
@@ -157,28 +195,29 @@ async function checkScene(browser, server, mobile) {
       for (let phase = 0; phase < 96; phase++) {
         const pose = await poseAt(page, kind, phase / 96, true);
         minimum = Math.min(minimum, pose.minY); radius = Math.max(radius, pose.maxRadius);
-        assert(pose.maxRadius * pose.scale * pose.size <= pose.footprint + .002, `${kind}: actual walk fits its derived collision footprint`);
+        assert(pose.maxRadius * pose.scale * pose.size <= pose.footprint + .002, `${kind}: actual walk at phase ${phase}/96 has radius ${(pose.maxRadius * pose.scale * pose.size).toFixed(5)}, reserved ${pose.footprint.toFixed(5)}`);
       }
       assert(minimum >= -.002, `${kind}: actual animated skin remains above ground, minimum ${minimum}`);
-      // Ordinary starts and special-state stops use complete poses; partial
-      // action weights are intentionally unsupported for these corrective skins.
+      // Measure full drawn endpoints across starts/stops and repeat the same idle time.
       for (const phase of [.125, .375, .625, .875]) {
         await stop(page, kind);
         const pose = await poseAt(page, kind, phase);
-        assert.equal(pose.weight, 1);
+        assert.equal(pose.weight, 1); assert.equal(pose.stand, 1);
         assert(pose.minY >= -.002, `${kind}: starting full Walk remains above ground`);
         const seated = await stop(page, kind);
-        assert.equal(seated.weight, 0);
+        assert.equal(seated.weight, 0); assert.equal(seated.stand, 0);
         assert(maxDifference(seated, rest[kind]) < REST_EPSILON);
       }
       const otherKind = f.kinds.find(x => x !== kind);
       assert(maxDifference(rest[otherKind], await page.evaluate(sampleModel, otherKind)) < REST_EPSILON, 'animating one actor never deforms another');
       const arrived = await stop(page, kind);
-      assert(!arrived.active && maxDifference(arrived, rest[kind]) < REST_EPSILON, `${kind}: ordinary stop restores exact seated rest`);
+      assert(!arrived.active && maxDifference(arrived, rest[kind]) < REST_EPSILON, `${kind}: ordinary stop restores the repeatable idle pose`);
       for (const state of ['hop', 'hug', 'sleep', 'play']) {
         await poseAt(page, kind, .2);
         const special = await stop(page, kind, state);
-        assert(!special.active && maxDifference(special, rest[kind]) < REST_EPSILON, `${kind}: ${state} never retains walking articulation; active=${special.active}, maxDelta=${maxDifference(special,rest[kind])}`);
+        assert(!special.active && special.stand === 0, `${kind}: ${state} returns to the seated surface`);
+        assert(maxDifference(special, await stop(page, kind, state)) < REST_EPSILON,
+          `${kind}: repeating the ${state} pose does not accumulate Walk transforms`);
       }
       await stop(page, kind);
       phases.push({ kind, minY: minimum, maxRadius: radius, pawQuarter: leftA, pawThreeQuarter: leftB, seamDifference: maxDifference(seamA, seamB), surfaceChange: maxDifference(first, second) });
@@ -223,8 +262,8 @@ async function checkScene(browser, server, mobile) {
     }
     assert(await page.evaluate(() => __kittens.list.every(k => !k.catWalkActive)), 'chapter exit stops all Walk actions');
     assert.deepEqual(test.errors, [], 'no browser errors'); assert.deepEqual(test.external, [], 'no external requests');
-    report.scenes.push({ label, viewport: mobile ? '390x844 DPR2' : '1200x900 DPR1', ownership, phases, movement: { before: [movingA.x, movingA.z], after: [movingB.x, movingB.z], speed: movingB.speed, actionTimeScale: movingB.timeScale } });
-    report.checks.push(label + ': actual roam articulation/+Z; independent skin clones; opposite paw steps; exact loop/rest; 96 ground samples per coat; special-state/background/exit stop; untouched saves before real moving-head two-tap input');
+    report.scenes.push({ label, viewport: mobile ? '390x844 DPR2' : '1200x900 DPR1', ownership, phases, clearance, movement: { before: [movingA.x, movingA.z], after: [movingB.x, movingB.z], speed: movingB.speed, actionTimeScale: movingB.timeScale } });
+    report.checks.push(label + ': actual roam articulation/+Z; independent skin clones; opposite paw steps; periodic Walk and repeatable idle; 96 ground samples per coat; special-state/background/exit stop; untouched saves before real moving-head two-tap input');
     console.log('PASS ' + label + ' animated cats');
   } finally { await test.context.close(); }
 }

@@ -17,6 +17,10 @@ replace('  window.__kittens = api;',
 # Gameplay kittens hold still (and stay hidden) while the stage is up.
 replace('      if (level !== 2) return;\n      for (var i = kittens.length - 1;',
         '      if (level !== 2) return;\n      if (window.__l2Cutscene && window.__l2Cutscene.staged()) return;\n      for (var i = kittens.length - 1;')
+# The resident garden cat is separate from the seven actors. Its normal update reapplies visibility every frame.
+replace('    if (cat) cat.root.visible = n === 2;\n',
+        '    if (cat) cat.root.visible = n === 2;\n'
+        '    if (cat && window.__l2Cutscene && window.__l2Cutscene.staged()) cat.root.visible = false;\n')
 # Blender coats for stage actors on any level; they never join the gameplay list. Each gets its own mixer + Walk action
 # (animate=true); l2-cutscene.js drives it from the timeline, never through pose()/poseWalk and the gameplay `active` flag.
 replace('  function attach(k) {\n',

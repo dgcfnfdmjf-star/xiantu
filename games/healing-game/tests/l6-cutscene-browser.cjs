@@ -20,7 +20,8 @@ const OUT = path.resolve(process.argv[2] || path.resolve(__dirname, '../../../ou
 const MIME = { '.html': 'text/html; charset=utf-8', '.mp3': 'audio/mpeg', '.glb': 'model/gltf-binary' };
 const KEY = 'healingGarden.journey.v1';
 const SAVES = {
-  'healingGarden.kittens.v1': { total: 20, ended: true, level: 6 },
+  // Enter the unlocked snow chapter from a valid legacy kitten slot.
+  'healingGarden.kittens.v1': { total: 20, ended: true, level: 5, caught: { orange: 4 }, companions: { orange: 1 } },
   [KEY]: { completed: [1, 2, 3, 4, 5], lamps: [true, true, true], chimes: { round: 3 }, lotus: { light: [3, 3, 3, 3, 3, 3] }, snow: { lit: [0, 1, 2, 3, 4, 5], home: ['orange', 'calico', 'black'] } }
 };
 
@@ -72,7 +73,7 @@ const SAVES = {
   try {
     /* ---- A: the old behaviour is the reference ---- */
     let { context, page } = await fresh();
-    await page.goto(url + '?l6cutscene=0');
+    await page.goto(url + '?level=6&l6cutscene=0');
     assert.equal(await page.evaluate(() => window.__l6Cutscene.enabled()), false);
     await clear(page);
     const savedA = await progress(page), xpA = await page.evaluate(() => __journey.state().xp);
@@ -84,7 +85,7 @@ const SAVES = {
 
     /* ---- B: the film replaces the 7 s finale ---- */
     ({ context, page } = await fresh());
-    await page.goto(url);
+    await page.goto(url + '?level=6');
     assert.equal(await page.evaluate(() => window.__l6Cutscene.enabled() && window.__l6Cutscene.ready()), true);
     await clear(page);
     assert.equal(await csState(page), 'playing', 'the film starts when the last kitten is home');
@@ -133,7 +134,7 @@ const SAVES = {
 
     /* ---- R: reduced motion keeps the immediate card ---- */
     ({ context, page } = await fresh(null, { reducedMotion: 'reduce' }));
-    await page.goto(url);
+    await page.goto(url + '?level=6');
     await clear(page);
     assert.equal(await cardShown(page), true, 'reduced motion: card at once');
     assert.equal(await csState(page), 'idle');

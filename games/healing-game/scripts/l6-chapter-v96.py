@@ -48,19 +48,35 @@ replace("5: 'moonlotus' }", "5: 'moonlotus', 6: 'snowlantern' }")
 # The chapter script registers its BGM through window.__music2 and must exist before GardenPlay.init runs.
 MAIN6 = "<script>\n(function () {\n  'use strict';\n\n  /* ------------------------------------------------------------------\n   * Config / caps"
 replace(MAIN6, '<style>\n' + (ROOT / 'src/snow-chapter.css').read_text() + '\n</style>\n<script>\n' + (ROOT / 'src/snow-chapter.js').read_text() + '\n</script>\n' + MAIN6)
+# Add the shared presentation to the existing model script in the working build.
+# The archived V9.5 package and the number/order of script tags stay reproducible.
+cat_motion = '\n'.join((ROOT / ('src/' + name + '.js')).read_text()
+                       for name in ('cat-surface', 'cat-pose', 'cat-motion'))
+replace('/* cat-models.js —', cat_motion + '\n/* cat-models.js —')
+replace('  function poseWalk(k, dt) {', '  function poseWalk(k, dt, t) {')
+replace('      poseWalk(k, dt);', '      poseWalk(k, dt, t);')
+replace('    if (moving) {\n      if (!k.catWalkActive)',
+        '    if (window.GardenCatMotion.step(k, moving, k.catWalkActualSpeed, dt, t)) {\n'
+        '      updateFootprint(k, k.moving && !special ? 1 : 0); return;\n'
+        '    }\n    if (moving) {\n      if (!k.catWalkActive)')
+replace('1 + breathe * .008 - k.crouch', '1 + (k.catMotion ? 0 : breathe * .008) - k.crouch')
+replace('    k.catWalkAction.stop(); k.catWalkActive', '    window.GardenCatMotion.reset(k);\n    k.catWalkAction.stop(); k.catWalkActive')
+replace('      if (k.catMixer) k.catMixer.uncacheRoot',
+        '      if (k.catPose) window.GardenCatPose.dispose(k.catPose);\n'
+        '      k.catMotion = null;\n      if (k.catMixer) k.catMixer.uncacheRoot')
 # Level-6 kittens reuse the four local Blender cats and their Walk clip (cat-models.js). Two small post-freeze
-# entry points: snowCat(kind, root, height) -> Promise<owner|null>, and snowWalk(owner, moving, speed, dt).
+# entry points: snowCat(kind, root, height, phase) creates a private actor for both the chapter and its film.
 replace("    registerAmbient: function (cat) { ambient = cat; attachAmbient(); },\n",
         "    registerAmbient: function (cat) { ambient = cat; attachAmbient(); },\n"
-        "    snowCat: function (kind, root, height) {\n"
+        "    snowCat: function (kind, root, height, phase) {\n"
         "      if (!COATS[kind]) return Promise.resolve(null);\n"
         "      return load(kind).then(function (template) {\n"
         "        if (!template || !root.parent) return null;\n"
-        "        var owner = { root: root, size: 1, phase: Math.random() * 6.28, state: 'walk', moving: false, crouch: 0, curl: 0 };\n"
+        "        var owner = { root: root, size: 1, phase: isFinite(phase) ? phase : Math.random() * Math.PI * 2, state: 'walk', moving: false, crouch: 0, curl: 0 };\n"
         "        try { createVisual(owner, template, height, true); return owner; } catch (e) { return null; }\n"
         "      });\n"
         "    },\n"
-        "    snowWalk: function (owner, moving, speed, dt) { if (!owner || !owner.catMixer) return; owner.moving = moving; owner.catWalkSpeed = speed; poseWalk(owner, dt); },\n")
+        "    snowWalk: window.GardenCatMotion.step,\n")
 # Collection book: 雪灯手记 lists the four kittens brought home.
 replace("        ['月莲手记', window.LotusRules.blooms, S.lotus.found, '☾'],\n",
         "        ['雪灯手记', window.SnowRules.kittens, S.snow.home, '❄'],\n        ['月莲手记', window.LotusRules.blooms, S.lotus.found, '☾'],\n")

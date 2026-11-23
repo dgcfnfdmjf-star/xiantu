@@ -438,7 +438,7 @@
       var inner = new T.Group(); r.add(inner);
       var K = { id: id, i: i, root: r, inner: inner, route: route, cum: rc, len: rc[rc.length - 1], home: home, owner: null, stand: standIn(inner, KIT_COL[id]) };
       st.kits.push(K);
-      if (CM && CM.snowCat) CM.snowCat(id, inner, KIT_H).then(function (o) { if (o) { K.owner = o; K.stand.visible = false; } }).catch(function () { /* keep the stand-in */ });
+      if (CM && CM.snowCat) CM.snowCat(id, inner, KIT_H, i * 2.39996).then(function (o) { if (o) { K.owner = o; K.stand.visible = false; } }).catch(function () { /* keep the stand-in */ });
     });
   }
   function routeAt(K, d) {
@@ -447,8 +447,8 @@
     return [lerp(a[0], b[0], f), lerp(a[1], b[1], f), Math.atan2(b[0] - a[0], b[1] - a[1])];
   }
   // Every kitten from the frame alone: walk cadence = the distance covered / the clip's stride, so seek(t) repeats it.
-  function poseKitten(K, k, top) {
-    var d = k.u * K.len, p = routeAt(K, d), r = K.root, o = K.owner, CM = root.GardenCatModels;
+  function poseKitten(K, k, top, t) {
+    var d = k.u * K.len, p = routeAt(K, d), r = K.root, o = K.owner;
     r.position.set(p[0], top, p[1]);
     var restYaw = Math.atan2(K.route[2][0] - K.route[0][0], K.route[2][1] - K.route[0][1]), n = K.route.length;
     var arriveYaw = Math.atan2(K.home[0] - K.route[n - 2][0], K.home[1] - K.route[n - 2][1]);
@@ -457,14 +457,13 @@
     if (Math.abs(arriveYaw - homeYaw) > Math.PI) arriveYaw += arriveYaw < homeYaw ? 2 * Math.PI : -2 * Math.PI;
     r.rotation.y = k.walking ? p[2] : k.home ? lerp(arriveYaw, homeYaw, k.curl) : lerp(restYaw + 0.9, restYaw, k.look);
     // curled up: a little lower and rounder, breathing slowly
-    var curl = k.curl, br = 1 + 0.018 * k.breath * soft;
+    var curl = k.curl, br = o ? 1 : 1 + 0.018 * k.breath * soft;
     K.inner.scale.set(1 + 0.06 * curl, (1 - 0.12 * curl) * br, 1 + 0.04 * curl);
-    if (o && CM && CM.snowWalk) {
-      CM.snowWalk(o, k.walking, 0, 0);
-      if (k.walking && o.catWalkAction) {
-        var stride = (o.catWalkStride || 1) * (o.catWalkScale || 1), dur = o.catWalkAction.getClip().duration;
-        o.catWalkAction.time = ((K.i * 0.23 + d / stride) % 1) * dur; o.catMixer.update(0);
-      }
+    if (o && root.GardenCatMotion) {
+      o.curl = curl;
+      var stride = o.catWalkStride * o.catWalkScale;
+      var stand = ease(ramp(t, k.start - .2, k.start + .2)) * (1 - ease(ramp(t, k.arrive - .2, k.arrive + .2)));
+      root.GardenCatMotion.seek(o, t, stand, K.i * .23 + d / stride, soft);
     }
   }
   /* The film's own lanterns, at the gameplay lanterns' spots (copied on entry): a snow-lantern body (base + dome),
@@ -669,7 +668,7 @@
     }
     // the window's light on the snow, and the kittens curled up in it
     if (cab) { st.pool.position.set(cab.x + 0.2, top + 0.03, cab.z + 0.95); st.pool.scale.set(2.0, 1.3, 1); st.pool.material.opacity = f.cabin.pool; }
-    for (i = 0; i < st.kits.length; i++) poseKitten(st.kits[i], f.kittens[i], top);
+    for (i = 0; i < st.kits.length; i++) poseKitten(st.kits[i], f.kittens[i], top, t);
   }
   function isOpen() { return state === 'playing' || state === 'paused' || state === 'ended'; }
   function stageTick() {

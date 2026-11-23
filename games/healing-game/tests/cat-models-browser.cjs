@@ -115,11 +115,11 @@ async function clean(test) {
 async function inspectBounds(page) {
   return page.evaluate(() => __kittens.list.filter(k => k.catModel).map(k => {
     const rootInverse = new THREE.Matrix4().copy(k.root.matrixWorld).invert();
-    const point = new THREE.Vector3(), min = new THREE.Vector3(Infinity, Infinity, Infinity), max = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
+    const point = new THREE.Vector3(), seat = new THREE.Vector3(), min = new THREE.Vector3(Infinity, Infinity, Infinity), max = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
     k.root.updateMatrixWorld(true);
     rootInverse.copy(k.root.matrixWorld).invert();
     const meshes = [];
-    k.catModel.traverse(node => {
+    k.catModel.traverseVisible(node => {
       if (!node.isMesh) return;
       meshes.push({ geometry: node.geometry.uuid, material: node.material.uuid });
       const position = node.geometry.attributes.position;
@@ -127,11 +127,17 @@ async function inspectBounds(page) {
       for (let i = 0; i < position.count; i++) {
         point.fromBufferAttribute(position, i);
         if (node.isSkinnedMesh) __catTestSkinVertex(node, i, point);
+        if (node.l2stand && node.l2stand.value < 1) {
+          const attrs = node.geometry.attributes;
+          seat.fromBufferAttribute(attrs.l2SeatPosition, i);
+          GardenCatPose.seatPoint(k.catPose, seat, attrs.catAnatomy, i);
+          point.lerp(seat, 1 - node.l2stand.value);
+        }
         point.applyMatrix4(node.matrixWorld).applyMatrix4(rootInverse);
         min.min(point); max.max(point);
       }
     });
-    return { kind: k.kind.id, walking: !!k.catWalkActive, min: min.toArray(), max: max.toArray(), size: k.size, rootY: k.root.position.y, jumpY: k.y, footprint: k.catFootprint, meshes };
+    return { kind: k.kind.id, stand: k.catStand ?? Number(k.catWalkActive), min: min.toArray(), max: max.toArray(), size: k.size, rootY: k.root.position.y, jumpY: k.y, footprint: k.catFootprint, meshes };
   }));
 }
 
@@ -151,9 +157,8 @@ async function basicAndCache(server, mobile) {
   const bounds = await inspectBounds(page);
   for (const cat of bounds) {
     assert(cat.min[1] >= -.002, 'model geometry stays above floor: ' + cat.kind);
-    // Walking lowers the torso/head from the upright seated pose. The original
-    // sitting height remains unchanged; active Walk is intentionally lower.
-    assert(cat.max[1] >= (cat.walking ? .5 : .65) && cat.max[1] <= .75, 'normalized seated/walking height: ' + JSON.stringify(cat));
+    // The standing silhouette is lower. Check the corresponding lower bound throughout the blend.
+    assert(cat.max[1] >= (.65 - .15 * cat.stand) && cat.max[1] <= .75, 'normalized seated/walking height: ' + JSON.stringify(cat));
     assert(cat.rootY >= .25 - .001 && cat.footprint > .1 && cat.footprint < 1.2, 'finite footprint and original ground plane');
   }
   assert(await page.evaluate(() => __catTestAmbient.catModel && !__catTestAmbient.body.visible && __catTestAmbient.root.visible), 'ambient orange replaced in chapter two');
@@ -161,6 +166,8 @@ async function basicAndCache(server, mobile) {
     const orange = __kittens.list.find(k => k.kind.id === 'orange'), a = [], b = [];
     orange.catModel.traverse(n => { if (n.isMesh) a.push(n); });
     __catTestAmbient.catModel.traverse(n => { if (n.isMesh) b.push(n); });
+    // The animated face is parented to the interpolated head; match primitives by name.
+    a.sort((l, r) => l.name.localeCompare(r.name)); b.sort((l, r) => l.name.localeCompare(r.name));
     return a.length > 0 && a.length === b.length && a.every((node, i) => node !== b[i] && node.geometry.index === b[i].geometry.index && node.geometry.attributes.uv === b[i].geometry.attributes.uv && node.geometry.attributes.skinWeight === b[i].geometry.attributes.skinWeight && node.material.map === b[i].material.map && node.material.color.equals(b[i].material.color));
   }), 'ambient and interactive orange clone the graph and share cached indices/UVs/weights/materials across seated and walking surfaces');
   const image = f.path.join(f.output, mobile ? 'phone-390x844.png' : 'desktop-1200x900.png');
@@ -176,9 +183,7 @@ async function basicAndCache(server, mobile) {
   await page.waitForTimeout(1400);
   await page.waitForFunction(() => __kittens.list.some(k => k.catVisual && k.state !== 'hug'));
   const posedBefore = await page.evaluate(() => __catPoseProbe.snapshot());
-  // #85 keeps the outer group at scale.y=1/position.y=0 during Walk; only idle
-  // breathing changes it. Poll rendered frames so an all-walking population or
-  // two matching phases of a loop cannot masquerade as a frozen model.
+  // Poll rendered frames so matching phases of a loop cannot masquerade as a frozen model.
   const [scene, motion] = await Promise.all([
     f.scene(page),
     page.waitForFunction(before => __catPoseProbe.changed(before, __catPoseProbe.snapshot()), posedBefore,
@@ -253,7 +258,10 @@ async function motionObserverAndIsolation() {
       Object.defineProperty(document, 'hidden', { configurable: true, value: true });
       document.dispatchEvent(new Event('visibilitychange'));
       const probe = __catPoseProbe, cats = __kittens.list.filter(k => k.catModel);
-      cats.forEach(k => { k.state = 'idle'; k.moving = false; k.crouch = k.curl = k.phase = 0; GardenCatModels.pose(k, 0, 0); });
+      cats.forEach(k => {
+        k.state = 'idle'; k.moving = false; k.crouch = k.curl = 0;
+        for (let i = 0; i < 10; i++) GardenCatModels.pose(k, 0, .05);
+      });
       const templates = Object.values(__catPoseTemplates);
       const cached = JSON.stringify(templates.map(probe.graph));
       const cachedNodes = new Set(templates.flatMap(root => probe.graph(root).map(node => node.id)));
@@ -271,25 +279,28 @@ async function motionObserverAndIsolation() {
           GardenCatModels.pose(k, time, .05);
         };
         k.state = 'roam'; k.moving = true; k.catWalkX = k.x; k.catWalkZ = k.z;
-        step(); step(); // settle into the fully walking surface before sampling
-        const before = probe.graph(k.catVisual), outer = [k.catVisual.scale.y, k.catVisual.position.y];
+        for (let i = 0; i < 10; i++) step(); // sample the fully standing Walk
+        // Clip-driven feet exclude independent eye/ear timing and idle surface uniforms.
+        const foot = k.catModel.getObjectByName('FrontPawL');
+        const before = probe.graph(foot), outer = [k.catVisual.scale.y, k.catVisual.position.y];
         // Negative control: a translating actor with a frozen mixer is not an
         // animated model, even while gameplay coordinates continue to change.
         const update = k.catMixer.update, xBefore = k.root.position.x, timeBefore = k.catWalkAction.time;
         k.catMixer.update = function () {};
         try { step(); k.catMixer.time += .1; k.catWalkAction.time += .1; } finally { k.catMixer.update = update; }
-        const frozenChanged = probe.changed(before, probe.graph(k.catVisual));
+        const frozenChanged = probe.changed(before, probe.graph(foot));
         const rootMoved = k.root.position.x !== xBefore, clockMoved = k.catWalkAction.time !== timeBefore;
         for (let i = 0; i < 5; i++) step();
-        const walkChanged = probe.changed(before, probe.graph(k.catVisual));
+        const walkChanged = probe.changed(before, probe.graph(foot));
         const outerUnchanged = outer[0] === k.catVisual.scale.y && outer[1] === k.catVisual.position.y;
         const peersUnchanged = peersBefore === JSON.stringify(peers.map(cat => probe.graph(cat.catVisual)));
-        k.state = 'idle'; k.moving = false; GardenCatModels.pose(k, 0, 0);
+        k.state = 'idle'; k.moving = false;
+        for (let i = 0; i < 10; i++) GardenCatModels.pose(k, 0, .05);
         const restored = JSON.stringify(rest) === JSON.stringify(probe.graph(k.catModel));
-        const idle = probe.graph(k.catVisual);
+        const idle = probe.graph(k.catModel);
         GardenCatModels.pose(k, .8, .05);
         rows.push({ kind, privateBones, rootMoved, clockMoved, frozenChanged, walkChanged, outerUnchanged, peersUnchanged, restored,
-          idleChanged: probe.changed(idle, probe.graph(k.catVisual)), cachedUnchanged: cached === JSON.stringify(templates.map(probe.graph)) });
+          idleChanged: probe.changed(idle, probe.graph(k.catModel)), planted: k.catVisual.scale.y === 1 && k.catVisual.position.y === 0, cachedUnchanged: cached === JSON.stringify(templates.map(probe.graph)) });
       }
       return { templates: templates.length, orangeInstances: cats.filter(k => k.kind.id === 'orange').length, l1: __l1Cutscene.state(), rows };
     });
@@ -301,7 +312,7 @@ async function motionObserverAndIsolation() {
       assert(row.outerUnchanged && row.walkChanged, 'Walk is visible despite the unchanged outer group: ' + label);
       assert(row.rootMoved && row.clockMoved && !row.frozenChanged, 'translation and advancing clocks cannot pass a frozen pose: ' + label);
       assert(row.privateBones && row.peersUnchanged && row.cachedUnchanged, 'only the selected clone is posed: ' + label);
-      assert(row.restored && row.idleChanged, 'exact seated rest and idle breathing remain observable: ' + label);
+      assert(row.restored && row.idleChanged && row.planted, 'same-time seated pose returns and moves independently of the planted outer group: ' + label);
     }
     report.motionIsolation = result;
     report.checks.push('four real GLBs: skeletal motion, frozen-mixer negative control, private bones, immutable cached templates and same-coat siblings');
@@ -350,12 +361,15 @@ async function rulesAndFallback() {
     await test.page.waitForFunction(() => GardenJourney.unlocked(3));
     // The clear plays the 60s cutscene first: skip to its end card, tap to continue, then the same card appears.
     await test.page.waitForFunction(() => __l2Cutscene.playing(), null, { timeout: 20000 });
+    await test.page.waitForFunction(() => __l2Cutscene.staged());
+    assert.equal(await test.page.evaluate(() => __catTestAmbient.root.visible), false, 'decorative orange is hidden while the seven cutscene cats own the island');
     assert(await test.page.evaluate(() => document.getElementById('kitEnding').classList.contains('hidden')), 'card waits behind the cutscene');
     assert.equal(await test.page.evaluate(() => __l2Cutscene.skip() && __l2Cutscene.finished() && __l2Cutscene.state()), 'ended', 'skip lands on the end title');
     assert(await test.page.evaluate(() => document.getElementById('kitEnding').classList.contains('hidden')), 'end title still needs its own tap');
     await test.page.waitForTimeout(700);
     await test.page.locator('#l2csGo').tap();
     await test.page.waitForFunction(() => !document.getElementById('kitEnding').classList.contains('hidden'), null, { timeout: 20000 });
+    assert(await test.page.evaluate(() => __catTestAmbient.root.visible), 'chapter-two decorative orange returns when the cutscene closes');
     await test.page.waitForFunction(() => __kittens.list.some(k => k.state === 'sleep'), null, { timeout: 20000 });
     for (const cat of await inspectBounds(test.page)) assert(cat.min[1] >= -.002 && cat.rootY >= .249, 'gather/sleep finale model remains above the ground plane');
     await test.page.locator('#kitAgain').click();

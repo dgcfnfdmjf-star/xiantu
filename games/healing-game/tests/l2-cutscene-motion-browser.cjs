@@ -218,31 +218,30 @@ const span = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
     assert.deepEqual(lidAgain, lidSleep, 'seek(56) repeats the lids');
     await at(56);
 
-    /* Walk <-> sit (走到坐很生硬). Before: the walking mesh and the seated sculpt were swapped in one frame when the walk
-     * weight crossed 0.5 (mesh top 0.827 -> 0.892 between two 0.1 s samples, tail and head jumping with it), and a
-     * procedural cat's leg swing was cut off the instant its speed fell under 0.12. Now frame().cats[i].stand eases
-     * 1 <-> 0 over 0.8 s (0.5 s under reduced motion) and sit() reports what is drawn: on a Blender coat the walking
-     * vertices move between seated and fully skinned endpoints on one opaque surface; on a procedural coat the stride
-     * amplitude and haunch tilt follow the same ramp. Sampled every 0.05 s through each window. Thresholds per
-     * sample: stand / surface step <= 0.15 (ease slope at 0.8 s is 0.094; at 0.5 s 0.15, limit 0.2), root x/z step
-     * <= 0.1 m, hop height step <= 0.03, heading step <= 0.3 rad (0.45 in the shorter reduced-motion blend), drawn height step <= 0.06 m (all coats), paws never more
-     * than 0.02 under the grass; blend length 0.5-1.0 s (reduced motion 0.3-0.6 s). */
+    // Sample rendered endpoints at 40 Hz. Local chapter updates apply the seek before reading
+    // the surface, so even slower devices measure every requested simulation frame.
+    const sampleDt = .025;
     const sitScan = async (pg, label, cats, from, to, dir, reduced) => {
-      const rows = [];
-      for (let t = from; t <= to + 1e-9; t = +(t + 0.05).toFixed(2)) {
-        await pg.evaluate(t => { window.__l2Cutscene.pause(); window.__l2Cutscene.seek(t); }, t);
-        await pg.waitForTimeout(70);
-        rows.push(await pg.evaluate(() => { const cs = window.__l2Cutscene; return { f: cs.frame().cats, s: cs.sit(), b: cs.bounds() }; }));
-      }
+      const rows = await pg.evaluate(({ from, to, dt }) => {
+        const rows = [], cs = window.__l2Cutscene;
+        cs.pause();
+        for (let n = 0; n <= Math.round((to - from) / dt); n++) {
+          const t = from + n * dt;
+          cs.seek(t);
+          GardenPlay.update(0, t, .4);
+          rows.push({ f: cs.frame().cats, s: cs.sit(), b: cs.bounds() });
+        }
+        return rows;
+      }, { from, to, dt: sampleDt });
       const out = {};
       for (const i of cats) {
-        const id = label + ' cat ' + i, st = rows.map(r => r.f[i].stand), step = reduced ? 0.2 : 0.15;
+        const id = label + ' cat ' + i, st = rows.map(r => r.f[i].stand), step = .14;
         assert(dir > 0 ? st[0] < 0.01 && st[st.length - 1] > 0.99 : st[0] > 0.99 && st[st.length - 1] < 0.01, id + ' crosses the whole transition: ' + st[0] + ' -> ' + st[st.length - 1]);
-        const len = st.filter(v => v > 0.01 && v < 0.99).length * 0.05;
-        assert(reduced ? len >= 0.3 && len <= 0.6 : len >= 0.5 && len <= 1.0, id + ' blends for ' + len.toFixed(2) + ' s, not one frame');
+        const len = st.filter(v => v > 0 && v < 1).length * sampleDt;
+        assert(len >= .3 - sampleDt && len <= .5 + sampleDt, id + ' blends for ' + len.toFixed(2) + ' s, not one frame');
         let worst = 0;
         for (let n = 0; n < rows.length; n++) {
-          const c = rows[n].f[i], s = rows[n].s[i], b = rows[n].b[i], at = id + ' @' + (from + n * 0.05).toFixed(2) + ': ' + JSON.stringify(s);
+          const c = rows[n].f[i], s = rows[n].s[i], b = rows[n].b[i], at = id + ' @' + (from + n * sampleDt).toFixed(3) + ': ' + JSON.stringify(s);
           assert(b.lo > -0.02, 'paws stay on the grass through the blend, ' + at + ' lo=' + b.lo);
           if (s.blender) {
             assert(Math.abs(s.stand - c.stand) < 3e-3 && Math.abs(s.surface - c.stand) < 3e-3, 'stage shows the model stand amount, ' + at);
@@ -278,8 +277,16 @@ const span = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
     sits.strollSit = await sitScan(page, 'stroll sit-down', [0, 1, 2, 3, 4, 5], 43.8, 45.6, -1);
     // Seek lands on the same in-between pose, and the curl only starts once the cat is down (one settle).
     const mid = async t => { await at(t); return page.evaluate(() => ({ sit: window.__l2Cutscene.sit(), cats: window.__l2Cutscene.frame().cats.map(c => [c.stand, c.curl]) })); };
-    const midA = await mid(44.6), midB = (await mid(20), await mid(44.6));
-    assert.deepEqual(midB, midA, 'seek(44.6) repeats the half-seated pose');
+    const halfTime = await page.evaluate(() => {
+      let best = 0, error = Infinity;
+      for (let i = 0; i <= 180; i++) {
+        const t = 43.8 + i / 100, delta = Math.abs(__l2Cutscene.frame(t).cats[0].stand - .5);
+        if (delta < error) { error = delta; best = t; }
+      }
+      return best;
+    });
+    const midA = await mid(halfTime), midB = (await mid(20), await mid(halfTime));
+    assert.deepEqual(midB, midA, 'repeat seek to the half-seated pose');
     assert(midA.sit[0].surface > 0.05 && midA.sit[0].surface < 0.95, 'single interpolated surface mid sit-down: ' + JSON.stringify(midA.sit[0]));
     midA.cats.forEach((c, i) => assert(c[1] <= 1 - c[0] + 1e-9, 'cat ' + i + ' sits before it curls'));
     await at(56);
@@ -332,7 +339,7 @@ const span = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
     const fbSits = { gatherSit: await sitScan(p2, 'fallback gather sit-down', [0], 10.7, 12.2, -1), strollUp: await sitScan(p2, 'fallback stroll stand-up', [0, 3, 5], 38.6, 40.1, 1), strollSit: await sitScan(p2, 'fallback stroll sit-down', [0, 3, 5], 43.8, 45.6, -1) };
     await ctx2.close();
 
-    // Reduced motion: a shorter blend (0.5 s), still not a snap, and the film is the same length.
+    // Reduced motion retains a continuous transition and the original film length.
     failGlb = false;
     const ctx3 = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true, reducedMotion: 'reduce' });
     const p3 = await ctx3.newPage();

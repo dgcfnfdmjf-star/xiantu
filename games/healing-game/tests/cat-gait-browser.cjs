@@ -30,19 +30,25 @@ function measure(kind) {
     for(const bone of Object.keys(k.gaitMarkers)) k.gaitMarkers[bone]=k.gaitMarkers[bone].sort((a,b)=>a.y-b.y).slice(0,8);
   }
   k.catModel.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.update();});
-  const paws={};
+  const paws={}, seated = new THREE.Vector3();
   for(const [name,markers] of Object.entries(k.gaitMarkers)) {
     const sum=new THREE.Vector3();let min=Infinity;
     for(const m of markers) {
       point.fromBufferAttribute(m.node.geometry.attributes.position,m.index);
       __catTestSkinVertex(m.node,m.index,point);
+      if (m.node.l2stand && m.node.l2stand.value < 1) {
+        const attrs = m.node.geometry.attributes;
+        seated.fromBufferAttribute(attrs.l2SeatPosition, m.index);
+        GardenCatPose.seatPoint(k.catPose, seated, attrs.catAnatomy, m.index);
+        point.lerp(seated, 1 - m.node.l2stand.value);
+      }
       point.applyMatrix4(m.node.matrixWorld).applyMatrix4(inverse);
       sum.add(point);min=Math.min(min,point.y-k.root.position.y);
     }
     paws[name]={p:sum.divideScalar(markers.length).toArray(),min,vertices:markers.length};
   }
   return {kind,x:k.x,z:k.z,yaw:k.yaw,phase:k.catWalkAction.time/k.catWalkAction.getClip().duration,
-    active:k.catWalkActive,moving:k.moving,speed:k.catWalkSpeed,actual:k.catWalkActualSpeed,
+    stand:k.catStand ?? (k.catWalkActive ? 1 : 0),active:k.catWalkActive,moving:k.moving,speed:k.catWalkSpeed,actual:k.catWalkActualSpeed,
     hz:k.catWalkAction.getEffectiveTimeScale()/k.catWalkAction.getClip().duration,
     stride:k.catWalkStride*k.catWalkScale*k.size,paws};
 }
@@ -86,7 +92,7 @@ function measure(kind) {
           await page.evaluate(({kind,frame})=>{GardenPlay.update(1/60,frame/60,.4);gaitRender(kind);},{kind,frame});
           const row=await page.evaluate(measure,kind);rows.push(row);
           if(captureFrames && frame%3===0) await page.screenshot({path:f.path.join(out,kind+'-frames',String(frame/3).padStart(3,'0')+'.png')});
-          if(nextShot<4 && row.phase>=nextShot/4 && row.phase<(nextShot+1)/4) {
+          if(row.stand === 1 && nextShot<4 && row.phase>=nextShot/4 && row.phase<(nextShot+1)/4) {
             await page.screenshot({path:f.path.join(out,kind+'-walk-'+String(nextShot*25).padStart(2,'0')+'.png')});nextShot++;
           }
         }
@@ -99,7 +105,10 @@ function measure(kind) {
             clearance.push(paw.min);
             const offset=(bone.startsWith('Rear')?.25:0)+(bone.endsWith('R')?.5:0);
             const p=(a.phase+offset)%1,q=(b.phase+offset)%1;
-            if(p>.10 && q>.10 && p<.50 && q<.50 && Math.abs(b.yaw-a.yaw)<.01) {
+            // The feet move into their authored stance while the cat stands.
+            // Measure planted slip during the complete gait. Ground clearance
+            // above is checked on the rendered vertices throughout the rise.
+            if(a.stand === 1 && b.stand === 1 && p>.10 && q>.10 && p<.50 && q<.50 && Math.abs(b.yaw-a.yaw)<.01) {
               const old=a.paws[bone].p;slip.push(Math.hypot(paw.p[0]-old[0],paw.p[2]-old[2])*60);
             }
           }
