@@ -1,0 +1,25 @@
+locator.click: Timeout 15000ms exceeded.
+Call log:
+[2m  - waiting for locator('#start')[22m
+[2m    - locator resolved to <div id="start" role="dialog" class="overlay" aria-modal="true" aria-labelledby="startTitle">…</div>[22m
+[2m  - attempting click action[22m
+[2m    - waiting for element to be visible, enabled and stable[22m
+[2m    - element is visible, enabled and stable[22m
+[2m    - scrolling into view if needed[22m
+[2m    - done scrolling[22m
+[2m    - performing click action[22m
+
+    at Object.start (/workspace/xiantu/games/healing-game/tests/cat-models-fixture.cjs:104:42)
+    at async /workspace/xiantu/games/healing-game/tests/cat-gait-browser.cjs:61:7 {
+  log: [
+    "  - waiting for locator('#start')",
+    '    - locator resolved to <div id="start" role="dialog" class="overlay" aria-modal="true" aria-labelledby="startTitle">…</div>',
+    '  - attempting click action',
+    '    - waiting for element to be visible, enabled and stable',
+    '    - element is visible, enabled and stable',
+    '    - scrolling into view if needed',
+    '    - done scrolling',
+    '    - performing click action'
+  ],
+  name: 'TimeoutError'
+}

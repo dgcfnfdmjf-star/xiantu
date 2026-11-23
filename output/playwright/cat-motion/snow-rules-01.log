@@ -1,0 +1,12 @@
+PASS defaults for a missing field (old level 1-5 saves)
+PASS constants: 5-7 lanterns and the four local cat coats
+PASS garbage entries are dropped, duplicates removed, order fixed
+PASS non-array fields normalise safely
+PASS normalize is idempotent and does not mutate input
+PASS finished and progress text
+PASS act: lanterns light strictly in order; far, repeated and bad taps change nothing
+PASS act: kittens wait in the dark until their lanterns are lit, then go home once
+PASS act: a whole deterministic play reaches finished exactly on the last step; home order is canonical
+PASS every kitten waits by a real lantern and the last needs the whole path
+PASS garbage saves still play (non-contiguous lit keeps the gap as next)
+11 snow rules checks passed

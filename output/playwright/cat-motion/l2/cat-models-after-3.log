@@ -1,0 +1,49 @@
+Checking desktop models and cache
+  exact two-tap interaction passed
+  hidden/resume freeze passed
+  three cache reentries passed
+Checking phone models and cache
+  exact two-tap interaction passed
+  hidden/resume freeze passed
+  three cache reentries passed
+Checking skeletal motion observation and real GLB instance isolation
+Checking failed GLB fallback and exact cap/goal/save rules
+Checking unchanged white/glow visuals and values
+Checking late async response cleanup and cache reentry
+{
+  "checks": [
+    "desktop: lazy four-coat load, normalized floor bounds, immediate two-tap input, hidden freeze, repeated chapter cache reuse",
+    "phone: lazy four-coat load, normalized floor bounds, immediate two-tap input, hidden freeze, repeated chapter cache reuse",
+    "four real GLBs: skeletal motion, frozen-mixer negative control, private bones, immutable cached templates and same-coat siblings",
+    "failed GLB playable fallback; fourth/fifth same-coat cap; legacy six-coat saves; goal20/chapter3 unlock/replay",
+    "white +1 and rare glow +3 with legacy counts retained",
+    "delayed model responses after chapter exit do not attach; reentry cache; removed actor detaches"
+  ],
+  "scenes": [
+    {
+      "mobile": false,
+      "count": 8,
+      "render": {
+        "frame": 87,
+        "calls": 176,
+        "triangles": 48919,
+        "points": 680,
+        "lines": 0
+      },
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+    },
+    {
+      "mobile": true,
+      "count": 6,
+      "render": {
+        "frame": 313,
+        "calls": 150,
+        "triangles": 34726,
+        "points": 370,
+        "lines": 0
+      },
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+    }
+  ],
+  "report": "/workspace/xiantu/output/playwright/cat-models/browser-results.json"
+}

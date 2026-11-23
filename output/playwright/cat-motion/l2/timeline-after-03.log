@@ -1,0 +1,24 @@
+Built V9.5 package + V9.6 working site: 1787330 bytes; cats: 1188012 bytes; ZIP: 3409637 bytes
+{
+ "pass": true,
+ "duration": 60,
+ "checks": [
+  "API surface",
+  "duration is 55-65s and beats cover it",
+  "clock runs to the end card in measured time",
+  "seek(5)/seek(20) update time() and keep playing",
+  "seek without play shows a still frame; pause/resume",
+  "frames are a pure function of time",
+  "skip jumps to the end title, which still needs a tap",
+  "continue is refused before the end; close() drops the callback",
+  "feature flag and preview query",
+  "module is ES5 and never touches saves",
+  "storyboard beats at the 5 / 20 / 40 / 58 s marks",
+  "cats keep their personal space and walk around obstacles",
+  "gathering cats rise and settle in 0.3–0.5 seconds",
+  "motion is gentle and continuous",
+  "build wires the module and the flagged startEnding hook",
+  "gameplay numbers unchanged",
+  "existing kitten save fields still parse"
+ ]
+}

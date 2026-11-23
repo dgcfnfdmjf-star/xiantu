@@ -1,0 +1,9 @@
+AssertionError [ERR_ASSERTION]: a kitten is mid-walk with the Walk clip
+    at /workspace/xiantu/output/playwright/cat-motion/l6/cutscene-preview-compat.cjs:95:5 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}

@@ -1,0 +1,11 @@
+Checking skeletal motion observation and real GLB instance isolation
+AssertionError [ERR_ASSERTION]: same-time seated pose returns and moves independently of the planted outer group: orange: {"kind":"orange","privateBones":true,"rootMoved":true,"clockMoved":true,"frozenChanged":false,"walkChanged":true,"outerUnchanged":true,"peersUnchanged":true,"restored":true,"idleChanged":false,"planted":false,"cachedUnchanged":true}
+    at motionObserverAndIsolation (/workspace/xiantu/output/playwright/cat-motion/l2/isolation-red/games/healing-game/tests/cat-models-browser.cjs:315:7)
+    at async /workspace/xiantu/output/playwright/cat-motion/l2/isolation-red/games/healing-game/tests/cat-models-browser.cjs:444:44 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}

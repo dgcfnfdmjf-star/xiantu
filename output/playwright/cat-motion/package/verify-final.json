@@ -1,0 +1,107 @@
+{
+  "base": "4a41b6abf954e42c252a686549557105510876c5",
+  "frozenZipSha256": "4a5bbf22a8540222138435b681dc6a11f28e903f205bd295977732ed4a479cfe",
+  "coats": {
+    "orange": {
+      "sha256": "3ee54dced08b9ec3e588e214129d0d34950465e159bbf054f3b630c098e04454",
+      "size": 297388
+    },
+    "calico": {
+      "sha256": "e42b2fe13c323cdf8163145e41656c1d9cb06fd8087e9dd7bf1ce5d1c8ae9d96",
+      "size": 319068
+    },
+    "black": {
+      "sha256": "179e7f82c450fab149b38f273e8d5e9b73bf8f53e01ada98bceb8a67d34d6024",
+      "size": 268164
+    },
+    "tabby": {
+      "sha256": "6c7ac32a4a3f7a082c59adf781de1f3954d7f744e50501c28e21b0b3135de215",
+      "size": 303392
+    }
+  },
+  "xiantuLoader": {
+    "sha256": "b783720e4e6be231b0b8fecb586277fb937ff9a0c4b0e4fb726d585f1dda6e83",
+    "sequence": [
+      "xiantu-v2762-core.js",
+      "xiantu-v2762-03-virtual-joystick-script.js",
+      "xiantu-v2762-04-tutorial-guide-script.js",
+      "xiantu-v2762-05-mobile-dedicated-script.js",
+      "xiantu-v2762-06-local-test-bootstrap.js",
+      "xiantu-v2762-07-v12-stable-map-ui-script.js",
+      "xiantu-v2762-08-feature-08.js",
+      "xiantu-v2762-09-control-mode-switch-script.js",
+      "xiantu-v2762-10-upgrade-material-hint-script.js",
+      "xiantu-v2762-11-feature-11.js",
+      "xiantu-v2762-12-v277equipmentmanager.js",
+      "xiantu-v2762-13-feature-13.js",
+      "xiantu-v2762-14-v279-pet-capture-system.js",
+      "xiantu-v2762-15-petgrowthsystemv210.js",
+      "xiantu-v2762-16-petguidemapv211script.js",
+      "xiantu-v2762-17-combatskillloadoutv212.js",
+      "xiantu-v2762-18-skillswapmenuv213.js",
+      "xiantu-v2762-19-v27-15-enemy-portrait-script.js",
+      "xiantu-v2762-20-v27-16-enemy-batch1-script.js",
+      "xiantu-v2762-21-v27-17-enemy-batch2-script.js",
+      "xiantu-v2762-22-v2756-cinematic-combat-script.js",
+      "xiantu-v2768-systems.js",
+      "xiantu-v2770-avatar.js",
+      "xiantu-v2773-economy.js",
+      "xiantu-v2838-journey.js",
+      "xiantu-v2839-war.js",
+      "xiantu-v2840-war-map.js",
+      "xiantu-v2841-dharma-war.js",
+      "xiantu-v2842-jev-forge.js",
+      "xiantu-v2850-jev-friends.js",
+      "xiantu-v2844-monster-jev.js",
+      "xiantu-v2846-world-jev.js",
+      "xiantu-v2849-npc-jev.js",
+      "xiantu-v2852-relationship-stories.js",
+      "xiantu-v2852-relationships.js",
+      "xiantu-v2853-monster-art.js",
+      "xiantu-v2868124-battle-loader.js",
+      "xiantu-v2856-battle-clarity.js",
+      "xiantu-v2868-sect-life.js",
+      "xiantu-v28684-duel.js"
+    ]
+  },
+  "healingScriptOrder": {
+    "count": 36,
+    "byteIdenticalAtOriginalIndex": 31,
+    "changedAtOriginalIndex": {
+      "7": {
+        "uniqueSharedMarker": "/* gameplay.js — v3 gameplay layer for 暮色浮岛 (ES5, no modules).",
+        "beforeSha256": "0aaa5e3bb5ee8ba3d7d2ed3f23118e45c5da7060e11967a4b88b27796396fa2e",
+        "afterSha256": "c4463c08a517fb5bff4e55eb04754ca6ec42601c675b4a9fb937e4b27fd12cd2"
+      },
+      "11": {
+        "uniqueSharedMarker": "/* cat-models.js",
+        "beforeSha256": "a48da542ed6fb547139df95de4488b0a5c58650bb69dc8338054c33b269d6b2c",
+        "afterSha256": "36961fd57417cd2ca629b38c2b5d2f2db3bd1012f4e427af4151dcf6b41c3448"
+      },
+      "12": {
+        "uniqueSharedMarker": "/* The five paper textures belong to their films. Warm only the current chapter's",
+        "beforeSha256": "f3da5641154a186b4c928d870094a06654fa2b7f6dad0f54bad83ce769e27fc8",
+        "afterSha256": "c12403e55cb54166b85622305548be8ebed808dbc3bf914e7b466367cd221f9e"
+      },
+      "17": {
+        "uniqueSharedMarker": "/* l6-cutscene.js: level-6 clear cutscene 「雪灯归林」 (a snowy night on the same floating island: the lit lantern path",
+        "beforeSha256": "bb24c71f49f75ef740bad96c270a57e7f9be22a593999feff87a27c0e192071a",
+        "afterSha256": "1223f2f8643df013b048d8b1e2b8376f153a31da4934a31fff0fca15a04c92ca"
+      },
+      "34": {
+        "uniqueSharedMarker": "/* Chapter 6 「雪灯归林」: a snowy winter night on the SAME floating island (H.island, H.camera, frame loop).",
+        "beforeSha256": "a08b2a0dbfd3036ce9223be9fedcf4fa93da0220c8e815472cf4d22fec40cf7b",
+        "afterSha256": "29cec70ff1ca51bd41e3ec7d01e003c3021680f14f1e84c31c704a6f48439f12"
+      }
+    }
+  },
+  "workingSiteSha256": "b4a8508a66989eb2e29bd97a8eafe017ebcfc10c387b724d6baa003292be3338",
+  "workingModules": {
+    "cat-motion.js": "2a2e7339f7a1b5a96c29ee876656901003f90d5436ebe587e40df953635d528b",
+    "cat-surface.js": "32153648b52badc1b9239cc8e857fab03fbea306c2319ae973ba7cdd925b8eb7",
+    "cat-pose.js": "ded4dab3c2ee72cca76ab2fed0034a9c350f7eaa84b780140fc4cbcd5d81068f",
+    "l2-cutscene.js": "152a700550391b0df8a52af2ede9c380c8d52dc17531c810b8f75f8fc1391392",
+    "snow-chapter.js": "33081454714207b673245f4b09fe3658eb2ce1316c66eb680f7817bb7a283b6b",
+    "l6-cutscene.js": "c59e9b3e14fe50ccd3c7bc6b53ef99bbeb95a229c6ab38b7790469c2b07dd973"
+  }
+}

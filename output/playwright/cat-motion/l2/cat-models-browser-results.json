@@ -1,0 +1,1172 @@
+{
+  "checks": [
+    "desktop: lazy four-coat load, normalized floor bounds, immediate two-tap input, hidden freeze, repeated chapter cache reuse",
+    "phone: lazy four-coat load, normalized floor bounds, immediate two-tap input, hidden freeze, repeated chapter cache reuse",
+    "four real GLBs: skeletal motion, frozen-mixer negative control, private bones, immutable cached templates and same-coat siblings",
+    "failed GLB playable fallback; fourth/fifth same-coat cap; legacy six-coat saves; goal20/chapter3 unlock/replay",
+    "white +1 and rare glow +3 with legacy counts retained",
+    "delayed model responses after chapter exit do not attach; reentry cache; removed actor detaches"
+  ],
+  "scenes": [
+    {
+      "mobile": false,
+      "bounds": [
+        {
+          "kind": "orange",
+          "stand": 0,
+          "min": [
+            -0.18602008598730643,
+            0,
+            -0.15333802770813817
+          ],
+          "max": [
+            0.2530827158307853,
+            0.7164153998587155,
+            0.24159404224404474
+          ],
+          "size": 1.339069367778936,
+          "rootY": 0.25,
+          "jumpY": 0,
+          "footprint": 0.3979695028089318,
+          "meshes": [
+            {
+              "geometry": "DCE8D8C4-B9D3-4C39-B1BA-FC02063EECE2",
+              "material": "8E6B14E6-5A59-421F-8CB2-72B2E0E4D1BF"
+            },
+            {
+              "geometry": "5F234C35-5D3B-4B4D-83A8-B408FBE48E2A",
+              "material": "795EC5C5-230F-4388-8956-2884C6233F72"
+            },
+            {
+              "geometry": "03DCF2DA-08EB-4932-B187-EB5D036D889E",
+              "material": "06462797-2456-4AB8-9AE1-AD1DF4B2D857"
+            },
+            {
+              "geometry": "24526909-5AE0-4DEC-AB2F-8AD5BFCC4E26",
+              "material": "A4C38BCC-EE09-4DF2-B49B-942F777BF125"
+            },
+            {
+              "geometry": "AE364190-559D-44E2-B9D8-AE2AC592E0B2",
+              "material": "EF57C6C3-9027-4175-B089-51AAE78010FC"
+            },
+            {
+              "geometry": "3BAB7514-FD85-464B-81C6-C719BE1959CF",
+              "material": "E1332CB6-3D3B-4E07-996C-1D42CBB4BBD7"
+            }
+          ]
+        },
+        {
+          "kind": "calico",
+          "stand": 0,
+          "min": [
+            -0.1860200859873065,
+            0,
+            -0.15325967249922903
+          ],
+          "max": [
+            0.2558033170053829,
+            0.7086955131286218,
+            0.24159404224404485
+          ],
+          "size": 1.23388908249824,
+          "rootY": 0.25,
+          "jumpY": 0,
+          "footprint": 0.36671007230766556,
+          "meshes": [
+            {
+              "geometry": "C50B1EA0-9CD2-42B0-971A-D22B00E2850C",
+              "material": "3D8E21A6-8EC3-4550-AB8F-A1C95229EB21"
+            },
+            {
+              "geometry": "0622012C-1DDD-451F-AF56-49F27BB689E0",
+              "material": "C1BF78C6-3DF2-4F4E-8CE3-EB69009CC730"
+            },
+            {
+              "geometry": "7ECCFD76-40BB-406C-BCBF-9735680DF269",
+              "material": "368B6D38-6728-4571-BCFC-649C3282EE5E"
+            },
+            {
+              "geometry": "EED9F749-773E-42AB-92E0-176BDB68B27B",
+              "material": "0F053884-34DD-41FF-B223-9CF26D72C97B"
+            },
+            {
+              "geometry": "832FD83F-D3B4-40A5-91DD-18282114EDE7",
+              "material": "55200107-0FF0-4530-9E99-0FBE36950F86"
+            },
+            {
+              "geometry": "279A3824-C31B-40BF-B599-0588B1C53EA6",
+              "material": "51FCDD12-59BF-4045-9462-A5558EDB01DF"
+            }
+          ]
+        },
+        {
+          "kind": "black",
+          "stand": 0,
+          "min": [
+            -0.1860200859873062,
+            5.551115123125784e-17,
+            -0.15688328644643293
+          ],
+          "max": [
+            0.2619598889646987,
+            0.7132231132128674,
+            0.24159404224404485
+          ],
+          "size": 1.2857496908999175,
+          "rootY": 0.25,
+          "jumpY": 0,
+          "footprint": 0.38212297102494214,
+          "meshes": [
+            {
+              "geometry": "2B62B09A-C360-4E3E-9FD9-641A28BA4D3E",
+              "material": "349CDC53-9167-47A0-9BA5-1D77531A501B"
+            },
+            {
+              "geometry": "2EB1AB33-14BE-4309-8E35-AA2F8045F437",
+              "material": "C7C1D259-6E98-4DC7-90AA-FE102D53EF91"
+            },
+            {
+              "geometry": "0DF0B7CF-ACF2-4358-B5D4-CE91E014CC22",
+              "material": "D54EBF9C-2C77-4BA2-B8FD-2B56E2EDE02E"
+            },
+            {
+              "geometry": "B486D17D-6B5A-4BD4-8165-514148110DBB",
+              "material": "B51F1F62-6C94-485D-93BE-AFD65B717737"
+            },
+            {
+              "geometry": "FA596316-75D2-4A7E-B221-D9653A148898",
+              "material": "6AD41F1B-4ACB-469D-A6EF-39C5AF9DC9EB"
+            },
+            {
+              "geometry": "CB15ACDC-109F-4FD2-9084-A4DB0F57B97F",
+              "material": "8DA0D55A-A10B-4162-8124-D0BE4F76290D"
+            }
+          ]
+        },
+        {
+          "kind": "tabby",
+          "stand": 0,
+          "min": [
+            -0.18602008598730627,
+            -5.55111512312578e-17,
+            -0.15636702579829
+          ],
+          "max": [
+            0.2569847976912949,
+            0.71229714360423,
+            0.2415940422440449
+          ],
+          "size": 1.3912515233419307,
+          "rootY": 0.25,
+          "jumpY": 0,
+          "footprint": 0.4134779648831174,
+          "meshes": [
+            {
+              "geometry": "C5E1E55E-7754-4D56-9D3E-8DD9B3471847",
+              "material": "CA5011B4-DED9-4DD3-8669-1A4387F0A87F"
+            },
+            {
+              "geometry": "FEF1499C-1E1C-4F3F-82EE-B2A23E86FB51",
+              "material": "E423C711-E9FA-46E6-9DDC-CDBED470A564"
+            },
+            {
+              "geometry": "F8A30352-C0AD-4FA0-A659-1252ECCADE51",
+              "material": "846FBBD0-0FAC-44E3-9BD3-4B5533D2AC69"
+            },
+            {
+              "geometry": "13AD1149-91BD-43B4-8EE3-13F102E2E007",
+              "material": "69D3F01B-0B2D-4CB1-B60B-9848B24AEC2C"
+            },
+            {
+              "geometry": "A568E941-6F17-472F-A80E-0F3C3F5AB6D4",
+              "material": "D15445D3-8924-474F-AB57-7BD14B740047"
+            },
+            {
+              "geometry": "F88E243F-DA44-4D81-AECB-23BE945947D0",
+              "material": "3FDAF58D-02F8-48CC-BAC4-6B9FF324FACF"
+            }
+          ]
+        },
+        {
+          "kind": "tabby",
+          "stand": 0,
+          "min": [
+            -0.18602008598730624,
+            5.551115123125783e-17,
+            -0.1533465552119182
+          ],
+          "max": [
+            0.2629147117139716,
+            0.7058152550206549,
+            0.24159404224404457
+          ],
+          "size": 1.2122451968935701,
+          "rootY": 0.25,
+          "jumpY": 0,
+          "footprint": 0.36027754043126925,
+          "meshes": [
+            {
+              "geometry": "C5E1E55E-7754-4D56-9D3E-8DD9B3471847",
+              "material": "CA5011B4-DED9-4DD3-8669-1A4387F0A87F"
+            },
+            {
+              "geometry": "FEF1499C-1E1C-4F3F-82EE-B2A23E86FB51",
+              "material": "E423C711-E9FA-46E6-9DDC-CDBED470A564"
+            },
+            {
+              "geometry": "F8A30352-C0AD-4FA0-A659-1252ECCADE51",
+              "material": "846FBBD0-0FAC-44E3-9BD3-4B5533D2AC69"
+            },
+            {
+              "geometry": "13AD1149-91BD-43B4-8EE3-13F102E2E007",
+              "material": "69D3F01B-0B2D-4CB1-B60B-9848B24AEC2C"
+            },
+            {
+              "geometry": "A568E941-6F17-472F-A80E-0F3C3F5AB6D4",
+              "material": "4980C989-C3FF-4F98-B80C-8CE90CDB8FAE"
+            },
+            {
+              "geometry": "F88E243F-DA44-4D81-AECB-23BE945947D0",
+              "material": "0D62E3D9-F332-43CE-93E2-F8EBAAA5499B"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "point": {
+            "x": 645.6512086790814,
+            "y": 532.0576483331763,
+            "uuid": "0954A22A-5436-4351-B875-947F64EDA103",
+            "id": "orange",
+            "state": "hop"
+          },
+          "first": {
+            "state": "play",
+            "yarn": true,
+            "total": 0,
+            "actual": [
+              "orange"
+            ]
+          },
+          "secondPoint": {
+            "x": 625.9118076062846,
+            "y": 540.1810710787604
+          },
+          "second": {
+            "state": "hug",
+            "total": 1,
+            "value": 1,
+            "save": {
+              "caught": {
+                "orange": 1
+              },
+              "total": 1,
+              "ended": false,
+              "level": 2,
+              "companions": {
+                "orange": 1
+              }
+            }
+          }
+        }
+      ],
+      "scene": {
+        "viewport": {
+          "width": 1200,
+          "height": 900,
+          "dpr": 1
+        },
+        "backing": {
+          "width": 1200,
+          "height": 900
+        },
+        "count": 8,
+        "states": [
+          {
+            "kind": "glow",
+            "state": "idle"
+          },
+          {
+            "kind": "orange",
+            "state": "hug"
+          },
+          {
+            "kind": "white",
+            "state": "idle"
+          },
+          {
+            "kind": "calico",
+            "state": "roam"
+          },
+          {
+            "kind": "black",
+            "state": "roam"
+          },
+          {
+            "kind": "tabby",
+            "state": "idle"
+          },
+          {
+            "kind": "tabby",
+            "state": "roam"
+          },
+          {
+            "kind": "white",
+            "state": "hide"
+          }
+        ],
+        "render": {
+          "frame": 87,
+          "calls": 176,
+          "triangles": 48919,
+          "points": 680,
+          "lines": 0
+        },
+        "memory": {
+          "geometries": 88,
+          "textures": 24
+        },
+        "heap": {
+          "used": 27337303,
+          "total": 30266275
+        },
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "frames": [
+          {
+            "at": 24413.5,
+            "interval": 360,
+            "draw": 4.899999999906868
+          },
+          {
+            "at": 24780.799999999814,
+            "interval": 367.29999999981374,
+            "draw": 3.6000000000931323
+          },
+          {
+            "at": 25122.59999999986,
+            "interval": 341.80000000004657,
+            "draw": 36.800000000046566
+          },
+          {
+            "at": 25524.299999999814,
+            "interval": 401.69999999995343,
+            "draw": 2
+          },
+          {
+            "at": 26064.899999999907,
+            "interval": 540.6000000000931,
+            "draw": 2.5
+          },
+          {
+            "at": 26324.399999999907,
+            "interval": 259.5,
+            "draw": 5.5
+          },
+          {
+            "at": 26882.5,
+            "interval": 558.1000000000931,
+            "draw": 2.5999999998603016
+          }
+        ],
+        "modelReady": 5,
+        "resources": [
+          {
+            "name": "http://127.0.0.1:45331/cats/orange-cat.glb",
+            "duration": 54.300000000046566,
+            "startTime": 9524.09999999986,
+            "responseEnd": 9578.399999999907,
+            "transferSize": 297688,
+            "encodedBodySize": 297388
+          },
+          {
+            "name": "http://127.0.0.1:45331/cats/calico-cat.glb",
+            "duration": 50.700000000186265,
+            "startTime": 9527.799999999814,
+            "responseEnd": 9578.5,
+            "transferSize": 319368,
+            "encodedBodySize": 319068
+          },
+          {
+            "name": "http://127.0.0.1:45331/cats/black-cat.glb",
+            "duration": 50.60000000009313,
+            "startTime": 9528.09999999986,
+            "responseEnd": 9578.699999999953,
+            "transferSize": 268464,
+            "encodedBodySize": 268164
+          },
+          {
+            "name": "http://127.0.0.1:45331/cats/tabby-cat.glb",
+            "duration": 52.299999999813735,
+            "startTime": 9528.5,
+            "responseEnd": 9580.799999999814,
+            "transferSize": 303692,
+            "encodedBodySize": 303392
+          }
+        ],
+        "intervals": {
+          "n": 7,
+          "median": 367.29999999981374,
+          "p95": 558.1000000000931
+        },
+        "drawDurations": {
+          "n": 7,
+          "median": 3.6000000000931323,
+          "p95": 36.800000000046566
+        }
+      },
+      "image": "/workspace/xiantu/output/playwright/cat-models/desktop-1200x900.png"
+    },
+    {
+      "mobile": true,
+      "bounds": [
+        {
+          "kind": "calico",
+          "stand": 0,
+          "min": [
+            -0.18602008598730624,
+            5.551115123125783e-17,
+            -0.15553616626890032
+          ],
+          "max": [
+            0.2553885866453225,
+            0.7116818105768759,
+            0.2415940422440448
+          ],
+          "size": 1.3961070658688761,
+          "rootY": 0.25,
+          "jumpY": 0,
+          "footprint": 0.414921025184408,
+          "meshes": [
+            {
+              "geometry": "E80754A1-AEBC-4410-B9C5-FC5CAC153FC3",
+              "material": "661CA458-952D-4D19-B86D-58FCB11A3110"
+            },
+            {
+              "geometry": "87B8CD46-1F72-429B-88D4-FE17CCBF3A6C",
+              "material": "8C6AB876-590D-4F3F-8197-FB01C4A53015"
+            },
+            {
+              "geometry": "2A8A9BF8-EE7A-4F96-9E00-A333EBD35E14",
+              "material": "E8FA0CF2-D21E-4C3A-840A-CA566E62BBE6"
+            },
+            {
+              "geometry": "15648C10-A308-45E2-8E49-1ACB664A3FFB",
+              "material": "81D51393-0A81-4354-A90F-F17787A34FAE"
+            },
+            {
+              "geometry": "F2EC5B3F-B9F8-40CF-A6AE-92780C63505F",
+              "material": "50926EF9-A97E-4823-B484-8741BFC4FD54"
+            },
+            {
+              "geometry": "B9420D40-D143-40BA-B10E-BED97E5972D4",
+              "material": "DCFCEA79-D831-44E7-AAE5-571B39E811F9"
+            }
+          ]
+        },
+        {
+          "kind": "black",
+          "stand": 0,
+          "min": [
+            -0.1860200859873058,
+            5.551115123125783e-17,
+            -0.15412699817394993
+          ],
+          "max": [
+            0.2535948841464366,
+            0.7108826166059761,
+            0.2415940422440448
+          ],
+          "size": 1.3719812697633587,
+          "rootY": 0.25,
+          "jumpY": 0,
+          "footprint": 0.40775087305337404,
+          "meshes": [
+            {
+              "geometry": "0013589F-BD27-4338-9B62-1C182C8972C1",
+              "material": "A2658F50-8290-4A08-AE40-3CE6D9B6459F"
+            },
+            {
+              "geometry": "F54EEE3B-5998-4550-8BDE-6A9CD89FA858",
+              "material": "A0AE7ABE-75E0-49B6-BC3C-4349D0CBE6E8"
+            },
+            {
+              "geometry": "B6F51CC6-E414-4761-8DE1-337570BAC88E",
+              "material": "0C584B91-E1FB-4DD0-B96D-5445FD310C7D"
+            },
+            {
+              "geometry": "B621D9D1-3DD5-4955-A8B4-430037194A0B",
+              "material": "E1211071-8463-4869-88E4-22C62F257C19"
+            },
+            {
+              "geometry": "882DA311-DA26-4CA5-BA23-495658423042",
+              "material": "061001ED-AB3A-46B6-A654-89CC470954F0"
+            },
+            {
+              "geometry": "66802B83-7FFF-4970-938A-C7BA8DF66C0A",
+              "material": "D1A695F9-01C9-4FB8-92AC-9C2394512BF2"
+            }
+          ]
+        },
+        {
+          "kind": "tabby",
+          "stand": 0,
+          "min": [
+            -0.18602008598730627,
+            -5.551115123125783e-17,
+            -0.15338340852504528
+          ],
+          "max": [
+            0.2526182505383716,
+            0.7024203928106769,
+            0.24159404224404477
+          ],
+          "size": 1.218683093278637,
+          "rootY": 0.25,
+          "jumpY": 0,
+          "footprint": 0.36219087403828776,
+          "meshes": [
+            {
+              "geometry": "3475AF27-C8E9-4936-8F7E-22A16A25F84F",
+              "material": "D8B6A70A-C855-4F91-8E07-A63A6B64B185"
+            },
+            {
+              "geometry": "BCD1C026-D981-4C9B-9B01-C496EDEF8A2F",
+              "material": "E55FA7F0-2F35-4686-B27A-DC9063BEE071"
+            },
+            {
+              "geometry": "2B9EC02A-1B77-46F0-A4DE-EAD269947570",
+              "material": "ABE16F27-871C-4A83-AAF6-C48D6B0248C6"
+            },
+            {
+              "geometry": "8A1A2A18-4DC2-4CBC-AAB3-6EEFD053A2D9",
+              "material": "9D79378F-5710-4137-845A-29F73609B3F3"
+            },
+            {
+              "geometry": "198E7262-51F0-424C-97C0-63B7DA8EBCB3",
+              "material": "ABEE3B88-1109-4836-A8C5-C558E05BA099"
+            },
+            {
+              "geometry": "4C1ECC49-5C17-4500-9210-AD94394E2FC2",
+              "material": "B3C74EC4-659E-4B5D-AB26-6783D577EFE8"
+            }
+          ]
+        },
+        {
+          "kind": "orange",
+          "stand": 0,
+          "min": [
+            -0.18602008598730627,
+            5.551115123125784e-17,
+            -0.15332288361733995
+          ],
+          "max": [
+            0.25333532735300196,
+            0.7131515334899913,
+            0.24159404224404507
+          ],
+          "size": 1.2825289079662137,
+          "rootY": 0.25,
+          "jumpY": 0,
+          "footprint": 0.3811657589389785,
+          "meshes": [
+            {
+              "geometry": "C3E4665A-F642-4727-96C6-E23AE19EC391",
+              "material": "FE8899C2-305C-43D8-A439-81964137D0C4"
+            },
+            {
+              "geometry": "0A7D61E7-CD26-47C4-8E75-1B5B4B94A6ED",
+              "material": "097BA9A4-2A95-4007-9850-8FD7DE4EDA4B"
+            },
+            {
+              "geometry": "DAE9F7A9-286D-40DA-8ACE-7636154AD1D2",
+              "material": "89E1EB5C-96F9-4C6B-B606-2659E64BDD81"
+            },
+            {
+              "geometry": "A9B2F99A-9793-45D3-B531-5D65A74E30FE",
+              "material": "97960AF1-E186-4FA1-88A9-5065DFC4C848"
+            },
+            {
+              "geometry": "48A699B0-8D02-4026-A8B5-599AEB9E2BB2",
+              "material": "E2E83E84-9F1C-454B-9F5E-424ED6B60752"
+            },
+            {
+              "geometry": "F7017A6E-E7F8-43C8-BBE7-EC5D769A1A09",
+              "material": "872CE3CE-CD36-4C8C-8E47-FFFFE6E4760C"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "point": {
+            "x": 148.99040853007577,
+            "y": 383.11313618158766,
+            "uuid": "AF78B604-131A-41B5-992D-EB48ED3918D7",
+            "id": "orange",
+            "state": "roam"
+          },
+          "first": {
+            "state": "lure",
+            "yarn": true,
+            "total": 0,
+            "actual": [
+              "orange"
+            ]
+          },
+          "secondPoint": {
+            "x": 153.6349841715853,
+            "y": 385.37383760575625
+          },
+          "second": {
+            "state": "hug",
+            "total": 1,
+            "value": 1,
+            "save": {
+              "caught": {
+                "orange": 1
+              },
+              "total": 1,
+              "ended": false,
+              "level": 2,
+              "companions": {
+                "orange": 1
+              }
+            }
+          }
+        },
+        {
+          "point": {
+            "x": 183.52409031246643,
+            "y": 481.75877147888866,
+            "uuid": "F4BA1CC5-55B8-444D-8E43-93016906F68C",
+            "id": "calico",
+            "state": "roam"
+          },
+          "first": {
+            "state": "lure",
+            "yarn": true,
+            "total": 1,
+            "actual": [
+              "calico"
+            ]
+          },
+          "secondPoint": {
+            "x": 190.90539498381594,
+            "y": 478.80750157584094
+          },
+          "second": {
+            "state": "hug",
+            "total": 2,
+            "value": 1,
+            "save": {
+              "caught": {
+                "orange": 1,
+                "calico": 1
+              },
+              "total": 2,
+              "ended": false,
+              "level": 2,
+              "companions": {
+                "orange": 1,
+                "calico": 1
+              }
+            }
+          }
+        },
+        {
+          "point": {
+            "x": 108.59889298456494,
+            "y": 455.34502500753456,
+            "uuid": "2D51C620-4EEE-4B1C-9846-6B946361F8AF",
+            "id": "black",
+            "state": "idle"
+          },
+          "first": {
+            "state": "lure",
+            "yarn": true,
+            "total": 2,
+            "actual": [
+              "black"
+            ]
+          },
+          "secondPoint": {
+            "x": 114.94036701772708,
+            "y": 453.75184519805106
+          },
+          "second": {
+            "state": "hug",
+            "total": 3,
+            "value": 1,
+            "save": {
+              "caught": {
+                "orange": 1,
+                "calico": 1,
+                "black": 1
+              },
+              "total": 3,
+              "ended": false,
+              "level": 2,
+              "companions": {
+                "orange": 1,
+                "calico": 1,
+                "black": 1
+              }
+            }
+          }
+        },
+        {
+          "point": {
+            "x": 105.03929004286846,
+            "y": 456.1886563846334,
+            "uuid": "F807C9B4-F2D5-4002-96FF-E84BDD9DF8EF",
+            "id": "tabby",
+            "state": "idle"
+          },
+          "first": {
+            "state": "lure",
+            "yarn": true,
+            "total": 3,
+            "actual": [
+              "tabby"
+            ]
+          },
+          "secondPoint": {
+            "x": 107.627012146165,
+            "y": 452.2836321795899
+          },
+          "second": {
+            "state": "hug",
+            "total": 4,
+            "value": 1,
+            "save": {
+              "caught": {
+                "orange": 1,
+                "calico": 1,
+                "black": 1,
+                "tabby": 1
+              },
+              "total": 4,
+              "ended": false,
+              "level": 2,
+              "companions": {
+                "orange": 1,
+                "calico": 1,
+                "black": 1,
+                "tabby": 1
+              }
+            }
+          }
+        }
+      ],
+      "scene": {
+        "viewport": {
+          "width": 390,
+          "height": 844,
+          "dpr": 2
+        },
+        "backing": {
+          "width": 780,
+          "height": 1688
+        },
+        "count": 6,
+        "states": [
+          {
+            "kind": "black",
+            "state": "hide"
+          },
+          {
+            "kind": "white",
+            "state": "idle"
+          },
+          {
+            "kind": "tabby",
+            "state": "hide"
+          },
+          {
+            "kind": "white",
+            "state": "idle"
+          },
+          {
+            "kind": "tabby",
+            "state": "idle"
+          },
+          {
+            "kind": "white",
+            "state": "idle"
+          }
+        ],
+        "render": {
+          "frame": 313,
+          "calls": 150,
+          "triangles": 34726,
+          "points": 370,
+          "lines": 0
+        },
+        "memory": {
+          "geometries": 88,
+          "textures": 22
+        },
+        "heap": {
+          "used": 26272295,
+          "total": 29133039
+        },
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "frames": [
+          {
+            "at": 66466.5,
+            "interval": 361.39999999990687,
+            "draw": 2.800000000046566
+          },
+          {
+            "at": 66710.1000000001,
+            "interval": 243.60000000009313,
+            "draw": 2
+          },
+          {
+            "at": 66910.20000000019,
+            "interval": 200.10000000009313,
+            "draw": 3.8999999999068677
+          },
+          {
+            "at": 67204,
+            "interval": 293.79999999981374,
+            "draw": 1.8000000000465661
+          },
+          {
+            "at": 67500.1000000001,
+            "interval": 296.10000000009313,
+            "draw": 5.699999999953434
+          },
+          {
+            "at": 67805,
+            "interval": 304.89999999990687,
+            "draw": 2.4000000001396984
+          },
+          {
+            "at": 68046.30000000005,
+            "interval": 241.30000000004657,
+            "draw": 1.3000000000465661
+          },
+          {
+            "at": 68261.70000000019,
+            "interval": 215.4000000001397,
+            "draw": 4.599999999860302
+          },
+          {
+            "at": 68599.70000000019,
+            "interval": 338,
+            "draw": 3.8999999999068677
+          },
+          {
+            "at": 68849,
+            "interval": 249.29999999981374,
+            "draw": 5.2000000001862645
+          },
+          {
+            "at": 69101.30000000005,
+            "interval": 252.30000000004657,
+            "draw": 2.1000000000931323
+          }
+        ],
+        "modelReady": 3,
+        "resources": [
+          {
+            "name": "http://127.0.0.1:45331/cats/orange-cat.glb",
+            "duration": 21.199999999953434,
+            "startTime": 7605.200000000186,
+            "responseEnd": 7626.40000000014,
+            "transferSize": 297688,
+            "encodedBodySize": 297388
+          },
+          {
+            "name": "http://127.0.0.1:45331/cats/calico-cat.glb",
+            "duration": 20.799999999813735,
+            "startTime": 7607.200000000186,
+            "responseEnd": 7628,
+            "transferSize": 319368,
+            "encodedBodySize": 319068
+          },
+          {
+            "name": "http://127.0.0.1:45331/cats/black-cat.glb",
+            "duration": 25.0999999998603,
+            "startTime": 7607.40000000014,
+            "responseEnd": 7632.5,
+            "transferSize": 268464,
+            "encodedBodySize": 268164
+          },
+          {
+            "name": "http://127.0.0.1:45331/cats/tabby-cat.glb",
+            "duration": 26.5,
+            "startTime": 7607.800000000047,
+            "responseEnd": 7634.300000000047,
+            "transferSize": 303692,
+            "encodedBodySize": 303392
+          }
+        ],
+        "intervals": {
+          "n": 11,
+          "median": 252.30000000004657,
+          "p95": 361.39999999990687
+        },
+        "drawDurations": {
+          "n": 11,
+          "median": 2.800000000046566,
+          "p95": 5.699999999953434
+        }
+      },
+      "image": "/workspace/xiantu/output/playwright/cat-models/phone-390x844.png"
+    }
+  ],
+  "browser": "151.0.7922.173",
+  "motionIsolation": {
+    "templates": 4,
+    "orangeInstances": 2,
+    "l1": "idle",
+    "rows": [
+      {
+        "kind": "orange",
+        "privateBones": true,
+        "rootMoved": true,
+        "clockMoved": true,
+        "frozenChanged": false,
+        "walkChanged": true,
+        "outerUnchanged": true,
+        "peersUnchanged": true,
+        "restored": true,
+        "idleChanged": true,
+        "planted": true,
+        "cachedUnchanged": true
+      },
+      {
+        "kind": "calico",
+        "privateBones": true,
+        "rootMoved": true,
+        "clockMoved": true,
+        "frozenChanged": false,
+        "walkChanged": true,
+        "outerUnchanged": true,
+        "peersUnchanged": true,
+        "restored": true,
+        "idleChanged": true,
+        "planted": true,
+        "cachedUnchanged": true
+      },
+      {
+        "kind": "black",
+        "privateBones": true,
+        "rootMoved": true,
+        "clockMoved": true,
+        "frozenChanged": false,
+        "walkChanged": true,
+        "outerUnchanged": true,
+        "peersUnchanged": true,
+        "restored": true,
+        "idleChanged": true,
+        "planted": true,
+        "cachedUnchanged": true
+      },
+      {
+        "kind": "tabby",
+        "privateBones": true,
+        "rootMoved": true,
+        "clockMoved": true,
+        "frozenChanged": false,
+        "walkChanged": true,
+        "outerUnchanged": true,
+        "peersUnchanged": true,
+        "restored": true,
+        "idleChanged": true,
+        "planted": true,
+        "cachedUnchanged": true
+      }
+    ]
+  },
+  "rules": {
+    "fourth": {
+      "point": {
+        "x": 197.20829094327487,
+        "y": 446.97032985733154,
+        "uuid": "7B65BDF6-AA82-4823-8DB8-F09114E05B88",
+        "id": "black",
+        "state": "idle"
+      },
+      "first": {
+        "state": "play",
+        "yarn": true,
+        "total": 18,
+        "actual": [
+          "black"
+        ]
+      },
+      "secondPoint": {
+        "x": 197.85190905576013,
+        "y": 445.7702177923305
+      },
+      "second": {
+        "state": "hug",
+        "total": 19,
+        "value": 1,
+        "save": {
+          "caught": {
+            "orange": 100,
+            "calico": 100,
+            "black": 101,
+            "white": 100,
+            "tabby": 100,
+            "glow": 100
+          },
+          "total": 19,
+          "ended": false,
+          "level": 2,
+          "companions": {
+            "black": 4
+          }
+        }
+      }
+    },
+    "fifth": {
+      "x": 207.2669305494075,
+      "y": 435.5537962087122,
+      "uuid": "496C1004-20EF-438F-8B3E-4233FAE1B04A",
+      "id": "black",
+      "state": "idle"
+    },
+    "last": {
+      "point": {
+        "x": 287.9905193590766,
+        "y": 431.12377977727994,
+        "uuid": "41F68868-B8C0-4329-8372-AA4E52DFF459",
+        "id": "white",
+        "state": "idle"
+      },
+      "first": {
+        "state": "lure",
+        "yarn": true,
+        "total": 19,
+        "actual": [
+          "white"
+        ]
+      },
+      "secondPoint": {
+        "x": 282.1623551261746,
+        "y": 431.1260932208453
+      },
+      "second": {
+        "state": "hug",
+        "total": 20,
+        "value": 1,
+        "save": {
+          "caught": {
+            "orange": 100,
+            "calico": 100,
+            "black": 101,
+            "white": 101,
+            "tabby": 100,
+            "glow": 100
+          },
+          "total": 20,
+          "ended": true,
+          "level": 2,
+          "companions": {
+            "black": 4,
+            "white": 1
+          }
+        }
+      }
+    },
+    "replay": {
+      "caught": {
+        "orange": 100,
+        "calico": 100,
+        "black": 101,
+        "white": 101,
+        "tabby": 100,
+        "glow": 100
+      },
+      "total": 0,
+      "ended": false,
+      "level": 2,
+      "companions": {}
+    }
+  },
+  "rare": {
+    "glow": {
+      "point": {
+        "x": 151.69088003485078,
+        "y": 444.43139619865167,
+        "uuid": "0DEBF191-4BB0-47A6-832B-B28DD823E710",
+        "id": "glow",
+        "state": "hide"
+      },
+      "first": {
+        "state": "play",
+        "yarn": true,
+        "total": 0,
+        "actual": [
+          "glow"
+        ]
+      },
+      "secondPoint": {
+        "x": 151.30081914290145,
+        "y": 443.8186145263293
+      },
+      "second": {
+        "state": "hug",
+        "total": 3,
+        "value": 3,
+        "save": {
+          "caught": {
+            "glow": 71,
+            "white": 50
+          },
+          "total": 3,
+          "ended": false,
+          "level": 2,
+          "companions": {
+            "glow": 1
+          }
+        }
+      }
+    },
+    "white": {
+      "point": {
+        "x": 118.57432908575102,
+        "y": 408.2389317300701,
+        "uuid": "49B60519-A83E-4F31-AF0C-0AFC4AAAE56C",
+        "id": "white",
+        "state": "hide"
+      },
+      "first": {
+        "state": "play",
+        "yarn": true,
+        "total": 3,
+        "actual": [
+          "white"
+        ]
+      },
+      "secondPoint": {
+        "x": 120.41825804120975,
+        "y": 407.9683021975068
+      },
+      "second": {
+        "state": "hug",
+        "total": 4,
+        "value": 1,
+        "save": {
+          "caught": {
+            "glow": 71,
+            "white": 51
+          },
+          "total": 4,
+          "ended": false,
+          "level": 2,
+          "companions": {
+            "glow": 1,
+            "white": 1
+          }
+        }
+      }
+    }
+  }
+}

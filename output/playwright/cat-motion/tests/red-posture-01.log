@@ -1,0 +1,10 @@
+{"snow":{"visiblePixels":[6082,6082,6082,6082],"changed":[0,0,0,0],"headYaw":[0,0,0,0],"traveled":1.2268818422778451,"pawRange":0,"tailBendRange":0},"l2":{"visiblePixels":7013,"changed":0}}
+AssertionError [ERR_ASSERTION]: Walk advances while the snow cat is traveling
+    at /workspace/xiantu/games/healing-game/tests/cat-posture-browser.cjs:120:5 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}

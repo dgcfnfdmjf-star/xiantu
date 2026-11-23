@@ -1,0 +1,14 @@
+tap {
+  x: 328.736123609081,
+  y: 434.4011334631937,
+  state: 'idle',
+  kind: 'black'
+}
+tap {
+  x: 328.94169013227076,
+  y: 430.1783503385236,
+  state: 'lure',
+  kind: 'black'
+}
+entered real cutscene
+{"browser":"151.0.7922.173","cast":["orange","calico","black","white","tabby","orange","glow"],"coats":5,"walk":27.5,"sit":21.3,"saved":{"caught":{"orange":3,"calico":2,"black":3,"white":1,"tabby":2},"total":20,"ended":true,"level":2,"companions":{"black":1}},"pass":true}

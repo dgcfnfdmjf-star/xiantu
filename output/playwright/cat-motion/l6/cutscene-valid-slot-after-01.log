@@ -1,0 +1,6 @@
+page.waitForFunction: Timeout 30000ms exceeded.
+    at clear (/workspace/xiantu/output/playwright/cat-motion/l6/cutscene-valid-slot-compat.cjs:65:16)
+    at async /workspace/xiantu/output/playwright/cat-motion/l6/cutscene-valid-slot-compat.cjs:77:5 {
+  log: [],
+  name: 'TimeoutError'
+}

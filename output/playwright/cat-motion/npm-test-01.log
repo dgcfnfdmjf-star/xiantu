@@ -1,0 +1,1678 @@
+
+> xiantu@28.68.124 test
+> node scripts/test.cjs
+
+PASS starter sword sequence, shield priority, cost, interruption, guards and reset. Fixed enemy hit 55 → 38.
+PASS field surveys: eight two-stop routes, original map interactions and claims, matching evidence, reload, stale/wrong-site/combat guards and atomic single payment
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+✔ stored pills pack once, survive loading, and unpack into the original quantities (289.204729ms)
+✔ missing ingredients, full inventory and unavailable map actions leave the bag intact (82.625338ms)
+✔ a failed save rolls back packing and unpacking (124.498883ms)
+✔ the combat drawer previews capped amounts in both medicine tabs and consumes one turn (113.924174ms)
+✔ a full pair or enemy turn keeps the kit, either single deficit can use it (125.856271ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 749.050204
+Web Audio API 不可用
+PASS NPC distance gait, 4 frames x 8 headings x 4 NPCs, immediate idle/busy poses, one freeze repaint, unchanged saves/timers, lazy/failure cache, low-end legs and atlas anchors
+PASS actual displacement drives phase; idle stands; no saved/player/combat data mutations
+PASS idle/four walking frames, eight headings, family aliases, elite gait, mobile fallback and bounded lazy atlas cache
+PASS trees (including former 3% bypass), swept walls, POIs, safe zones, regional bounds, range and 2–6 second independent pauses
+PASS 59px contact / 60px no contact, eight-second battle release, no approach during cooldown, tutorial guard and old-save runtime reset
+Web Audio API 不可用
+PASS NPC walk: independent rhythms, 20 simulated minutes, speed/radius/patch/collider/POI limits, pauses, owner/entry reset, faction exclusion, RNG/timer/save invariants and moving hitbox
+PASS four faction panoramas: 794 clear routes, 160 safe seeded spawns, original POIs/save/safety/access, NPC, masks/picking, cache, and failed/late loads
+PASS glyph table: 18 slot keys -> 15 glyphs, 3 exploration glyphs, legacy icon fields kept
+PASS equipment rows: 18 glyph icons, locked/empty states, no save keys added
+PASS map marker: Path2D glyph per type, check when claimed, static under effects off/reduced motion, emoji fallback
+PASS scroll pin, dialog and manual use glyphs; CSS static and tokenised
+PASS simple steps open on the compact reminder with the spotlight; explanation cards unchanged
+PASS 起步之路 counter advances per card (row n/11 plus card i/of)
+PASS step ids, saved progress and skip unchanged
+PASS v2868121 tutorial pacing
+PASS v2868120 title screen
+PASS alchemy show: pills shown = pills made (x1/x5/x10/partial/all-fail, cap 10), grey smoke, 紫霄丹雷 on full x10 or level-up, fixed pools, no save fields, static fallback, jade/gold controls
+Web Audio API 不可用
+PASS normal win: receipt tiles match the bag gain exactly; four actions in a 2x2 grid
+Web Audio API 不可用
+PASS elite win: artifact/equipment tiles are rare with quality colours
+Web Audio API 不可用
+PASS boss win: 精钢剑 and 大还丹 shown, equipment gilded
+Web Audio API 不可用
+PASS underdog win: the 越级 reward is the single, gilded tile
+Web Audio API 不可用
+PASS a win with no drops shows no tile list
+Web Audio API 不可用
+PASS defeat leaves no receipt or drop list
+PASS tournament and war duels unchanged
+PASS effects off and reduced motion keep the receipt static
+PASS tile text escaped, colours whitelisted, overflow capped at eight
+Web Audio API 不可用
+PASS the drop list stays in memory
+Web Audio API 不可用
+Web Audio API 不可用
+PASS training puppet hides the zero-gain line; other fights keep it
+PASS fresh: task list mirrors SIDE_TASKS daily/weekly, no dot
+PASS daily: step text, progress and done count match task state
+PASS trip: units/gold/herbs equal tripYieldV286821, dot on when claimable
+PASS claim: existing guarded function only, gold delta = yield, blocked outside exploring
+PASS sect: to-do totals equal sectTodoReadV2868, sect task progress from getSectTaskProgressInfo
+PASS chip states: below need, ready (next realm), cooling down, max, animating, tribulation
+PASS chip and shimmer hidden in battle, interiors, tutorial and dialogs
+PASS chip opens the existing breakthrough screen once and changes no state
+PASS success card keeps the five-second auto-dismiss and checks effects off
+Web Audio API 不可用
+PASS new character starts at full health; saved health is untouched on load
+PASS wandering monsters wait during guided steps and while a tutorial card is open
+PASS contact fights start as before once the guided steps are done
+PASS low-health contact asks first with the shared prompt; stale and repeated confirms are ignored
+PASS first ordinary southern contact offers one choice and retains the low-health guard
+PASS receipt: suppressed by step id, removed by full panels, auto-collapses unless touched
+PASS action phase: no blur, light dim, spotlight; explanation card unchanged
+PASS achievement popup is jade/gold, above and below the receipt, static with effects off
+PASS guided-step guards are limited to the starter realms
+PASS elder preload/draw request sharing, pending/error fallback, sprite-only ready path, anchors and NPC role isolation
+north frost melt overlays ok
+PASS v2868111 release markers
+Web Audio API 不可用
+PASS in-game dialog fallback, cancel/no-action, tutorial skip, equipment dismantle/unequip, forge and beast-karma confirms
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS companion Jev wait bound, offline/timeout/error/ceiling local fallback, late and stale answers discarded, valid in-time answer kept, exception never stalls the enemy turn
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS alchemy fire: default parity, gentle/fierce rules, per-material bounds on all recipes, lifetime and inventory caps, invalid input, no new save fields, panel reset
+PASS mortal tutorial defers errands, keeps completion count and journey hand-off
+PASS mid-tutorial and completed saves, and original errand step from Qi Refining
+PASS realm-gated errand step, order, panel, completion and legacy delivered errands
+PASS quest bar yields only while a newcomer follows the starter path
+PASS mortal guidance no longer leads with errands
+PASS alchemy visuals after durable commit; failed/quota/throw rollback; partial batches; failure outcomes; stale owner and panel guards
+PASS north panorama: 1476 collision-safe routes; 41 stable POIs, 35 entrances, discovery/save invariants, overview/fallback and cache isolation
+PASS heal guard resources, routing, lazy cache, true-state ownership, strongest replacement, early consumption, cleanup and read-only drawing
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS 16 old/new combat/HP/MP/guard/RNG comparisons, full-HP guard and zero-damage preservation
+PASS actual scene cast/full-HP/status/replacement/early-hit/background/owner cleanup and single RAF
+Web Audio API 不可用
+PASS optional/off loading, raw-frame downgrade/no auto upgrade, pooled lightweight particle limits, module RNG/gameplay isolation, event TTL/owner/combat/visibility/reduced-motion cleanup
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS locked next-main tracker/preview, late realm gates/legacy progress, low-HP cancel/confirm/stale/duplicate guards, gathering retry, tournament preview without spending time
+PASS cached-ticket and private transport backoff, exponential delay/HTTP 429/503, recovery reset, endpoint/auth isolation, cancellation, manual retry gate and bounded 401 refresh
+PASS legacy array.at semantics/nonenumerability/native preservation, pending request coalescing and retry cooldown
+PASS save conflicts: stale autosave/manual/import/restore/new/load/delete gates, deletion, sticky conflict, backup preservation, quota retry and valid replacement
+PASS south scene: 112 clear routes, stable IDs/rewards/fog, camera-independent hit boxes, old position recovery, bounded cache and failure/late-load isolation
+PASS no boot battle art, demand loading, invalid target, late completion and bounded reuse
+PASS wild region lazy art, coordinate/permission invariants, all POI routes, collision recovery, static cache, camera-independent picking, malformed/error fallback and late-load isolation
+v286897-test-village: all checks passed
+PASS continuous sect scene: 42 door routes, actual wall collision/recovery, roof picking/occlusion, fixed transforms, cached ground, unchanged save/POIs, region isolation and loading fallback
+PASS 29 courtyard landmarks: lazy/failure fallback, road cache invalidation, actual transformed entrance/picking agreement at six camera modes, unchanged save/collision/access
+PASS continuous terrain full-map coverage, one cached bake, unchanged gameplay/RNG, regional isolation and failed/late loading
+PASS shared cloud/light/fog follows all actors once, labels remain above veil, discovery untouched, lighting cache bounded/reused, off switch and asset fallback
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+40 old/new comparisons; PASS healing assets, lazy cache, fallback, anchors, lifecycle, real scene/continuous cast, actual heal metadata and independent HP/MP/emergency metadata
+PASS 17 distinct scenes, mobile budget, lazy LRU, stale callbacks, floor replacement, every room route/exit, failure fallback and denied entry
+PASS lazy bounded art, failed/pending fallback, stale completion, projection/picking/DPR/exit, cache release and unchanged player state
+PASS intro first/repeat/ready/replay, preference/storage, fallback/stale events, slow/stall/deadline/disposal, weights and media
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS healing assets, lazy cache, fallback, anchors, lifecycle, real scene/continuous cast, actual heal metadata and 16 old/new combat comparisons
+PASS safe contact departure, narrow-grid fallback, collision-preserving failure, scoped wheel, beacon state/cache and NPC bounds
+PASS hall walking transfer, arrival, cancellation, stale/locked targets, DPR mapping and war sprite culling
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS sword resources, actual draw route, missing texture fallback, final frames, expiry, read-only rendering and original combat/MP/RNG parity
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS actual healing amount/full HP/overkill caps; guard provenance, weaker refresh, stronger replacement, consumption/death/target/background cleanup
+PASS actual scene status draw, one RAF, hidden/resume, expiry/reset/destroy
+PASS walkable room entry, furniture routing, outdoor isolation, proximity, door return, overlay pause, lifecycle and access guards
+PASS realm exclusions, all factor boundaries, original rate clamps/protection and real one-pill/no-pill guarantee paths
+PASS quality odds/unique awards/stat cap/lifespan, legacy migration, real severe-repair protection and failure consequences
+PASS seeded DAO quality/failure distributions: [{"name":"standard","seed":286883,"counts":{"normal":39018,"perfect":6063,"barely":4919},"n":50000,"meanStat":0.0021441399999999997},{"name":"weak","seed":294802,"counts":{"normal":38949,"perfect":5000,"barely":6051},"n":50000,"meanStat":0.00207898},{"name":"good","seed":302721,"counts":{"normal":39068,"barely":2522,"perfect":8410},"n":50000,"meanStat":0.00228596},{"name":"eligible","seed":310640,"counts":{"minor":35854,"moderate":8107,"epiphany":3120,"lifespan":1955,"severe":964},"n":50000},{"name":"held","seed":318559,"counts":{"minor":37157,"moderate":7834,"epiphany":3008,"lifespan":2001},"n":50000},{"name":"ineligible","seed":326478,"counts":{"moderate":7968,"minor":37051,"epiphany":2954,"lifespan":2027},"n":50000}]
+PASS canonical stage keys, future/excluded gates, strict quality values and invalid containers
+PASS read-only normalizer, bounded unique history, finite lifetime loss and phase-specific held protection
+PASS legacy migration baseline, no retrospective awards after retreat and invalid baseline defenses
+PASS create/parse/load/normalize/write roundtrip, valid retraining ledger, backup preservation and unsafe-field refusal
+PASS additive 10% stat cap, stage-key uniqueness, ascension exclusions and lifetime floor
+PASS real battle -20%, multiplicative artifact bonus, exact status expiry, unchanged single/batch pill exp
+PASS 30 independent retreat boundaries, timed recovery, exact bottleneck stop, legacy one-year cultivation and stale quote rejection
+PASS full-HP cure consumes one pill, injury/cooldown separation, one-save commit, false/throw/quota rollback, healing cap, cancel/stale owner/state guards
+PASS manual combat and emergency cure, turn consumption, unchanged cheapest-heal choice and interrupted-battle checkpoint integrity
+PASS breakthrough attempt/result atomic saves, locked RNG and legacy recovery, quota rollback, one-time achievements, busy/stale/reset guards and unchanged forced ascension
+PASS vector landmarks: actual draw transforms, both atlas states, low/high, depth toggle, ring/physics invariants, edge taps/cull, near label clearance, MAP_ALIVE fallback and guarded walking
+PASS gathering quantity/probability boundaries, distance gate, idle/invalid input, inventory normalization/caps, exact task quantity, region reset, actual movement and existing autosave path
+PASS seeded gathering across all region pools: {"seedBase":286882,"attemptsPerRegionAndTier":50000,"groups":{"0":{"rows":8,"attempts":400000,"discoveries":71969,"materials":71969},"3":{"rows":8,"attempts":400000,"discoveries":71927,"materials":82639},"7":{"rows":8,"attempts":400000,"discoveries":71769,"materials":93018}}}
+PASS architecture culling: all atlas regions, low/high, DPR 1/1.5, edge continuity, single depth-sorted draw, live atlas bounds and unchanged non-building visibility
+PASS exact remaining route/projection, read-only drawing without path search, reduced-motion/low-quality/static minimap, obstacle-safe direct targets, waypoint progress, arrival/cancel/busy/owner/region guards, building endpoint and existing minimap clip/throttle
+PASS tree/stone/building spawn rejection, unchanged candidate/return/caps/45% gate/45-attempt budget/player position/cooldown and 2228 collision-free actors across 2400 seeded attempts
+PASS 78 camera frames: single step, terrain/actor/tap coherence, DPR and region snap, save/player invariants and paused-loop guards
+PASS real building-base label clearance, downward collision avoidance, locked/near/mobile/preference filters, no gameplay changes
+PASS native region shortcut, stable binding/text, movement reset, busy/hidden/old-owner guards, stale menu invalidation and unchanged unlock/cost/spawn rules
+PASS nine restrained courts cover eight tiers at expanded coordinates; paths/collisions/access untouched; no gradients or transformed-map slabs; low-detail reduction and one bake per region cache
+PASS safe salvage preserves two rings / three artifacts, subtracts equipped copies, retains existing protections, saves only surplus, rolls back write failure and solves once per quote/render
+PASS eight cultivation actions: false/throw/quota rollback, original pet/artifact identity, durable save and success effect ordering, unchanged costs, and state guards
+PASS failed random rolls retain original costs/cooldowns, save-time reentry is rejected, and exceptions restore achievements with pet alias intact
+PASS regional atlas lazy request, cached reuse, failure fallback, lazy steward image
+PASS 14 real inventory actions rollback on failed save and commit once on success, including nested longevity and achievements
+PASS capacity/no-charge, safe counts, strict critical-field rejection, unknown data retention, batch limits/confirmation/state/owner guards and rollback statistics
+PASS real storage failure preserves previous save, previous shop UI and live player
+PASS compact expandable rows, search/filter/sort, no cross-render stale caches, unknown equipment retention, view-only order, blocked preference storage, pet materials and owner reset
+PASS roof hitboxes, obstacle-safe auto-entry once, nearby entry, cancellation/ownership/access/encounter guards, manual nav retained, mouse/touch gesture filtering and real shop opens without purchase
+PASS desktop/mobile quality selection and persistence, cache disposal, unchanged player/collision state, expanded fog IDs/reload, single-bake routes and scale-aware building fade
+PASS economy floors/exclusions, unchanged early game/forge, shop arbitrage, old ownership, bounty rollback/reload/idempotence and annual practice limits
+PASS serialized notices, actual-display read flags, dedupe, busy states, expiry, capacity, owner and timer cleanup
+Web Audio API 不可用
+PASS eleven-step path, true completion, paused/old saves, original reward fields and current attack label
+PASS no economy rebalance installed
+PASS opt-in, actual balance deltas, confirmation cancellation, save ownership, visible active time, fight results/mode and disable
+PASS malformed storage normalization, quota retry, CSV BOM, optional UI entry, clear confirmation and lifecycle cleanup
+PASS real victory with recorder on/off: identical rewards, resources and RNG, combat attribution recorded
+PASS reproduced direct-tap blockage; routed tap reaches exact point without penetrating collider
+PASS one search per blocked tap, exact destination, takeover, unreachable/invalid input, map/overlay/combat guards and unchanged building access/save
+PASS architecture hierarchy, same regional atlases, unchanged world coordinates and missing-image fallback
+PASS eight maps scaled exactly once, legacy exploration/roaming cells and once-only reward IDs retained, spawn/marked POI restored, war coordinates migrate once
+PASS safe spawns and collision-free routes to 144 landmarks across eight expanded maps
+PASS ice provenance, final tick, refresh, shield replacement, seal ownership, hidden/target/death cleanup
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS 13 real ice casts, both RNG outcomes, exact MP, frost ticks and 20% shield; visual observer cannot change combat
+PASS live scene rendering, fallback, anchors, absorption, replacement, hidden/reset/death cleanup and single RAF
+PASS expiry terminal frames, source-over, reduced-motion stability and early armor cancellation
+PASS reduced-motion ordinary ice hit retains finite cleanup timer
+PASS CSS-first startup, slow/retry recovery, single evaluation order, invalid CSS prevents scripts
+PASS security: slash-event rejection, free-text preservation, rename validation/rollback/Unicode, 40-script CSP compatibility
+PASS map movement: optional 1.6x speed, frame-rate parity, tap/waypoint arrival, swept circle sliding, no tunnelling/corner penetration, unchanged actor base speed and map footprints
+v2895-test-saveui: all checks passed
+PASS purchase confirmation: cancellation, single/batch settlement, canonical contribution prices, stale state, reentrancy and unavailable dialogs
+v2893-test-map-alive: all checks passed
+PASS batch invitation: original fees/eligibility, power order, budget, cancellation, atomic retry and stale actions
+PASS master mentoring: costs, 30-day cooldown, per-kind caps, real title prerequisite, no side rewards, rollback/retry, migration, ownership and level cap
+PASS real duel render durations 646/340/238ms at 1/2/3x; skill enrichment, engine-state/cadence isolation, single RAF, export layering/errors/disposal and storage denial
+v2890-test-guide: all checks passed
+PASS war eligibility; original ally/aid prices and unrestricted ally count; confirmations; persistence/reputation rollback; zero prosperity; idempotent settlement
+PASS v2887 boss fixes: tier-3 entry, atomic reward rollback, refusal messages, settlement plan, full fight
+PASS v2888 2.5D scenes: loader, off switch, world wrappers, caches, reduced motion, 8 regions, 山河图 layers/toggle, location cards
+PASS v2889 battle 2.5D: loader, stage/region/tier, turn cue, bar tween, bursts, buttons, switch, reduced motion, same outcome on/off, 镇岳台
+PASS yearly windows, migration, three phases/aspects, preview parity, counters, boons, simulated tactics and bounded reward rules
+PASS 144 deterministic look-ahead fights using actual stats: four realm bands, early/full phases, bare/ordinary/ideal gear, member/master, all aspects. No claim about human win rate.
+PASS real stat/sect adapters, read-only screens, saved resume, atomic rounds/rewards/defeat/repair, daily practice cap, ownership/clock/window guards, free officers and bounded imports
+PASS three tactics, compatible available officers, legacy/empty/pending/stale stages, atomic rollback, same-route restart, cap/qualification/reload and stale-view/actor/combat guards
+PASS high-realm candidate cap/weights/gates, 40% event split, 30-day single settlement, async cancellation; post-shield real peak, overkill/source exclusions, undying, actual basic attack, new battle/owner isolation and persisted review
+PASS rain batch/no skip/rest limits/rollback/reload; 8-chapter gates and 15 branch previews read-only; guard, rally, MP, visual/passive exclusions and real thunder-hit integration
+PASS explicit one-commission acceptance, real costs/rewards, donation disclosure, no combat skip, shared budgets, atomic retry, persisted payout and stale/actor/sect/phase guards
+PASS 8 quick investigation paths, no free supplies, dossier gates/rollback/reload, battle-local pet allowance, turn/capture/owner/stale guards, real caps/defense and checkpoint persistence
+PASS six elite mechanics, passive/direct sources, freeze/duplicate actions, shield/undying before death, real defeat, local art, fixed entry realm/day, monotonic daily bonus, pending claim rollback/reload and unchanged ordinary encounters
+PASS abyss ownership/guards, phase crossings, shield/critical commits, control skips/duplicate actions, MP/storm/defeat, realm-locked once rewards, 35% repeat drops and saved claim rollback
+PASS zero-prosperity repair, post-inheritance preview and changed-doctrine confirmation guard
+PASS settlement forecast/confirmation/persistence, affordability boundaries, caps, cancellation/quota rollback and all doctrine inheritance previews
+PASS real trial/old-master flows, saved rolls/retry/one-time inheritance, stale/rollback guards, immutable old quotes, doctrine economy/upkeep/arrears, cap/roster/recruit safety, own-sect power and migration
+PASS verified milestone evidence, correct item pools/contribution, one-time/reload/stale/quota guards, existing dual-save fallback object and backup preservation
+PASS final log snapshot, read-only repeated review, persisted reload, escaped text, bounded normalization, defeat/flee, combat/stale-owner guards and quota-safe exit
+PASS capture failure/outside release, cancellation, multitouch ownership, primary restart, stale lost capture, lifecycle reset and idle keyboard preservation
+PASS tea daily/cap/reload/quota/owner, canonical trader x5/cancel/quota/stale, highest legal dispatch and atomic rollback, read-only accessible status details
+PASS transactional claim/dispatch, scoped one-reroll/reload/rollback, medicine preview/partial/cancel/quota, actual companion daily cap/date rollback and no cap resonance
+PASS six completed turns, early victory, entry-realm reward once/reload, trial-only defeat exemption, stale callbacks, control skip, truthful counters, bounded records and claim rollback
+PASS seasonal lock/one claim, no back pay/clock rollback, arts/decrees/windows, officers/scope, save failure all actions, stale/confirm/combat guards and escaped names
+PASS scoped legacy promotion, shared gates, all placeholders, rank-only council, costs/cap, idle-only training, shared persisted cooldown, stale/blocked/cancel/quota rollback
+PASS finite legacy contributions and escaped hall notices/allies/support
+PASS succession threshold matrix and backwards clock does not reset governance cooldown
+Web Audio API 不可用
+Web Audio API 不可用
+PASS recipes/costs, karma cancellation/rollback, exact loadouts/count conservation/failure, field aids opt-in/exclusions, prebattle checkpoint and state guards
+Web Audio API 不可用
+PASS contract duplicate/downgrade/cancel/rollback, safe rename/persistence/species, disabled buttons, capture cooldown lifetime, forge cost/owned count/cancel/rollback and combat guards
+PASS bag count preservation, grouping, guards, rollback, inert rendering; ceremony eligibility, persisted promotion, single trigger, save failure and reset cleanup
+PASS loading: backup fallback when normalization fails, no reset/deletion when nothing loads, validator-rejected main falls back
+PASS import: un-normalizable file changes nothing, good file archives the current record, live progress archived, combat/cancel safe
+PASS swap/archive: real previous-character swap and undo, rollback when the write fails, storage-full fails closed, restore-backup archive
+PASS export: never gated by the validator, share on phones only, cancel does not download, download->clipboard->manual text fallbacks, manager controls
+PASS real-game checks: dry run unchanged, export/import round trip, stale async read, malformed achievements, all-slot rollback, battle/breakthrough guards, inert recovery text
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS batch/single outcome and RNG parity, mid-batch level-ups, lifetime cap after failures, partial materials, invalid counts, combat and breakthrough guards
+Web Audio API 不可用
+PASS mutation uniqueness, additive legacy migration, idempotence, capped-pet comfort, daily reward persistence, action guards and save rollback
+PASS owned-active-pet HP/DEF benefits, no free heal, incoming reduction, control resistance, existing caps and withdrawal
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS sword resources, actual draw route, missing texture fallback, final frames, expiry, read-only rendering and original combat/MP/RNG parity
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS sword resources, actual draw route, missing texture fallback, final frames, expiry, read-only rendering and original combat/MP/RNG parity
+PASS cultivation safety: guide lifecycle, 9 batch recipes, catalogue economics, salvage gates/protection, recorded refunds/save rollback, capture timer ownership and completion
+PASS cultivation batch: original upgrade/feed parity, caps, stock/cost/realm guards, tutorial timers and once-only rewards, premium capture cancellation and item priority
+PASS four resource sets, cast/state separation, one shared domain, last tick/reflection, texture fallback and target/death cleanup
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS original-core comparison: 30/68/45/55 MP, identical damage/states/RNG; actual domain/tick/armor events and ordinary/set cloud distinction
+PASS dedicated thunder textures, events, fixed dimensions, anchors, mirrored travel, fallback and pure rendering
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS equipped thunder casts: 52/60/85 MP and identical combat state/RNG with visuals disabled
+PASS queued hits, torso/ground anchors, miss, hidden/resume/reset/destroy cleanup
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS three lethal casts in report/cinema: confirmed impact survives settlement, then expires; rewards unchanged
+PASS dedicated thunder textures, events, fixed dimensions, anchors, mirrored travel, fallback and pure rendering
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS equipped thunder casts: 20/25/38 MP and identical combat state/RNG with visuals disabled
+PASS queued hits, torso/ground anchors, miss, hidden/resume/reset/destroy cleanup
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS three lethal casts in report/cinema: confirmed impact survives settlement, then expires; rewards unchanged
+PASS realm snapshots; old saves; real officer/dispatch/trail/batch guards; traits and title; 8-action win/held/fail; paid resume; atomic reward/merit rollback
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS real personal battles -> one settlement; score, roster snapshot, read-only history, stale UI, save/load
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS interrupted encounter restore, defeat without double charge, retryable stage, paid rest cancel/cost/save
+Web Audio API 不可用
+Web Audio API 不可用
+PASS command resolution, persisted dice, 8%-max500 campaign penalty, single settlement
+Web Audio API 不可用
+PASS no silent invasion loss, single dispatch, defense allowed during offensive cooldown
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS old-war migration and malformed-war recovery without wallet mutation
+Web Audio API 不可用
+PASS merit confirmation, insufficient balance, battle guard
+Web Audio API 不可用
+PASS retreat confirmation, no rewards, cleared allies, stale-character UI; all war scenarios passed
+Web Audio API 不可用
+PASS ally confirmation and exact cost; named immortal aid success/failure prices and support strength
+Web Audio API 不可用
+Web Audio API 不可用
+PASS paid resume repairs missing tactic; malformed tickets and orphan commander recover idempotently without refunds
+Web Audio API 不可用
+PASS merit pet goods exact price, cancel, shortage and atomic save rollback
+PASS randomized encounters; saved choices; two boon rounds; battle scoping; old-route compatibility in existing suite; quota rollback; read-only brief; bounded one-time expedition claim
+PASS locked reward realm, route pet drops, legacy payout, atomic batch claims, repeat/blocked claims and separate confirmed dispatch
+PASS stale owner callbacks and dispatch save rollback
+PASS four saved treasure rolls, three route quantities, old runs, clear-only/once-only payout, guarded failure and atomic retry
+PASS pet ancestry pity: normal/divine/demon; four-attempt guarantee; protection; reload; costs; cooldown; rollback; reentry; legacy normalization
+PASS 190 set-grade transitions; exact shop prices; fodder/locks/indices; per-item inheritance + pending affixes; reload + continued forge; no healing; realm gates; stale/reentrant calls; save/registration rollback
+PASS fire finale lifecycle and read-only rendering
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS real 35/30 MP casts, 2.4 damage/burn/slow, 20% shield, absorption/refresh/expiry/ice replacement and unchanged state/RNG
+PASS persistent fire ownership, ice replacement, depletion/expiry, one-shot break, hidden/exit cleanup and one RAF
+PASS element sprite VFX: 18 families, 16 skills, lazy textures, hit gating, final frames, expiry, read-only draw
+PASS three fire assets, lazy cache, final frames, event gating, expiry, fallback, read-only draw
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS real equipped casts: 72/58/75 MP, 4.4/3.9/4.5 damage, burn refresh, unchanged state/RNG
+PASS domain provenance, refresh/expiry, one owner/crossfade, hidden/exit/target/reset and Canvas segment clipping
+PASS realm copy and north unlock hint follow the runtime tables
+PASS delegating the tournament during 万宗争锋 warns first
+PASS night buildings use in-game day/night instead of the device clock
+PASS achievement list is de-duplicated and covers 地仙/天仙
+PASS mute label, terminology, zoom, polyfill and favicon
+PASS main_19 has an epilogue with a free-play exit
+PASS Jev public session stops retrying after a 403
+PASS gear grades 4-6 extend the existing curve; grades 1-3 unchanged
+PASS shops, set completion and forge accept post-地仙 grades
+PASS map drop weights and dismantle values are keyed by quality
+PASS 33 task reward items resolve and land in the right bag; legacy placeholder names migrate
+PASS 999 test preset only on local hosts
+PASS three fire assets, lazy cache, final frames, event gating, expiry, fallback, read-only draw
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS real equipped casts: 32/28/42 MP, 2.6/2.3/3.2 damage, burn/heal block and 40% pierce, unchanged state/RNG
+PASS one burn owner, no early lotus mark, expiry/death/target/hidden cleanup, no extra RAF
+PASS three fire assets, lazy cache, final frames, event gating, expiry, fallback, read-only draw
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS real equipped casts: 18/22/45 MP, burn duration and detonation consumption, identical state/RNG with visuals disabled
+PASS queued detonation identity and hidden/resume/destroy cleanup
+PASS authored story bosses, chapter-21 tribulation lock, village boss routing, skip guard, sect hint match
+PASS absolute-zero fixed ground, hit gating, complementary overlap, final frames, 4-image cache, fallback and read-only rendering
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS actual skill preserves 70 MP, 4x multiplier, guaranteed freeze, chill, combat state and RNG
+PASS hidden/resume and destroy never replay frozen absolute-zero one-shots
+Web Audio API 不可用
+Web Audio API 不可用
+PASS truthful burn preview including pre-action tick, weaken readout, pause/resume prose preservation, outcome variation
+PASS ember follows live burn state, real tick pulse, expiry/death removal and one-loop cleanup
+PASS heart-fire torso anchors, fixed travel, crossfades, final frames, caching, fallback, read-only rendering
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS equipped heart-fire skill preserves 65 MP, 4.2 multiplier, burn, weaken and RNG with visuals disabled
+PASS heartFire hidden/resume cleanup and destroy leaves no animation loop
+PASS novel narration: truthful outcomes, skill distinctions, unchanged state and RNG
+PASS butterfly real-hit gate, early/late/missed casts, anchors, terminal frames, static reduced mode, bounded cache, state/RNG read-only and fallback
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS real equipped butterfly skill: 36 MP, 2.7 multiplier, 35% freeze success/failure, chill and identical gameplay/RNG with visuals disabled
+PASS butterfly hidden/resume cleanup and destroy leaves no animation loop
+PASS solar fixed-size travel, real-hit gate, miss expiry, registered crossfade, terminal frames, reduced/light modes, shared cache, no state/RNG changes and manifest parity
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS actual solar cast: 88 MP, 5.3 base multiplier, four burn turns, identical gameplay and RNG with/without visuals
+PASS solar background/resume never replays expired action; destroy clears the only RAF
+PASS 6 rain-II paths, inherited context, reward/save rollback, stale/replay guards, 7 distant events, neutral branch, regional dossier, non-mutating recap and old archive continuity
+PASS zero/legacy boundaries, capped resonance roundtrip and once-only release, event gate, actionable hints, letters and postlude rollback/cooldown, boss deployment, rival phase/heal/no self-kill
+PASS percent applies once/adds across slots, no flat leakage/no instant recovery/no compounding, reload, mixed legacy comparison equals actual replacement, read-only slot/bag/exception restoration and strict v3 mocked cloud contract
+PASS quality fallback/explicit floors, costs, max rolls, pending guards, save restoration, exact worn bonuses/no instant recovery/no enhancement multiplication, legacy low values, local scoring, v1 compatibility and strict v2 cloud validation with mocked provider
+PASS 27 chapters/17 realms, order and gate, 16 chapter-plan paths, persistent investigation, battle aid, victory guard, reward once, legacy progress/choices, branch callback, save rollback and stale panel
+PASS investigation hints reflect progress; incomplete imported plan stays locked
+PASS 12 narrative branches, evidence gates and catch-up, puzzle choices, branch battle aid, foreign battle guard, one-time reward and read-only replay
+PASS save failure rollback/retry, old-owner and closed-view guards, main task entry, early letter gate and advanced-save access
+PASS completion reward and one-time rest roll back on storage failure without consuming retry
+PASS weakness armor floor, once-per-battle opening, elite/boss immunity, capped sword marks, single detonation, live shield requirement and capped MP
+PASS victory eligibility, realm gate, active trip guard, clock reversal, 8h cap, exactly-once collection, persisted completion and save failure rollback
+PASS audio voice cap, ended cleanup, muted/background suppression and interrupted-context recovery
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS real ice/fire casts, chill duration, armor, bounded burn/detonation, no-heal and shield pool
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS speed/realm/chill escape odds, bounds, forbidden battles, single scroll consumption and failed-escape turn
+Web Audio API 不可用
+PASS one-time encounters, reload, insufficient payment, stale UI/region/player, failed-write rollback and legacy saves
+Web Audio API 不可用
+PASS species identity, captured rename, crane fallback, same-stage atlas draw and read-only pet hit
+PASS distinct-cell cooldown, save/reload, failed cycle reset rollback, repeated rounds and single claim
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS normal-hit MP, duplicate input, cap, zero damage, regional penalty and interruption rollback
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS spell seal, physical response, stale decision validation, duration, reset and realm labels
+Web Audio API 不可用
+PASS equipped thunder skill uses the new control contract
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS paid skill/medicine interruption rolls back complete battle, stale callbacks isolated
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS quota preserves save; victory, boss drop, defeat, flee and capture commit instead of rollback
+Web Audio API 不可用
+PASS multiplicative zones and rounding retained; ordinary attacks pass gear penetration
+PASS contact-gated projectile/lunge/counterattack feedback and pending-hit cleanup
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS 20 seeded fresh-role sequences (cloth armor, attack then sword skill), no losses; turns range 1 2
+PASS reward once-only, stale button rejection, reload resume, opt-out and combat guard
+Web Audio API 不可用
+PASS all artifact types: valid lookup, exact costs, missing materials, cap
+PASS capped pet fruit remains usable, consumes once, restores vitality, lock preserved
+PASS repeated chat preserves above-cap affection; normal gains/penalties remain
+PASS north POI routes physically arrive, anonymous route starts, manual input cancels
+PASS desktop interaction advances tutorial only near a valid current-map POI
+PASS load-time pet identity, shared growth, unique legacy match, missing/ambiguous pet not rebound
+PASS blur/pagehide/hidden/mode clear all keys, target, navigation and movement
+PASS stationary healing, skill enrichment, ordered counterattack, critical/pet feedback and clean reset
+PASS five named skill families, contact-bound impact, reduced motion, single RAF and read-only state
+PASS upright death dissolve, reset, single RAF and no combat mutation
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS 23 species and 23 elite variants, read-only attacks, lazy atlas reuse, unsupported names and enemy asset failure fallback
+Web Audio API 不可用
+PASS separate static layer, 15fps idle / 30fps active and complete scene disposal
+Web Audio API 不可用
+PASS failed illustrated asset falls back without hiding original battle
+Web Audio API 不可用
+PASS pity limit/reset/reload, pill purchase/selection/once-only consumption, interrupted attempt recovery, ascension exclusion, difficulty-based XP
+PASS one-time grant idempotence, guaranteed attempt preserves pill, insufficient funds rejected
+PASS bounded enemy-realm gold, low-realm/zero/task reward exclusions
+Web Audio API 不可用
+PASS quality-scaled boots across shop/bag/slots/forge, unchanged totals and cap, affixes counted once, reload preserved
+Web Audio API 不可用
+PASS rabbit/turtle/bat and elite identities, map and battle atlas, all capturable species, offline nonhuman fallback, unchanged player state
+Web Audio API 不可用
+PASS NPC combat/settlement/breakthrough guards, read-only badges, gift refresh, no duplicate rewards, quest submission, stock counts and purchase confirmation
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS save recovery/quota/pagehide guards; malformed legacy records; map idle single timer and resume; 68 pressure calculations; 272 stable enemy cases; 12 war snapshots; battle HP/MP readout
+Web Audio API 不可用
+PASS sect overview, rank criteria, specialty/tier preview, cancel, no spend before confirm, busy exclusion, atomic batch, duplicate claim, stale date/page guards, combat/settlement/breakthrough/rank guards
+PASS material submission cancel/confirm/single reward; managed disciple save migration preserves roster and jobs
+Web Audio API 不可用
+Web Audio API 不可用
+PASS traits/training, batch event assignment, six event choices, duplicate/stale guards, ignored/legacy jobs, real entry, 3 routes, rescue cost, single reward, guarded battle, legacy route and save roundtrip
+Web Audio API 不可用
+Web Audio API 不可用
+PASS life history/titles/bounds; real rescue and exploration chains; one-time gifts and dispatch/claim; save roundtrip; stale page/player and combat guards; all-material readiness; read-only reminder without timers
+Web Audio API 不可用
+PASS long-lived game dates and own-sect-only read-only map badge
+{"evt":"xiantu_jev","status":403,"error":"origin"}
+{"evt":"xiantu_jev","status":401,"error":"access"}
+{"evt":"xiantu_jev","status":400,"error":"invalid_state"}
+{"evt":"xiantu_jev","status":429,"error":"rate_limit"}
+{"evt":"xiantu_jev","status":502,"error":"jev_unavailable"}
+{"evt":"xiantu_jev","status":503,"error":"not_configured"}
+{"evt":"xiantu_jev","status":429,"error":"rate_limit"}
+{"evt":"xiantu_jev","status":429,"error":"rate_limit"}
+PASS server auth/origin, strict numeric input, prompt whitelist, response schema, base64, cache, concurrent/rate gates, no secret in errors
+Web Audio API 不可用
+Web Audio API 不可用
+PASS offline compare, honest HP/MP labels, local goals, no extra charge, explicit keep/replace, affixes save/load
+Web Audio API 不可用
+PASS client/function integration with mocked Jev, low confidence, cache, no automatic mutation or persisted access token
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS stale item/goal/character/window/confirmation results ignored; JSON-body timeout, offline fallback, duplicate tap guard
+PASS configured endpoint, manual fixed-input request, no game state, masked credentials, local-file guard, error/format handling, JSON timeout, duplicate/rate gates
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS remembered reload, shared access, remembered off, session-only opt-out, clear without save loss, malformed/API-key rejection, blocked-storage fallback, clear pending enemy turn
+Web Audio API 不可用
+Web Audio API 不可用
+PASS empty skill tabs stay selected, stored tab tolerates storage denial, correct weapon/mana reasons, readable descriptions, stale action buttons locked
+Web Audio API 不可用
+Web Audio API 不可用
+PASS full vitals do not consume medicines/turns; preview and logs use actual capped gain; rapid repeated taps consume once; enemy gets one response
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS medicine stale battle callbacks and out-of-battle use blocked; read-only guard/burn/thunder/control status expires correctly; settlement and map visibility correct
+Web Audio API 不可用
+Web Audio API 不可用
+PASS selected-family quick slots and equipped order, mana guard, settings relocation, unified vitals and three-line log with full history
+PASS mana capacity across 17 realms / four phases, equipment additions, repeated read without save mutation, starter mana100
+{"evt":"xiantu_jev","status":403,"error":"origin"}
+{"evt":"xiantu_jev","status":401,"error":"access"}
+{"evt":"xiantu_jev","status":400,"error":"invalid_state"}
+{"evt":"xiantu_jev","status":403,"error":"public_disabled"}
+{"evt":"xiantu_jev","status":401,"error":"access"}
+{"evt":"xiantu_jev","status":403,"error":"public_disabled"}
+PASS explicit public enable, session without paid calls, fixed scope, forged/expired/wrong-origin/revoked tickets rejected, private access retained
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS fresh player defaults, no long-term secret sent/stored, credential-free controls, real NPC request, automatic renewal and remembered manual stop
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+{"evt":"xiantu_jev","status":401,"error":"access"}
+Web Audio API 不可用
+{"evt":"xiantu_jev","status":403,"error":"public_disabled"}
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS actual enemy turn, rotation retry, disabled/offline fallback, late response after stop, bounded session timeout, deduplication and no-input diagnostic
+{"evt":"xiantu_jev","status":502,"error":"jev_unavailable"}
+{"evt":"xiantu_jev","status":502,"error":"jev_unavailable"}
+{"evt":"xiantu_jev","status":502,"error":"jev_unavailable"}
+{"evt":"xiantu_jev","status":502,"error":"jev_unavailable"}
+{"evt":"xiantu_jev","status":502,"error":"jev_unavailable"}
+{"evt":"xiantu_jev","status":502,"error":"jev_unavailable"}
+PASS all six server contracts, prompt stripping, choice validation, usage and cache accounting
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS actual disciple, NPC, war and management menus with simulated provider; manual choices and spending confirmation
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS request 101+ for new decisions, forge and monsters; cancellation, timeout fallback and usage accounting
+Web Audio API 不可用
+Web Audio API 不可用
+PASS actual hero loadout, no unlearned skills, no advice resource mutation, rare-call and stale-mana guards
+{"evt":"xiantu_jev","status":502,"error":"jev_unavailable"}
+PASS monster endpoint whitelist, dynamic allowed choices, strict bounds, rejected unavailable moves
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS real local turns, no double damage, mana/cooldown, freeze/stun, guard consumption, heal cap, boss phase skills
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS real client/server with mock Jev, bounded calls, no persistent credentials, timeout/low-confidence/unavailable fallback, stale battle rejection, disable while pending
+PASS five new server contracts, no arbitrary prompts, human legality, protected retreat, mana and support validation
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS real NPC quest/cautious dialogue, elder specified task, merchant legal gear/pills, confirmation, single execution and stale balance
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS rival half-saint ceiling and single history settlement, ordinary enemy retreat without loot, task protection and two-hit support
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS actual companion heal/guard/focus/recover, mana/cooldowns, duplicate-turn protection, battle exclusions, timeout, disable, stale finish and one-time victory
+Web Audio API 不可用
+PASS repeated free north/map spring healing; no time/gold/reward changes; old cooldown removal; other cooldown retained; combat/settlement/breakthrough blocked
+Web Audio API 不可用
+PASS 9 arcs / 18 scenes / 54 player choices / 162 unique responses / 126 unique daily lines, original event gates and no hidden-line spoilers
+Web Audio API 不可用
+Web Audio API 不可用
+PASS locked realms/events, no request on reading, once-only affection, replay read-only, Su cap and no resources/mainline/partner mutation
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS all 54 choice paths through actual V28.50 cloud handler, 3 Jev tones, first-scene callbacks, distinct endings and bounded gains
+Web Audio API 不可用
+PASS six rotating topics per character, stage/partner/release gates, capped independent chat memories, no repeat in same stage and no affection farming
+Web Audio API 不可用
+PASS exact save round-trip, old-save migration without resource changes, independent save seeds and malformed history sanitation
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS cancel/switch/realm/load/mainline/hidden/battle invalidation, canceled chat, timeout fallback, duplicate-tap protection and save-failure notice
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS daily chat high-water mark, bounded history, save/reload, next day, clock rollback, quota rollback and Su cap
+PASS all relationship flow checks; simulated DOM/provider, no paid request or live deployment
+Web Audio API 不可用
+PASS shared identities, distinct ice/forest wolves and snake/dragon/birds, every region entry uses one small atlas; no portrait preload or old-atlas preload
+Web Audio API 不可用
+PASS lazy portraits, map fallback while loading, no render mutations, bounded six-image cache, eviction/background release, named portraits and tribulations preserved
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS stale/late load cannot overwrite different enemy; portrait failure uses atlas; atlas failure loads old art once; double failure preserves legacy portrait path
+Web Audio API 不可用
+Web Audio API 不可用
+PASS both war factions share new atlas; actual cinematic boss skill copies current battle canvas
+PASS all art integration checks; simulated images/DOM, no device performance claim
+Web Audio API 不可用
+Web Audio API 不可用
+PASS attacker/receiver anchors, authoritative impact cue, caster healing/armor, distinct staff/spear, passive label, two-cast overlap and canvas budget
+PASS every 55 learned-definition visual draws; 400 rapid casts bounded; visuals preserve combat state and gameplay RNG
+PASS background, hidden-cast suppression, finish, map exit, actual cinema pause/skip buttons, visual pause, resize/orientation cleanup; no legacy emoji overlay
+Web Audio API 不可用
+Web Audio API 不可用
+PASS persisted quality, pixel ceiling, reduced motion uses no RAF, restricted storage tolerated, Canvas unavailable delegates to legacy
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS real equipped skill produces identical HP/MP/turn outcome; no paid/network calls; Node simulated DOM, not a phone benchmark
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+Web Audio API 不可用
+PASS lethal report/cinema casts retain bounded confirmed impact through settlement; rewards/MP/token unchanged; return/hidden cancel immediately; no new casts or fake missed impacts
+PASS staggered arrival, body/impact handoff, miss and one-shot expiry
+✔ API success, cache, preflight and every refusal receive security headers without losing CORS (10.501696ms)
+✔ independent session secret survives provider rotation, rejects old signatures, origin changes and expiry (0.928728ms)
+✔ invalid explicit session keys fail closed before issuance/payment; owner mode remains available (6.613956ms)
+✔ refusal logs contain only allowlisted codes and are sampled per code/minute (1.47495ms)
+✔ loader manifest is authoritative; aliases do not turn data into functions (141.131257ms)
+✔ lexical alias scope, reassignments and shadowed global roots (132.678809ms)
+✔ comments, strings and regex do not add fake definitions; source lines survive (38.589443ms)
+✔ explicit order preserves paths and handles same basenames independently (89.210944ms)
+✔ invalid CLI/count/missing files fail without successful partial reports (283.448679ms)
+✔ fallback static script tags ignore comments and remote scripts; duplicates fail (89.444866ms)
+{"evt":"xiantu_jev","status":429,"error":"rate_limit"}
+{"evt":"xiantu_jev","status":429,"error":"rate_limit"}
+{"evt":"xiantu_jev","status":503,"error":"rate_limit_unavailable"}
+✔ independent sessions proceed concurrently; one player retains cooldown; shared budget remains (13.75246ms)
+✔ session issuance is bounded even when forwarding headers vary (0.908658ms)
+✔ shared limiter fails closed, validates config, and sends atomic commands (8.679453ms)
+✔ hour/day budgets survive minute resets and lease release, then expire independently (0.354965ms)
+✔ session hour/day limits cannot be bypassed with a different IP; budgets are separate (0.261713ms)
+✔ invalid long-term budget fails closed before any network operation (0.802798ms)
+✔ deleting a save removes fallback too and preserves unrelated storage (4.078408ms)
+✔ backup deletion is attempted first; a failure is reported and primary retained (0.70424ms)
+✔ runtime error has a dismissible notice without claiming startup failure (0.777741ms)
+✔ boot errors retain startup guidance; repeated errors reuse a single notice (1.595371ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 898.34349
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 0.585s
+
+OK
+169 game regression scripts + rate-limit, save/error and wrapper-tool suites + packaging tests; failed: 0

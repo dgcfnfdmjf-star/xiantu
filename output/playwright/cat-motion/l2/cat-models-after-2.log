@@ -1,0 +1,35 @@
+Checking desktop models and cache
+  exact two-tap interaction passed
+  hidden/resume freeze passed
+  three cache reentries passed
+Checking phone models and cache
+  exact two-tap interaction passed
+  hidden/resume freeze passed
+  three cache reentries passed
+Checking skeletal motion observation and real GLB instance isolation
+Checking failed GLB fallback and exact cap/goal/save rules
+locator.tap: Timeout 15000ms exceeded.
+Call log:
+[2m  - waiting for locator('#l2csGo')[22m
+[2m    - locator resolved to <button class="" id="l2csGo" type="button">轻触继续</button>[22m
+[2m  - attempting tap action[22m
+[2m    - waiting for element to be visible, enabled and stable[22m
+[2m    - element is visible, enabled and stable[22m
+[2m    - scrolling into view if needed[22m
+[2m    - done scrolling[22m
+[2m    - performing tap action[22m
+
+    at rulesAndFallback (/workspace/xiantu/games/healing-game/tests/cat-models-browser.cjs:370:40)
+    at async /workspace/xiantu/games/healing-game/tests/cat-models-browser.cjs:453:5 {
+  log: [
+    "  - waiting for locator('#l2csGo')",
+    '    - locator resolved to <button class="" id="l2csGo" type="button">轻触继续</button>',
+    '  - attempting tap action',
+    '    - waiting for element to be visible, enabled and stable',
+    '    - element is visible, enabled and stable',
+    '    - scrolling into view if needed',
+    '    - done scrolling',
+    '    - performing tap action'
+  ],
+  name: 'TimeoutError'
+}

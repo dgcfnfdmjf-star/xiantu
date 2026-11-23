@@ -1,0 +1,54 @@
+{
+  "baseline": {
+    "Head": {
+      "samples": 30,
+      "action": "sitting",
+      "max_pairwise_quaternion_angle_rad": 0.0,
+      "max_pairwise_local_position_displacement": 0.0
+    },
+    "Body": {
+      "samples": 52,
+      "action": "walking",
+      "max_pairwise_quaternion_angle_rad": 0.0,
+      "max_pairwise_local_position_displacement": 0.0
+    },
+    "TailMid": {
+      "samples": 52,
+      "action": "walking",
+      "max_pairwise_quaternion_angle_rad": 0.0,
+      "max_pairwise_local_position_displacement": 0.0
+    },
+    "TailTip": {
+      "samples": 52,
+      "action": "walking",
+      "max_pairwise_quaternion_angle_rad": 0.0,
+      "max_pairwise_local_position_displacement": 0.0
+    }
+  },
+  "final": {
+    "Head": {
+      "samples": 28,
+      "action": "sitting",
+      "max_pairwise_quaternion_angle_rad": 0.15301667433587585,
+      "max_pairwise_local_position_displacement": 0.0
+    },
+    "Body": {
+      "samples": 50,
+      "action": "walking",
+      "max_pairwise_quaternion_angle_rad": 0.06733440301391272,
+      "max_pairwise_local_position_displacement": 0.01367985698676524
+    },
+    "TailMid": {
+      "samples": 50,
+      "action": "walking",
+      "max_pairwise_quaternion_angle_rad": 0.4449215255098954,
+      "max_pairwise_local_position_displacement": 0.03955863515232917
+    },
+    "TailTip": {
+      "samples": 50,
+      "action": "walking",
+      "max_pairwise_quaternion_angle_rad": 1.0231601575330194,
+      "max_pairwise_local_position_displacement": 0.08684251258273425
+    }
+  }
+}

@@ -1,0 +1,10 @@
+AssertionError [ERR_ASSERTION]: orange: actual walk fits its derived collision footprint
+    at checkScene (/workspace/xiantu/games/healing-game/tests/cat-walk-browser.cjs:168:9)
+    at async /workspace/xiantu/games/healing-game/tests/cat-walk-browser.cjs:245:5 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}

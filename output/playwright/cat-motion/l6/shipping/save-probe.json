@@ -1,0 +1,126 @@
+{
+  "old": {
+    "level": 5,
+    "catSlot": {
+      "level": 5,
+      "total": 20,
+      "ended": true,
+      "caught": {
+        "orange": 4
+      },
+      "companions": {
+        "orange": 1
+      }
+    },
+    "journeySnow": {
+      "version": 1,
+      "lit": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "home": [
+        "orange",
+        "calico",
+        "black",
+        "tabby"
+      ]
+    },
+    "notice": "",
+    "catStatus": {
+      "state": "loaded",
+      "loadFailed": false,
+      "restored": false,
+      "corruptKey": null,
+      "stale": false,
+      "generation": "legacy",
+      "revision": 0
+    }
+  },
+  "entered": {
+    "level": 6,
+    "catSlot": {
+      "caught": {
+        "orange": 4
+      },
+      "total": 20,
+      "ended": true,
+      "level": 6,
+      "companions": {
+        "orange": 1
+      }
+    },
+    "journeySnow": {
+      "version": 1,
+      "lit": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "home": [
+        "orange",
+        "calico",
+        "black",
+        "tabby"
+      ]
+    },
+    "notice": "",
+    "catStatus": {
+      "state": "loaded",
+      "loadFailed": false,
+      "restored": false,
+      "corruptKey": null,
+      "stale": false,
+      "generation": "legacy",
+      "revision": 1
+    }
+  },
+  "reopened": {
+    "level": 5,
+    "catSlot": {
+      "caught": {
+        "orange": 4
+      },
+      "total": 20,
+      "ended": true,
+      "level": 6,
+      "companions": {
+        "orange": 1
+      }
+    },
+    "journeySnow": {
+      "version": 1,
+      "lit": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "home": [
+        "orange",
+        "calico",
+        "black",
+        "tabby"
+      ]
+    },
+    "notice": "猫咪存档损坏，已从备份恢复。",
+    "catStatus": {
+      "state": "corrupt",
+      "loadFailed": false,
+      "restored": true,
+      "corruptKey": "healingGarden.kittens.v1.corrupt-83-3da4f9c1",
+      "stale": false,
+      "generation": "legacy",
+      "revision": 1
+    }
+  },
+  "errors": []
+}

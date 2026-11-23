@@ -1,0 +1,33 @@
+npm warn tarball tarball data for playwright@https://registry.npmjs.org/playwright/-/playwright-1.62.1.tgz (sha512-0M+L3LAD8/nm554LOla9Ayx0j0tmFZ0FBcoQ7F1VuVHpM/XpiC8RcDzBQB8W5+hA8L22THxELzeF+2WcUzvcLg==) seems to be corrupted. Trying again.
+npm warn tarball tarball data for playwright-core@https://registry.npmjs.org/playwright-core/-/playwright-core-1.62.1.tgz (sha512-wPYSwEBJY9GHraISXqyqtx0na0LpO3XEX7jNDhntbex7tzUS7kLnZsOlFruFJB4Hi/rhDMjXGqHewDZ68nYZVw==) seems to be corrupted. Trying again.
+npm warn tarball tarball data for @playwright/test@https://registry.npmjs.org/@playwright/test/-/test-1.62.1.tgz (sha512-DTcUc8qii+cpHvtOwggMtBRMjKZHXYWdw8syRYu2vtzuq4Wxphqq4NfCs5Zt44L6mA8rfDfj+PHnxFc/FeK6mQ==) seems to be corrupted. Trying again.
+npm warn tarball tarball data for @playwright/test@https://registry.npmjs.org/@playwright/test/-/test-1.62.1.tgz (sha512-DTcUc8qii+cpHvtOwggMtBRMjKZHXYWdw8syRYu2vtzuq4Wxphqq4NfCs5Zt44L6mA8rfDfj+PHnxFc/FeK6mQ==) seems to be corrupted. Trying again.
+npm warn tarball tarball data for playwright-core@https://registry.npmjs.org/playwright-core/-/playwright-core-1.62.1.tgz (sha512-wPYSwEBJY9GHraISXqyqtx0na0LpO3XEX7jNDhntbex7tzUS7kLnZsOlFruFJB4Hi/rhDMjXGqHewDZ68nYZVw==) seems to be corrupted. Trying again.
+npm warn tarball tarball data for playwright@https://registry.npmjs.org/playwright/-/playwright-1.62.1.tgz (sha512-0M+L3LAD8/nm554LOla9Ayx0j0tmFZ0FBcoQ7F1VuVHpM/XpiC8RcDzBQB8W5+hA8L22THxELzeF+2WcUzvcLg==) seems to be corrupted. Trying again.
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/workspace/xiantu/node_modules/playwright/lib/transform/babelBundle.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat '/workspace/xiantu/node_modules/playwright-core/lib/tools/cli-client'
+npm warn cleanup Failed to remove some directories [
+npm warn cleanup   [
+npm warn cleanup     '/workspace/xiantu/node_modules',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/workspace/xiantu/node_modules/playwright-core/lib'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/workspace/xiantu/node_modules/playwright-core/lib'
+npm warn cleanup     }
+npm warn cleanup   ]
+npm warn cleanup ]
+npm error code ENOENT
+npm error syscall mkdir
+npm error path /home/agent/.npm/_cacache
+npm error errno -2
+npm error enoent ENOENT: no such file or directory, mkdir '/home/agent/.npm/_cacache'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.3
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.3
+npm notice To update run: npm install -g npm@12.2.3
+npm notice
+npm error Log files were not written due to an error writing to the directory: /home/agent/.npm/_logs
+npm error You can rerun the command with `--loglevel=verbose` to see the logs in your terminal

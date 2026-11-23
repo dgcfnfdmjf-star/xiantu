@@ -1,0 +1,198 @@
+{
+  "errors": [],
+  "failed": [
+    "/cats/orange-cat.glb",
+    "/cats/calico-cat.glb",
+    "/cats/black-cat.glb",
+    "/cats/tabby-cat.glb"
+  ],
+  "before": [
+    {
+      "id": "orange",
+      "x": -1.2375028192193676,
+      "z": 3.6286738934772673,
+      "spot": [
+        -1.2375028192193676,
+        3.6286738934772673
+      ],
+      "home": [
+        -1.6782242364468316,
+        -2.8224310024425985
+      ],
+      "walking": false,
+      "model": false,
+      "marker": true,
+      "meshes": [
+        "SphereGeometry",
+        "SphereGeometry",
+        "ConeGeometry",
+        "ConeGeometry",
+        "CylinderGeometry"
+      ]
+    },
+    {
+      "id": "calico",
+      "x": -1.1976654239197217,
+      "z": 1.0031114427598695,
+      "spot": [
+        -1.1976654239197217,
+        1.0031114427598695
+      ],
+      "home": [
+        -1.4399922915529797,
+        -2.304068038075202
+      ],
+      "walking": false,
+      "model": false,
+      "marker": true,
+      "meshes": [
+        "SphereGeometry",
+        "SphereGeometry",
+        "ConeGeometry",
+        "ConeGeometry",
+        "CylinderGeometry"
+      ]
+    },
+    {
+      "id": "black",
+      "x": -0.7841497147295821,
+      "z": 0.2137583636286033,
+      "spot": [
+        -0.7841497147295821,
+        0.2137583636286033
+      ],
+      "home": [
+        -0.9893125436714838,
+        -1.9542932716252297
+      ],
+      "walking": false,
+      "model": false,
+      "marker": true,
+      "meshes": [
+        "SphereGeometry",
+        "SphereGeometry",
+        "ConeGeometry",
+        "ConeGeometry",
+        "CylinderGeometry"
+      ]
+    },
+    {
+      "id": "tabby",
+      "x": 0.7491289647335461,
+      "z": -2.092067269206497,
+      "spot": [
+        0.7491289647335461,
+        -2.092067269206497
+      ],
+      "home": [
+        0.43999229155298036,
+        -2.304068038075203
+      ],
+      "walking": false,
+      "model": false,
+      "marker": true,
+      "meshes": [
+        "SphereGeometry",
+        "SphereGeometry",
+        "ConeGeometry",
+        "ConeGeometry",
+        "CylinderGeometry"
+      ]
+    }
+  ],
+  "after": [
+    {
+      "id": "orange",
+      "x": -1.6782242364468316,
+      "z": -2.8224310024425985,
+      "spot": [
+        -1.2375028192193676,
+        3.6286738934772673
+      ],
+      "home": [
+        -1.6782242364468316,
+        -2.8224310024425985
+      ],
+      "walking": false,
+      "model": false,
+      "marker": false,
+      "meshes": [
+        "SphereGeometry",
+        "SphereGeometry",
+        "ConeGeometry",
+        "ConeGeometry",
+        "CylinderGeometry"
+      ]
+    },
+    {
+      "id": "calico",
+      "x": -1.4399922915529797,
+      "z": -2.304068038075202,
+      "spot": [
+        -1.1976654239197217,
+        1.0031114427598695
+      ],
+      "home": [
+        -1.4399922915529797,
+        -2.304068038075202
+      ],
+      "walking": false,
+      "model": false,
+      "marker": false,
+      "meshes": [
+        "SphereGeometry",
+        "SphereGeometry",
+        "ConeGeometry",
+        "ConeGeometry",
+        "CylinderGeometry"
+      ]
+    },
+    {
+      "id": "black",
+      "x": -0.9893125436714838,
+      "z": -1.9542932716252297,
+      "spot": [
+        -0.7841497147295821,
+        0.2137583636286033
+      ],
+      "home": [
+        -0.9893125436714838,
+        -1.9542932716252297
+      ],
+      "walking": false,
+      "model": false,
+      "marker": false,
+      "meshes": [
+        "SphereGeometry",
+        "SphereGeometry",
+        "ConeGeometry",
+        "ConeGeometry",
+        "CylinderGeometry"
+      ]
+    },
+    {
+      "id": "tabby",
+      "x": 0.43999229155298036,
+      "z": -2.304068038075203,
+      "spot": [
+        0.7491289647335461,
+        -2.092067269206497
+      ],
+      "home": [
+        0.43999229155298036,
+        -2.304068038075203
+      ],
+      "walking": false,
+      "model": false,
+      "marker": false,
+      "meshes": [
+        "SphereGeometry",
+        "SphereGeometry",
+        "ConeGeometry",
+        "ConeGeometry",
+        "CylinderGeometry"
+      ]
+    }
+  ],
+  "result": "PASS"
+}

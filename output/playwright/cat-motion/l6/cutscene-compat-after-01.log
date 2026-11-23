@@ -1,0 +1,13 @@
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+1 !== 6
+
+    at clear (/workspace/xiantu/games/healing-game/tests/l6-cutscene-browser.cjs:59:12)
+    at async /workspace/xiantu/games/healing-game/tests/l6-cutscene-browser.cjs:77:5 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 6,
+  operator: 'strictEqual',
+  diff: 'simple'
+}

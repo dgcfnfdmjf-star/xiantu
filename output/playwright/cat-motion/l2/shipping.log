@@ -1,0 +1,15 @@
+served HTML SHA-256 b4a8508a66989eb2e29bd97a8eafe017ebcfc10c387b724d6baa003292be3338
+tap {
+  x: 328.83734300667106,
+  y: 432.293563487559,
+  state: 'idle',
+  kind: 'black'
+}
+tap {
+  x: 329.04875332566365,
+  y: 428.05766896017894,
+  state: 'lure',
+  kind: 'black'
+}
+entered real cutscene
+{"browser":"151.0.7922.173","cast":["orange","calico","black","white","tabby","orange","glow"],"coats":5,"walk":27.5,"sit":21.3,"saved":{"caught":{"orange":3,"calico":2,"black":3,"white":1,"tabby":2},"total":20,"ended":true,"level":2,"companions":{"black":1}},"pass":true}

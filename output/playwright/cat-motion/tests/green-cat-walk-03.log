@@ -1,0 +1,17 @@
+  desktop orange: loop, floor, stop and special states passed
+  desktop calico: loop, floor, stop and special states passed
+  desktop black: loop, floor, stop and special states passed
+  desktop tabby: loop, floor, stop and special states passed
+PASS desktop animated cats
+  phone orange: loop, floor, stop and special states passed
+  phone calico: loop, floor, stop and special states passed
+  phone black: loop, floor, stop and special states passed
+  phone tabby: loop, floor, stop and special states passed
+PASS phone animated cats
+{
+  "checks": [
+    "desktop: actual roam articulation/+Z; independent skin clones; opposite paw steps; periodic Walk and repeatable idle; 96 ground samples per coat; special-state/background/exit stop; untouched saves before real moving-head two-tap input",
+    "phone: actual roam articulation/+Z; independent skin clones; opposite paw steps; periodic Walk and repeatable idle; 96 ground samples per coat; special-state/background/exit stop; untouched saves before real moving-head two-tap input"
+  ],
+  "report": "/workspace/xiantu/output/playwright/cat-walk/browser-results.json"
+}

@@ -1,0 +1,10 @@
+page.goto: Timeout 30000ms exceeded.
+Call log:
+[2m  - navigating to "http://127.0.0.1:39485/", waiting until "load"[22m
+
+    at /workspace/xiantu/output/playwright/cat-motion/l2/capture.cjs:40:13 {
+  log: [
+    '  - navigating to "http://127.0.0.1:39485/", waiting until "load"'
+  ],
+  name: 'TimeoutError'
+}

@@ -1,0 +1,15 @@
+Built V9.5 package + V9.6 working site: 1787330 bytes; cats: 1188012 bytes; ZIP: 3409637 bytes
+test_all_inline_scripts_parse (__main__.Package.test_all_inline_scripts_parse) ... ok
+test_cats_embedded_and_mobile_budget (__main__.Package.test_cats_embedded_and_mobile_budget) ... ok
+test_independent_folder_and_crc (__main__.Package.test_independent_folder_and_crc) ... ok
+test_no_remote_assets (__main__.Package.test_no_remote_assets) ... ok
+test_recording_identity (__main__.Package.test_recording_identity) ... ok
+test_reproducible_release (__main__.Package.test_reproducible_release) ... Built V9.5 package + V9.6 working site: 1787330 bytes; cats: 1188012 bytes; ZIP: 3409637 bytes
+ok
+test_version_and_checksum (__main__.Package.test_version_and_checksum) ... ok
+test_working_site_cutscene_stays_out_of_release (__main__.Package.test_working_site_cutscene_stays_out_of_release) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 7.646s
+
+OK

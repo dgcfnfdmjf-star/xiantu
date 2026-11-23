@@ -1,0 +1,5 @@
+page.waitForFunction: Timeout 15000ms exceeded.
+    at /workspace/xiantu/output/playwright/cat-motion/tests/gait-diagnostic.cjs:111:45 {
+  log: [],
+  name: 'TimeoutError'
+}

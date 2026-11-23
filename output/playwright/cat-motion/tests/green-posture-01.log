@@ -1,0 +1,10 @@
+page.goto: Timeout 30000ms exceeded.
+Call log:
+[2m  - navigating to "http://127.0.0.1:43139/?cutscene=1&mute=1", waiting until "load"[22m
+
+    at /workspace/xiantu/games/healing-game/tests/cat-posture-browser.cjs:111:22 {
+  log: [
+    '  - navigating to "http://127.0.0.1:43139/?cutscene=1&mute=1", waiting until "load"'
+  ],
+  name: 'TimeoutError'
+}
