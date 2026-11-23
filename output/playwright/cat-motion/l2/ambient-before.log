@@ -1,0 +1,13 @@
+{"before":{"visible":true,"ambientHead":[246,441],"activeActors":0,"cast":["orange","calico","black","white","tabby","orange","glow"],"eyes":[]},"seated":{"visible":true,"ambientHead":[226,450],"activeActors":7,"cast":["orange","calico","black","white","tabby","orange","glow"],"eyes":[[115,441],[231,446],[165,450],[110,440],[206,410],[149,409],[254,437]]},"walking":{"visible":true,"ambientHead":[269,365],"activeActors":7,"cast":["orange","calico","black","white","tabby","orange","glow"],"eyes":[[155,374],[305,347],[257,367],[96,366],[170,317],[104,329],[160,348]]},"after":{"visible":true,"ambientHead":[247,440],"activeActors":7,"cast":["orange","calico","black","white","tabby","orange","glow"],"eyes":[]}}
+AssertionError [ERR_ASSERTION]: decorative cat is hidden during the actual chapter-two film
+
+true !== false
+
+    at /workspace/xiantu/output/playwright/cat-motion/l2/ambient.cjs:28:9 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: true,
+  expected: false,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
