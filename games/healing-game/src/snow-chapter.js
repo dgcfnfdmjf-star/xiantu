@@ -157,7 +157,7 @@
       var c={k:k,i:ki,root:root,spot:[x,z],home:homeSpots[ki],marker:marker,tex:tex,walk:null,owner:null,yaw:0,bob:Math.random()*6};
       root.rotation.y=Math.atan2(pa[0]-x,pa[1]-z);cats.push(c);
       var CM=window.GardenCatModels;
-      if(CM&&CM.snowCat)CM.snowCat(k.id,root,.66).then(function(o){if(o)c.owner=o;else fallbackCat(root,k.color);});else fallbackCat(root,k.color);
+      if(CM&&CM.snowCat)CM.snowCat(k.id,root,.66,c.bob).then(function(o){if(o)c.owner=o;else fallbackCat(root,k.color);});else fallbackCat(root,k.color);
     });
   }
   // Arc-length walk (equal-distance sampling of the curve, as in zz85/threejs-path-flow; arrive-style easing as in
@@ -169,17 +169,18 @@
     return {pts:pts,cum:cum,len:cum[cum.length-1],d:0};
   }
   function along(w,d){var j=1;while(j<w.cum.length-1&&w.cum[j]<d)j++;var a=w.pts[j-1],b=w.pts[j],f=(d-w.cum[j-1])/Math.max(1e-6,w.cum[j]-w.cum[j-1]);f=Math.max(0,Math.min(1,f));return [a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f,Math.atan2(b[0]-a[0],b[1]-a[1])];}
-  function sitHome(c){c.walk=null;c.root.position.set(c.home[0],TOP,c.home[1]);c.root.rotation.y=Math.atan2(-.2-c.home[0]*.05,1);c.marker.visible=false;
-    if(c.owner&&window.GardenCatModels.snowWalk)window.GardenCatModels.snowWalk(c.owner,false,0,0);}
-  function sitWaiting(c){c.walk=null;c.root.position.set(c.spot[0],TOP,c.spot[1]);var pa=pathAt(lanterns[c.k.lantern].u);c.root.rotation.y=Math.atan2(pa[0]-c.spot[0],pa[1]-c.spot[1]);c.marker.visible=true;
-    if(c.owner&&window.GardenCatModels.snowWalk)window.GardenCatModels.snowWalk(c.owner,false,0,0);}
+  function sitHome(c){c.walk=null;c.root.position.set(c.home[0],TOP,c.home[1]);c.root.rotation.y=Math.atan2(-.2-c.home[0]*.05,1);c.marker.visible=false;}
+  function sitWaiting(c){c.walk=null;c.root.position.set(c.spot[0],TOP,c.spot[1]);var pa=pathAt(lanterns[c.k.lantern].u);c.root.rotation.y=Math.atan2(pa[0]-c.spot[0],pa[1]-c.spot[1]);c.marker.visible=true;}
   function homeCount(){return cats.filter(function(c){return progress().home.indexOf(c.k.id)>=0&&!c.walk;}).length;}
   // Put every lantern and kitten in the state the progress says (on entry, practice replay, reload).
   function sync(){
     if(!group)return;var s=progress();
     lanterns.forEach(function(l,i){setLit(l,s.lit.indexOf(i)>=0);});
     litU=targetU();paintPath();
-    cats.forEach(function(c){if(s.home.indexOf(c.k.id)>=0)sitHome(c);else sitWaiting(c);});
+    cats.forEach(function(c){
+      if(s.home.indexOf(c.k.id)>=0)sitHome(c);else sitWaiting(c);
+      if(c.owner&&window.GardenCatMotion)window.GardenCatMotion.reset(c.owner);
+    });
   }
   function setLit(l,on){l.lit=on;l.hole.material.color.setHex(on?0xffc566:0x3a2a30);}
   function targetU(){var s=progress(),u=0;for(var i=0;i<R.LANTERNS&&s.lit.indexOf(i)>=0;i++)u=lanterns[i].u+.05;return i===R.LANTERNS?1.01:u;}
@@ -301,11 +302,13 @@
       var tu=targetU();if(Math.abs(litU-tu)>.002){litU+=(tu-litU)*Math.min(1,dt*(reduced?60:1.6));paintPath();}
       var CM=window.GardenCatModels;
       cats.forEach(function(c){
-        if(c.walk){var w=c.walk,sp=.75*Math.min(1,.35+w.d*1.5)*Math.min(1,.3+(w.len-w.d)*1.6);w.d=Math.min(w.len,w.d+sp*dt);var q=along(w,w.d);
+        var speed=0;
+        if(c.walk){var w=c.walk,previous=w.d,sp=.75*Math.min(1,.35+w.d*1.5)*Math.min(1,.3+(w.len-w.d)*1.6);w.d=Math.min(w.len,w.d+sp*dt);var q=along(w,w.d);
           c.root.position.set(q[0],TOP,q[1]);var dy=q[2]-c.root.rotation.y;dy=Math.atan2(Math.sin(dy),Math.cos(dy));c.root.rotation.y+=dy*Math.min(1,dt*6);
-          if(c.owner&&CM.snowWalk)CM.snowWalk(c.owner,true,sp,dt);
+          speed=dt>0?(w.d-previous)/dt:0;
           if(w.d>=w.len){sitHome(c);arrived(c);}}
         else if(c.marker.visible){var ready=R.reachable(s,c.i),bob=Math.sin(t*2+c.bob);c.marker.material.map=c.tex[ready?1:0];c.marker.position.y=1.02+bob*.04;c.marker.scale.setScalar(ready?.62+bob*.05:.5);}
+        if(c.owner&&CM.snowWalk)CM.snowWalk(c.owner,!!c.walk,speed,dt,t);
       });
       if(finale){elapsed+=dt;finale=Math.max(0,FIN-elapsed);if(!finale)showEnding();}
     },

@@ -7,6 +7,7 @@ const vm = require('vm');
 const { execFileSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
+const catPose = fs.readFileSync(path.join(ROOT, 'src/cat-pose.js'), 'utf8');
 const source = fs.readFileSync(path.join(ROOT, 'src/l2-cutscene.js'), 'utf8');
 
 // Fresh module per case, on a fake clock and without a DOM.
@@ -14,6 +15,7 @@ function load(search) {
   let now = 1000;
   const sandbox = { location: { search: search || '' }, performance: { now: () => now } };
   sandbox.window = sandbox; sandbox.globalThis = sandbox;
+  vm.runInNewContext(catPose, sandbox);
   vm.runInNewContext(source, sandbox);
   return { cs: sandbox.__l2Cutscene, tick: seconds => { now += seconds * 1000; } };
 }
@@ -192,7 +194,18 @@ check('storyboard beats at the 5 / 20 / 40 / 58 s marks', () => {
   const chase = at(27.5), chaser = chase.cats.find(c => c.chase > 0.99);
   assert(chaser && chase.seed.alpha === 1 && Math.hypot(chaser.x - chase.seed.x, chaser.z - chase.seed.z) < 1.2, 'kitten close behind the seed');
   assert(at(22).chase === 0 && at(33).chase === 0 && forty.seed.alpha === 0);
-  assert(twenty.cats.some(c => c.ear > 0) || at(21).cats.some(c => c.ear > 0), 'ears twitch');
+  const pulses = [[], []];
+  let previous = [0, 0];
+  for (let tick = 0; tick < 45 * 40; tick++) {
+    const cat = cs.frame(tick / 40).cats[0], values = [cat.ear, cat.motion.blink];
+    values.forEach((v, i) => { if (v > .5 && previous[i] <= .5) pulses[i].push(tick / 40); });
+    previous = values;
+  }
+  pulses.forEach((events, i) => {
+    const gaps = events.slice(1).map((t, j) => t - events[j]);
+    assert(gaps.length >= 4 && Math.max(...gaps) - Math.min(...gaps) > .3,
+      (i ? 'blink' : 'ear') + ' intervals vary across the film: ' + events);
+  });
   const spread = last.cats.map(c => Math.hypot(c.x - last.cats[6].x, c.z - last.cats[6].z));
   assert(Math.max(...spread) < 1.5, 'pile is tight');
 });
@@ -222,6 +235,24 @@ check('cats keep their personal space and walk around obstacles', () => {
   for (let t = 26.5; t <= 29.5; t += 0.1) { const c = cs.frame(t).cats[2]; assert(Math.hypot(c.x - sp.pile[0], c.z - sp.pile[1]) > sp.ring + 1); }
   const last = cs.frame(58).cats;
   last.slice(0, 6).forEach(c => assert(Math.abs(Math.hypot(c.x - last[6].x, c.z - last[6].z) - sp.sleep) < 1e-6));
+});
+
+check('gathering cats rise and settle in 0.3–0.5 seconds', () => {
+  const { cs } = load();
+  const dt = .005;
+  for (let i = 0; i < cs.space().cast.length; i++) {
+    const { enter, walk } = cs.space().cast[i];
+    const phases = [[], []];
+    for (let t = enter - 1; t <= enter + walk + 1; t += dt) {
+      const stand = cs.frame(t).cats[i].stand;
+      if (stand > 0 && stand < 1) phases[t < enter + walk / 2 ? 0 : 1].push(t);
+    }
+    for (const [direction, samples] of phases.entries()) {
+      const duration = samples.length * dt;
+      assert(duration >= .3 - dt && duration <= .5 + dt,
+        'cat ' + i + (direction ? ' settle ' : ' rise ') + duration.toFixed(3) + ' seconds');
+    }
+  }
 });
 
 check('motion is gentle and continuous', () => {
