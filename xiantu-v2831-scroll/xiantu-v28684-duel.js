@@ -1518,6 +1518,36 @@ function mapAliveGroundV2893(ctx,t){
  }catch(e){console.warn('灵动地面层失败',e);}
 }
 
+// An SVG image can replay both vector fills into the destination. Flattening them
+// to one RGBA bitmap rounds too early. Check a color/alpha ramp once when loaded
+// so a browser that rasterizes the SVG before drawing keeps the native two fills.
+let mapTintImageV2893=null;
+function mapTintMatchesV2893(image,weather,day){
+ const canvas=document.createElement('canvas');canvas.width=256;canvas.height=4;
+ const ctx=canvas.getContext('2d');if(!ctx)return false;
+ const ramp=ctx.createImageData(256,4),data=ramp.data;
+ for(let y=0;y<4;y++)for(let x=0;x<256;x++){
+  const i=4*(256*y+x);data[i]=x;data[i+1]=255-x;data[i+2]=(73*x)%256;data[i+3]=y%2?x:255;
+ }
+ ctx.putImageData(ramp,0,0);
+ ctx.fillStyle=weather;ctx.fillRect(0,0,256,2);ctx.fillStyle=day;ctx.fillRect(0,0,256,2);
+ ctx.drawImage(image,0,2,256,2);
+ const result=ctx.getImageData(0,0,256,4).data,half=result.length/2;
+ return result.subarray(0,half).every((value,i)=>value===result[i+half]);
+}
+function mapWeatherDayImageV2893(weather,day){
+ if(typeof Image!=='function')return null;
+ if(mapTintImageV2893?.weather===weather&&mapTintImageV2893.day===day)return mapTintImageV2893.ready;
+ const entry={weather,day,ready:null},image=new Image();mapTintImageV2893=entry;
+ image.onload=()=>{
+  if(mapTintImageV2893!==entry)return;
+  try{if(mapTintMatchesV2893(image,weather,day))entry.ready=image;}catch(_){}
+ };
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"><rect width="1" height="1" fill="${weather}"/><rect width="1" height="1" fill="${day}"/></svg>`;
+ image.src='data:image/svg+xml,'+encodeURIComponent(svg);
+ return null;
+}
+
 // ------------------------------------------------------------ frame: top + screen layers ----
 // Called by drawFlatWorld once the world layer is finished (screen space), before V2888's haze and mist.
 function mapAliveFrameV2893(t,dt){try{mapAliveFrameInnerV2893(t,dt);}catch(e){console.warn('山河灵动失败',e);}}
@@ -1549,8 +1579,13 @@ function mapAliveFrameInnerV2893(t,dt){
   // screen space: falling things, rain, weather and day tint
   drawFallV2893(ctx,dpr);drawRainV2893(ctx,dpr);
   ctx.setTransform(dpr,0,0,dpr,0,0);
-  const wt=MAP_ALIVE_V2893.weatherTint[weather];if(wt){ctx.fillStyle=wt;ctx.fillRect(0,0,vw,vh);}
-  const dn=MAP_ALIVE_V2893.dayNight.tints[phase];if(dn){ctx.fillStyle=dn;ctx.fillRect(0,0,vw,vh);}
+  const wt=MAP_ALIVE_V2893.weatherTint[weather],dn=MAP_ALIVE_V2893.dayNight.tints[phase];
+  const tint=wt&&dn&&mapWeatherDayImageV2893(wt,dn);
+  if(tint)ctx.drawImage(tint,0,0,vw,vh);
+  else{
+   if(wt){ctx.fillStyle=wt;ctx.fillRect(0,0,vw,vh);}
+   if(dn){ctx.fillStyle=dn;ctx.fillRect(0,0,vw,vh);}
+  }
   // glows shine through the tint; additive only at night (on light daytime ground it washes out to white)
   if(phase==='night')ctx.globalCompositeOperation='lighter';
   ctx.setTransform(dpr,0,0,dpr,-cam.x*dpr,-cam.y*dpr);drawGlowV2893(ctx,tt);
