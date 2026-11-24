@@ -65,6 +65,41 @@
     const touchEnd=e=>{if(active!==null&&e.touches?.length===0)reset();};
     window.addEventListener('touchend',touchEnd,{capture:true,passive:true});
     window.addEventListener('touchcancel',touchEnd,{capture:true,passive:true});
+    // Browsers can omit the click for a second finger while the first stays on
+    // the pad, even after an encounter has opened the combat controls.
+    for(const area of [document.getElementById('touchAction'),document.getElementById('combatChoices')]){
+      if(!area)continue;
+      let tap=null;
+      const moved=finger=>Math.hypot(finger.clientX-tap.x,finger.clientY-tap.y)>14;
+      area.addEventListener('touchstart',event=>{
+        tap=null;
+        if(!event.cancelable||event.touches.length!==2||event.changedTouches.length!==1)return;
+        const finger=event.changedTouches[0],button=finger.target.closest('button');
+        if(!button||button.disabled)return;
+        const holdingPad=Array.from(event.touches).some(t=>t.identifier!==finger.identifier&&pad.contains(t.target));
+        if(!holdingPad)return;
+        // Claim just this button press. Once the joystick moves, touchend can
+        // be non-cancelable. Cancel here to avoid a second, native click.
+        event.preventDefault();
+        tap={id:finger.identifier,x:finger.clientX,y:finger.clientY,button};
+      },{passive:false});
+      area.addEventListener('touchmove',event=>{
+        if(!tap)return;
+        const finger=Array.from(event.changedTouches).find(t=>t.identifier===tap.id);
+        if(event.touches.length>2||(finger&&moved(finger)))tap=null;
+      },{passive:true});
+      area.addEventListener('touchcancel',()=>{tap=null;},{passive:true});
+      area.addEventListener('touchend',event=>{
+        if(!tap)return;
+        const finger=Array.from(event.changedTouches).find(t=>t.identifier===tap.id);
+        if(!finger)return;
+        const button=tap.button;
+        const activate=event.touches.length<=1&&!moved(finger)
+          &&button.contains(document.elementFromPoint(finger.clientX,finger.clientY));
+        tap=null;
+        if(activate)button.click();
+      },{passive:true});
+    }
     document.addEventListener('visibilitychange',()=>{if(document.hidden)reset();});
     for(const event of ['blur','pagehide','resize','orientationchange','xiantu-movement-reset'])window.addEventListener(event,reset);
   }

@@ -4,13 +4,13 @@ const fs=require('node:fs'),path=require('node:path');
 const OLD_V1=fs.readFileSync(path.join(__dirname,'../fixtures/synthetic-save-v1.json'),'utf8');
 const DIALOG='#xtDialogV2868114';
 // Save dialogs are the in-game modal; any native dialog is a regression and is recorded for the assertion in afterEach.
-async function boot(page){
+async function boot(page,name='存档转移测试'){
  const natives=[];page.natives=natives;
  await page.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());
  page.on('dialog',d=>{natives.push(d.type()+':'+d.message());d.dismiss();});
  await page.goto('/game-v2762.html');await page.locator('#introSkipChoiceV2898').check();await page.locator('#xiantuSafeBootButton').click();
  await expect(page.locator('html')).toHaveClass(/xiantu-v2762-ready/);
- await page.locator('#playerName').fill('存档转移测试');await page.getByRole('button',{name:'开始修仙',exact:true}).click();
+ await page.locator('#playerName').fill(name);await page.getByRole('button',{name:'开始修仙',exact:true}).click();
  await page.evaluate(()=>{closeWorldOverlay();showStory('存档回归检查',[]);player.gold=501;saveGame();player.gold=502;saveGame();
   // Count real replacements; internal calls resolve through the global binding.
   const orig=window.replaceSaveV2870;window.__replaced=0;window.replaceSaveV2870=(...a)=>{window.__replaced++;return orig(...a);};});
@@ -60,15 +60,43 @@ test('repeated lifecycle saves and reloading preserve the previous distinct reco
  expect(JSON.parse(advanced).achievements.progress.monstersKilled).toBe(JSON.parse(resumed).achievements.progress.monstersKilled+1);
 });
 
-test('export roundtrip carries a checksum and restores the same character',async({page})=>{
- await boot(page);
- const exported=await captureExport()(page);const data=JSON.parse(exported);
- expect(data.exportDigestV2906).toMatch(/^[0-9a-f]{16}$/);expect(data.player.gold).toBe(502);
- await page.evaluate(()=>{player.gold=9;saveGame();});
- await importText(page,exported);
- expect(await answer(page,'ok')).toMatchObject({role:'dialog',msg:expect.stringContaining('导入将替换')});
- const s=await snapshot(page);expect(s.gold).toBe(502);expect(s.replaced).toBe(1);
- expect(JSON.parse(s.main).exportDigestV2906).toBeUndefined();expect(JSON.parse(s.before).player.gold).toBe(9);
+test('downloaded save restores in a separate browser context and preserves the previous character',async({page,browser},testInfo)=>{
+ await boot(page,'云游测试');
+ await page.evaluate(()=>showSaveManagerV2768());
+ const download=page.waitForEvent('download');
+ await page.getByRole('button',{name:'导出当前存档',exact:true}).click();
+ const file=testInfo.outputPath('临时角色.json');
+ await (await download).saveAs(file);
+ const data=JSON.parse(fs.readFileSync(file,'utf8'));
+ expect(data.exportDigestV2906).toMatch(/^[0-9a-f]{16}$/);
+ expect(data.player).toMatchObject({name:'云游测试',gold:502});
+
+ const context=await browser.newContext({baseURL:new URL(page.url()).origin});
+ try{
+  const target=await context.newPage();
+  await boot(target,'留守测试');
+  await target.evaluate(()=>{player.gold=9;saveGame();showSaveManagerV2768();});
+  const before=await snapshot(target);
+  const input=target.locator('#saveManagerV2768 input[type=file]');
+  const corrupt={...data,player:{...data.player,gold:999}};
+  await input.setInputFiles({name:'坏档.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(corrupt))});
+  expect((await answer(target,'ok')).msg).toContain('校验码不符');
+  expect(await snapshot(target)).toEqual(before);
+  await input.setInputFiles(file);
+  expect(await answer(target,'ok')).toMatchObject({role:'dialog',msg:expect.stringContaining('导入将替换')});
+  const restored=await snapshot(target);
+  expect(restored.gold).toBe(502);expect(restored.replaced).toBe(1);
+  const {exportDigestV2906,...payload}=data;
+  expect(JSON.parse(restored.main)).toEqual(payload);
+  expect(restored.backup).toBe(before.main);
+  expect(JSON.parse(restored.before).player).toMatchObject({name:'留守测试',gold:9});
+  await target.evaluate(()=>showSaveManagerV2768());
+  await target.getByRole('button',{name:'恢复替换前记录',exact:true}).click();
+  await answer(target,'ok');
+  expect(await target.evaluate(()=>[player.name,player.gold])).toEqual(['留守测试',9]);
+  expect(await page.evaluate(()=>[player.name,player.gold])).toEqual(['云游测试',502]);
+  expect(target.natives).toEqual([]);
+ }finally{await context.close();}
 });
 test('corrupt, truncated and tampered files are rejected without touching saves',async({page})=>{
  await boot(page);
