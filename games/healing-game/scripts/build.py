@@ -242,6 +242,7 @@ exec((ROOT / 'scripts/l6-cutscene-v96.py').read_text())
 exec((ROOT / 'scripts/l6-polish-v96.py').read_text())
 for hook in ('audit-saves.py', 'audit-paper.py', 'audit-first-audio.py', 'audit-focus.py', 'audit-targets.py'):
     exec((ROOT / 'scripts' / hook).read_text())
+exec((ROOT / 'scripts/codex-ui.py').read_text())
 baseline = ROOT / 'site/healing-game-v9.5-baseline/index.html'
 baseline.parent.mkdir(parents=True, exist_ok=True)
 baseline.write_text(release_html)

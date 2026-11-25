@@ -1364,6 +1364,8 @@ d0f359299d926cd3d379beeab3a3276e200314c5d68babf01a906401bb79b88e  games/healing-
 dab2f1446ced6cae1c9369da8f289f8169ef4397f8a334301022416b89744bef  games/healing-game/assets/cats/walk-preview/tabby-walk-50.png
 3363bd40cb4664cf9e5ef3a540f3687886c488dfd02cf8e4e2ce5f8e1d78c4b0  games/healing-game/assets/cats/walk-preview/tabby-walk-75.png
 19a90003e4b3b45c075b4c1da5a81341fddac954397d481e680a6ea3c1a5cb31  games/healing-game/assets/nightvoyage-bgm.mp3
+6bad0e63aa6af6c7ff9560b7b7656b70bf23f64b96ef14254fb9cff79c193c7c  games/healing-game/docs/codex-ui-desktop.webp
+305b6eaf2575c20e6456d308b026d5b84774a831482e3d1a1ecc1ac52ae22dde  games/healing-game/docs/codex-ui-phone.webp
 174c227a31a4e9d4e25a972bce48177c06491dd592d4b3bebcc6e5afec49b6ee  games/healing-game/docs/l1-cutscene-storyboard.md
 6d4f1fc026d7a6a36d4a54147224819e8327dd7efaa58fa009bdaff802a2a923  games/healing-game/docs/l2-cat-turn-60hz.csv
 1daa7f901790a1c0d95668d91a62b4445f39fcfc38739dd4da6ceb07a2436ef8  games/healing-game/docs/l2-cat-turn-comparison.mp4
@@ -1385,7 +1387,7 @@ a8fc95b2469816df237eb3d2f6fc1a991ab360f378f7b8fdc2881ba2398c5054  games/healing-
 93fd9cbc0f42636af6f212e5628e0275a05b5e6615e6d987d8e4a518b0120629  games/healing-game/scripts/audit-paper.py
 fca255e6662348d050c14a7aade789228e99d1f9ffd78dde4931c7bc873ca766  games/healing-game/scripts/audit-saves.py
 7731405466ce84b617851d3289f774389e13c5a2885105ff7340a5eaf3404a48  games/healing-game/scripts/audit-targets.py
-a30b4843a9dd2831f91c3467da5a18c244b2e5723c0eb9cd4f2a07192c52b858  games/healing-game/scripts/build.py
+f81010ed6ff56565234b77973ca864676fc2c0fe3e9c6f832226e6d0aecb4de9  games/healing-game/scripts/build.py
 b61429af5ed3075b3567212ae54753cd6ede3c65b37f57f98ae08650116e85c4  games/healing-game/scripts/butterfly-v94.py
 fdd42a22b68f009a0699a5261594ea0e16620dbd60536626dd38ca55cc6b23e9  games/healing-game/scripts/cat-walk/add_calf_phases.py
 ce9bac5dfb791db0facb11ee23a0a8798a29aeca063709dc5c0a659491196118  games/healing-game/scripts/cat-walk/append_body_walk.py
@@ -1404,6 +1406,7 @@ be857da5a290ee772f79255370f096fbba20acda853f2045467518af0959e8a6  games/healing-
 eed79591d32dfc7b11bc19074d1cf9a0c5db84b1f637ccdfd193421bc7407a79  games/healing-game/scripts/cat-walk/save-blend.py
 b7bc44bd700741da1307fe5887c76f3af0900543f1bdfc110fc6a263cb3f7501  games/healing-game/scripts/cat-walk/tuck_seated_caps.py
 9a6385c3d4b681824893d23b8b8dc19b1acec4605c00ac65547acbadb12cb77c  games/healing-game/scripts/cats-v95.py
+c514dcbf035d518d2f7af79a4aba2850663cf7cb2e86e58717efedb08afa7f03  games/healing-game/scripts/codex-ui.py
 adfa525151acae57712d29b6b57ff2afc1d95ea8927520056583f6f1762f7a6f  games/healing-game/scripts/feedback-v94.py
 05b3ce5fa284fca3ae49307538b8367a736717f64155de042bed5be4cf7d87fb  games/healing-game/scripts/l1-cutscene-v96.py
 df9635a20eda8c1bcfeb2ec62e68d7cfdd36d00d65bf959d8bf98e9f986afb7e  games/healing-game/scripts/l2-cutscene-v96.py
@@ -1423,6 +1426,7 @@ f5c52c79dcf59bb97b7a8e6e98fcc66013e29ded5a493e48c5f50a7d71392c4f  games/healing-
 24a3f7052f453356d4e559e2bd563a0286ab9092e9e2f07b44b1328b5bcd9de9  games/healing-game/src/chime-chapter.js
 07479c4ef3b70c7abb437a261cc07ca2f6f6f1a8f3736d7982ec441631c9de3a  games/healing-game/src/chime-rules.js
 dbbf20c94f5053cc00fd0e60e53c08d849cff4ccecb9e5fefb79d8e3bf153f60  games/healing-game/src/clipping.js
+03d863d4526754df434c46977622a535272b5d61ce2ecd2fda1c6145596586c9  games/healing-game/src/codex-ui.css
 81f05c8b40ae93329ccd9b2ef0bcfec1a9c29bdd4660b5c2320f954c984f0874  games/healing-game/src/cutscene-paper.js
 5ea0d1749944390a782842d6627da1deece5e435711a36fb8ca592a80d82e918  games/healing-game/src/focus-panels.js
 6df013f2feb755a019267ed0498599f9f4e59405803db15f42e3fff41779c726  games/healing-game/src/garden-reset.js
@@ -1468,6 +1472,7 @@ fa9bdac4d86ff82489d152a1ca72fd0204010f90281390a6c90bd6f234e3b6bc  games/healing-
 c2490df4c2e4eaef6597a08dc596889a6410b21c140e70104d25f6689e4eaff3  games/healing-game/tests/chapter4-browser.js
 f691ffee782a59221d5d48fbf7e9a32c19bf16bf64785cc6ef4b17ff686af133  games/healing-game/tests/chime-rules.cjs
 2a2600bb1a5236b20fc47aaa2abb7727576843063990b9f844e4b53ca3703c3f  games/healing-game/tests/clipping-browser.js
+99592caf586b11aa090db757c17325b0ed2fa5da37f9ee32564d57af3a8b3bfc  games/healing-game/tests/codex-ui-browser.cjs
 4c9dcd1368c5a679e9c1ca2bb49b9ffca8e96836c36f3ffa3e7f07704cea4deb  games/healing-game/tests/cutscene-paper-browser.cjs
 6c103cd0976496fa5461437b5962b48b08824f2a0dd021d924f39457d4752350  games/healing-game/tests/feedback-butterfly.cjs
 503c076547774549465f637a623eeee664d3e1204481eb80136b96fa327a2e24  games/healing-game/tests/feedback-cat-save-browser.js
