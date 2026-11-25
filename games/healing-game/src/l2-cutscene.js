@@ -271,10 +271,19 @@
     var vx = (p1.x - p0.x) / 0.12, vz = (p1.z - p0.z) / 0.12, speed = Math.sqrt(vx * vx + vz * vz);
     var te = teaserAt(t), look = ease(ramp(t, 21.5, 23.5)) * (1 - ease(ramp(t, 37, 38.5)));
     // Faces the viewer, then the teaser; curls along the ring; turns into its own path while walking.
-    var yaw = Math.atan2(lerp(PILE.x * 0.4, te.x, look) - p.x, lerp(PILE.z + 8, te.z, look) - p.z);
+    var yaw, headTurn = null;
+    if (i === CHASER && t >= 37 && t <= 38.5) {
+      // The line from toy to viewer crosses this seat. Turn between bearings about the
+      // cat instead. Its gaze leaves the toy first, then the chest catches up.
+      var toy = Math.atan2(te.x - p.x, te.z - p.z), viewer = Math.atan2(PILE.x * 0.4 - p.x, PILE.z + 8 - p.z);
+      yaw = turnTo(toy, viewer, ease(ramp(t, 37.18, 38.5)));
+      headTurn = (turnTo(toy, viewer, ease(ramp(t, 37, 38.28))) - yaw) * (0.4 + 0.6 * soft);
+    } else yaw = Math.atan2(lerp(PILE.x * 0.4, te.x, look) - p.x, lerp(PILE.z + 8, te.z, look) - p.z);
     yaw = turnTo(yaw, Math.atan2(Math.sin(p.a), -Math.cos(p.a)), ease(ramp(t, 38.5, 40))); // clockwise, the way the stroll goes
     // Let the head and body turn into the path at their original pace while the posture changes.
     var stand = standAt(i, t, sitT()), turn = standAt(i, t, soft < 1 ? 0.5 : 0.8), hx = vx, hz = vz, hv = speed, hk;
+    // The glow cat is already travelling when the other six start to rise.
+    if (c.kind === 'glow' && t >= 38 && t < 40) stand = Math.max(stand, ease(ramp(t, 38.6 - sitT(), 38.6)));
     for (hk = 1; hv <= 0.02 && turn > 0 && hk <= 24; hk++) {
       var ht = t + (hk <= 12 ? -0.1 * hk : 0.1 * (hk - 12)), h0 = placeAt(c, ht - 0.06), h1 = placeAt(c, ht + 0.06);
       hx = (h1.x - h0.x) / 0.12; hz = (h1.z - h0.z) / 0.12; hv = Math.sqrt(hx * hx + hz * hz);
@@ -302,7 +311,7 @@
       walk: walkGate(c, t) * ease(ramp(speed, 0.04, 0.11)), dist: distAt(i, t), stand: stand,
       stretch: bump(t, c.enter + c.walk + 0.2, c.enter + c.walk + 2.6) * (1 - curl),
       groom: Math.max(bump(t, c.enter + c.walk + 2.9, Math.min(c.enter + c.walk + 6.1, 22.4)), i % 3 === 0 ? bump(t, 33.2 + 0.3 * i, 36.6 + 0.3 * i) : 0, i % 3 === 1 ? bump(t, 46.2, 48.6) : 0) * (1 - curl),
-      look: look * (1 - curl),
+      look: look * (1 - curl), headTurn: headTurn,
       rare: c.kind === 'glow', rustle: ease(ramp(t, c.enter - 1.6, c.enter - 0.6)) * (1 - ease(ramp(t, c.enter + 0.2, c.enter + 1.4)))
     };
   }
@@ -1041,14 +1050,15 @@
     rigTurn(rig, 'Body', 0.3 * str + 0.06 * gr, 0.05 * m.tail * s * soft, 0);
     rigMove(rig, 'Body', 0, -0.02 * str - 0.012 * c, 0.02 * str);
     // Head: follow the toy / seed, a slow idle glance, the ear-flick shiver, then the tuck into the pile.
-    var hy = w * m.motion.yaw * (1 - m.look) * (1 - c) * soft, hp = 0, hr = 0;
+    var hy = w * m.motion.yaw * (1 - m.look) * (1 - c) * soft, hp = 0, hr = 0, toyYaw = 0;
     if (m.look > 0.01 && st) {
       var tg = m.chase > 0.5 ? heroSeedAt(t) : teaserAt(t), wx = tg.x - m.x, wz = tg.z - m.z, cy = Math.cos(m.yaw), sy = Math.sin(m.yaw);
       var lx = wx * cy - wz * sy, lz = wx * sy + wz * cy, hgt = tg.y - (m.y + 0.6 * k.size);
-      hy += clamp(Math.atan2(lx, Math.max(lz, 0.05)), -0.8, 0.8) * m.look;
+      toyYaw = clamp(Math.atan2(lx, Math.max(lz, 0.05)), -0.8, 0.8) * m.look;
       hp -= clamp(Math.atan2(hgt, Math.sqrt(lx * lx + lz * lz) + 0.3), -0.3, 0.6) * m.look * 0.8;
       hr += 0.12 * Math.sin(t * 1.3 + ph) * m.look * soft;
     }
+    hy += m.headTurn === null ? toyYaw : m.headTurn;
     hr += m.ear * 0.16 * soft * Math.sin(t * 38) + sgn * 0.3 * c - sgn * 0.2 * gr;
     hy += m.ear * 0.05 * soft * Math.sin(t * 31) + sgn * 0.55 * c + sgn * 0.2 * gr;
     hp += 0.5 * c + 0.5 * gr + 0.07 * gr * Math.sin(t * 7 + ph) - 0.28 * str - 0.12 * bat;
@@ -1073,6 +1083,32 @@
     var drop = 0.05 * str + 0.03 * c * s; // shoulders dip, paws stay on the grass
     rigLeg(rig, side, near, bend, -sgn * (0.1 * bat + 0.16 * gr), drop);
     rigLeg(rig, side === 'R' ? 'L' : 'R', -0.85 * str - 0.3 * c * s, 0.5 * str + 0.25 * c * s, 0, drop);
+  }
+  // The glow cat pivots as it sets off down the radius. Each diagonal pair lands at
+  // a footprint on that same route and holds it in island space until its next swing.
+  var GLOW_STEP_AT = 38.45, GLOW_HALF_STEP = 0.22;
+  function glowPrint(at, i, scale) {
+    var m = catAt(CAST.length - 1, at), s = Math.sin(m.yaw), c = Math.cos(m.yaw);
+    var x = i % 2 ? 0.1 : -0.1, z = i < 2 ? 0.15 + Math.max(0, (i ? 1 : -1) * m.motion.paw) * (1 - m.stand) : -0.15;
+    return { x: m.x + scale * (x * c + z * s), z: m.z + scale * (z * c - x * s) };
+  }
+  function glowStep(leg, i, m, t, scale) {
+    var phase = i === 0 || i === 3 ? 0 : 1, half = GLOW_HALF_STEP;
+    var cycle = Math.floor(((t - GLOW_STEP_AT) / half - phase) / 2), start = GLOW_STEP_AT + half * (phase + 2 * cycle);
+    var u = ramp(t, start, start + half), a = glowPrint(cycle <= 0 ? GLOW_STEP_AT : start - half / 2, i, scale);
+    var b = glowPrint(cycle < 0 ? GLOW_STEP_AT : start + 1.5 * half, i, scale);
+    var wx = (lerp(a.x, b.x, ease(u)) - m.x) / scale, wz = (lerp(a.z, b.z, ease(u)) - m.z) / scale;
+    var s = Math.sin(m.yaw), c = Math.cos(m.yaw), x = wx * c - wz * s, z = wx * s + wz * c;
+    // Aim the existing 0.16-long leg from the hip to the sole. Lift its tilted
+    // bottom rim clear of the grass, with extra clearance only on the swing.
+    var dx = x - leg.position.x, dz = z - leg.position.z, reach = Math.hypot(dx, dz), length = 0.16;
+    var ratio = length / Math.hypot(length, reach), lift = 0.045 * (0.4 + 0.6 * soft) * Math.pow(Math.sin(Math.PI * u), 2);
+    var mix = 1 - ease(ramp(t, 39.9, 40.2));
+    leg.rotation.x = lerp(leg.rotation.x, -Math.atan2(dz, length), mix);
+    leg.rotation.z = mix * Math.atan2(dx, Math.hypot(length, dz));
+    leg.position.x = lerp(leg.position.x, x - dx * ratio, mix);
+    leg.position.y = lerp(length, (length + 0.05 * reach / length) * ratio + lift, mix);
+    leg.position.z = lerp(leg.position.z, z - dz * ratio, mix);
   }
   // Same derived pose as kittens.js updateOne, driven by the model instead of a state machine.
   function poseCat(k, m, t) {
@@ -1103,16 +1139,24 @@
       k.inner.scale.y = 1 - m.crouch * 0.28 - c * 0.3 - 0.03 * settle;
       k.body.scale.set(1 + 0.012 * breathe * (1 - stride), 1 + 0.016 * breathe * (1 - stride), 1);
       k.inner.rotation.z = c * 0.22;
-      k.body.position.y = 0.24 - c * 0.11 + stride * Math.abs(Math.sin(wob)) * 0.022 - 0.012 * (1 - stride) * (1 - c);
-      k.body.rotation.x = (-0.1 + 0.018 * breathe) * idle + 0.025 * Math.sin(2 * wob) * stride * soft;
+      var gait = m.rare && t >= 38 && t < 39 ? stride * ease(ramp(t, GLOW_STEP_AT, 38.75)) : stride;
+      k.body.position.y = 0.24 - c * 0.11 + gait * Math.abs(Math.sin(wob)) * 0.022 - 0.012 * (1 - stride) * (1 - c);
+      k.body.rotation.x = (-0.1 + 0.018 * breathe) * idle + 0.025 * Math.sin(2 * wob) * gait * soft;
       for (i = 0; i < 4; i++) {
-        k.legs[i].rotation.x = stride * Math.sin(wob + (i === 0 || i === 3 ? 0 : Math.PI)) * 0.65;
-        k.legs[i].scale.y = 1 - c * 0.8;
-        if (i < 2) k.legs[i].position.z = 0.15 + Math.max(0, (i ? 1 : -1) * m.motion.paw) * idle;
+        var leg = k.legs[i];
+        leg.rotation.x = gait * Math.sin(wob + (i === 0 || i === 3 ? 0 : Math.PI)) * 0.65;
+        leg.scale.y = 1 - c * 0.8;
+        if (i < 2) leg.position.z = 0.15 + Math.max(0, (i ? 1 : -1) * m.motion.paw) * idle;
+        if (m.rare) {
+          // Reset all placement owned by the pivot, even when seeking out of it.
+          leg.rotation.z = 0; leg.position.x = i % 2 ? 0.1 : -0.1; leg.position.y = 0.16;
+          if (i >= 2) leg.position.z = -0.15;
+          if (t >= GLOW_STEP_AT && t < 40.2) glowStep(leg, i, m, t, sc);
+        }
       }
       if (m.bat > 0) k.legs[0].rotation.x = -m.bat * (1.1 + 0.3 * Math.sin(t * 5 + k.phase));
       k.head.position.set(c * 0.17, 0.2 - c * 0.2 - m.crouch * 0.09, 0.25 - c * 0.03);
-      k.head.rotation.set(c * 0.45 - m.bat * 0.35, c + (1 - c) * m.motion.yaw * soft, c * 0.3 + idle * m.motion.tilt * soft);
+      k.head.rotation.set(c * 0.45 - m.bat * 0.35, c + (1 - c) * m.motion.yaw * soft + (m.headTurn || 0), c * 0.3 + idle * m.motion.tilt * soft);
       if (k.l2tail) poseTail(k, m, t);
       else { k.tail.rotation.x = -0.75 - c * 0.85; k.tail.rotation.z = c * 0.9 + (1 - c) * Math.sin(t * (m.state === 'play' ? 4 : 2.4) + k.phase) * 0.4 + m.tail * 0.25; }
       for (i = 0; i < k.ears.length; i++) k.ears[i].rotation.z = (i ? m.motion.earR : m.motion.earL) * (1 - 0.8 * c) * soft;

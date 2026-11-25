@@ -11,8 +11,87 @@ const path = require('node:path');
 const { chromium } = require('playwright');
 
 const SITE = path.resolve(__dirname, '../site/healing-game');
+const OUT = path.resolve(__dirname, '../../../output/playwright/l2-cutscene');
 const MIME = { '.html': 'text/html; charset=utf-8', '.mp3': 'audio/mpeg', '.glb': 'model/gltf-binary' };
 const KEY = 'healingGarden.kittens.v1';
+
+// Sample the actual seated rig and the soles of the glow cat's four rendered
+// leg meshes. Advancing the film clock explicitly also works on a slow GPU.
+async function checkStroll(page, reduced) {
+  const { rows, revisits } = await page.evaluate(() => {
+    const cs = __l2Cutscene, island = GardenClip.world.island, actors = [];
+    island.traverse(o => { if (o.l2cat) actors.push(o); });
+    const glow = actors[6], legs = glow.children[0].children.filter(o => o.geometry?.type === 'CylinderGeometry');
+    if (legs.length !== 4) throw Error('Expected four procedural legs on the glow cat');
+    const origin = performance.now(), v = new THREE.Vector3();
+    const sample = () => {
+      const t = cs.time();
+      GardenPlay.update(0, t, .4);
+      island.updateMatrixWorld(true);
+      const inv = island.matrixWorld.clone().invert(), frame = cs.frame().cats;
+      const feet = legs.map(leg => {
+        const matrix = new THREE.Matrix4().multiplyMatrices(inv, leg.matrixWorld), pos = leg.geometry.attributes.position;
+        let low = Infinity, sole = Infinity;
+        for (let j = 0; j < pos.count; j++) {
+          v.fromBufferAttribute(pos, j);
+          sole = Math.min(sole, v.y);
+          low = Math.min(low, v.applyMatrix4(matrix).y);
+        }
+        v.set(0, sole, 0).applyMatrix4(matrix);
+        return [v.x, v.z, low - (glow.position.y - frame[6].y)];
+      });
+      const black = actors[2];
+      return { x: black.position.x, z: black.position.z, yaw: black.rotation.y, head: cs.stage().rig[2].head,
+        seated: frame[2].stand === 0, glowStand: frame[6].stand, feet };
+    };
+    cs.pause();
+    cs.seek(37);
+    let now = origin;
+    const rows = [], revisits = [];
+    Object.defineProperty(performance, 'now', { configurable: true, value: () => now });
+    try {
+      cs.resume();
+      for (let i = 0; i <= 270; i++) { now = origin + i * 1000 / 60; rows.push(sample()); }
+      cs.pause();
+      now += 2000;
+      revisits.push([270, sample()]);
+      for (const i of [54, 132, 22, 107, 189, 23, 103, 270, 22]) {
+        cs.seek(37 + i / 60);
+        revisits.push([i, sample()]);
+      }
+    } finally {
+      delete performance.now;
+      cs.resume();
+    }
+    return { rows, revisits };
+  });
+  fs.mkdirSync(OUT, { recursive: true });
+  fs.writeFileSync(path.join(OUT, reduced ? 'stroll-reduced.json' : 'stroll.json'), JSON.stringify(rows));
+  const degrees = a => a * 180 / Math.PI;
+  const delta = (a, b) => Math.abs(degrees(Math.atan2(Math.sin(b - a), Math.cos(b - a))));
+  const peak = Math.max(...rows.slice(1, 91).map((r, i) => delta(rows[i].yaw, r.yaw)));
+  assert(rows.slice(0, 91).every(r => r.seated && r.x === rows[0].x && r.z === rows[0].z), 'black cat turns on its seat');
+  assert(peak < 4 && delta(rows[0].yaw, rows[90].yaw) > 150, 'full seated turn, below 4 degrees per frame: ' + peak);
+  // Bearing of the head bone's forward (+Z) axis, ignoring its pitch and roll.
+  const headYaw = ([x, y, z, w]) => Math.atan2(2 * (w * y + x * z), 1 - 2 * (x * x + y * y));
+  const headLead = degrees(headYaw(rows[10].head) - headYaw(rows[0].head));
+  assert(headLead > 4 && delta(rows[0].yaw, rows[10].yaw) < 1, 'head turns toward the viewer before the seated chest');
+  assert(rows[96].glowStand > .99, 'glow cat stands before the radius starts closing at 38.6 s');
+  for (const [from, to, support, swing] of [[102, 112, 0, 1], [114, 126, 1, 0]]) {
+    const stance = rows.slice(from, to + 1), [x, z] = stance[0].feet[support];
+    assert(stance.every(r => Math.hypot(r.feet[support][0] - x, r.feet[support][1] - z) < .001 &&
+      Math.abs(r.feet[support][2]) < .006), 'support sole holds its island footprint');
+    assert(Math.max(...stance.map(r => r.feet[swing][2])) > .022, 'opposite sole lifts');
+  }
+  for (const [i, pose] of revisits) {
+    const expected = rows[i];
+    assert(delta(pose.yaw, expected.yaw) < .00001);
+    assert.deepEqual(pose.head, expected.head, 'paused / random seek head @' + i);
+    const feet = expected.feet.flat();
+    assert(pose.feet.flat().every((v, j) => Math.abs(v - feet[j]) < 1e-6), 'paused / random seek soles @' + i);
+  }
+  return { frames: rows.length, peakDegrees: peak, initialHeadYawDegrees: headLead };
+}
 
 (async () => {
   const server = http.createServer((req, res) => {
@@ -27,7 +106,8 @@ const KEY = 'healingGarden.kittens.v1';
   const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || undefined, args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] });
   const report = { errors: [] };
   try {
-    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+    const reduced = process.env.L2_REDUCED_MOTION === '1';
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true, reducedMotion: reduced ? 'reduce' : 'no-preference' });
     const page = await context.newPage();
     page.on('pageerror', e => report.errors.push(e.message));
     await page.route('**/*', r => new URL(r.request().url()).hostname === '127.0.0.1' ? r.continue() : r.abort());
@@ -88,6 +168,9 @@ const KEY = 'healingGarden.kittens.v1';
     assert(score.s.active && score.s.current && score.s.track === '猫团圆舞曲', 'waltz owns the music bus: ' + JSON.stringify(score.s));
     assert(Math.abs(score.s.position - score.t) < 0.45, 'score follows the cutscene clock: ' + JSON.stringify(score));
     assert.equal(await page.locator('#l2csSkip').isVisible(), true, 'skip is reachable');
+    await page.waitForFunction(() => __l2Cutscene.stage().rig[2]);
+    assert.equal(await cs(() => __l2Cutscene.stage().reduced), reduced);
+    report.stroll = await checkStroll(page, reduced);
 
     // seek() moves the score with the picture.
     const seekStart = await cs(() => {
@@ -128,7 +211,7 @@ const KEY = 'healingGarden.kittens.v1';
     assert.equal(await cs(() => __l2Cutscene.stage().staged), false, 'island handed back');
     score = await cs(() => __l2Score.state());
     assert(!score.active && score.track === themeBefore, 'level music returns: ' + JSON.stringify(score));
-    await page.screenshot({ path: path.resolve(__dirname, '../../../output/playwright/l2-cutscene/ingame-card.png') });
+    await page.screenshot({ path: path.join(OUT, 'ingame-card.png') });
 
     // 继续陪玩 keeps the old behaviour and never replays.
     await page.locator('#kitStay').click();
