@@ -1046,7 +1046,7 @@ b81c252c3916192c4319a8dfbbf83e4faeb33ac59f23fe7e945ad511ac62fe9d  art/thunder-sk
 860f3e8f42dc9cda748ea15f35ca8db5883ca07faa17524300df38a007f5db35  art/wild-regions-v286898/provenance.txt
 89c6a1a7fe076b94453c8f311908f11a9c259aa2cd4b7c3c5b88d537301283c2  art/wild-regions-v286898/source/east.png
 86052288970cc6447d8ccc95a146418cb34a4d1cf238216af6931376428b50bc  art/wild-regions-v286898/source/west.png
-513a2fd456cb0634c54e6690cbf2c9daae8464c33bc56f676e21941bf654414c  checksums.sha256
+1cc33445af36de7904a8664f60fb9cb4eeb2c114e4318614efe4d1e7bd512791  checksums.sha256
 8cb5d576d110fb731e312f73aa8fedb8e90093091ea0b760110c540ec2b8668f  docs/absolute-zero-v286835.md
 8c06a2a5ccae1b94c4289697de6bee647b1058d8100f544b4cf7e71caa13a5af  docs/abyss-boss.txt
 0f211c2fba3749b9fb699450859fe2586a79b986cfdc8915085eeb63dfda565a  docs/alchemy-batch.txt
@@ -1366,7 +1366,9 @@ dab2f1446ced6cae1c9369da8f289f8169ef4397f8a334301022416b89744bef  games/healing-
 3363bd40cb4664cf9e5ef3a540f3687886c488dfd02cf8e4e2ce5f8e1d78c4b0  games/healing-game/assets/cats/walk-preview/tabby-walk-75.png
 19a90003e4b3b45c075b4c1da5a81341fddac954397d481e680a6ea3c1a5cb31  games/healing-game/assets/nightvoyage-bgm.mp3
 174c227a31a4e9d4e25a972bce48177c06491dd592d4b3bebcc6e5afec49b6ee  games/healing-game/docs/l1-cutscene-storyboard.md
-7113c861961bbe09a05e0084bf60aa29f6bf1269e4b050f94b26f1b6ed846b37  games/healing-game/docs/l2-cutscene-storyboard.md
+6d4f1fc026d7a6a36d4a54147224819e8327dd7efaa58fa009bdaff802a2a923  games/healing-game/docs/l2-cat-turn-60hz.csv
+1daa7f901790a1c0d95668d91a62b4445f39fcfc38739dd4da6ceb07a2436ef8  games/healing-game/docs/l2-cat-turn-comparison.mp4
+fc3ed27265e8629944453a79693d20deec23aea2c0279876c3472e293ad51070  games/healing-game/docs/l2-cutscene-storyboard.md
 2863768cb390c4736a46ce9163e457108f9f53db8661757db224a272e4853a71  games/healing-game/docs/l3-cutscene-storyboard.md
 5196f54666b5217845a7cb367acc9bc634666f7a6665c8c025a1dec588f4bd0b  games/healing-game/docs/l4-cutscene-storyboard.md
 70c631fd304773518f2dabba36f8a86f0d6ce372d6ecd2e72289fdb24e7555b2  games/healing-game/docs/l5-cutscene-storyboard.md
@@ -1432,7 +1434,7 @@ ff2a9de2850df66f7f897b063b55cdfd94db3aef70e401a7ef225320a6df4b0a  games/healing-
 d0f55d8716b86094820b2a2dde8ec957b8aeb58a6e508ad81fd57b689e044d17  games/healing-game/src/l1-cutscene-music.js
 97b1139100889209182f4b79f966318c15f441286783fb87307d1b66b0dbbd45  games/healing-game/src/l1-cutscene.js
 2fdd3b91065a27ce9cab6eb3e0359224fb3ee37705fc36fbf2ca3af8b5d8310c  games/healing-game/src/l2-cutscene-music.js
-152a700550391b0df8a52af2ede9c380c8d52dc17531c810b8f75f8fc1391392  games/healing-game/src/l2-cutscene.js
+7528ebf7f7f7234622b9dc3ec6086a448cf6c56c623cbe369c3b1520c4d664da  games/healing-game/src/l2-cutscene.js
 97b702e513d9d98c83564369e0619329a39d5ae7b76ae6c6243bdfeda39697bd  games/healing-game/src/l3-cutscene-music.js
 911b7793fed14ab5aa4922485fcccb1f16bbbb2f0f0db9877658e38bc475374f  games/healing-game/src/l3-cutscene.js
 d57ea5ae5b98588147f5aec473b538c8d5c431edcde7f5200105c8e083147b7c  games/healing-game/src/l4-cutscene-music.js
@@ -1483,7 +1485,7 @@ add82925861c443fcb5190ce678bf8f7644d15a4328e9c687260e7490f53c5a2  games/healing-
 4afceffd7211c1969363dd2b6bcffc2d2ddaea606ad4af764e9acc684454cd79  games/healing-game/tests/l1-cutscene-music.cjs
 8cee2f20f0a0239048469a691cd989fb756a652a4bbd13cfb59ba352023127be  games/healing-game/tests/l1-cutscene.cjs
 43cf4074b84a14b6bb341c121bf2e331c45427e0ce532a88a3474babae19b551  games/healing-game/tests/l2-cutscene-browser.cjs
-f2462d0bb4799a8aa96c371f0672a7bf6fa0dfae1571f6e6fe8ee016da4533d9  games/healing-game/tests/l2-cutscene-ingame-browser.cjs
+6a3a8224b138674bea29d18f603d23d903724ac6546cdbb95d51c848cf0937fc  games/healing-game/tests/l2-cutscene-ingame-browser.cjs
 8374c6ac2881c077aa809b90f4c181c836ad789b6ce3d79b0e6a3634420af334  games/healing-game/tests/l2-cutscene-motion-browser.cjs
 050050f98ff20732e9896339694226069cc14f927d65ec84a93be8e31bd619f2  games/healing-game/tests/l2-cutscene.cjs
 a97b267d9b5b84bf3589d8ecba399fc77afeae55d9f80e7fedb22c989bedc0f2  games/healing-game/tests/l3-cutscene-browser.cjs
