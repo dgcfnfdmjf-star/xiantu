@@ -247,3 +247,11 @@ Local validation on 2026-11-14:
   main: model-ready median 2.686 s, range 2.359–2.891 s; after two render frames 3.168 s.
   walk: model-ready median 2.406 s, range 2.262–2.945 s; after two render frames 3.326 s.
   Both versions request exactly 1,143,052 GLB bytes. Timing starts on chapter-two entry, excluding the initial HTML download; overlapping ranges and software rendering do not establish a physical-phone speed improvement. Raw logs/frames remain under ignored `output/playwright/pr81-review/` and `output/playwright/cat-walk/`.
+
+## 黑猫回头与星光猫第一步
+
+37–41.5 秒的对比取自第 20 次抱猫触发的过场。左侧为 `7990767`，右侧为修正后。两侧使用同一镜头、同一浮岛摆动时刻和相同裁切。每秒采样 60 帧。[同镜头对比视频](l2-cat-turn-comparison.mp4) · [271 帧原始读数](l2-cat-turn-60hz.csv)
+
+CSV 的 `black_delta` 是黑猫躯干相对上一帧的有符号转角，`black_head_local` 是头骨前向轴在父节点坐标系中的偏航角，两者单位均为度。星光猫的两组前爪数据分别记录爪底中心的岛面坐标和最低网格顶点相对草地的高度，单位为场景米。38.70–38.87 秒观察局部 −X 侧前爪，38.90–39.10 秒观察另一侧。
+
+运行 `node games/healing-game/tests/l2-cutscene.cjs` 构建工作版，再运行 `node games/healing-game/tests/l2-cutscene-ingame-browser.cjs` 可复测正放、暂停与跳转。设置 `L2_REDUCED_MOTION=1` 可复测减少动效。逐帧记录保存在 `output/playwright/l2-cutscene/`。
